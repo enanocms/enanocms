@@ -37,9 +37,9 @@ $_starttime = microtime_float();
 error_reporting(E_ALL);
 
 // Determine directory (special case for development servers)
-if ( strpos(__FILE__, '/enano-clean/') && file_exists('.enanodev') )
+if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )
 {
-  $filename = str_replace('/enano-clean', '', __FILE__);
+  $filename = str_replace('/repo/', '/', __FILE__);
 }
 else
 {
