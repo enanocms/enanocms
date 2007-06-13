@@ -1,0 +1,255 @@
+/**
+ * Box Art for Enano - make your website look like the old Enano, er, Midget, er, AdvancedArticles?
+ * Designed by Dan Fuhry, (C) 2006
+ * This theme is Free Software; see the file "GPL" included with this package for details.
+ */
+ 
+/* The basics */
+html,body                          { height: 100%; }
+body                               { margin: 0; padding: 0; background: #456798; font-family: trebuchet ms, verdana, arial, helvetica, sans-serif; font-size: 9pt; }
+.holder                            { border: 1px solid #CCCCCC; padding: 1px; background-color: #FFFFFF; color: #444444; }
+div.pad                            { padding: 10px; }                         
+table#enano-master                 { height: 100%; }
+
+/* Sidebar */
+td.mdgSidebarHolder                                      { width: 156px; }
+div.sidebar, .dbx-group                                  { width: 154px; background-color: #456798; padding: 1px 0px 0px 0px; }
+div.sidebar .head, .dbx-handle                           { font-family: trebuchet ms, verdana, Arial, helvetica, sans-serif; font-size: 9pt; cursor: pointer; border-right: 1px solid #95B7E8;border-bottom: 1px solid #95B7E8;border-left: 1px solid #254778;border-top: 1px solid #254778;background-color: #85A7D8;color: #000000; margin: 0px 3px 2px 3px; padding: 3px 3px 5px 3px; text-decoration: none; display: block; }
+div.sidebar .head:hover, .dbx-handle:hover               { font-family: trebuchet ms, verdana, Arial, helvetica, sans-serif; font-size: 9pt; cursor: pointer; border-right: 1px solid #95B7E8;border-bottom: 1px solid #95B7E8;border-left: 1px solid #254778;border-top: 1px solid #254778;background-color: #B5D7FF;color: #000000; margin: 0px 3px 2px 3px; padding: 3px 3px 5px 3px; text-decoration: none; display: block; }
+div.sidebar div.slideblock a      , .dbx-content a       { font-family: trebuchet ms, verdana, Arial, helvetica, sans-serif; font-size: 9pt; cursor: pointer; border: 1px solid #254778;background-color: #7597C8;color: #000000; margin: 0px 3px 2px 7px; padding: 7px 3px 7px 5px; text-decoration: none; display: block; text-align: right; }
+div.sidebar div.slideblock a:hover, .dbx-content a:hover { font-family: trebuchet ms, verdana, Arial, helvetica, sans-serif; font-size: 9pt; cursor: pointer; border: 1px solid #254778;background-color: #A5C7F8;color: #000000; margin: 0px 3px 2px 7px; padding: 7px 3px 7px 5px; text-decoration: none; display: block; text-align: right; }
+div.recttop                                              { width: 156px; height: 12px; margin: 0; padding: 0; }
+td.recttoptop                                            { width: 100%;  height: 12px; background-image: url({SCRIPTPATH}/themes/boxart/images/border-menu-t.gif);   background-repeat: repeat-x;  margin: 0; padding: 0; }
+td.recttoptop:hover                                      { width: 100%;  height: 12px; background-image: url({SCRIPTPATH}/themes/boxart/images/border-menu-t-h.gif); background-repeat: repeat-x;  margin: 0; padding: 0; cursor: pointer; }
+div.rectbot                                              { width: 156px; height: 12px; margin: 0; padding: 0; }  
+td.rectbottop                                            { width: 100%;  height: 12px; background-image: url({SCRIPTPATH}/themes/boxart/images/border-btm.gif); background-repeat: repeat-x;  margin: 0; padding: 0; }
+div.slideblock, .dbx-content                             { overflow: hidden; }
+div.slideblock2, .dbx-content2                           { overflow: hidden; background-color: #456798; margin: 0px 1px 0px 1px; }
+.dbx-handle                                              { cursor: move; }
+/* The credits thingy at the bottom */
+div#credits                        { margin: 0; background-color: #456798; color: #FFF; font-size: 7pt; text-align: right; padding: 3px; }
+div#credits a                      { color: #B5D7F8; text-decoration: none; }
+div#credits a:hover                { color: #D5F7FF; text-decoration: underline; }
+
+/* The link hidden in plain "site" at the top of the page */
+td#mainhead a                      { text-decoration: none; color: #000000; }
+td#mainhead a:hover                { text-decoration: none; color: #000000; border-bottom: 1px dotted #406080; }
+
+#enanomain { background-color: #FFFFFF; color: #000000; }
+
+/* Text, headings, and links inside the main div (usually #ajaxEditContainer but used some other places as well) */
+div.contentDiv h2                  { border-bottom: 1px solid #8E9B80; margin-bottom: 0; }
+div.contentDiv h3                  { font-size: 11pt; font-weight: bold; }
+div.contentDiv li                  { list-style: url({SCRIPTPATH}/themes/boxart/images/bullet.gif); }
+div.contentDiv p                   { margin-left: 1.0em; }
+div.contentDiv blockquote          { background-color: #F4F4F4; border: 1px dotted #406080; margin: 1em; padding: 10px; max-height: 250px; overflow: auto; }
+div.contentDiv                     { font-size: 9pt; padding: 0px 10px 10px 10px; }
+div.contentDiv a                   { color: #254778; text-decoration: none; }
+div.contentDiv a:hover             { color: #7597C8; text-decoration: none; }
+div.contentDiv a[href ^="http://"] { color: #355788; background: url({SCRIPTPATH}/themes/boxart/images/{STYLE_ID}/external.gif) center right no-repeat; padding-right: 16px; }
+div.contentDiv a[href ^="https://"]{ color: #355788; background: url({SCRIPTPATH}/themes/boxart/images/{STYLE_ID}/https.gif) center right no-repeat; padding-right: 16px; }
+div.contentDiv a[href ^="irc://"]  { color: #355788; background: url({SCRIPTPATH}/themes/boxart/images/{STYLE_ID}/irc.gif) center right no-repeat; padding-right: 16px; }
+div.contentDiv a[href ^="mailto:"] { color: #355788; background: url({SCRIPTPATH}/themes/boxart/images/{STYLE_ID}/email.gif) center right no-repeat; padding-right: 16px; }
+div.contentDiv a[href ^="http://"]:hover  { color: #85A7D8; background: url({SCRIPTPATH}/themes/boxart/images/{STYLE_ID}/external.gif) center right no-repeat; padding-right: 16px; }
+div.contentDiv a[href ^="https://"]:hover { color: #85A7D8; background: url({SCRIPTPATH}/themes/boxart/images/{STYLE_ID}/https.gif) center right no-repeat; padding-right: 16px; }
+div.contentDiv a[href ^="mailto:"]:hover  { color: #85A7D8; background: url({SCRIPTPATH}/themes/boxart/images/{STYLE_ID}/email.gif) center right no-repeat; padding-right: 16px; }
+div.contentDiv a[href ^="irc://"]:hover   { color: #85A7D8; background: url({SCRIPTPATH}/themes/boxart/images/{STYLE_ID}/irc.gif) center right no-repeat; padding-right: 16px; }
+
+/* Wikilinks to pages that don't exist */
+div.contentDiv a.wikilink-nonexistent       { color: #B05020; }
+div.contentDiv a.wikilink-nonexistent:hover { color: #D06030; }
+
+/* Well, not Midget and not comments (usually), but that's what the class is called ;-). Basically an informational window or used as a wrapper for tables. */
+.mdg-comment                      { margin-left: 1em; padding: 7px; border: 1px solid #AAAAAA; background-color: #E0E0E0; }
+
+/* The beautiful tables inside what may not obviously be mdg-comment divs */
+.mdg-comment td.row1              { padding: 4px; background-color: #E0E0E0; }
+.mdg-comment td.row2              { padding: 4px; background-color: #F0F0F0; }
+.mdg-comment td.row3              { padding: 4px; background-color: #E8E8E8; }
+.mdg-comment th                   { padding: 4px; background-color: #7080A0; font-weight: bold; text-align: center; color: #FFFFFF; }
+.mdg-comment th.subhead           { padding: 4px; background-color: #90A0B0; font-weight: bold; text-align: center; color: #FFFFFF; }
+.mdg-comment table                { background-color: #FFFFFF; }
+
+/* Same as mdg-comment, but without the cute comment icon. Mostly unused. */
+.mdg-infobox                      { margin-left: 1em; padding: 7px; border: 1px solid #AAAAAA; background-color: #D8DCDD; }
+
+/* The "page tools" bar below the site logo but above the page content * /
+div.pagebar                       { background-color: #85A7D8; margin-top: 0px; padding: 3px; font-size: 7pt; }
+div.pagebar a                     { cursor: pointer; padding: 3px; margin-left: 3px; margin-right: 3px; text-decoration: none; color: #254778; } 
+div.pagebar a:hover               { cursor: pointer; padding: 3px; margin-left: 3px; margin-right: 3px; text-decoration: none; color: #001748; background-color: #A5C7F8; }
+div.pagebar input                 { font-family: Bon Apetit, sans-serif; font-size: 7pt; border: 0; margin: 0px 0px 0px 0px; text-decoration: none; color: #406080; background-color: #E0F0FF; } 
+div.pagebar input:hover           { font-family: Bon Apetit, sans-serif; font-size: 7pt; border: 0; margin: 0px 0px 0px 0px; text-decoration: none; color: #406080; background-color: #D0F0FF; }
+div.pagebar input:focus           { font-family: Bon Apetit, sans-serif; font-size: 7pt; border: 0; margin: 0px 0px 0px 0px; text-decoration: none; color: #406080; background-color: #F0F0FF; }
+
+/* Tweaks for the popup menu version of the same thing * /
+div.pagebar#pagebarpopup          { display: none; position: absolute; width: 150px; padding: 0; }
+div.pagebar#pagebarpopup a        { display: block; margin: 0; }
+
+/*
+ * jBox menu system
+ */
+
+div.menu {
+  background-color: #85A7D8;
+  font-size: 7pt;
+  border-width: 0;
+}
+div.menu a, div.menu div.label {
+  padding: 2.5pt 5px;
+  margin-right: 3px;
+  text-decoration: none;
+  display: block;
+  float: left;
+  color: #254778;
+}
+div.menu div.label {
+  color: #001020;
+  cursor: default;
+}
+div.menu span.sep {
+  display: block;
+  float: left;
+  width: 5px;
+}
+div.menu div.multopts {
+  line-height: 17pt;
+}
+div.menu div.multopts a, div.menu div.multopts div.label {
+  float: none;
+  display: inline;
+}
+div.menu a.liteselected, div.menu a.liteselected:hover, div.menu a:hover {
+  color: #001748;
+  background-color: #A5C7F8;
+}
+div.menu input[type ^="text"], div.menu input[type ^="password"] {
+  border-width: 0;
+  font-size: 9pt;
+  padding: 4px 5px;
+  max-width: 70px;
+  background-color: #D0F0FF;
+}
+div.menu input[type ^="text"]:hover, div.menu input[type ^="password"]:hover {
+  background-color: #E0F0FF;
+}
+div.menu input[type ^="text"]:focus, div.menu input[type ^="password"]:focus {
+  background-color: #F0F0FF;
+}
+div.menu input[type ^="button"], div.menu input[type ^="submit"] {
+  border-width: 0;
+  font-size: 9pt;
+  padding: 3px 5px;
+  max-width: 70px;
+}
+div.menu a.current, div.menu a.current:hover, div.menu a.selected, div.menu a.selected:hover {
+  color: #000040;
+  background-color: #FFFFFF;
+}
+div.menu ul {
+  display: none;
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  background-color: #85A7D8;
+  border-width: 0;
+  min-width: 120px;
+}
+div.menu ul li {
+  list-style: none;
+}
+div.menu ul a {
+  float: none;
+  margin: 0;
+}
+span.menuclear {
+  font-size: 1px;
+  height: 0px;
+  width: 0px;
+  clear: left;
+  line-height: 0px;
+  display: block;
+}
+
+/* Buttons and textboxes - these settings are used almost everywhere */
+input, textarea, select                   { border: 1px solid #406080; background-color: #F2F2F2; padding: 3px; }
+input:hover, textarea:hover, select:hover { border: 1px solid #6080A0; background-color: #F8F8F8; padding: 3px; }
+input:focus, textarea:focus, select:focus { border: 1px solid #90B0D0; background-color: #FFFFFF; padding: 3px; }
+label                                     { padding: 3px; cursor: pointer; }
+label:hover                               { padding: 3px; cursor: pointer; background-color: #F0F0F0; }
+
+/* JWS window theming */
+div.jswindow                      { border: 2px solid #7090B0; border-top: 5px solid #7090B0; padding: 0px; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; display: none; position: absolute; background-color: #FFFFFF; }
+div.titlebar                      { background-color: #7090B0; color: #FFFFFF; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; padding-bottom: 4px; cursor: default; }
+div.titlebar div.closebtn         { width: 16px; height: 16px; border: 1px solid #B0D0F0; background-color: #90B0D0; display: block; }
+div.titlebar div.closebtn:hover   { width: 16px; height: 16px; border: 1px solid #FFFFFF; background-color: #B0D0F0; display: block; }
+div.titlebar table, div.titlebar td { margin: 0; padding: 0; }
+div.jswindow div.content          { padding: 10px; margin: 0; background-color: #FFFFFF; }
+
+/* The Wordpress-like fills behind checkboxes and their labels */
+.catCheck                         { padding: 3px; }
+.catCheck:hover                   { padding: 3px; background-color: #F0F0F0; }
+
+/* Information, warning, question, error, and wait boxes */
+div.error-box                     { background-image: url({SCRIPTPATH}/images/error.png);    background-repeat: no-repeat; background-color: #FFF4F4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.info-box                      { background-image: url({SCRIPTPATH}/images/info.png);     background-repeat: no-repeat; background-color: #F4F4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.warning-box                   { background-image: url({SCRIPTPATH}/images/warning.png);  background-repeat: no-repeat; background-color: #FFFFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.question-box                  { background-image: url({SCRIPTPATH}/images/question.png); background-repeat: no-repeat; background-color: #F4FFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.wait-box                      { background-image: url({SCRIPTPATH}/images/wait.png);     background-repeat: no-repeat; background-color: #FFF4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+
+/* This stuff is mostly unused, left in for compatibility */
+div#ajaxEditContainer table       { border: 0px solid #FFFFFF; }
+div#ajaxEditContainer td          { margin: 1px; }
+/* div#ajaxEditContainer             { overflow: auto; } /* Makes ajaxEditContainer scroll horizontally in firefox if the content is too wide - prevents that ugly clipping effect */
+div#ajaxEditContainer pre         { margin-left: 1em; background-color: #F8F8F8; border: 1px dashed #90B0D0; padding: 10px; overflow: auto; max-height: 150px; }
+
+/*
+ * Docking Boxes code (for the sidebar editor)
+ */
+ 
+/* group container(s) */
+#sbedit {
+  margin: 0;
+  padding: 0;
+  /* position:relative; /* additional outer containers must also have position:relative */
+}
+/* keyboard navigation tooltip */
+.dbx-tooltip {
+  display:block;
+  position:absolute;
+  margin:36px 0 0 125px;
+  width:185px;
+  border:1px solid #000;
+  background:#ffd;
+  color:#000;
+  font:normal normal normal 0.85em tahoma, arial, sans-serif;
+  padding:2px 4px 3px 5px;
+  text-align:left;
+  }
+* html .dbx-tooltip { width:195px; }
+
+/* use CSS2 system colors in CSS2 browsers 
+   but not safari, which doesn't support them */
+*[class="dbx-tooltip"]:lang(en) {
+  border-color:InfoText;
+  background:InfoBackground;
+  color:InfoText;
+  font:small-caption;
+  font-weight:normal;
+  }
+/* additional clone styles */
+.dbx-clone {
+  opacity: 0.8;
+}
+.dbx-content ul {
+  margin: 0; padding: 0; list-style-type: none;
+}
+.dbx-content li a, .dbx-content li a:hover {
+  text-decoration: none; color: #666;
+}
+.dbx-content li, .dbx-content2 li {
+  list-style-type: none;
+}
+.dbx-content2 {
+  background-color: #DDD; margin: 0px 1px 0px 1px;
+}
+

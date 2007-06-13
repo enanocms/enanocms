@@ -1,0 +1,75 @@
+html,body { height: 100%; }
+body { margin: 0; padding: 0; background: #FFFFFF font-family: trebuchet ms, verdana, arial, helvetica, sans-serif; font-size: 9pt; }
+.holder { border: 1px solid #CCCCCC; padding: 1px; background-color: #FFFFFF; color: #444444 }
+div.pad    { padding: 10px; }                         
+table#title  { margin: 0; padding: 0; height: 100px; background-color: #FFFFFF; text-align: center; border: 1px solid #000000; border-bottom: 0px solid #000000; }
+td.mdgSidebarHolder                { width: 0px; }
+div.sidebar                        { display: none; width: 0px; background-color: #F8F8F8; border-left: 1px solid #CCC; border-right: 1px solid #CCC; padding: 1px 0px 0px 0px; }
+div.sidebar .head                  { background-color: #F0F0F0;  display: block; margin: 0px 1px 1px 1px; font-family: Trebuchet MS, Arial, helvetica, sans-serif; font-size: 7pt; cursor: pointer; text-decoration: none; color: #111; padding: 5px; font-weight: bold; }
+div.sidebar .head:hover            { background-color: #F4F4F4;  display: block; margin: 0px 1px 1px 1px; font-family: Trebuchet MS, Arial, helvetica, sans-serif; font-size: 7pt; cursor: pointer; text-decoration: none; color: #111; padding: 5px; font-weight: bold; }
+div.sidebar div.slideblock a       { background-color: #DDD;     display: block; margin: 0px 1px 1px 1px; font-family: Trebuchet MS, Arial, helvetica, sans-serif; font-size: 7pt; cursor: pointer; text-decoration: none; color: #666; padding: 5px 5px 5px 9px; }
+div.sidebar div.slideblock a:hover { background-color: #EEE;     display: block; margin: 0px 1px 1px 1px; font-family: Trebuchet MS, Arial, helvetica, sans-serif; font-size: 7pt; cursor: pointer; text-decoration: none; color: #666; padding: 5px 5px 5px 9px; }
+div.recttop                        { display: none; width: 0px; height: 12px; margin: 0; padding: 0; }
+td.recttoptop                      { width: 100%;  height: 12px; background-image: url({SCRIPTPATH}/themes/oxygen/images/border-menu-t.gif); background-repeat: repeat-x;  margin: 0; padding: 0; }
+div.rectbot                        { display: none; width: 0px; height: 12px; margin: 0; padding: 0; }  
+td.rectbottop                      { width: 100%;  height: 12px; background-image: url({SCRIPTPATH}/themes/oxygen/images/border-btm.gif); background-repeat: repeat-x;  margin: 0; padding: 0; }
+div.slideblock                     { overflow: hidden; }
+div.slideblock2                    { overflow: hidden; background-color: #DDD; margin: 0px 1px 0px 1px; }
+div#credits         { margin: 0; padding: 10px; background-color: #FFFFFF; border: 1px solid #AAA; color: #AAA; font-size: 7pt; }
+div#credits a       { color: #888888; text-decoration: underline; }
+div#credits a:hover { color: #888888; text-decoration: underline; }
+
+div#content h2 { border-bottom: 1px solid #666666; margin-bottom: 0; }
+div#content h3 { font-size: 11pt; font-weight: bold; }
+div#content p  { margin-left: 1.0em; }
+div#content { font-size: 9pt; }
+div#content a       { color: #000000; text-decoration: underline; }
+div#content a:hover { color: #000000; text-decoration: underline; }
+td#mainhead a { text-decoration: none; color: #000000; }
+td#mainhead a:hover { text-decoration: none; color: #000000; border-bottom: 1px dotted #606060; }
+
+div#content a.wikilink-nonexistent       { color: #B05020; }
+div#content a.wikilink-nonexistent:hover { color: #D06030; }
+
+.mdg-comment { margin-left: 1em; padding: 7px; border: 1px solid #AAAAAA; background-color: #E8E8E8; }
+
+div.pagebar                { background-color: #FFFFFF; margin-top: 0px; padding: 3px; font-size: 7pt; border: 1px solid #000000; }
+div.pagebar a              { cursor: pointer; padding: 3px; margin-left: 3px; margin-right: 3px; text-decoration: none; color: #606060; } 
+div.pagebar a:hover        { cursor: pointer; padding: 3px; margin-left: 3px; margin-right: 3px; text-decoration: none; color: #606060; background-color: #E0E0E0; }
+div.pagebar#pagebarpopup   { display: none; position: absolute; width: 150px; padding: 0; }
+div.pagebar#pagebarpopup a { display: block; margin: 0; }
+
+/* Rounded corners on nearly everything */
+td#mdg-tl       { width: 0px; height: 0px; }
+td#mdg-tr       { width: 0px; height: 0px; }
+td#mdg-top      { width: 0px; height: 0px; }
+td#mdg-l        { width: 0px; height: 0px; }
+td#mdg-r        { width: 0px; height: 0px; }
+td#mdg-bl       { width: 0px; height: 0px; }
+td#mdg-br       { width: 0px; height: 0px; }
+td#mdg-ml       { width: 0px; height: 0px; }
+td#mdg-mr       { width: 0px; height: 0px; }
+td#mdg-brl      { width: 0px; height: 0px; }
+td#mdg-brr      { width: 0px; height: 0px; }
+td#mdg-btl      { width: 0px; height: 0px; }
+td#mdg-btr      { width: 0px; height: 0px; }
+td#mdg-btcl     { width: 0px; height: 0px; }
+td#mdg-btcr     { width: 0px; height: 0px; }
+td#mdg-btm      { width: 0px; height: 0px; }
+td#mdg-menu-tl  { width: 0px; height: 0px; }
+td#mdg-menu-tr  { width: 0px; height: 0px; }
+td#mdg-menu-bl  { width: 0px; height: 0px; }
+td#mdg-menu-br  { width: 0px; height: 0px; }
+td#mdg-menu-top { width: 0px; height: 0px; }
+td#mdg-menu-btm { width: 0px; height: 0px; }
+
+input, textarea, select                   { border: 1px solid #606060; background-color: #FFFFFF; padding: 3px; }
+input:hover, textarea:hover, select:hover { border: 1px solid #606060; background-color: #FFFFFF; padding: 3px; }
+input:focus, textarea:focus, select:focus { border: 1px solid #606060; background-color: #FFFFFF; padding: 3px; }
+                         
+div.jswindow { border: 2px solid #7090B0; border-top: 5px solid #7090B0; padding: 0px; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; display: none; position: absolute; background-color: #FFFFFF; }
+div.titlebar { background-color: #7090B0; color: #FFFFFF; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; padding-bottom: 4px; cursor: default; }
+div.titlebar div.closebtn { width: 16px; height: 16px; border: 1px solid #B0D0F0; background-color: #90B0D0; display: block; }
+div.titlebar div.closebtn:hover { width: 16px; height: 16px; border: 1px solid #FFFFFF; background-color: #B0D0F0; display: block; }
+div.titlebar table, div.titlebar td { margin: 0; padding: 0; }
+div.jswindow div.content { padding: 10px; margin: 0; background-color: #FFFFFF; }

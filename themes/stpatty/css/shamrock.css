@@ -1,0 +1,426 @@
+/*
+ * St. Patty theme for Enano
+ * Copyright (C) 2007 Dan Fuhry
+ *
+ * This theme is Free Software, available under the terms of the GNU General Public License. See the file "GPL" included with this
+ * package for details.
+ *
+ * Some ideas - most notably the hatching patterns and floating divs, were taken from Bittersweet <http://templates.arcsin.se/>
+ * No code or graphics were copied.
+ */
+ 
+html,body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+body {
+  background-color: #101d14;
+  background-image: url(../images/bghatching.gif);
+  background-repeat: repeat;
+  font-family: "Lucida Sans Unicode", sans-serif;
+  font-size: 75%;
+}
+div#bg {
+  min-height: 500px;
+  width: 100%;
+  background-image: url(../images/bgfade.png);
+  background-repeat: repeat-x;
+}
+div#rap {
+  width: 760px;
+  padding: 0 10px;
+  margin: 0 auto;
+  background-image: url(../images/rap.png);
+}
+div#title {
+  margin: 0px;
+  padding: 0px;
+  background-color: #6abd2b;
+  background-image: url(../images/header.gif);
+  background-repeat: repeat-x;
+  border-bottom: 1px solid #237000;
+  vertical-align: middle;
+}
+div#title h1 {
+  margin: 0px 10px 10px 10px;
+  padding-top: 30px;
+  text-align: left;
+}
+div#title h2 {
+  margin: 0px 10px 0px 10px;
+  padding-bottom: 40px;
+  text-align: left;
+}
+div#title img#clover {
+  float: right;
+  margin-right: 10px;
+  margin-top: 10px;
+  
+  display: none;
+}
+div.straightaway {
+  clear: both;
+}
+/* Footer */
+div.footer {
+  min-height: 40px;
+  padding: 10px;
+  background-image: url(../images/footer.gif);
+  background-repeat: repeat-x;
+  background-color: #6fba38;
+  color: #FFF;
+}
+div.footer a {
+  color: #B3FF78;
+}
+
+/* Content area */
+div#maincontent {
+  padding: 10px;
+  padding-right: 150px;
+}
+img#ajaxloadicon {
+  margin-top: 10px;
+}
+div#maincontent h2 {
+  color: #53a018;
+  margin: 10px 0;
+  padding: 0;
+  font-size: 16pt;
+}
+div#maincontent p {
+  margin-left: 1em;
+}
+div#maincontent h2#pagetitle {
+  margin: 0;
+  border-bottom: 1px solid #73c038;
+  font-size: 18pt;
+  color: #000000;
+}
+div#maincontent a:link, div#maincontent a:visited {
+  color: #237000;
+  text-decoration: none;
+}
+div#maincontent a:hover {
+  color: #033000;
+  border-bottom: 1px dotted #033000;
+}
+div#maincontent a.wikilink-nonexistent {
+  color: #AA0000;
+}
+div#maincontent a.wikilink-nonexistent:hover {
+  color: #BA2000;
+}
+div#maincontent ul {
+  list-style: square;
+}
+/* Sidebar */
+div#sidebar, div.dbx-box {
+  float: right;
+  width: 135px;
+}
+div#sidebar h4, div.dbx-handle {
+  margin: 0;
+  padding: 0 5px;
+  line-height: 25px;
+  color: #FFF;
+  background-color: #104715;
+  border-bottom: 1px solid #93e058;
+  font-weight: normal;
+  text-align: right;
+  text-transform: lowercase;
+}
+div.dbx-handle {
+  text-align: left;
+  cursor: move;
+}
+div#sidebar ul, .dbx-content ul {
+  margin: 0;
+  padding: 0;
+  list-style: none !important;
+}
+div#sidebar ul li, div.dbx-content ul li {
+  padding: 0;
+}
+div#sidebar ul li a, div.dbx-content ul li a {
+  line-height: 25px;
+  padding: 0 7px;
+  text-decoration: none;
+  color: #000;
+  background-color: #60A745;
+  display: block;
+  border-bottom: 1px solid #93e058;
+}
+div#sidebar ul li a:hover, div.dbx-content ul li a:hover {
+  background-color: #70B755;
+}
+div#sidebar div, div.dbx-content2 {
+  background-color: #60A745;
+  border-bottom: 1px solid #93e058;
+  width: 135px;
+ /* padding: 3px; */
+}
+div#sidebar div ul {
+  margin-left: 2em;
+  list-style: square;
+}
+div#sidebar div ul a {
+  background-color: transparent;
+  display: inline;
+  border-bottom-width: 0px;
+  padding: 0;
+  color: #134000;
+}
+div#sidebar div ul a:hover {
+  background-color: transparent;
+  display: inline;
+  color: #033000;
+  border-bottom: 1px dotted #033000;
+}
+div#maincontent div.dbx-box a {
+  color: #000000;
+}
+div#sidebar div div {
+  background: transparent;
+  border-bottom-width: 0;
+  padding: 0;
+}
+/* Page toolbar */
+/*
+div.pagetools {
+  background-color: #93e058;
+  line-height: 20px;
+  font-size: 75%;
+  padding: 0 5px;
+}
+div.pagetools a {
+  text-decoration: none;
+  padding: 3px;
+  color: #235000;
+}
+div.pagetools a:hover {
+  background-color: #A3F068;
+  height: 20px;
+}
+div.pagetools a.selected {
+  font-weight: bold;
+  background-color: #f4fff7;
+}
+div.pagetools#pagebarpopup {
+  display: none;
+  position: absolute;
+  width: 150px;
+  padding: 0;
+  overflow: hidden;
+}
+div.pagetools#pagebarpopup a {
+  display: block;
+}
+*/
+
+/*
+ * jBox menu system
+ */
+
+div.menu {
+  background-color: #93e058;
+  font-size: 7pt;
+  border-width: 0;
+}
+div.menu a, div.menu div.label {
+  padding: 2.5pt 5px;
+  margin-right: 3px;
+  text-decoration: none;
+  display: block;
+  float: left;
+  color: #235000;
+  border-bottom-width: 0 !important;
+}
+div.menu div.label {
+  color: #002010;
+  cursor: default;
+}
+div.menu span.sep {
+  display: block;
+  float: left;
+  width: 5px;
+}
+div.menu div.multopts {
+  line-height: 17pt;
+}
+div.menu div.multopts a, div.menu div.multopts div.label {
+  float: none;
+  display: inline;
+}
+div.menu a.liteselected, div.menu a.liteselected:hover, div.menu a:hover {
+  color: #235000;
+  background-color: #A3F068;
+}
+div.menu input[type ^="text"], div.menu input[type ^="password"] {
+  border-width: 0;
+  font-size: 9pt;
+  padding: 4px 5px;
+  max-width: 70px;
+  background-color: #A3F068;
+}
+div.menu input[type ^="text"]:hover, div.menu input[type ^="password"]:hover {
+  background-color: #AAF870;
+}
+div.menu input[type ^="text"]:focus, div.menu input[type ^="password"]:focus {
+  background-color: #B3FF78;
+}
+div.menu input[type ^="button"], div.menu input[type ^="submit"] {
+  border-width: 0;
+  font-size: 9pt;
+  padding: 3px 5px;
+  max-width: 70px;
+}
+div.menu a.current, div.menu a.current:hover, div.menu a.selected, div.menu a.selected:hover {
+  color: #000040;
+  background-color: #f4fff7;
+  font-weight: bold;
+}
+div.menu ul {
+  display: none;
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  background-color: #93e058;
+  border-width: 0;
+  min-width: 120px;
+}
+div.menu ul li {
+  list-style: none;
+}
+div.menu ul a {
+  float: none;
+  margin: 0;
+}
+span.menuclear {
+  font-size: 1px;
+  height: 0px;
+  width: 0px;
+  clear: left;
+  line-height: 0px;
+  display: block;
+}
+
+/* Other Enano-related stuff */
+
+/* Tables */
+.tblholder                        { margin: 10px 0 0 0; padding: 0; border: 1px solid #AAAAAA; background-color: #E8E8E8; }
+div.tblholder td.row1             { padding: 4px; background-color: #E0E0E0; }
+div.tblholder td.row2             { padding: 4px; background-color: #F0F0F0; }
+div.tblholder td.row3             { padding: 4px; background-color: #E8E8E8; }
+div.tblholder th                  { padding: 4px; background-color: #73c038; font-weight: bold; text-align: center; color: #FFFFFF; }
+div.tblholder th.subhead          { padding: 4px; background-color: #93e058; font-weight: bold; text-align: center; color: #FFFFFF; }
+div.tblholder table               { background-color: #FFFFFF; width: 100%; }
+
+/* JWS window theming */
+div.jswindow                      { border: 2px solid #7090B0; border-top: 5px solid #7090B0; padding: 0px; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; display: none; position: absolute; background-color: #FFFFFF; }
+div.titlebar                      { background-color: #7090B0; color: #FFFFFF; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; padding-bottom: 4px; cursor: default; }
+div.titlebar div.closebtn         { width: 16px; height: 16px; border: 1px solid #B0D0F0; background-color: #90B0D0; display: block; }
+div.titlebar div.closebtn:hover   { width: 16px; height: 16px; border: 1px solid #FFFFFF; background-color: #B0D0F0; display: block; }
+div.titlebar table, div.titlebar td { margin: 0; padding: 0; }
+div.jswindow div.content          { padding: 10px; margin: 0; background-color: #FFFFFF; }
+
+/* The Wordpress-like fills behind checkboxes and their labels */
+.catCheck                         { padding: 3px; }
+.catCheck:hover                   { padding: 3px; background-color: #F0F0F0; }
+
+/* Information, warning, question, error, and wait boxes */
+div.error-box                     { background-image: url(../../../images/error.png);    background-repeat: no-repeat; background-color: #FFF4F4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.info-box                      { background-image: url(../../../images/info.png);     background-repeat: no-repeat; background-color: #F4F4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.warning-box                   { background-image: url(../../../images/warning.png);  background-repeat: no-repeat; background-color: #FFFFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.question-box                  { background-image: url(../../../images/question.png); background-repeat: no-repeat; background-color: #F4FFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.wait-box                      { background-image: url(../../../images/wait.png);     background-repeat: no-repeat; background-color: #FFF4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+
+/* Tables where diffs are shown */
+table.diff, td.diff-otitle, td.diff-ntitle { background-color: white; }
+td.diff-addedline { background: #cfc; font-size: smaller; }
+td.diff-deletedline { background: #ffa; font-size: smaller; }
+td.diff-context { background: #eee; font-size: smaller; }
+span.diffchange { color: red; font-weight: bold; }
+
+/* Bordered boxes */
+blockquote, .mdg-comment, .mdg-infobox {
+	background: #FFF;
+	border-bottom: 1px solid #EEE;
+	border-top: 1px solid #EEE;
+	color: #333;
+	display: block;
+	margin-bottom: 1.2em;
+	padding: 6px 12px;
+}
+
+/*
+ * Docking Boxes code (for the sidebar editor)
+ */
+ 
+/* group container(s) */
+#sbedit {
+  margin: 0;
+  padding: 0;
+  /* position:relative; /* additional outer containers must also have position:relative */
+}
+/* keyboard navigation tooltip */
+.dbx-tooltip {
+  display:block;
+  position:absolute;
+  margin:36px 0 0 125px;
+  width:185px;
+  border:1px solid #000;
+  background:#ffd;
+  color:#000;
+  font:normal normal normal 0.85em tahoma, arial, sans-serif;
+  padding:2px 4px 3px 5px;
+  text-align:left;
+  }
+* html .dbx-tooltip { width:195px; }
+
+/* use CSS2 system colors in CSS2 browsers 
+   but not safari, which doesn't support them */
+*[class="dbx-tooltip"]:lang(en) {
+  border-color:InfoText;
+  background:InfoBackground;
+  color:InfoText;
+  font:small-caption;
+  font-weight:normal;
+  }
+/* additional clone styles */
+.dbx-clone {
+  opacity: 0.8;
+}
+.dbx-content ul {
+  margin: 0; padding: 0;
+  list-style: none;
+}
+.dbx-content li a, .dbx-content li a:hover {
+  text-decoration: none;
+}
+.dbx-content2 {
+  margin: 0px 1px 0px 1px;
+}
+
+/* inputs */
+input {
+	color: #555;
+	font: normal 1.1em "Lucida Sans Unicode",sans-serif;
+}
+
+input, select, textarea {
+  background-color: #539018;
+  color: #FFF;
+  padding: 2px;
+  border: 1px solid #EEE;
+}
+
+input:hover {
+  background-color: #73b038;
+}
+
+input:active {
+  background-color: #83c048;
+}
+

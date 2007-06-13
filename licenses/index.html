@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml111.dtd">
+<html>
+<head>
+<title>Enano third-party libraries</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #FFFFFF;
+  color: #000000;
+}
+body div.main {
+  border: 1px solid #cccccc;
+  background-color: #F1F3F5;
+  margin: 10px;
+  padding: 10px;
+}
+* {
+ font-family: verdana, tahoma, arial, helvetica, sans-serif;
+ font-size: 8pt;
+}
+p {
+  margin-left: 1.5em;
+}
+h1, h2, h3 {
+  color: #50A0D0;
+  font-weight: normal;
+  font-family: 'trebuchet ms', verdana, tahoma, arial, helvetica, sans-serif;
+}
+h1 {
+  font-size: 16pt;
+}
+h2 {
+  font-size: 12pt;
+  margin-left: 0.5em;
+}
+h3 {
+  font-size: 10pt;
+  margin-left: 1em;
+}
+a:link, a:visited, a:active {
+  color: #3080B0;
+  text-decoration: none;
+  border-bottom: 1px dotted #50A0D0;
+}
+a:hover {
+  color: #50A0D0;
+  border-bottom: 1px solid #50A0D0;
+}
+pre {
+  font-family: 'courier new', monospace;
+  background-color: #F8F8F8;
+  margin: 10px 10px 10px 30px;
+  max-height: 150px;
+  clip: rect(0px,auto,auto,0px);
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid #3060B0;
+}
+ul li {
+  list-style-type: square;
+}
+div.copyright {
+  text-align: right;
+  font-size: smaller;
+}
+div.copyright * {
+  font-size: smaller;
+}
+</style>
+</head>
+<body>
+
+<div class="main">
+
+<h1>OK, so I didn't write all of Enano's code.</h1>
+<p>Enano relies on some third-party libraries for some of its functionality. Not all of these libraries are licensed under the same terms as Enano; a list of third-party libraries is available below, sorted by which license the library is under.</p>
+
+<h2>GNU General Public License</h2>
+<p><a href="gpl.html">View the text of this license</a></p>
+<ul>
+  <li><a href="http://phpwiki.sourceforge.net/">phpWiki</a> - just the diff engine, which is also used in MediaWiki</li>
+  <li><a href="http://www.mediawiki.org/">MediaWiki</a>'s table parsing engine (the Text_Wiki one doesn't work in PHP 5.2.0)</li>
+  <li>One of the CAPTCHA easter eggs was ported from the phpBB <a href="http://phpbbhacks.com/download/6276">Advanced Visual Confirmation Mod</a>. The strange thing here is this: The installation instructions expressly state that the MOD is distributed under the GPL, but immediately afterwards it says that the MOD "can be freely used, but not distributed, without permission." Sorry buddy, but I'm with the FSF on this one, I'm legally allowed to distribute/modify it under the GPL.
+  <li>The <a href="http://www.jracademy.com/~jtucek/">e-mail address encryption</a> routine was originally written by Jim Tucek, and ported to PHP by Dan Fuhry. Jim allowed the code to be released under the GPL specifically for Enano.</li>
+</ul>
+
+<h2>GNU Lesser General Public License</h2>
+<p><a href="lgpl.html">View the text of this license</a></p>
+<ul>
+  <li><a href="http://wiki.ciaweb.net/yawiki/index.php?area=Text_Wiki">Text_Wiki</a>, the wiki-formatting parser</li>
+  <li><a href="http://www.debugconsole.de/">debugConsole</a></li>
+</ul>
+
+<h2>Creative Commons Licenses</h2>
+<p>View text: <a href="cc-by-2.0.html">Attribution 2.0</a> [<a href="http://creativecommons.org/licenses/by/2.0/">deed</a>]</p>
+<ul>
+  <li><a href="http://boring.youngpup.net/">youngpup</a>'s DOM-Drag class</li>
+</ul>
+
+<h2>The PHP License</h2>
+<p><a href="phplic.html">View the text of this license</a></p>
+<ul>
+  <li><a href="http://www.phpclasses.org/browse/package/1567.html">BarGraph</a> for PHP</li>
+</ul>
+
+<h2>The BSD License</h2>
+<p><a href="bsdlic.html">View the text of this license</a></p>
+<ul>
+  <li><a href="http://pajhome.org.uk/">Paul Johnston</a>'s implementations of the MD5 and SHA1 algorithms in Javascript</li>
+</ul>
+
+<h2>The MIT/X License</h2>
+<p><a href="mitlic.html">View the text of this license</a></p>
+<ul>
+  <li><a href="http://www.3site.it/">FastJSON</a> - a JSON encoder/decoder. Copyright &copy; 2006 - 2007 Andrea Giammarchi.</li>
+</ul>
+
+<h2>Unknown license</h2>
+<p>For the following libraries, the license was either not formally stated or could not be found.</p>
+<ul>
+  <li><a href="http://www.thecodebehind.com/code/slide-in-slide-out-ala-digg.aspx">Slide-in-slide-out, ala Digg</a> - used for the collapsible sidebar headings in the Oxygen theme. The original author says the code may be used "for whatever you want."</li>
+  <li><a href="http://szewo.com/php/graph">Graph Generator for PHP</a> - only used when the GD-based graph generator won't work (e.g. no GD support)</li>
+  <li><a href="http://www.softcomplex.com/products/tigra_tree_menu/">Tigra Tree Menu</a> - a modified version that remembers the state of the tree. The license terms are stated <a href="http://www.softcomplex.com/products/tigra_tree_menu/docs/#terms_cond">here</a>. I believe that these terms are GPL-compatible, at least to a point where the code can be used in GPL-licensed programs. If you believe this is not the case then please <a href="http://enano.homelinux.org/Contact_us">contact me</a>.</li>
+</ul>
+
+<div class="copyright">valid <a href="http://validator.w3.org/check/referer">xhtml</a> and <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">css</a>&nbsp;&nbsp;|&nbsp;&nbsp;design by <a href="http://enano.homelinux.org/User:dandaman32">dan fuhry</a> and <a href="http://www.fusionnerd.com/">manoj maddali</a></div>
+
+</div>
+
+</body>
+</html>

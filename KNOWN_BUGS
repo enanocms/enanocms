@@ -1,0 +1,75 @@
+Enano 1.0RC2 - Known Issues and Bugs
+---------------------------------------------------------------------
+
+In the Javascripted Access Control List editor, the text "on this
+page" appears at the top of the editor window, even if the user
+selected that the rule affect the entire site. This does not affect
+the behavior of the rule; it will still affect the entire site. This
+bug has been fixed in upstream.
+
+The Javascripted ACL editor currently is not supported in Internet
+Explorer. The safe (non-JS) version of the editor is used instead.
+There is no planned fix for this, the workaround is to use Firefox.
+
+On seemingly random occasions, the "more options" menu on some pages
+does not show when the mouse is hovered over it. The only known
+workaround at this point is to reload the page. The bug seems to be
+more prevalent on Windows systems.
+
+The RenderMan class is in a state of transition - the wikiFormat
+method is unchanged but a new next_gen_wiki_format method has been
+added. The new method is parameter-incompatible with the old
+wikiFormat, so developers should continue to use wikiFormat for the
+time being. This transition will be finalized in Banshee.
+
+The Moderators group never got included in the schema. Whoops...
+To create it just create a group as normal in the admin panel and
+MAKE SURE IT HAS group_id 3! If it doesn't then do a manual SQL
+query to set it to group_id 3. This will be fixed in the gold
+release for sure.
+
+The search box is visually distorted. The cause of this is not known.
+
+The Links sidebar block is empty by default. Want to contribute some
+filler HTML that doesn't suck? Be my guest!
+
+The files table is borked. I don't know how or why, but somehow the
+updated structure apparently didn't make it into RC1 OR RC2. This
+applies ONLY to installations, and not upgrades. Fixed in 1.0.
+
+It is possible to inject PHP into pages by using the <?php and ?>
+tags as normal, even when not logged in.
+
+OK, I was only KIDDING on that last one.
+
+
+Enano 1.0RC1 - Known Issues and Bugs
+---------------------------------------------------------------------
+
+First and foremost, changing a user's password, either from the
+preferences page or the admin panel, DOES NOT work. The password
+reset feature is working properly. A fix for this issue will be
+included in RC2 (Clurichaun).
+
+The Javascripted ACL editor currently is not supported in Internet
+Explorer. The safe (non-JS) version of the editor is used instead.
+
+Uploaded files are checked based on their extension, not with a
+MIME magic file like they used to be. Depending on what kind of
+feedback I get, I can re-enable FileInfo support. Much of the code
+is already there, just commented out.
+
+Setting up Enano on servers running IIS is currently very difficult,
+but it is doable. Make sure that you use a newer version of PHP (5.x)
+because PHP4 has some issues with the MySQL client library.
+
+Reverting file creation doesn't work. Need to rewrite rollback code
+for the files table.
+
+There's more. I can't think of it right now, but the bugs are there.
+If you find anything, please report it on
+http://bugzilla.enanocms.org.
+
+(Note - the bug tracker itself is still being set up, so that might
+not work either)
+

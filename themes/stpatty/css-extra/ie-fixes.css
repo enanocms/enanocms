@@ -1,0 +1,23 @@
+/*
+ * St. Patty theme for Enano
+ * Copyright (C) 2007 Dan Fuhry
+ *
+ * This theme is Free Software, available under the terms of the GNU General Public License. See the file "GPL" included with this
+ * package for details.
+ */
+ 
+div#bg {
+  background-image: none;
+}
+div#title {
+  background-image: none;
+}
+div#rap {
+  background-image: url(../images/rap-ie.gif);
+}
+div#sidebar ul li a {
+  margin-bottom: -14px;
+}
+div#pagetools a {
+  padding: 4px 3px;
+}

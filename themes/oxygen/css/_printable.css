@@ -1,0 +1,131 @@
+/**
+ * The original Oxygen theme for Enano
+ * Designed by Dan Fuhry, (C) 2006
+ * This theme is Free Software; see the file "GPL" included with this package for details.
+ */
+ 
+/* The basics */
+html,body                          { height: 100%; }
+body                               { margin: 0; padding: 0; background-color: #FFFFFF; font-family: trebuchet ms, verdana, arial, helvetica, sans-serif; font-size: 9pt; }
+.holder                            { border: 1px solid #CCCCCC; padding: 1px; background-color: #FFFFFF; color: #444444 }
+div.pad                            { padding: 10px; }                         
+table#title                        { margin: 0; padding: 0; height: 100px; background-color: #FFFFFF; text-align: center; border: 1px solid #000000; }
+
+/* Sidebar */
+td.mdgSidebarHolder                { width: 0px; }
+div.sidebar                        { display: none; }
+div.recttop, div.rectbot           { display: none; }
+
+/* The credits thingy at the bottom */
+div#credits                        { margin: 0; padding: 10px; background-color: #FFFFFF; color: #AAA; font-size: 7pt; border: 1px solid #000000; }
+div#credits a                      { color: #B0B0B0; text-decoration: underline; }
+div#credits a:hover                { color: #A0A0A0; text-decoration: underline; }
+
+/* The link hidden in plain "site" at the top of the page */
+td#mainhead a                      { text-decoration: none; color: #000000; }
+td#mainhead a:hover                { text-decoration: none; color: #000000; border-bottom: 1px dotted #406080; }
+
+/* Text, headings, and links inside the main div (usually #ajaxEditContainer but used some other places as well) */
+div.contentDiv h2                  { border-bottom: 1px solid #AAAAAA; margin-bottom: 0; }
+div.contentDiv h3                  { font-size: 11pt; font-weight: bold; }
+div.contentDiv li                  { list-style: square; }
+div.contentDiv p                   { margin-left: 1.0em; }
+div.contentDiv blockquote          { background-color: #F4F4F4; border: 1px dotted #406080; margin: 1em; padding: 10px; max-height: 250px; overflow: auto; }
+div.contentDiv                     { font-size: 9pt; }
+div.contentDiv a                   { color: #909090; }
+div.contentDiv a:hover             { color: #B0B0B0; }
+div.contentDiv a[href ^="http://"]        { color: #A0A0A0; }
+div.contentDiv a[href ^="https://"]       { color: #A0A0A0; }
+div.contentDiv a[href ^="irc://"]         { color: #A0A0A0; }
+div.contentDiv a[href ^="mailto:"]        { color: #A0A0A0; }
+div.contentDiv a[href ^="http://"]:hover  { color: #C0C0C0; }
+div.contentDiv a[href ^="https://"]:hover { color: #C0C0C0; }
+div.contentDiv a[href ^="mailto:"]:hover  { color: #C0C0C0; }
+div.contentDiv a[href ^="irc://"]:hover   { color: #C0C0C0; }
+
+/* Wikilinks to pages that don't exist
+div.contentDiv a.wikilink-nonexistent       { color: #B05020; }
+div.contentDiv a.wikilink-nonexistent:hover { color: #D06030; } */
+
+/* Well, not Midget and not comments (usually), but that's what the class is called ;-). Basically an informational window or used as a wrapper for tables. */
+.mdg-comment                      { margin-left: 1em; padding: 7px; border: 1px solid #AAAAAA; background-color: #E8E8E8; }
+
+/* The beautiful tables inside what may not obviously be mdg-comment divs */
+.mdg-comment td.row1              { padding: 4px; background-color: #FFFFFF; margin: 1px; border: 1px solid #CCCCCC; }
+.mdg-comment td.row2              { padding: 4px; background-color: #FFFFFF; margin: 1px; border: 1px solid #CCCCCC; }
+.mdg-comment td.row3              { padding: 4px; background-color: #FFFFFF; margin: 1px; border: 1px solid #CCCCCC; }
+.mdg-comment th                   { padding: 4px; background-color: #FFFFFF; margin: 1px; border: 1px solid #CCCCCC; font-weight: bold; text-align: center; }
+.mdg-comment th.subhead           { padding: 4px; background-color: #FFFFFF; margin: 1px; border: 1px solid #CCCCCC; font-weight: bold; text-align: center; }
+.mdg-comment table                { background-color: #FFFFFF; }
+
+/* Same as mdg-comment, but without the cute comment icon. Mostly unused. */
+.mdg-infobox                      { margin-left: 1em; padding: 7px; border: 1px solid #AAAAAA; background-color: #E8E8E8; }
+
+/* The "page tools" bar below the site logo but above the page content */
+div.pagebar                       { background-color: #FFFFFF; margin-top: 0px; padding: 3px; font-size: 7pt; border: 1px solid #000000; border-top: none; }
+div.pagebar a                     { cursor: pointer; padding: 3px; margin-left: 3px; margin-right: 3px; text-decoration: none; color: #606060; } 
+div.pagebar a:hover               { cursor: pointer; padding: 3px; margin-left: 3px; margin-right: 3px; text-decoration: none; color: #606060; background-color: #F0F0F0; }
+div.pagebar input                 { font-family: Bon Apetit, sans-serif; font-size: 7pt; border: 0; margin: 0px 0px 0px 0px; text-decoration: none; color: #406080; background-color: #E8E8E8; } 
+div.pagebar input:hover           { font-family: Bon Apetit, sans-serif; font-size: 7pt; border: 0; margin: 0px 0px 0px 0px; text-decoration: none; color: #406080; background-color: #F0F0F0; }
+div.pagebar input:focus           { font-family: Bon Apetit, sans-serif; font-size: 7pt; border: 0; margin: 0px 0px 0px 0px; text-decoration: none; color: #406080; background-color: #F8F8F8; }
+
+/* Tweaks for the popup menu version of the same thing */
+div.pagebar#pagebarpopup                             { display: none; position: absolute; width: 150px; padding: 0; }
+div.pagebar#pagebarpopup a, div#pagebarpopup2 a      { display: block; margin: 0; }
+
+/* Rounded corners on nearly everything */
+td#mdg-tl                         { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-tr                         { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-top                        { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-l                          { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-r                          { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-bl                         { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-br                         { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-ml                         { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-mr                         { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-brl                        { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-brr                        { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-btl                        { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-btr                        { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-btcl                       { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-btcr                       { margin: 0; padding: 0; width: 0; height: 0; }
+td#mdg-btm                        { margin: 0; padding: 0; width: 0; height: 0; }
+td.mdg-menu-top                   { margin: 0; padding: 0; width: 0; height: 0; }
+td.mdg-menu-tl                    { margin: 0; padding: 0; width: 0; height: 0; }
+td.mdg-menu-tr                    { margin: 0; padding: 0; width: 0; height: 0; }
+td.mdg-menu-bl                    { margin: 0; padding: 0; width: 0; height: 0; }
+td.mdg-menu-br                    { margin: 0; padding: 0; width: 0; height: 0; }
+td.mdg-menu-btm                   { margin: 0; padding: 0; width: 0; height: 0; }
+
+/* Buttons and textboxes - these settings are used almost everywhere */
+input, textarea, select                   { border: 1px solid #406080; background-color: #F2F2F2; padding: 3px; }
+input:hover, textarea:hover, select:hover { border: 1px solid #6080A0; background-color: #F8F8F8; padding: 3px; }
+input:focus, textarea:focus, select:focus { border: 1px solid #90B0D0; background-color: #FFFFFF; padding: 3px; }
+label                                     { padding: 3px; cursor: pointer; }
+label:hover                               { padding: 3px; cursor: pointer; background-color: #F0F0F0; }
+
+/* JWS window theming */
+div.jswindow                      { border: 2px solid #7090B0; border-top: 5px solid #7090B0; padding: 0px; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; display: none; position: absolute; background-color: #FFFFFF; }
+div.titlebar                      { background-color: #7090B0; color: #FFFFFF; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; padding-bottom: 4px; cursor: default; }
+div.titlebar div.closebtn         { width: 16px; height: 16px; border: 1px solid #B0D0F0; background-color: #90B0D0; display: block; }
+div.titlebar div.closebtn:hover   { width: 16px; height: 16px; border: 1px solid #FFFFFF; background-color: #B0D0F0; display: block; }
+div.titlebar table, div.titlebar td { margin: 0; padding: 0; }
+div.jswindow div.content          { padding: 10px; margin: 0; background-color: #FFFFFF; }
+
+/* The Wordpress-like fills behind checkboxes and their labels */
+.catCheck                         { padding: 3px; }
+.catCheck:hover                   { padding: 3px; background-color: #F0F0F0; }
+
+/* Information, warning, question, error, and wait boxes */
+div.error-box                     { background-color: #F0F0F0; border: 1px dashed #606060; padding: 10px; margin: 1em 0 0 1em; min-height: 25px; }
+div.info-box                      { background-color: #F0F0F0; border: 1px dashed #606060; padding: 10px; margin: 1em 0 0 1em; min-height: 25px; }
+div.warning-box                   { background-color: #F0F0F0; border: 1px dashed #606060; padding: 10px; margin: 1em 0 0 1em; min-height: 25px; }
+div.question-box                  { background-color: #F0F0F0; border: 1px dashed #606060; padding: 10px; margin: 1em 0 0 1em; min-height: 25px; }
+div.wait-box                      { background-color: #F0F0F0; border: 1px dashed #606060; padding: 10px; margin: 1em 0 0 1em; min-height: 25px; }
+
+/* This stuff is mostly unused, left in for compatibility */
+div#ajaxEditContainer table       { border: 0px solid #FFFFFF; }
+div#ajaxEditContainer td          { margin: 1px; }
+/* div#ajaxEditContainer             { overflow: auto; } /* Makes ajaxEditContainer scroll horizontally in firefox if the content is too wide - prevents that ugly clipping effect */
+div#ajaxEditContainer pre         { margin-left: 1em; background-color: #F8F8F8; border: 1px dashed #90B0D0; padding: 10px; overflow: auto; max-height: 150px; }
+
