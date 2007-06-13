@@ -13,6 +13,7 @@
  */
  
   // Set up gzip encoding before any output is sent
+  // Another test code change
   
   $aggressive_optimize_html = true;
   
