@@ -1,0 +1,34 @@
+/****************************************************************
+  Docking Boxes core CSS: YOU MUST NOT CHANGE OR OVERRIDE THESE 
+*****************************************************************/
+.dbx-clone {
+	position:absolute;
+	visibility:hidden;
+	}
+.dbx-clone, .dbx-clone .dbx-handle-cursor {
+	cursor:move !important;
+	}
+.dbx-dummy {
+	display:block;
+	width:0;
+	height:0;
+	overflow:hidden;
+	}
+.dbx-group, .dbx-box, .dbx-handle {
+	position:relative;
+	display:block;
+	}
+
+
+
+/****************************************************************
+  avoid padding, margins or borders on dbx-box, 
+  to reduce visual discrepancies between it and the clone.  
+  overall, dbx-box is best left as visually unstyled as possible 
+*****************************************************************/
+.dbx-box {
+	margin:0;
+	padding:0;
+	border:none;
+	}
+
