@@ -194,8 +194,8 @@ class PageProcessor
       {
         $this->err_page_not_existent();
       }
-      
     }
+    
     
   }
   
@@ -222,7 +222,7 @@ class PageProcessor
     }
     
     // Does the page "exist"?
-    if ( $paths->cpage['urlname_nons'] == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace == 'Admin' && !function_exists($fname) ) )
+    if ( $paths->cpage['urlname_nons'] == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
     {
       $this->page_exists = false;
     }
