@@ -36,8 +36,18 @@ $_starttime = microtime_float();
 
 error_reporting(E_ALL);
 
+// Determine directory (special case for development servers)
+if ( strpos(__FILE__, '/enano-clean/') && file_exists('.enanodev') )
+{
+  $filename = str_replace('/enano-clean', '', __FILE__);
+}
+else
+{
+  $filename = __FILE__;
+}
+
 if(!defined('ENANO_ROOT')) // ENANO_ROOT is sometimes defined by plugins like AjIM that need the constant before the Enano API is initialized
-  define('ENANO_ROOT', dirname(dirname(__FILE__)));
+  define('ENANO_ROOT', dirname(dirname($filename)));
 
 if(defined('ENANO_DEBUG') && version_compare(PHP_VERSION, '5.0.0') < 0)
 {
