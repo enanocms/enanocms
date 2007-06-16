@@ -130,7 +130,7 @@ span.menuclear {
 }
 
 /* Buttons - this is CSS3 */
-input[type ^="button"], input[type ^="submit"] {
+input[type ^="button"], input[type ^="submit"], button {
   border-width: 1px;
   border-color: #666;
   border-style: solid;
@@ -144,11 +144,11 @@ input[type ^="button"], input[type ^="submit"] {
   background-repeat: repeat-x;
 }
 
-input[type ^="button"]:hover, input[type ^="submit"]:hover {
+input[type ^="button"]:hover, input[type ^="submit"]:hover, button:hover {
   border-color: #999;
 }
 
-input[type ^="button"]:active, input[type ^="submit"]:active {
+input[type ^="button"]:active, input[type ^="submit"]:active, button:active {
   padding: 6px 2px 4px 4px;
   border-color: #333;
 }

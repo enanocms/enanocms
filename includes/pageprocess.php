@@ -148,20 +148,6 @@ class PageProcessor
         return false;
       }
     }
-    else if ( in_array($this->namespace, array('Article', 'User', 'Project', 'Help', 'File', 'Category')) && $this->page_exists )
-    {
-      // Send as regular page
-      $text = $this->fetch_text();
-      if ( $text == 'err_no_text_rows' )
-      {
-        $this->err_no_rows();
-        return false;
-      }
-      else
-      {
-        $this->render();
-      }
-    }
     else if ( ( $this->namespace == 'Template' || $this->namespace == 'System' ) && $this->page_exists )
     {
       $this->header();
@@ -193,6 +179,20 @@ class PageProcessor
       if ( empty($ob) )
       {
         $this->err_page_not_existent();
+      }
+    }
+    else // if ( in_array($this->namespace, array('Article', 'User', 'Project', 'Help', 'File', 'Category')) && $this->page_exists )
+    {
+      // Send as regular page
+      $text = $this->fetch_text();
+      if ( $text == 'err_no_text_rows' )
+      {
+        $this->err_no_rows();
+        return false;
+      }
+      else
+      {
+        $this->render();
       }
     }
     
@@ -246,9 +246,20 @@ class PageProcessor
     $text = $this->fetch_text();
     
     $this->header();
-    display_page_headers();
-    echo RenderMan::render($text);
-    display_page_footers();
+    if ( $this->send_headers )
+    {
+      display_page_headers();
+    }
+    
+    $text = '?>' . RenderMan::render($text);
+    // echo('<pre>'.htmlspecialchars($text).'</pre>');
+    eval ( $text );
+    
+    if ( $this->send_headers )
+    {
+      display_page_footers();
+    }
+    
     $this->footer();
   }
   

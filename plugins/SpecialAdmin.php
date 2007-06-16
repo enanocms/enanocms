@@ -505,24 +505,35 @@ function page_Admin_PluginManager() {
     return;
   }
   
-  
-  if(isset($_GET['action'])) {
-    switch($_GET['action']) {
+  if(isset($_GET['action']))
+  {
+    switch($_GET['action'])
+    {
       case "enable":
         setConfig('plugin_'.$_GET['plugin'], '1');
         break;
       case "disable":
-        if($_GET['plugin']!='admin.php') setConfig('plugin_'.$_GET['plugin'], '0');
-        else echo('<h3>Error disabling plugin</h3><p>The administration panel plugin cannot be disabled.</p>');
+        if ( $_GET['plugin'] != 'SpecialAdmin.php' )
+        {
+          setConfig('plugin_'.$_GET['plugin'], '0');
+        }
+        else 
+        {
+          echo('<h3>Error disabling plugin</h3><p>The administration panel plugin cannot be disabled.</p>');
+        }
         break;
     }
   }
   $dir = './plugins/';
   $plugin_list = Array();
   $system = Array();
-  if (is_dir($dir)) {
-    if ($dh = opendir($dir)) {
-      while (($file = readdir($dh)) !== false) {
+  
+  if (is_dir($dir))
+  {
+    if ($dh = opendir($dir))
+    {
+      while (($file = readdir($dh)) !== false)
+      {
         if(preg_match('#^(.*?)\.php$#is', $file) && $file != 'index.php')
         {
           if ( in_array($file, $plugins->system_plugins) )
@@ -554,6 +565,16 @@ function page_Admin_PluginManager() {
       }
       closedir($dh);
     }
+    else
+    {
+      echo '<div class="error-box">The plugins/ directory could not be opened.</div>';
+      return;
+    }
+  }
+  else
+  {
+    echo '<div class="error-box">The plugins/ directory is missing from your Enano installation.</div>';
+    return;
   }
   echo('<div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
       <tr><th>Plugin filename</th><th>Plugin name</th><th>Description</th><th>Author</th><th>Version</th><th></th></tr>');

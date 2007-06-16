@@ -342,7 +342,8 @@ function ajaxAuthLoginInnerSetup()
         ajax_auth_mb_cache.updateContent(form_html);
         $('messageBox').object.nextSibling.firstChild.tabindex = '3';
         $('ajaxlogin_user').object.focus();
-        $('ajaxlogin_pass').object.onblur = function() { $('messageBox').object.nextSibling.firstChild.focus(); };
+        $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
+        $('ajaxlogin_pass').object.onkeypress = function(e) { if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
       }
     });
 }
