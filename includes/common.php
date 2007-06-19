@@ -158,6 +158,7 @@ $system_table_list = Array(
     table_prefix.'session_keys',
     table_prefix.'pages',
     table_prefix.'users',
+    table_prefix.'users_extra',
     table_prefix.'themes',
     table_prefix.'buddies',
     table_prefix.'banlist',
@@ -216,7 +217,10 @@ if(getConfig('site_disabled') == '1')
   }
   else
   {
-    if(!$n = getConfig('site_disabled_notice')) $n = 'The administrator has disabled the site. Please check back later.';
+    if(!$n = getConfig('site_disabled_notice')) 
+    {
+      $n = 'The administrator has disabled the site. Please check back later.';
+    }
     
     $text = RenderMan::render($n) . '
     <div class="info-box">

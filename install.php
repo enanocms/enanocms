@@ -897,7 +897,7 @@ switch($_GET['mode'])
       {
         echo 'Dropping existing Enano tables...';
         // Our list of tables included in Enano
-        $tables = Array( 'mdg_categories', 'mdg_comments', 'mdg_config', 'mdg_logs', 'mdg_page_text', 'mdg_session_keys', 'mdg_pages', 'mdg_users', 'mdg_themes', 'mdg_buddies', 'mdg_banlist', 'mdg_files', 'mdg_privmsgs', 'mdg_sidebar', 'mdg_hits', 'mdg_search_index', 'mdg_groups', 'mdg_group_members', 'mdg_acl', 'mdg_search_cache' );
+        $tables = Array( 'mdg_categories', 'mdg_comments', 'mdg_config', 'mdg_logs', 'mdg_page_text', 'mdg_session_keys', 'mdg_pages', 'mdg_users', 'mdg_users_extra', 'mdg_themes', 'mdg_buddies', 'mdg_banlist', 'mdg_files', 'mdg_privmsgs', 'mdg_sidebar', 'mdg_hits', 'mdg_search_index', 'mdg_groups', 'mdg_group_members', 'mdg_acl', 'mdg_search_cache' );
         $tables = implode(', ', $tables);
         $tables = str_replace('mdg_', $_POST['table_prefix'], $tables);
         $query_of_death = 'DROP TABLE '.$tables.';';
