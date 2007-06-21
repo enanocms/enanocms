@@ -44,7 +44,6 @@ class pathManager {
       );
     
     // ACL types
-    // Note: you can set any of these to AUTH_DENY to universally and unconditionally deny access to the selected action.
     // These can also be added from within plugins
     
     $session->register_acl_type('read',                   AUTH_ALLOW,    'Read page(s)');
@@ -71,7 +70,7 @@ class pathManager {
     $session->register_acl_type('upload_files',           AUTH_DISALLOW, 'Upload files',                                                                                             Array('create_page'),                                     'Article|User|Project|Template|File|Help|System|Category|Special');
     $session->register_acl_type('upload_new_version',     AUTH_WIKIMODE, 'Upload new versions of files',                                                                             Array('upload_files'),                                    'Article|User|Project|Template|File|Help|System|Category|Special');
     $session->register_acl_type('create_page',            AUTH_WIKIMODE, 'Create pages',                                                                                             Array(),                                                  'Article|User|Project|Template|File|Help|System|Category|Special');
-    $session->register_acl_type('php_in_pages',           AUTH_DISALLOW, 'Embed PHP code in pages',                                                                                  Array('edit_page'),                                       'Article|User|Project|Template|File|Help|System|Category');
+    $session->register_acl_type('php_in_pages',           AUTH_DISALLOW, 'Embed PHP code in pages',                                                                                  Array('edit_page'),                                       'Article|User|Project|Template|File|Help|System|Category|Admin');
     $session->register_acl_type('edit_acl',               AUTH_DISALLOW, 'Edit access control lists', Array('read', 'post_comments', 'edit_comments', 'edit_page', 'view_source', 'mod_comments', 'history_view', 'history_rollback', 'history_rollback_extra', 'protect', 'rename', 'clear_logs', 'vote_delete', 'vote_reset', 'delete_page', 'set_wiki_mode', 'password_set', 'password_reset', 'mod_misc', 'edit_cat', 'even_when_protected', 'upload_files', 'upload_new_version', 'create_page', 'php_in_pages'));
     
     // DO NOT add new admin pages here! Use a plugin to call $paths->addAdminNode();

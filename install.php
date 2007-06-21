@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
  
-//@include('config.php');
+@include('config.php');
 if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_GET['mode']) && ($_GET['mode']!='finish' && $_GET['mode']!='css')) || !isset($_GET['mode']))) {
   $_GET['title'] = 'Enano:WhoCaresWhatThisIs';
   require('includes/common.php');
@@ -167,6 +167,61 @@ switch($_GET['mode'])
     if(version_compare($v, '4.1.17', '<')) die('vers'.$v);
     mysql_close($conn);
     die('good');
+    break;
+  case 'pophelp':
+    $topic = ( isset($_GET['topic']) ) ? $_GET['topic'] : 'invalid';
+    switch($topic)
+    {
+      case 'admin_embed_php':
+        $title = 'Allow administrators to embed PHP';
+        $content = '<p>This option allows you to control whether anything between the standard &lt;?php and ?&gt; tags will be treated as
+                        PHP code by Enano. If this option is enabled, and members of the Administrators group use these tags, Enano will
+                        execute that code when the page is loaded. There are obvious potential security implications here, which should
+                        be carefully considered before enabling this option.</p>
+                    <p>If you are the only administrator of this site, or if you have a high level of trust for those will be administering
+                       the site with you, you should enable this to allow extreme customization of pages.</p>
+                    <p>Leave this option off if you are at all concerned about security – if your account is compromised and PHP embedding
+                       is enabled, an attacker can run arbitrary code on your server! Enabling this will also allow administrators to
+                       embed Javascript and arbitrary HTML and CSS.</p>
+                    <p>If you don\'t have experience coding in PHP, you can safely disable this option. You may change this at any time
+                       using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection, or by
+                       using the "embedded PHP kill switch" in the administration panel.</p>';
+        break;
+      default:
+        $title = 'Invalid topic';
+        $content = 'Invalid help topic.';
+        break;
+    }
+    echo <<<EOF
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+  <head>
+    <title>Enano installation quick help &bull; {$title}</title>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <style type="text/css">
+      body {
+        font-family: trebuchet ms, verdana, arial, helvetica, sans-serif;
+        font-size: 9pt;
+      }
+      h2          { border-bottom: 1px solid #90B0D0; margin-bottom: 0; }
+      h3          { font-size: 11pt; font-weight: bold; }
+      li          { list-style: url(../images/bullet.gif); }
+      p           { margin: 1.0em; }
+      blockquote  { background-color: #F4F4F4; border: 1px dotted #406080; margin: 1em; padding: 10px; max-height: 250px; overflow: auto; }
+      a           { color: #7090B0; }
+      a:hover     { color: #90B0D0; }
+    </style>
+  </head>
+  <body>
+    <h2>{$title}</h2>
+    {$content}
+    <p style="text-align: right;">
+      <a href="#" onclick="window.close(); return false;">Close window</a>
+    </p>
+  </body>
+</html>
+EOF;
+    exit;
     break;
   default:
     break;
@@ -717,6 +772,21 @@ switch($_GET['mode'])
         <tr><td>Administration password:</td><td><input onkeyup="verify();" name="admin_pass" type="password" size="30" /></td><td rowspan="2"><img id="s_password" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
         <tr><td>Enter it again to confirm:</td><td><input onkeyup="verify();" name="admin_pass_confirm" type="password" size="30" /></td></tr>
         <tr><td>Your e-mail address:</td><td><input onkeyup="verify();" name="admin_email" type="text" size="30" /></td><td><img id="s_email" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr>
+          <td>
+            Allow administrative embedding of PHP:<br />
+            <small><span style="color: #D84308">Do not under any circumstances enable this option without reading these
+                   <a href="install.php?mode=pophelp&amp;topic=admin_embed_php"
+                      onclick="window.open(this.href, 'pophelpwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes'); return false;"
+                      style="color: #D84308; text-decoration: underline;">important security implications</a>.
+            </span></small>
+          </td>
+          <td>
+            <label><input type="radio" name="admin_embed_php" value="2" checked="checked" /> Disabled</label>&nbsp;&nbsp;
+            <label><input type="radio" name="admin_embed_php" value="4" /> Enabled</label>
+          </td>
+          <td></td>
+        </tr>
         <tr><td colspan="3">If your browser supports Javascript, the password you enter here will be encrypted with AES before it is sent to the server.</td></tr>
       </table>
       <div class="pagenav">
@@ -847,6 +917,7 @@ switch($_GET['mode'])
        !isset($_POST['copyright']) ||
        !isset($_POST['admin_user']) ||
        !isset($_POST['admin_pass']) ||
+       !isset($_POST['admin_embed_php']) || ( isset($_POST['admin_embed_php']) && !in_array($_POST['admin_embed_php'], array('2', '4')) ) ||
        !isset($_POST['urlscheme'])
        )
     {
@@ -931,6 +1002,7 @@ switch($_GET['mode'])
       $schema = str_replace('{{REAL_NAME}}',    '',                                              $schema);
       $schema = str_replace('{{TABLE_PREFIX}}', $_POST['table_prefix'],                          $schema);
       $schema = str_replace('{{VERSION}}',      ENANO_VERSION,                                   $schema);
+      $schema = str_replace('{{ADMIN_EMBED_PHP}}', $_POST['admin_embed_php'],                    $schema);
       // Not anymore! :-D
       // $schema = str_replace('{{BETA_VERSION}}', ENANO_BETA_VERSION,                              $schema);
       

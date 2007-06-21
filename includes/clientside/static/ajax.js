@@ -569,3 +569,39 @@ function ajaxAdminPage()
   window.location = loc;
 }
 
+function ajaxDisableEmbeddedPHP()
+{
+  if ( !confirm('Are you really sure you want to do this? Some pages might not function if this emergency-only feature is activated.') )
+    return false;
+  var $killdiv = $dynano('php_killer');
+  if ( !$killdiv.object )
+  {
+    alert('Can\'t get kill div object');
+    return false;
+  }
+  $killdiv.object.innerHTML = '<img alt="Loading..." src="' + scriptPath + '/images/loading-big.gif" /><br />Making request...';
+  var url = makeUrlNS('Admin', 'Home', 'src=ajax');
+  ajaxPost(url, 'act=kill_php', function() {
+      if ( ajax.readyState == 4 )
+      {
+        if ( ajax.responseText == '1' )
+        {
+          var $killdiv = $dynano('php_killer');
+          //$killdiv.object.innerHTML = '<img alt="Success" src="' + scriptPath + '/images/error.png" /><br />Embedded PHP in pages has been disabled.';
+          $killdiv.object.parentNode.removeChild($killdiv.object);
+          var newdiv = document.createElement('div');
+          // newdiv.style = $killdiv.object.style;
+          newdiv.className = $killdiv.object.className;
+          newdiv.innerHTML = '<img alt="Success" src="' + scriptPath + '/images/error.png" /><br />Embedded PHP in pages has been disabled.';
+          $killdiv.object.parentNode.appendChild(newdiv);
+          $killdiv.object.parentNode.removeChild($killdiv.object);
+        }
+        else
+        {
+          var $killdiv = $dynano('php_killer');
+          $killdiv.object.innerHTML = ajax.responseText;
+        }
+      }
+    });
+}
+
