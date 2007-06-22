@@ -1287,7 +1287,8 @@ class sessionManager {
    * @param string $real_name Optional, defaults to ''.
    */
    
-  function create_user($username, $password, $email, $real_name = '') {
+  function create_user($username, $password, $email, $real_name = '')
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Initialize AES

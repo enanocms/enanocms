@@ -522,7 +522,7 @@ class template {
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => 'password:'));
+      $label->assign_vars(array('TEXT' => 'page password:'));
       $t0 = $label->run();
       
       $menubtn->assign_vars(array(

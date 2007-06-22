@@ -51,7 +51,11 @@ else
 
 define('ENANO_ROOT', dirname($filename));
 
-function is_page($p) { return true; }
+function is_page($p)
+{
+  return true;
+}
+
 require('includes/wikiformat.php');
 require('includes/constants.php');
 require('includes/rijndael.php');
@@ -59,26 +63,41 @@ require('includes/functions.php');
 
 //die('Key size: ' . AES_BITS . '<br />Block size: ' . AES_BLOCKSIZE);
 
-if(!function_exists('wikiFormat')) {
-function wikiFormat($message, $filter_links = true) {
-  $wiki = & Text_Wiki::singleton('Mediawiki');
-  $wiki->setRenderConf('Xhtml', 'code', 'css_filename', 'codefilename');
-  $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', contentPath);
-  $result = $wiki->transform($message, 'Xhtml');
-  
-  // HTML fixes
-  $result = preg_replace('#<tr>([\s]*?)<\/tr>#is', '', $result);
-  $result = preg_replace('#<p>([\s]*?)<\/p>#is', '', $result);
-  $result = preg_replace('#<br />([\s]*?)<table#is', '<table', $result);
-  
-  return $result;
-}
+if(!function_exists('wikiFormat'))
+{
+  function wikiFormat($message, $filter_links = true)
+  {
+    $wiki = & Text_Wiki::singleton('Mediawiki');
+    $wiki->setRenderConf('Xhtml', 'code', 'css_filename', 'codefilename');
+    $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', contentPath);
+    $result = $wiki->transform($message, 'Xhtml');
+    
+    // HTML fixes
+    $result = preg_replace('#<tr>([\s]*?)<\/tr>#is', '', $result);
+    $result = preg_replace('#<p>([\s]*?)<\/p>#is', '', $result);
+    $result = preg_replace('#<br />([\s]*?)<table#is', '<table', $result);
+    
+    return $result;
+  }
 }
 
 global $failed, $warned;
+
 $failed = false;
 $warned = false;
-function not($var) { if($var) return false; else return true; }
+
+function not($var)
+{
+  if($var)
+  {
+    return false;
+  } 
+  else
+  {
+    return true;
+  }
+}
+
 function run_test($code, $desc, $extended_desc, $warn = false)
 {
   global $failed, $warned;
@@ -1042,7 +1061,7 @@ switch($_GET['mode'])
       echo 'done!<br />Writing configuration files...';
       if($_POST['urlscheme']=='tiny')
       {
-        $ht = fopen(dirname(__FILE__).'/.htaccess', 'a+');
+        $ht = fopen(ENANO_ROOT.'/.htaccess', 'a+');
         if(!$ht) err('Error opening file .htaccess for writing');
         fwrite($ht, '
 RewriteEngine on
@@ -1070,7 +1089,7 @@ define(\'ENANO_INSTALLED\', \'true\');
 $crypto_key = \''.$privkey.'\';
 ?>';
 
-      $cf_handle = fopen(dirname(__FILE__).'/config.php', 'w');
+      $cf_handle = fopen(ENANO_ROOT.'/config.php', 'w');
       if(!$cf_handle) err('Couldn\'t open file config.php for writing');
       fwrite($cf_handle, $config_file);
       fclose($cf_handle);
