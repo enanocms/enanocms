@@ -39,7 +39,17 @@ if(!defined('contentPath')) {
 global $_starttime, $this_page, $sideinfo;
 $_starttime = microtime(true);
 
-define('ENANO_ROOT', dirname(__FILE__));
+// Determine directory (special case for development servers)
+if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )
+{
+  $filename = str_replace('/repo/', '/', __FILE__);
+}
+else
+{
+  $filename = __FILE__;
+}
+
+define('ENANO_ROOT', dirname($filename));
 
 function is_page($p) { return true; }
 require('includes/wikiformat.php');
@@ -702,6 +712,10 @@ switch($_GET['mode'])
     unset($_POST['_cont']);
     require('config.php');
     $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    if ( isset($crypto_key) )
+    {
+      $cryptkey = $crypto_key;
+    }
     if(!isset($cryptkey) || ( isset($cryptkey) && strlen($cryptkey) != AES_BITS / 4) )
     {
       $cryptkey = $aes->gen_readymade_key();
@@ -980,6 +994,11 @@ switch($_GET['mode'])
       
       echo 'Decrypting administration password...';
       require('config.php');
+      if ( !isset($cryptkey) )
+      {
+        echo 'failed!<br />Cannot get the key from config.php';
+        break;
+      }
       $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
       $key = $aes->hexToByteArray($cryptkey);
       $enc = $aes->hexToByteArray($_POST['crypt_data']);

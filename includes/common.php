@@ -18,7 +18,7 @@ if(isset($_REQUEST['GLOBALS']))
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html><head><title>Hacking Attempt</title><meta http-equiv="Content-type" content="text/html; charset=utf-8" /></head><style type="text/css">body{background-color:#000;color:#CCC;font-family:trebuchet ms,sans-serif;font-size:9pt;}a{color:#FFF;}</style><body><p>Hacking attempt using <a href="http://www.hardened-php.net/index.76.html">PHP $GLOBALS overwrite vulnerability</a> detected, reported to admin</p><p>You're worse than this guy! Unless you are this guy...</p><p id="billp"><img alt=" " src="about:blank" id="billi" /></p><script type="text/javascript">// <![CDATA[
   window.onload=function(){counter();setInterval('counter();', 1000);};var text=false;var cnt=10;function counter(){if(!text){text=document.createElement('span');text.id='billc';text.innerHTML=cnt;text.style.fontSize='96pt';text.style.color='#FF0000';p=document.getElementById('billp');p.appendChild(text);}else{if(cnt==1){document.getElementById('billi').src='http://upload.wikimedia.org/wikipedia/commons/7/7f/Bill_Gates_2004_cr.jpg';document.getElementById('billc').innerHTML='';return;}cnt--;document.getElementById('billc').innerHTML=cnt+' ';}}
   // ]]>
-  </script><p><span style="color:black;">Powered by Enano and valid XHTML 1.1</span></p></body></html>
+  </script><p><span style="color:black;">You been f***ed by Enano | valid XHTML 1.1</span></p></body></html>
   <?php
   exit;
 }
@@ -37,7 +37,7 @@ $_starttime = microtime_float();
 error_reporting(E_ALL);
 
 // Determine directory (special case for development servers)
-if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )
+if ( strpos(__FILE__, '/repo/') && ( file_exists('.enanodev') || file_exists('../.enanodev') ) )
 {
   $filename = str_replace('/repo/', '/', __FILE__);
 }
