@@ -863,11 +863,17 @@ function trim_spaces($text)
  
 function enano_str_split($text, $inc = 1)
 {
-  if($inc < 1) return false;
-  if($inc >= strlen($text)) return Array($text);
+  if($inc < 1) 
+  {
+    return false;
+  }
+  if($inc >= strlen($text))
+  {
+    return Array($text);
+  }
   $len = ceil(strlen($text) / $inc);
   $ret = Array();
-  for($i=0;$i<strlen($text);$i=$i+$inc)
+  for ( $i = 0; $i < strlen($text); $i = $i + $inc )
   {
     $ret[] = substr($text, $i, $inc);
   }
@@ -967,8 +973,27 @@ function stripslashes_recurse($arr)
 }
 
 /**
+ * Recursive function to remove all NUL bytes from a string
+ * @param array
+ * @return array
+ */
+ 
+function strip_nul_chars($arr)
+{
+  foreach($arr as $k => $xxxx_unused)
+  {
+    $val =& $arr[$k];
+    if(is_string($val))
+      $val = str_replace("\000", '', $val);
+    elseif(is_array($val))
+      $val = strip_nul_chars($val);
+  }
+  return $arr;
+}
+
+/**
  * If magic_quotes_gpc is on, calls stripslashes() on everything in $_GET/$_POST/$_COOKIE
- * @ignore - this doesn't work
+ * @ignore - this doesn't work too well in my tests
  * @todo port version from the PHP manual
  * @return void
  */
@@ -980,6 +1005,9 @@ function strip_magic_quotes_gpc()
     $_GET    = stripslashes_recurse($_GET);
     $_COOKIE = stripslashes_recurse($_COOKIE);
   }
+  $_POST   = strip_nul_chars($_POST);
+  $_GET    = strip_nul_chars($_GET);
+  $_COOKIE = strip_nul_chars($_COOKIE);
 }
 
 /**

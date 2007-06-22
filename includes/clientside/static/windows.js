@@ -158,18 +158,27 @@
 // Source: http://www.aspandjavascript.co.uk/javascript/javascript_api/get_element_width_height.asp
 
 function getElementHeight(Elem) {
-  if (ns4) {
+  if (ns4) 
+  {
     var elem = getObjNN4(document, Elem);
     return elem.clip.height;
-  } else {
-    if(document.getElementById) {
+  } 
+  else
+  {
+    if(document.getElementById) 
+    {
       var elem = document.getElementById(Elem);
-    } else if (document.all){
+    }
+    else if (document.all)
+    {
       var elem = document.all[Elem];
     }
-    if (op5) { 
+    if (op5) 
+    { 
       xPos = elem.style.pixelHeight;
-    } else {
+    }
+    else
+    {
       xPos = elem.offsetHeight;
     }
     return xPos;

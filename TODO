@@ -24,6 +24,10 @@ Enano Banshee - TODO
 [x] Change the string shown on a successful re-auth into elevated privileges
     [x] ...and write a function that converts a numeric userlevel to a string
 [x] Make Special:Login remember parameters (target level, target page) even on auth fail
+[ ] Register users_extra table in system tables list (already done?)
+[x] Trigger form submit on press of enter in Dynano login form
+[ ] Rewrite the change theme dialog - it's archaic code that hasn't changed since beta 1!
+    [ ] This should be the next-to-last step in phasing out the JWS code, which should be removed in the first 1.1 alpha
 
 
 Enano Clurichaun - TODO
