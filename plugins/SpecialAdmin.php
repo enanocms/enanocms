@@ -107,34 +107,45 @@ Using the links on the left you can control every aspect of your website\'s look
   echo '<div class="tblholder" style="/* max-height: 500px; clip: rect(0px,auto,auto,0px); overflow: auto; */"><table border="0" cellspacing="1" cellpadding="4" width="100%">';
   $cls = 'row2';                                                                                               
   echo '<tr><th style="width: 60%;">Type</th><th>Date</th><th>Username</th><th>IP Address</th></tr>';
-  if(isset($_GET['fulllog']))
+  require('config.php');
+  $hash = md5($dbpasswd);
+  unset($dbname, $dbhost, $dbuser, $dbpasswd);
+  unset($dbname, $dbhost, $dbuser, $dbpasswd); // PHP5 Zend bug
+  if ( defined('ENANO_DEMO_MODE') && !isset($_GET[ $hash ]) )
   {
-    $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;';
+    echo '<tr><td class="row1" colspan="4">Logs are recorded but not displayed for privacy purposes in the demo.</td></tr>';
   }
   else
   {
-    $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC LIMIT 5';
-  }
-  $q = $db->sql_query($l);
-  while($r = $db->fetchrow())
-  {
-    if($cls == 'row2') $cls = 'row1';
-    else $cls = 'row2';
-    echo '<tr><td class="'.$cls.'">';
-    switch($r['action']) {
-      case "admin_auth_good": echo 'Successful elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Authentication level: $level</small>"; } break;
-      case "admin_auth_bad":  echo 'Failed elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Attempted auth level: $level</small>"; } break;
-      case "activ_good": echo 'Successful account activation'; break;
-      case "auth_good": echo 'Successful regular user logon'; break;
-      case "activ_bad": echo 'Failed account activation'; break;
-      case "auth_bad": echo 'Failed regular user logon'; break;
-      case "sql_inject": echo 'SQL injection attempt<div style="max-width: 90%; clip: rect(0px,auto,auto,0px); overflow: auto; display: block; font-size: smaller;">Offending query: ' . htmlspecialchars($r['page_text']) . '</div>'; break;
-      case "db_backup": echo 'Database backup created<br /><small>Tables: ' . $r['page_text'] . '</small>'; break;
-      case "install_enano": echo "Installed Enano version {$r['page_text']}"; break;
+    if(isset($_GET['fulllog']))
+    {
+      $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;';
     }
-    echo '</td><td class="'.$cls.'">'.date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="Click for reverse DNS info">'.$r['edit_summary'].'</td></tr>';
+    else
+    {
+      $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC LIMIT 5';
+    }
+    $q = $db->sql_query($l);
+    while($r = $db->fetchrow())
+    {
+      if($cls == 'row2') $cls = 'row1';
+      else $cls = 'row2';
+      echo '<tr><td class="'.$cls.'">';
+      switch($r['action']) {
+        case "admin_auth_good": echo 'Successful elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Authentication level: $level</small>"; } break;
+        case "admin_auth_bad":  echo 'Failed elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Attempted auth level: $level</small>"; } break;
+        case "activ_good": echo 'Successful account activation'; break;
+        case "auth_good": echo 'Successful regular user logon'; break;
+        case "activ_bad": echo 'Failed account activation'; break;
+        case "auth_bad": echo 'Failed regular user logon'; break;
+        case "sql_inject": echo 'SQL injection attempt<div style="max-width: 90%; clip: rect(0px,auto,auto,0px); overflow: auto; display: block; font-size: smaller;">Offending query: ' . htmlspecialchars($r['page_text']) . '</div>'; break;
+        case "db_backup": echo 'Database backup created<br /><small>Tables: ' . $r['page_text'] . '</small>'; break;
+        case "install_enano": echo "Installed Enano version {$r['page_text']}"; break;
+      }
+      echo '</td><td class="'.$cls.'">'.date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="Click for reverse DNS info">'.$r['edit_summary'].'</td></tr>';
+    }
+    $db->free_result();
   }
-  $db->free_result();
   echo '</table></div>';
   if(!isset($_GET['fulllog'])) echo '<p><a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'Home&amp;fulllog\'); return false;">Full security log</a></p>';
   
