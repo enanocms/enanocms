@@ -873,16 +873,27 @@ class sessionManager {
     }
     $keyhash = md5($key);
     $salt = $db->escape($keydata[3]);
-    $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,x.* FROM '.table_prefix.'session_keys AS k
-                           LEFT JOIN '.table_prefix.'users AS u
-                             ON ( u.user_id=k.user_id )
-                           LEFT JOIN '.table_prefix.'users_extra AS x
-                             ON ( u.user_id=x.user_id OR x.user_id IS NULL )
-                           LEFT JOIN '.table_prefix.'privmsgs AS p
-                             ON ( p.message_to=u.username AND p.message_read=0 )
-                           WHERE k.session_key=\''.$keyhash.'\'
-                             AND k.salt=\''.$salt.'\'
-                           GROUP BY u.user_id;');
+    $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,x.* FROM '.table_prefix.'session_keys AS k
+                               LEFT JOIN '.table_prefix.'users AS u
+                                 ON ( u.user_id=k.user_id )
+                               LEFT JOIN '.table_prefix.'users_extra AS x
+                                 ON ( u.user_id=x.user_id OR x.user_id IS NULL )
+                               LEFT JOIN '.table_prefix.'privmsgs AS p
+                                 ON ( p.message_to=u.username AND p.message_read=0 )
+                               WHERE k.session_key=\''.$keyhash.'\'
+                                 AND k.salt=\''.$salt.'\'
+                               GROUP BY u.user_id;');
+    if ( !$query )
+    {
+      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms FROM '.table_prefix.'session_keys AS k
+                             LEFT JOIN '.table_prefix.'users AS u
+                               ON ( u.user_id=k.user_id )
+                             LEFT JOIN '.table_prefix.'privmsgs AS p
+                               ON ( p.message_to=u.username AND p.message_read=0 )
+                             WHERE k.session_key=\''.$keyhash.'\'
+                               AND k.salt=\''.$salt.'\'
+                             GROUP BY u.user_id;');
+    }
     if($db->numrows() < 1)
     {
       // echo '(debug) $session->validate_session: Key was not found in database<br />';

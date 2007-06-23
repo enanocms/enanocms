@@ -3,7 +3,7 @@
 -- ALL NON-SQL LINES, even otherwise blank lines, must start with "--" or they will get sent to MySQL!
 -- Common tasks (version numbers)
 DELETE FROM {{TABLE_PREFIX}}config WHERE config_name='enano_version' OR config_name='enano_beta_version' OR config_name='enano_alpha_version' OR config_name='enano_rc_version';
-INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0' );
+INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0' ),( 'enano_rc_version', '3' );
 ---BEGIN 1.0RC2---
 -- Add the "Moderators" group
 UPDATE {{TABLE_PREFIX}}groups SET group_id=9999 WHERE group_id=3;
