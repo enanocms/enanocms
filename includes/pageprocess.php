@@ -1,7 +1,7 @@
 <?php
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0 release candidate 3 (Druid)
  * pageprocess.php - intelligent retrieval of pages
  * Copyright (C) 2006-2007 Dan Fuhry
  *
@@ -384,7 +384,8 @@ class PageProcessor
     {
       display_page_headers();
     }
-    
+   
+    /*
     // Start left sidebar: basic user info, latest comments
     
     echo '<table border="0" cellspacing="4" cellpadding="0" style="width: 100%;">';
@@ -399,6 +400,7 @@ class PageProcessor
           </div>';
     
     echo '</td><td>';
+    */
     
     // User's own content
     
@@ -413,6 +415,8 @@ class PageProcessor
     {
       $this->err_page_not_existent();
     }
+    
+    /*
     
     // Right sidebar
     
@@ -432,6 +436,8 @@ class PageProcessor
     {
       display_page_footers();
     }
+    
+    */
     
     $this->send_headers = $send_headers;
     unset($send_headers);

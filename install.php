@@ -1,7 +1,7 @@
 <?php
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0 release candidate 3 (Druid)
  * Copyright (C) 2006-2007 Dan Fuhry
  * install.php - handles everything related to installation and initial configuration
  *
@@ -23,6 +23,7 @@ if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_G
 define('IN_ENANO_INSTALL', 'true');
 
 define('ENANO_VERSION', '1.0');
+define('ENANO_BETA_VERSION', '3'); // This is really RC
 // In beta versions, define ENANO_BETA_VERSION here
 
 if(!defined('scriptPath')) {
@@ -257,7 +258,7 @@ EOF;
 }
 
 $template = new template_nodb();
-$template->load_theme('oxygen', 'bleu', false);
+$template->load_theme('stpatty', 'shamrock', false);
 
 $modestrings = Array(
               'welcome' => 'Welcome',
@@ -312,8 +313,8 @@ switch($_GET['mode'])
     <div style="text-align: center; margin-top: 10px;">
       <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-blue.png" style="display: block; margin: 0 auto; padding-left: 100px;" />
       <h2>Welcome to Enano</h2>
-      <h3>version 1.0 &ndash; stable<br />
-      <span style="font-weight: normal;">also affectionately known as "banshee" <tt>:)</tt></span></h3>
+      <h3>version 1.0rc3 &ndash; security release<br />
+      <span style="font-weight: normal;">also affectionately known as "druid" <tt>:)</tt></span></h3>
       <?php
       if ( file_exists('./_nightly.php') )
       {
@@ -1041,8 +1042,7 @@ switch($_GET['mode'])
       $schema = str_replace('{{TABLE_PREFIX}}', $_POST['table_prefix'],                          $schema);
       $schema = str_replace('{{VERSION}}',      ENANO_VERSION,                                   $schema);
       $schema = str_replace('{{ADMIN_EMBED_PHP}}', $_POST['admin_embed_php'],                    $schema);
-      // Not anymore! :-D
-      // $schema = str_replace('{{BETA_VERSION}}', ENANO_BETA_VERSION,                              $schema);
+      $schema = str_replace('{{BETA_VERSION}}', ENANO_BETA_VERSION,                              $schema);
       
       if(isset($_POST['wiki_mode'])) $schema = str_replace('{{WIKI_MODE}}', '1', $schema);
       else $schema = str_replace('{{WIKI_MODE}}', '0', $schema);
