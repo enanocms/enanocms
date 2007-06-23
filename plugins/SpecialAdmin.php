@@ -10,7 +10,7 @@ Author URI: http://enanocms.org/
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 2
+ * Version 1.0 release candidate 3
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -58,8 +58,15 @@ Thank you for choosing Enano as your CMS. This screen allows you to see some inf
 
 Using the links on the left you can control every aspect of your website\'s look and feel, plus you can manage users, work with pages, and install plugins to make your Enano installation even better.');
   
+  // Demo mode
+  if ( defined('ENANO_DEMO_MODE') )
+  {
+    echo '<h3>Enano is running in demo mode.</h3>
+          <p>If you borked something up, or if you\'re done testing, you can <a href="' . makeUrlNS('Special', 'DemoReset', false, true) . '">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.</p>';
+  }
+  
   // Check for the installer scripts
-  if(file_exists(ENANO_ROOT.'/install.php') || file_exists(ENANO_ROOT.'/schema.sql'))
+  if( ( file_exists(ENANO_ROOT.'/install.php') || file_exists(ENANO_ROOT.'/schema.sql') ) && !defined('ENANO_DEMO_MODE') )
   {
     echo '<div class="error-box"><b>NOTE:</b> It appears that your install.php and/or schema.sql files still exist. It is HIGHLY RECOMMENDED that you delete or rename these files, to prevent getting your server hacked.</div>';
   }
@@ -141,7 +148,8 @@ function page_Admin_GeneralConfig() {
     return;
   }
   
-  if(isset($_POST['submit'])) {
+  if(isset($_POST['submit']) && !defined('ENANO_DEMO_MODE') )
+  {
     
     // Global site options
     setConfig('site_name', $_POST['site_name']);
@@ -213,6 +221,10 @@ function page_Admin_GeneralConfig() {
     
     echo '<div class="info-box">Your changes to the site configuration have been saved.</div><br />';
     
+  }
+  else if ( isset($_POST['submit']) && defined('ENANO_DEMO_MODE') )
+  {
+    echo '<div class="error-box">Saving the general site configuration is blocked in the administration demo.</div>';
   }
   echo('<form name="main" action="'.htmlspecialchars(makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module'])).'" method="post" onsubmit="if(!submitAuthorized) return false;">');
   ?>
@@ -461,7 +473,14 @@ function page_Admin_UploadConfig()
     if(file_exists($_POST['imagemagick_path'])) setConfig('imagemagick_path', $_POST['imagemagick_path']);
     else echo '<span style="color: red"><b>Warning:</b> the file "'.$_POST['imagemagick_path'].'" was not found, and the ImageMagick file path was not updated.</span>';
     $max_upload = floor((float)$_POST['max_file_size'] * (int)$_POST['fs_units']);
-    setConfig('max_file_size', $max_upload.'');
+    if ( $max_upload > 1048576 && defined('ENANO_DEMO_MODE') )
+    {
+      echo '<div class="error-box">Wouldn\'t want the server DoS\'ed now. Stick to under a megabyte for the demo, please.</div>';
+    }
+    else
+    {
+      setConfig('max_file_size', $max_upload.'');
+    }
   }
   echo '<form name="main" action="'.htmlspecialchars(makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module'])).'" method="post">';
   ?>
@@ -513,6 +532,11 @@ function page_Admin_PluginManager() {
         setConfig('plugin_'.$_GET['plugin'], '1');
         break;
       case "disable":
+        if ( defined('ENANO_DEMO_MODE') && strstr($_GET['plugin'], 'Demo') )
+        {
+          echo('<h3>Error disabling plugin</h3><p>The demo lockdown plugin cannot be disabled in demo mode.</p>');
+          break;
+        }
         if ( $_GET['plugin'] != 'SpecialAdmin.php' )
         {
           setConfig('plugin_'.$_GET['plugin'], '0');
@@ -613,7 +637,7 @@ function page_Admin_UploadAllowedMimeTypes()
   }
   
   global $mime_types, $mimetype_exps, $mimetype_extlist;
-  if(isset($_POST['save']))
+  if(isset($_POST['save']) && !defined('ENANO_DEMO_MODE'))
   {
     $bits = '';
     $keys = array_keys($mime_types);
@@ -625,6 +649,10 @@ function page_Admin_UploadAllowedMimeTypes()
     $bits = compress_bitfield($bits);
     setConfig('allowed_mime_types', $bits);
     echo '<div class="info-box">Your changes have been saved.</div>';
+  }
+  else if ( isset($_POST['save']) && defined('ENANO_DEMO_MODE') )
+  {
+    echo '<div class="error-box">Hmm, enabling executables, are we? Tsk tsk. I\'d love to know what\'s in that EXE file you want to upload. OK, maybe you didn\'t enable EXEs. But nevertheless, changing allowed filetypes is disabled in the demo.</div>';
   }
   $allowed = fetch_allowed_extensions();
   ?>
@@ -727,11 +755,19 @@ function page_Admin_UserManager() {
     return;
   }
   
-  if(isset($_POST['go'])) {
+  if(isset($_POST['go']))
+  {
     // We need the user ID before we can do anything
     $q = $db->sql_query('SELECT user_id,username,email,real_name,style,user_level FROM '.table_prefix.'users WHERE username=\'' . $db->escape($_POST['username']) . '\'');
-    if(!$q) die('Error selecting user ID: '.mysql_error());
-    if($db->numrows() < 1) { echo('User does not exist, please enter another username.'); return; }
+    if ( !$q )
+    {
+      die('Error selecting user ID: '.mysql_error());
+    }
+    if ( $db->numrows() < 1 )
+    {
+      echo('User does not exist, please enter another username.');
+      return;
+    }
     $r = $db->fetchrow();
     $db->free_result();
     if(isset($_POST['save']))
@@ -741,7 +777,15 @@ function page_Admin_UserManager() {
       $new_level = $_POST['level'];
       $old_level = intval($r['user_level']);
       
-      $re = $session->update_user((int)$r['user_id'], $_POST['new_username'], false, $_POST['new_pass'], $_POST['email'], $_POST['real_name'], false, $_POST['level']);
+      if ( defined('ENANO_DEMO_MODE') )
+      {
+        echo '<div class="error-box">You cannot delete or modify user accounts in demo mode - they are cleaned up once every two hours.</div>';
+        $re = Array('permission denied');
+      }
+      else
+      {
+        $re = $session->update_user((int)$r['user_id'], $_POST['new_username'], false, $_POST['new_pass'], $_POST['email'], $_POST['real_name'], false, $_POST['level']);
+      }
       
       if($re == 'success')
       {
@@ -789,14 +833,21 @@ function page_Admin_UserManager() {
     }
     elseif(isset($_POST['deleteme']) && isset($_POST['delete_conf']))
     {
-      $q = $db->sql_query('DELETE FROM users WHERE user_id='.$r['user_id'].';');
-      if($q)
+      if ( defined('ENANO_DEMO_MODE') )
       {
-        echo '<div class="error-box">The user account "'.$r['username'].'" was deleted.</div>';
+        echo '<div class="error-box">You cannot delete or modify user accounts in demo mode - they are cleaned up once every two hours.</div>';
       }
       else
       {
-        echo '<div class="error-box">The user account "'.$r['username'].'" could not be deleted due to a database error.<br /><br />'.$db->get_error().'</div>';
+        $q = $db->sql_query('DELETE FROM users WHERE user_id='.$r['user_id'].';');
+        if($q)
+        {
+          echo '<div class="error-box">The user account "'.$r['username'].'" was deleted.</div>';
+        }
+        else
+        {
+          echo '<div class="error-box">The user account "'.$r['username'].'" could not be deleted due to a database error.<br /><br />'.$db->get_error().'</div>';
+        }
       }
     }
     else
@@ -817,25 +868,34 @@ function page_Admin_UserManager() {
       </form>
       ');
     }
-  } elseif(isset($_POST['clearsessions'])) {
-    // Get the current session information so the user doesn't get logged out
-    $aes = new AESCrypt();
-    $sk = md5($session->sid_super);
-    $qb = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.$sk.'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_ADMIN);
-    if(!$qb) die('Error selecting session key info block B: '.$db->get_error());
-    if($db->numrows($qb) < 1) die('Error: cannot read admin session info block B, aborting table clear process');
-    $qa = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.md5($session->sid).'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_MEMBER);
-    if(!$qa) die('Error selecting session key info block A: '.$db->get_error());
-    if($db->numrows($qa) < 1) die('Error: cannot read user session info block A, aborting table clear process');
-    $ra = mysql_fetch_object($qa);
-    $rb = mysql_fetch_object($qb);
-    $db->free_result($qa);
-    $db->free_result($qb);
-    $db->sql_query('DELETE FROM '.table_prefix.'session_keys;');
-    $db->sql_query('INSERT INTO '.table_prefix.'session_keys( session_key,salt,user_id,auth_level,source_ip,time ) VALUES( \''.$ra->session_key.'\', \''.$ra->salt.'\', \''.$session->user_id.'\', \''.$ra->auth_level.'\', \''.$ra->source_ip.'\', '.$ra->time.' ),( \''.$rb->session_key.'\', \''.$rb->salt.'\', \''.$session->user_id.'\', \''.$rb->auth_level.'\', \''.$rb->source_ip.'\', '.$rb->time.' )');
-    echo('
-      <div class="info-box">The session key table has been cleared. Your database should be a little bit smaller now.</div>
-    ');
+  }
+  else if(isset($_POST['clearsessions'])) 
+  {
+    if ( defined('ENANO_DEMO_MODE') )
+    {
+      echo '<div class="error-box">Sorry Charlie, no can do. You might mess up other people logged into the demo site.</div>';
+    }
+    else
+    {
+      // Get the current session information so the user doesn't get logged out
+      $aes = new AESCrypt();
+      $sk = md5($session->sid_super);
+      $qb = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.$sk.'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_ADMIN);
+      if(!$qb) die('Error selecting session key info block B: '.$db->get_error());
+      if($db->numrows($qb) < 1) die('Error: cannot read admin session info block B, aborting table clear process');
+      $qa = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.md5($session->sid).'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_MEMBER);
+      if(!$qa) die('Error selecting session key info block A: '.$db->get_error());
+      if($db->numrows($qa) < 1) die('Error: cannot read user session info block A, aborting table clear process');
+      $ra = mysql_fetch_object($qa);
+      $rb = mysql_fetch_object($qb);
+      $db->free_result($qa);
+      $db->free_result($qb);
+      $db->sql_query('DELETE FROM '.table_prefix.'session_keys;');
+      $db->sql_query('INSERT INTO '.table_prefix.'session_keys( session_key,salt,user_id,auth_level,source_ip,time ) VALUES( \''.$ra->session_key.'\', \''.$ra->salt.'\', \''.$session->user_id.'\', \''.$ra->auth_level.'\', \''.$ra->source_ip.'\', '.$ra->time.' ),( \''.$rb->session_key.'\', \''.$rb->salt.'\', \''.$session->user_id.'\', \''.$rb->auth_level.'\', \''.$rb->source_ip.'\', '.$rb->time.' )');
+      echo('
+        <div class="info-box">The session key table has been cleared. Your database should be a little bit smaller now.</div>
+      ');
+    }
   }   
   echo('
   <h3>User Management</h3>
@@ -1767,7 +1827,7 @@ function page_Admin_BanControl()
     $e = $db->sql_query('DELETE FROM '.table_prefix.'banlist WHERE ban_id=' . $db->escape($_GET['id']) . '');
     if(!$e) $db->_die('The ban list entry was not deleted.');
   }
-  if(isset($_POST['create']))
+  if(isset($_POST['create']) && !defined('ENANO_DEMO_MODE'))
   {
     $q = 'INSERT INTO '.table_prefix.'banlist(ban_type,ban_value,reason,is_regex) VALUES( ' . $db->escape($_POST['type']) . ', \'' . $db->escape($_POST['value']) . '\', \''.$db->escape($_POST['reason']).'\'';
       if(isset($_POST['regex'])) $q .= ', 1';
@@ -1775,6 +1835,10 @@ function page_Admin_BanControl()
     $q .= ');';
     $e = $db->sql_query($q);
     if(!$e) $db->_die('The banlist could not be updated.');
+  }
+  else if ( isset($_POST['create']) && defined('ENANO_DEMO_MODE') )
+  {
+    echo '<div class="error-box">This function is disabled in the demo. Just because <i>you</i> don\'t like ' . htmlspecialchars($_POST['value']) . ' doesn\'t mean <i>we</i> don\'t like ' . htmlspecialchars($_POST['value']) . '.</div>';
   }
   $q = $db->sql_query('SELECT ban_id,ban_type,ban_value,is_regex FROM '.table_prefix.'banlist ORDER BY ban_type;');
   if(!$q) $db->_die('The banlist data could not be selected.');
@@ -1813,7 +1877,7 @@ function page_Admin_MassEmail()
   }
   
   global $enano_config;
-  if ( isset($_POST['do_send']) )
+  if ( isset($_POST['do_send']) && !defined('ENANO_DEMO_MODE') )
   {
     $use_smtp = getConfig('smtp_enabled') == '1';
     
@@ -1952,6 +2016,10 @@ function page_Admin_MassEmail()
     }
     
   }
+  else if ( isset($_POST['do_send']) && defined('ENANO_DEMO_MODE') )
+  {
+    echo '<div class="error-box">This function is disabled in the demo. You think demo@enanocms.org likes getting "test" mass e-mails?</div>';
+  }
   echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
   ?>
   <div class="tblholder">
@@ -2022,6 +2090,11 @@ function page_Admin_DBBackup()
   {
     echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
     return;
+  }
+  
+  if(isset($_GET['submitting']) && $_GET['submitting'] == 'yes' && defined('ENANO_DEMO_MODE') )
+  {
+    redirect(makeUrlComplete('Special', 'Administration'), 'Access denied', 'You\'ve got to be kidding me. Forget it, kid.', 4 );
   }
   
   global $system_table_list;
@@ -2358,6 +2431,20 @@ function page_Special_EditSidebar()
           $content = $_POST['plugin_id'];
           break;
       }
+      
+      if ( defined('ENANO_DEMO_MODE') )
+      {
+        // Sanitize the HTML
+        $content = sanitize_html($content, true);
+      }
+      
+      if ( defined('ENANO_DEMO_MODE') && intval($_POST['type']) == BLOCK_PHP )
+      {
+        echo '<div class="error-box" style="margin: 10px 0 10px 0;">Adding PHP code blocks in the Enano administration demo has been disabled for security reasons.</div>';
+        $_POST['php_content'] = '?>&lt;Nulled&gt;';
+        $content = $_POST['php_content'];
+      }
+      
       // Get the value of item_order
       
       $q = $db->sql_query('SELECT * FROM '.table_prefix.'sidebar WHERE sidebar_id='.$db->escape($_POST['sidebar_id']).';');
@@ -2457,6 +2544,9 @@ function page_Special_EditSidebar()
             </div>
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_PHP; ?>">
+              <?php if ( defined('ENANO_DEMO_MODE') ) { ?>
+                <p>Creating PHP blocks in demo mode is disabled for security reasons.</p>
+              <?php } else { ?>
               <p>
                 <b>WARNING:</b> If you don't know what you're doing, or if you are not fluent in PHP, stop now and choose a different block type. You will brick your Enano installation if you are not careful here.
                 ALWAYS remember to write secure code! The Enano team is not responsible if someone drops all your tables because of an SQL injection vulnerability in your sidebar code. You are probably better off using the template-formatted block type.
@@ -2478,6 +2568,7 @@ function page_Special_EditSidebar()
               <p>
                 <textarea style="width: 98%;" name="php_content" rows="15" cols="50"></textarea>
               </p>
+              <?php } ?>
             </div>
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_PLUGIN; ?>">
@@ -2586,6 +2677,24 @@ function page_Special_EditSidebar()
           die($r['block_content']);
           break;
         case 'save':
+          if ( defined('ENANO_DEMO_MODE') )
+          {
+            $q = $db->sql_query('SELECT block_type FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+            if(!$q)
+            {
+              echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
+              exit;
+            }
+            $row = $db->fetchrow();
+            if ( $row['block_type'] == BLOCK_PHP )
+            {
+              $_POST['content'] = '?>&lt;Nulled&gt;';
+            }
+            else
+            {
+              $_POST['content'] = sanitize_html($_POST['content'], true);
+            }
+          }
           $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_content=\''.$db->escape(rawurldecode($_POST['content'])).'\' WHERE item_id=' . $db->escape($_GET['id']) . ';');
           if(!$q)
           {

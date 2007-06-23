@@ -1784,6 +1784,10 @@ class PageUtils {
           break;
         case 'save_new':
         case 'save_edit':
+          if ( defined('ENANO_DEMO_MODE') )
+          {
+            return Array('mode'=>'error','error'=>'Editing access control lists is disabled in the administration demo.');
+          }
           $q = $db->sql_query('DELETE FROM '.table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
             '.$page_where_clause_lite.';');
           if(!$q)
@@ -1811,6 +1815,10 @@ class PageUtils {
             );
           break;
         case 'delete':
+          if ( defined('ENANO_DEMO_MODE') )
+          {
+            return Array('mode'=>'error','error'=>'Editing access control lists is disabled in the administration demo.');
+          }
           $q = $db->sql_query('DELETE FROM '.table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
             '.$page_where_clause_lite.';');
           if(!$q)

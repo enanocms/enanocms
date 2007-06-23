@@ -906,7 +906,14 @@ function enano_debug_print_backtrace($return = false)
 {
   ob_start();
   echo '<pre>';
-  debug_print_backtrace();
+  if ( function_exists('debug_print_backtrace') )
+  {
+    debug_print_backtrace();
+  }
+  else
+  {
+    echo '<b>Warning:</b> No debug_print_backtrace() support!';
+  }
   echo '</pre>';
   $c = ob_get_contents();
   ob_end_clean();
