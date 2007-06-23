@@ -80,7 +80,7 @@ class mysql {
       ob_clean();
     }
     header('HTTP/1.1 500 Internal Server Error');
-    $bt = $this->sql_backtrace();
+    $bt = $this->latest_query; // $this->sql_backtrace();
     $e = htmlspecialchars(mysql_error());
     if($e=='') $e='&lt;none&gt;';
     if(defined('ENANO_CONFIG_FETCHED')) die_semicritical('Database error', '<h3>An error occurred during a database query.</h3><p>'.$t.'<br />Error returned by MySQL: '.$e.'<br />SQL Backtrace:</p><pre>'.$bt.'</pre>');

@@ -27,7 +27,11 @@
  *
  * - Header block of script file (tree.js) CAN NOT be modified or removed.
  * - The above items CAN NOT be sold as are, either individually or together.
- * - The above items CAN NOT be modified and then sold as a library component, either individually or together. 
+ * - The above items CAN NOT be modified and then sold as a library component, either individually or together.
+ *
+ * Due to the unclear licensing conditions on this script, I contacted the author, who said that because Enano
+ * is not a "competing product" I was allowed to treat the code as GPL. The conversation can be seen in the
+ * /licenses/tigra-menu.html document in the Enano distribution.
  */
  
 var ck = readCookie('admin_menu_state');

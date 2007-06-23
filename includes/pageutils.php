@@ -1194,16 +1194,29 @@ class PageUtils {
     $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
     $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
     
-    if( empty($name)) die('Name is too short');
-    if( ( $session->get_permissions('rename') && ( ( $prot && $session->get_permissions('even_when_protected') ) || !$prot ) ) && ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' )) {
-      $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'rename\', \''.$paths->cpage['urlname_nons'].'\', \''.$paths->namespace.'\', \''.$session->username.'\', \''.$paths->cpage['name'].'\')');
-      if(!$e) $db->_die('The page title could not be updated.');
-      $e = $db->sql_query('UPDATE '.table_prefix.'pages SET name=\''.$db->escape($name).'\' WHERE urlname=\''.$page_id.'\' AND namespace=\''.$namespace.'\';');
-      if(!$e) $db->_die('The page title could not be updated.');
-      else return('The page "'.$paths->pages[$pname]['name'].'" has been renamed to "'.$name.'". You are encouraged to leave a comment explaining your action.
-
-You will see the change take effect the next time you reload this page.');
-    } else {
+    if( empty($name)) 
+    {
+      die('Name is too short');
+    }
+    if( ( $session->get_permissions('rename') && ( ( $prot && $session->get_permissions('even_when_protected') ) || !$prot ) ) && ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' ))
+    {
+      $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'rename\', \''.$db->escape($paths->cpage['urlname_nons']).'\', \''.$paths->namespace.'\', \''.$db->escape($session->username).'\', \''.$db->escape($paths->cpage['name']).'\')');
+      if ( !$e )
+      {
+        $db->_die('The page title could not be updated.');
+      }
+      $e = $db->sql_query('UPDATE '.table_prefix.'pages SET name=\''.$db->escape($name).'\' WHERE urlname=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\';');
+      if ( !$e )
+      {
+        $db->_die('The page title could not be updated.');
+      }
+      else
+      {
+        return('The page "'.$paths->pages[$pname]['name'].'" has been renamed to "'.$name.'". You are encouraged to leave a comment explaining your action.' . "\n\n" . 'You will see the change take effect the next time you reload this page.');
+      }
+    }
+    else
+    {
       return('Access is denied.');
     }
   }

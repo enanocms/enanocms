@@ -246,6 +246,9 @@ class pathManager {
       }
     }
     
+    $this->page = sanitize_page_id($this->page);
+    $this->fullpage = sanitize_page_id($this->fullpage);
+    
     dc_here('paths: setting $paths->cpage');
     
     if(isset($this->pages[$this->page]))
@@ -296,8 +299,17 @@ class pathManager {
     {
       dc_here('paths: page doesn\'t exist, creating new page in memory<br />our page ID is: '.$this->page);
       $this->page_exists = false;
+      $page_name = dirtify_page_id($this->page);
+      $page_name = str_replace('_', ' ', $page_name);
+      
+      $pid_cleaned = sanitize_page_id($this->page);
+      if ( $pid_cleaned != $this->page )
+      {
+        redirect($pid_cleaned, 'Sanitizer message', 'page id sanitized', 0);
+      }
+      
       $this->cpage = Array(
-        'name'=>str_replace('_', ' ', $this->page),
+        'name'=>$page_name,
         'urlname'=>$this->page,
         'namespace'=>'Article',
         'special'=>0,

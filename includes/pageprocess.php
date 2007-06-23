@@ -32,6 +32,13 @@ class PageProcessor
   var $namespace;
   
   /**
+   * Unsanitized page ID.
+   * @var string
+   */
+  
+  var $page_id_unclean;
+  
+  /**
    * Tracks if the page we're loading exists in the database or not.
    * @var bool
    */
@@ -148,6 +155,10 @@ class PageProcessor
         return false;
       }
     }
+    else if ( $this->namespace == 'User' )
+    {
+      $this->_handle_userpage();
+    }
     else if ( ( $this->namespace == 'Template' || $this->namespace == 'System' ) && $this->page_exists )
     {
       $this->header();
@@ -181,7 +192,7 @@ class PageProcessor
         $this->err_page_not_existent();
       }
     }
-    else // if ( in_array($this->namespace, array('Article', 'User', 'Project', 'Help', 'File', 'Category')) && $this->page_exists )
+    else // (disabled for compatibility reasons) if ( in_array($this->namespace, array('Article', 'User', 'Project', 'Help', 'File', 'Category')) && $this->page_exists )
     {
       // Send as regular page
       $text = $this->fetch_text();
@@ -195,8 +206,6 @@ class PageProcessor
         $this->render();
       }
     }
-    
-    
   }
   
   /**
@@ -212,6 +221,7 @@ class PageProcessor
     
     $this->page_id = $page_id_cleaned;
     $this->namespace = $namespace;
+    $this->page_id_unclean = dirtify_page_id($page_id);
     
     $this->perms = $session->fetch_page_acl( $page_id, $namespace );
     
@@ -328,6 +338,105 @@ class PageProcessor
     $this->text_cache = $row['page_text'];
     
     return $row['page_text'];
+    
+  }
+  
+  /**
+   * Handles the extra overhead required for user pages.
+   * @access private
+   */
+   
+  function _handle_userpage()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    if ( $this->page_id == $paths->cpage['urlname_nons'] && $this->namespace == $paths->namespace )
+    {
+      $page_name = ( isset($paths->cpage['name']) ) ? $paths->cpage['name'] : $this->page_id;
+    }
+    else
+    {
+      $page_name = ( isset($paths->pages[$this->page_id]) ) ? $paths->pages[$this->page_id]['name'] : $this->page_id;
+    }
+    
+    if ( $page_name == str_replace('_', ' ', $this->page_id) || $page_name == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) )
+    {
+      $target_username = strtr($page_name, 
+        Array(
+          '_' => ' ',
+          '<' => '&lt;',
+          '>' => '&gt;'
+          ));
+      $target_username = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $target_username);
+      $page_name = "$target_username's user page";
+    }
+    else
+    {
+      // User has a custom title for their userpage
+      $page_name = $paths->pages[ $paths->nslist[$this->namespace] . $this->page_id ]['name'];
+    }
+    
+    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($page_name);
+    
+    $this->header();
+    
+    if ( $send_headers )
+    {
+      display_page_headers();
+    }
+    
+    // Start left sidebar: basic user info, latest comments
+    
+    echo '<table border="0" cellspacing="4" cellpadding="0" style="width: 100%;">';
+    echo '<tr><td style="width: 150px;">';
+    
+    echo '<div class="tblholder">
+            <table border="0" cellspacing="1" cellpadding="4">';
+    
+    // Main part of sidebar
+            
+    echo '  </table>
+          </div>';
+    
+    echo '</td><td>';
+    
+    // User's own content
+    
+    $send_headers = $this->send_headers;
+    $this->send_headers = false;
+    
+    if ( $this->page_exists )
+    {
+      $this->render();
+    }
+    else
+    {
+      $this->err_page_not_existent();
+    }
+    
+    // Right sidebar
+    
+    echo '</td><td style="width: 150px;">';
+    
+    echo '<div class="tblholder">
+            <table border="0" cellspacing="1" cellpadding="4">';
+    
+    // Main part of sidebar
+            
+    echo '  </table>
+          </div>';
+          
+    echo '</tr></table>';
+    
+    if ( $send_headers )
+    {
+      display_page_footers();
+    }
+    
+    $this->send_headers = $send_headers;
+    unset($send_headers);
+    
+    $this->footer();
     
   }
   

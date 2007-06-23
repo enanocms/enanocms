@@ -116,7 +116,7 @@ Using the links on the left you can control every aspect of your website\'s look
     echo '<tr><td class="'.$cls.'">';
     switch($r['action']) {
       case "admin_auth_good": echo 'Successful elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Authentication level: $level</small>"; } break;
-      case "admin_auth_bad":  echo 'Failed administration logon'; break;
+      case "admin_auth_bad":  echo 'Failed elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Attempted auth level: $level</small>"; } break;
       case "activ_good": echo 'Successful account activation'; break;
       case "auth_good": echo 'Successful regular user logon'; break;
       case "activ_bad": echo 'Failed account activation'; break;

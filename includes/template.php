@@ -470,7 +470,7 @@ class template {
     }
     
     // Clear logs button
-    if ( $session->get_permissions('read') && $session->get_permissions('clear_logs') && $paths->wiki_mode && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
+    if ( $session->get_permissions('read') && $session->get_permissions('clear_logs') && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="void(ajaxClearLogs()); return false;" title="Remove all edit and action logs for this page from the database. IRREVERSIBLE! (alt-l)" accesskey="l"',
@@ -644,11 +644,14 @@ class template {
     
     $SID = ($session->sid_super) ? $session->sid_super : '';
     
+    $urlname_clean = str_replace('\'', '\\\'', str_replace('\\', '\\\\', dirtify_page_id($paths->fullpage)));
+    $urlname_clean = strtr( $urlname_clean, array( '<' => '&lt;', '>' => '&gt;' ) );
+    
     // Generate the dynamic javascript vars
     $js_dynamic = '    <script type="text/javascript">// <![CDATA[
       // This section defines some basic and very important variables that are used later in the static Javascript library.
       // SKIN DEVELOPERS: The template variable for this code block is {JS_DYNAMIC_VARS}. This MUST be inserted BEFORE the tag that links to the main Javascript lib.
-      var title=\''. str_replace('\'', '\\\'', str_replace('\\', '\\\\', $paths->fullpage)) .'\';
+      var title=\''. $urlname_clean .'\';
       var page_exists='. ( ( $paths->page_exists) ? 'true' : 'false' ) .';
       var scriptPath=\''. scriptPath .'\';
       var contentPath=\''.contentPath.'\';
@@ -662,7 +665,7 @@ class template {
       var editNotice = \'' . ( (getConfig('wiki_edit_notice')=='1') ? str_replace("\n", "\\\n", RenderMan::render(getConfig('wiki_edit_notice_text'))) : '' ) . '\';
       var prot = ' . ( ($paths->page_protected && !$session->get_permissions('even_when_protected')) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server
       var ENANO_SPECIAL_CREATEPAGE = \''. makeUrl($paths->nslist['Special'].'CreatePage') .'\';
-      var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. addslashes($paths->cpage['name']) .'&namespace=' . $paths->namespace . '\';
+      var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $urlname_clean .'&namespace=' . $paths->namespace . '\';
       var ENANO_SPECIAL_CHANGESTYLE = \''. makeUrlNS('Special', 'ChangeStyle') .'\';
       var namespace_list = new Array();
       var AES_BITS = '.AES_BITS.';
@@ -684,10 +687,10 @@ class template {
         $js_dynamic .= "namespace_list['{$k}'] = '$c';";
       }
       $js_dynamic .= "\n    //]]>\n    </script>";
-    
+      
     $tpl_strings = Array(
-      'PAGE_NAME'=>$paths->cpage['name'],
-      'PAGE_URLNAME'=>$paths->cpage['urlname'],
+      'PAGE_NAME'=>htmlspecialchars($paths->cpage['name']),
+      'PAGE_URLNAME'=> $urlname_clean,
       'SITE_NAME'=>getConfig('site_name'),
       'USERNAME'=>$session->username,
       'SITE_DESC'=>getConfig('site_desc'),

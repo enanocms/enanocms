@@ -466,6 +466,13 @@ function ajaxHistDiff()
 
 function ajaxChangeStyle()
 {
+  var inner_html = '';
+  inner_html += '';
+}
+
+/*
+function ajaxChangeStyle()
+{
   var win = document.getElementById("cn2");
   win.innerHTML = ' \
     <form action="'+ENANO_SPECIAL_CHANGESTYLE+'" onsubmit="jws.closeWin(\'root2\');" method="post" style="text-align: center"> \
@@ -501,6 +508,7 @@ function ajaxGetStyles(id) {
     }
   });
 }
+*/
 
 function ajaxSwapCSS() {
   setAjaxLoading();

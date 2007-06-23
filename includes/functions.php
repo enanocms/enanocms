@@ -1443,6 +1443,12 @@ function sanitize_html($html, $filter_php = true)
     
   }
   
+  // Vulnerability from ha.ckers.org/xss.html:
+  // <script src="http://foo.com/xss.js"
+  // <
+  // The rule is so specific because everything else will have been filtered by now
+  $html = preg_replace('/<(script|iframe)(.+?)src=([^>]*)</i', '&lt;\\1\\2src=\\3&lt;', $html);
+  
   return $html;
   
 }
@@ -1834,19 +1840,8 @@ function enano_fputs($socket, $data)
 function sanitize_page_id($page_id)
 {
   
-  // First, replace spaces with underscores  
-  $page_id = str_replace(' ', '_', $page_id);
-  
-  preg_match_all('/\.[A-Fa-f0-9][A-Fa-f0-9]/', $page_id, $matches);
-  
-  foreach ( $matches[0] as $id => $char )
-  {
-    $char = substr($char, 1);
-    $char = strtolower($char);
-    $char = intval(hexdec($char));
-    $char = chr($char);
-    $page_id = str_replace($matches[0][$id], $char, $page_id);
-  }
+  // Remove character escapes
+  $page_id = dirtify_page_id($page_id);
   
   $pid_clean = preg_replace('/[\w\/:;\(\)@\[\]_-]/', 'X', $page_id);
   $pid_dirty = enano_str_split($pid_clean, 1);
@@ -1884,6 +1879,31 @@ function sanitize_page_id($page_id)
   $page_id_cleaned = preg_replace('/\.2e' . $exts . '$/', '.\\1', $page_id_cleaned);
   
   return $page_id_cleaned;
+}
+
+/**
+ * Removes character escapes in a page ID string
+ * @param string Page ID string to dirty up
+ * @return string
+ */
+
+function dirtify_page_id($page_id)
+{
+  // First, replace spaces with underscores  
+  $page_id = str_replace(' ', '_', $page_id);
+  
+  preg_match_all('/\.[A-Fa-f0-9][A-Fa-f0-9]/', $page_id, $matches);
+  
+  foreach ( $matches[0] as $id => $char )
+  {
+    $char = substr($char, 1);
+    $char = strtolower($char);
+    $char = intval(hexdec($char));
+    $char = chr($char);
+    $page_id = str_replace($matches[0][$id], $char, $page_id);
+  }
+  
+  return $page_id;
 }
 
 /**
