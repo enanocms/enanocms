@@ -23,7 +23,7 @@ if(isset($_REQUEST['GLOBALS']))
   exit;
 }
 
-$version = '1.0';
+$version = '1.0RC3';
 
 function microtime_float()
 {
