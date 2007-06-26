@@ -1,7 +1,7 @@
 <?php
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 3 (Druid)
+ * Version 1.0 (Banshee)
  * pageprocess.php - intelligent retrieval of pages
  * Copyright (C) 2006-2007 Dan Fuhry
  *
@@ -30,6 +30,13 @@ class PageProcessor
   
   var $page_id;
   var $namespace;
+  
+  /**
+   * The revision ID (history entry) to send. If set to 0 (the default) then the most recent revision will be sent.
+   * @var int
+   */
+  
+  var $revision_id = 0;
   
   /**
    * Unsanitized page ID.
@@ -79,7 +86,7 @@ class PageProcessor
    */
   
   var $debug = array(
-      'enable' => true,
+      'enable' => false,
       'works'  => false
     );
   
@@ -87,9 +94,10 @@ class PageProcessor
    * Constructor.
    * @param string The page ID (urlname) of the page
    * @param string The namespace of the page
+   * @param int Optional. The revision ID to send.
    */
   
-  function __construct( $page_id, $namespace )
+  function __construct( $page_id, $namespace, $revision_id = 0 )
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -107,7 +115,10 @@ class PageProcessor
       $this->send_error('The namespace "' . htmlspecialchars($namespace) . '" does not exist.');
     }
     
-    $this->_setup( $page_id, $namespace );
+    if ( !is_int($revision_id) )
+      $revision_id = 0;
+    
+    $this->_setup( $page_id, $namespace, $revision_id );
     
   }
   
@@ -195,6 +206,9 @@ class PageProcessor
     else // (disabled for compatibility reasons) if ( in_array($this->namespace, array('Article', 'User', 'Project', 'Help', 'File', 'Category')) && $this->page_exists )
     {
       // Send as regular page
+      
+      // die($this->page_id);
+      
       $text = $this->fetch_text();
       if ( $text == 'err_no_text_rows' )
       {
@@ -213,7 +227,7 @@ class PageProcessor
    * @access private
    */
   
-  function _setup($page_id, $namespace)
+  function _setup($page_id, $namespace, $revision_id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -221,6 +235,7 @@ class PageProcessor
     
     $this->page_id = $page_id_cleaned;
     $this->namespace = $namespace;
+    $this->revision_id = $revision_id;
     $this->page_id_unclean = dirtify_page_id($page_id);
     
     $this->perms = $session->fetch_page_acl( $page_id, $namespace );
@@ -244,6 +259,27 @@ class PageProcessor
     {
       $this->page_exists = true;
     }
+    
+    // Compatibility with older databases
+    if ( strstr($this->page_id, '.2e') && !$this->page_exists )
+    {
+      $page_id = str_replace('.2e', '.', $page_id);
+      
+      if ( $paths->cpage['urlname_nons'] == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
+      {
+        $this->page_exists = false;
+      }
+      else if ( !isset( $paths->pages[ $paths->nslist[$namespace] . $page_id ] ) && ( $this->namespace == 'Admin' && !function_exists($fname) ) )
+      {
+        $this->page_exists = false;
+      }
+      else
+      {
+        $this->page_exists = true;
+      }
+      
+    }
+    
   }
   
   /**
@@ -256,19 +292,24 @@ class PageProcessor
     $text = $this->fetch_text();
     
     $this->header();
-    if ( $this->send_headers )
-    {
+    // if ( $this->send_headers )
+    // {
       display_page_headers();
+    // }
+    
+    if ( $this->revision_id )
+    {
+      echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;"><b>Notice:</b><br />The page you are viewing was archived on '.date('F d, Y \a\t h:i a', $this->revision_id).'.<br /><a href="'.makeUrlNS($this->namespace, $this->page_id).'" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="'.makeUrlNS($this->namespace, $this->pageid, 'do=rollback&amp;id='.$this->revision_id).'" onclick="ajaxRollback(\''.$this->revision_id.'\')">Restore this version</a></div><br />';
     }
     
     $text = '?>' . RenderMan::render($text);
     // echo('<pre>'.htmlspecialchars($text).'</pre>');
     eval ( $text );
     
-    if ( $this->send_headers )
-    {
+    // if ( $this->send_headers )
+    // {
       display_page_footers();
-    }
+    // }
     
     $this->footer();
   }
@@ -309,19 +350,83 @@ class PageProcessor
       return $this->text_cache;
     }
     
-    $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\';');
-    if ( !$q )
+    if ( $this->revision_id > 0 && is_int($this->revision_id) )
     {
-      $this->send_error('Error during SQL query.', true);
-    }
-    if ( $db->numrows() < 1 )
-    {
-      $this->page_exists = false;
-      return 'err_no_text_rows';
-    }
     
-    $row = $db->fetchrow();
-    $db->free_result();
+      $q = $db->sql_query('SELECT page_text, char_tag, date_string FROM '.table_prefix.'logs WHERE page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' AND time_id=' . $this->revision_id . ';');
+      if ( !$q )
+      {
+        $this->send_error('Error during SQL query.', true);
+      }
+      if ( $db->numrows() < 1 )
+      {
+        // Compatibility fix for old pages with dots in the page ID
+        if ( strstr($this->page_id, '.2e') )
+        {
+          $db->free_result();
+          $page_id = str_replace('.2e', '.', $this->page_id);
+          $q = $db->sql_query('SELECT page_text, char_tag, date_string FROM '.table_prefix.'logs WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $this->namespace . '\' AND time_id=' . $this->revision_id . ';');
+          if ( !$q )
+          {
+            $this->send_error('Error during SQL query.', true);
+          }
+          if ( $db->numrows() < 1 )
+          {
+            $this->page_exists = false;
+            return 'err_no_text_rows';
+          }
+        }
+        else
+        {
+          $this->page_exists = false;
+          return 'err_no_text_rows';
+        }
+      }
+      else
+      {
+        $row = $db->fetchrow();
+      }
+      
+      $db->free_result();
+      
+    }
+    else
+    {
+      
+      $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\';');
+      if ( !$q )
+      {
+        $this->send_error('Error during SQL query.', true);
+      }
+      if ( $db->numrows() < 1 )
+      {
+        // Compatibility fix for old pages with dots in the page ID
+        if ( strstr($this->page_id, '.2e') )
+        {
+          $db->free_result();
+          $page_id = str_replace('.2e', '.', $this->page_id);
+          $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $this->namespace . '\';');
+          if ( !$q )
+          {
+            $this->send_error('Error during SQL query.', true);
+          }
+          if ( $db->numrows() < 1 )
+          {
+            $this->page_exists = false;
+            return 'err_no_text_rows';
+          }
+        }
+        else
+        {
+          $this->page_exists = false;
+          return 'err_no_text_rows';
+        }
+      }
+      
+      $row = $db->fetchrow();
+      $db->free_result();
+      
+    }
     
     if ( !empty($row['char_tag']) )
     {
@@ -380,12 +485,11 @@ class PageProcessor
     
     $this->header();
     
-    if ( $send_headers )
-    {
+    // if ( $send_headers )
+    // {
       display_page_headers();
-    }
+    // }
    
-    /*
     // Start left sidebar: basic user info, latest comments
     
     echo '<table border="0" cellspacing="4" cellpadding="0" style="width: 100%;">';
@@ -400,7 +504,6 @@ class PageProcessor
           </div>';
     
     echo '</td><td>';
-    */
     
     // User's own content
     
@@ -416,8 +519,6 @@ class PageProcessor
       $this->err_page_not_existent();
     }
     
-    /*
-    
     // Right sidebar
     
     echo '</td><td style="width: 150px;">';
@@ -432,12 +533,10 @@ class PageProcessor
           
     echo '</tr></table>';
     
-    if ( $send_headers )
-    {
+    // if ( $send_headers )
+    // {
       display_page_footers();
-    }
-    
-    */
+    // }
     
     $this->send_headers = $send_headers;
     unset($send_headers);
@@ -543,13 +642,13 @@ class PageProcessor
    * @see PageProcessor::__construct()
    */
   
-  function PageProcessor( $page_id, $namespace )
+  function PageProcessor( $page_id, $namespace, $revision_id = 0 )
   {
-    $this->__construct($page_id, $namespace);
+    $this->__construct($page_id, $namespace, $revision_id);
   }
   
   /**
-   * Send an error message and die
+   * Send an error message and die. For debugging or critical technical errors only - nothing that would under normal circumstances be shown to the user.
    * @var string Error message
    * @var bool If true, send DBAL's debugging information as well
    */

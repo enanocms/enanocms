@@ -11,6 +11,9 @@ var jBoxMenuHeights = new Object();
 // Blocks animations from running if there's already an animation going on the same object
 var jBoxSlideBlocker = new Object();
 
+// Switch to enable or disable jBox slide animation
+var jBox_slide_enable = true;
+
 // Speed at which the menus should slide open. 1 to 100 or -1 to disable.
 // Setting this higher than 100 will cause an infinite loop in the browser.
 // Default is 80 - anything higher than 90 means exponential speed increase
@@ -93,6 +96,8 @@ function jBoxSetup(obj)
 // Called when user hovers mouse over a submenu
 function jBoxOverHandler(obj)
 {
+  if ( is_Safari )
+    alert('Safari and over');
   // Random ID used to track the object to perform on
   var seed = Math.floor(Math.random() * 1000000);
   jBoxObjCache[seed] = obj;
@@ -135,13 +140,23 @@ function jBoxOverHandlerBin(obj)
     var offtop = parseInt(off['top']);
     var top = dimh + offtop;
     left = off['left'];
+    if ( jBox_slide_enable )
+    {
+      domObjChangeOpac(0, ul);
+    }
     ul.style.left = left + 'px';
     ul.style.top = top + 'px';
-    domObjChangeOpac(0, ul);
     ul.style.clip = 'rect(auto,auto,auto,auto)';
     ul.style.overflow = 'visible';
     ul.style.display = 'block';
-    slideOut(ul);
+    if ( jBox_slide_enable )
+    {
+      slideOut(ul);
+    }
+    else
+    {
+      domObjChangeOpac(100, ul);
+    }
   }
 }
 

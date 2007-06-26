@@ -23,6 +23,7 @@ if(typeof title != 'string')
 
 var detect = navigator.userAgent.toLowerCase();
 var IE;
+var is_Safari;
 
 // dummy tinyMCE object
 var tinyMCE = new Object();
@@ -36,6 +37,8 @@ function checkIt(string) {
 }
 if (checkIt('msie')) IE = true;
 else IE = false;
+
+is_Safari = checkIt('safari') ? true : false;
 
 var cmt_open;
 var list;

@@ -33,17 +33,24 @@
  * is not a "competing product" I was allowed to treat the code as GPL. The conversation can be seen in the
  * /licenses/tigra-menu.html document in the Enano distribution.
  */
- 
-var ck = readCookie('admin_menu_state');
-if(ck)
+
+if ( typeof(readCookie) == 'function' )
 {
-  var ck = parseInt(ck);
+  var ck = readCookie('admin_menu_state');
+  if(ck)
+  {
+    ck = parseInt(ck);
+  }
+  else
+  {
+    ck = 0;
+  }
+  ck = ( isNaN(ck) ) ? 0 : ck;
 }
 else
 {
-  ck = 0;
+  var ck = 0;
 }
-ck = ( isNaN(ck) ) ? 0 : ck;
 
 function tree (a_items, a_template) {
 

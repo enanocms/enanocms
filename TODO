@@ -28,6 +28,7 @@ Enano Banshee - TODO
 [x] Trigger form submit on press of enter in Dynano login form
 [ ] Rewrite the change theme dialog - it's archaic code that hasn't changed since beta 1!
     [ ] This should be the next-to-last step in phasing out the JWS code, which should be removed in the first 1.1 alpha
+[ ] Get the new page ID cleaner code working 100% perfectly - this is the core of Enano and should be completely bug free
 
 
 Enano Clurichaun - TODO

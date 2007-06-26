@@ -1,7 +1,7 @@
 <?php
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 3 (Druid)
+ * Version 1.0 (Banshee)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -28,7 +28,8 @@
       break;
     case "getpage":
       // echo PageUtils::getpage($paths->page, false, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
-      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace );
+      $revision_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
+      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $revision_id );
       $page->send();
       break;
     case "savepage":
@@ -54,36 +55,6 @@
     case "rollback":
       echo PageUtils::rollback( (int)$_GET['id'] );
       break;
-      
-      /*
-       * This is old code and should not be used. It's badly broken and a perfect example of bad database organization.
-       
-    case "addcomment":
-      $cc = ( isset($_POST['captcha_code']) ) ? $_POST['captcha_code'] : false;
-      $ci = ( isset($_POST['captcha_id']  ) ) ? $_POST['captcha_id']   : false;
-      if(!isset($_POST['text']) ||
-         !isset($_POST['subj']) ||
-         !isset($_POST['name'])) die('alert(\'Error in POST DATA string, aborting\');');
-      if($_POST['text']=='' ||
-         $_POST['name']=='' ||
-         $_POST['subj']=='') die('alert(\'One or more POST DATA fields was empty, aborting post submission\')');
-     echo PageUtils::addcomment($paths->cpage['urlname_nons'], $paths->namespace, $_POST['name'], $_POST['subj'], $_POST['text'], $cc, $ci);
-     break;
-    case "comments":
-      echo PageUtils::comments($paths->cpage['urlname_nons'], $paths->namespace, ( isset($_GET['action']) ? $_GET['action'] : false ), Array(
-          'name' => ( isset($_POST['name']) ) ? $_POST['name'] : '',
-          'subj' => ( isset($_POST['subj']) ) ? $_POST['subj'] : '',
-          'text' => ( isset($_POST['text']) ) ? $_POST['text'] : ''
-        ));
-      break;
-    case "savecomment":
-      echo PageUtils::savecomment($paths->cpage['urlname_nons'], $paths->namespace, $_POST['s'], $_POST['t'], $_POST['os'], $_POST['ot'], $_POST['id']);
-      break;
-    case "deletecomment":
-      echo PageUtils::deletecomment($paths->cpage['urlname_nons'], $paths->namespace, $_POST['name'], $_POST['subj'], $_POST['text'], $_GET['id']);
-      break;
-      */
-      
     case "comments":
       $comments = new Comments($paths->cpage['urlname_nons'], $paths->namespace);
       if ( isset($_POST['data']) )

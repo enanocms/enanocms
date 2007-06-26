@@ -1,7 +1,7 @@
 <?php
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 3 (Druid)
+ * Version 1.0 (Banshee)
  * Copyright (C) 2006-2007 Dan Fuhry
  * pageutils.php - a class that handles raw page manipulations, used mostly by AJAX requests or their old-fashioned form-based counterparts
  *
@@ -324,16 +324,17 @@ class PageUtils {
     {
       if(!PageUtils::createPage($page_id, $namespace))
         return 'The page did not exist, and I was not able to create it. Permissions problem?';
+      $paths->page_exists = true;
     }
     
     $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
     $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
     if(($prot || !$wiki) && $session->user_level < USER_LEVEL_ADMIN ) return('You are not authorized to edit this page.');
     
-    // Strip potentially harmful tags and PHP from the message, if we are in wiki mode and the user is not an administrator
+    // Strip potentially harmful tags and PHP from the message, dependent upon permissions settings
     $message = RenderMan::preprocess_text($message, false, false);
     
-    $msg=$db->escape($message);
+    $msg = $db->escape($message);
     
     $minor = $minor ? 'true' : 'false';
     $q='INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \''.$paths->cpage['urlname_nons'].'\', \''.$paths->namespace.'\', \''.$msg.'\', \''.$uid.'\', \''.$session->username.'\', \''.$db->escape(htmlspecialchars($summary)).'\', '.$minor.');';
@@ -389,9 +390,10 @@ class PageUtils {
       return false; // Not authorized to create system messages
     }
     
+    $page_id = dirtify_page_id($page_id);
+    
     if ( !$name )
       $name = str_replace('_', ' ', $page_id);
-    $page = str_replace(' ', '_', $page_id);
     $regex = '#^([A-z0-9 _\-\.\/\!\@\(\)]*)$#is';
     if(!preg_match($regex, $page))
     {
@@ -399,18 +401,24 @@ class PageUtils {
       return false; // Name contains invalid characters
     }
     
+    $page_id = sanitize_page_id( $page_id );
+    
     $prot = ( $namespace == 'System' ) ? 1 : 0;
     
-    $paths->add_page(Array(
+    $page_data = Array(
       'name'=>$name,
-      'urlname'=>$page,
+      'urlname'=>$page_id,
       'namespace'=>$namespace,
       'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>$prot,'delvotes'=>0,'delvote_ips'=>'','wiki_mode'=>2,
-    ));
+    );
     
-    $qa = $db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace,visible,protected) VALUES(\''.$db->escape($name).'\', \''.$db->escape($page).'\', \''.$namespace.'\', '. ( $visible ? '1' : '0' ) .', '.$prot.');');
-    $qb = $db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace) VALUES(\''.$db->escape($page).'\', \''.$namespace.'\');');
-    $qc = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'create\', \''.$session->username.'\', \''.$db->escape($page).'\', \''.$namespace.'\');');
+    // die('PageUtils::createpage: Creating page with this data:<pre>' . print_r($page_data, true) . '</pre>');
+    
+    $paths->add_page($page_data);
+    
+    $qa = $db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace,visible,protected) VALUES(\''.$db->escape($name).'\', \''.$db->escape($page_id).'\', \''.$namespace.'\', '. ( $visible ? '1' : '0' ) .', '.$prot.');');
+    $qb = $db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace) VALUES(\''.$db->escape($page_id).'\', \''.$namespace.'\');');
+    $qc = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'create\', \''.$session->username.'\', \''.$db->escape($page_id).'\', \''.$namespace.'\');');
     
     if($qa && $qb && $qc)
       return true;

@@ -113,7 +113,7 @@ class Text_Wiki_Render_Xhtml_Url extends Text_Wiki_Render {
             }
 
             // finish up output
-            $output .= ">$text</a>";
+            $output .= " rel=".'"'."nofollow".'"'.">$text</a>";
 
             // make numbered references look like footnotes when no
             // CSS class specified, make them superscript by default

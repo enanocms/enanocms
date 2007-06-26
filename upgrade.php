@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 3 (Druid)
+ * Version 1.0 (Banshee)
  * upgrade.php - upgrade script
  * Copyright (C) 2006-2007 Dan Fuhry
  *
@@ -30,7 +30,18 @@ if(!defined('contentPath')) {
 global $_starttime, $this_page, $sideinfo;
 $_starttime = microtime(true);
 
-define('ENANO_ROOT', dirname(__FILE__));
+// Determine directory (special case for development servers)
+if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )
+{
+  $filename = str_replace('/repo/', '/', __FILE__);
+}
+else
+{
+  $filename = __FILE__;
+}
+
+define('ENANO_ROOT', dirname($filename));
+
 require(ENANO_ROOT.'/includes/constants.php');
 
 if(defined('ENANO_DEBUG'))
@@ -50,19 +61,20 @@ else
 // Everything related to versions goes here!
 
 // Valid versions to upgrade from
-$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2');
+$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3');
 
 // Basically a list of dependencies, which should be resolved automatically
-// If, for example, if upgrading from 1.0b1 to 1.0RC1 requires one extra query that would not
+// If, for example, upgrading from 1.0b1 to 1.0RC1 requires one extra query that would not
 // normally be required (for whatever reason) then you would add a custom version number to the array under key '1.0b1'.
 $deps_list = Array(
     '1.0b1' => Array('1.0b2'),
     '1.0b2' => Array('1.0b3'),
     '1.0b3' => Array('1.0b4'),
     '1.0b4' => Array('1.0RC1'),
-    '1.0RC1' => Array('1.0RC2')
+    '1.0RC1' => Array('1.0RC2'),
+    '1.0RC2' => Array('1.0RC3')
   );
-$this_version   = '1.0RC3';
+$this_version   = '1.0';
 $func_list = Array(
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text') // ,
     // '1.0RC2' => Array('u_1_0_populate_userpage_comments')
@@ -339,6 +351,10 @@ function u_1_0_RC1_update_page_text()
 
 function u_1_0_populate_userpage_comments()
 {
+  //
+  // UNFINISHED...
+  //
+  
   /*
   global $db;
   $q = $db->sql_query('SELECT COUNT(c.comment_id) AS num_comments...');
@@ -476,7 +492,9 @@ switch($_GET['mode'])
       <p>Your version of Enano (<?php echo $v; ?>) can't be upgraded to this version (<?php echo $this_version; ?>).</p>
       <?php
       break;
-    } elseif($v == '') {
+    } 
+    else if($v == '')
+    {
       // OK, we don't know which version he's running. So we'll cheat ;-)
       $template->header();
       echo "<form action='upgrade.php?mode=confirm&amp;auth={$session->sid_super}' method='post'>";
@@ -494,7 +512,9 @@ switch($_GET['mode'])
       <?php
       echo `</form>`;
       break;
-    } else {
+    }
+    else
+    {
       header('Location: upgrade.php?mode=confirm&auth='.$session->sid_super);
     }
     break;

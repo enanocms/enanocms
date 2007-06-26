@@ -57,8 +57,14 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
     function token($options)
     {
         global $session;
-        if($session->sid_super) $as = htmlspecialchars(urlSeparator).'auth='.$session->sid_super;
-        else $as = '';
+        if ( $session->sid_super )
+        {
+          $as = htmlspecialchars(urlSeparator) . 'auth='.$session->sid_super;
+        }
+        else
+        {
+          $as = '';
+        }
         // make nice variable names (page, anchor, text)
         extract($options);
 
@@ -71,6 +77,8 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
         } else {
         	$callback = false;
         }
+        
+        $page = sanitize_page_id( $page );
 
         if ($callback) {
             // use the callback function
@@ -92,7 +100,7 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
         //$page = $this->urlEncode($page);
         $anchor = $this->urlEncode($anchor);
         $text = $this->textEncode($text);
-
+        
         // does the page exist?
         if ($exists) {
 

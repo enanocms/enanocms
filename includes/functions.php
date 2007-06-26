@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 3 (Druid)
+ * Version 1.0 (Banshee)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -1439,7 +1439,7 @@ function sanitize_html($html, $filter_php = true)
     }
     elseif ( $in_tag && $trk_name )
     {
-      $is_alphabetical = ( strtolower($chr) != strtoupper($chr) || in_array($chr, array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) || $chr == '?' );
+      $is_alphabetical = ( strtolower($chr) != strtoupper($chr) || in_array($chr, array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) || $chr == '?' || $chr == '!' || $chr == '-' );
       if ( $is_alphabetical )
         $tag_name .= $chr;
       else
@@ -1455,6 +1455,9 @@ function sanitize_html($html, $filter_php = true)
   // <
   // The rule is so specific because everything else will have been filtered by now
   $html = preg_replace('/<(script|iframe)(.+?)src=([^>]*)</i', '&lt;\\1\\2src=\\3&lt;', $html);
+  
+  // Unstrip comments
+  $html = preg_replace('/&lt;!--([^>]*?)--&gt;/i', '', $html);
   
   return $html;
   
@@ -1850,7 +1853,7 @@ function sanitize_page_id($page_id)
   // Remove character escapes
   $page_id = dirtify_page_id($page_id);
   
-  $pid_clean = preg_replace('/[\w\/:;\(\)@\[\]_-]/', 'X', $page_id);
+  $pid_clean = preg_replace('/[\w\.\/:;\(\)@\[\]_-]/', 'X', $page_id);
   $pid_dirty = enano_str_split($pid_clean, 1);
   
   foreach ( $pid_dirty as $id => $char )
@@ -1878,12 +1881,12 @@ function sanitize_page_id($page_id)
       $page_id_cleaned .= $pid_dirty[$id];
   }
   
-  global $mime_types;
+  // global $mime_types;
           
-  $exts = array_keys($mime_types);
-  $exts = '(' . implode('|', $exts) . ')';
+  // $exts = array_keys($mime_types);
+  // $exts = '(' . implode('|', $exts) . ')';
   
-  $page_id_cleaned = preg_replace('/\.2e' . $exts . '$/', '.\\1', $page_id_cleaned);
+  // $page_id_cleaned = preg_replace('/\.2e' . $exts . '$/', '.\\1', $page_id_cleaned);
   
   return $page_id_cleaned;
 }

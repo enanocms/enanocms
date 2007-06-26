@@ -1,7 +1,7 @@
 <?php
 /**
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * @Version 1.0 release candidate 3 (Druid)
+ * @Version 1.0 (Banshee)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -51,7 +51,8 @@
       break;
     case 'view':
       // echo PageUtils::getpage($paths->page, true, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
-      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace );
+      $rev_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
+      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $rev_id );
       $page->send_headers = true;
       $page->send();
       break;
