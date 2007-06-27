@@ -123,6 +123,10 @@
       $c = 0;
       $u = Array();
       $n = Array();
+      
+      $name = sanitize_page_id($name);
+      $name = str_replace('_', ' ', $name);
+      
       for($i=0;$i<sizeof($paths->pages)/2;$i++)
       {
         if( ( 

@@ -180,7 +180,7 @@ function page_Special_PrivateMessages()
         
         $to = $r['message_from'];
       } else {
-        if($argv[1]=='to' && $argv[2]) $to = $argv[2];
+        if(( $argv[1]=='to' || $argv[1]=='To' ) && $argv[2]) $to = $argv[2];
         else $to = '';
         $text = '';
         $subj = '';

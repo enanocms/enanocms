@@ -11,63 +11,148 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
- 
-function getConfig($n) {
+
+/**
+ * Fetch a value from the site configuration.
+ * @param string The identifier of the value ("site_name" etc.)
+ * @return string Configuration value, or bool(false) if the value is not set
+ */
+
+function getConfig($n)
+{
   global $enano_config;
-  if(isset($enano_config[$n])) return $enano_config[$n];
-  else                         return false;
+  if ( isset( $enano_config[ $n ] ) )
+  {
+    return $enano_config[$n];
+  }
+  else
+  {
+    return false;
+  }
 }
 
-function setConfig($n, $v) {
+/**
+ * Update or change a configuration value.
+ * @param string The identifier of the value ("site_name" etc.)
+ * @param string The new value
+ * @return null
+ */
+
+function setConfig($n, $v)
+{
+  
   global $enano_config, $db;
   $enano_config[$n] = $v;
   $v = $db->escape($v);
-  $e=$db->sql_query('DELETE FROM '.table_prefix.'config WHERE config_name=\''.$n.'\';');
-  if(!$e) $db->_die('Error during generic setConfig() call row deletion.');
-  $e=$db->sql_query('INSERT INTO '.table_prefix.'config(config_name, config_value) VALUES(\''.$n.'\', \''.$v.'\')');
-  if(!$e) $db->_die('Error during generic setConfig() call row insertion.');
+  
+  $e = $db->sql_query('DELETE FROM '.table_prefix.'config WHERE config_name=\''.$n.'\';');
+  if ( !$e )
+  {
+    $db->_die('Error during generic setConfig() call row deletion.');
+  }
+  
+  $e = $db->sql_query('INSERT INTO '.table_prefix.'config(config_name, config_value) VALUES(\''.$n.'\', \''.$v.'\')');
+  if ( !$e )
+  {
+    $db->_die('Error during generic setConfig() call row insertion.');
+  }
 }
+
+/**
+ * Create a URI for an internal link.
+ * @param string The full identifier of the page to link to (Special:Administration)
+ * @param string The GET query string to append
+ * @param bool   If true, perform htmlspecialchars() on the return value to make it HTML-safe
+ * @return string
+ */
 
 function makeUrl($t, $query = false, $escape = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $flags = '';
   $sep = urlSeparator;
-  if(isset($_GET['printable'])) { $flags .= $sep.'printable'; $sep = '&'; }
-  if(isset($_GET['theme'])) { $flags .= $sep.'theme='.$session->theme; $sep = '&'; }
-  if(isset($_GET['style'])) { $flags .= $sep.'style='.$session->style; $sep = '&'; }
+  if ( isset($_GET['printable'] ) )
+  {
+    $flags .= $sep . 'printable=yes';
+    $sep = '&';
+  }
+  if ( isset($_GET['theme'] ) )
+  {
+    $flags .= $sep . 'theme='.$session->theme;
+    $sep = '&';
+  }
+  if ( isset($_GET['style'] ) ) {
+    $flags .= $sep . 'style='.$session->style; 
+    $sep = '&';
+  }
+  
   $url = $session->append_sid(contentPath.$t.$flags);
   if($query)
   {
     $sep = strstr($url, '?') ? '&' : '?';
     $url = $url . $sep . $query;
   }
+  
   return ($escape) ? htmlspecialchars($url) : $url;
 }
+
+/**
+ * Create a URI for an internal link, and be namespace-friendly. Watch out for this one because it's different from most other Enano functions, in that the namespace is the first parameter.
+ * @param string The namespace ID
+ * @param string The page ID
+ * @param string The GET query string to append
+ * @param bool   If true, perform htmlspecialchars() on the return value to make it HTML-safe
+ * @return string
+ */
 
 function makeUrlNS($n, $t, $query = false, $escape = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $flags = '';
-  if(defined('ENANO_BASE_CLASSES_INITIALIZED')) $sep = urlSeparator;
-  else $sep = (strstr($_SERVER['REQUEST_URI'], '?')) ? '&' : '?';
-  if(isset($_GET['printable'])) { $flags .= $sep.'printable';              $sep = '&'; }
-  if(isset($_GET['theme']))     { $flags .= $sep.'theme='.$session->theme; $sep = '&'; }
-  if(isset($_GET['style']))     { $flags .= $sep.'style='.$session->style; $sep = '&'; }
   
   if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
   {
-    $url = contentPath.$paths->nslist[$n].$t.$flags;
+    $sep = urlSeparator;
   }
   else
   {
-    $url = contentPath.$n.':'.$t.$flags;
+    $sep = (strstr($_SERVER['REQUEST_URI'], '?')) ? '&' : '?';
+  }
+  if ( isset( $_GET['printable'] ) ) {
+    $flags .= $sep . 'printable';
+    $sep = '&';
+  }
+  if ( isset( $_GET['theme'] ) ) 
+  {
+    $flags .= $sep . 'theme='.$session->theme;
+    $sep = '&';
+  }
+  if ( isset( $_GET['style'] ) )
+  {
+    $flags .= $sep . 'style='.$session->style;
+    $sep = '&';
+  }
+  
+  if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
+  {
+    $url = contentPath . $paths->nslist[$n] . $t . $flags;
+  }
+  else
+  {
+    // If the path manager hasn't been initted yet, take an educated guess at what the URI should be
+    $url = contentPath . $n . ':' . $t . $flags;
   }
   
   if($query)
   {
-    if(strstr($url, '?')) $sep =  '&';
-    else $sep = '?';
+    if(strstr($url, '?')) 
+    {
+      $sep =  '&';
+    }
+    else
+    {
+      $sep = '?';
+    }
     $url = $url . $sep . $query . $flags;
   }
   
@@ -79,25 +164,62 @@ function makeUrlNS($n, $t, $query = false, $escape = false)
   return ($escape) ? htmlspecialchars($url) : $url;
 }
 
+/**
+ * Create a URI for an internal link, be namespace-friendly, and add http://hostname/scriptpath to the beginning if possible. Watch out for this one because it's different from most other Enano functions, in that the namespace is the first parameter.
+ * @param string The namespace ID
+ * @param string The page ID
+ * @param string The GET query string to append
+ * @param bool   If true, perform htmlspecialchars() on the return value to make it HTML-safe
+ * @return string
+ */
+
 function makeUrlComplete($n, $t, $query = false, $escape = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $flags = '';
-  if(defined('ENANO_BASE_CLASSES_INITIALIZED')) $sep = urlSeparator;
-  else $sep = (strstr($_SERVER['REQUEST_URI'], '?')) ? '&' : '?';
-  if(isset($_GET['printable'])) { $flags .= $sep.'printable';              $sep = '&'; }
-  if(isset($_GET['theme']))     { $flags .= $sep.'theme='.$session->theme; $sep = '&'; }
-  if(isset($_GET['style']))     { $flags .= $sep.'style='.$session->style; $sep = '&'; }
-  if(defined('ENANO_BASE_CLASSES_INITIALIZED')) $url = $session->append_sid(contentPath.$paths->nslist[$n].$t.$flags);
-  else $url = contentPath.$n.':'.$t.$flags;
+  
+  if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
+  {
+    $sep = urlSeparator;
+  }
+  else
+  {
+    $sep = (strstr($_SERVER['REQUEST_URI'], '?')) ? '&' : '?';
+  }
+  if ( isset( $_GET['printable'] ) ) {
+    $flags .= $sep . 'printable';
+    $sep = '&';
+  }
+  if ( isset( $_GET['theme'] ) ) 
+  {
+    $flags .= $sep . 'theme='.$session->theme;
+    $sep = '&';
+  }
+  if ( isset( $_GET['style'] ) )
+  {
+    $flags .= $sep . 'style='.$session->style;
+    $sep = '&';
+  }
+  
+  if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
+  {
+    $url = $session->append_sid(contentPath . $paths->nslist[$n] . $t . $flags);
+  }
+  else
+  {
+    // If the path manager hasn't been initted yet, take an educated guess at what the URI should be
+    $url = contentPath . $n . ':' . $t . $flags;
+  }
   if($query)
   {
     if(strstr($url, '?')) $sep =  '&';
     else $sep = '?';
     $url = $url . $sep . $query . $flags;
   }
+  
   $baseprot = 'http' . ( isset($_SERVER['HTTPS']) ? 's' : '' ) . '://' . $_SERVER['HTTP_HOST'];
   $url = $baseprot . $url;
+  
   return ($escape) ? htmlspecialchars($url) : $url;
 }
 
@@ -141,14 +263,38 @@ function redirect($url, $title = 'Redirecting...', $message = 'Please wait while
 
 // Removed wikiFormat() from here, replaced with RenderMan::render
 
+/**
+ * Tell me if the page exists or not.
+ * @param string the full page ID (Special:Administration) of the page to check for
+ * @return bool True if the page exists, false otherwise
+ */
+
 function isPage($p) {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if(isset($paths->pages[$p])) return true;
-  $d = RenderMan::strToPageID($p);
-  if($d[1] != 'Special' && $d[1] != 'Template' && $d[1] != 'Admin') return false;
-  $a = explode('/', $p);
-  if(isset($paths->pages[$a[0]])) return true;
-  else return false;
+  
+  // Try the easy way first ;-)
+  if ( isset( $paths->pages[ $p ] ) )
+  {
+    return true;
+  }
+  
+  // Special case for Special, Template, and Admin pages that can't have slashes in their URIs
+  $ns_test = RenderMan::strToPageID( $p );
+  
+  if($ns_test[1] != 'Special' && $ns_test[1] != 'Template' && $ns_test[1] != 'Admin')
+  {
+    return false;
+  }
+  
+  $particles = explode('/', $p);
+  if ( isset ( $paths->pages[ $particles[ 0 ] ] ) )
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 function arrayItemUp($arr, $keyname) {

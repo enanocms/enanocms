@@ -647,11 +647,13 @@ class template {
     $urlname_clean = str_replace('\'', '\\\'', str_replace('\\', '\\\\', dirtify_page_id($paths->fullpage)));
     $urlname_clean = strtr( $urlname_clean, array( '<' => '&lt;', '>' => '&gt;' ) );
     
+    $urlname_jssafe = sanitize_page_id($paths->fullpage);
+    
     // Generate the dynamic javascript vars
     $js_dynamic = '    <script type="text/javascript">// <![CDATA[
       // This section defines some basic and very important variables that are used later in the static Javascript library.
       // SKIN DEVELOPERS: The template variable for this code block is {JS_DYNAMIC_VARS}. This MUST be inserted BEFORE the tag that links to the main Javascript lib.
-      var title=\''. $urlname_clean .'\';
+      var title=\''. $urlname_jssafe .'\';
       var page_exists='. ( ( $paths->page_exists) ? 'true' : 'false' ) .';
       var scriptPath=\''. scriptPath .'\';
       var contentPath=\''.contentPath.'\';

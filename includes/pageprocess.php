@@ -464,15 +464,17 @@ class PageProcessor
       $page_name = ( isset($paths->pages[$this->page_id]) ) ? $paths->pages[$this->page_id]['name'] : $this->page_id;
     }
     
-    if ( $page_name == str_replace('_', ' ', $this->page_id) || $page_name == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) )
+    $target_username = strtr($page_name, 
+      Array(
+        '_' => ' ',
+        '<' => '&lt;',
+        '>' => '&gt;'
+        ));
+    
+    $target_username = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $target_username);
+    
+    if ( ( $page_name == str_replace('_', ' ', $this->page_id) || $page_name == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) ) || !$this->page_exists )
     {
-      $target_username = strtr($page_name, 
-        Array(
-          '_' => ' ',
-          '<' => '&lt;',
-          '>' => '&gt;'
-          ));
-      $target_username = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $target_username);
       $page_name = "$target_username's user page";
     }
     else
@@ -483,27 +485,155 @@ class PageProcessor
     
     $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($page_name);
     
+    $q = $db->sql_query('SELECT u.username, u.user_id AS authoritative_uid, u.real_name, u.email, u.reg_time, x.*, COUNT(c.comment_id) AS n_comments
+                           FROM '.table_prefix.'users u
+                           LEFT JOIN '.table_prefix.'users_extra AS x
+                             ON ( u.user_id = x.user_id OR x.user_id IS NULL ) 
+                           LEFT JOIN '.table_prefix.'comments AS c
+                             ON ( ( c.user_id=u.user_id AND c.approved=1 ) OR ( c.comment_id IS NULL AND c.approved IS NULL ) )
+                           WHERE u.username=\'' . $db->escape($target_username) . '\'
+                           GROUP BY u.user_id;');
+    if ( !$q )
+      $db->_die();
+    
+    $user_exists = true;
+    
+    if ( $db->numrows() < 1 )
+    {
+      $user_exists = false;
+    }
+    else
+    {
+      $userdata = $db->fetchrow();
+      if ( $userdata['authoritative_uid'] == 1 )
+      {
+        // Hide data for anonymous user
+        $user_exists = false;
+        unset($userdata);
+      }
+    }
+    
     $this->header();
     
     // if ( $send_headers )
     // {
-      display_page_headers();
+    //  display_page_headers();
     // }
    
     // Start left sidebar: basic user info, latest comments
     
+    if ( $user_exists ):
+    
     echo '<table border="0" cellspacing="4" cellpadding="0" style="width: 100%;">';
-    echo '<tr><td style="width: 150px;">';
+    echo '<tr><td style="width: 150px;" valign="top">';
     
     echo '<div class="tblholder">
             <table border="0" cellspacing="1" cellpadding="4">';
     
+    //
     // Main part of sidebar
+    //
+    
+    // Basic user info
+    
+    echo '<tr><th class="subhead">All about ' . htmlspecialchars($target_username) . '</th></tr>';
+    echo '<tr><td class="row3">Joined: ' . date('F d, Y h:i a', $userdata['reg_time']) . '</td></tr>';
+    echo '<tr><td class="row1">Total comments: ' . $userdata['n_comments'] . '</td></tr>';
+    
+    if ( !empty($userdata['real_name']) )
+    {
+      echo '<tr><td class="row3">Real name: ' . htmlspecialchars($userdata['real_name']) . '</td></tr>';
+    }
+    
+    // Comments
+    
+    echo '<tr><th class="subhead">' . htmlspecialchars($target_username) . '\'s latest comments</th></tr>';
+    $q = $db->sql_query('SELECT page_id, namespace, subject, time FROM '.table_prefix.'comments WHERE name=\'' . $db->escape($target_username) . '\' AND approved=1 ORDER BY time DESC LIMIT 5;');
+    if ( !$q )
+      $db->_die();
+    
+    $comments = Array();
+    $no_comments = false;
+    
+    if ( $row = $db->fetchrow() )
+    {
+      do 
+      {
+        $row['time'] = date('F d, Y', $row['time']);
+        $comments[] = $row;
+      }
+      while ( $row = $db->fetchrow() );
+    }
+    else
+    {
+      $no_comments = true;
+    }
+    
+    echo '<tr><td class="row3">';
+    echo '<div style="border: 1px solid #000000; padding: 0px; margin: 0; max-height: 200px; clip: rect(0px,auto,auto,0px); overflow: auto; background-color: transparent;" class="tblholder">';
+    
+    echo '<table border="0" cellspacing="1" cellpadding="4">';
+    $class = 'row1';
+    
+    $tpl = '<tr>
+              <td class="{CLASS}">
+                <a href="{PAGE_LINK}" <!-- BEGINNOT page_exists -->class="wikilink-nonexistent"<!-- END page_exists -->>{PAGE}</a><br />
+                <small>Posted {DATE}<br /></small>
+                <b><a href="{COMMENT_LINK}">{SUBJECT}</a></b>
+              </td>
+            </tr>';
+    $parser = $template->makeParserText($tpl);
+    
+    if ( count($comments) > 0 )
+    {
+      foreach ( $comments as $comment )
+      {
+        $c_page_id = $paths->nslist[ $comment['namespace'] ] . sanitize_page_id($comment['page_id']);
+        if ( isset($paths->pages[ $c_page_id ]) )
+        {
+          $parser->assign_bool(array(
+            'page_exists' => true
+            ));
+          $page_title = $paths->pages[ $c_page_id ]['name'];
+        }
+        else
+        {
+          $parser->assign_bool(array(
+            'page_exists' => false
+            ));
+          $page_title = htmlspecialchars(dirtify_page_id($c_page_id));
+        }
+        $parser->assign_vars(array(
+            'CLASS' => $class,
+            'PAGE_LINK' => makeUrlNS($comment['namespace'], sanitize_page_id($comment['page_id'])),
+            'PAGE' => $page_title,
+            'SUBJECT' => $comment['subject'],
+            'DATE' => $comment['time'],
+            'COMMENT_LINK' => makeUrlNS($comment['namespace'], sanitize_page_id($comment['page_id']), 'do=comments', true)
+          ));
+        $class = ( $class == 'row3' ) ? 'row1' : 'row3';
+        echo $parser->run();
+      }
+    }
+    else
+    {
+      echo '<tr><td class="' . $class . '">This user has not posted any comments.</td></tr>';
+    }
+    echo '</table>';
+    
+    echo '</div>';
+    echo '</td></tr>';
             
     echo '  </table>
           </div>';
     
-    echo '</td><td>';
+    echo '</td><td valign="top" style="padding: 0 10px;">';
+    
+    else:
+    
+    // Nothing for now
+    
+    endif;
     
     // User's own content
     
@@ -516,26 +646,108 @@ class PageProcessor
     }
     else
     {
-      $this->err_page_not_existent();
+      $this->err_page_not_existent(true);
     }
     
     // Right sidebar
     
-    echo '</td><td style="width: 150px;">';
+    if ( $user_exists ):
+    
+    echo '</td><td style="width: 150px;" valign="top">';
     
     echo '<div class="tblholder">
             <table border="0" cellspacing="1" cellpadding="4">';
     
+    //
     // Main part of sidebar
-            
+    //
+    
+    // Contact information
+    
+    echo '<tr><th class="subhead">Get in touch</th></tr>';
+    
+    $class = 'row3';
+    
+    if ( $userdata['email_public'] == 1 )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      global $email;
+      $email_link = $email->encryptEmail($userdata['email']);
+      echo '<tr><td class="'.$class.'">E-mail address: ' . $email_link . '</td></tr>';
+    }
+    
+    $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+    if ( $session->user_logged_in )
+    {
+      echo '<tr><td class="'.$class.'">Send ' . htmlspecialchars($target_username) . ' a <a href="' . makeUrlNS('Special', 'PrivateMessages/Compose/to/' . $this->page_id, false, true) . '">Private Message</a>!</td></tr>';
+    }
+    else
+    {
+      echo '<tr><td class="'.$class.'">You could send ' . htmlspecialchars($target_username) . ' a private message if you were <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist[$this->namespace] . $this->page_id) . '">logged in</a>.</td></tr>';
+    }
+    
+    if ( !empty($userdata['user_aim']) )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      echo '<tr><td class="'.$class.'">AIM: ' . htmlspecialchars($userdata['user_aim']) . '</td></tr>';
+    }
+    
+    if ( !empty($userdata['user_yahoo']) )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      echo '<tr><td class="'.$class.'">Yahoo! IM: ' . htmlspecialchars($userdata['user_yahoo']) . '</td></tr>';
+    }
+    
+    if ( !empty($userdata['user_msn']) )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      $email_link = $email->encryptEmail($userdata['user_msn']);
+      echo '<tr><td class="'.$class.'">WLM: ' . $email_link . '</td></tr>';
+    }
+    
+    if ( !empty($userdata['user_xmpp']) )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      $email_link = $email->encryptEmail($userdata['user_xmpp']);
+      echo '<tr><td class="'.$class.'">XMPP/Jabber: ' . $email_link . '</td></tr>';
+    }
+    
+    // Real life
+    
+    echo '<tr><th class="subhead">' . htmlspecialchars($target_username) . ' in real life</th></tr>';
+    
+    if ( !empty($userdata['user_location']) )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      echo '<tr><td class="'.$class.'">Location: ' . htmlspecialchars($userdata['user_location']) . '</td></tr>';
+    }
+    
+    if ( !empty($userdata['user_job']) )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      echo '<tr><td class="'.$class.'">Job/occupation: ' . htmlspecialchars($userdata['user_job']) . '</td></tr>';
+    }
+    
+    if ( !empty($userdata['user_hobbies']) )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      echo '<tr><td class="'.$class.'">Enjoys: ' . htmlspecialchars($userdata['user_hobbies']) . '</td></tr>';
+    }
+    
     echo '  </table>
           </div>';
           
     echo '</tr></table>';
     
+    else:
+    
+    echo '<p>Additional information: user "' . htmlspecialchars($target_username) . '" does not exist.</p>';
+    
+    endif;
+    
     // if ( $send_headers )
     // {
-      display_page_footers();
+    //  display_page_footers();
     // }
     
     $this->send_headers = $send_headers;
@@ -601,14 +813,22 @@ class PageProcessor
    * @access private
    */
    
-  function err_page_not_existent()
+  function err_page_not_existent($userpage = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     $this->header();
     header('HTTP/1.1 404 Not Found');
-    echo '<h3>There is no page with this title yet.</h3>
-           <p>You have requested a page that doesn\'t exist yet.';
+    if ( $userpage )
+    {
+      echo '<h3>There is no page with this title yet.</h3>
+             <p>This user has not created his or her user page yet.';
+    }
+    else
+    {
+      echo '<h3>There is no page with this title yet.</h3>
+             <p>You have requested a page that doesn\'t exist yet.';
+    }
     if ( $session->get_permissions('create_page') )
     {
       echo ' You can <a href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;">create this page</a>, or return to the <a href="'.makeUrl(getConfig('main_page')).'">homepage</a>.';

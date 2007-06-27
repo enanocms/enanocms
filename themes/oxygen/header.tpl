@@ -43,6 +43,14 @@
       }
       */
       
+      addOnloadHook(function() {
+          if(typeof readCookie == 'function')
+          {
+            if(readCookie('left_sidebar') =='collapsed') collapseSidebar('left');
+            if(readCookie('right_sidebar')=='collapsed') collapseSidebar('right');
+          }
+        });
+      
       function ajaxRenameInline()
       {
         // This trick is _so_ vBulletin...

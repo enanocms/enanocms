@@ -19,7 +19,7 @@
             <table border="0" width="100%" cellspacing="0" cellpadding="0" style="font-size: 1px;">
               <tr>
                 <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{SCRIPTPATH}/themes/oxygen/images/{STYLE_ID}/border-menu-l.gif" width="12" height="12" /> </td>
-                <td style="margin: 0; padding: 0; height: 12px;" class="recttoptop"></td>
+                <td style="margin: 0; padding: 0; height: 12px;" class="recttoptop" onclick="var id = this.parentNode.parentNode.parentNode.parentNode.parentNode.id; var side = id.substr(0, id.indexOf('-')); collapseSidebar(side);"></td>
                 <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{SCRIPTPATH}/themes/oxygen/images/{STYLE_ID}/border-menu-r.gif" width="12" height="12" /> </td>
               </tr>
             </table>

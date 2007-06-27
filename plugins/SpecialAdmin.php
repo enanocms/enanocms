@@ -863,14 +863,16 @@ function page_Admin_UserManager() {
     }
     else
     {
+      $disabled = ( $r['user_id'] == $session->user_id ) ? ' disabled="disabled" ' : '';
       echo('
       <h3>Edit User Info</h3>
       <form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">
         <table border="0" style="margin-left: 0.2in;">   
           <tr><td>Username:</td><td><input type="text" name="new_username" value="'.$r['username'].'" /></td></tr>
-          <tr><td>New Password:</td><td><input type="password" name="new_pass" /></td></tr>
-          <tr><td>E-mail:</td><td><input type="text" name="email" value="'.$r['email'].'" /></td></tr>
-          <tr><td>Real Name:</td><td><input type="text" name="real_name" value="'.$r['real_name'].'" /></td></tr>
+          <tr><td>New Password:</td><td><input ' . $disabled . ' type="password" name="new_pass" /></td></tr>
+          <tr><td>E-mail:</td><td><input ' . $disabled . ' type="text" name="email" value="'.$r['email'].'" /></td></tr>
+          <tr><td>Real Name:</td><td><input ' . $disabled . ' type="text" name="real_name" value="'.$r['real_name'].'" /></td></tr>
+          ' . ( ( !empty($disabled) ) ? '<tr><td colspan="2"><small>To change your e-mail address, password, or real name, please use the user control panel.</small></td></tr>' : '' ) . '
           <tr><td>User level:</td><td><select name="level"><option '); if($r['user_level']==USER_LEVEL_CHPREF) echo('SELECTED'); echo(' value="'.USER_LEVEL_CHPREF.'">Regular User</option><option '); if($r['user_level']==USER_LEVEL_MOD) echo('SELECTED'); echo(' value="'.USER_LEVEL_MOD.'">Moderator</option><option '); if($r['user_level']==USER_LEVEL_ADMIN) echo('SELECTED'); echo(' value="'.USER_LEVEL_ADMIN.'">Administrator</option></select></td></tr>
           <tr><td>Delete user:</td><td><input type="hidden" name="go" /><input type="hidden" name="username" value="'.$r['username'].'" /><input onclick="return confirm(\'This is your last warning.\n\nAre you sure you want to delete this user account? Even if you delete this user account, the username will be shown in page edit history, comments, and other areas of the site.\n\nDeleting a user account CANNOT BE UNDONE and should only be done in extreme circumstances.\n\nIf the user has violated the site policy, deleting the account will not prevent him from using the site, for that you need to add a new ban rule.\n\nContinue deleting this user account?\')" type="submit" name="deleteme" value="Delete this user" style="color: red;" /> <label><input type="checkbox" name="delete_conf" /> I\'m absolutely sure</label>
           <tr><td align="center" colspan="2">
@@ -890,19 +892,33 @@ function page_Admin_UserManager() {
     {
       // Get the current session information so the user doesn't get logged out
       $aes = new AESCrypt();
-      $sk = md5($session->sid_super);
+      $sk = md5(strrev($session->sid_super));
       $qb = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.$sk.'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_ADMIN);
-      if(!$qb) die('Error selecting session key info block B: '.$db->get_error());
-      if($db->numrows($qb) < 1) die('Error: cannot read admin session info block B, aborting table clear process');
+      if ( !$qb )
+      {
+        die('Error selecting session key info block B: '.$db->get_error());
+      }
+      if ( $db->numrows($qb) < 1 )
+      {
+        die('Error: cannot read admin session info block B, aborting table clear process');
+      }
       $qa = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.md5($session->sid).'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_MEMBER);
-      if(!$qa) die('Error selecting session key info block A: '.$db->get_error());
-      if($db->numrows($qa) < 1) die('Error: cannot read user session info block A, aborting table clear process');
+      if ( !$qa )
+      {
+        die('Error selecting session key info block A: '.$db->get_error());
+      }
+      if ( $db->numrows($qa) < 1 )
+      {
+        die('Error: cannot read user session info block A, aborting table clear process');
+      }
       $ra = mysql_fetch_object($qa);
       $rb = mysql_fetch_object($qb);
       $db->free_result($qa);
       $db->free_result($qb);
+      
       $db->sql_query('DELETE FROM '.table_prefix.'session_keys;');
       $db->sql_query('INSERT INTO '.table_prefix.'session_keys( session_key,salt,user_id,auth_level,source_ip,time ) VALUES( \''.$ra->session_key.'\', \''.$ra->salt.'\', \''.$session->user_id.'\', \''.$ra->auth_level.'\', \''.$ra->source_ip.'\', '.$ra->time.' ),( \''.$rb->session_key.'\', \''.$rb->salt.'\', \''.$session->user_id.'\', \''.$rb->auth_level.'\', \''.$rb->source_ip.'\', '.$rb->time.' )');
+      
       echo('
         <div class="info-box">The session key table has been cleared. Your database should be a little bit smaller now.</div>
       ');
@@ -1386,55 +1402,80 @@ function page_Admin_PageManager()
     $cpage = $paths->pages[$paths->nslist[$_POST['namespace']].$_POST['old_page_id']];
     if(isset($_POST['submit']))
     {
-      // Create a list of things to update
-      $page_info = Array(
-          'name'=>$_POST['name'],
-          'urlname'=>$_POST['page_id'],
-          'namespace'=>$_POST['namespace'],
-          'special'=>isset($_POST['special']) ? '1' : '0',
-          'visible'=>isset($_POST['visible']) ? '1' : '0',
-          'comments_on'=>isset($_POST['comments_on']) ? '1' : '0',
-          'protected'=>isset($_POST['protected']) ? '1' : '0'
-        );
-      // Build the query
-      $q = 'UPDATE '.table_prefix.'pages SET ';
-      $k = array_keys($page_info);
-      foreach($k as $c)
+      switch(true)
       {
-        $q .= $c.'=\''.$db->escape($page_info[$c]).'\',';
+        case true:
+          // Create a list of things to update
+          $page_info = Array(
+              'name'=>$_POST['name'],
+              'urlname'=>sanitize_page_id($_POST['page_id']),
+              'namespace'=>$_POST['namespace'],
+              'special'=>isset($_POST['special']) ? '1' : '0',
+              'visible'=>isset($_POST['visible']) ? '1' : '0',
+              'comments_on'=>isset($_POST['comments_on']) ? '1' : '0',
+              'protected'=>isset($_POST['protected']) ? '1' : '0'
+            );
+          
+          $updating_urlname_or_namespace = ( $page_info['namespace'] != $cpage['namespace'] || $page_info['urlname'] != $cpage['urlname'] );
+          
+          if ( !isset($paths->nslist[ $page_info['namespace'] ]) )
+          {
+            echo '<div class="error-box">The namespace you selected is not properly registered.</div>';
+            break;
+          }
+          if ( isset($paths->pages[ $paths->nslist[$page_info['namespace']] . $page_info[ 'urlname' ] ]) && $updating_urlname_or_namespace )
+          {
+            echo '<div class="error-box">There is already a page that exists with that URL string and namespace.</div>';
+            break;
+          }
+          // Build the query
+          $q = 'UPDATE '.table_prefix.'pages SET ';
+          $k = array_keys($page_info);
+          foreach($k as $c)
+          {
+            $q .= $c.'=\''.$db->escape($page_info[$c]).'\',';
+          }
+          $q = substr($q, 0, strlen($q)-1);
+          // Build the WHERE statements
+          $q .= ' WHERE ';
+          $k = array_keys($cpage);
+          foreach($k as $c)
+          {
+            if($c != 'urlname_nons' && $c != 'urlname' && $c != 'really_protected')
+            {
+              $q .= $c.'=\''.$db->escape($cpage[$c]).'\' AND ';
+            }
+            else if($c == 'urlname')
+            {
+              $q .= $c.'=\''.$db->escape($cpage['urlname_nons']).'\' AND ';
+            }
+          }
+          // Trim off the last " AND " and append a semicolon
+          $q = substr($q, 0, strlen($q)-5) . ';';
+          // Send the completed query to MySQL
+          $e = $db->sql_query($q);
+          if(!$e) $db->_die('The page data could not be updated.');
+          // Update any additional tables
+          $q = Array(
+            'UPDATE '.table_prefix.'categories SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+            'UPDATE '.table_prefix.'comments   SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+            'UPDATE '.table_prefix.'logs       SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+            'UPDATE '.table_prefix.'page_text  SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+            );
+          foreach($q as $cq)
+          {
+            $e = $db->sql_query($cq);
+            if(!$e) $db->_die('Some of the additional tables containing page information could not be updated.');
+          }
+          // Update $cpage
+          $cpage = $page_info;
+          $cpage['urlname_nons'] = $cpage['urlname'];
+          $cpage['urlname'] = $paths->nslist[$cpage['namespace']].$cpage['urlname'];
+          $_POST['old_page_id'] = $page_info['urlname'];
+          $_POST['old_namespace'] = $page_info['namespace'];
+          echo '<div class="info-box">Your changes have been saved.</div>';
+          break;
       }
-      $q = substr($q, 0, strlen($q)-1);
-      // Build the WHERE statements
-      $q .= ' WHERE ';
-      $k = array_keys($cpage);
-      foreach($k as $c)
-      {
-        if($c != 'urlname_nons' && $c != 'urlname' && $c != 'really_protected') $q .= $c.'=\''.$cpage[$c].'\' AND ';
-        elseif($c == 'urlname') $q .= $c.'=\''.$cpage['urlname_nons'].'\' AND ';
-      }
-      $q = substr($q, 0, strlen($q)-5) . ';';
-      // Send the completed query to MySQL
-      $e = $db->sql_query($q);
-      if(!$e) $db->_die('The page data could not be updated.');
-      // Update any additional tables
-      $q = Array(
-        'UPDATE '.table_prefix.'categories SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'UPDATE '.table_prefix.'comments   SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'UPDATE '.table_prefix.'logs       SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'UPDATE '.table_prefix.'page_text  SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        );
-      foreach($q as $cq)
-      {
-        $e = $db->sql_query($cq);
-        if(!$e) $db->_die('Some of the additional tables containing page information could not be updated.');
-      }
-      // Update $cpage
-      $cpage = $page_info;
-      $cpage['urlname_nons'] = $cpage['urlname'];
-      $cpage['urlname'] = $paths->nslist[$cpage['namespace']].$cpage['urlname'];
-      $_POST['old_page_id'] = $page_info['urlname'];
-      $_POST['old_namespace'] = $page_info['namespace'];
-      echo '<div class="info-box">Your changes have been saved.</div>';
     } elseif(isset($_POST['delete'])) {
       $q = Array(
         'DELETE FROM '.table_prefix.'categories WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
@@ -1460,7 +1501,7 @@ function page_Admin_PageManager()
      <table border="0">
        <tr><td>Namespace:</td><td><select name="namespace"><?php $nm = array_keys($paths->nslist); foreach($nm as $ns) { if($ns != 'Special' && $ns != 'Admin') { echo '<option '; if($_POST['namespace']==$ns) echo 'selected="selected" '; echo 'value="'.$ns.'">'; if($paths->nslist[$ns] == '') echo '[No prefix]'; else echo $paths->nslist[$ns]; echo '</option>'; } } ?></select></td></tr>
        <tr><td>Page title:</td><td><input type="text" name="name" value="<?php echo $cpage['name']; ?>" /></td></tr>
-       <tr><td>Page URL string:<br /><small>No spaces, and don't enter the namespace prefix (e.g. User:).<br />Changing this value is usually not a good idea, especially for templates and project pages.</small></td><td><input type="text" name="page_id" value="<?php echo $cpage['urlname_nons']; ?>" /></td></tr>
+       <tr><td>Page URL string:<br /><small>No spaces, and don't enter the namespace prefix (e.g. User:).<br />Changing this value is usually not a good idea, especially for templates and project pages.</small></td><td><input type="text" name="page_id" value="<?php echo htmlspecialchars(dirtify_page_id($cpage['urlname_nons'])); ?>" /></td></tr>
        <tr><td></td><td><input <?php if($cpage['comments_on']) echo 'checked="checked"'; ?> name="comments_on" type="checkbox" id="cmt" />  <label for="cmt">Enable comments for this page</label></td></tr>
        <tr><td></td><td><input <?php if($cpage['special']) echo 'checked="checked"'; ?> name="special" type="checkbox" id="spc" />  <label for="spc">Bypass the template engine for this page</label><br /><small>This option enables you to use your own HTML headers and other code. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages, meaning you can use Enano's API on the page.</small></td></tr>
        <tr><td></td><td><input <?php if($cpage['visible']) echo 'checked="checked"'; ?> name="visible" type="checkbox" id="vis" />  <label for="vis">Allow this page to be shown in page lists</label><br /><small>Unchecking this checkbox prevents the page for being indexed for searching. The index is rebuilt each time a page is saved, and you can force an index rebuild by going to the page <?php echo $paths->nslist['Special']; ?>SearchRebuild.</small></td></tr>

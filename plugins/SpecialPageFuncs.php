@@ -62,7 +62,8 @@ $plugins->attachHook('base_classes_initted', '
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 
-function page_Special_CreatePage() {
+function page_Special_CreatePage()
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
   if ( isset($_POST['do']) )
   {
@@ -88,7 +89,7 @@ function page_Special_CreatePage() {
       exit;
     }
     $name = $db->escape(str_replace('_', ' ', $p));
-    $urlname = $db->escape(str_replace(' ', '_', $p));
+    $urlname = str_replace(' ', '_', $p);
     $namespace = $_POST['namespace'];
     if ( $namespace == 'Special' || ( $namespace == 'System' && $session->user_level < USER_LEVEL_ADMIN ) || $namespace == 'Admin')
     {
@@ -119,6 +120,9 @@ function page_Special_CreatePage() {
       $db->_die('An SQL injection attempt was caught at '.dirname(__FILE__).':'.__LINE__.'.');
     }
     
+    $urlname = sanitize_page_id($urlname);
+    $urlname = $db->escape($urlname);
+    
     $perms = $session->fetch_page_acl($urlname, $namespace);
     if ( !$perms->get_permissions('create_page') )
       die_friendly('Error creating page', '<p>An access control rule is preventing you from creating pages.</p>');
@@ -140,7 +144,7 @@ function page_Special_CreatePage() {
       $db->_die('The page text entry could not be inserted.');
     }
     
-    header('Location: '.makeUrl($paths->nslist[$_POST['namespace']].$p));
+    header('Location: '.makeUrlNS($_POST['namespace'], sanitize_page_id($p)));
     exit;
   }
   $template->header();

@@ -191,7 +191,14 @@ function jBoxOutHandlerBin(obj, event)
   {
     a.className = '';
     
-    slideIn(ul);
+    if ( jBox_slide_enable )
+    {
+      slideIn(ul);
+    }
+    else
+    {
+      ul.style.display = 'none';
+    }
     
   }
   

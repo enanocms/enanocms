@@ -17,7 +17,7 @@ Enano Banshee - TODO
 [x] Possibly add these fields: AIM, Yahoo, MSN, XMPP messenger icons, then homepage, location, occupation, hobbies, allow public e-mail display
     [ ] Put it in a user_extra table and have an option to enable or disable these fields in the admin panel
     [Y] Delay until RC3 or Banshee?
-    [ ] When added, put a box on the user page that shows the information
+    [x] When added, put a box on the user page that shows the information
 [x] Fix "this page" bug in ACL editor
     [x] The problem itself got fixed BUT there seem to be deeper problems related to scope selection
         This needs to be FIXED and WORKING PERFECTLY in Banshee!
