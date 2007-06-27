@@ -1044,11 +1044,45 @@ switch($_GET['mode'])
       // Not anymore!! :-D
       // $schema = str_replace('{{BETA_VERSION}}', ENANO_BETA_VERSION,                              $schema);
       
-      if(isset($_POST['wiki_mode'])) $schema = str_replace('{{WIKI_MODE}}', '1', $schema);
-      else $schema = str_replace('{{WIKI_MODE}}', '0', $schema);
+      if(isset($_POST['wiki_mode']))
+      {
+        $schema = str_replace('{{WIKI_MODE}}', '1', $schema);
+      }
+      else
+      {
+        $schema = str_replace('{{WIKI_MODE}}', '0', $schema);
+      }
       
       // Build an array of queries      
+      $schema = explode("\n", $schema);
+      
+      foreach ( $schema as $i => $sql )
+      {
+        $query =& $schema[$i];
+        $t = trim($query);
+        if ( empty($t) || preg_match('/^(\#|--)/i', $t) )
+        {
+          unset($schema[$i]);
+          unset($query);
+        }
+      }
+      
+      $schema = array_values($schema);
+      $schema = implode("\n", $schema);
       $schema = explode(";\n", $schema);
+      
+      foreach ( $schema as $i => $sql )
+      {
+        $query =& $schema[$i];
+        if ( substr($query, ( strlen($query) - 1 ), 1 ) != ';' )
+        {
+          $query .= ';';
+        }
+      }
+      
+      // echo '<pre>' . htmlspecialchars(print_r($schema, true)) . '</pre>';
+      // break;
+      
       echo 'done!<br />Executing schema.sql...';
       
       // OK, do the loop, baby!!!
