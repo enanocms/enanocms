@@ -752,6 +752,12 @@ class PageProcessor
       echo '<tr><td class="'.$class.'">Enjoys: ' . htmlspecialchars($userdata['user_hobbies']) . '</td></tr>';
     }
     
+    if ( empty($userdata['user_location']) && empty($userdata['user_job']) && empty($userdata['user_hobbies']) )
+    {
+      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+      echo '<tr><td class="'.$class.'">' . htmlspecialchars($target_username) . ' hasn\'t posted any real-life contact information.</td></tr>';
+    }
+    
     echo '  </table>
           </div>';
           
@@ -865,7 +871,7 @@ class PageProcessor
       if ( $db->numrows() > 0 )
       {
         $r = $db->fetchrow();
-        echo '<p>This page also appears to have some log entries in the database - it seems that it was deleted on ' . $r['date_string'] . '. You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">roll back</a> the deletion.</p>';
+        echo '<p><b>This page was deleted on ' . $r['date_string'] . '.</b> The stated reason was:</p><blockquote>' . $r['edit_summary'] . '</blockquote><p>You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">roll back</a> the deletion.</p>';
       }
       $db->free_result();
     }

@@ -226,12 +226,18 @@ function ajaxMakePage() {
 }
 
 function ajaxDeletePage() {
+  var reason = prompt('Please enter you reason for deleting this page.');
+  if ( !reason || reason == '' )
+  {
+    return false;
+  }
   c = confirm('You are about to DESTROY this page. Do you REALLY want to do this?');
-  if(!c) return;
-  c = confirm('You\'re ABSOLUTELY sure???');
-  if(!c) return;
+  if(!c)
+  {
+    return;
+  }
   setAjaxLoading();
-  ajaxGet(stdAjaxPrefix+'&_mode=deletepage', function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=deletepage', 'reason=' + escape(reason), function() {
     if(ajax.readyState == 4) {
       unsetAjaxLoading();
       alert(ajax.responseText);

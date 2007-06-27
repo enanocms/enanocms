@@ -73,7 +73,10 @@
       echo PageUtils::flushlogs($paths->cpage['urlname_nons'], $paths->namespace);
       break;
     case "deletepage":
-      echo PageUtils::deletepage($paths->cpage['urlname_nons'], $paths->namespace);
+      $reason = ( isset($_POST['reason']) ) ? $_POST['reason'] : false;
+      if ( empty($reason) )
+        die('Please enter a reason for deleting this page.');
+      echo PageUtils::deletepage($paths->cpage['urlname_nons'], $paths->namespace, $reason);
       break;
     case "delvote":
       echo PageUtils::delvote($paths->cpage['urlname_nons'], $paths->namespace);

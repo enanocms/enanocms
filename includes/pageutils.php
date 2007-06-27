@@ -613,7 +613,7 @@ class PageUtils {
         elseif($r['action']=='semiprot') echo 'Semi-protected page</td><td class="'.$cls.'">Reason: '.$r['edit_summary'];
         elseif($r['action']=='rename')   echo 'Renamed page</td><td class="'.$cls.'">Old title: '.$r['edit_summary'];
         elseif($r['action']=='create')   echo 'Created page</td><td class="'.$cls.'">';
-        elseif($r['action']=='delete')   echo 'Deleted page</td><td class="'.$cls.'">';
+        elseif($r['action']=='delete')   echo 'Deleted page</td><td class="'.$cls.'">Reason: '.$r['edit_summary'];
         elseif($r['action']=='reupload') echo 'Uploaded new file version</td><td class="'.$cls.'">Reason: '.$r['edit_summary'];
         echo '</td>';
         
@@ -1253,17 +1253,23 @@ class PageUtils {
   
   /**
    * Deletes a page.
-   * @param $page_id the condemned page ID
-   * @param $namespace the condemned namespace
+   * @param string $page_id the condemned page ID
+   * @param string $namespace the condemned namespace
+   * @param string The reason for deleting the page in question
    * @return string
    */
    
-  function deletepage($page_id, $namespace)
+  function deletepage($page_id, $namespace, $reason)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $perms = $session->fetch_page_acl($page_id, $namespace);
-    if(!$perms->get_permissions('delete_page')) die('Administrative privileges are required to delete pages, you loser.');
-    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'delete\', \''.$page_id.'\', \''.$namespace.'\', \''.$session->username.'\')');
+    $x = trim($reason);
+    if ( empty($x) )
+    {
+      return 'Invalid reason for deletion passed';
+    }
+    if(!$perms->get_permissions('delete_page')) return('Administrative privileges are required to delete pages, you loser.');
+    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'delete\', \''.$page_id.'\', \''.$namespace.'\', \''.$session->username.'\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
     if(!$e) $db->_die('The page log entry could not be inserted.');
     $e = $db->sql_query('DELETE FROM '.table_prefix.'categories WHERE page_id=\''.$page_id.'\' AND namespace=\''.$namespace.'\'');
     if(!$e) $db->_die('The page categorization entries could not be deleted.');

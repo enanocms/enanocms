@@ -311,11 +311,17 @@
       if(!$session->get_permissions('delete_page')) die_friendly('Access denied', '<p>Deleting pages <u>requires</u> admin rights.</p>');
       if(isset($_POST['_adiossucker']))
       {
-        $template->header();
-          $result = PageUtils::deletepage($paths->cpage['urlname_nons'], $paths->namespace);
-          echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
-        $template->footer();
-        break;
+        $reason = ( isset($_POST['reason']) ) ? $_POST['reason'] : false;
+        if ( empty($reason) )
+          $error = 'Please enter a reason for deleting this page.';
+        else
+        {
+          $template->header();
+            $result = PageUtils::deletepage($paths->cpage['urlname_nons'], $paths->namespace, $reason);
+            echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
+          $template->footer();
+          break;
+        }
       }
       $template->header();
         ?>
@@ -324,6 +330,8 @@
            <p>While the deletion of the page itself is completely reversible, it is impossible to recover any comments or category information on this page. If this is a file page, the file along with all older revisions of it will be permanently deleted. Also, any custom information that this page is tagged with, such as a custom name, protection status, or additional settings such as whether to allow comments, will be permanently lost.</p>
            <p>Are you <u>absolutely sure</u> that you want to continue?<br />
               You will not be asked again.</p>
+           <?php if ( isset($error) ) echo "<p>$error</p>"; ?>
+           <p>Reason for deleting: <input type="text" name="reason" size="50" /></p>
            <p><input type="submit" name="_adiossucker" value="Delete this page" style="color: red; font-weight: bold;" /></p>
         </form>
         <?php
