@@ -312,7 +312,14 @@ class PageProcessor
       echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;"><b>Notice:</b><br />The page you are viewing was archived on '.date('F d, Y \a\t h:i a', $this->revision_id).'.<br /><a href="'.makeUrlNS($this->namespace, $this->page_id).'" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="'.makeUrlNS($this->namespace, $this->pageid, 'do=rollback&amp;id='.$this->revision_id).'" onclick="ajaxRollback(\''.$this->revision_id.'\')">Restore this version</a></div><br />';
     }
     
-    $text = '?>' . RenderMan::render($text);
+    if ( $incl_inner_headers )
+    {
+      $text = '?>' . RenderMan::render($text);
+    }
+    else
+    {
+      $text = '?>' . $text;
+    }
     // echo('<pre>'.htmlspecialchars($text).'</pre>');
     eval ( $text );
     
