@@ -294,9 +294,9 @@ function page_Special_About_Enano()
   <div class="tblholder">
     <table border="0" cellspacing="1" cellpadding="4">
       <tr><th colspan="2" style="text-align: left;">About the Enano Content Management System</th></tr>
-      <tr><td colspan="2" class="row3"><p>This website is powered by <a href="http://enano.homelinux.org/">Enano</a>, the lightweight and open source
+      <tr><td colspan="2" class="row3"><p>This website is powered by <a href="http://enanocms.org/">Enano</a>, the lightweight and open source
       CMS that everyone can use. Enano is copyright &copy; 2006 Dan Fuhry. For legal information, along with a list of libraries that Enano
-      uses, please see <a href="http://enano.homelinux.org/Legal_information">Legal Information</a>.</p>
+      uses, please see <a href="http://enanocms.org/Legal_information">Legal Information</a>.</p>
       <p>The developers and maintainers of Enano strongly believe that software should not only be free to use, but free to be modified,
          distributed, and used to create derivative works. For more information about Free Software, check out the
          <a href="http://en.wikipedia.org/wiki/Free_Software" onclick="window.open(this.href); return false;">Wikipedia page</a> or

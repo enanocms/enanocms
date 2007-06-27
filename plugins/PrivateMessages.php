@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Private Message frontend
-Plugin URI: http://enano.homelinux.org/
+Plugin URI: http://enanocms.org/
 Description: Provides the page Special:PrivateMessages, which is used to manage private message functions. Also handles buddy lists.
 Author: Dan Fuhry
 Version: 1.0
-Author URI: http://enano.homelinux.org/
+Author URI: http://enanocms.org/
 */
 
 /*

@@ -14,7 +14,7 @@
  *
  * @package Enano
  * @subpackage PathManager
- * @see http://enano.homelinux.org/Help:API_Documentation
+ * @see http://enanocms.org/Help:API_Documentation
  */
  
 class pathManager {
