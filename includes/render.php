@@ -597,10 +597,9 @@ class RenderMan {
     
     $can_do_php = ( $session->get_permissions('php_in_pages') && !$strip_all_php );
     
-    $text = sanitize_html($text, ( !$can_do_php ));
-    
     if ( !$can_do_php )
     {
+      $text = sanitize_html($text, true);
       // If we can't do PHP, we can't do Javascript either.
       $text = RenderMan::destroy_javascript($text);
     }

@@ -134,6 +134,16 @@ class PageProcessor
       $this->err_access_denied();
       return false;
     }
+    $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
+    $strict_no_headers = false;
+    if ( isset($paths->pages[$pathskey]) )
+    {
+      if ( $paths->pages[$pathskey]['special'] == 1 )
+      {
+        $this->send_headers = false;
+        $strict_no_headers = true;
+      }
+    }
     if ( $this->namespace == 'Special' || $this->namespace == 'Admin' )
     {
       if ( !$this->page_exists )
@@ -217,7 +227,7 @@ class PageProcessor
       }
       else
       {
-        $this->render();
+        $this->render( (!$strict_no_headers) );
       }
     }
   }
@@ -287,15 +297,15 @@ class PageProcessor
    * @access private
    */
   
-  function render()
+  function render($incl_inner_headers = true)
   {
     $text = $this->fetch_text();
     
     $this->header();
-    // if ( $this->send_headers )
-    // {
+    if ( $incl_inner_headers )
+    {
       display_page_headers();
-    // }
+    }
     
     if ( $this->revision_id )
     {
@@ -306,10 +316,10 @@ class PageProcessor
     // echo('<pre>'.htmlspecialchars($text).'</pre>');
     eval ( $text );
     
-    // if ( $this->send_headers )
-    // {
+    if ( $incl_inner_headers )
+    {
       display_page_footers();
-    // }
+    }
     
     $this->footer();
   }

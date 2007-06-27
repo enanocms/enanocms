@@ -982,13 +982,13 @@ function codepointToUtf8( $codepoint ) {
 	 */
 	function decodeCharReferencesCallback( $matches ) {
 		if( $matches[1] != '' ) {
-			return Sanitizer::decodeEntity( $matches[1] );
+			return decodeEntity( $matches[1] );
 		} elseif( $matches[2] != '' ) {
-			return  Sanitizer::decodeChar( intval( $matches[2] ) );
+			return  decodeChar( intval( $matches[2] ) );
 		} elseif( $matches[3] != ''  ) {
-			return  Sanitizer::decodeChar( hexdec( $matches[3] ) );
+			return  decodeChar( hexdec( $matches[3] ) );
 		} elseif( $matches[4] != '' ) {
-			return  Sanitizer::decodeChar( hexdec( $matches[4] ) );
+			return  decodeChar( hexdec( $matches[4] ) );
 		}
 		# Last case should be an ampersand by itself
 		return $matches[0];
