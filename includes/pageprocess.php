@@ -319,6 +319,7 @@ class PageProcessor
     else
     {
       $text = '?>' . $text;
+      $text = preg_replace('/<nowiki>(.*?)<\/nowiki>/s', '\\1', $text);
     }
     // echo('<pre>'.htmlspecialchars($text).'</pre>');
     eval ( $text );
