@@ -186,6 +186,31 @@
       $parms = ( isset($_POST['acl_params']) ) ? rawurldecode($_POST['acl_params']) : false;
       echo PageUtils::acl_json($parms);
       break;
+    case "change_theme":
+      if ( !isset($_POST['theme_id']) || !isset($_POST['style_id']) )
+      {
+        die('Invalid input');
+      }
+      if ( !preg_match('/^([a-z0-9_-]+)$/i', $_POST['theme_id']) || !preg_match('/^([a-z0-9_-]+)$/i', $_POST['style_id']) )
+      {
+        die('Invalid input');
+      }
+      if ( !file_exists(ENANO_ROOT . '/themes/' . $_POST['theme_id'] . '/css/' . $_POST['style_id'] . '.css') )
+      {
+        die('Can\'t find theme file: ' . ENANO_ROOT . '/themes/' . $_POST['theme_id'] . '/css/' . $_POST['style_id'] . '.css');
+      }
+      if ( !$session->user_logged_in )
+      {
+        die('You must be logged in to change your theme');
+      }
+      // Just in case something slipped through...
+      $theme_id = $db->escape($_POST['theme_id']);
+      $style_id = $db->escape($_POST['style_id']);
+      $e = $db->sql_query('UPDATE ' . table_prefix . "users SET theme='$theme_id', style='$style_id' WHERE user_id=$session->user_id;");
+      if ( !$e )
+        die( $db->get_error() );
+      die('GOOD');
+      break;
     default:
       die('Hacking attempt');
       break;

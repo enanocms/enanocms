@@ -10,7 +10,7 @@ div#bg {
   background-image: none;
 }
 div#title {
-  background-image: none;
+  /* background-image: none; */
 }
 div#rap {
   background-image: url(../images/rap-ie.gif);

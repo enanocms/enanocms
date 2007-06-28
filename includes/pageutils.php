@@ -1333,13 +1333,15 @@ class PageUtils {
   }
   
   /**
-   * Gets a list of styles for a given theme name.
+   * Gets a list of styles for a given theme name. As of Banshee, this returns JSON.
    * @param $id the name of the directory for the theme
-   * @return string Javascript code
+   * @return string JSON string with an array containing a list of themes
    */
    
   function getstyles()
   {
+    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+    
     $dir = './themes/'.$_GET['id'].'/css/';
     $list = Array();
     // Open a known directory, and proceed to read its contents
@@ -1355,14 +1357,13 @@ class PageUtils {
         }
         closedir($dh);
       }
-    } else return($dir.' is not a dir');
-    $l = 'var list = new Array();';
-    $i = -1;
-    foreach($list as $li) {
-      $i++;
-      $l .= "list[$i] = '$li';";
     }
-    return $l;
+    else
+    {
+      return(Array('mode' => 'error', 'error' => $dir.' is not a dir'));
+    }
+    
+    return $json->encode($list);
   }
   
   /**

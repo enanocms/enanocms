@@ -309,12 +309,15 @@ function redrawComment(data)
   {
     document.getElementById('subject_' + data.id).innerHTML += ' <span style="color: #D84308">(Unapproved)</span>';
   }
-  if ( data.approved )
+  if ( data.approved && ( typeof(data.approve_updated) == 'string' && data.approve_updated == 'yes' ) )
   {
     var appr = ( data.approved == '1' ) ? 'Unapprove' : 'Approve';
     document.getElementById('comment_approve_'+data.id).innerHTML = appr;
+    
+    // Update approval status
     var p = document.getElementById('comment_status');
     var count = p.firstChild.nodeValue.split(' ')[2];
+    
     if ( p.firstChild.nextSibling )
     {
       var span = p.firstChild.nextSibling;

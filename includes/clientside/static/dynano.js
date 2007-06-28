@@ -8,6 +8,11 @@ var $dynano = $;
 function DNobj(id)
 {
   this.object = ( typeof(id) == 'object' ) ? id : document.getElementById(id);
+  if ( !this.object )
+  {
+    this.object = false;
+    return this;
+  }
   this.height = __DNObjGetHeight(this.object);
   this.width = __DNObjGetWidth(this.object);
   

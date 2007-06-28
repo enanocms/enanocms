@@ -678,7 +678,7 @@ class template {
             if($t['enabled'])
             {
               $js_dynamic .= '<option value="'.$t['theme_id'].'"';
-              if($t['theme_id'] == $session->theme) $js_dynamic .= ' selected="selected"';
+              // if($t['theme_id'] == $session->theme) $js_dynamic .= ' selected="selected"';
               $js_dynamic .= '>'.$t['theme_name'].'</option>';
             }
           }

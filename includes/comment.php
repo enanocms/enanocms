@@ -344,7 +344,8 @@ class Comments
             'mode' => 'redraw',
             'approved' => $appr,
             'subj' => $row['subject'],
-            'id'   => $data['local_id']
+            'id'   => $data['local_id'],
+            'approve_updated' => 'yes'
           );
         
         break;

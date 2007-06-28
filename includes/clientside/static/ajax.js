@@ -473,7 +473,127 @@ function ajaxHistDiff()
 function ajaxChangeStyle()
 {
   var inner_html = '';
-  inner_html += '';
+  inner_html += '<p><label>Theme: ';
+  inner_html += '  <select id="chtheme_sel_theme" onchange="ajaxGetStyles(this.value);">';
+  inner_html += '    <option value="_blank" selected="selected">[Select]</option>';
+  inner_html +=      ENANO_THEME_LIST;
+  inner_html += '  </select>';
+  inner_html += '</label></p>';
+  var chtheme_mb = new messagebox(MB_OKCANCEL|MB_ICONQUESTION, 'Change your theme', inner_html);
+  chtheme_mb.onbeforeclick['OK'] = ajaxChangeStyleComplete;
+}
+
+function ajaxGetStyles(id)
+{
+  var thediv = document.getElementById('chtheme_sel_style_parent');
+  if ( thediv )
+  {
+    thediv.parentNode.removeChild(thediv);
+  }
+  if ( id == '_blank' )
+  {
+    return null;
+  }
+  ajaxGet(stdAjaxPrefix + '&_mode=getstyles&id=' + id, function() {
+      if ( ajax.readyState == 4 )
+      {
+        // IE doesn't like substr() on ajax.responseText
+        var response = String(ajax.responseText + ' ');
+        response = response.substr(0, response.length - 1);
+        if ( response.substr(0,1) != '[' )
+        {
+          alert('Invalid or unexpected JSON response from server:\n' + response);
+          return null;
+        }
+        
+        // Build a selector and matching label
+        var data = parseJSON(response);
+        var options = new Array();
+        for( var i in data )
+        {
+          var item = data[i];
+          var title = themeid_to_title(item);
+          var option = document.createElement('option');
+          option.value = item;
+          option.appendChild(document.createTextNode(title));
+          options.push(option);
+        }
+        var p_parent = document.createElement('p');
+        var label  = document.createElement('label');
+        p_parent.id = 'chtheme_sel_style_parent';
+        label.appendChild(document.createTextNode('Style: '));
+        var select = document.createElement('select');
+        select.id = 'chtheme_sel_style';
+        for ( var i in options )
+        {
+          select.appendChild(options[i]);
+        }
+        label.appendChild(select);
+        p_parent.appendChild(label);
+        
+        // Stick it onto the messagebox
+        var div = document.getElementById('messageBox');
+        var kid = div.firstChild.nextSibling;
+        
+        kid.appendChild(p_parent);
+        
+      }
+    });
+}
+
+function ajaxChangeStyleComplete()
+{
+  var theme = $('chtheme_sel_theme');
+  var style = $('chtheme_sel_style');
+  if ( !theme.object || !style.object )
+  {
+    alert('Please select a theme from the list.');
+    return true;
+  }
+  var theme_id = theme.object.value;
+  var style_id = style.object.value;
+  
+  if ( typeof(theme_id) != 'string' || typeof(style_id) != 'string' )
+  {
+    alert('Couldn\'t get theme or style ID');
+    return true;
+  }
+  
+  if ( theme_id.length < 1 || style_id.length < 1 )
+  {
+    alert('Theme or style ID is zero length');
+    return true;
+  }
+  
+  ajaxPost(stdAjaxPrefix + '&_mode=change_theme', 'theme_id=' + escape(theme_id) + '&style_id=' + escape(style_id), function()
+    {
+      if ( ajax.readyState == 4 )
+      {
+        if ( ajax.responseText == 'GOOD' )
+        {
+          var c = confirm('Your theme preference has been changed.\nWould you like to reload the page now to see the changes?');
+          if ( c )
+            window.location.reload();
+        }
+        else
+        {
+          alert('Error occurred during attempt to change theme:\n' + ajax.responseText);
+        }
+      }
+    });
+  
+  return true;
+  
+}
+
+function themeid_to_title(id)
+{
+  if ( typeof(id) != 'string' )
+    return false;
+  id = id.substr(0, 1).toUpperCase() + id.substr(1);
+  id = id.replace(/_/g, ' ');
+  id = id.replace(/-/g, ' ');
+  return id;
 }
 
 /*
