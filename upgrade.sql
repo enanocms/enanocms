@@ -6,7 +6,7 @@ DELETE FROM {{TABLE_PREFIX}}config WHERE config_name='enano_version' OR config_n
 INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0' );
 ---BEGIN 1.0RC3---
 -- Placeholder (all versions need to have at least one query performed)
-UPDATE {{TABLE_PREFIX}}config SET config_value='' WHERE config_name='              ';
+ALTER {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;
 ---END 1.0RC3---
 ---BEGIN 1.0RC2---
 -- Add the "Moderators" group

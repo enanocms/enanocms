@@ -300,21 +300,38 @@ function page_Special_Logout() {
   $template->footer();
 }
 
-function page_Special_Register() {
+function page_Special_Register()
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
   if(getConfig('account_activation') == 'disable' && ( ( $session->user_level >= USER_LEVEL_ADMIN && !isset($_GET['IWannaPlayToo']) ) || $session->user_level < USER_LEVEL_ADMIN || !$session->user_logged_in ))
   {
     $s = ($session->user_level >= USER_LEVEL_ADMIN) ? '<p>Oops...it seems that you <em>are</em> the administrator...hehe...you can also <a href="'.makeUrl($paths->page, 'IWannaPlayToo', true).'">force account registration to work</a>.</p>' : '';
     die_friendly('Registration disabled', '<p>The administrator has disabled new user registration on this site.</p>' . $s);
   }
-  if(isset($_POST['submit'])) {
+  if(isset($_POST['submit'])) 
+  {
+    $_GET['coppa'] = ( isset($_POST['coppa']) ) ? $_POST['coppa'] : 'x';
+    
     $captcharesult = $session->get_captcha($_POST['captchahash']);
     if($captcharesult != $_POST['captchacode'])
+    {
       $s = 'The confirmation code you entered was incorrect.';
+    }
     else
-      // CAPTCHA code was correct, create the account
-      $s = $session->create_user($_POST['username'], $_POST['password'], $_POST['email'], $_POST['real_name']);
-    if($s == 'success')
+    {
+      if ( getConfig('enable_coppa') == '1' && ( !isset($_POST['coppa']) || ( isset($_POST['coppa']) && !in_array($_POST['coppa'], array('yes', 'no')) ) ) )
+      {
+        $s = 'Invalid COPPA input';
+      }
+      else
+      {
+        $coppa = ( isset($_POST['coppa']) && $_POST['coppa'] == 'yes' );
+        
+        // CAPTCHA code was correct, create the account
+        $s = $session->create_user($_POST['username'], $_POST['password'], $_POST['email'], $_POST['real_name'], $coppa);
+      }
+    }
+    if($s == 'success' && !isset($coppa))
     {
       switch(getConfig('account_activation'))
       {
@@ -331,132 +348,174 @@ function page_Special_Register() {
       }
       die_friendly('Registration successful', '<p>Thank you for registering, your user account has been created. '.$str.'</p>');
     }
+    else if ( $s == 'success' && $coppa )
+    {
+      $str = 'However, in compliance with the Childrens\' Online Privacy Protection Act, you must have your parent or legal guardian activate your account. Please ask them to check their e-mail for further information.';
+      die_friendly('Registration successful', '<p>Thank you for registering, your user account has been created. '.$str.'</p>');
+    }
   }
   $template->header();
   echo 'A user account enables you to have greater control over your browsing experience.';
-  $session->kill_captcha();
-  $captchacode = $session->make_captcha();
-  ?>
-    <h3>Create a user account</h3>
-    <form name="regform" action="<?php echo makeUrl($paths->page); ?>" method="post">
-      <div class="tblholder">
-        <table border="0" width="100%" cellspacing="1" cellpadding="4">
-          <tr><th class="subhead" colspan="3">Please tell us a little bit about yourself.</th></tr>
-          <?php if(isset($_POST['submit'])) echo '<tr><td colspan="3" class="row2" style="color: red;">'.$s.'</td></tr>'; ?>
-          <tr><td class="row1" style="width: 50%;">Preferred username:<span id="e_username"></span></td><td class="row1" style="width: 50%;"><input type="text" name="username" size="30" onkeyup="namegood = false; validateForm();" onblur="checkUsername();" /></td><td class="row1" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_username" /></td></tr>
-          <tr><td class="row3" style="width: 50%;" rowspan="2">Password:<span id="e_password"></span></td><td class="row3" style="width: 50%;"><input type="password" name="password" size="30" onkeyup="validateForm();" /></td><td rowspan="2" class="row3" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_password" /></td></tr>
-          <tr><td class="row3" style="width: 50%;"><input type="password" name="password_confirm" size="30" onkeyup="validateForm();" /> <small>Enter your password again to confirm.</small></td></tr>
-          <tr><td class="row1" style="width: 50%;">E-mail address:<?php if(getConfig('account_activation')=='user') echo '<br /><small>An e-mail with an account activation key will be sent to this address, so please ensure that it is correct.</small></td>'; ?><td class="row1" style="width: 50%;"><input type="text" name="email" size="30" onkeyup="validateForm();" /></td><td class="row1" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_email" /></td></tr>
-          <tr><td class="row3" style="width: 50%;">Real name:<br /><small>Giving your real name is totally optional. If you choose to provide your real name, it will be used to provide attribution for any edits or contributions you may make to this site.</small><td class="row3" style="width: 50%;"><input type="text" name="real_name" size="30" /></td><td class="row3" style="max-width: 24px;"></td></tr>
-          <tr><td class="row1" style="width: 50%;" rowspan="2">Visual confirmation<br /><small>Please enter the code shown in the image to the right into the text box. This process helps to ensure that this registration is not being performed by an automated bot. If the image to the right is illegible, you can <a href="#" onclick="regenCaptcha(); return false;">generate a new image</a>.<br /><br />If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will create an account for you.</small></td><td colspan="2" class="row1"><img id="captchaimg" alt="CAPTCHA image" src="<?php echo makeUrlNS('Special', 'Captcha/'.$captchacode); ?>" /><span id="b_username"></span></td></tr>
-          <tr><td class="row1" colspan="2">Code: <input name="captchacode" type="text" size="10" /><input type="hidden" name="captchahash" value="<?php echo $captchacode; ?>" /></td></tr>
-          <tr><td class="row2" colspan="3" style="text-align: center;"><input type="submit" name="submit" value="Create my account" /></td></tr>
-        </table>
-      </div>
-    </form>
-    <script type="text/javascript">
-      // <![CDATA[
-      var namegood = false;
-      function validateForm()
-      {
-        var frm = document.forms.regform;
-        failed = false;
-        
-        // Username
-        if(!namegood)
+  
+  if ( getConfig('enable_coppa') != '1' || ( isset($_GET['coppa']) && in_array($_GET['coppa'], array('yes', 'no')) ) )
+  {
+    $coppa = ( isset($_GET['coppa']) && $_GET['coppa'] == 'yes' );
+    $session->kill_captcha();
+    $captchacode = $session->make_captcha();
+    ?>
+      <h3>Create a user account</h3>
+      <form name="regform" action="<?php echo makeUrl($paths->page); ?>" method="post">
+        <div class="tblholder">
+          <table border="0" width="100%" cellspacing="1" cellpadding="4">
+            <tr><th class="subhead" colspan="3">Please tell us a little bit about yourself.</th></tr>
+            <?php if(isset($_POST['submit'])) echo '<tr><td colspan="3" class="row2" style="color: red;">'.$s.'</td></tr>'; ?>
+            <tr><td class="row1" style="width: 50%;">Preferred username:<span id="e_username"></span></td><td class="row1" style="width: 50%;"><input type="text" name="username" size="30" onkeyup="namegood = false; validateForm();" onblur="checkUsername();" /></td><td class="row1" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_username" /></td></tr>
+            <tr><td class="row3" style="width: 50%;" rowspan="2">Password:<span id="e_password"></span></td><td class="row3" style="width: 50%;"><input type="password" name="password" size="30" onkeyup="validateForm();" /></td><td rowspan="2" class="row3" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_password" /></td></tr>
+            <tr><td class="row3" style="width: 50%;"><input type="password" name="password_confirm" size="30" onkeyup="validateForm();" /> <small>Enter your password again to confirm.</small></td></tr>
+            <tr><td class="row1" style="width: 50%;"><?php if ( $coppa ) echo 'Your parent or guardian\'s e'; else echo 'E'; ?>-mail address:<?php if(getConfig('account_activation')=='user') echo '<br /><small>An e-mail with an account activation key will be sent to this address, so please ensure that it is correct.</small></td>'; ?><td class="row1" style="width: 50%;"><input type="text" name="email" size="30" onkeyup="validateForm();" /></td><td class="row1" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_email" /></td></tr>
+            <tr><td class="row3" style="width: 50%;">Real name:<br /><small>Giving your real name is totally optional. If you choose to provide your real name, it will be used to provide attribution for any edits or contributions you may make to this site.</small><td class="row3" style="width: 50%;"><input type="text" name="real_name" size="30" /></td><td class="row3" style="max-width: 24px;"></td></tr>
+            <tr><td class="row1" style="width: 50%;" rowspan="2">Visual confirmation<br /><small>Please enter the code shown in the image to the right into the text box. This process helps to ensure that this registration is not being performed by an automated bot. If the image to the right is illegible, you can <a href="#" onclick="regenCaptcha(); return false;">generate a new image</a>.<br /><br />If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will create an account for you.</small></td><td colspan="2" class="row1"><img id="captchaimg" alt="CAPTCHA image" src="<?php echo makeUrlNS('Special', 'Captcha/'.$captchacode); ?>" /><span id="b_username"></span></td></tr>
+            <tr><td class="row1" colspan="2">Code: <input name="captchacode" type="text" size="10" /><input type="hidden" name="captchahash" value="<?php echo $captchacode; ?>" /></td></tr>
+            <tr><td class="row2" colspan="3" style="text-align: center;"><input type="submit" name="submit" value="Create my account" /></td></tr>
+          </table>
+        </div>
+        <?php
+          $val = ( $coppa ) ? 'yes' : 'no';
+          echo '<input type="hidden" name="coppa" value="' . $val . '" />';
+        ?>
+      </form>
+      <script type="text/javascript">
+        // <![CDATA[
+        var namegood = false;
+        function validateForm()
         {
-          if(frm.username.value.match(/^([A-z0-9 \!@\-\(\)]+){2,}$/ig))
+          var frm = document.forms.regform;
+          failed = false;
+          
+          // Username
+          if(!namegood)
           {
-            document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
-            document.getElementById('e_username').innerHTML = ''; // '<br /><small><b>Checking availability...</b></small>';
+            if(frm.username.value.match(/^([A-z0-9 \!@\-\(\)]+){2,}$/ig))
+            {
+              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
+              document.getElementById('e_username').innerHTML = ''; // '<br /><small><b>Checking availability...</b></small>';
+            } else {
+              failed = true;
+              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+              document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
+            }
+          }
+          document.getElementById('b_username').innerHTML = '';
+          if(hex_md5(frm.real_name.value) == 'fa8e397ae0f6cd5b0f90a3f48178cd7e')
+          {
+            document.getElementById('b_username').innerHTML = '<br /><br />Hey...I know you!<br /><img alt="" src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Bill_Gates_2004_cr.jpg/220px-Bill_Gates_2004_cr.jpg" />';
+          }
+          
+          // Password
+          if(frm.password.value.match(/^(.+){6,}$/ig) && frm.password_confirm.value.match(/^(.+){6,}$/ig) && frm.password.value == frm.password_confirm.value)
+          {
+            document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/good.gif';
+            document.getElementById('e_password').innerHTML = '<br /><small>The password you entered is valid.</small>';
           } else {
             failed = true;
-            document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-            document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
+            if(frm.password.value.length < 6)
+              document.getElementById('e_password').innerHTML = '<br /><small>Your password must be at least six characters in length.</small>';
+            else if(frm.password.value != frm.password_confirm.value)
+              document.getElementById('e_password').innerHTML = '<br /><small>The passwords you entered do not match.</small>';
+            else
+              document.getElementById('e_password').innerHTML = '';
+            document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/bad.gif';
           }
-        }
-        document.getElementById('b_username').innerHTML = '';
-        if(hex_md5(frm.real_name.value) == 'fa8e397ae0f6cd5b0f90a3f48178cd7e')
-        {
-          document.getElementById('b_username').innerHTML = '<br /><br />Hey...I know you!<br /><img alt="" src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Bill_Gates_2004_cr.jpg/220px-Bill_Gates_2004_cr.jpg" />';
-        }
-        
-        // Password
-        if(frm.password.value.match(/^(.+){6,}$/ig) && frm.password_confirm.value.match(/^(.+){6,}$/ig) && frm.password.value == frm.password_confirm.value)
-        {
-          document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/good.gif';
-          document.getElementById('e_password').innerHTML = '<br /><small>The password you entered is valid.</small>';
-        } else {
-          failed = true;
-          if(frm.password.value.length < 6)
-            document.getElementById('e_password').innerHTML = '<br /><small>Your password must be at least six characters in length.</small>';
-          else if(frm.password.value != frm.password_confirm.value)
-            document.getElementById('e_password').innerHTML = '<br /><small>The passwords you entered do not match.</small>';
-          else
-            document.getElementById('e_password').innerHTML = '';
-          document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/bad.gif';
-        }
-        
-        // E-mail address
-        if(frm.email.value.match(/^(?:[\w\d]+\.?)+@(?:(?:[\w\d]\-?)+\.)+\w{2,4}$/))
-        {
-          document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/good.gif';
-        } else {
-          failed = true;
-          document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/bad.gif';
-        }
-        if(failed)
-        {
-          frm.submit.disabled = 'disabled';
-        } else {
-          frm.submit.disabled = false;
-        }
-      }
-      function checkUsername()
-      {
-        var frm = document.forms.regform;
-        
-        if(!namegood)
-        {
-          if(frm.username.value.match(/^([A-z0-9 \.:\!@\#\*]+){2,}$/ig))
+          
+          // E-mail address
+          if(frm.email.value.match(/^(?:[\w\d]+\.?)+@(?:(?:[\w\d]\-?)+\.)+\w{2,4}$/))
           {
-            document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
-            document.getElementById('e_username').innerHTML = '';
+            document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/good.gif';
           } else {
-            document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-            document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
-            return false;
+            failed = true;
+            document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/bad.gif';
+          }
+          if(failed)
+          {
+            frm.submit.disabled = 'disabled';
+          } else {
+            frm.submit.disabled = false;
           }
         }
-        
-        document.getElementById('e_username').innerHTML = '<br /><small><b>Checking availability...</b></small>';
-        ajaxGet('<?php echo scriptPath; ?>/ajax.php?title=null&_mode=checkusername&name='+escape(frm.username.value), function() {
-          if(ajax.readyState == 4)
-            if(ajax.responseText == 'good')
+        function checkUsername()
+        {
+          var frm = document.forms.regform;
+          
+          if(!namegood)
+          {
+            if(frm.username.value.match(/^([A-z0-9 \.:\!@\#\*]+){2,}$/ig))
             {
-              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/good.gif';
-              document.getElementById('e_username').innerHTML = '<br /><small><b>This username is available.</b></small>';
-              namegood = true;
-            } else if(ajax.responseText == 'bad') {
-              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-              document.getElementById('e_username').innerHTML = '<br /><small><b>Error: that username is already taken.</b></small>';
-              namegood = false;
+              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
+              document.getElementById('e_username').innerHTML = '';
             } else {
-              document.getElementById('e_username').innerHTML = ajax.responseText;
+              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+              document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
+              return false;
             }
-        });
-      }
-      function regenCaptcha()
-      {
-        var frm = document.forms.regform;
-        document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/"); ?>'+frm.captchahash.value+'/'+Math.floor(Math.random() * 100000);
-        return false;
-      }
-      validateForm();
-      setTimeout('checkUsername();', 1000);
-      // ]]>
-    </script>
-  <?php
+          }
+          
+          document.getElementById('e_username').innerHTML = '<br /><small><b>Checking availability...</b></small>';
+          ajaxGet('<?php echo scriptPath; ?>/ajax.php?title=null&_mode=checkusername&name='+escape(frm.username.value), function() {
+            if(ajax.readyState == 4)
+              if(ajax.responseText == 'good')
+              {
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/good.gif';
+                document.getElementById('e_username').innerHTML = '<br /><small><b>This username is available.</b></small>';
+                namegood = true;
+              } else if(ajax.responseText == 'bad') {
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+                document.getElementById('e_username').innerHTML = '<br /><small><b>Error: that username is already taken.</b></small>';
+                namegood = false;
+              } else {
+                document.getElementById('e_username').innerHTML = ajax.responseText;
+              }
+          });
+        }
+        function regenCaptcha()
+        {
+          var frm = document.forms.regform;
+          document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/"); ?>'+frm.captchahash.value+'/'+Math.floor(Math.random() * 100000);
+          return false;
+        }
+        validateForm();
+        setTimeout('checkUsername();', 1000);
+        // ]]>
+      </script>
+    <?php
+  }
+  else
+  {
+    $year = intval( date('Y') );
+    $year = $year - 13;
+    $month = date('F');
+    $day = date('d');
+    
+    $yo13_date = "$month $day, $year";
+    $link_coppa_yes = makeUrlNS('Special', 'Register', 'coppa=yes', true);
+    $link_coppa_no  = makeUrlNS('Special', 'Register', 'coppa=no',  true);
+    
+    // COPPA enabled, ask age
+    echo '<div class="tblholder">';
+    echo '<table border="0" cellspacing="1" cellpadding="4">';
+    echo '<tr>
+            <td class="row1">
+              Before you can register, please tell us your age.
+            </td>
+          </tr>
+          <tr>
+            <td class="row3">
+              <a href="' . $link_coppa_no  . '">I was born <b>on or before</b> ' . $yo13_date . ' and am <b>at least</b> 13 years of age</a><br />
+              <a href="' . $link_coppa_yes . '">I was born <b>after</b> ' . $yo13_date . ' and am <b>less than</b> 13 years of age</a>
+            </td>
+          </tr>';
+    echo '</table>';
+    echo '</div>';
+  }
   $template->footer();
 }
 

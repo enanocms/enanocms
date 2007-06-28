@@ -1296,9 +1296,10 @@ class sessionManager {
    * @param string $password This should be unencrypted.
    * @param string $email
    * @param string $real_name Optional, defaults to ''.
+   * @param bool   $coppa     Optional. If true, the account is not activated initially and an admin activation request is sent. The caller is responsible for sending the address info and notice.
    */
    
-  function create_user($username, $password, $email, $real_name = '')
+  function create_user($username, $password, $email, $real_name = '', $coppa = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -1341,30 +1342,42 @@ class sessionManager {
         $active = '0';
         break;
     }
+    if ( $coppa )
+      $active = '0';
+    
+    $coppa_col = ( $coppa ) ? '1' : '0';
     
     // Generate a totally random activation key
     $actkey = sha1 ( microtime() . mt_rand() );
 
-    // We good, create the user    
-    $this->sql('INSERT INTO '.table_prefix.'users ( username, password, email, real_name, theme, style, reg_time, account_active, activation_key, user_level ) VALUES ( \''.$username.'\', \''.$password.'\', \''.$email.'\', \''.$real_name.'\', \''.$template->default_theme.'\', \''.$template->default_style.'\', '.time().', '.$active.', \''.$actkey.'\', '.USER_LEVEL_CHPREF.' )');
+    // We good, create the user
+    $this->sql('INSERT INTO '.table_prefix.'users ( username, password, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa ) VALUES ( \''.$username.'\', \''.$password.'\', \''.$email.'\', \''.$real_name.'\', \''.$template->default_theme.'\', \''.$template->default_style.'\', '.time().', '.$active.', \''.$actkey.'\', '.USER_LEVEL_CHPREF.', ' . $coppa_col . ' );');
     
     // Require the account to be activated?
-    switch(getConfig('account_activation'))
+    if ( $coppa )
     {
-      case 'none':
-      default:
-        break;
-      case 'user':
-        $a = $this->send_activation_mail($username);
-        if(!$a)
-        {
+      $this->admin_activation_request($username);
+      $this->send_coppa_mail($username,$email);
+    }
+    else
+    {
+      switch(getConfig('account_activation'))
+      {
+        case 'none':
+        default:
+          break;
+        case 'user':
+          $a = $this->send_activation_mail($username);
+          if(!$a)
+          {
+            $this->admin_activation_request($username);
+            return 'The activation e-mail could not be sent due to an internal error. This could possibly be due to an incorrect SMTP configuration. A request has been sent to the administrator to activate your account for you. ' . $a;
+          }
+          break;
+        case 'admin':
           $this->admin_activation_request($username);
-          return 'The activation e-mail could not be sent due to an internal error. This could possibly be due to an incorrect SMTP configuration. A request has been sent to the administrator to activate your account for you. ' . $a;
-        }
-        break;
-      case 'admin':
-        $this->admin_activation_request($username);
-        break;
+          break;
+      }
     }
     
     // Leave some data behind for the hook
@@ -1420,6 +1433,90 @@ Thank you for registering on '.getConfig('site_name').'. Your account creation i
       if($result == 'success') $result = true;
       else { echo $result; $result = false; }
     } else {
+      $result = mail($r['email'], getConfig('site_name').' website account activation', preg_replace("#(?<!\r)\n#s", "\n", $message), 'From: '.getConfig('contact_email'));
+    }
+    return $result;
+  }
+  
+  /**
+   * Attempts to send an e-mail to the specified user's e-mail address on file intended for the parents
+   * @param string $u The usernamd of the user requesting activation
+   * @return bool true on success, false on failure
+   */
+   
+  function send_coppa_mail($u, $actkey = false)
+  {
+    
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $q = $this->sql('SELECT username,email FROM '.table_prefix.'users WHERE user_id=2 OR user_level=' . USER_LEVEL_ADMIN . ' ORDER BY user_id ASC;');
+    $un = $db->fetchrow();
+    $admin_user = $un['username'];
+    
+    $q = $this->sql('SELECT username,activation_key,account_active,email FROM '.table_prefix.'users WHERE username=\''.$db->escape($u).'\';');
+    $r = $db->fetchrow();
+    if ( empty($r['email']) )
+      $db->_die('BUG: $session->send_activation_mail(): no e-mail address in row');
+      
+    if(isset($_SERVER['HTTPS'])) $prot = 'https';
+    else $prot = 'http';                                                                           
+    if($_SERVER['SERVER_PORT'] == '80') $p = '';
+    else $p = ':'.$_SERVER['SERVER_PORT'];
+    $sidbak = false;
+    if($this->sid_super)
+      $sidbak = $this->sid_super;
+    $this->sid_super = false;
+    if($sidbak)
+      $this->sid_super = $sidbak;
+    unset($sidbak);
+    $link = "$prot://".$_SERVER['HTTP_HOST'].scriptPath;
+    
+    $message = 'Dear parent or legal guardian,
+A child under the username ' . $u . ' recently registered on our website. The child provided your e-mail address as the one of his or her authorized parent or legal guardian, and to comply with the United States Childrens\' Online Privacy Protection act, we ask that all parents of children ages 13 or under please mail us a written form authorizing their child\'s use of our website.
+
+If you wish for your child to be allowed access to our website, please print and fill out the form below, and mail it to this address:
+
+' . getConfig('coppa_address') . '
+
+If you do NOT wish for your child to be allowed access to our site, you do not need to do anything - your child will not be able to access our site as a registered user unless you authorize their account activation.
+
+Authorization form:
+-------------------------------- Cut here --------------------------------
+
+I, _______________________________________, the legal parent or guardian of the child registered on the website "' . getConfig('site_name') . '" as ' . $u . ', hereby give my authorization for the child\'s e-mail address, instant messaging information, location, and real name, to be collected and stored in a database owned and maintained by ' . getConfig('site_name') . ' at the child\'s option, and for the administrators of this website to use this information according to the privacy policy displayed on their website <' . $link . '>.
+
+Child\'s name:               _____________________________________
+
+Child\'s e-mail address:     _____________________________________
+(optional - if you don\'t provide this, we\'ll just send site-related e-mails to your e-mail address)
+
+Signature of parent or guardian:
+
+____________________________________________________
+
+Date (YYYY-MM-DD): ______ / _____ / _____
+
+-------------------------------- Cut here --------------------------------';
+    $message .= "\n\nSincerely yours, \n$admin_user and the ".$_SERVER['HTTP_HOST']." administration team";
+    
+    error_reporting(E_ALL);
+    
+    dc_dump($r, 'session: about to send COPPA e-mail to '.$r['email']);
+    if(getConfig('smtp_enabled') == '1')
+    {
+      $result = smtp_send_email($r['email'], getConfig('site_name').' website account activation', preg_replace("#(?<!\r)\n#s", "\n", $message), getConfig('contact_email'));
+      if($result == 'success') 
+      {
+        $result = true;
+      }
+      else
+      {
+        echo $result;
+        $result = false;
+      }
+    } 
+    else
+    {
       $result = mail($r['email'], getConfig('site_name').' website account activation', preg_replace("#(?<!\r)\n#s", "\n", $message), 'From: '.getConfig('contact_email'));
     }
     return $result;

@@ -209,7 +209,7 @@ $paths->init();
 define('ENANO_MAINSTREAM', '');
 
 // If the site is disabled, bail out, unless we're trying to log in or administer the site
-if(getConfig('site_disabled') == '1')
+if(getConfig('site_disabled') == '1' && $session->user_level < USER_LEVEL_ADMIN)
 {
   if ( $paths->namespace == 'Admin' || ( $paths->namespace == 'Special' && ( $paths->cpage['urlname_nons'] == 'CSS' || $paths->cpage['urlname_nons'] == 'Administration' || $paths->cpage['urlname_nons'] == 'Login' ) ) )
   {
@@ -229,6 +229,10 @@ if(getConfig('site_disabled') == '1')
     $paths->wiki_mode = 0;
     die_semicritical('Site disabled', $text);
   }
+}
+else if(getConfig('site_disabled') == '1' && $session->user_level >= USER_LEVEL_ADMIN)
+{
+  $template->site_disabled = true;
 }
 
 $code = $plugins->setHook('session_started');

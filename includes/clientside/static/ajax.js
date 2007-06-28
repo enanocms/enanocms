@@ -582,7 +582,7 @@ function ajaxChangeStyleComplete()
       }
     });
   
-  return true;
+  return false;
   
 }
 

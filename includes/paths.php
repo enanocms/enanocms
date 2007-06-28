@@ -84,6 +84,7 @@ class pathManager {
     $this->addAdminNode('Appearance', 'Manage themes', 'ThemeManager');
     $this->addAdminNode('Users', 'Manage users', 'UserManager');
     $this->addAdminNode('Users', 'Edit groups', 'GroupManager');
+    $this->addAdminNode('Users', 'COPPA support', 'COPPA');
     $this->addAdminNode('Users', 'Ban control', 'BanControl');
     $this->addAdminNode('Users', 'Mass e-mail', 'MassEmail');
     

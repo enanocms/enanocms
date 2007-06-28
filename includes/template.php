@@ -14,6 +14,15 @@
  
 class template {
   var $tpl_strings, $tpl_bool, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $namespace_string, $style_list, $theme_loaded;
+  
+  /**
+   * Set to true if the site is disabled and thus a message needs to be shown. This should ONLY be changed by common.php.
+   * @var bool
+   * @access private
+   */
+  
+  var $site_disabled = false;
+  
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -755,6 +764,13 @@ class template {
       echo '<div class="usermessage">';
       echo '<b>Your administrative session has timed out.</b> <a href="' . $login_link . '">Log in again</a>';
       echo '</div>';
+    }
+    if ( $this->site_disabled && $session->user_level >= USER_LEVEL_ADMIN && ( $paths->page != $paths->nslist['Special'] . 'Administration' ) )
+    {
+      $admin_link = makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'GeneralConfig', true);
+      echo '<div class="usermessage"><b>The site is currently disabled and thus is only accessible to administrators.</b><br />
+            You can re-enable the site through the <a href="' . $admin_link . '">administration panel</a>.
+            </div>';
     }
   }
   function footer($simple = false)

@@ -474,12 +474,12 @@ function page_Special_Usergroups()
               <th colspan="2">Group membership details</th>
             </tr>
             <tr>
-              <td class="row2" style="text-align: right;">
+              <td class="row2" style="text-align: right; width: 50%;">
                 Current group memberships:
               </td>
-              <td class="row1">';
+              <td class="row1" style="width: 50%;">';
     $taboo = Array('Everyone');
-    if ( sizeof ( $session->groups ) > 0 )
+    if ( sizeof ( $session->groups ) > count($taboo) )
     {
       echo '<select name="group_id">';
       foreach ( $session->groups as $id => $group )

@@ -103,6 +103,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   old_encryption tinyint(1) NOT NULL DEFAULT 0,
   temp_password text,
   temp_password_time int(12) NOT NULL DEFAULT 0,
+  user_coppa tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 

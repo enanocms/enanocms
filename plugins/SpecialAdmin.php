@@ -247,10 +247,10 @@ function page_Admin_GeneralConfig() {
       <tr><th colspan="2">Global site options</th></tr>
       <tr><th colspan="2" class="subhead">These options control the entire site.</th></tr>
       
-      <tr><td class="row1" style="width: 50%;">Site name:</td>                      <td class="row1" style="width: 50%;"><input name="site_name" size="30" value="<?php echo getConfig('site_name'); ?>" /></td></tr>
-      <tr><td class="row2">Site description:</td>               <td class="row2"><input name="site_desc" size="30" value="<?php echo getConfig('site_desc'); ?>" /></td></tr>
+      <tr><td class="row1" style="width: 50%;">Site name:</td>                      <td class="row1" style="width: 50%;"><input type="text" name="site_name" size="30" value="<?php echo getConfig('site_name'); ?>" /></td></tr>
+      <tr><td class="row2">Site description:</td>               <td class="row2"><input type="text" name="site_desc" size="30" value="<?php echo getConfig('site_desc'); ?>" /></td></tr>
       <tr><td class="row1">Main page:</td>                      <td class="row1"><?php echo $template->pagename_field('main_page', str_replace('_', ' ', getConfig('main_page'))); ?></td></tr>
-      <tr><td class="row2">Copyright notice shown on pages:</td><td class="row2"><input name="copyright" size="30" value="<?php echo getConfig('copyright_notice'); ?>" /></td></tr>
+      <tr><td class="row2">Copyright notice shown on pages:</td><td class="row2"><input type="text" name="copyright" size="30" value="<?php echo getConfig('copyright_notice'); ?>" /></td></tr>
       <tr><td class="row1" colspan="2">Hint: If you're using Windows, you can make a "&copy;" symbol by holding ALT and pressing 0169 on the numeric keypad.</td></tr>
       <tr><td class="row2">Contact e-mail<br /><small>All e-mail sent from this site will appear to have come from the address shown here.</small></td><td class="row2"><input name="contact_email" type="text" size="40" value="<?php echo htmlspecialchars(getConfig('contact_email')); ?>" /></td></tr>
       
@@ -348,7 +348,7 @@ function page_Admin_GeneralConfig() {
       </tr>
       <tr>
         <td class="row2">
-          <div id="site_disabled_notice">
+          <div id="site_disabled_notice"<?php if(getConfig('site_disabled')!='1') echo(' style="display:none"'); ?>>
             Message to show to users:<br />
             <textarea name="site_disabled_notice" rows="7" cols="30"><?php echo getConfig('site_disabled_notice'); ?></textarea>
           </div>
@@ -958,7 +958,10 @@ function page_Admin_UserManager() {
         break;
     }
   }
-  $q = $db->sql_query('SELECT log_type, action, time_id, date_string, author, edit_summary FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\' ORDER BY time_id DESC;');
+  $q = $db->sql_query('SELECT l.log_type, l.action, l.time_id, l.date_string, l.author, l.edit_summary, u.user_coppa FROM '.table_prefix.'logs AS l
+                         LEFT JOIN '.table_prefix.'users AS u
+                           ON ( u.username = l.edit_summary OR u.username IS NULL )
+                         WHERE log_type=\'admin\' AND action=\'activ_req\' ORDER BY time_id DESC;');
   if($q)
   {
     if($db->numrows() > 0)
@@ -969,13 +972,14 @@ function page_Admin_UserManager() {
       echo '<h3>'.$s . ' awaiting account activation</h3>';
       echo '<div class="tblholder">
             <table border="0" cellspacing="1" cellpadding="4" width="100%">
-            <tr><th>Date of request</th><th>Requested by</th><th>Requested for</th><th colspan="3">Actions</th></tr>';
+            <tr><th>Date of request</th><th>Requested by</th><th>Requested for</th><th>COPPA user</th><th colspan="3">Actions</th></tr>';
       $cls = 'row2';
       while($row = $db->fetchrow())
       {
         if($cls == 'row2') $cls = 'row1';
         else $cls = 'row2';
-        echo '<tr><td class="'.$cls.'">'.date('F d, Y h:i a', $row['time_id']).'</td><td class="'.$cls.'">'.$row['author'].'</td><td class="'.$cls.'">'.$row['edit_summary'].'</td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=activate&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Activate now</a></td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=sendemail&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Send activation e-mail</a></td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=deny&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Deny request</a></td></tr>';
+        $coppa = ( $row['user_coppa'] == '1' ) ? '<b>Yes</b>' : 'No';
+        echo '<tr><td class="'.$cls.'">'.date('F d, Y h:i a', $row['time_id']).'</td><td class="'.$cls.'">'.$row['author'].'</td><td class="'.$cls.'">'.$row['edit_summary'].'</td><td style="text-align: center;" class="' . $cls . '">' . $coppa . '</td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=activate&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Activate now</a></td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=sendemail&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Send activation e-mail</a></td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=deny&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Deny request</a></td></tr>';
       }
       echo '</table>';
     }
@@ -1340,6 +1344,79 @@ function page_Admin_GroupManager()
         </table>
         </div>';
   echo '</form>';
+}
+
+function page_Admin_COPPA()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
+  {
+    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    return;
+  }
+  
+  echo '<h2>Background information</h2>';
+  echo '<p>
+          The United States Childrens\' Online Privacy Protection Act (COPPA) was a law passed in 2001 that requires sites oriented towards
+          children under 13 years old or with a significant amount of under-13 children clearly state what information is being collected
+          in a privacy policy and obtain authorization from a parent or legal guardian before allowing children to use the site. Enano 
+          provides an easy way to allow you, as the website administrator, to obtain this authorization.
+        </p>';
+  
+  // Start form
+  
+  if ( isset($_POST['coppa_address']) )
+  {
+    // Saving changes
+    $enable_coppa = ( isset($_POST['enable_coppa']) ) ? '1' : '0';
+    setConfig('enable_coppa', $enable_coppa);
+    
+    $address = $_POST['coppa_address']; // RenderMan::preprocess_text($_POST['coppa_address'], true, false);
+    setConfig('coppa_address', $address);
+    
+    echo '<div class="info-box">Your changes have been saved.</div>';
+  }
+  
+  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', (( isset($_GET['sqldbg'])) ? 'sqldbg&amp;' : '') .'module='.$paths->cpage['module']).'" method="post">';
+  
+  echo '<div class="tblholder">';
+  echo '<table border="0" cellspacing="1" cellpadding="4">';
+  echo '<tr>
+          <th colspan="2">
+            COPPA support
+          </th>
+        </tr>';
+        
+  echo '<tr>
+          <td class="row1">
+            Enable COPPA support:
+          </td>
+          <td class="row2">
+            <label><input type="checkbox" name="enable_coppa" ' . ( ( getConfig('enable_coppa') == '1' ) ? 'checked="checked"' : '' ) . ' /> COPPA enabled</label><br />
+            <small>If this is checked, users will be asked if they are under 13 years of age before registering</small>
+          </td>
+        </tr>';
+        
+  echo '<tr>
+          <td class="row1">
+            Your mailing address:<br />
+            <small>This is the address to which parents will send authorization forms.</small>
+          </td>
+          <td class="row2">
+            <textarea name="coppa_address" rows="7" cols="40">' . getConfig('coppa_address') . '</textarea>
+          </td>
+        </tr>';
+        
+  echo '<tr>
+          <th colspan="2" class="subhead">
+            <input type="submit" value="Save changes" />
+          </th>
+        </tr>';
+        
+  echo '</table>';
+  
+  echo '</form>';
+  
 }
 
 function page_Admin_PageManager()
