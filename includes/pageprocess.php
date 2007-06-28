@@ -560,7 +560,7 @@ class PageProcessor
     
     if ( !empty($userdata['real_name']) )
     {
-      echo '<tr><td class="row3">Real name: ' . htmlspecialchars($userdata['real_name']) . '</td></tr>';
+      echo '<tr><td class="row3">Real name: ' . $userdata['real_name'] . '</td></tr>';
     }
     
     // Comments

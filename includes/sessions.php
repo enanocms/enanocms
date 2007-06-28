@@ -71,6 +71,13 @@ class sessionManager {
   var $email;
   
   /**
+   * List of "extra" user information fields (IM handles, etc.)
+   * @var array (associative)
+   */
+  
+  var $user_extra;
+  
+  /**
    * User level of current user
    * USER_LEVEL_GUEST: guest
    * USER_LEVEL_MEMBER: regular user
@@ -942,6 +949,15 @@ class sessionManager {
       $this->sql('UPDATE '.table_prefix.'session_keys SET time='.time().' WHERE session_key=\''.$keyhash.'\';');
     }
     
+    $user_extra = array();
+    foreach ( array('user_aim', 'user_yahoo', 'user_msn', 'user_xmpp', 'user_homepage', 'user_location', 'user_job', 'user_hobbies', 'email_public') as $column )
+    {
+      $user_extra[$column] = $row[$column];
+    }
+    
+    $this->user_extra = $user_extra;
+    // Leave the rest to PHP's automatic garbage collector ;-)
+    
     $row['password'] = md5($real_pass);
     return $row;
   }
@@ -1352,6 +1368,17 @@ class sessionManager {
 
     // We good, create the user
     $this->sql('INSERT INTO '.table_prefix.'users ( username, password, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa ) VALUES ( \''.$username.'\', \''.$password.'\', \''.$email.'\', \''.$real_name.'\', \''.$template->default_theme.'\', \''.$template->default_style.'\', '.time().', '.$active.', \''.$actkey.'\', '.USER_LEVEL_CHPREF.', ' . $coppa_col . ' );');
+    
+    // Get user ID and create users_extra entry
+    $q = $this->sql('SELECT user_id FROM '.table_prefix."users WHERE username='$username';");
+    if ( $db->numrows() > 0 )
+    {
+      $row = $db->fetchrow();
+      $db->free_result();
+      
+      $user_id =& $row['user_id'];
+      $this->sql('INSERT INTO '.table_prefix.'user_extra(user_id) VALUES(' . $user_id . ');');
+    }
     
     // Require the account to be activated?
     if ( $coppa )

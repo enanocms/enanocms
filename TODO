@@ -1,7 +1,7 @@
 Enano Banshee - TODO
 ------------------------------------------
 
-[ ] COPPA compliance
+[x] COPPA compliance
 [x] Add in Moderators group
     [x] Create default ACL rule for mods
 [x] Fix invalid HTML in SF.net logo
@@ -15,9 +15,10 @@ Enano Banshee - TODO
 [x] SQL exporter: fix structure exporting when an auto column is defined
     and it's a named key (see pun_search_words)
 [x] Possibly add these fields: AIM, Yahoo, MSN, XMPP messenger icons, then homepage, location, occupation, hobbies, allow public e-mail display
-    [ ] Put it in a user_extra table and have an option to enable or disable these fields in the admin panel
+    [x] Put it in a user_extra table [XX NO!! and have an option to enable or disable these fields in the admin panel XX]
     [Y] Delay until RC3 or Banshee?
     [x] When added, put a box on the user page that shows the information
+    [x] Fields on user's preferences page
 [x] Fix "this page" bug in ACL editor
     [x] The problem itself got fixed BUT there seem to be deeper problems related to scope selection
         This needs to be FIXED and WORKING PERFECTLY in Banshee!
@@ -27,8 +28,8 @@ Enano Banshee - TODO
 [x] Register users_extra table in system tables list (already done?)
 [x] Trigger form submit on press of enter in Dynano login form
 [x] Rewrite the change theme dialog - it's archaic code that hasn't changed since beta 1!
-    [ ] Come up with some alternative to the "formatting help" link for 1.1
-        [ ] By 1.1, all JWS code should be phased out and removed!
+    [] Come up with some alternative to the "formatting help" link (**IN 1.1**)
+       [] By 1.1, all JWS code should be phased out and removed!
 [ ] Get the new page ID cleaner code working 100% perfectly - this is the core of Enano and should be completely bug free
 
 

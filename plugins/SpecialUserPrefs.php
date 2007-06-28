@@ -403,7 +403,69 @@ function page_Special_Preferences()
       {
         $real_name = htmlspecialchars($_POST['real_name']);
         $real_name = $db->escape($real_name);
+        
+        $imaddr_aim = htmlspecialchars($_POST['imaddr_aim']);
+        $imaddr_aim = $db->escape($imaddr_aim);
+        
+        $imaddr_msn = htmlspecialchars($_POST['imaddr_msn']);
+        $imaddr_msn = $db->escape($imaddr_msn);
+        
+        $imaddr_yahoo = htmlspecialchars($_POST['imaddr_yahoo']);
+        $imaddr_yahoo = $db->escape($imaddr_yahoo);
+        
+        $imaddr_xmpp = htmlspecialchars($_POST['imaddr_xmpp']);
+        $imaddr_xmpp = $db->escape($imaddr_xmpp);
+        
+        $homepage = htmlspecialchars($_POST['homepage']);
+        $homepage = $db->escape($homepage);
+        
+        $location = htmlspecialchars($_POST['location']);
+        $location = $db->escape($location);
+        
+        $occupation = htmlspecialchars($_POST['occupation']);
+        $occupation = $db->escape($occupation);
+        
+        $hobbies = htmlspecialchars($_POST['hobbies']);
+        $hobbies = $db->escape($hobbies);
+        
+        $email_public = ( isset($_POST['email_public']) ) ? '1' : '0';
+        
+        $session->real_name = $real_name;
+        
+        if ( !preg_match('/@([a-z0-9-]+)(\.([a-z0-9-\.]+))?/', $imaddr_msn) )
+        {
+          $imaddr_msn = "$imaddr_msn@hotmail.com";
+        }
+        
+        if ( substr($homepage, 0, 7) != 'http://' )
+        {
+          $homepage = "http://$homepage";
+        }
+        
+        if ( !preg_match('/^http:\/\/([a-z0-9-.]+)([A-z0-9@#\$%\&:;<>,\.\?=\+\(\)\[\]_\/\\\\]*?)$/i', $homepage) )
+        {
+          $homepage = '';
+        }
+        
+        $session->user_extra['user_aim'] = $imaddr_aim;
+        $session->user_extra['user_msn'] = $imaddr_msn;
+        $session->user_extra['user_xmpp'] = $imaddr_xmpp;
+        $session->user_extra['user_yahoo'] = $imaddr_yahoo;
+        $session->user_extra['user_homepage'] = $homepage;
+        $session->user_extra['user_location'] = $location;
+        $session->user_extra['user_job'] = $occupation;
+        $session->user_extra['user_hobbies'] = $hobbies;
+        $session->user_extra['email_public'] = intval($email_public);
+        
         $q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name' WHERE user_id=$session->user_id;");
+        if ( !$q )
+          $db->_die();
+        
+        $q = $db->sql_query('UPDATE '.table_prefix."users_extra SET user_aim='$imaddr_aim',user_yahoo='$imaddr_yahoo',user_msn='$imaddr_msn',
+                               user_xmpp='$imaddr_xmpp',user_homepage='$homepage',user_location='$location',user_job='$occupation',
+                               user_hobbies='$hobbies',email_public=$email_public
+                               WHERE user_id=$session->user_id;");
+        
         if ( !$q )
           $db->_die();
         
@@ -428,7 +490,49 @@ function page_Special_Preferences()
             <td class="row1">If you don't like the look of the site, need a visual break, or are just curious, we might have some different themes for you to try out! <a href="<?php echo makeUrlNS('Special', 'ChangeStyle/' . $paths->page); ?>" onclick="ajaxChangeStyle(); return false;">Change my theme...</a></td>
           </tr>
           <tr>
-            <td colspan="2" class="row3"><small>More is coming soon - planned fields include AOL, WLM, Yahoo, and XMPP messenger fields, allow public display of e-mail address, allow private messages from users not on your buddy list, homepage, occupation, and location.</small></td>
+            <th class="subhead" colspan="2">
+              Instant messenger contact information
+            </th>
+          <tr>
+            <td class="row2" style="width: 50%;">AIM handle:</td>
+            <td class="row1" style="width: 50%;"><input type="text" name="imaddr_aim" value="<?php echo $session->user_extra['user_aim']; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;"><acronym title="Windows&trade; Live Messenger">WLM</acronym> handle:<br /><small>If you don't specify the domain (@whatever.com), "@hotmail.com" will be assumed.</small></td>
+            <td class="row1" style="width: 50%;"><input type="text" name="imaddr_msn" value="<?php echo $session->user_extra['user_msn']; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;">Yahoo! IM handle:</td>
+            <td class="row1" style="width: 50%;"><input type="text" name="imaddr_yahoo" value="<?php echo $session->user_extra['user_yahoo']; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;">Jabber/XMPP handle:</td>
+            <td class="row1" style="width: 50%;"><input type="text" name="imaddr_xmpp" value="<?php echo $session->user_extra['user_xmpp']; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <th class="subhead" colspan="2">
+              Extra contact information
+            </th>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;">Your homepage:<br /><small>Please remember the http:// prefix.</small></td>
+            <td class="row1" style="width: 50%;"><input type="text" name="homepage" value="<?php echo $session->user_extra['user_homepage']; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;">Your location:</td>
+            <td class="row1" style="width: 50%;"><input type="text" name="location" value="<?php echo $session->user_extra['user_location']; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;">Your job:</td>
+            <td class="row1" style="width: 50%;"><input type="text" name="occupation" value="<?php echo $session->user_extra['user_job']; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;">Your hobbies:</td>
+            <td class="row1" style="width: 50%;"><input type="text" name="hobbies" value="<?php echo $session->user_extra['user_hobbies']; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;"><label for="chk_email_public">E-mail address is public</label><br /><small>If this is checked, your e-mail address will be displayed on your user page. To protect your address from spambots, your e-mail address will be encrypted.</small></td>
+            <td class="row1" style="width: 50%;"><input type="checkbox" id="chk_email_public" name="email_public" value="<?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?>" size="30" /></td>
           </tr>
           <tr>
             <th class="subhead" colspan="2">
