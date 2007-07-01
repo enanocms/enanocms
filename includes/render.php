@@ -243,29 +243,7 @@ class RenderMan {
     if ( !$plaintext )
     {
       // Process images
-      
-      $j = preg_match_all('#\[\[:'.$paths->nslist['File'].'([\w\s0-9_\(\)!@%\^\+\|\.-]+?)\|([0-9]+)\|([0-9]+)\]\]#is', $text, $matchlist);
-      $matches = Array();
-      $matches['images']  =& $matchlist[1];
-      $matches['widths']  =& $matchlist[2];
-      $matches['heights'] =& $matchlist[3];
-      for($i=0;$i<sizeof($matchlist[1]);$i++)
-      {
-        if(isPage($paths->nslist['File'].$matches['images'][$i])) $text = str_replace('[[:'.$paths->nslist['File'].$matches['images'][$i].'|'.$matches['widths'][$i].'|'.$matches['heights'][$i].']]',
-          '<nowiki><a href="'.makeUrlNS('File', $matches['images'][$i]).'"><img alt="'.$matches['images'][$i].'" style="border: 0" src="'.makeUrlNS('Special', 'DownloadFile/'.$matches['images'][$i], 'preview&amp;width='.$matches['widths'][$i].'&amp;height='.$matches['heights'][$i]).'" /></a></nowiki>',
-          $text);
-      }
-      
-      $j = preg_match_all('#\[\[:'.$paths->nslist['File'].'([\w\s0-9_\(\)!@%\^\+\|\.-]+?)\]\]#is', $text, $matchlist);
-      $matches = Array();
-      $matches['images'] = $matchlist[1];
-      for($i=0;$i<sizeof($matchlist[1]);$i++)
-      {
-        if(isPage($paths->nslist['File'].$matches['images'][$i])) $text = str_replace('[[:'.$paths->nslist['File'].$matches['images'][$i].']]',
-          '<nowiki><a href="'.makeUrlNS('File', $matches['images'][$i]).'"><img alt="'.$matches['images'][$i].'" style="border: 0" src="'.makeUrlNS('Special', 'DownloadFile/'.$matches['images'][$i]).'" /></a></nowiki>',
-          $text);
-      }
-      
+      $text = RenderMan::process_image_tags($text);
     }
     
     if($do_params)
@@ -334,27 +312,7 @@ class RenderMan {
       
       //return '<pre>'.htmlspecialchars($message).'</pre>';
       
-      $j = preg_match_all('#\[\[:'.$paths->nslist['File'].'([\w\s0-9_\(\)!@%\^\+\|\.-]+?)\|([0-9]+)\|([0-9]+)\]\]#is', $message, $matchlist);
-      $matches = Array();
-      $matches['images'] = $matchlist[1];
-      $matches['widths'] = $matchlist[2];
-      $matches['heights'] = $matchlist[3];
-      for($i=0;$i<sizeof($matchlist[1]);$i++)
-      {
-        if(isPage($paths->nslist['File'].$matches['images'][$i])) $message = str_replace('[[:'.$paths->nslist['File'].$matches['images'][$i].'|'.$matches['widths'][$i].'|'.$matches['heights'][$i].']]',
-          '<nowiki><a href="'.makeUrlNS('File', $matches['images'][$i]).'"><img alt="'.$matches['images'][$i].'" style="border: 0" src="'.makeUrlNS('Special', 'DownloadFile/'.$matches['images'][$i], 'preview&amp;width='.$matches['widths'][$i].'&amp;height='.$matches['heights'][$i]).'" /></a></nowiki>',
-          $message);
-      }
-      
-      $j = preg_match_all('#\[\[:'.$paths->nslist['File'].'([\w\s0-9_\(\)!@%\^\+\|\.-]+?)\]\]#is', $message, $matchlist);
-      $matches = Array();
-      $matches['images'] = $matchlist[1];
-      for($i=0;$i<sizeof($matchlist[1]);$i++)
-      {
-        if(isPage($paths->nslist['File'].$matches['images'][$i])) $message = str_replace('[[:'.$paths->nslist['File'].$matches['images'][$i].']]',
-          '<nowiki><a href="'.makeUrlNS('File', $matches['images'][$i]).'"><img alt="'.$matches['images'][$i].'" style="border: 0" src="'.makeUrlNS('Special', 'DownloadFile/'.$matches['images'][$i]).'" /></a></nowiki>',
-          $message);
-      }
+      $message = RenderMan::process_image_tags($message);
     
     }
     
@@ -784,6 +742,135 @@ class RenderMan {
     $diff = new Diff($str1, $str2);
     $renderer = new TableDiffFormatter();
     return '<table class="diff">'.$renderer->format($diff).'</table>';
+  }
+  
+  /**
+   * Changes wikitext image tags to HTML.
+   * @param string The wikitext to process
+   * @return string
+   */
+  
+  function process_image_tags($text)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Wicked huh?
+    $regex = '/\[\[:' . $paths->nslist['File'] . '([\w\s0-9_\(\)!@%\^\+\|\.-]+?)((\|thumb)|(\|([0-9]+)x([0-9]+)))?(\|left|\|right)?(\|(.+))?\]\]/i';
+    
+    preg_match_all($regex, $text, $matches);
+    
+    foreach ( $matches[0] as $i => $match )
+    {
+      
+      $full_tag   =& $matches[0][$i];
+      $filename   =& $matches[1][$i];
+      $scale_type =& $matches[2][$i];
+      $width      =& $matches[5][$i];
+      $height     =& $matches[6][$i];
+      $clear      =& $matches[7][$i];
+      $caption    =& $matches[8][$i];
+      
+      if ( !isPage( $paths->nslist['File'] . $filename ) )
+      {
+        continue;
+      }
+      
+      if ( $scale_type == '|thumb' )
+      {
+        $r_width  = 225;
+        $r_height = 225;
+        
+        $url = makeUrlNS('Special', 'DownloadFile/' . $filename, 'preview&width=' . $r_width . '&height=' . $r_height, true);
+      }
+      else if ( !empty($width) && !empty($height) )
+      {
+        $r_width = $width;
+        $r_height = $height;
+        
+        $url = makeUrlNS('Special', 'DownloadFile/' . $filename, 'preview&width=' . $r_width . '&height=' . $r_height, true);
+      }
+      else
+      {
+        $url = makeUrlNS('Special', 'DownloadFile/' . $filename);
+      }
+      
+      $img_tag = '<img src="' . $url . '" ';
+      
+      if ( isset($r_width) && isset($r_height) && $scale_type != '|thumb' )
+      {
+        $img_tag .= 'width="' . $r_width . '" height="' . $r_height . '" ';
+      }
+      
+      if ( empty($clear) && $scale_type == '|thumb' )
+      {
+        $clear = 'right';
+      }
+      
+      $img_tag .= 'style="border-width: 0px; background-color: white;" ';
+      
+      $img_tag .= '/>';
+      
+      $complete_tag = '';
+      
+      if ( !empty($scale_type) )
+      {
+        $complete_tag .= '<div class="thumbnail" ';
+        $clear_text = '';
+        if ( !empty($clear) )
+        {
+          $side = ( $clear == '|left' ) ? 'left' : 'right';
+          $opposite = ( $clear == '|left' ) ? 'right' : 'left';
+          $clear_text .= "clear: $side; float: $side; margin-$opposite: 20px;";
+          $complete_tag .= 'style="' . $clear_text . '" ';
+        }
+        $complete_tag .= '>';
+        
+        $complete_tag .= '<a href="' . makeUrlNS('File', $filename) . '" style="display: block;">';
+        $complete_tag .= $img_tag;
+        $complete_tag .= '</a>';
+        
+        $mag_button = '<a href="' . makeUrlNS('File', $filename) . '" style="display: block; float: right; clear: right; margin: 0 0 10px 10px;"><img alt="[ + ]" src="' . scriptPath . '/images/thumbnail.png" style="border-width: 0px;" /></a>';
+      
+        if ( !empty($caption) )
+        {
+          $cap = substr($caption, 1);
+          $complete_tag .= $mag_button . $cap;
+        }
+        
+        $complete_tag .= '</div>';
+      }
+      else
+      {
+        $complete_tag .= '<a href="' . makeUrlNS('File', $filename) . '" style="display: block;">';
+        $complete_tag .= $img_tag;
+        $complete_tag .= '</a>';
+      }
+      
+      $complete_tag = "<nowiki>$complete_tag</nowiki>\n\n";
+      
+      $pos = strpos($text, $full_tag) - 3;
+      
+      while(true)
+      {
+        $check1 = substr($text, $pos, 3);
+        $check2 = substr($text, $pos, 1);
+        if ( $check1 == '<p>' || $pos == 0 || $check2 == "\n" )
+        {
+          // die('found at pos '.$pos);
+          break;
+        }
+        $pos--;
+      }
+      
+      $text = substr($text, 0, $pos) . $complete_tag . substr($text, $pos + 1);
+      
+      $text = str_replace($full_tag, '', $text);
+      
+      unset($full_tag, $filename, $scale_type, $width, $height, $clear, $caption, $r_width, $r_height);
+      
+    }
+    
+    return $text;
   }
   
 }

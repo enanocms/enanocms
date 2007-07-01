@@ -100,6 +100,11 @@ class Text_Wiki_Parse_Wikilink extends Text_Wiki_Parse {
     {
         $default = $this->conf;
         parent::Text_Wiki_Parse($obj);
+        
+        global $paths;
+        $this->imageConf = array(
+          'prefix' => array(':' . $paths->nslist['File'])
+          );
 
         // override config options for image if specified
         if (in_array('Image', $this->wiki->disable)) {

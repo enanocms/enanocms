@@ -66,7 +66,8 @@ class Text_Wiki {
         'Html',
         'Include',
         'Embed',
-        'Tighten'
+        'Tighten',
+        'Image'
     );
 
     var $parseConf = array();
