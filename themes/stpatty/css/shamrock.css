@@ -223,12 +223,12 @@ div.pagetools#pagebarpopup a {
  * jBox menu system
  */
 
-div.menu {
+div.menu, div.menu_nojs {
   background-color: #93e058;
   font-size: 7pt;
   border-width: 0;
 }
-div.menu a, div.menu div.label {
+div.menu a, div.menu_nojs a, div.menu div.label, div.menu_nojs div.label {
   padding: 2.5pt 5px;
   margin-right: 3px;
   text-decoration: none;
@@ -237,51 +237,51 @@ div.menu a, div.menu div.label {
   color: #235000;
   border-bottom-width: 0 !important;
 }
-div.menu div.label {
+div.menu div.label, div.menu_nojs div.label {
   color: #002010;
   cursor: default;
 }
-div.menu span.sep {
+div.menu span.sep, div.menu_nojs span.sep {
   display: block;
   float: left;
   width: 5px;
 }
-div.menu div.multopts {
+div.menu div.multopts, div.menu_nojs div.multopts {
   line-height: 17pt;
 }
-div.menu div.multopts a, div.menu div.multopts div.label {
+div.menu div.multopts a, div.menu_nojs div.multopts a, div.menu div.multopts div.label, div.menu_nojs div.multopts div.label {
   float: none;
   display: inline;
 }
-div.menu a.liteselected, div.menu a.liteselected:hover, div.menu a:hover {
+div.menu a.liteselected, div.menu_nojs a.liteselected, div.menu a.liteselected:hover, div.menu_nojs a.liteselected:hover, div.menu a:hover, div.menu_nojs a:hover {
   color: #235000;
   background-color: #A3F068;
 }
-div.menu input[type ^="text"], div.menu input[type ^="password"] {
+div.menu input[type ^="text"], div.menu_nojs input[type ^="text"], div.menu input[type ^="password"], div.menu_nojs input[type ^="password"] {
   border-width: 0;
   font-size: 9pt;
   padding: 4px 5px;
   max-width: 70px;
   background-color: #A3F068;
 }
-div.menu input[type ^="text"]:hover, div.menu input[type ^="password"]:hover {
+div.menu input[type ^="text"]:hover, div.menu_nojs input[type ^="text"]:hover, div.menu input[type ^="password"]:hover, div.menu_nojs input[type ^="password"]:hover {
   background-color: #AAF870;
 }
-div.menu input[type ^="text"]:focus, div.menu input[type ^="password"]:focus {
+div.menu input[type ^="text"]:focus, div.menu_nojs input[type ^="text"]:focus, div.menu input[type ^="password"]:focus, div.menu_nojs input[type ^="password"]:focus {
   background-color: #B3FF78;
 }
-div.menu input[type ^="button"], div.menu input[type ^="submit"] {
+div.menu input[type ^="button"], div.menu_nojs input[type ^="button"], div.menu input[type ^="submit"], div.menu_nojs input[type ^="submit"] {
   border-width: 0;
   font-size: 9pt;
   padding: 3px 5px;
   max-width: 70px;
 }
-div.menu a.current, div.menu a.current:hover, div.menu a.selected, div.menu a.selected:hover {
+div.menu a.current, div.menu_nojs a.current, div.menu a.current:hover, div.menu_nojs a.current:hover, div.menu a.selected, div.menu_nojs a.selected, div.menu a.selected:hover, div.menu_nojs a.selected:hover {
   color: #000040;
   background-color: #f4fff7;
   font-weight: bold;
 }
-div.menu ul {
+div.menu ul, div.menu_nojs ul {
   display: none;
   position: absolute;
   padding: 0;
@@ -290,10 +290,15 @@ div.menu ul {
   border-width: 0;
   min-width: 120px;
 }
-div.menu ul li {
+/*
+div.menu_nojs ul {
+  display: block !important;
+}
+*/
+div.menu ul li, div.menu_nojs ul li {
   list-style: none;
 }
-div.menu ul a {
+div.menu ul a, div.menu_nojs ul a {
   float: none;
   margin: 0;
 }

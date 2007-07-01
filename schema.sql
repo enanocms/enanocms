@@ -261,10 +261,12 @@ INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_st
   ('oxygen', 'Oxygen', 1, 'bleu.css', 1),
   ('stpatty', 'St. Patty', 2, 'shamrock.css', 1);
 
-INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time) VALUES(1, 'Anonymous', 'invalid-pass-hash', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0);
+INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active) VALUES
+  (1, 'Anonymous', 'invalid-pass-hash', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0),
+  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', 1, UNIX_TIMESTAMP(), 1);
 
-INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, account_active, reg_time) VALUES
-  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', 1, UNIX_TIMESTAMP());
+INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
+  (2);
 
 INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(1, 'Everyone', 3, 1),
   (2,'Administrators',3,1),

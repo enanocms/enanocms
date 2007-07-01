@@ -1609,6 +1609,158 @@ function sanitize_html($html, $filter_php = true)
   
 }
 
+/**
+ * Using the same parsing code as sanitize_html(), this function adds <litewiki> tags around certain block-level elements
+ * @param string $html The input HTML
+ * @return string formatted HTML
+ */
+
+function wikiformat_process_block($html)
+{
+  
+  $tok1 = "<litewiki>";
+  $tok2 = "</litewiki>";
+  
+  $block_tags = array('div', 'p', 'table', 'blockquote', 'pre');
+  
+  $len = strlen($html);
+  $in_quote = false;
+  $quote_char = '';
+  $tag_start = 0;
+  $tag_name = '';
+  $in_tag = false;
+  $trk_name = false;
+  
+  $diag = 0;
+  
+  $block_tagname = '';
+  $in_blocksec = 0;
+  $block_start = 0;
+  
+  for ( $i = 0; $i < $len; $i++ )
+  {
+    $chr = $html{$i};
+    $prev = ( $i == 0 ) ? '' : $html{ $i - 1 };
+    $next = ( ( $i + 1 ) == $len ) ? '' : $html { $i + 1 };
+    
+    // Are we inside of a quoted section?
+    if ( $in_quote && $in_tag )
+    {
+      if ( $quote_char == $chr && $prev != '\\' )
+        $in_quote = false;
+    }
+    elseif ( ( $chr == '"' || $chr == "'" ) && $prev != '\\' && $in_tag )
+    {
+      $in_quote = true;
+      $quote_char = $chr;
+    }
+    
+    if ( $chr == '<' && !$in_tag && $next == '/' )
+    {
+      // Iterate through until we've got a tag name
+      $tag_name = '';
+      $i++;
+      while(true)
+      {
+        $i++;
+        // echo $i . ' ';
+        $chr = $html{$i};
+        $prev = ( $i == 0 ) ? '' : $html{ $i - 1 };
+        $next = ( ( $i + 1 ) == $len ) ? '' : $html { $i + 1 };
+        $tag_name .= $chr;
+        if ( $next == '>' )
+          break;
+      }
+      // echo '<br />';
+      if ( in_array($tag_name, $block_tags) )
+      {
+        if ( $block_tagname == $tag_name )
+        {
+          $in_blocksec -= 1;
+          if ( $in_blocksec == 0 )
+          {
+            $block_tagname = '';
+            $i += 2;
+            // echo 'Finished wiki litewiki wraparound calc at pos: ' . $i;
+            $full_litewiki = substr($html, $block_start, ( $i - $block_start ));
+            $new_text = "{$tok1}{$full_litewiki}{$tok2}";
+            $html = substr($html, 0, $block_start) . $new_text . substr($html, $i);
+            
+            $i += ( strlen($tok1) + strlen($tok2) ) - 1;
+            $len = strlen($html);
+            
+            //die('<pre>' . htmlspecialchars($html) . '</pre>');
+          }
+        }
+      }
+      
+      $in_tag = false;
+      $in_quote = false;
+      $tag_name = '';
+      
+      continue;
+    }
+    else if ( $chr == '<' && !$in_tag && $next != '/' )
+    {
+      // start of a tag
+      $tag_start = $i;
+      $in_tag = true;
+      $trk_name = true;
+    }
+    else if ( !$in_quote && $in_tag && $chr == '>' )
+    {
+      if ( !in_array($tag_name, $block_tags) )
+      {
+        // Inline tag - reset and go to the next one
+        // echo '&lt;inline ' . $tag_name . '&gt; ';
+        
+        $in_tag = false;
+        $tag_name = '';
+        continue;
+      }
+      else
+      {
+        // echo '&lt;block: ' . $tag_name . ' @ ' . $i . '&gt;<br/>';
+        if ( $in_blocksec == 0 )
+        {
+          //die('Found a starting tag for a block element: ' . $tag_name . ' at pos ' . $tag_start);
+          $block_tagname = $tag_name;
+          $block_start = $tag_start;
+          $in_blocksec++;
+        }
+        else if ( $block_tagname == $tag_name )
+        {
+          $in_blocksec++;
+        }
+        
+        $in_tag = false;
+        $tag_name = '';
+        continue;
+      }
+    }
+    elseif ( $in_tag && $trk_name )
+    {
+      $is_alphabetical = ( strtolower($chr) != strtoupper($chr) || in_array($chr, array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) || $chr == '?' || $chr == '!' || $chr == '-' );
+      if ( $is_alphabetical )
+        $tag_name .= $chr;
+      else
+      {
+        $trk_name = false;
+      }
+    }
+    
+    // Tokenization complete
+    
+  }
+  
+  $regex = '/' . str_replace('/', '\\/', preg_quote($tok2)) . '([\s]*)' . preg_quote($tok1) . '/is';
+  // die(htmlspecialchars($regex));
+  $html = preg_replace($regex, '\\1', $html);
+  
+  return $html;
+  
+}
+
 function htmlalternatives($string)
 {
   $ret = '';
@@ -2100,6 +2252,21 @@ function commatize($num)
   {
     return $num;
   }
+}
+
+/**
+ * Injects a string into another string at the specified position.
+ * @param string The haystack
+ * @param string The needle
+ * @param int    Position at which to insert the needle
+ */
+
+function inject_substr($haystack, $needle, $pos)
+{
+  $str1 = substr($haystack, 0, $pos);
+  $pos++;
+  $str2 = substr($haystack, $pos);
+  return "{$str1}{$needle}{$str2}";
 }
 
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');

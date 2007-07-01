@@ -712,6 +712,7 @@ class sessionManager {
         {
           eval($cmd);
         }
+        
         return 'success';
       }
       else
@@ -771,32 +772,50 @@ class sessionManager {
    
   function register_session($user_id, $username, $password, $level = USER_LEVEL_MEMBER)
   {
+    // Random key identifier
     $salt = md5(microtime() . mt_rand());
+    
+    // SHA1 hash of password, stored in the key
     $passha1 = sha1($password);
+    
+    // Unencrypted session key
     $session_key = "u=$username;p=$passha1;s=$salt";
+    
+    // Encrypt the key
     $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
     $session_key = $aes->encrypt($session_key, $this->private_key, ENC_HEX);
+    
+    // If we're registering an elevated-privilege key, it needs to be on GET
     if($level > USER_LEVEL_MEMBER)
     {
+      // Reverse it - cosmetic only ;-)
       $hexkey = strrev($session_key);
       $this->sid_super = $hexkey;
       $_GET['auth'] = $hexkey;
     }
     else
     {
+      // Stash it in a cookie
+      // For now, make the cookie last forever, we can change this in 1.1.x
       setcookie( 'sid', $session_key, time()+315360000, scriptPath.'/' );
       $_COOKIE['sid'] = $session_key;
     }
+    // $keyhash is stored in the database, this is for compatibility with the older DB structure
     $keyhash = md5($session_key);
+    // Record the user's IP
     $ip = ip2hex($_SERVER['REMOTE_ADDR']);
     if(!$ip)
       die('$session->register_session: Remote-Addr was spoofed');
+    // The time needs to be stashed to enforce the 15-minute limit on elevated session keys
     $time = time();
+    
+    // Sanity check
     if(!is_int($user_id))
       die('Somehow an SQL injection attempt crawled into our session registrar! (1)');
     if(!is_int($level))
       die('Somehow an SQL injection attempt crawled into our session registrar! (2)');
     
+    // All done!
     $query = $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time) VALUES(\''.$keyhash.'\', \''.$salt.'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.');');
     return true;
   }
@@ -1564,7 +1583,7 @@ Date (YYYY-MM-DD): ______ / _____ / _____
     }
     elseif(is_string($user))
     {
-      $q = $this->sql('SELECT user_id,username,email FROM '.table_prefix.'users WHERE username=\''.$db->escape($user).'\';');
+      $q = $this->sql('SELECT user_id,username,email FROM '.table_prefix.'users WHERE lcase(username)=lcase(\''.$db->escape($user).'\');');
     }
     else
     {
@@ -1664,25 +1683,47 @@ The {$site_name} administration team
   /**
    * For a given user level identifier (USER_LEVEL_*), returns a string describing that user level.
    * @param int User level
+   * @param bool If true, returns a shorter string. Optional.
    * @return string
    */
   
-  function userlevel_to_string($user_level)
+  function userlevel_to_string($user_level, $short = false)
   {
-    switch ( $user_level )
+    if ( $short )
     {
-      case USER_LEVEL_GUEST:
-        return 'Low - guest privileges';
-      case USER_LEVEL_MEMBER:
-        return 'Standard - normal member level';
-      case USER_LEVEL_CHPREF:
-        return 'Medium - user can change his/her own e-mail address and password';
-      case USER_LEVEL_MOD:
-        return 'High - moderator privileges';
-      case USER_LEVEL_ADMIN:
-        return 'Highest - administrative privileges';
-      default:
-        return "Unknown ($user_level)";
+      switch ( $user_level )
+      {
+        case USER_LEVEL_GUEST:
+          return 'Guest';
+        case USER_LEVEL_MEMBER:
+          return 'Member';
+        case USER_LEVEL_CHPREF:
+          return 'Sensitive preferences changeable';
+        case USER_LEVEL_MOD:
+          return 'Moderator';
+        case USER_LEVEL_ADMIN:
+          return 'Administrative';
+        default:
+          return "Level $user_level";
+      }
+    }
+    else
+    {
+      switch ( $user_level )
+      {
+        case USER_LEVEL_GUEST:
+          return 'Low - guest privileges';
+        case USER_LEVEL_MEMBER:
+          return 'Standard - normal member level';
+        case USER_LEVEL_CHPREF:
+          return 'Medium - user can change his/her own e-mail address and password';
+        case USER_LEVEL_MOD:
+          return 'High - moderator privileges';
+        case USER_LEVEL_ADMIN:
+          return 'Highest - administrative privileges';
+        default:
+          return "Unknown ($user_level)";
+      }
     }
   }
   
@@ -1784,7 +1825,7 @@ The {$site_name} administration team
       if(is_string($email))
       {
         // I didn't write this regex.
-        if(!preg_match('/^(?:[\w\d]+\.?)+@(?:(?:[\w\d]\-?)+\.)+\w{2,4}$/', $email))
+        if(!preg_match('/^(?:[\w\d]+\.?)+@((?:(?:[\w\d]\-?)+\.)+\w{2,4}|localhost)$/', $email))
           $errors[] = 'The e-mail address you entered is invalid.';
         $strs[] = 'email=\''.$db->escape($email).'\'';
       }
@@ -2340,7 +2381,6 @@ The {$site_name} administration team
               alert(\'The key is messed up\\nType: \'+typeof(cryptkey)+len);
             }
           }
-          if(frm.username) frm.username.focus();
           function runEncryption()
           {
             if(testpassed)

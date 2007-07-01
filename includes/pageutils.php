@@ -1240,14 +1240,20 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!$session->get_permissions('clear_logs')) die('Administrative privileges are required to flush logs, you loser.');
-    $e = $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE page_id=\''.$page_id.'\' AND namespace=\''.$namespace.'\';');
+    $e = $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\';');
     if(!$e) $db->_die('The log entries could not be deleted.');
-    $e = $db->sql_query('SELECT page_text,char_tag FROM '.table_prefix.'page_text WHERE page_id=\''.$page_id.'\' AND namespace=\''.$namespace.'\';');
-    if(!$e) $db->_die('The current page text could not be selected; as a result, creating the backup of the page failed. Please make a backup copy of the page by clicking Edit this page and then clicking Save Changes.');
-    $row = $db->fetchrow();
-    $db->free_result();
-    $q='INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \''.$page_id.'\', \''.$namespace.'\', \''.$db->escape($row['page_text']).'\', \''.$row['char_tag'].'\', \''.$session->username.'\', \''."Automatic backup created when logs were purged".'\', '.'false'.');';
-    if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
+    
+    // If the page exists, make a backup of it in case it gets spammed/vandalized
+    // If not, the admin's probably deleting a trash page
+    if ( isset($paths->pages[ $paths->nslist[$namespace] . $page_id ]) )
+    {
+      $e = $db->sql_query('SELECT page_text,char_tag FROM '.table_prefix.'page_text WHERE page_id=\''.$page_id.'\' AND namespace=\''.$namespace.'\';');
+      if(!$e) $db->_die('The current page text could not be selected; as a result, creating the backup of the page failed. Please make a backup copy of the page by clicking Edit this page and then clicking Save Changes.');
+      $row = $db->fetchrow();
+      $db->free_result();
+      $q='INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \''.$page_id.'\', \''.$namespace.'\', \''.$db->escape($row['page_text']).'\', \''.$row['char_tag'].'\', \''.$session->username.'\', \''."Automatic backup created when logs were purged".'\', '.'false'.');';
+      if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
+    }
     return('The logs for this page have been cleared. A backup of this page has been added to the logs table so that this page can be restored in case of vandalism or spam later.');
   }
   

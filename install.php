@@ -1128,13 +1128,43 @@ $crypto_key = \''.$privkey.'\';
       fwrite($cf_handle, $config_file);
       fclose($cf_handle);
       
+      echo 'done!<br />Starting the Enano API...';
+      
+      $template_bak = $template;
+      
+      // Get Enano loaded
+      $_GET['title'] = 'Main_Page';
+      require('includes/common.php');
+      
+      // We need to be logged in (with admin rights) before logs can be flushed
+      $session->login_without_crypto($_POST['admin_user'], $dec, false);
+      
+      // Now that login cookies are set, initialize the session manager and ACLs
+      $session->start();
+      $paths->init();
+      
+      unset($template);
+      $template =& $template_bak;
+      
       echo 'done!<br />Initializing logs...';
       
-      $q = mysql_query('INSERT INTO ' . $_POST['table_prefix'] . 'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES(\'security\', \'install_enano\', ' . time() . ', \'' . date('d M Y h:i a') . '\', \'' . mysql_real_escape_string($_POST['admin_user']) . '\', \'' . mysql_real_escape_string(ENANO_VERSION) . '\', \'' . mysql_real_escape_string($_SERVER['REMOTE_ADDR']) . '\');', $conn);
+      $q = $db->sql_query('INSERT INTO ' . $_POST['table_prefix'] . 'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES(\'security\', \'install_enano\', ' . time() . ', \'' . date('d M Y h:i a') . '\', \'' . mysql_real_escape_string($_POST['admin_user']) . '\', \'' . mysql_real_escape_string(ENANO_VERSION) . '\', \'' . mysql_real_escape_string($_SERVER['REMOTE_ADDR']) . '\');', $conn);
       if ( !$q )
-        err('Error setting up logs: '.mysql_error());
+        err('Error setting up logs: '.$db->get_error());
       
-      echo 'done!<h3>Installation of Enano is complete.</h3><p>Review any warnings above, and then <a href="install.php?mode=finish">click here to  finish the installation</a>.';
+      if ( !$session->get_permissions('clear_logs') )
+      {
+        echo '<br />Error: session manager won\'t permit flushing logs, these is a bug.';
+        break;
+      }
+      
+      // unset($session);
+      // $session = new sessionManager();
+      // $session->start();
+      
+      PageUtils::flushlogs('Main_Page', 'Article');
+      
+      echo 'done!<h3>Installation of Enano is complete.</h3><p>Review any warnings above, and then <a href="install.php?mode=finish">click here to finish the installation</a>.';
       
       // echo '<script type="text/javascript">window.location="'.scriptPath.'/install.php?mode=finish";</script>';
       

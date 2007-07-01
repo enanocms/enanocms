@@ -167,6 +167,10 @@ function page_Special_Login()
               {
                 echo 'tabindex="1" ';
               }
+              else
+              {
+                echo 'tabindex="3" ';
+              }
               if ( $session->user_logged_in )
               {
                 echo 'value="' . $session->username . '"';
@@ -192,7 +196,7 @@ function page_Special_Login()
          </tr>
          <?php } ?>
          <tr>
-           <th colspan="3" style="text-align: center" class="subhead"><input type="submit" name="login" value="Log in" tabindex="3" /></th>
+           <th colspan="3" style="text-align: center" class="subhead"><input type="submit" name="login" value="Log in" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '2'; ?>" /></th>
          </tr>
       </table>
     </div>
@@ -201,6 +205,15 @@ function page_Special_Login()
       <input type="hidden" name="crypt_key" value="<?php echo $pubkey; ?>" />
       <input type="hidden" name="crypt_data" value="" />
       <input type="hidden" name="auth_level" value="<?php echo (string)$level; ?>" />
+      <?php if ( $level <= USER_LEVEL_MEMBER ): ?>
+      <script type="text/javascript">
+        document.forms.loginform.username.focus();
+      </script>
+      <?php else: ?>
+      <script type="text/javascript">
+        document.forms.loginform.pass.focus();
+      </script>
+      <?php endif; ?>
     </form>
     <?php
       echo $session->aes_javascript('loginform', 'pass', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data');

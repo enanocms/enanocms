@@ -5,13 +5,18 @@ Enano Banshee - TODO
 [x] Add in Moderators group
     [x] Create default ACL rule for mods
 [x] Fix invalid HTML in SF.net logo
-[ ] Clean up the wikitext parser - a lot. It needs some serious work.
+[x] Clean up the wikitext parser - a lot. It needs some serious work.
     We need a way to detect whether the text is mostly HTML, and if
     so, then leave stuff like automatic adding of <p> and <br /> out
     of the picture. Continue to parse wikilinks.
+    [x] Probably the way to do this is to have a wrapper for (or modified version of) sanitize_html that uses the existing
+        XML pseudo-parser. Have it look for certain key block-level elements (div, p, table, blockquote, pre), and wrap <litewiki>
+        tags around those areas to have the wiki parser only parse internal links, image includes, external links, and basic
+        formatting items. Hopefully use Text_Wiki to handle the lite formatting. Need better TinyMCE compatibility, especially
+        in IE. (thanks to Christine Emmanuel for partly bringing this to my attention)
 [x] Add a system_group column and if it's set to 1, give (at least) a
     stern warning before deleting the group. Maybe disable the delete
-    button altogether?
+    button altogether? (delete button disabled)
 [x] SQL exporter: fix structure exporting when an auto column is defined
     and it's a named key (see pun_search_words)
 [x] Possibly add these fields: AIM, Yahoo, MSN, XMPP messenger icons, then homepage, location, occupation, hobbies, allow public e-mail display
@@ -31,6 +36,7 @@ Enano Banshee - TODO
     [] Come up with some alternative to the "formatting help" link (**IN 1.1**)
        [] By 1.1, all JWS code should be phased out and removed!
 [ ] Get the new page ID cleaner code working 100% perfectly - this is the core of Enano and should be completely bug free
+    Update 6/28: Is this done? Probably is, we need some QA done on it though
 
 
 Enano Clurichaun - TODO

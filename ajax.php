@@ -30,6 +30,10 @@
       // echo PageUtils::getpage($paths->page, false, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
       $revision_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
       $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $revision_id );
+      
+      $pagepass = ( isset($_REQUEST['pagepass']) ) ? $_REQUEST['pagepass'] : '';
+      $page->password = $pagepass;
+            
       $page->send();
       break;
     case "savepage":
@@ -106,12 +110,21 @@
       break;
     case "fillusername":
       $name = (isset($_GET['name'])) ? $db->escape($_GET['name']) : false;
-      if(!$name) die('userlist = new Array(); errorstring=\'Invalid URI\'');
-      $q = $db->sql_query('SELECT username,user_id FROM '.table_prefix.'users WHERE username LIKE \'%'.$name.'%\';');
-      if(!$q) die('userlist = new Array(); errorstring=\'MySQL error selecting username data: '.addslashes(mysql_error()).'\'');
-      if($db->numrows() < 1) die('userlist = new Array(); errorstring=\'No usernames found.\'');
+      if ( !$name ) 
+      {
+        die('userlist = new Array(); errorstring=\'Invalid URI\'');
+      }
+      $q = $db->sql_query('SELECT username,user_id FROM '.table_prefix.'users WHERE lcase(username) LIKE lcase(\'%'.$name.'%\');');
+      if ( !$q )
+      {
+        die('userlist = new Array(); errorstring=\'MySQL error selecting username data: '.addslashes(mysql_error()).'\'');
+      }
+      if($db->numrows() < 1)
+      {
+        die('userlist = new Array(); errorstring=\'No usernames found\';');
+      }
       echo 'var errorstring = false; userlist = new Array();';
-      $i=0;
+      $i = 0;
       while($r = $db->fetchrow())
       {
         echo "userlist[$i] = '".addslashes($r['username'])."'; ";

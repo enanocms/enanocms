@@ -165,7 +165,9 @@ function page_Special_Preferences()
           $result = $session->update_user($session->user_id, false, $old_pass, false, $new_email);
           if ( $result != 'success' )
           {
-            die_friendly('Error updating e-mail address', '<p>Session API returned error: ' . $result . '</p>');
+            $message = '<p>The following errors were encountered while saving your e-mail address:</p>';
+            $message .= '<ul><li>' . implode("</li>\n<li>", $result) . '</li></ul>';
+            die_friendly('Error updating e-mail address', $message);
           }
           $email_changed = true;
         }
@@ -192,27 +194,30 @@ function page_Special_Preferences()
             if ( strlen($newpass) < 6 )
               $errors .= '<div class="error-box">Password must be at least 6 characters. You hacked my script, darn you!</div>';
             // Encrypt new password
-            $newpass_enc = $aes->encrypt($newpass, $session->private_key, ENC_HEX);
-            // Perform the swap
-            $q = $db->sql_query('UPDATE '.table_prefix.'users SET password=\'' . $newpass_enc . '\' WHERE user_id=' . $session->user_id . ';');
-            if ( !$q )
-              $db->_die();
-            // Log out and back in
-            $username = $session->username;
-            $session->logout();
-            if ( $email_changed )
+            if ( empty($errors) )
             {
-              if ( getConfig('account_activation') == 'user' )
+              $newpass_enc = $aes->encrypt($newpass, $session->private_key, ENC_HEX);
+              // Perform the swap
+              $q = $db->sql_query('UPDATE '.table_prefix.'users SET password=\'' . $newpass_enc . '\' WHERE user_id=' . $session->user_id . ';');
+              if ( !$q )
+                $db->_die();
+              // Log out and back in
+              $username = $session->username;
+              $session->logout();
+              if ( $email_changed )
               {
-                redirect(makeUrl(getConfig('main_page')), 'Profile changed', 'Your password and e-mail address have been changed. Since e-mail activation is required on this site, you will need to re-activate your account to continue. An e-mail has been sent to the new e-mail address with an activation link. You must click that link in order to log in again.', 19);
+                if ( getConfig('account_activation') == 'user' )
+                {
+                  redirect(makeUrl(getConfig('main_page')), 'Profile changed', 'Your password and e-mail address have been changed. Since e-mail activation is required on this site, you will need to re-activate your account to continue. An e-mail has been sent to the new e-mail address with an activation link. You must click that link in order to log in again.', 19);
+                }
+                else if ( getConfig('account_activation') == 'admin' )
+                {
+                  redirect(makeUrl(getConfig('main_page')), 'Profile changed', 'Your password and e-mail address have been changed. Since administrative activation is requires on this site, a request has been sent to the administrators to activate your account for you. You will not be able to use your account until it is activated by an administrator.', 19);
+                }
               }
-              else if ( getConfig('account_activation') == 'admin' )
-              {
-                redirect(makeUrl(getConfig('main_page')), 'Profile changed', 'Your password and e-mail address have been changed. Since administrative activation is requires on this site, a request has been sent to the administrators to activate your account for you. You will not be able to use your account until it is activated by an administrator.', 19);
-              }
+              $session->login_without_crypto($session->username, $newpass);
+              redirect(makeUrlNS('Special', 'Preferences'), 'Password changed', 'Your password has been changed, and you will now be redirected back to the user control panel.', 4);
             }
-            $session->login_without_crypto($session->username, $newpass);
-            redirect(makeUrlNS('Special', 'Preferences'), 'Password changed', 'Your password has been changed, and you will now be redirected back to the user control panel.', 4);
           }
         }
         else
@@ -432,7 +437,7 @@ function page_Special_Preferences()
         
         $session->real_name = $real_name;
         
-        if ( !preg_match('/@([a-z0-9-]+)(\.([a-z0-9-\.]+))?/', $imaddr_msn) )
+        if ( !preg_match('/@([a-z0-9-]+)(\.([a-z0-9-\.]+))?/', $imaddr_msn) && !empty($imaddr_msn) )
         {
           $imaddr_msn = "$imaddr_msn@hotmail.com";
         }

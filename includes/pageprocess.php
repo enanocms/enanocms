@@ -60,6 +60,13 @@ class PageProcessor
   var $perms = null;
   
   /**
+   * The SHA1 hash of the user-inputted password for the page
+   * @var string
+   */
+   
+  var $password = '';
+  
+  /**
    * Switch to track if redirects are allowed. Defaults to true.
    * @var bool
    */
@@ -142,6 +149,15 @@ class PageProcessor
       {
         $this->send_headers = false;
         $strict_no_headers = true;
+      }
+      if ( $paths->pages[$pathskey]['password'] != '' && $paths->pages[$pathskey]['password'] != sha1('') )
+      {
+        $password =& $paths->pages[$pathskey]['password'];
+        if ( $this->password != $password )
+        {
+          $this->err_wrong_password();
+          return false;
+        }
       }
     }
     if ( $this->namespace == 'Special' || $this->namespace == 'Admin' )
@@ -472,6 +488,7 @@ class PageProcessor
   function _handle_userpage()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $email;
     
     if ( $this->page_id == $paths->cpage['urlname_nons'] && $this->namespace == $paths->namespace )
     {
@@ -689,7 +706,6 @@ class PageProcessor
     if ( $userdata['email_public'] == 1 )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      global $email;
       $email_link = $email->encryptEmail($userdata['email']);
       echo '<tr><td class="'.$class.'">E-mail address: ' . $email_link . '</td></tr>';
     }
@@ -805,6 +821,36 @@ class PageProcessor
       $ob .= $template->getFooter();
     }
     echo $ob;
+  }
+  
+  /**
+   * Inform the user of an incorrect or absent password
+   * @access private
+   */
+   
+  function err_wrong_password()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $title = 'Password required';
+    $message = ( empty($this->password) ) ? '<p>Access to this page requires a password. Please enter the password for this page below:</p>' : '<p>The password you entered for this page was incorrect. Please enter the password for this page below:</p>';
+    $message .= '<form action="' . makeUrlNS($this->namespace, $this->page_id) . '" method="post">
+                   <p>
+                     <label>Password: <input name="pagepass" type="password" /></label>&nbsp;&nbsp;<input type="submit" value="Submit" />
+                   </p>
+                 </form>';
+    if ( $this->send_headers )
+    {
+      $template->tpl_strings['PAGE_NAME'] = $title;
+      $template->header();
+      echo "$message";
+      $template->footer();
+    }
+    else
+    {
+      echo "<h2>$title</h2>
+            $message";
+    }
   }
   
   /**

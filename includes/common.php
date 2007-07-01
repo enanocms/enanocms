@@ -191,56 +191,59 @@ $email = new EmailEncryptor();
 
 define('ENANO_BASE_CLASSES_INITIALIZED', '');
 
-$code = $plugins->setHook('base_classes_initted');
-foreach ( $code as $cmd )
+if ( !defined('IN_ENANO_INSTALL') )
 {
-  eval($cmd);
-}
-  
-$p = RenderMan::strToPageId($paths->get_pageid_from_url());
-if( ( $p[1] == 'Admin' || $p[1] == 'Special' ) && function_exists('page_'.$p[1].'_'.$p[0].'_preloader'))
-{
-  @call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
-}
-
-$session->start();
-$paths->init();
-
-define('ENANO_MAINSTREAM', '');
-
-// If the site is disabled, bail out, unless we're trying to log in or administer the site
-if(getConfig('site_disabled') == '1' && $session->user_level < USER_LEVEL_ADMIN)
-{
-  if ( $paths->namespace == 'Admin' || ( $paths->namespace == 'Special' && ( $paths->cpage['urlname_nons'] == 'CSS' || $paths->cpage['urlname_nons'] == 'Administration' || $paths->cpage['urlname_nons'] == 'Login' ) ) )
+  $code = $plugins->setHook('base_classes_initted');
+  foreach ( $code as $cmd )
   {
-    // do nothing; allow execution to continue
+    eval($cmd);
   }
-  else
-  {
-    if(!$n = getConfig('site_disabled_notice')) 
-    {
-      $n = 'The administrator has disabled the site. Please check back later.';
-    }
     
-    $text = RenderMan::render($n) . '
-    <div class="info-box">
-      If you have an administrative account, you may <a href="'.makeUrlNS('Special', 'Login').'">log in</a> to the site or <a href="'.makeUrlNS('Special', 'Administration').'">use the administration panel</a>.
-    </div>';
-    $paths->wiki_mode = 0;
-    die_semicritical('Site disabled', $text);
+  $p = RenderMan::strToPageId($paths->get_pageid_from_url());
+  if( ( $p[1] == 'Admin' || $p[1] == 'Special' ) && function_exists('page_'.$p[1].'_'.$p[0].'_preloader'))
+  {
+    @call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
   }
+  
+  $session->start();
+  $paths->init();
+  
+  define('ENANO_MAINSTREAM', '');
+  
+  // If the site is disabled, bail out, unless we're trying to log in or administer the site
+  if(getConfig('site_disabled') == '1' && $session->user_level < USER_LEVEL_ADMIN)
+  {
+    if ( $paths->namespace == 'Admin' || ( $paths->namespace == 'Special' && ( $paths->cpage['urlname_nons'] == 'CSS' || $paths->cpage['urlname_nons'] == 'Administration' || $paths->cpage['urlname_nons'] == 'Login' ) ) )
+    {
+      // do nothing; allow execution to continue
+    }
+    else
+    {
+      if(!$n = getConfig('site_disabled_notice')) 
+      {
+        $n = 'The administrator has disabled the site. Please check back later.';
+      }
+      
+      $text = RenderMan::render($n) . '
+      <div class="info-box">
+        If you have an administrative account, you may <a href="'.makeUrlNS('Special', 'Login').'">log in</a> to the site or <a href="'.makeUrlNS('Special', 'Administration').'">use the administration panel</a>.
+      </div>';
+      $paths->wiki_mode = 0;
+      die_semicritical('Site disabled', $text);
+    }
+  }
+  else if(getConfig('site_disabled') == '1' && $session->user_level >= USER_LEVEL_ADMIN)
+  {
+    $template->site_disabled = true;
+  }
+  
+  $code = $plugins->setHook('session_started');
+  foreach ( $code as $cmd )
+  {
+    eval($cmd);
+  }
+  
+  if(isset($_GET['noheaders'])) $template->no_headers = true;
 }
-else if(getConfig('site_disabled') == '1' && $session->user_level >= USER_LEVEL_ADMIN)
-{
-  $template->site_disabled = true;
-}
-
-$code = $plugins->setHook('session_started');
-foreach ( $code as $cmd )
-{
-  eval($cmd);
-}
-
-if(isset($_GET['noheaders'])) $template->no_headers = true;
 
 ?>

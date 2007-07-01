@@ -133,6 +133,7 @@ function messagebox(type, title, message)
     mydiv.style.paddingLeft = '50px';
     mydiv.style.width = '360px';
     mydiv.style.backgroundRepeat = 'no-repeat';
+    mydiv.style.backgroundPosition = '8px 8px';
   }
   
   if(type & MB_ICONINFORMATION)

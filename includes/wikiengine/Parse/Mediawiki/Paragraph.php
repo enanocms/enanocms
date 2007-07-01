@@ -56,7 +56,8 @@ class Text_Wiki_Parse_Paragraph extends Text_Wiki_Parse {
             'deflist',
             'table',
             'list',
-            'toc'
+            'toc',
+            'pre'
         )
     );
     
@@ -141,6 +142,38 @@ class Text_Wiki_Parse_Paragraph extends Text_Wiki_Parse {
             
             return $start . trim($matches[0]) . $end;
         }
+    }
+    
+    /**
+    *
+    * Abstrct method to parse source text for matches.
+    *
+    * Applies the rule's regular expression to the source text, passes
+    * every match to the process() method, and replaces the matched text
+    * with the results of the processing.
+    *
+    * @access public
+    *
+    * @see Text_Wiki_Parse::process()
+    *
+    */
+
+    function parse()
+    {
+        $source =& $this->wiki->source;
+        $source = wikiformat_process_block($source);
+        
+        $source = preg_replace('/<litewiki>(.*?)<\/litewiki>([\s]+?|$)/is', '<litewiki>\\1\\2</litewiki>', $source);
+        
+        // die('<pre>' . htmlspecialchars($source) . '</pre>');
+        
+        $this->wiki->source = preg_replace_callback(
+            $this->regex,
+            array(&$this, 'process'),
+            $this->wiki->source
+        );
+        
+        $source = preg_replace('/<litewiki>(.*?)<\/litewiki>/is', '\\1', $source);
     }
 }
 ?>

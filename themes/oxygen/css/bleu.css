@@ -90,6 +90,9 @@ div.menu, div.menu_nojs {
   font-size: 7pt;
   border-width: 0;
 }
+.menu_bg {
+  background-color: #B0D0F0;
+}
 div.menu a, div.menu div.label {
   padding: 2.5pt 5px;
   margin-right: 3px;
@@ -103,6 +106,7 @@ div.menu_nojs a, div.menu_nojs div.label {
   margin-right: 3px;
   text-decoration: none;
   display: block;
+  float: left;
   color: #406080;
 }
 div.menu div.label, div.menu_nojs div.label {
@@ -148,7 +152,7 @@ div.menu a.current, div.menu a.current:hover, div.menu a.selected, div.menu a.se
   color: #000040;
   background-color: #FFFFFF;
 }
-div.menu ul {
+div.menu ul, div.menu_nojs ul {
   display: none;
   position: absolute;
   padding: 0;
@@ -157,6 +161,7 @@ div.menu ul {
   border-width: 0;
   min-width: 120px;
 }
+/*
 div.menu_nojs ul {
   display: block;
   padding: 0;
@@ -165,6 +170,7 @@ div.menu_nojs ul {
   border-width: 0;
   min-width: 120px;
 }
+*/
 div.menu ul li, div.menu_nojs ul li {
   list-style: none;
 }
@@ -231,11 +237,11 @@ div.jswindow div.content          { padding: 10px; margin: 0; background-color: 
 .catCheck:hover                   { padding: 3px; background-color: #F0F0F0; }
 
 /* Information, warning, question, error, and wait boxes */
-div.error-box                     { background-image: url(../../../images/error.png);    background-repeat: no-repeat; background-color: #FFF4F4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
-div.info-box                      { background-image: url(../../../images/info.png);     background-repeat: no-repeat; background-color: #F4F4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
-div.warning-box                   { background-image: url(../../../images/warning.png);  background-repeat: no-repeat; background-color: #FFFFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
-div.question-box                  { background-image: url(../../../images/question.png); background-repeat: no-repeat; background-color: #F4FFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
-div.wait-box                      { background-image: url(../../../images/wait.png);     background-repeat: no-repeat; background-color: #FFF4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.error-box                     { background-image: url(../../../images/error.png);    background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFF4F4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.info-box                      { background-image: url(../../../images/info.png);     background-position: 8px 8px; background-repeat: no-repeat; background-color: #F4F4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.warning-box                   { background-image: url(../../../images/warning.png);  background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFFFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.question-box                  { background-image: url(../../../images/question.png); background-position: 8px 8px; background-repeat: no-repeat; background-color: #F4FFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
+div.wait-box                      { background-image: url(../../../images/wait.png);     background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFF4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 1em; min-height: 25px; }
 
 /* This stuff is mostly unused, left in for compatibility */
 div#ajaxEditContainer table       { border: 0px solid #FFFFFF; }

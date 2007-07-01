@@ -130,14 +130,16 @@
         
         <tr><td id="mdg-brl"></td><td style="background-color: #FFFFFF;"></td><td id="mdg-brr"></td></tr>
         
-        <tr><td id="mdg-bl"></td><td>
+        <tr>
+          <td id="mdg-bl"></td>
+          <td class="menu_bg">
           <div class="menu_nojs" id="pagebar_main">
             <div class="label">Page tools</div>
             {TOOLBAR}
             <ul>
               {TOOLBAR_EXTRAS}
             </ul>
-            <span class="menuclear">&nbsp;</span>
+            <span class="menuclear"></span>
           </div>
         </td><td id="mdg-br"></td></tr>
         <tr><td id="mdg-ml"></td><td style="background-color: #FFFFFF;">

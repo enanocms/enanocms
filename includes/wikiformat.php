@@ -65,7 +65,8 @@ class Text_Wiki {
     var $disable = array(
         'Html',
         'Include',
-        'Embed'
+        'Embed',
+        'Tighten'
     );
 
     var $parseConf = array();
@@ -357,6 +358,8 @@ class Text_Wiki {
           if (is_object($this->parseObj[$name])) {
             $this->parseObj[$name]->parse();
           }
+          // For debugging
+          // echo('<p>' . $name . ':</p><pre>'.htmlspecialchars($this->source).'</pre>');
         }
       }
     }

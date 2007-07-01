@@ -70,6 +70,55 @@ class Text_Wiki_Parse_Newline extends Text_Wiki_Parse {
             $this->wiki->addToken($this->rule) .
             $matches[2];
     }
+    
+    /**
+    *
+    * Abstrct method to parse source text for matches.
+    *
+    * Applies the rule's regular expression to the source text, passes
+    * every match to the process() method, and replaces the matched text
+    * with the results of the processing.
+    *
+    * @access public
+    *
+    * @see Text_Wiki_Parse::process()
+    *
+    */
+
+    function parse()
+    {
+        $source =& $this->wiki->source;
+        
+        // This regex attempts to find HTML tags that can be safely compacted together without formatting loss
+        // The idea is to make it easier for the HTML parser to find litewiki elements
+        //$source = preg_replace('/<\/([a-z0-9:-]+?)>([\s]*[\n]+[\s]+|[\s]+[\n]+[\s]*|[\n]+)<([a-z0-9:-]+)(.*?)>/i', '</\\1><\\3\\4>', $source);
+        $source = wikiformat_process_block($source);
+        
+        $rand_key = md5( str_rot13(strval(dechex(time()))) . microtime() . strval(mt_rand()) );
+        preg_match_all('/<(litewiki|pre)([^>]*?)>(.*?)<\/\\1>/is', $this->wiki->source, $matches);
+        
+        $poslist = array();
+        
+        foreach ( $matches[0] as $i => $match )
+        {
+            $source = str_replace($match, "{LITEWIKI:$i:$rand_key}", $source);
+        }
+        
+        $this->wiki->source = preg_replace_callback(
+            $this->regex,
+            array(&$this, 'process'),
+            $this->wiki->source
+        );
+        
+        foreach ( $matches[3] as $i => $match )
+        {
+            $source = str_replace("{LITEWIKI:$i:$rand_key}", $match, $source);
+        }
+        
+        // die('<pre>'.htmlspecialchars($source).'</pre>');
+        
+        unset($matches, $source, $rand_key);
+    }
 }
 
 ?>

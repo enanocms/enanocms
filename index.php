@@ -54,6 +54,8 @@
       $rev_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
       $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $rev_id );
       $page->send_headers = true;
+      $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
+      $page->password = $pagepass;
       $page->send();
       break;
     case 'comments':
@@ -187,7 +189,7 @@
       break;
     case 'moreoptions':
       $template->header();
-      echo '<div class="pagebar" id="pagebarpopup2" style="width: 150px; padding: 0;">'.$template->tpl_strings['TOOLBAR_EXTRAS'].'</div>';
+      echo '<div class="menu_nojs" style="width: 150px; padding: 0;"><ul style="display: block;"><li><div class="label">More options for this page</div><div style="clear: both;"></div></li>'.$template->tpl_strings['TOOLBAR_EXTRAS'].'</ul></div>';
       $template->footer();
       break;
     case 'protect':

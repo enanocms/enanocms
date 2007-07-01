@@ -226,12 +226,12 @@ function ajaxMakePage() {
 }
 
 function ajaxDeletePage() {
-  var reason = prompt('Please enter you reason for deleting this page.');
+  var reason = prompt('Please enter your reason for deleting this page.');
   if ( !reason || reason == '' )
   {
     return false;
   }
-  c = confirm('You are about to DESTROY this page. Do you REALLY want to do this?');
+  c = confirm('You are about to REVERSIBLY delete this page. Do you REALLY want to do this?\n\n(Comments and categorization data, as well as any attached files, will be permanently lost)');
   if(!c)
   {
     return;
