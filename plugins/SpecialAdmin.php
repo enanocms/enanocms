@@ -333,7 +333,7 @@ function page_Admin_GeneralConfig() {
       </td>
       <td class="row1">
         <label>
-          <input name="enano_powered_link" type="checkbox" <?php if(getConfig('powered_btn') == '1') echo 'checked="checked"'; ?> />&nbsp;&nbsp;Place a link to www.enanocms.org on the sidebar
+          <input name="enano_powered_link" type="checkbox" <?php if(getConfig('powered_btn') == '1') echo 'checked="checked"'; ?> />&nbsp;&nbsp;Place a link to enanocms.org on the sidebar
         </label>
       </td>
     </tr>

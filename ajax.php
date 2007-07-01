@@ -104,8 +104,8 @@
       echo PageUtils::setpass($paths->cpage['urlname_nons'], $paths->namespace, $_POST['password']);
       break;
     case "wikihelp":
-      $html = file_get_contents('http://www.enanocms.org/ajax.php?title=Help:Wiki_formatting&_mode=getpage&nofooters');
-      $html = str_replace('src="/Special', 'src="http://www.enanocms.org/Special', $html);
+      $html = file_get_contents('http://enanocms.org/ajax.php?title=Help:Wiki_formatting&_mode=getpage&nofooters');
+      $html = str_replace('src="/Special', 'src="http://enanocms.org/Special', $html);
       echo '<div class="contentDiv"><h2>Wiki formatting guide</h2>'.$html.'</div>';
       break;
     case "fillusername":

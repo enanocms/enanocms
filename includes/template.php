@@ -1369,7 +1369,7 @@ class template {
     // SourceForge/W3C buttons
     $ob = Array();
     $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN ) ? 'title="You may disable this button in the admin panel under General Configuration."' : '';
-    if(getConfig('powered_btn') =='1') $ob[] = '<a style="text-align: center;" href="http://www.enanocms.org/" onclick="window.open(this.href);return false;"><img '.$admintitle.'  alt="Powered by Enano" src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="this.src=\''.scriptPath.'/images/about-powered-enano-hover.png\';" onmouseout="this.src=\''.scriptPath.'/images/about-powered-enano.png\';" style="border-width: 0px;" width="88" height="31" /></a>';
+    if(getConfig('powered_btn') =='1') $ob[] = '<a style="text-align: center;" href="http://enanocms.org/" onclick="window.open(this.href);return false;"><img '.$admintitle.'  alt="Powered by Enano" src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="this.src=\''.scriptPath.'/images/about-powered-enano-hover.png\';" onmouseout="this.src=\''.scriptPath.'/images/about-powered-enano.png\';" style="border-width: 0px;" width="88" height="31" /></a>';
     if(getConfig('sflogo_enabled')=='1')
     {
       $ob[] = '<a style="text-align: center;" href="http://sourceforge.net/" onclick="window.open(this.href);return false;"><img style="border-width: 0px;" alt="SourceForge.net Logo" src="http://sflogo.sourceforge.net/sflogo.php?group_id='.getConfig('sflogo_groupid').'&amp;type='.getConfig('sflogo_type').'" /></a>';

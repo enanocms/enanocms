@@ -317,7 +317,7 @@ function page_Special_About_Enano()
         <table border="0" style="margin: 0 auto; background: none; width: 100%;" cellpadding="5">
             <tr>
             <td style="text-align: center;">
-                <a href="http://www.enanocms.org/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
+                <a href="http://enanocms.org/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
                   <img alt="Powered by Enano"
                        src="<?php echo scriptPath; ?>/images/about-powered-enano.png"
                        onmouseover="this.src='<?php echo scriptPath; ?>/images/about-powered-enano-hover.png';"
@@ -339,7 +339,7 @@ function page_Special_About_Enano()
           </table>
         </td>
       </tr>
-      <tr><td style="width: 100px;" class="row1"><a href="http://www.enanocms.org">Enano</a> version:</td><td class="row1"><?php echo enano_version(true); ?></td></tr>
+      <tr><td style="width: 100px;" class="row1"><a href="http://enanocms.org">Enano</a> version:</td><td class="row1"><?php echo enano_version(true); ?></td></tr>
       <tr><td style="width: 100px;" class="row2">Web server:</td><td class="row2"><?php if(isset($_SERVER['SERVER_SOFTWARE'])) echo $_SERVER['SERVER_SOFTWARE']; else echo 'Unable to determine web server software.'; ?></td></tr>
       <tr><td style="width: 100px;" class="row1">Server platform:</td><td class="row1"><?php echo $platform; ?></td></tr>
       <tr><td style="width: 100px;" class="row2"><a href="http://www.php.net/">PHP</a> version:</td><td class="row2"><?php echo PHP_VERSION; ?></td></tr>
@@ -361,7 +361,7 @@ function page_Special_GNU_General_Public_License()
   }
   else
   {
-    echo '<p>It appears that the file "GPL" is missing from your Enano installation. You may find a wiki-formatted copy of the GPL at: <a href="http://www.enanocms.org/GPL">http://www.enanocms.org/GPL</a>.</p>';
+    echo '<p>It appears that the file "GPL" is missing from your Enano installation. You may find a wiki-formatted copy of the GPL at: <a href="http://enanocms.org/GPL">http://enanocms.org/GPL</a>.</p>';
   }
   $template->footer();
 }

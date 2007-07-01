@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Search UI/frontend
-Plugin URI: http://www.enanocms.org/
+Plugin URI: http://enanocms.org/
 Description: Provides the page Special:Search, which is a frontend to the Enano search engine.
 Author: Dan Fuhry
 Version: 1.0
-Author URI: http://www.enanocms.org/
+Author URI: http://enanocms.org/
 */
 
 /*
@@ -86,6 +86,22 @@ function page_Special_Search()
   $template->header();
   if(!empty($q))
   {
+    // See if any pages directly match the title
+          
+    for ( $i = 0; $i < count ( $paths->pages ) / 2; $i++ )
+    {
+      $pg =& $paths->pages[$i];
+      $q_lc = strtolower( str_replace(' ', '_', $q) );
+      $q_tl = strtolower( str_replace('_', ' ', $q) );
+      $p_lc = strtolower($pg['urlname']);
+      $p_tl = strtolower($pg['name']);
+      if ( strstr($p_tl, $q_tl) || strstr($p_lc, $q_lc) )
+      {
+        echo '<div class="usermessage">Perhaps you were looking for <b><a href="' . makeUrl($pg['urlname'], false, true) . '">' . htmlspecialchars($pg['name']) . '</a></b>?</div>';
+        break;
+      }
+    }
+          
     switch(SEARCH_MODE)
     {
       
@@ -499,7 +515,7 @@ function search_render_fulltext_results($results, $offset = 0, $query)
   
   if ( $num_results < 1 )
   {
-    echo '<div class="warning-box">No pages that matched your search criteria could be found.</div>';
+    echo '<div class="warning-box" style="margin-left: 0;">No page text that matched your search criteria could be found.</div>';
     return null;
   }
   

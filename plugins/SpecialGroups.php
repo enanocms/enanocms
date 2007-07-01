@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Group control panel
-Plugin URI: http://www.enanocms.org/
+Plugin URI: http://enanocms.org/
 Description: Provides group moderators and site administrators with the ability to control who is part of their groups. 
 Author: Dan Fuhry
 Version: 1.0RC1
-Author URI: http://www.enanocms.org/
+Author URI: http://enanocms.org/
 */
 
 /*

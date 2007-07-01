@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: User control panel
-Plugin URI: http://www.enanocms.org/
+Plugin URI: http://enanocms.org/
 Description: Provides the page Special:Preferences.
 Author: Dan Fuhry
 Version: 1.0
-Author URI: http://www.enanocms.org/
+Author URI: http://enanocms.org/
 */
 
 /*

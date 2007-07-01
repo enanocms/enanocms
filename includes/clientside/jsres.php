@@ -43,7 +43,7 @@ if(defined('ENABLE_COMPRESSION'))
  * Version 1.0 (Banshee)
  * [Aggressively compressed] Javascript client code
  * Copyright (C) 2006-2007 Dan Fuhry
- * Enano is Free Software, licensed under the GNU General Public License; see http://www.enanocms.org/ for details.
+ * Enano is Free Software, licensed under the GNU General Public License; see http://enanocms.org/ for details.
  */
 
 ";

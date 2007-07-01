@@ -39,7 +39,7 @@ function enano_safe_array_merge($arr1, $arr2)
  *
  * @package Enano
  * @subpackage Page management frontend
- * @license GNU General Public License http://www.enanocms.org/Special:GNU_General_Public_License
+ * @license GNU General Public License http://enanocms.org/Special:GNU_General_Public_License
  */
 
 class Searcher
