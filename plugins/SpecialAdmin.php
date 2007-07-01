@@ -49,7 +49,6 @@ function page_Admin_Home() {
     return;
   }
   
-  
   // Basic information
   echo RenderMan::render(
 '== Welcome to Runt, the Enano administration panel. ==

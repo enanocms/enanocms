@@ -723,13 +723,13 @@ class PageProcessor
     if ( !empty($userdata['user_aim']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">AIM: ' . htmlspecialchars($userdata['user_aim']) . '</td></tr>';
+      echo '<tr><td class="'.$class.'">AIM: ' . $userdata['user_aim'] . '</td></tr>';
     }
     
     if ( !empty($userdata['user_yahoo']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">Yahoo! IM: ' . htmlspecialchars($userdata['user_yahoo']) . '</td></tr>';
+      echo '<tr><td class="'.$class.'">Yahoo! IM: ' . $userdata['user_yahoo'] . '</td></tr>';
     }
     
     if ( !empty($userdata['user_msn']) )
@@ -753,19 +753,19 @@ class PageProcessor
     if ( !empty($userdata['user_location']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">Location: ' . htmlspecialchars($userdata['user_location']) . '</td></tr>';
+      echo '<tr><td class="'.$class.'">Location: ' . $userdata['user_location'] . '</td></tr>';
     }
     
     if ( !empty($userdata['user_job']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">Job/occupation: ' . htmlspecialchars($userdata['user_job']) . '</td></tr>';
+      echo '<tr><td class="'.$class.'">Job/occupation: ' . $userdata['user_job'] . '</td></tr>';
     }
     
     if ( !empty($userdata['user_hobbies']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">Enjoys: ' . htmlspecialchars($userdata['user_hobbies']) . '</td></tr>';
+      echo '<tr><td class="'.$class.'">Enjoys: ' . $userdata['user_hobbies'] . '</td></tr>';
     }
     
     if ( empty($userdata['user_location']) && empty($userdata['user_job']) && empty($userdata['user_hobbies']) )

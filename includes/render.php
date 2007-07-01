@@ -243,7 +243,7 @@ class RenderMan {
     if ( !$plaintext )
     {
       // Process images
-      $text = RenderMan::process_image_tags($text);
+      $text = RenderMan::process_image_tags($text, $taglist);
     }
     
     if($do_params)
@@ -270,6 +270,11 @@ class RenderMan {
       $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', contentPath);
       $wiki->setRenderConf('Xhtml', 'Url', 'css_descr', 'external');
       $result = $wiki->transform($text, 'Xhtml');
+    }
+    
+    if ( !$plaintext )
+    {
+      $result = RenderMan::process_imgtags_stage2($result, $taglist);
     }
     
     // Reinsert <nowiki> sections
@@ -747,12 +752,17 @@ class RenderMan {
   /**
    * Changes wikitext image tags to HTML.
    * @param string The wikitext to process
+   * @param array Will be overwritten with the list of HTML tags (the system uses tokens for TextWiki compatibility)
    * @return string
    */
   
-  function process_image_tags($text)
+  function process_image_tags($text, &$taglist)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $s_delim = "\xFF";
+    $f_delim = "\xFF";
+    $taglist = array();
     
     // Wicked huh?
     $regex = '/\[\[:' . $paths->nslist['File'] . '([\w\s0-9_\(\)!@%\^\+\|\.-]+?)((\|thumb)|(\|([0-9]+)x([0-9]+)))?(\|left|\|right)?(\|(.+))?\]\]/i';
@@ -801,11 +811,6 @@ class RenderMan {
         $img_tag .= 'width="' . $r_width . '" height="' . $r_height . '" ';
       }
       
-      if ( empty($clear) && $scale_type == '|thumb' )
-      {
-        $clear = 'right';
-      }
-      
       $img_tag .= 'style="border-width: 0px; background-color: white;" ';
       
       $img_tag .= '/>';
@@ -820,7 +825,7 @@ class RenderMan {
         {
           $side = ( $clear == '|left' ) ? 'left' : 'right';
           $opposite = ( $clear == '|left' ) ? 'right' : 'left';
-          $clear_text .= "clear: $side; float: $side; margin-$opposite: 20px;";
+          $clear_text .= "float: $side; margin-$opposite: 20px;";
           $complete_tag .= 'style="' . $clear_text . '" ';
         }
         $complete_tag .= '>';
@@ -846,9 +851,10 @@ class RenderMan {
         $complete_tag .= '</a>';
       }
       
-      $complete_tag = "<nowiki>$complete_tag</nowiki>\n\n";
+      $complete_tag .= "\n\n";
+      $taglist[$i] = $complete_tag;
       
-      $pos = strpos($text, $full_tag) - 3;
+      $pos = strpos($text, $full_tag);
       
       while(true)
       {
@@ -862,7 +868,8 @@ class RenderMan {
         $pos--;
       }
       
-      $text = substr($text, 0, $pos) . $complete_tag . substr($text, $pos + 1);
+      $repl = "{$s_delim}e_img_{$i}{$f_delim}";
+      $text = substr($text, 0, $pos) . $repl . substr($text, $pos);
       
       $text = str_replace($full_tag, '', $text);
       
@@ -870,6 +877,24 @@ class RenderMan {
       
     }
     
+    return $text;
+  }
+  
+  /**
+   * Finalizes processing of image tags.
+   * @param string The preprocessed text
+   * @param array The list of image tags created by RenderMan::process_image_tags()
+   */
+   
+  function process_imgtags_stage2($text, $taglist)
+  {
+    $s_delim = "\xFF";
+    $f_delim = "\xFF";
+    foreach ( $taglist as $i => $tag )
+    {
+      $repl = "{$s_delim}e_img_{$i}{$f_delim}";
+      $text = str_replace($repl, $tag, $text);
+    }               
     return $text;
   }
   

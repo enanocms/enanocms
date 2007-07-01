@@ -79,6 +79,7 @@ div.footer a {
 div#maincontent {
   padding: 10px;
   padding-right: 150px;
+  clear: left;
 }
 img#ajaxloadicon {
   margin-top: 10px;
@@ -118,6 +119,7 @@ div#maincontent ul {
 /* Sidebar */
 div#sidebar, div.dbx-box {
   float: right;
+  clear: right;
   width: 135px;
 }
 div#sidebar h4, div.dbx-handle {
