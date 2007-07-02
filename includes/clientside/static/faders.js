@@ -128,12 +128,18 @@ function messagebox(type, title, message)
   
   this.clickHandler = function() { messagebox_click(this, mb_current_obj); };
   
-  if(type & MB_ICONINFORMATION || type & MB_ICONSTOP || type & MB_ICONQUESTION || type & MB_ICONEXCLAMATION || type & MB_ICONLOCK)
+  if( ( type & MB_ICONINFORMATION || type & MB_ICONSTOP || type & MB_ICONQUESTION || type & MB_ICONEXCLAMATION ) && !(type & MB_ICONLOCK) )
   {
     mydiv.style.paddingLeft = '50px';
     mydiv.style.width = '360px';
     mydiv.style.backgroundRepeat = 'no-repeat';
     mydiv.style.backgroundPosition = '8px 8px';
+  }
+  else if ( type & MB_ICONLOCK )
+  {
+    mydiv.style.paddingLeft = '50px';
+    mydiv.style.width = '360px';
+    mydiv.style.backgroundRepeat = 'no-repeat';
   }
   
   if(type & MB_ICONINFORMATION)
