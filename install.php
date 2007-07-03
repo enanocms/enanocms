@@ -754,7 +754,7 @@ switch($_GET['mode'])
       {
         var frm = document.forms.login;
         ret = true;
-        if(frm.admin_user.value.match(/^([A-z0-9_\-\.]+)$/g))
+        if(frm.admin_user.value.match(/^([A-z0-9 \-\.]+)$/g))
         {
           document.getElementById('s_user').src = 'images/good.gif';
         }

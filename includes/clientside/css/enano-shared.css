@@ -415,3 +415,10 @@ div.thumbnail-inner {
   background-repeat: no-repeat;
 }
 
+/* Tables where diffs are shown */
+table.diff, td.diff-otitle, td.diff-ntitle { background-color: white; }
+td.diff-addedline { background: #cfc; font-size: smaller; }
+td.diff-deletedline { background: #ffa; font-size: smaller; }
+td.diff-context { background: #eee; font-size: smaller; }
+span.diffchange { color: red; font-weight: bold; }
+

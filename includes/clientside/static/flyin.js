@@ -11,6 +11,37 @@ var FI_OUT = 2;
 var FI_UP = 1;
 var FI_DOWN = 2;
 
+/**
+ * You can thank Robert Penner for the math used here. Ported from an ActionScript class.
+ * License: Modified BSD license <http://www.robertpenner.com/easing_terms_of_use.html>
+ */
+
+// Effects code - don't bother changing these formulas
+var Back = {
+  easeOut: function(t, b, c, d, s)
+  {
+    if (s == undefined) s = 1.70158;
+    return c * ( ( t=t/d-1 ) * t * ( ( s + 1 ) * t + s) + 1) + b;
+  },
+  easeIn: function (t, b, c, d, s)
+  {
+    if (s == undefined) s = 1.70158;
+    return c * ( t/=d ) * t * ( ( s + 1 ) * t - s) + b;
+  },
+  easeInOut: function (t, b, c, d, s)
+  {
+    if (s == undefined) s = 1.70158; 
+    if ((t /= d/2) < 1) 
+    {
+      return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
+    }
+    return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
+  }
+}
+
+// This should be set to the class name of the effect you want.
+var GlideEffect = Back;
+
 // Placeholder functions, to make organization a little easier :-)
 
 function fly_in_top(element, nofade, height_taken_care_of)
@@ -91,9 +122,40 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
   
   var abs_dir = ( ( origin == FI_TOP && direction == FI_IN ) || ( origin == FI_BOTTOM && direction == FI_OUT ) ) ? FI_DOWN : FI_UP;
   
+  var diff_top = top - topi;
+  var diff_left = left - lefti;
+  
+  var frames = 100;
+  var timeout = 0;
+  var timerstep = 8;
+  
+  // cache element so it can be changed from within setTimeout()
+  var rand_seed = Math.floor(Math.random() * 1000000);
+  fly_in_cache[rand_seed] = element;
+  
+  for ( var i = 0; i < frames; i++ )
+  {
+    topc = GlideEffect.easeInOut(i, topi, diff_top, frames);
+    leftc = GlideEffect.easeInOut(i, lefti, diff_left, frames);
+    setTimeout('var o = fly_in_cache['+rand_seed+']; o.style.top=\''+topc+'px\'; o.style.left=\''+leftc+'px\';', timeout);
+    timeout += timerstep;
+    
+    var ratio = i / frames;
+    
+    if ( !nofade )
+    {
+      // handle fade
+      var opac_factor = ratio * 100;
+      if ( direction == FI_OUT )
+        opac_factor = 100 - opac_factor;
+      setTimeout('var o = fly_in_cache['+rand_seed+']; domObjChangeOpac('+opac_factor+', o);', timeout);
+    }
+    
+  }
+  
   /*
    * Framestepper parameters
-   */
+   * /
   
   // starting value for inertia
   var inertiabase = 1;
@@ -106,7 +168,7 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
   
   /*
    * Timer parameters
-   */
+   * /
   
   // how long animation start is delayed, you want this at 0
   var timer = 0;
@@ -121,12 +183,6 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
   
   // set element left pos, you can comment this out to preserve left position
   element.style.left = left + 'px';
-  element.style.top  = topi + 'px';
-  
-  if ( nofade )
-  {
-    domObjChangeOpac(100, element);
-  }
   
   // total distance to be traveled
   dist = abs(top - topi);
@@ -181,9 +237,12 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
       break;
   }
   
-  //timer += timestep;
+  timer += timestep;
   setTimeout('delete(fly_in_cache['+rand_seed+']);', timer);
   return timer;
+  */
+  timeout += timerstep;
+  return timeout;
 }
 
 function abs(i)

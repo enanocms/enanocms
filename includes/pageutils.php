@@ -1366,7 +1366,7 @@ class PageUtils {
     }
     else
     {
-      return(Array('mode' => 'error', 'error' => $dir.' is not a dir'));
+      return($json->encode(Array('mode' => 'error', 'error' => $dir.' is not a dir')));
     }
     
     return $json->encode($list);
