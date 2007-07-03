@@ -283,7 +283,16 @@ var onload_hooks = new Array();
 function addOnloadHook(func)
 {
   if ( typeof ( func ) == 'function' )
-    onload_hooks[onload_hooks.length] = func;
+  {
+    try
+    {
+      onload_hooks.push(func);
+    }
+    catch(e)
+    {
+      onload_hooks[onload_hooks.length] = func;
+    }
+  }
 }
 
 function runOnloadHooks(e)

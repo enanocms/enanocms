@@ -1,10 +1,10 @@
 // Javascript routines for the page editor
 
-function initTinyMCE(e)
+var initTinyMCE = function(e)
 {
   if ( typeof(tinyMCE) == 'object' )
   {
-    tinyMCE.init({
+    var options = {
       mode : "exact",
       elements : '',
       plugins : 'table',
@@ -15,7 +15,8 @@ function initTinyMCE(e)
       theme_advanced_buttons1_add : "fontselect,fontsizeselect",
       theme_advanced_buttons3_add_before : "tablecontrols,separator",
       theme_advanced_statusbar_location : 'bottom'
-    });
+    }
+    tinyMCE.init(options);
   }
 }
 addOnloadHook(initTinyMCE);

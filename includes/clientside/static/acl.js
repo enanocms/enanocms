@@ -26,6 +26,12 @@ function ajaxOpenACLManager(page_id, namespace)
       {
         __aclBuildWizardWindow();
         groups = parseJSON(ajax.responseText);
+        if ( groups.mode == 'error' )
+        {
+          alert(groups.error);
+          killACLManager();
+          return false;
+        }
         aclDataCache = groups;
         __aclBuildSelector(groups);
       }
@@ -52,6 +58,12 @@ function ajaxACLSwitchToSelector()
         document.getElementById(aclManagerID + '_back').style.display = 'none';
         document.getElementById(aclManagerID + '_next').value = 'Next >';
         groups = parseJSON(ajax.responseText);
+        if ( groups.mode == 'error' )
+        {
+          alert(groups.error);
+          killACLManager();
+          return false;
+        }
         aclDataCache = groups;
         thispage = strToPageID(title);
         groups.page_id = thispage[0];
@@ -83,7 +95,7 @@ function __aclBuildSelector(groups)
   grpb = document.createElement('input');
   grpb.type = 'radio';
   grpb.name  = 'target_type';
-  grpb.value = 1; // ACL_TYPE_GROUP
+  grpb.value = '1'; // ACL_TYPE_GROUP
   grpb.checked = 'checked';
   grpb.className = seed;
   grpb.onclick = function() { seed = this.className; document.getElementById('enACL_grpbox_'+seed).style.display = 'block'; document.getElementById('enACL_usrbox_'+seed).style.display = 'none'; };
@@ -96,7 +108,7 @@ function __aclBuildSelector(groups)
   usrb = document.createElement('input');
   usrb.type = 'radio';
   usrb.name  = 'target_type';
-  usrb.value = 2; // ACL_TYPE_USER
+  usrb.value = '2'; // ACL_TYPE_USER
   usrb.className = seed;
   usrb.onclick = function() { seed = this.className; document.getElementById('enACL_grpbox_'+seed).style.display = 'none'; document.getElementById('enACL_usrbox_'+seed).style.display = 'block'; };
   lbl2 = document.createElement('label');
@@ -354,6 +366,7 @@ function __aclJSONSubmitAjaxHandler(params)
             if(!document.getElementById(aclManagerID+'_deletelnk'))
               document.getElementById(aclManagerID + '_main').innerHTML += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'Do you really want to delete this rule?\')) __aclDeleteRule(); return false;" style="color: red;">Delete this rule</a></p>';
             //fadeInfoBoxes();
+            document.getElementById(aclManagerID+'_main').scrollTop = 0;
             break;
           case 'delete':
             
@@ -517,8 +530,8 @@ function killACLManager()
   el = document.getElementById(aclManagerID);
   if(el)
   {
-    el.parentNode.removeChild(el);
-    enlighten();
+    opacity(aclManagerID, 100, 0, 500);
+    setTimeout('var el = document.getElementById(aclManagerID); el.parentNode.removeChild(el); enlighten();', 750);
   }
 }
 
@@ -540,7 +553,7 @@ function __aclSubmitManager(form)
       alert('BUG: can\'t get the state value from the form field.');
       break;
     case 'seltarget':
-      var target_type = parseInt(getRadioState(thefrm, 'target_type'));
+      var target_type = parseInt(getRadioState(thefrm, 'target_type', ['1', '2']));
       if(isNaN(target_type))
       {
         alert('Please select a target type.');
@@ -555,7 +568,7 @@ function __aclSubmitManager(form)
       
       if(do_scopesel)
       {
-        scope = getRadioState(thefrm, 'scope');
+        scope = getRadioState(thefrm, 'scope', ['page', 'global']);
         if(scope == 'page')
         {
           pageid = strToPageID(title);
@@ -589,16 +602,15 @@ function __aclSubmitManager(form)
     case 'save_new':
       var form = document.forms[aclManagerID + '_formobj'];
       selections = new Object();
+      var dbg = '';
       for(var i in aclPermList)
       {
-        if(i != 'toJSONString' && i != aclPermList.length-1)
+        selections[aclPermList[i]] = getRadioState(form, aclPermList[i], [1, 2, 3, 4]);
+        dbg += aclPermList[i] + ': ' + selections[aclPermList[i]] + "\n";
+        if(!selections[aclPermList[i]])
         {
-          selections[aclPermList[i]] = getRadioState(form, aclPermList[i]);
-          if(!selections[aclPermList[i]])
-          {
-            alert("Invalid return from getRadioState: "+i+": "+selections[i]+" ("+typeof(selections[i])+")");
-            return false;
-          }
+          alert("Invalid return from getRadioState: "+i+": "+selections[i]+" ("+typeof(selections[i])+")");
+          return false;
         }
       }
       obj = new Object();
@@ -618,8 +630,47 @@ function __aclSubmitManager(form)
   }
 }
 
-function getRadioState(form, name)
+function getRadioState(form, name, valArray)
 {
+  // Konqueror/Safari fix
+  if ( form[name] )
+  {
+    var formitem = form[name];
+    if ( String(formitem) == '[object DOMNamedNodesCollection]' || is_Safari )
+    {
+      var i = 0;
+      var radios = new Array();
+      var radioids = new Array();
+      while(true)
+      {
+        var elem = formitem[i];
+        if ( !elem )
+          break;
+        radios.push(elem);
+        if ( !elem.id )
+        {
+          elem.id = 'autoRadioBtn_' + Math.floor(Math.random() * 1000000);
+        }
+        radioids.push(elem.id);
+        i++;
+      }
+      var cr;
+      for ( var i = 0; i < radios.length; i++ )
+      {
+        cr = document.getElementById(radioids[i]);
+        if ( cr.value == 'on' || cr.checked == true )
+        {
+          try {
+            return ( typeof ( valArray[i] ) != 'undefined' ) ? valArray[i] : false;
+          } catch(e) {
+            // alert('Didn\'t get value for index: ' + i);
+            return false;
+          }
+        }
+      }
+      return false;
+    }
+  }
   inputs = form.getElementsByTagName('input');
   radios = new Array();
   for(var i in inputs)
@@ -635,16 +686,20 @@ function getRadioState(form, name)
   return false;
 }
 
-function __aclSetAllRadios(val)
+function __aclSetAllRadios(val, valArray)
 {
-  val = val+'';
-  form = document.forms[aclManagerID + '_formobj'];
+  val = String(val);
+  var form = document.forms[aclManagerID + '_formobj'];
   if (!form)
-    return false;
-  inputs = form.getElementsByTagName('input');
-  radios = new Array();
-  for(var i in inputs)
   {
+    return false;
+  }
+  var inputs = form.getElementsByTagName('input');
+  var radios = new Array();
+  var dbg = '';
+  for(var i = 0; i < inputs.length; i++)
+  {
+    dbg += String(inputs[i]) + "\n";
     if(inputs[i].type == 'radio')
       radios.push(inputs[i]);
   }

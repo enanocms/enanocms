@@ -61,6 +61,8 @@ require('includes/constants.php');
 require('includes/rijndael.php');
 require('includes/functions.php');
 
+strip_magic_quotes_gpc();
+
 //die('Key size: ' . AES_BITS . '<br />Block size: ' . AES_BLOCKSIZE);
 
 if(!function_exists('wikiFormat'))
@@ -664,7 +666,7 @@ switch($_GET['mode'])
       {
         var frm = document.forms.siteinfo;
         ret = true;
-        if(frm.sitename.value.match(/^([A-z0-9 ]+)$/g) && frm.sitename.value != 'Enano')
+        if(frm.sitename.value.match(/^(.+)$/g) && frm.sitename.value != 'Enano')
         {
           document.getElementById('s_name').src='images/good.gif';
         }
@@ -701,7 +703,7 @@ switch($_GET['mode'])
       <?php
         $k = array_keys($_POST);
         for($i=0;$i<sizeof($_POST);$i++) {
-          echo '<input type="hidden" name="'.$k[$i].'" value="'.$_POST[$k[$i]].'" />'."\n";
+          echo '<input type="hidden" name="'.htmlspecialchars($k[$i]).'" value="'.htmlspecialchars($_POST[$k[$i]]).'" />'."\n";
         }
       ?>
       <p>The next step is to enter some information about your website. You can always change this information later, using the administration panel.</p>
@@ -796,7 +798,7 @@ switch($_GET['mode'])
       <?php
         $k = array_keys($_POST);
         for($i=0;$i<sizeof($_POST);$i++) {
-          echo '<input type="hidden" name="'.$k[$i].'" value="'.$_POST[$k[$i]].'" />'."\n";
+          echo '<input type="hidden" name="'.htmlspecialchars($k[$i]).'" value="'.htmlspecialchars($_POST[$k[$i]]).'" />'."\n";
         }
       ?>
       <p>Next, enter your desired username and password. The account you create here will be used to administer your site.</p>
@@ -836,48 +838,52 @@ switch($_GET['mode'])
     </form>
     <script type="text/javascript">
     // <![CDATA[
-      disableJSONExts();
-      str = '';
-      for(i=0;i<keySizeInBits/4;i++) str+='0';
-      var key = hexToByteArray(str);
-      var pt = hexToByteArray(str);
-      var ct = rijndaelEncrypt(pt, key, "ECB");
-      var ect = byteArrayToHex(ct);
-      switch(keySizeInBits)
-      {
-        case 128:
-          v = '66e94bd4ef8a2c3b884cfa59ca342b2e';
-          break;
-        case 192:
-          v = 'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7';
-          break;
-        case 256:
-          v = 'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087';
-          break;
-      }
-      var testpassed = ( ect == v && md5_vm_test() );
-      var frm = document.forms.login;
-      if(testpassed)
-      {
-        frm.use_crypt.value = 'yes';
-        var cryptkey = frm.crypt_key.value;
-        frm.crypt_key.value = '';
-        if(cryptkey != byteArrayToHex(hexToByteArray(cryptkey)))
-        {
-          alert('Byte array conversion SUCKS');
-          testpassed = false;
-        }
-        cryptkey = hexToByteArray(cryptkey);
-        if(!cryptkey || ( ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ) && cryptkey.length != keySizeInBits / 8 )
-        {
-          frm._cont.disabled = true;
-          len = ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ? '\nLen: '+cryptkey.length : '';
-          alert('The key is messed up\nType: '+typeof(cryptkey)+len);
-        }
-      }
       frm.admin_user.focus();
       function runEncryption()
       {
+        str = '';
+        for(i=0;i<keySizeInBits/4;i++) str+='0';
+        var key = hexToByteArray(str);
+        var pt = hexToByteArray(str);
+        var ct = rijndaelEncrypt(pt, key, "ECB");
+        var ect = byteArrayToHex(ct);
+        switch(keySizeInBits)
+        {
+          case 128:
+            v = '66e94bd4ef8a2c3b884cfa59ca342b2e';
+            break;
+          case 192:
+            v = 'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7';
+            break;
+          case 256:
+            v = 'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087';
+            break;
+        }
+        var testpassed = ( ect == v && md5_vm_test() );
+        var frm = document.forms.login;
+        if(testpassed)
+        {
+          // alert('encryption self-test passed');
+          frm.use_crypt.value = 'yes';
+          var cryptkey = frm.crypt_key.value;
+          frm.crypt_key.value = '';
+          if(cryptkey != byteArrayToHex(hexToByteArray(cryptkey)))
+          {
+            alert('Byte array conversion SUCKS');
+            testpassed = false;
+          }
+          cryptkey = hexToByteArray(cryptkey);
+          if(!cryptkey || ( ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ) && cryptkey.length != keySizeInBits / 8 )
+          {
+            frm._cont.disabled = true;
+            len = ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ? '\nLen: '+cryptkey.length : '';
+            alert('The key is messed up\nType: '+typeof(cryptkey)+len);
+          }
+        }
+        else
+        {
+          // alert('encryption self-test FAILED');
+        }
         if(testpassed)
         {
           pass = frm.admin_pass.value;
@@ -891,7 +897,7 @@ switch($_GET['mode'])
             return false;
           }
           cryptstring = byteArrayToHex(cryptstring);
-          document.getElementById('cryptdebug').innerHTML = '<pre>Data: '+cryptstring+'<br />Key:  '+byteArrayToHex(cryptkey)+'</pre>';
+          // document.getElementById('cryptdebug').innerHTML = '<pre>Data: '+cryptstring+'<br />Key:  '+byteArrayToHex(cryptkey)+'</pre>';
           frm.crypt_data.value = cryptstring;
           frm.admin_pass.value = '';
           frm.admin_pass_confirm.value = '';
@@ -914,7 +920,7 @@ switch($_GET['mode'])
       <?php
         $k = array_keys($_POST);
         for($i=0;$i<sizeof($_POST);$i++) {
-          echo '<input type="hidden" name="'.$k[$i].'" value="'.$_POST[$k[$i]].'" />'."\n";
+          echo '<input type="hidden" name="'.htmlspecialchars($k[$i]).'" value="'.htmlspecialchars($_POST[$k[$i]]).'" />'."\n";
         }
       ?>
       <h3>Enano is ready to install.</h3>
@@ -1012,17 +1018,26 @@ switch($_GET['mode'])
       $cacheonoff = is_writable(ENANO_ROOT.'/cache/') ? '1' : '0';
       
       echo 'Decrypting administration password...';
-      require('config.php');
-      if ( !isset($cryptkey) )
-      {
-        echo 'failed!<br />Cannot get the key from config.php';
-        break;
-      }
+      
       $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
-      $key = $aes->hexToByteArray($cryptkey);
-      $enc = $aes->hexToByteArray($_POST['crypt_data']);
-      $dec = $aes->rijndaelDecrypt($enc, $key, 'ECB');
-      $dec = $aes->byteArrayToString($dec);
+      
+      if ( !empty($_POST['crypt_data']) )
+      {
+        require('config.php');
+        if ( !isset($cryptkey) )
+        {
+          echo 'failed!<br />Cannot get the key from config.php';
+          break;
+        }
+        $key = hexdecode($cryptkey);
+        
+        $dec = $aes->decrypt($_POST['crypt_data'], $key, ENC_HEX);
+        
+      }
+      else
+      {
+        $dec = $_POST['admin_pass'];
+      }
       echo 'done!<br />Generating '.AES_BITS.'-bit AES private key...';
       $privkey = $aes->gen_readymade_key();
       $pkba = hexdecode($privkey);

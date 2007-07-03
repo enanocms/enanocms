@@ -47,7 +47,7 @@ function toJSONString(input)
             l = input.length,
             v;          
 
-        function p(s) {
+        var p = function (s) {
 
             if (b) {
                 a.push(',');
@@ -78,7 +78,7 @@ function toJSONString(input)
         return a.join('');
       break;
     case 'date':
-      function f(n)
+      var f = function (n)
       {
         return n < 10 ? '0' + n : n;
       }
@@ -101,7 +101,7 @@ function toJSONString(input)
           k,          
           v;          
 
-      function p(s)
+      var p = function (s)
       {
         if (b)
         {

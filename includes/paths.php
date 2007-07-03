@@ -40,7 +40,7 @@ class pathManager {
       'System'  =>'Enano:',
       'Template'=>'Template:',
       'Category'=>'Category:',
-      'Project' =>str_replace(' ', '_', getConfig('site_name')).':',
+      'Project' =>sanitize_page_id(getConfig('site_name')).':',
       );
     
     // ACL types

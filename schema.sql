@@ -263,8 +263,8 @@ INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_st
 
 INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active) VALUES
   (1, 'Anonymous', 'invalid-pass-hash', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0),
-  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', 1, UNIX_TIMESTAMP(), 1);
-
+  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', UNIX_TIMESTAMP(), 1);
+  
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);
 

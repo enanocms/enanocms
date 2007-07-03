@@ -33,7 +33,11 @@ function ajaxPost(uri, parms, f) {
   ajax.onreadystatechange = f;
   ajax.open('POST', uri, true);
   ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  ajax.setRequestHeader("Content-length", parms.length);
+  // Setting Content-length in Safari triggers a warning
+  if ( !is_Safari )
+  {
+    ajax.setRequestHeader("Content-length", parms.length);
+  }
   ajax.setRequestHeader("Connection", "close");
   ajax.send(parms);
 }

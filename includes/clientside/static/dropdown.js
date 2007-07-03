@@ -32,7 +32,7 @@ var inertia_inc  = 1;
 var jBox_opacity = 100;
 
 // Adds the jBox CSS to the HTML header. Called on window onload.
-function jBoxInit()
+var jBoxInit = function()
 {
   setTimeout('jBoxBatchSetup();', 200);
 }
@@ -57,34 +57,40 @@ function jBoxSetup(obj)
 {
   $(obj).addClass('menu');
   removeTextNodes(obj);
-  for ( var i in obj.childNodes )
+  
+  for ( var i = 0; i < obj.childNodes.length; i++ )
   {
     /* normally this would be done in about 2 lines of code, but javascript is so picky..... */
     if ( obj.childNodes[i] )
     {
       if ( obj.childNodes[i].tagName )
       {
-        if ( obj.childNodes[i].tagName.toLowerCase() == 'a' )
+        if ( obj.childNodes[i].tagName == 'A' )
         {
-          if ( obj.childNodes[i].nextSibling.tagName )
+          // if ( is_Safari ) alert('It\'s an A: '+obj);
+          if ( obj.childNodes[i].nextSibling )
           {
-            if ( obj.childNodes[i].nextSibling.tagName.toLowerCase() == 'ul' || ( obj.childNodes[i].nextSibling.tagName.toLowerCase() == 'div' && obj.childNodes[i].nextSibling.className == 'submenu' ) )
+            // alert("Next sibling: " + obj.childNodes[i].nextSibling);
+            if ( obj.childNodes[i].nextSibling.tagName )
             {
-              // Calculate height
-              var ul = obj.childNodes[i].nextSibling;
-              domObjChangeOpac(0, ul);
-              ul.style.display = 'block';
-              var dim = fetch_dimensions(ul);
-              if ( !ul.id )
-                ul.id = 'jBoxmenuobj_' + Math.floor(Math.random() * 10000000);
-              jBoxMenuHeights[ul.id] = parseInt(dim['h']) - 2; // subtract 2px for border width
-              ul.style.display = 'none';
-              domObjChangeOpac(100, ul);
-              
-              // Setup events
-              obj.childNodes[i].onmouseover = function()  { jBoxOverHandler(this); };
-              obj.childNodes[i].onmouseout = function(e)  { jBoxOutHandler(this, e); };
-              obj.childNodes[i].nextSibling.onmouseout = function(e)  { jBoxOutHandler(this, e); };
+              if ( obj.childNodes[i].nextSibling.tagName == 'UL' || ( obj.childNodes[i].nextSibling.tagName.toLowerCase() == 'div' && obj.childNodes[i].nextSibling.className == 'submenu' ) )
+              {
+                // Calculate height
+                var ul = obj.childNodes[i].nextSibling;
+                domObjChangeOpac(0, ul);
+                ul.style.display = 'block';
+                var dim = fetch_dimensions(ul);
+                if ( !ul.id )
+                  ul.id = 'jBoxmenuobj_' + Math.floor(Math.random() * 10000000);
+                jBoxMenuHeights[ul.id] = parseInt(dim['h']) - 2; // subtract 2px for border width
+                ul.style.display = 'none';
+                domObjChangeOpac(100, ul);
+                
+                // Setup events
+                obj.childNodes[i].onmouseover = function()  { jBoxOverHandler(this); };
+                obj.childNodes[i].onmouseout = function(e)  { jBoxOutHandler(this, e); };
+                obj.childNodes[i].nextSibling.onmouseout = function(e)  { jBoxOutHandler(this, e); };
+              }
             }
           }
         }
@@ -96,8 +102,8 @@ function jBoxSetup(obj)
 // Called when user hovers mouse over a submenu
 function jBoxOverHandler(obj)
 {
-  if ( is_Safari )
-    alert('Safari and over');
+  // if ( is_Safari )
+  //   alert('Safari and over');
   // Random ID used to track the object to perform on
   var seed = Math.floor(Math.random() * 1000000);
   jBoxObjCache[seed] = obj;
@@ -420,9 +426,9 @@ function removeTextNodes(obj)
 {
   if(obj)
   {
-    if(typeof(obj.tagName) != 'string')
+    if(typeof(obj.tagName) != 'string' || ( String(obj) == '[object Text]' && is_Safari ) )
     {
-      if ( obj.nodeType == 3 && obj.data.match(/^([\s]*)$/ig) ) 
+      if ( ( obj.nodeType == 3 && obj.data.match(/^([\s]*)$/ig) ) ) //  || ( typeof(obj.innerHTML) == undefined && is_Safari ) ) 
       {
         obj.parentNode.removeChild(obj);
         return;
@@ -430,7 +436,7 @@ function removeTextNodes(obj)
     }
     if(obj.firstChild)
     {
-      for(var i in obj.childNodes)
+      for(var i = 0; i < obj.childNodes.length; i++)
       {
         removeTextNodes(obj.childNodes[i]);
       }
@@ -443,7 +449,7 @@ var getElementsByClassName = function(parent, type, cls) {
     type = '*';
   ret = new Array();
   el = parent.getElementsByTagName(type);
-  for ( var i in el )
+  for ( var i = 0; i < el.length; i++ )
   {
     if ( typeof(el[i]) != 'object')
       continue; // toJSONString() compatibility

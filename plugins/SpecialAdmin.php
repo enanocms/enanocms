@@ -246,10 +246,10 @@ function page_Admin_GeneralConfig() {
       <tr><th colspan="2">Global site options</th></tr>
       <tr><th colspan="2" class="subhead">These options control the entire site.</th></tr>
       
-      <tr><td class="row1" style="width: 50%;">Site name:</td>                      <td class="row1" style="width: 50%;"><input type="text" name="site_name" size="30" value="<?php echo getConfig('site_name'); ?>" /></td></tr>
-      <tr><td class="row2">Site description:</td>               <td class="row2"><input type="text" name="site_desc" size="30" value="<?php echo getConfig('site_desc'); ?>" /></td></tr>
-      <tr><td class="row1">Main page:</td>                      <td class="row1"><?php echo $template->pagename_field('main_page', str_replace('_', ' ', getConfig('main_page'))); ?></td></tr>
-      <tr><td class="row2">Copyright notice shown on pages:</td><td class="row2"><input type="text" name="copyright" size="30" value="<?php echo getConfig('copyright_notice'); ?>" /></td></tr>
+      <tr><td class="row1" style="width: 50%;">Site name:</td>  <td class="row1" style="width: 50%;"><input type="text" name="site_name" size="30" value="<?php echo htmlspecialchars(getConfig('site_name')); ?>" /></td></tr>
+      <tr><td class="row2">Site description:</td>               <td class="row2"><input type="text" name="site_desc" size="30" value="<?php echo htmlspecialchars(getConfig('site_desc')); ?>" /></td></tr>
+      <tr><td class="row1">Main page:</td>                      <td class="row1"><?php echo $template->pagename_field('main_page', htmlspecialchars(str_replace('_', ' ', getConfig('main_page')))); ?></td></tr>
+      <tr><td class="row2">Copyright notice shown on pages:</td><td class="row2"><input type="text" name="copyright" size="30" value="<?php echo htmlspecialchars(getConfig('copyright_notice')); ?>" /></td></tr>
       <tr><td class="row1" colspan="2">Hint: If you're using Windows, you can make a "&copy;" symbol by holding ALT and pressing 0169 on the numeric keypad.</td></tr>
       <tr><td class="row2">Contact e-mail<br /><small>All e-mail sent from this site will appear to have come from the address shown here.</small></td><td class="row2"><input name="contact_email" type="text" size="40" value="<?php echo htmlspecialchars(getConfig('contact_email')); ?>" /></td></tr>
       
@@ -1475,7 +1475,7 @@ function page_Admin_PageManager()
   
   if(isset($_POST['page_id']) && isset($_POST['namespace']) && !isset($_POST['cancel']))
   {
-    $cpage = $paths->pages[$paths->nslist[$_POST['namespace']].$_POST['old_page_id']];
+    $cpage = $paths->pages[$paths->nslist[$_POST['old_namespace']].$_POST['old_page_id']];
     if(isset($_POST['submit']))
     {
       switch(true)
@@ -1492,7 +1492,7 @@ function page_Admin_PageManager()
               'protected'=>isset($_POST['protected']) ? '1' : '0'
             );
           
-          $updating_urlname_or_namespace = ( $page_info['namespace'] != $cpage['namespace'] || $page_info['urlname'] != $cpage['urlname'] );
+          $updating_urlname_or_namespace = ( $page_info['namespace'] != $cpage['namespace'] || $page_info['urlname'] != $cpage['urlname_nons'] );
           
           if ( !isset($paths->nslist[ $page_info['namespace'] ]) )
           {
@@ -1515,6 +1515,8 @@ function page_Admin_PageManager()
           // Build the WHERE statements
           $q .= ' WHERE ';
           $k = array_keys($cpage);
+          if ( !isset($cpage) )
+            die('no cpage');
           foreach($k as $c)
           {
             if($c != 'urlname_nons' && $c != 'urlname' && $c != 'really_protected')

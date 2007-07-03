@@ -702,9 +702,9 @@ class template {
     $tpl_strings = Array(
       'PAGE_NAME'=>htmlspecialchars($paths->cpage['name']),
       'PAGE_URLNAME'=> $urlname_clean,
-      'SITE_NAME'=>getConfig('site_name'),
+      'SITE_NAME'=>htmlspecialchars(getConfig('site_name')),
       'USERNAME'=>$session->username,
-      'SITE_DESC'=>getConfig('site_desc'),
+      'SITE_DESC'=>htmlspecialchars(getConfig('site_desc')),
       'TOOLBAR'=>$tb,
       'SCRIPTPATH'=>scriptPath,
       'CONTENTPATH'=>contentPath,

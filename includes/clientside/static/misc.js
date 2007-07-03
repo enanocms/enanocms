@@ -84,8 +84,12 @@ function bannerOn(text)
   bdim = { 'w' : getWidth(), 'h' : getHeight() };
   so = getScrollOffset();
   
-  left = (bdim['w'] / 2) - ( dim['w'] / 2 );
-  top  = (bdim['h'] / 2) - ( dim['h'] / 2 ) + so;
+  var left = (bdim['w'] / 2) - ( dim['w'] / 2 );
+  
+  var top  = (bdim['h'] / 2);
+  top  = top - ( dim['h'] / 2 );
+  
+  top = top + so;
   
   thediv.style.top  = top  + 'px';
   thediv.style.left = left + 'px';
@@ -313,7 +317,7 @@ function ajaxAuthLoginInnerSetup()
   ajaxGet(makeUrlNS('Special', 'Login', 'act=getkey'), function() {
       if ( ajax.readyState == 4 )
       {
-        var response = ajax.responseText;
+        var response = String(ajax.responseText);
         if ( response.substr(0,1) != '{' )
         {
           alert('Invalid JSON response from server: ' + response);
@@ -343,7 +347,7 @@ function ajaxAuthLoginInnerSetup()
         $('messageBox').object.nextSibling.firstChild.tabindex = '3';
         $('ajaxlogin_user').object.focus();
         $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
-        $('ajaxlogin_pass').object.onkeypress = function(e) { if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
       }
     });
 }

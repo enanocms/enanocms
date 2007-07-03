@@ -1154,13 +1154,15 @@ function strip_magic_quotes_gpc()
 {
   if(enano_get_magic_quotes_gpc())
   {
-    $_POST   = stripslashes_recurse($_POST);
-    $_GET    = stripslashes_recurse($_GET);
-    $_COOKIE = stripslashes_recurse($_COOKIE);
+    $_POST    = stripslashes_recurse($_POST);
+    $_GET     = stripslashes_recurse($_GET);
+    $_COOKIE  = stripslashes_recurse($_COOKIE);
+    $_REQUEST = stripslashes_recurse($_REQUEST);
   }
-  $_POST   = strip_nul_chars($_POST);
-  $_GET    = strip_nul_chars($_GET);
-  $_COOKIE = strip_nul_chars($_COOKIE);
+  $_POST    = strip_nul_chars($_POST);
+  $_GET     = strip_nul_chars($_GET);
+  $_COOKIE  = strip_nul_chars($_COOKIE);
+  $_REQUEST = strip_nul_chars($_REQUEST);
 }
 
 /**

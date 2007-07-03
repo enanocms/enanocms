@@ -439,12 +439,24 @@ TinyMCE_Engine.prototype = {
 			return;
 
 		if (this.loadingIndex < this.pendingFiles.length) {
-			se = d.createElementNS('http://www.w3.org/1999/xhtml', 'script');
-			se.setAttribute('language', 'javascript');
-			se.setAttribute('type', 'text/javascript');
-			se.setAttribute('src', this.pendingFiles[this.loadingIndex++]);
-
-			d.getElementsByTagName("head")[0].appendChild(se);
+      try {
+        /*
+        se = d.createElementNS('http://www.w3.org/1999/xhtml', 'script');
+        se.setAttribute('language', 'javascript');
+        se.setAttribute('type', 'text/javascript');
+        se.setAttribute('src', this.pendingFiles[this.loadingIndex++]);
+        */
+        
+        se = d.createElement('script');
+        se.language = 'javascript';
+        se.type = 'text/javascript';
+        se.src = this.pendingFiles[this.loadingIndex++];
+  
+        d.getElementsByTagName("head")[0].appendChild(se);
+      } catch(e) {
+        var error = e.toString();
+        alert(error);
+      }
 		} else
 			this.loadingIndex = -1; // Done with loading
 	},
@@ -1520,8 +1532,40 @@ TinyMCE_Engine.prototype = {
 			return;
 		}
 
-		if (tinyMCE.isRealIE && window.event.type == "readystatechange" && document.readyState != "complete")
-			return true;
+		if (tinyMCE.isRealIE)
+    {
+      try 
+      {
+        if ( typeof(window.event) == 'object' && window.event != null )
+        {
+          try
+          {
+            if ( window.event.type == "onreadystatechange" )
+            {
+              try
+              {
+                if ( document.readyState != "complete" )
+                {
+                  return true;
+                }
+              }
+              catch(e)
+              {
+                alert('inner error: ' + e.description);
+              }
+            }
+          }
+          catch(e)
+          {
+            alert('middle error: ' + e.description);
+          }
+        }
+      }
+      catch(e)
+      {
+        alert('Outer error: ' + e.description);
+      }
+    }
 
 		if (tinyMCE.isLoaded)
 			return true;

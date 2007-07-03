@@ -1655,7 +1655,12 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!$session->get_permissions('edit_acl') && $session->user_level < USER_LEVEL_ADMIN)
-      return 'Access is denied.';
+    {
+      return Array(
+        'mode' => 'error',
+        'error' => 'You are not authorized to view or edit access control lists.'
+        );
+    }
     $parms['page_id'] = ( isset($parms['page_id']) ) ? $parms['page_id'] : false;
     $parms['namespace'] = ( isset($parms['namespace']) ) ? $parms['namespace'] : false;
     $page_id =& $parms['page_id'];

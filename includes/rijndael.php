@@ -913,7 +913,9 @@ class AESCrypt {
   {
     $ret = $this->hexToByteArray($this->strtohex($text));
     if(count($ret) != strlen($text))
-      die('problem seems to be the hex conversion');
+    {
+      die('Could not convert string "' . $text . '" to hex byte array for encryption');
+    }
     return $ret;
   }
   
