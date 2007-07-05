@@ -770,7 +770,7 @@ class AESCrypt {
       $cryptext = $this->rijndaelEncrypt($text, $key, 'ECB');
       if(!is_array($cryptext))
       {
-        echo 'Warning: encryption failed for string: '.$text.'<br />';
+        echo 'Warning: encryption failed for string: '.print_r($text,true).'<br />';
         return false;
       }
       switch($return_encoding)

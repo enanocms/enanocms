@@ -11,38 +11,38 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  *
  */
-
+ 
   // Set up gzip encoding before any output is sent
-
+  
   $aggressive_optimize_html = false;
-
+  
   global $do_gzip;
   $do_gzip = false;
-
+  
   if(isset($_SERVER['PATH_INFO'])) $v = $_SERVER['PATH_INFO'];
   elseif(isset($_GET['title'])) $v = $_GET['title'];
   else $v = '';
-
+  
   error_reporting(E_ALL);
-
+  
   // if(!strstr($v, 'CSS') && !strstr($v, 'UploadFile') && !strstr($v, 'DownloadFile')) // These pages are blacklisted because we can't have debugConsole's HTML output disrupting the flow of header() calls and whatnot
   // {
   //   $do_gzip = ( function_exists('gzcompress') && ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) && strstr($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ) ? true : false;
   //   // Uncomment the following line to enable debugConsole (requires PHP 5 or later)
   //   // define('ENANO_DEBUG', '');
   // }
-
+  
   if(defined('ENANO_DEBUG')) $do_gzip = false;
-
+  
   if($aggressive_optimize_html || $do_gzip)
   {
     ob_start();
   }
-
+  
   require('includes/common.php');
-
+  
   global $db, $session, $paths, $template, $plugins; // Common objects
-
+  
   if(!isset($_GET['do'])) $_GET['do'] = 'view';
   switch($_GET['do'])
   {
@@ -129,7 +129,7 @@
         <br />
         ';
       if($paths->wiki_mode)
-        echo 'Edit summary: <input name="edit_summary" type="text" size="40" /><br /><label><input type="checkbox" name="minor" /> This is a minor edit</label><br />';
+        echo 'Edit summary: <input name="edit_summary" type="text" size="40" /><br /><label><input type="checkbox" name="minor" /> This is a minor edit</label><br />';  
       echo '<br />
           <input type="submit" name="_save" value="Save changes" style="font-weight: bold;" />
           <input type="submit" name="_preview" value="Preview changes" />
@@ -223,7 +223,7 @@
                  echo 'None;</b> Warning: request validation will fail after clicking submit<b>';
              }
            ?></b></p>
-        <p><input type="submit" value="Protect page" style="font-weight: bold;" /></p>
+        <p><input type="submit" value="Protect page" style="font-weight: bold;" /></p> 
       </form>
       <?php
       $template->footer();
@@ -240,10 +240,10 @@
         <?php if(isset($_POST['newname'])) echo '<p style="color: red;">Error: you must enter a new name for this page.</p>'; ?>
         <p>Please enter a new name for this page:</p>
         <p><input type="text" name="newname" size="40" /></p>
-        <p><input type="submit" value="Rename page" style="font-weight: bold;" /></p>
+        <p><input type="submit" value="Rename page" style="font-weight: bold;" /></p> 
       </form>
       <?php
-      $template->footer();
+      $template->footer();    
       break;
     case 'flushlogs':
       if(!$session->get_permissions('clear_logs')) die_friendly('Access denied', '<p>Flushing the logs for a page <u>requires</u> administrative rights.</p>');
@@ -360,7 +360,7 @@
       PageUtils::aclmanager($data);
       break;
   }
-
+  
   //
   // Optimize HTML by replacing newlines with spaces (excludes <pre>, <script>, and <style> blocks)
   //
@@ -369,11 +369,11 @@
     // Load up the HTML
     $html = ob_get_contents();
     ob_end_clean();
-
+    
     // Which tags to strip - you can change this if needed
     $strip_tags = Array('pre', 'script', 'style', 'enano:no-opt');
     $strip_tags = implode('|', $strip_tags);
-
+    
     // Strip out the tags and replace with placeholders
     preg_match_all("#<($strip_tags)(.*?)>(.*?)</($strip_tags)>#is", $html, $matches);
     $seed = md5(microtime() . mt_rand()); // Random value used for placeholders
@@ -381,32 +381,32 @@
     {
       $html = str_replace("<{$matches[1][$i]}{$matches[2][$i]}>{$matches[3][$i]}</{$matches[4][$i]}>", "{DONT_STRIP_ME_NAKED:$seed:$i}", $html);
     }
-
+    
     // Finally, process the HTML
     $html = preg_replace("#\n([ ]*)#", " ", $html);
-
+    
     // Remove annoying spaces between tags
     $html = preg_replace("#>([ ]*?){2,}<#", "> <", $html);
-
+    
     // Re-insert untouchable tags
     for ($i = 0;$i < sizeof($matches[1]); $i++)
     {
       $html = str_replace("{DONT_STRIP_ME_NAKED:$seed:$i}", "<{$matches[1][$i]}{$matches[2][$i]}>{$matches[3][$i]}</{$matches[4][$i]}>", $html);
     }
-
+    
     // Remove <enano:no-opt> blocks (can be used by themes that don't want their HTML optimized)
     $html = preg_replace('#<(\/|)enano:no-opt(.*?)>#', '', $html);
-
+    
     // Tell snoopish users what's going on
     $html = str_replace('<html>', "\n<!-- NOTE: This HTML document has been Aggressively Optimized(TM) by Enano to make page loading faster. -->\n<html>", $html);
-
+    
     // Re-enable output buffering to allow the Gzip function (below) to work
     ob_start();
-
+    
     // Done, send it to the user
     echo( $html );
   }
-
+  
   //
   // Compress buffered output if required and send to browser
   //
@@ -417,20 +417,20 @@
     //
     $gzip_contents = ob_get_contents();
     ob_end_clean();
-
+  
     $gzip_size = strlen($gzip_contents);
     $gzip_crc = crc32($gzip_contents);
-
+  
     $gzip_contents = gzcompress($gzip_contents, 9);
     $gzip_contents = substr($gzip_contents, 0, strlen($gzip_contents) - 4);
-
+  
     header('Content-encoding: gzip');
     echo "\x1f\x8b\x08\x00\x00\x00\x00\x00";
     echo $gzip_contents;
     echo pack('V', $gzip_crc);
     echo pack('V', $gzip_size);
   }
-
+  
   $db->close();
 
 ?>

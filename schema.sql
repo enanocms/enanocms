@@ -283,3 +283,4 @@ INSERT INTO {{TABLE_PREFIX}}sidebar(item_id, item_order, sidebar_id, block_name,
   (3, 3, 1, '$USERNAME$', 1, '[[$NS_USER$$USERNAME$|User page]]\n[[$NS_SPECIAL$Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[$NS_SPECIAL$PrivateMessages|Private messages]]\n[[$NS_SPECIAL$Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[$NS_SPECIAL$Register|Create an account]]\n$LOGIN_LINK$\n[[$NS_SPECIAL$Login/$NS_SPECIAL$PrivateMessages|Private messages]]\n{/if}'),
   (4, 4, 1, 'Search', 1, '<div class="slideblock2" style="padding: 0px;"><form action="$SCRIPTPATH$/$NS_SPECIAL$Search" method="get" style="padding: 0; margin: 0;"><p><input name="q" alt="Search box" type="text" size="10" style="width: 70%" /> <input type="submit" value="Go" style="width: 20%" /></p></form></div>'),
   (5, 2, 2, 'Links', 4, 'Links');
+

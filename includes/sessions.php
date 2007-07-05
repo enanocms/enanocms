@@ -1396,7 +1396,7 @@ class sessionManager {
       $db->free_result();
       
       $user_id =& $row['user_id'];
-      $this->sql('INSERT INTO '.table_prefix.'user_extra(user_id) VALUES(' . $user_id . ');');
+      $this->sql('INSERT INTO '.table_prefix.'users_extra(user_id) VALUES(' . $user_id . ');');
     }
     
     // Require the account to be activated?

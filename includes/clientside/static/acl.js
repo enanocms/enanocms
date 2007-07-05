@@ -105,6 +105,12 @@ function __aclBuildSelector(groups)
   lbl.style.display = 'block';
   span.appendChild(grpsel);
   
+  anoninfo = document.createElement('div');
+  anoninfo.className = 'info-box-mini';
+  anoninfo.appendChild(document.createTextNode('To edit permissions for guests, select "a specific user", and enter Anonymous as the username.'));
+  span.appendChild(document.createElement('br'));
+  span.appendChild(anoninfo);
+  
   usrb = document.createElement('input');
   usrb.type = 'radio';
   usrb.name  = 'target_type';
@@ -174,7 +180,7 @@ function __aclBuildSelector(groups)
   container = document.createElement('div');
   container.style.margin = 'auto';
   container.style.width = '360px';
-  container.style.paddingTop = '70px';
+  container.style.paddingTop = '100px';
   
   head = document.createElement('h2');
   head.appendChild(document.createTextNode('Manage page access'));
@@ -367,6 +373,8 @@ function __aclJSONSubmitAjaxHandler(params)
               document.getElementById(aclManagerID + '_main').innerHTML += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'Do you really want to delete this rule?\')) __aclDeleteRule(); return false;" style="color: red;">Delete this rule</a></p>';
             //fadeInfoBoxes();
             document.getElementById(aclManagerID+'_main').scrollTop = 0;
+            
+            aclDataCache.mode = 'save_edit';
             break;
           case 'delete':
             
@@ -389,6 +397,9 @@ function __aclJSONSubmitAjaxHandler(params)
                 note = document.createElement('div');
                 note.className = 'info-box';
                 note.style.marginLeft = '0';
+                note.style.position = 'absolute';
+                note.style.width = '558px';
+                note.id = 'aclSuccessNotice_' + Math.floor(Math.random() * 100000);
                 b = document.createElement('b');
                 b.appendChild(document.createTextNode('Entry deleted'));
                 note.appendChild(b);
@@ -397,7 +408,7 @@ function __aclJSONSubmitAjaxHandler(params)
                 note.appendChild(document.createElement('br'));
                 a = document.createElement('a');
                 a.href = '#';
-                a.onclick = function() { this.parentNode.parentNode.removeChild(this.parentNode); return false; };
+                a.onclick = function() { opacity(this.parentNode.id, 100, 0, 1000); setTimeout('var div = document.getElementById("' + this.parentNode.id + '"); div.parentNode.removeChild(div);', 1100); return false; };
                 a.appendChild(document.createTextNode('[ dismiss :'));
                 note.appendChild(a);
                 a = document.createElement('a');
@@ -714,8 +725,22 @@ function __aclSetAllRadios(val, valArray)
 
 function __aclDeleteRule()
 {
-  if(!aclDataCache) return false;
-  if(aclDataCache.mode != 'seltarget') return false;
+  if(!aclDataCache) 
+  {
+    if ( window.console )
+    {
+      try{ console.error('ACL editor: can\'t load data cache on delete'); } catch(e) {};
+    }
+    return false;
+  }
+  if(aclDataCache.mode != 'seltarget' && aclDataCache.mode != 'save_new' && aclDataCache.mode != 'save_edit')
+  {
+    if ( window.console )
+    {
+      try{ console.error('ACL editor: wrong mode on aclDataCache: ' + aclDataCache.mode); } catch(e) {};
+    }
+    return false;
+  }
   parms = {
     'target_type' : aclDataCache.target_type,
     'target_id' : aclDataCache.target_id,
