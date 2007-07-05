@@ -870,6 +870,18 @@ class AESCrypt {
     {
       $key .= chr(mt_rand(0, 255));
     }
+    if ( file_exists('/dev/urandom') && is_readable('/dev/urandom') )
+    {
+      // Let's use something a little more secure
+      $ur = @fopen('/dev/urandom', 'r');
+      if ( !$ur )
+        return $key;
+      $ukey = @fread($ur, $len);
+      if ( strlen($ukey) != $len )
+        return $key;
+      fclose($ur);
+      return $ukey;
+    }
     return $key;
   }
   
