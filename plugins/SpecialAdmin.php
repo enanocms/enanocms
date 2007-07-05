@@ -114,10 +114,6 @@ Using the links on the left you can control every aspect of your website\'s look
   {
     echo '<tr><td class="row1" colspan="4">Logs are recorded but not displayed for privacy purposes in the demo.</td></tr>';
   }
-  else if ( defined('ENANO_DEMO_MODE') && isset($_GET['hash']) && $_GET['hash'] != $hash && substr($_SERVER['REMOTE_ADDR'], 0, 8) != '192.168.' )
-  {
-    echo '<tr><td class="row1" colspan="4">Invalid hash. Cheater.</td></tr>';
-  }
   else
   {
     if(isset($_GET['fulllog']))
