@@ -877,9 +877,9 @@ class AESCrypt {
       if ( !$ur )
         return $key;
       $ukey = @fread($ur, $len);
+      fclose($ur);
       if ( strlen($ukey) != $len )
         return $key;
-      fclose($ur);
       return $ukey;
     }
     return $key;
