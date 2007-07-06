@@ -525,7 +525,7 @@ class PageProcessor
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL ) 
                            LEFT JOIN '.table_prefix.'comments AS c
-                             ON ( ( c.user_id=u.user_id AND c.approved=1 ) OR ( c.comment_id IS NULL AND c.approved IS NULL ) )
+                             ON ( ( c.user_id=authoritative_uid AND c.approved=1 ) OR ( c.comment_id IS NULL AND c.approved IS NULL ) )
                            WHERE u.username=\'' . $db->escape($target_username) . '\'
                            GROUP BY u.user_id;');
     if ( !$q )
