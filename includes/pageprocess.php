@@ -525,7 +525,7 @@ class PageProcessor
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL ) 
                            LEFT JOIN '.table_prefix.'comments AS c
-                             ON ( ( c.user_id=authoritative_uid AND c.approved=1 ) OR ( c.comment_id IS NULL AND c.approved IS NULL ) )
+                             ON ( ( c.user_id=u.user_id AND c.name=u.username AND c.approved=1 ) OR ( c.comment_id IS NULL AND c.approved IS NULL ) )
                            WHERE u.username=\'' . $db->escape($target_username) . '\'
                            GROUP BY u.user_id;');
     if ( !$q )
@@ -583,7 +583,7 @@ class PageProcessor
     // Comments
     
     echo '<tr><th class="subhead">' . htmlspecialchars($target_username) . '\'s latest comments</th></tr>';
-    $q = $db->sql_query('SELECT page_id, namespace, subject, time FROM '.table_prefix.'comments WHERE name=\'' . $db->escape($target_username) . '\' AND approved=1 ORDER BY time DESC LIMIT 5;');
+    $q = $db->sql_query('SELECT page_id, namespace, subject, time FROM '.table_prefix.'comments WHERE name=\'' . $db->escape($target_username) . '\' AND user_id=' . $userdata['authoritative_uid'] . ' AND approved=1 ORDER BY time DESC LIMIT 5;');
     if ( !$q )
       $db->_die();
     
