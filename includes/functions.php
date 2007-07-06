@@ -2298,6 +2298,31 @@ function is_valid_ip($ip)
     return false;
 }
 
+/**
+ * Replaces the FIRST given occurrence of needle within haystack with thread
+ * @param string Needle
+ * @param string Thread
+ * @param string Haystack
+ */
+
+function str_replace_once($needle, $thread, $haystack)
+{
+  $needle_len = strlen($needle);
+  for ( $i = 0; $i < strlen($haystack); $i++ )
+  {
+    $test = substr($haystack, $i, $needle_len);
+    if ( $test == $needle )
+    {
+      // Got it!
+      $upto = substr($haystack, 0, $i);
+      $from = substr($haystack, ( $i + $needle_len ));
+      $new_haystack = "{$upto}{$thread}{$from}";
+      return $new_haystack;
+    }
+  }
+  return $haystack;
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>

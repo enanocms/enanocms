@@ -595,7 +595,19 @@ class EmailEncryptor
    
   function mask_address($email)
   {
-    return str_replace('.', ' <DOT> ', str_replace('@', ' <AT> ', $email));
+    $at = array(' (AT) ', ' __AT__ ', ' *AT* ', ' [AT] ', ' <AT> ', ' <__AT__> ');
+    $dot = array(' (DOT) ', ' __DOT__ ', ' *DOT* ', ' [DOT] ', ' <DOT> ', ' <__DOT__> ');
+    while(strstr($email, '@'))
+    {
+      $my_at = $at[ array_rand($at) ];
+      $email = str_replace_once('@', $my_at, $email);
+    }
+    while(strstr($email, '.'))
+    {
+      $my_dot = $dot[ array_rand($dot) ];
+      $email = str_replace_once('.', $my_dot, $email);
+    }
+    return $email;
   }
   
   /**
