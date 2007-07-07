@@ -7,6 +7,9 @@ INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_ve
 ---BEGIN 1.0RC3---
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;
 UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[User:$USERNAME$|User page]]\n[[Special:Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[Special:PrivateMessages|Private messages ($UNREAD_PMS$)]]\n[[Special:Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[Special:Register|Create an account]]\n$LOGIN_LINK$\n[[Special:Login/Special:PrivateMessages|Private messages]]\n{/if}' WHERE item_id=3;
+-- Updated PHP-ized search box
+-- block_type=3: 3 = BLOCK_PHP
+UPDATE {{TABLE_PREFIX}}sidebar SET block_content='?><div class=\"slideblock2\" style=\"padding: 0px;\"><form action=\"<?php echo makeUrlNS(\'Special\', \'Search\'); ?>\" method=\"get\"><input name=\"q\" alt=\"Search box\" type=\"text\" size=\"10\" style=\"width: 70%\" /> <input type=\"submit\" value=\"Go\" style=\"width: 20%\" /></form></div>',block_type=3 WHERE block_name='Search';
 ---END 1.0RC3---
 ---BEGIN 1.0RC2---
 -- Add the "Moderators" group
@@ -20,6 +23,8 @@ ALTER TABLE {{TABLE_PREFIX}}privmsgs ADD COLUMN message_read tinyint(1) NOT NULL
 INSERT INTO {{TABLE_PREFIX}}acl(target_type,target_id,page_id,namespace,rules) VALUES(1,3,NULL,NULL,'read=4;post_comments=4;edit_comments=4;edit_page=4;view_source=4;mod_comments=4;history_view=4;history_rollback=4;history_rollback_extra=4;protect=4;rename=3;clear_logs=2;vote_delete=4;vote_reset=4;delete_page=4;set_wiki_mode=2;password_set=2;password_reset=2;mod_misc=2;edit_cat=4;even_when_protected=4;upload_files=2;upload_new_version=3;create_page=3;php_in_pages=2;edit_acl=2;');
 -- Create table with extra user information
 CREATE TABLE users_extra( user_id mediumint(8) NOT NULL, user_aim varchar(63) default NULL, user_yahoo varchar(63) default NULL, user_msn varchar(255) default NULL, user_xmpp varchar(255) default NULL, user_homepage text, user_location text, user_job text, user_hobbies text, email_public tinyint(1) NOT NULL default '0', userpage_comments smallint(5) NOT NULL default '0', PRIMARY KEY ( user_id ) );
+-- Turn on the Enano button on the sidebar
+INSERT INTO {{TABLE_PREFIX}}config(config_name,config_value) VALUES('powered_btn', '1');
 ---END 1.0RC2---
 ---BEGIN 1.0RC1---
 -- Not too many DB changes in this release - that's a good sign ;-)
