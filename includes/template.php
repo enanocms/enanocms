@@ -28,12 +28,7 @@ class template {
    * @var string
    */
   
-  var $fading_button = '<a href="http://enanocms.org" onclick="window.open(this.href); return false;" style="text-align: center; margin: 0 auto; display: table; background-image: none;">
-                          <img alt="Powered by Enano CMS" style="border-width: 0; position: absolute;" 
-                               src="/images/about-powered-enano.png" id="enanoFader" onmouseover="domOpacity(this, 100, 0, 500);" 
-                               onmouseout="opacity(this.id, 0, 100, 500);" />
-                          <img alt="Powered by Enano CMS" style="border-width: 0px;" src="/images/about-powered-enano-hover.png" />
-                        </a>';
+  var $fading_button = '';
   
   function __construct()
   {
@@ -46,6 +41,13 @@ class template {
     $this->additional_headers = '';
     $this->plugin_blocks = Array();
     $this->theme_loaded = false;
+    
+    $fading_button = '<a href="http://enanocms.org" onclick="window.open(this.href); return false;" style="text-align: center; margin: 0 auto; display: table; background-image: none;">
+                            <img alt="Powered by Enano CMS" style="border-width: 0; position: absolute;" 
+                                 src="' . scriptPath . '/images/about-powered-enano.png" id="enanoFader" onmouseover="domOpacity(this, 100, 0, 500);" 
+                                 onmouseout="opacity(this.id, 0, 100, 500);" />
+                            <img alt="Powered by Enano CMS" style="border-width: 0px;" src="' . scriptPath . '/images/about-powered-enano-hover.png" />
+                          </a>';
     
     $this->theme_list = Array();
     $this->named_theme_list = Array();
