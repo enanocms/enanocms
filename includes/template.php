@@ -23,6 +23,18 @@ class template {
   
   var $site_disabled = false;
   
+  /**
+   * One of the absolute best parts of Enano :-P
+   * @var string
+   */
+  
+  var $fading_button = '<a href="http://enanocms.org" onclick="window.open(this.href); return false;" style="text-align: center; margin: 0 auto; display: table; background-image: none;">
+                          <img alt="Powered by Enano CMS" style="border-width: 0; position: absolute;" 
+                               src="/images/about-powered-enano.png" id="enanoFader" onmouseover="domOpacity(this, 100, 0, 500);" 
+                               onmouseout="opacity(this.id, 0, 100, 500);" />
+                          <img alt="Powered by Enano CMS" style="border-width: 0px;" src="/images/about-powered-enano-hover.png" />
+                        </a>';
+  
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1369,7 +1381,6 @@ class template {
     // SourceForge/W3C buttons
     $ob = Array();
     $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN ) ? 'title="You may disable this button in the admin panel under General Configuration."' : '';
-    if(getConfig('powered_btn') =='1') $ob[] = '<a style="text-align: center;" href="http://enanocms.org/" onclick="window.open(this.href);return false;"><img '.$admintitle.'  alt="Powered by Enano" src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="this.src=\''.scriptPath.'/images/about-powered-enano-hover.png\';" onmouseout="this.src=\''.scriptPath.'/images/about-powered-enano.png\';" style="border-width: 0px;" width="88" height="31" /></a>';
     if(getConfig('sflogo_enabled')=='1')
     {
       $ob[] = '<a style="text-align: center;" href="http://sourceforge.net/" onclick="window.open(this.href);return false;"><img style="border-width: 0px;" alt="SourceForge.net Logo" src="http://sflogo.sourceforge.net/sflogo.php?group_id='.getConfig('sflogo_groupid').'&amp;type='.getConfig('sflogo_type').'" /></a>';
@@ -1388,7 +1399,7 @@ class template {
       eval($cmd);
     }
     
-    if(count($ob) > 0) $sb_links = '<div style="text-align: center; padding: 5px 0;">'.implode('<br />', $ob).'</div>';
+    if(count($ob) > 0) $sb_links = '<div style="text-align: center; padding: 5px 0;">'. ( ( getConfig('powered_btn') == '1' ) ? $this->fading_button : '' ) . implode('<br />', $ob).'</div>';
     else $sb_links = '';
     
     $this->sidebar_widget('Links', $sb_links);
