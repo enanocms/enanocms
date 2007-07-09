@@ -513,7 +513,9 @@ class pathManager {
   }
   function getParam($id = 0)
   {
-    if(isset($_SERVER['PATH_INFO']))
+    // using !empty here is a bugfix for IIS 5.x on Windows 2000 Server
+    // It may affect other IIS versions as well
+    if(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO']))
     {
       $pi = explode('/', $_SERVER['PATH_INFO']);
       $id = $id + 2;
@@ -532,7 +534,6 @@ class pathManager {
       {
         if(substr($c, 0, 1) == '/')
         {
-          
           // Bugfix for apache somehow passing dots as underscores
           global $mime_types;
           $exts = array_keys($mime_types);
@@ -551,7 +552,9 @@ class pathManager {
   
   function getAllParams()
   {
-    if(isset($_SERVER['PATH_INFO']))
+    // using !empty here is a bugfix for IIS 5.x on Windows 2000 Server
+    // It may affect other IIS versions as well
+    if(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO']))
     {
       $pi = explode('/', $_SERVER['PATH_INFO']);
       unset($pi[0], $pi[1]);
