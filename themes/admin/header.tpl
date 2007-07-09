@@ -14,7 +14,7 @@
     <div id="header">
       <div class="sitename">{SITE_NAME}</div>
       <div class="menulink"><a href="#" onclick="adminOpenMenu('sidebar', this); return false;">expand menu</a></div>
-      [&nbsp;<a href="{SCRIPTPATH}/{ADMIN_SID_AUTO}">Main page &#0187;</a>&nbsp;]
+      [&nbsp;<a href="{SCRIPTPATH}/{ADMIN_SID_QUES}">Main page &#0187;</a>&nbsp;]
     </div>
     <div class="menu_nojs" id="pagebar_main">
       <div class="label">Page tools</div>
