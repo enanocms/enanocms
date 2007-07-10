@@ -1125,7 +1125,7 @@ class template {
     for($i=0;$i<sizeof($il[1]);$i++)
     {
       $href = makeUrl(str_replace(' ', '_', $il[1][$i]), null, true);
-      $text_parser->assign_vars(Array(
+      $text_parser->assign_vars(Array(  
           'HREF'  => $href,
           'FLAGS' => '',
           'TEXT'  => $il[1][$i]
@@ -1146,8 +1146,32 @@ class template {
     }
     
     // External links
-    $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\ ([^\]]+)]#', '<a href="\\1://\\2">\\3</a><br style="display: none;" />', $message);
-    $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\]#', '<a href="\\1://\\2">\\1://\\2</a><br style="display: none;" />', $message);
+    // $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?) ([^\]]+)\\]#', '<a href="\\1://\\2">\\3</a><br style="display: none;" />', $message);
+    // $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\]#', '<a href="\\1://\\2">\\1://\\2</a><br style="display: none;" />', $message);
+    
+    preg_match_all('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\ ([^\]]+)]#', $message, $ext_link);
+    
+    for ( $i = 0; $i < count($ext_link[0]); $i++ )
+    {
+      $text_parser->assign_vars(Array(  
+          'HREF'  => "{$ext_link[1][$i]}://{$ext_link[2][$i]}",
+          'FLAGS' => '',
+          'TEXT'  => $ext_link[3][$i]
+        ));
+      $message = str_replace($ext_link[0][$i], $text_parser->run(), $message);
+    }
+    
+    preg_match_all('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\]#', $message, $ext_link);
+    
+    for ( $i = 0; $i < count($ext_link[0]); $i++ )
+    {
+      $text_parser->assign_vars(Array(  
+          'HREF'  => "{$ext_link[1][$i]}://{$ext_link[2][$i]}",
+          'FLAGS' => '',
+          'TEXT'  => htmlspecialchars("{$ext_link[1][$i]}://{$ext_link[2][$i]}")
+        ));
+      $message = str_replace($ext_link[0][$i], $text_parser->run(), $message);
+    }
     
     $parser1 = $this->makeParserText($tplvars['sidebar_section']);
     $parser2 = $this->makeParserText($tplvars['sidebar_section_raw']);

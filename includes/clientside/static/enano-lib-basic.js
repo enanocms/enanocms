@@ -275,11 +275,11 @@ function addOnloadHook(func)
 {
   if ( typeof ( func ) == 'function' )
   {
-    try
+    if ( typeof(onload_hooks.push) == 'function' )
     {
       onload_hooks.push(func);
     }
-    catch(e)
+    else
     {
       onload_hooks[onload_hooks.length] = func;
     }
