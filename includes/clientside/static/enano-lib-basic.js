@@ -25,9 +25,6 @@ var detect = navigator.userAgent.toLowerCase();
 var IE;
 var is_Safari;
 
-// dummy tinyMCE object
-var tinyMCE = new Object();
-
 // Detect whether the user is running the Evil One or not...
 
 function checkIt(string) {
@@ -37,6 +34,35 @@ function checkIt(string) {
 }
 if (checkIt('msie')) IE = true;
 else IE = false;
+
+var KILL_SWITCH = false;
+
+if ( IE )
+{
+  var version = window.navigator.appVersion;
+  version = version.substr( ( version.indexOf('MSIE') + 5 ) );
+  var rawversion = '';
+  for ( var i = 0; i < version.length; i++ )
+  {
+    var chr = version.substr(i, 1);
+    if ( !chr.match(/[0-9\.]/) )
+    {
+      break;
+    }
+    rawversion += chr;
+  }
+  rawversion = parseInt(rawversion);
+  if ( rawversion < 6 )
+  {
+    KILL_SWITCH = true;
+  }
+}
+
+// dummy tinyMCE object
+var tinyMCE = new Object();
+
+// Obsolete JSON kill switch
+function disableJSONExts() { };
 
 is_Safari = checkIt('safari') ? true : false;
 
@@ -173,44 +199,6 @@ function append_sid(url)
 
 var stdAjaxPrefix = append_sid(scriptPath+'/ajax.php?title='+title);
 
-// Code for parsing JSON strings - full source code in json.js
-if(!Object.prototype.toJSONString){Array.prototype.toJSONString=function(){var a=['['],b,i,l=this.length,v;function p(s){if(b){a.push(',');}
-a.push(s);b=true;}
-for(i=0;i<l;i+=1){v=this[i];switch(typeof v){case'undefined':case'function':case'unknown':break;case'object':if(v){if(typeof v.toJSONString==='function'){p(v.toJSONString());}}else{p("null");}
-break;default:p(v.toJSONString());}}
-a.push(']');return a.join('');};Boolean.prototype.toJSONString=function(){return String(this);};Date.prototype.toJSONString=function(){function f(n){return n<10?'0'+n:n;}
-return'"'+this.getFullYear()+'-'+
-f(this.getMonth()+1)+'-'+
-f(this.getDate())+'T'+
-f(this.getHours())+':'+
-f(this.getMinutes())+':'+
-f(this.getSeconds())+'"';};Number.prototype.toJSONString=function(){return isFinite(this)?String(this):"null";};Object.prototype.toJSONString=function(){var a=['{'],b,i,v;function p(s){if(b){a.push(',');}
-a.push(i.toJSONString(),':',s);b=true;}
-for(i in this){if(this.hasOwnProperty(i)){v=this[i];switch(typeof v){case'undefined':case'function':case'unknown':break;case'object':if(v){if(typeof v.toJSONString==='function'){p(v.toJSONString());}}else{p("null");}
-break;default:p(v.toJSONString());}}}
-a.push('}');return a.join('');};(function(s){var m={'\b':'\\b','\t':'\\t','\n':'\\n','\f':'\\f','\r':'\\r','"':'\\"','\\':'\\\\'};s.parseJSON=function(filter){try{if(/^("(\\.|[^"\\\n\r])*?"|[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t])+?$/.test(this)){var j=eval('('+this+')');if(typeof filter==='function'){function walk(k,v){if(v&&typeof v==='object'){for(var i in v){if(v.hasOwnProperty(i)){v[i]=walk(i,v[i]);}}}
-return filter(k,v);}
-return walk('',j);}
-return j;}}catch(e){}
-throw new SyntaxError("parseJSON");};s.toJSONString=function(){if(/["\\\x00-\x1f]/.test(this)){return'"'+this.replace(/([\x00-\x1f\\"])/g,function(a,b){var c=m[b];if(c){return c;}
-c=b.charCodeAt();return'\\u00'+
-Math.floor(c/16).toString(16)+
-(c%16).toString(16);})+'"';}
-return'"'+this+'"';};})(String.prototype);}
-
-function disableJSONExts()
-{
-  delete(Object.prototype.toJSONString);
-  delete(Array.prototype.toJSONString);
-  delete(Boolean.prototype.toJSONString);
-  delete(Date.prototype.toJSONString);
-  delete(Number.prototype.toJSONString);
-  delete(String.prototype.toJSONString);
-}
-
-// JSON extensions are deprecated now - use the toJSONString **function**
-disableJSONExts();
-
 var $_REQUEST = new Object();
 if ( window.location.hash )
 {
@@ -227,10 +215,13 @@ if ( window.location.hash )
 }
 
 var head = document.getElementsByTagName('head')[0];
-var script = document.createElement('script');
-script.type="text/javascript";
-script.src=scriptPath+"/includes/clientside/tinymce/tiny_mce_src.js";
-head.appendChild(script);
+if ( !KILL_SWITCH )
+{
+  var script = document.createElement('script');
+  script.type="text/javascript";
+  script.src=scriptPath+"/includes/clientside/tinymce/tiny_mce_src.js";
+  head.appendChild(script);
+}
 
 // Start loading files
 var thefiles = [
@@ -259,10 +250,8 @@ var thefiles = [
 ];
 
 var problem_scripts = {
-  'faders.js' : true,
-  'acl.js' : true,
-  'admin-menu.js' : true,
-  'loader.js' : true
+  'json.js' : true,
+  'template-compiler.js' : true
 };
 
 for(var f in thefiles)
@@ -271,10 +260,12 @@ for(var f in thefiles)
     continue;
   var script = document.createElement('script');
   script.type="text/javascript";
-  //if ( problem_scripts[thefiles[f]] )
-    script.src=scriptPath+"/includes/clientside/static/"+thefiles[f];
-  //else
-  //  script.src=scriptPath+"/includes/clientside/jsres.php?file="+thefiles[f];
+  if ( problem_scripts[thefiles[f]] && KILL_SWITCH )
+  {
+    // alert('kill switch and problem script');
+    continue;
+  }
+  script.src=scriptPath+"/includes/clientside/static/"+thefiles[f];
   head.appendChild(script);
 }
 

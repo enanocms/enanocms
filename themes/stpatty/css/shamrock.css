@@ -427,7 +427,7 @@ input:hover {
   background-color: #73b038;
 }
 
-input:active {
+input:active, input:focus {
   background-color: #83c048;
 }
 

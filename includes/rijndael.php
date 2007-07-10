@@ -744,6 +744,8 @@ class AESCrypt {
    
   function encrypt($text, $key, $return_encoding = ENC_HEX)
   {
+    if ( $text == '' )
+      return '';
     if ( $this->mcrypt && $this->blockSizeInBits == mcrypt_module_get_algo_block_size(eval('return MCRYPT_RIJNDAEL_'.$this->keySizeInBits.';')) )
     {
       $iv_size = mcrypt_get_iv_size($this->mcrypt, MCRYPT_MODE_ECB);
@@ -800,6 +802,8 @@ class AESCrypt {
    
   function decrypt($text, $key, $input_encoding = ENC_HEX)
   {
+    if ( $text == '' )
+      return '';
     switch($input_encoding)
     {
       case ENC_BINARY:
@@ -997,7 +1001,8 @@ class TEACrypt extends AESCrypt {
   }
    
   function encrypt($str, $key) {
-      if ($str == "") {
+      if ($str == "")
+      {
           return "";
       }
       $v = $this->str2long($str, true);

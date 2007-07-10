@@ -8,7 +8,7 @@
     <link id="mdgCss" rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
     <!-- This script automatically loads the other 15 JS files -->
     <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/static/enano-lib-basic.js"></script>
-    <!--[if IE]>
+    <!--[if lt IE 7]>
     <link rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css-extra/ie-fixes.css" />
     <![endif]-->
     <script type="text/javascript">

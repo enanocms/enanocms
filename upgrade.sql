@@ -5,8 +5,11 @@
 DELETE FROM {{TABLE_PREFIX}}config WHERE config_name='enano_version' OR config_name='enano_beta_version' OR config_name='enano_alpha_version' OR config_name='enano_rc_version';
 INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0' );
 ---BEGIN 1.0RC3---
--- Placeholder (all versions need to have at least one query performed)
-ALTER {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;
+ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;
+UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[User:$USERNAME$|User page]]\n[[Special:Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[Special:PrivateMessages|Private messages ($UNREAD_PMS$)]]\n[[Special:Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[Special:Register|Create an account]]\n$LOGIN_LINK$\n[[Special:Login/Special:PrivateMessages|Private messages]]\n{/if}' WHERE item_id=3;
+-- Updated PHP-ized search box
+-- block_type=3: 3 = BLOCK_PHP
+UPDATE {{TABLE_PREFIX}}sidebar SET block_content='?><div class=\"slideblock2\" style=\"padding: 0px;\"><form action=\"<?php echo makeUrlNS(\'Special\', \'Search\'); ?>\" method=\"get\"><input name=\"q\" alt=\"Search box\" type=\"text\" size=\"10\" style=\"width: 70%\" /> <input type=\"submit\" value=\"Go\" style=\"width: 20%\" /></form></div>',block_type=3 WHERE block_name='Search';
 ---END 1.0RC3---
 ---BEGIN 1.0RC2---
 -- Add the "Moderators" group
@@ -15,17 +18,20 @@ UPDATE {{TABLE_PREFIX}}group_members SET group_id=9999 WHERE group_id=3;
 ALTER TABLE {{TABLE_PREFIX}}groups ADD COLUMN system_group tinyint(1) NOT NULL DEFAULT 0;
 UPDATE {{TABLE_PREFIX}}groups SET system_group=1 WHERE group_id=1 OR group_id=2;
 INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(3, 'Moderators', 3, 1);
+ALTER TABLE {{TABLE_PREFIX}}privmsgs ADD COLUMN message_read tinyint(1) NOT NULL DEFAULT 0;
 -- ...and add the associated ACL rule
 INSERT INTO {{TABLE_PREFIX}}acl(target_type,target_id,page_id,namespace,rules) VALUES(1,3,NULL,NULL,'read=4;post_comments=4;edit_comments=4;edit_page=4;view_source=4;mod_comments=4;history_view=4;history_rollback=4;history_rollback_extra=4;protect=4;rename=3;clear_logs=2;vote_delete=4;vote_reset=4;delete_page=4;set_wiki_mode=2;password_set=2;password_reset=2;mod_misc=2;edit_cat=4;even_when_protected=4;upload_files=2;upload_new_version=3;create_page=3;php_in_pages=2;edit_acl=2;');
 -- Create table with extra user information
 CREATE TABLE users_extra( user_id mediumint(8) NOT NULL, user_aim varchar(63) default NULL, user_yahoo varchar(63) default NULL, user_msn varchar(255) default NULL, user_xmpp varchar(255) default NULL, user_homepage text, user_location text, user_job text, user_hobbies text, email_public tinyint(1) NOT NULL default '0', userpage_comments smallint(5) NOT NULL default '0', PRIMARY KEY ( user_id ) );
+-- Turn on the Enano button on the sidebar
+INSERT INTO {{TABLE_PREFIX}}config(config_name,config_value) VALUES('powered_btn', '1');
 ---END 1.0RC2---
 ---BEGIN 1.0RC1---
 -- Not too many DB changes in this release - that's a good sign ;-)
 ALTER TABLE {{TABLE_PREFIX}}search_index MODIFY COLUMN word varbinary(64) NOT NULL;
 CREATE FULLTEXT INDEX {{TABLE_PREFIX}}page_search_idx ON {{TABLE_PREFIX}}page_text(page_id,namespace,page_text);
 UPDATE {{TABLE_PREFIX}}users SET user_level=3 WHERE user_level=2;
-UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[$NS_USER$$USERNAME$|User page]]\n[[$NS_SPECIAL$Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[$NS_SPECIAL$PrivateMessages|Private messages]]\n[[$NS_SPECIAL$Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[$NS_SPECIAL$Register|Create an account]]\n$LOGIN_LINK$\n[[$NS_SPECIAL$Login/$NS_SPECIAL$PrivateMessages|Private messages]]\n{/if}',block_name='$USERNAME$' WHERE block_name='$USERNAME' AND item_id=3;
+UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[$NS_USER$$USERNAME$|User page]]\n[[$NS_SPECIAL$Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[$NS_SPECIAL$PrivateMessages|Private messages]]\n[[$NS_SPECIAL$Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[$NS_SPECIAL$Register|Create an account]]\n$LOGIN_LINK$\n[[$NS_SPECIAL$Login/$NS_SPECIAL$PrivateMessages|Private messages]]\n{/if}',block_name='$USERNAME$' WHERE ( block_name='$USERNAME' OR block_name='$USERNAME$' ) AND item_id=3;
 ---END 1.0RC1---
 ---BEGIN 1.0b4---
 CREATE TABLE {{TABLE_PREFIX}}hits( hit_id bigint(20) NOT NULL auto_increment, username varchar(63) NOT NULL, time int(12) NOT NULL DEFAULT 0, page_id varchar(63), namespace varchar(63), PRIMARY KEY ( hit_id ) );

@@ -380,6 +380,32 @@ function opacity(id, opacStart, opacEnd, millisec) {
     }
 }
 
+var opacityDOMCache = new Object();
+function domOpacity(obj, opacStart, opacEnd, millisec) {
+    //speed for each frame
+    var speed = Math.round(millisec / 100);
+    var timer = 0;
+    
+    // unique ID for this animation
+    var uniqid = Math.floor(Math.random() * 1000000);
+    opacityDOMCache[uniqid] = obj;
+
+    //determine the direction for the blending, if start and end are the same nothing happens
+    if(opacStart > opacEnd) {
+        for(i = opacStart; i >= opacEnd; i--) {
+            setTimeout("var obj = opacityDOMCache["+uniqid+"]; domObjChangeOpac(" + i + ",obj)",(timer * speed));
+            timer++;
+        }
+    } else if(opacStart < opacEnd) {
+        for(i = opacStart; i <= opacEnd; i++)
+            {
+            setTimeout("var obj = opacityDOMCache["+uniqid+"]; domObjChangeOpac(" + i + ",obj)",(timer * speed));
+            timer++;
+        }
+    }
+    setTimeout("delete(opacityDOMCache["+uniqid+"]);",(timer * speed));
+}
+
 //change the opacity for different browsers
 function changeOpac(opacity, id) {
     var object = document.getElementById(id).style;

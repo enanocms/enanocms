@@ -8,6 +8,8 @@ var sliders_initted = false;
 function initSliders()
 {
   sliders_initted = true;
+  if ( KILL_SWITCH )
+    return false;
     // detect whether the user has ie or not, how we get the height is different 
     var useragent = navigator.userAgent.toLowerCase();
     var ie = ((useragent.indexOf('msie') != -1) && (useragent.indexOf('opera') == -1) && (useragent.indexOf('webtv') == -1));
@@ -62,6 +64,8 @@ function div(_el, _ht)
 function toggle(t)
 {
   if(IE)
+    return false;
+  if ( KILL_SWITCH )
     return false;
   if ( !sliders_initted )
     initSliders();
