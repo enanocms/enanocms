@@ -24,7 +24,10 @@ function doStats( $page_id = false, $namespace = false )
       $page_id = $paths->cpage['urlname_nons'];
       $namespace = $paths->namespace;
     }
-    if($namespace == 'Special' || $namespace == 'Admin') return false;
+    if($namespace == 'Special' || $namespace == 'Admin') 
+    {
+      return false;
+    }
     static $stats_done = false;
     static $stats_data = Array();
     if(!$stats_done)
@@ -51,33 +54,41 @@ function doStats( $page_id = false, $namespace = false )
 function stats_top_pages($num = 5)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if(!is_int($num)) return false;
-  $q = $db->sql_query('SELECT page_id,namespace FROM '.table_prefix.'hits ORDER BY page_id ASC, namespace ASC;');
-  if(!$q)
+  if(!is_int($num)) 
   {
-    echo $db->get_error();
     return false;
   }
-  $counter = Array();
+  
+  $data = array();
+  $q = $db->sql_query('SELECT COUNT(hit_id) AS num_hits, page_id, namespace FROM hits GROUP BY page_id, namespace ORDER BY num_hits DESC LIMIT ' . $num . ';');
+  
   while ( $row = $db->fetchrow() )
   {
-    $kname = $paths->nslist[$row['namespace']] . $row['page_id'];
-    if(isset($counter[$kname])) $counter[$kname]++;
-    else $counter[$kname] = 1;
+    if ( isset($paths->pages[ $paths->nslist[ $row['namespace'] ] . $row['page_id'] ]) )
+    {
+      $page_data =& $paths->pages[ $paths->nslist[ $row['namespace'] ] . $row['page_id'] ];
+      $title = $page_data['name'];
+      $page_id = $page_data['urlname'];
+    }
+    else if ( !isset($paths->nslist[$row['namespace']]) )
+    {
+      $title = $row['namespace'] . ':' . $row['page_id'];
+      $page_id = sanitize_page_id($title);
+    }
+    else
+    {
+      $title = dirtify_page_id( $paths->nslist[$row['namespace']] . $row['page_id'] );
+      $title = str_replace('_', ' ', $title);
+      $page_id = sanitize_page_id($title);
+    }
+    $data[] = array(
+        'page_urlname' => $page_id,
+        'page_title' => $title,
+        'num_hits' => $row['num_hits']
+      );
   }
-  $db->free_result();
-  // Pure magic! At least I don't have to do the work...
-  arsort($counter);
-  // Can't use array_slice here because key names are only preserved in PHP5
-  $k = array_keys($counter);
-  $final = Array();
-  if(sizeof($counter) < $num || $num == -1) $num = sizeof($counter);
-  for ( $i = 0; $i < $num; $i++ )
-  {
-    $final[$k[$i]] = $counter[$k[$i]];
-  }
-  unset($counter, $k, $row);
-  return $final;
+  
+  return $data;
 }
 
 ?>

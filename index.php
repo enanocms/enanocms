@@ -56,7 +56,7 @@
       $page->send_headers = true;
       $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
       $page->password = $pagepass;
-      $page->send();
+      $page->send(true);
       break;
     case 'comments':
       $template->header();

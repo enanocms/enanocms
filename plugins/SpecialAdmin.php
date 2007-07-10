@@ -85,18 +85,16 @@ Using the links on the left you can control every aspect of your website\'s look
   if(getConfig('log_hits') == '1')
   {
     $stats = stats_top_pages(10);
+    //die('<pre>'.print_r($stats,true).'</pre>');
     $c = 0;
     $cls = 'row2';
     echo '<h3>Most requested pages</h3><div class="tblholder"><table style="width: 100%;" border="0" cellspacing="1" cellpadding="4"><tr><th>Page</th><th>Hits</th></tr>';
-    foreach($stats as $page => $count)
+    foreach($stats as $data)
     {
-      if(isset($paths->pages[$page]))
-      {
-        echo '<tr>';
-        $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-        echo '<td class="'.$cls.'"><a href="'.makeUrl($page).'">'.$paths->pages[$page]['name'].'</a></td><td style="text-align: center;" class="'.$cls.'">'.$count.'</td>';
-        echo '</tr>';
-      }
+      echo '<tr>';
+      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
+      echo '<td class="'.$cls.'"><a href="'.makeUrl($data['page_urlname']).'">'.$data['page_title'].'</a></td><td style="text-align: center;" class="'.$cls.'">'.$data['num_hits'].'</td>';
+      echo '</tr>';
     }
     echo '</table></div>';
   }

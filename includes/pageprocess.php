@@ -130,10 +130,11 @@ class PageProcessor
   }
   
   /**
-   * The main method to send the page content. Also responsible for checking permissions.
+   * The main method to send the page content. Also responsible for checking permissions and calling the statistics counter.
+   * @param bool If true, the stat counter is called. Defaults to false.
    */
   
-  function send()
+  function send( $do_stats = false )
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if ( !$this->perms->get_permissions('read') )
@@ -159,6 +160,10 @@ class PageProcessor
           return false;
         }
       }
+    }
+    if ( $this->page_exists && $this->namespace != 'Special' && $this->namespace != 'Admin' && $do_stats )
+    {
+      doStats($this->page_id, $this->namespace);
     }
     if ( $this->namespace == 'Special' || $this->namespace == 'Admin' )
     {
@@ -226,7 +231,16 @@ class PageProcessor
       
       if ( empty($ob) )
       {
+        die('ob is empty');
         $this->err_page_not_existent();
+      }
+      else
+      {
+        // Something sent content, so we'll assume the page exist...ed at least according to the plugin
+        if ( $this->namespace != 'Special' && $this->namespace != 'Admin' && $do_stats )
+        {
+          doStats($this->page_id, $this->namespace);
+        }
       }
     }
     else // (disabled for compatibility reasons) if ( in_array($this->namespace, array('Article', 'User', 'Project', 'Help', 'File', 'Category')) && $this->page_exists )
