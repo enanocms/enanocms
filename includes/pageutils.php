@@ -576,7 +576,7 @@ class PageUtils {
             <input type="hidden" name="do" value="diff" />
             <input type="submit" value="Compare selected revisions" />
             </form>
-            <script type="text/javascript">buildDiffList();</script>';
+            <script type="text/javascript">if ( !KILL_SWITCH ) { buildDiffList(); }</script>';
     }
     $db->free_result();
     echo '<h3>Other changes:</h3>';

@@ -42,5 +42,9 @@ function enano_init(e) {
   ld(e);
   mdgInnerLoader(e);
 }
-window.onload = enano_init;
+
+if ( typeof(KILL_SWITCH) == 'boolean' && !KILL_SWITCH )
+{
+  window.onload = enano_init;
+}
 

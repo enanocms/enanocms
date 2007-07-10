@@ -853,7 +853,9 @@ function page_Special_PasswordReset()
       </div>
     </form>
     <script type="text/javascript">
-    disableJSONExts();
+    if ( !KILL_SWITCH )
+    {
+      disableJSONExts();
       str = '';
       for(i=0;i<keySizeInBits/4;i++) str+='0';
       var key = hexToByteArray(str);
@@ -889,6 +891,7 @@ function page_Special_PasswordReset()
       }
       function runEncryption()
       {
+        var frm = document.forms.resetform;
         pass1 = frm.pass.value;
         pass2 = frm.pass_confirm.value;
         if ( pass1 != pass2 )
@@ -917,6 +920,7 @@ function page_Special_PasswordReset()
         }
         return true;
       }
+    }
     </script>
     <?php
     $template->footer();

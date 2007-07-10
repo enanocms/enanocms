@@ -2350,6 +2350,11 @@ function page_Special_Administration()
     <script type="text/javascript">
     function ajaxPage(t)
     {
+      if ( KILL_SWITCH )
+      {
+        document.getElementById('ajaxPageContainer').innerHTML = '<div class="error-box">Because of the lack of AJAX support, support for Internet Explorer versions less than 6.0 has been disabled in Runt. You can download and use Mozilla Firefox (or Seamonkey under Windows 95); both have an up-to-date standards-compliant rendering engine that has been tested thoroughly with Enano.</div>';
+        return false;
+      }
       if ( t == namespace_list.Admin + 'AdminLogout' )
       {
         var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, 'Are you sure you want to de-authenticate?', 'If you de-authenticate, you will no longer be able to use the administration panel until you re-authenticate again. You may do so at any time using the Administration button on the sidebar.');
@@ -2379,6 +2384,11 @@ function page_Special_Administration()
     }
     function ajaxPageBin(t)
     {
+      if ( KILL_SWITCH )
+      {
+        document.getElementById('ajaxPageContainer').innerHTML = '<div class="error-box">Because of the lack of AJAX support, support for Internet Explorer versions less than 6.0 has been disabled in Runt. You can download and use Mozilla Firefox (or Seamonkey under Windows 95); both have an up-to-date standards-compliant rendering engine that has been tested thoroughly with Enano.</div>';
+        return false;
+      }
       document.getElementById('ajaxPageContainer').innerHTML = '<div class="wait-box">Loading page...</div>';
       ajaxGet('<?php echo scriptPath; ?>/ajax.php?title='+t+'&_mode=getpage&noheaders&auth=<?php echo $session->sid_super; ?>', function() {
           if(ajax.readyState == 4) {
@@ -2424,7 +2434,10 @@ function page_Special_Administration()
         <td class="holder" valign="top">
           <div class="pad" style="padding-right: 20px;">
             <script type="text/javascript">
-            new tree(TREE_ITEMS, TREE_TPL);
+            if ( !KILL_SWITCH )
+            {
+              new tree(TREE_ITEMS, TREE_TPL);
+            }
             </script>
           </div>
         </td>
@@ -2459,6 +2472,12 @@ function page_Special_Administration()
           }
           ?>
           </div>
+          <script type="text/javascript">
+            if ( KILL_SWITCH )
+            {
+              document.getElementById('ajaxPageContainer').innerHTML = '<div class="error-box">Because of the lack of AJAX support, support for Internet Explorer versions less than 6.0 has been disabled in Runt. You can download and use Mozilla Firefox (or Seamonkey under Windows 95); both have an up-to-date standards-compliant rendering engine that has been tested thoroughly with Enano.</div>';
+            }
+        </script>
         </td>
       </tr>
     </table>

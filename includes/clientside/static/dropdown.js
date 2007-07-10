@@ -40,6 +40,8 @@ var jBoxInit = function()
 // Initializes each menu.
 function jBoxBatchSetup()
 {
+  if ( KILL_SWITCH )
+    return false;
   var menus = document.getElementsByClassName('div', 'menu_nojs');
   if ( menus.length > 0 )
   {

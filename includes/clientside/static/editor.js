@@ -16,7 +16,10 @@ var initTinyMCE = function(e)
       theme_advanced_buttons3_add_before : "tablecontrols,separator",
       theme_advanced_statusbar_location : 'bottom'
     }
-    tinyMCE.init(options);
+    if ( !KILL_SWITCH )
+    {
+      tinyMCE.init(options);
+    }
   }
 }
 addOnloadHook(initTinyMCE);

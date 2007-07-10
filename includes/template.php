@@ -42,7 +42,7 @@ class template {
     $this->plugin_blocks = Array();
     $this->theme_loaded = false;
     
-    $fading_button = '<a href="http://enanocms.org" onclick="window.open(this.href); return false;" style="text-align: center; margin: 0 auto; display: table; background-image: none;">
+    $fading_button = '<a href="http://enanocms.org" onclick="if ( !KILL_SWITCH ) { window.open(this.href); return false; }" style="text-align: center; margin: 0 auto; display: table; background-image: none;">
                             <img alt="Powered by Enano CMS" style="border-width: 0; position: absolute;" 
                                  src="' . scriptPath . '/images/about-powered-enano.png" id="enanoFader" onmouseover="domOpacity(this, 100, 0, 500);" 
                                  onmouseout="opacity(this.id, 0, 100, 500);" />
@@ -247,7 +247,7 @@ class template {
     $parser = $this->makeParserText($btn_selected);
     
     $parser->assign_vars(array(
-        'FLAGS' => 'onclick="void(ajaxReset()); return false;" title="View the page contents, all of the page contents, and nothing but the page contents (alt-a)" accesskey="a"',
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxReset()); return false; }" title="View the page contents, all of the page contents, and nothing but the page contents (alt-a)" accesskey="a"',
         'PARENTFLAGS' => 'id="mdgToolbar_article"',
         'HREF' => makeUrl($paths->page, null, true),
         'TEXT' => $this->namespace_string
@@ -291,7 +291,7 @@ class template {
       }
       
       $button->assign_vars(array(
-          'FLAGS' => 'onclick="void(ajaxComments()); return false;" title="View the comments that other users have posted about this page (alt-c)" accesskey="c"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxComments()); return false; }" title="View the comments that other users have posted about this page (alt-c)" accesskey="c"',
           'PARENTFLAGS' => 'id="mdgToolbar_discussion"',
           'HREF' => makeUrl($paths->page, 'do=comments', true),
           'TEXT' => 'discussion ('.$n.')',
@@ -303,7 +303,7 @@ class template {
     if($session->get_permissions('read') && ($paths->namespace != 'Special' && $paths->namespace != 'Admin') && ( $session->get_permissions('edit_page') && ( ( $paths->page_protected && $session->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
     {
       $button->assign_vars(array(
-        'FLAGS' => 'onclick="void(ajaxEditor()); return false;" title="Edit the contents of this page (alt-e)" accesskey="e"',
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="Edit the contents of this page (alt-e)" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=edit', true),
         'TEXT' => 'edit this page'
@@ -314,7 +314,7 @@ class template {
     else if($session->get_permissions('view_source') && ( !$session->get_permissions('edit_page') || !$session->get_permissions('even_when_protected') && $paths->page_protected ) && $paths->namespace != 'Special' && $paths->namespace != 'Admin') 
     {
       $button->assign_vars(array(
-        'FLAGS' => 'onclick="void(ajaxViewSource()); return false;" title="View the source code (wiki markup) that this page uses (alt-e)" accesskey="e"',
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxViewSource()); return false; }" title="View the source code (wiki markup) that this page uses (alt-e)" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=viewsource', true),
         'TEXT' => 'view source'
@@ -325,7 +325,7 @@ class template {
     if ( $session->get_permissions('read') /* && $paths->wiki_mode */ && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' && $session->get_permissions('history_view') )
     {
       $button->assign_vars(array(
-        'FLAGS'       => 'onclick="void(ajaxHistory()); return false;" title="View a log of actions taken on this page (alt-h)" accesskey="h"',
+        'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="View a log of actions taken on this page (alt-h)" accesskey="h"',
         'PARENTFLAGS' => 'id="mdgToolbar_history"',
         'HREF'        => makeUrl($paths->page, 'do=history', true),
         'TEXT'        => 'history'
@@ -340,7 +340,7 @@ class template {
     if ( $session->get_permissions('read') && $paths->page_exists && ( $session->get_permissions('rename') && ( $paths->page_protected && $session->get_permissions('even_when_protected') || !$paths->page_protected ) ) && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="void(ajaxRename()); return false;" title="Change the display name of this page (alt-r)" accesskey="r"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="Change the display name of this page (alt-r)" accesskey="r"',
           'HREF'  => makeUrl($paths->page, 'do=rename', true),
           'TEXT'  => 'rename',
         ));
@@ -351,7 +351,7 @@ class template {
     if ( $paths->wiki_mode && $session->get_permissions('vote_delete') && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin')
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="void(ajaxDelVote()); return false;" title="Vote to have this page deleted (alt-d)" accesskey="d"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="Vote to have this page deleted (alt-d)" accesskey="d"',
           'HREF'  => makeUrl($paths->page, 'do=delvote', true),
           'TEXT'  => 'vote to delete this page',
         ));
@@ -362,7 +362,7 @@ class template {
     if ( $session->get_permissions('read') && $paths->wiki_mode && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' && $session->get_permissions('vote_reset') && $paths->cpage['delvotes'] > 0)
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="void(ajaxResetDelVotes()); return false;" title="Vote to have this page deleted (alt-y)" accesskey="y"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="Vote to have this page deleted (alt-y)" accesskey="y"',
           'HREF'  => makeUrl($paths->page, 'do=resetvotes', true),
           'TEXT'  => 'reset deletion votes',
         ));
@@ -394,7 +394,7 @@ class template {
         $ctmp=' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="i" onclick="ajaxProtect(1); return false;" id="protbtn_1" title="Prevents all non-administrators from editing this page. [alt-i]"'.$ctmp,
+          'FLAGS' => 'accesskey="i" onclick="if ( !KILL_SWITCH ) { ajaxProtect(1); return false; }" id="protbtn_1" title="Prevents all non-administrators from editing this page. [alt-i]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=1', true),
           'TEXT'  => 'on'
         ));
@@ -406,7 +406,7 @@ class template {
         $ctmp=' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="o" onclick="ajaxProtect(0); return false;" id="protbtn_0" title="Allows everyone to edit this page. [alt-o]"'.$ctmp,
+          'FLAGS' => 'accesskey="o" onclick="if ( !KILL_SWITCH ) { ajaxProtect(0); return false; }" id="protbtn_0" title="Allows everyone to edit this page. [alt-o]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=0', true),
           'TEXT'  => 'off'
         ));
@@ -418,7 +418,7 @@ class template {
         $ctmp = ' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="p" onclick="ajaxProtect(2); return false;" id="protbtn_2" title="Allows only users who have been registered for 4 days to edit this page. [alt-p]"'.$ctmp,
+          'FLAGS' => 'accesskey="p" onclick="if ( !KILL_SWITCH ) { ajaxProtect(2); return false; }" id="protbtn_2" title="Allows only users who have been registered for 4 days to edit this page. [alt-p]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=2', true),
           'TEXT'  => 'semi'
         ));
@@ -449,7 +449,7 @@ class template {
         $ctmp = ' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="ajaxSetWikiMode(1); return false;" id="wikibtn_1" title="Forces wiki functions to be allowed on this page."'.$ctmp,
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(1); return false; }" id="wikibtn_1" title="Forces wiki functions to be allowed on this page."'.$ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=1', true),
           'TEXT' => 'on'
         ));
@@ -462,7 +462,7 @@ class template {
         $ctmp=' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="ajaxSetWikiMode(0); return false;" id="wikibtn_0" title="Forces wiki functions to be disabled on this page."'.$ctmp,
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(0); return false; }" id="wikibtn_0" title="Forces wiki functions to be disabled on this page."'.$ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=0', true),
           'TEXT' => 'off'
         ));
@@ -475,7 +475,7 @@ class template {
         $ctmp=' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="ajaxSetWikiMode(2); return false;" id="wikibtn_2" title="Causes this page to use the global wiki mode setting (default)"'.$ctmp,
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(2); return false; }" id="wikibtn_2" title="Causes this page to use the global wiki mode setting (default)"'.$ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=2', true),
           'TEXT' => 'global'
         ));
@@ -496,7 +496,7 @@ class template {
     if ( $session->get_permissions('read') && $session->get_permissions('clear_logs') && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="void(ajaxClearLogs()); return false;" title="Remove all edit and action logs for this page from the database. IRREVERSIBLE! (alt-l)" accesskey="l"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxClearLogs()); return false; }" title="Remove all edit and action logs for this page from the database. IRREVERSIBLE! (alt-l)" accesskey="l"',
           'HREF'  => makeUrl($paths->page, 'do=flushlogs', true),
           'TEXT'  => 'clear page logs',
         ));
@@ -517,7 +517,7 @@ class template {
       }
       
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="void(ajaxDeletePage()); return false;" title="Delete this page. This is always reversible unless the logs are cleared. (alt-k)" accesskey="k"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDeletePage()); return false; }" title="Delete this page. This is always reversible unless the logs are cleared. (alt-k)" accesskey="k"',
           'HREF'  => makeUrl($paths->page, 'do=deletepage', true),
           'TEXT'  => $s,
         ));
@@ -549,7 +549,7 @@ class template {
       $t0 = $label->run();
       
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="void(ajaxSetPassword()); return false;" title="Require a password in order for this page to be viewed"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxSetPassword()); return false; }" title="Require a password in order for this page to be viewed"',
           'HREF'  => '#',
           'TEXT'  => 'set',
         ));
@@ -562,7 +562,7 @@ class template {
     if($session->get_permissions('edit_acl') || $session->user_level >= USER_LEVEL_ADMIN)
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="return ajaxOpenACLManager();" title="Manage who can do what with this page (alt-m)" accesskey="m"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { return ajaxOpenACLManager(); }" title="Manage who can do what with this page (alt-m)" accesskey="m"',
           'HREF'  => makeUrl($paths->page, 'do=aclmanager', true),
           'TEXT'  => 'manage page access',
         ));
@@ -573,7 +573,7 @@ class template {
     if ( $session->user_level >= USER_LEVEL_ADMIN && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="void(ajaxAdminPage()); return false;" title="Administrative options for this page" accesskey="g"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="Administrative options for this page" accesskey="g"',
           'HREF'  => makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'PageManager', true),
           'TEXT'  => 'administrative options',
         ));
@@ -583,7 +583,7 @@ class template {
     if ( strlen($this->toolbar_menu) > 0 )
     {
       $button->assign_vars(array(
-        'FLAGS'       => 'id="mdgToolbar_moreoptions" onclick="return false;" title="Additional options for working with this page"',
+        'FLAGS'       => 'id="mdgToolbar_moreoptions" onclick="if ( !KILL_SWITCH ) { return false; }" title="Additional options for working with this page"',
         'PARENTFLAGS' => '',
         'HREF'        => makeUrl($paths->page, 'do=moreoptions', true),
         'TEXT'        => 'more options'
@@ -643,7 +643,7 @@ class template {
     
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Logout'),
-        'FLAGS'=>'onclick="mb_logout(); return false;"',
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { mb_logout(); return false; }"',
         'TEXT'=>'Log out',
       ));
     
@@ -651,7 +651,7 @@ class template {
     
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Login/' . $paths->page),
-        'FLAGS'=>'onclick="ajaxStartLogin(); return false;"',
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxStartLogin(); return false; }"',
         'TEXT'=>'Log in',
       ));
     
@@ -659,7 +659,7 @@ class template {
     
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'ChangeStyle/'.$paths->page),
-        'FLAGS'=>'onclick="ajaxChangeStyle(); return false;"',
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxChangeStyle(); return false; }"',
         'TEXT'=>'Change theme',
       ));
     
@@ -1235,7 +1235,7 @@ class template {
     $randomid = md5(microtime() . mt_rand());
     $html = '';
     $html .= '<textarea name="' . $name . '" rows="'.$rows.'" cols="'.$cols.'" style="width: 100%;" id="toggleMCEroot_'.$randomid.'">' . $content . '</textarea>';
-    $html .= '<div style="float: right; display: table;" id="mceSwitchAgent_' . $randomid . '">text editor&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="toggleMCE_'.$randomid.'(); return false;">graphical editor</a></div>';
+    $html .= '<div style="float: right; display: table;" id="mceSwitchAgent_' . $randomid . '">text editor&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">graphical editor</a></div>';
     $html .= '<script type="text/javascript">
                 // <![CDATA[
                 function toggleMCE_'.$randomid.'()
@@ -1245,12 +1245,12 @@ class template {
                   if ( the_obj.dnIsMCE == "yes" )
                   {
                     $dynano(the_obj).destroyMCE();
-                    panel.innerHTML = \'text editor&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="toggleMCE_'.$randomid.'(); return false;">graphical editor</a>\';
+                    panel.innerHTML = \'text editor&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">graphical editor</a>\';
                   }
                   else
                   {
                     $dynano(the_obj).switchToMCE();
-                    panel.innerHTML = \'<a href="#" onclick="toggleMCE_'.$randomid.'(); return false;">text editor</a>&nbsp;&nbsp;|&nbsp;&nbsp;graphical editor\';
+                    panel.innerHTML = \'<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">text editor</a>&nbsp;&nbsp;|&nbsp;&nbsp;graphical editor\';
                   }
                 }
                 // ]]>
@@ -1385,15 +1385,15 @@ class template {
     $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN ) ? 'title="You may disable this button in the admin panel under General Configuration."' : '';
     if(getConfig('sflogo_enabled')=='1')
     {
-      $ob[] = '<a style="text-align: center;" href="http://sourceforge.net/" onclick="window.open(this.href);return false;"><img style="border-width: 0px;" alt="SourceForge.net Logo" src="http://sflogo.sourceforge.net/sflogo.php?group_id='.getConfig('sflogo_groupid').'&amp;type='.getConfig('sflogo_type').'" /></a>';
+      $ob[] = '<a style="text-align: center;" href="http://sourceforge.net/" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border-width: 0px;" alt="SourceForge.net Logo" src="http://sflogo.sourceforge.net/sflogo.php?group_id='.getConfig('sflogo_groupid').'&amp;type='.getConfig('sflogo_type').'" /></a>';
     }
-    if(getConfig('w3c_v32')     =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="window.open(this.href);return false;"><img style="border: 0px solid #FFFFFF;" alt="Valid HTML 3.2"  src="http://www.w3.org/Icons/valid-html32" /></a>';
-    if(getConfig('w3c_v40')     =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="window.open(this.href);return false;"><img style="border: 0px solid #FFFFFF;" alt="Valid HTML 4.0"  src="http://www.w3.org/Icons/valid-html40" /></a>';
-    if(getConfig('w3c_v401')    =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="window.open(this.href);return false;"><img style="border: 0px solid #FFFFFF;" alt="Valid HTML 4.01" src="http://www.w3.org/Icons/valid-html401" /></a>';
-    if(getConfig('w3c_vxhtml10')=='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="window.open(this.href);return false;"><img style="border: 0px solid #FFFFFF;" alt="Valid XHTML 1.0" src="http://www.w3.org/Icons/valid-xhtml10" /></a>';
-    if(getConfig('w3c_vxhtml11')=='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="window.open(this.href);return false;"><img style="border: 0px solid #FFFFFF;" alt="Valid XHTML 1.1" src="http://www.w3.org/Icons/valid-xhtml11" /></a>';
-    if(getConfig('w3c_vcss')    =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="window.open(this.href);return false;"><img style="border: 0px solid #FFFFFF;" alt="Valid CSS"       src="http://www.w3.org/Icons/valid-css" /></a>';
-    if(getConfig('dbd_button')  =='1') $ob[] = '<a style="text-align: center;" href="http://www.defectivebydesign.org/join/button" onclick="window.open(this.href);return false;"><img style="border: 0px solid #FFFFFF;" alt="DRM technology restricts what you can do with your computer" src="http://defectivebydesign.org/sites/nodrm.civicactions.net/files/images/dbd_sm_btn.gif" /><br /><small>Protect your freedom >></small></a>';
+    if(getConfig('w3c_v32')     =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="Valid HTML 3.2"  src="http://www.w3.org/Icons/valid-html32" /></a>';
+    if(getConfig('w3c_v40')     =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="Valid HTML 4.0"  src="http://www.w3.org/Icons/valid-html40" /></a>';
+    if(getConfig('w3c_v401')    =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="Valid HTML 4.01" src="http://www.w3.org/Icons/valid-html401" /></a>';
+    if(getConfig('w3c_vxhtml10')=='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="Valid XHTML 1.0" src="http://www.w3.org/Icons/valid-xhtml10" /></a>';
+    if(getConfig('w3c_vxhtml11')=='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="Valid XHTML 1.1" src="http://www.w3.org/Icons/valid-xhtml11" /></a>';
+    if(getConfig('w3c_vcss')    =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="Valid CSS"       src="http://www.w3.org/Icons/valid-css" /></a>';
+    if(getConfig('dbd_button')  =='1') $ob[] = '<a style="text-align: center;" href="http://www.defectivebydesign.org/join/button" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="DRM technology restricts what you can do with your computer" src="http://defectivebydesign.org/sites/nodrm.civicactions.net/files/images/dbd_sm_btn.gif" /><br /><small>Protect your freedom >></small></a>';
     
     $code = $plugins->setHook('links_widget');
     foreach ( $code as $cmd )
@@ -1548,7 +1548,7 @@ class template_nodb {
     // Get the "article" button text (depends on namespace)
     if(defined('IN_ENANO_INSTALL')) $ns = 'installation page';
     else $ns = 'system error page';
-    $t = str_replace('{FLAGS}', 'onclick="return false;" title="Hey! A button that doesn\'t do anything. Clever..." accesskey="a"', $tplvars['toolbar_button']);
+    $t = str_replace('{FLAGS}', 'onclick="if ( !KILL_SWITCH ) { return false; }" title="Hey! A button that doesn\'t do anything. Clever..." accesskey="a"', $tplvars['toolbar_button']);
     $t = str_replace('{HREF}', '#', $t);
     $t = str_replace('{TEXT}', $ns, $t);
     $tb .= $t;
@@ -1721,7 +1721,7 @@ class template_nodb {
     $text = preg_replace('#<!-- BEGIN (.*?) -->#is', '\'; if($this->tpl_bool[\'\\1\']) { $tpl_code .= \'', $text);
     $text = preg_replace('#<!-- IFPLUGIN (.*?) -->#is', '\'; if(getConfig(\'plugin_\\1\')==\'1\') { $tpl_code .= \'', $text);
     if(defined('IN_ENANO_INSTALL')) $text = str_replace('<!-- SYSMSG Sidebar -->', '<div class="slider"><div class="heading"><a class="head">Installation progress</a></div><div class="slideblock">'.$sideinfo.'</div></div>', $text);
-    else $text = str_replace('<!-- SYSMSG Sidebar -->', '<div class="slider"><div class="heading"><a class="head">System error</a></div><div class="slideblock"><a href="#" onclick="return false;">Enano critical error page</a></div></div>', $text);
+    else $text = str_replace('<!-- SYSMSG Sidebar -->', '<div class="slider"><div class="heading"><a class="head">System error</a></div><div class="slideblock"><a href="#" onclick="return false;>Enano critical error page</a></div></div>', $text);
     $text = preg_replace('#<!-- SYSMSG (.*?) -->#is', '', $text);
     $text = preg_replace('#<!-- BEGINNOT (.*?) -->#is', '\'; if(!$this->tpl_bool[\'\\1\']) { $tpl_code .= \'', $text);
     $text = preg_replace('#<!-- BEGINELSE (.*?) -->#is', '\'; } else { $tpl_code .= \'', $text);

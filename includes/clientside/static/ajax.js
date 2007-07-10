@@ -51,7 +51,11 @@ function ajaxEscape(text)
 
 // Page editor
 
-function ajaxEditor() {
+function ajaxEditor()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=getsource', function() {
       if(ajax.readyState == 4) {
@@ -106,7 +110,11 @@ function setEditorText()
   $('switcher').object.innerHTML = 'wikitext editor  |  <a href="#" onclick="setEditorMCE(); return false;">graphical editor</a>';
 }
 
-function ajaxViewSource() {
+function ajaxViewSource()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=getsource', function() {
       if(ajax.readyState == 4) {
@@ -135,6 +143,9 @@ function ajaxViewSource() {
 
 function ajaxShowPreview()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   goBusy('Loading preview...');
   var text = ajaxEscape($('ajaxEditArea').getContent());
   if(document.mdgAjaxEditor.minor.checked) minor='&minor';
@@ -148,7 +159,11 @@ function ajaxShowPreview()
   });
 }
 
-function ajaxSavePage() {
+function ajaxSavePage()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   goBusy('Saving page...');
   var text = ajaxEscape($('ajaxEditArea').getContent());
   if(document.mdgAjaxEditor.minor.checked) minor='&minor';
@@ -164,13 +179,21 @@ function ajaxSavePage() {
   });
 }
 
-function ajaxDiscard() {
+function ajaxDiscard()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   c = confirm('Do you really want to discard your changes?');
   if(!c) return;
   ajaxReset();
 }
 
-function ajaxReset() {
+function ajaxReset()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   enableUnload();
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=getpage&noheaders', function() {
@@ -187,6 +210,9 @@ function ajaxReset() {
 // Miscellaneous AJAX applets
 
 function ajaxProtect(l) {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   if(shift) {
     r = 'NO_REASON';
   } else {
@@ -207,7 +233,11 @@ function ajaxProtect(l) {
   });
 }
 
-function ajaxRename() {
+function ajaxRename()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   r = prompt('What title should this page be renamed to?\nNote: This does not and will never change the URL of this page, that must be done from the admin panel.');
   if(!r || r=='') return;
   setAjaxLoading();
@@ -219,7 +249,11 @@ function ajaxRename() {
   });
 }
 
-function ajaxMakePage() {
+function ajaxMakePage()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   setAjaxLoading();
   ajaxPost(ENANO_SPECIAL_CREATEPAGE, ENANO_CREATEPAGE_PARAMS, function() {
     if(ajax.readyState == 4) {
@@ -229,7 +263,11 @@ function ajaxMakePage() {
   });
 }
 
-function ajaxDeletePage() {
+function ajaxDeletePage()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   var reason = prompt('Please enter your reason for deleting this page.');
   if ( !reason || reason == '' )
   {
@@ -250,7 +288,11 @@ function ajaxDeletePage() {
   });
 }
 
-function ajaxDelVote() {
+function ajaxDelVote()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   c = confirm('Are you sure that you want to vote that this page be deleted?');
   if(!c) return;
   setAjaxLoading();
@@ -262,7 +304,11 @@ function ajaxDelVote() {
   });
 }
 
-function ajaxResetDelVotes() {
+function ajaxResetDelVotes()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   c = confirm('This will reset the number of votes against this page to zero. Do you really want to do this?');
   if(!c) return;
   setAjaxLoading();
@@ -281,6 +327,9 @@ function ajaxResetDelVotes() {
 }
 
 function ajaxSetWikiMode(val) {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   setAjaxLoading();
   document.getElementById('wikibtn_0').style.textDecoration = 'none';
   document.getElementById('wikibtn_1').style.textDecoration = 'none';
@@ -301,7 +350,11 @@ function ajaxSetWikiMode(val) {
 // This was not easy to write, I hope enjoy it, and dang I swear I'm gonna
 // find someone to work on just the Javascript part of Enano...
 
-function ajaxCatEdit() {
+function ajaxCatEdit()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=catedit', function() {
     if(ajax.readyState == 4) {
@@ -314,6 +367,9 @@ function ajaxCatEdit() {
 
 function ajaxCatSave()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   if(!catlist)
   {
     alert('Var catlist has no properties');
@@ -340,7 +396,11 @@ function ajaxCatSave()
 
 // History stuff
 
-function ajaxHistory() {
+function ajaxHistory()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=histlist', function() {
     if(ajax.readyState == 4) {
@@ -355,6 +415,9 @@ function ajaxHistory() {
 }
 
 function ajaxHistView(oldid, tit) {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   if(!tit) tit=title;
   setAjaxLoading();
   ajaxGet(append_sid(scriptPath+'/ajax.php?title='+tit+'&_mode=getpage&oldid='+oldid), function() {
@@ -367,6 +430,9 @@ function ajaxHistView(oldid, tit) {
 }
 
 function ajaxRollback(id) {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=rollback&id='+id, function() {
     if(ajax.readyState == 4) {
@@ -376,7 +442,11 @@ function ajaxRollback(id) {
   });
 }
 
-function ajaxClearLogs() {
+function ajaxClearLogs()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   c = confirm('You are about to DESTROY all log entries for this page. As opposed to (example) deleting this page, this action is completely IRREVERSIBLE and should not be used except in dire circumstances. Do you REALLY want to do this?');
   if(!c) return;
   c = confirm('You\'re ABSOLUTELY sure???');
@@ -450,6 +520,9 @@ function selectDiff2Button(obj)
 
 function ajaxHistDiff()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   var id1=false;
   var id2=false;
   for ( i = 0; i < arrDiff1Buttons.length; i++ )
@@ -476,6 +549,9 @@ function ajaxHistDiff()
 
 function ajaxChangeStyle()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   var inner_html = '';
   inner_html += '<p><label>Theme: ';
   inner_html += '  <select id="chtheme_sel_theme" onchange="ajaxGetStyles(this.value);">';
@@ -489,6 +565,9 @@ function ajaxChangeStyle()
 
 function ajaxGetStyles(id)
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   var thediv = document.getElementById('chtheme_sel_style_parent');
   if ( thediv )
   {
@@ -547,6 +626,9 @@ function ajaxGetStyles(id)
 
 function ajaxChangeStyleComplete()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   var theme = $('chtheme_sel_theme');
   var style = $('chtheme_sel_style');
   if ( !theme.object || !style.object )
@@ -603,6 +685,9 @@ function themeid_to_title(id)
 /*
 function ajaxChangeStyle()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   var win = document.getElementById("cn2");
   win.innerHTML = ' \
     <form action="'+ENANO_SPECIAL_CHANGESTYLE+'" onsubmit="jws.closeWin(\'root2\');" method="post" style="text-align: center"> \
@@ -640,7 +725,11 @@ function ajaxGetStyles(id) {
 }
 */
 
-function ajaxSwapCSS() {
+function ajaxSwapCSS()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   setAjaxLoading();
   if(_css) {
     document.getElementById('mdgCss').href = main_css;
@@ -655,6 +744,9 @@ function ajaxSwapCSS() {
 
 function ajaxSetPassword()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   pass = hex_sha1(document.getElementById('mdgPassSetField').value);
   setAjaxLoading();
   ajaxPost(stdAjaxPrefix+'&_mode=setpass', 'password='+pass, function()
@@ -670,6 +762,9 @@ function ajaxSetPassword()
 
 function ajaxWikiEditHelp()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   jws.openWin('root3', 640, 480);
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=wikihelp', function() {
@@ -683,6 +778,9 @@ function ajaxWikiEditHelp()
 
 function ajaxStartLogin()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   ajaxPromptAdminAuth(function(k) {
       window.location.reload();
     }, 2);
@@ -690,6 +788,9 @@ function ajaxStartLogin()
 
 function ajaxAdminPage()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   if ( auth_level < USER_LEVEL_ADMIN )
   {
     ajaxPromptAdminAuth(function(k) {
@@ -709,6 +810,9 @@ function ajaxAdminPage()
 
 function ajaxDisableEmbeddedPHP()
 {
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
   if ( !confirm('Are you really sure you want to do this? Some pages might not function if this emergency-only feature is activated.') )
     return false;
   var $killdiv = $dynano('php_killer');

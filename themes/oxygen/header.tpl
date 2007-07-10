@@ -22,12 +22,18 @@
           elem.style.display = 'block';
           counter.style.display = 'none';
           elem.parentNode.style.width = '156px';
-          createCookie(side+'_sidebar', 'open', 365);
+          if ( !KILL_SWITCH )
+          {
+            createCookie(side+'_sidebar', 'open', 365);
+          }
         } else {
           elem.style.display = 'none';
           counter.style.display = 'block';
           elem.parentNode.style.width = '25px';
-          createCookie(side+'_sidebar', 'collapsed', 365);
+          if ( !KILL_SWITCH )
+          {
+            createCookie(side+'_sidebar', 'collapsed', 365);
+          }
         }
       }
       
@@ -43,16 +49,25 @@
       }
       */
       
-      addOnloadHook(function() {
-          if(typeof readCookie == 'function')
-          {
-            if(readCookie('left_sidebar') =='collapsed') collapseSidebar('left');
-            if(readCookie('right_sidebar')=='collapsed') collapseSidebar('right');
-          }
-        });
+      if ( typeof(KILL_SWITCH) != 'undefined' )
+      {
+        if ( !KILL_SWITCH )
+        {
+          var oxygenSidebarSetup = function() {
+              if(typeof readCookie == 'function')
+              {
+                if(readCookie('left_sidebar') =='collapsed') collapseSidebar('left');
+                if(readCookie('right_sidebar')=='collapsed') collapseSidebar('right');
+              }
+            };
+          addOnloadHook(oxygenSidebarSetup);
+        }
+      }
       
       function ajaxRenameInline()
       {
+        if ( KILL_SWITCH )
+          return false;
         // This trick is _so_ vBulletin...
         elem = document.getElementById('h2PageName');
         if(!elem) return;

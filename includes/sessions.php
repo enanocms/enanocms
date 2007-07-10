@@ -2385,6 +2385,7 @@ The {$site_name} administration team
           {
             if(testpassed)
             {
+              var frm = document.forms.'.$form_name.';
               pass = frm.'.$pw_field.'.value;
               chal = frm.'.$challenge.'.value;
               challenge = hex_md5(pass + chal) + chal;
