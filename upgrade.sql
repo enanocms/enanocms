@@ -6,6 +6,7 @@ DELETE FROM {{TABLE_PREFIX}}config WHERE config_name='enano_version' OR config_n
 INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0' );
 ---BEGIN 1.0RC3---
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;
+UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[$NS_SPECIAL$CreatePage|Create a page]]\n[[$NS_SPECIAL$UploadFile|Upload file]]\n[[$NS_SPECIAL$SpecialPages|Special pages]]\n{if auth_admin}\n[[$NS_SPECIAL$EditSidebar|Edit the sidebar]]\n$ADMIN_LINK$\n{/if}' WHERE block_id=2;
 UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[User:$USERNAME$|User page]]\n[[Special:Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[Special:PrivateMessages|Private messages ($UNREAD_PMS$)]]\n[[Special:Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[Special:Register|Create an account]]\n$LOGIN_LINK$\n[[Special:Login/Special:PrivateMessages|Private messages]]\n{/if}' WHERE item_id=3;
 -- Updated PHP-ized search box
 -- block_type=3: 3 = BLOCK_PHP
@@ -19,6 +20,8 @@ ALTER TABLE {{TABLE_PREFIX}}groups ADD COLUMN system_group tinyint(1) NOT NULL D
 UPDATE {{TABLE_PREFIX}}groups SET system_group=1 WHERE group_id=1 OR group_id=2;
 INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(3, 'Moderators', 3, 1);
 ALTER TABLE {{TABLE_PREFIX}}privmsgs ADD COLUMN message_read tinyint(1) NOT NULL DEFAULT 0;
+-- Reset default user's theme to Oxygen, to emphasize stable release
+UPDATE {{TABLE_PREFIX}}users SET theme='oxygen',style='bleu' WHERE user_id=1 OR user_id=2;
 -- ...and add the associated ACL rule
 INSERT INTO {{TABLE_PREFIX}}acl(target_type,target_id,page_id,namespace,rules) VALUES(1,3,NULL,NULL,'read=4;post_comments=4;edit_comments=4;edit_page=4;view_source=4;mod_comments=4;history_view=4;history_rollback=4;history_rollback_extra=4;protect=4;rename=3;clear_logs=2;vote_delete=4;vote_reset=4;delete_page=4;set_wiki_mode=2;password_set=2;password_reset=2;mod_misc=2;edit_cat=4;even_when_protected=4;upload_files=2;upload_new_version=3;create_page=3;php_in_pages=2;edit_acl=2;');
 -- Create table with extra user information

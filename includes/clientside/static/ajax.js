@@ -783,7 +783,27 @@ function ajaxStartLogin()
     return true;
   ajaxPromptAdminAuth(function(k) {
       window.location.reload();
-    }, 2);
+    }, USER_LEVEL_MEMBER);
+}
+
+function ajaxStartAdminLogin()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
+  if ( auth_level < USER_LEVEL_ADMIN )
+  {
+    ajaxPromptAdminAuth(function(k) {
+      ENANO_SID = k;
+      auth_level = USER_LEVEL_ADMIN;
+      var loc = makeUrlNS('Special', 'Administration');
+      if ( (ENANO_SID + ' ').length > 1 )
+        window.location = loc;
+    }, USER_LEVEL_ADMIN);
+    return false;
+  }
+  var loc = makeUrlNS('Special', 'Administration');
+  window.location = loc;
 }
 
 function ajaxAdminPage()

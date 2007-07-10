@@ -279,7 +279,7 @@ INSERT INTO {{TABLE_PREFIX}}acl(target_type,target_id,page_id,namespace,rules) V
 
 INSERT INTO {{TABLE_PREFIX}}sidebar(item_id, item_order, sidebar_id, block_name, block_type, block_content) VALUES
   (1, 1, 1, 'Navigation', 1, '[[Main Page|Home]]'),
-  (2, 2, 1, 'Tools', 1, '[[$NS_SPECIAL$CreatePage|Create a page]]\n[[$NS_SPECIAL$UploadFile|Upload file]]\n[[$NS_SPECIAL$SpecialPages|Special pages]]\n{if auth_admin}\n[[$NS_SPECIAL$EditSidebar|Edit the sidebar]]\n[[$NS_SPECIAL$Administration|Administration]]\n{/if}'),
+  (2, 2, 1, 'Tools', 1, '[[$NS_SPECIAL$CreatePage|Create a page]]\n[[$NS_SPECIAL$UploadFile|Upload file]]\n[[$NS_SPECIAL$SpecialPages|Special pages]]\n{if auth_admin}\n[[$NS_SPECIAL$EditSidebar|Edit the sidebar]]\n$ADMIN_LINK$\n{/if}'),
   (3, 3, 1, '$USERNAME$', 1, '[[$NS_USER$$USERNAME$|User page]]\n[[$NS_SPECIAL$Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[$NS_SPECIAL$PrivateMessages|Private messages]]\n[[$NS_SPECIAL$Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[$NS_SPECIAL$Register|Create an account]]\n$LOGIN_LINK$\n[[$NS_SPECIAL$Login/$NS_SPECIAL$PrivateMessages|Private messages]]\n{/if}'),
   (4, 4, 1, 'Search', 1, '<div class="slideblock2" style="padding: 0px;"><form action="$SCRIPTPATH$/$NS_SPECIAL$Search" method="get" style="padding: 0; margin: 0;"><p><input name="q" alt="Search box" type="text" size="10" style="width: 70%" /> <input type="submit" value="Go" style="width: 20%" /></p></form></div>'),
   (5, 2, 2, 'Links', 4, 'Links');

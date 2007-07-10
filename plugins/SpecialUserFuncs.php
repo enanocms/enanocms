@@ -99,7 +99,9 @@ function page_Special_Login()
   
   if ( isset($_GET['act']) && $_GET['act'] == 'getkey' )
   {
+    $username = ( $session->user_logged_in ) ? $session->username : false;
     $response = Array(
+      'username' => $username,
       'key' => $pubkey,
       'challenge' => $challenge
       );

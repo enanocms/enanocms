@@ -300,14 +300,15 @@ function ajaxPromptAdminAuth(call_on_ok, level)
     ajax_auth_prompt_cache = call_on_ok;
   }
   if ( !level )
-    level = 2;
+    level = USER_LEVEL_MEMBER;
   ajax_auth_level_cache = level;
   var loading_win = '<div align="center" style="text-align: center;"> \
       <p>Fetching an encryption key...</p> \
       <p><small>Not working? Use the <a href="'+makeUrlNS('Special', 'Login/' + title)+'">alternate login form</a>.</p> \
       <p><img alt="Please wait..." src="'+scriptPath+'/images/loading-big.gif" /></p> \
     </div>';
-  ajax_auth_mb_cache = new messagebox(MB_OKCANCEL|MB_ICONLOCK, 'Please enter your username and password to continue.', loading_win);
+  var title = ( level > USER_LEVEL_MEMBER ) ? 'You are requesting a sensitive operation.' : 'Please enter your username and password to continue.';
+  ajax_auth_mb_cache = new messagebox(MB_OKCANCEL|MB_ICONLOCK, title, loading_win);
   ajax_auth_mb_cache.onbeforeclick['OK'] = ajaxValidateLogin;
   ajaxAuthLoginInnerSetup();
 }
@@ -324,7 +325,13 @@ function ajaxAuthLoginInnerSetup()
           return false;
         }
         response = parseJSON(response);
-        var form_html = ' \
+        var level = ajax_auth_level_cache;
+        var form_html = '';
+        if ( level > USER_LEVEL_MEMBER )
+        {
+          form_html += 'Please re-enter your login details, to verify your identity.<br /><br />';
+        }
+        form_html += ' \
           <table border="0" align="center"> \
             <tr> \
               <td>Username:</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     size="25" /> \
@@ -334,9 +341,14 @@ function ajaxAuthLoginInnerSetup()
             </tr> \
             <tr> \
               <td colspan="2" style="text-align: center;"> \
-                <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title)+'">full login form</a>.<br /> \
+                <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title)+'">full login form</a>.<br />';
+       if ( level <= USER_LEVEL_MEMBER )
+       {
+         form_html += ' \
                 Did you <a href="'+makeUrlNS('Special', 'PasswordReset')+'">forget your password</a>?<br /> \
-                Maybe you need to <a href="'+makeUrlNS('Special', 'Register')+'">create an account</a>.</small> \
+                Maybe you need to <a href="'+makeUrlNS('Special', 'Register')+'">create an account</a>.</small>';
+       }
+       form_html += ' \
               </td> \
             </tr> \
           </table> \
@@ -345,7 +357,15 @@ function ajaxAuthLoginInnerSetup()
         </form>';
         ajax_auth_mb_cache.updateContent(form_html);
         $('messageBox').object.nextSibling.firstChild.tabindex = '3';
-        $('ajaxlogin_user').object.focus();
+        if ( typeof(response.username) == 'string' )
+        {
+          $('ajaxlogin_user').object.value = response.username;
+          $('ajaxlogin_pass').object.focus();
+        }
+        else
+        {
+          $('ajaxlogin_user').object.focus();
+        }
         $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
         $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
       }

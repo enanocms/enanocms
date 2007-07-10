@@ -665,6 +665,14 @@ class template {
     
     $theme_link = $parser->run();
     
+    $parser->assign_vars(Array(
+        'HREF'=>makeUrlNS('Special', 'Administration'),
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxStartAdminLogin()); return false; }"',
+        'TEXT'=>'Administration',
+      ));
+    
+    $admin_link = $parser->run();
+    
     $SID = ($session->sid_super) ? $session->sid_super : '';
     
     $urlname_clean = str_replace('\'', '\\\'', str_replace('\\', '\\\\', dirtify_page_id($paths->fullpage)));
@@ -733,6 +741,7 @@ class template {
       'STYLE_LINK'=>makeUrlNS('Special', 'CSS'.$p, null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
       'LOGIN_LINK'=>$login_link,
       'LOGOUT_LINK'=>$logout_link,
+      'ADMIN_LINK'=>$admin_link,
       'THEME_LINK'=>$theme_link,
       'TEMPLATE_DIR'=>scriptPath.'/themes/'.$this->theme,
       'THEME_ID'=>$this->theme,
@@ -1176,7 +1185,7 @@ class template {
     $parser1 = $this->makeParserText($tplvars['sidebar_section']);
     $parser2 = $this->makeParserText($tplvars['sidebar_section_raw']);
                             
-    preg_match_all('#\{slider(2|)=(.*?)\}(.*?)\{\/slider(2|)\}#is',  $message, $sb);
+    preg_match_all('#\{slider(2|)=([^\}]*?)\}(.*?)\{\/slider(2|)\}#is',  $message, $sb);
     
     // Modified to support the sweet new template var system
     for($i=0;$i<sizeof($sb[1]);$i++)
