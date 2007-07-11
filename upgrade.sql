@@ -6,7 +6,7 @@ DELETE FROM {{TABLE_PREFIX}}config WHERE config_name='enano_version' OR config_n
 INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0' );
 ---BEGIN 1.0RC3---
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;
-UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[$NS_SPECIAL$CreatePage|Create a page]]\n[[$NS_SPECIAL$UploadFile|Upload file]]\n[[$NS_SPECIAL$SpecialPages|Special pages]]\n{if auth_admin}\n[[$NS_SPECIAL$EditSidebar|Edit the sidebar]]\n$ADMIN_LINK$\n{/if}' WHERE block_id=2;
+UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[$NS_SPECIAL$CreatePage|Create a page]]\n[[$NS_SPECIAL$UploadFile|Upload file]]\n[[$NS_SPECIAL$SpecialPages|Special pages]]\n{if auth_admin}\n[[$NS_SPECIAL$EditSidebar|Edit the sidebar]]\n$ADMIN_LINK$\n{/if}' WHERE item_id=2;
 UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[User:$USERNAME$|User page]]\n[[Special:Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[Special:PrivateMessages|Private messages ($UNREAD_PMS$)]]\n[[Special:Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[Special:Register|Create an account]]\n$LOGIN_LINK$\n[[Special:Login/Special:PrivateMessages|Private messages]]\n{/if}' WHERE item_id=3;
 -- Updated PHP-ized search box
 -- block_type=3: 3 = BLOCK_PHP

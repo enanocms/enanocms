@@ -35,7 +35,7 @@ Enano Banshee - TODO
 [x] Rewrite the change theme dialog - it's archaic code that hasn't changed since beta 1!
     [] Come up with some alternative to the "formatting help" link (**IN 1.1**)
        [] By 1.1, all JWS code should be phased out and removed!
-[ ] Get the new page ID cleaner code working 100% perfectly - this is the core of Enano and should be completely bug free
+[x] Get the new page ID cleaner code working 100% perfectly - this is the core of Enano and should be completely bug free
     Update 6/28: Is this done? Probably is, we need some QA done on it though
 
 
