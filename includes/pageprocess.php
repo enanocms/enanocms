@@ -32,6 +32,20 @@ class PageProcessor
   var $namespace;
   
   /**
+   * The title of the page sent to the template parser
+   * @var string
+   */
+  
+  var $title = '';
+  
+  /**
+   * The information about the page(s) we were redirected from
+   * @var array
+   */
+  
+  var $redirect_stack = array();
+  
+  /**
    * The revision ID (history entry) to send. If set to 0 (the default) then the most recent revision will be sent.
    * @var int
    */
@@ -231,7 +245,6 @@ class PageProcessor
       
       if ( empty($ob) )
       {
-        die('ob is empty');
         $this->err_page_not_existent();
       }
       else
@@ -257,7 +270,30 @@ class PageProcessor
       }
       else
       {
-        $this->render( (!$strict_no_headers) );
+        $redirect = ( isset($_GET['redirect']) ) ? $_GET['redirect'] : 'YES YOU IDIOT';
+        if ( preg_match('/^#redirect \[\[([^\]]+)\]\]/i', $text, $match) && $redirect != 'no' )
+        {
+          // Redirect page!
+          $page_to = sanitize_page_id($match[1]);
+          $page_id_data = RenderMan::strToPageID($page_to);
+          if ( count($this->redirect_stack) >= 3 )
+          {
+            $this->render( (!$strict_no_headers), '<div class="usermessage"><b>The maximum number of internal redirects has been exceeded.</b></div>' );
+          }
+          else
+          {
+            $result = $this->_handle_redirect($page_id_data[0], $page_id_data[1]);
+            if ( $result !== true )
+            {
+              // There was some error during the redirect process - usually an infinite redirect
+              $this->render( (!$strict_no_headers), '<div class="usermessage"><b>' . $result . '</b></div>' );
+            }
+          }
+        }
+        else
+        {
+          $this->render( (!$strict_no_headers) );
+        }
       }
     }
   }
@@ -320,6 +356,8 @@ class PageProcessor
       
     }
     
+    $this->title = get_page_title_ns($this->page_id, $this->namespace);
+    
   }
   
   /**
@@ -327,19 +365,90 @@ class PageProcessor
    * @access private
    */
   
-  function render($incl_inner_headers = true)
+  function render($incl_inner_headers = true, $_errormsg = false)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
     $text = $this->fetch_text();
     
+    $redir_enabled = false;
+    if ( preg_match('/^#redirect \[\[([^\]]+?)\]\]/i', $text, $match ) )
+    {
+      $redir_enabled = true;
+      
+      $oldtarget = RenderMan::strToPageID($match[1]);
+      $oldtarget[0] = sanitize_page_id($oldtarget[0]);
+      
+      $url = makeUrlNS($oldtarget[1], $oldtarget[0], false, true);
+      $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
+      $page_data = $paths->pages[$page_id_key];
+      $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
+      if ( !isset($page_data['name']) )
+      {
+        $cls = 'class="wikilink-nonexistent"';
+      }
+      else
+      {
+        $cls = '';
+      }
+      $a = '<a ' . $cls . ' href="' . $url . '">' . $title . '</a>';
+      $redir_html = '<br /><div class="mdg-infobox">
+              <table border="0" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td valign="top">
+                    <img alt="Cute wet-floor icon" src="'.scriptPath.'/images/redirector.png" />
+                  </td>
+                  <td valign="top" style="padding-left: 10px;">
+                    <b>This page is a <i>redirector</i>.</b><br />
+                    This means that this page will not show its own content by default. Instead it will display the contents of the page it redirects to.<br /><br />
+                    To create a redirect page, make the <i>first characters</i> in the page content <tt>#redirect [[Page_ID]]</tt>. For more information, see the
+                    Enano <a href="http://enanocms.org/Help:Wiki_formatting" onclick="window.open(this.href); return false;">Wiki formatting guide</a>.<br /><br />
+                    This page redirects to ' . $a . '.
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <br />
+            <hr style="margin-left: 1em; width: 200px;" />';
+      $text = str_replace($match[0], '', $text);
+      $text = trim($text);
+    }
+    
+    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars( $this->title );
+    
     $this->header();
+    
+    if ( $_errormsg )
+    {
+      echo $_errormsg;
+    }
+    
     if ( $incl_inner_headers )
     {
+      if ( count($this->redirect_stack) > 0 )
+      {
+        $stack = array_reverse($this->redirect_stack);
+        foreach ( $stack as $oldtarget )
+        {
+          $url = makeUrlNS($oldtarget[1], $oldtarget[0], 'redirect=no', true);
+          $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
+          $page_data = $paths->pages[$page_id_key];
+          $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
+          $a = '<a href="' . $url . '">' . $title . '</a>';
+          echo '<small>(Redirected from ' . $a . ')<br /></small>';
+        }
+      }
       display_page_headers();
     }
     
     if ( $this->revision_id )
     {
       echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;"><b>Notice:</b><br />The page you are viewing was archived on '.date('F d, Y \a\t h:i a', $this->revision_id).'.<br /><a href="'.makeUrlNS($this->namespace, $this->page_id).'" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="'.makeUrlNS($this->namespace, $this->pageid, 'do=rollback&amp;id='.$this->revision_id).'" onclick="ajaxRollback(\''.$this->revision_id.'\')">Restore this version</a></div><br />';
+    }
+    
+    if ( $redir_enabled )
+    {
+      echo $redir_html;
     }
     
     if ( $incl_inner_headers )
@@ -809,6 +918,39 @@ class PageProcessor
     
     $this->footer();
     
+  }
+  
+  /**
+   * Pushes to the redirect stack and resets the instance. This depends on the page ID and namespace already being validated and sanitized, and does not check the size of the redirect stack.
+   * @param string Page ID to redirect to
+   * @param string Namespace to redirect to
+   * @access private
+   */
+  
+  function _handle_redirect($page_id, $namespace)
+  {
+    $arr_pid = array($this->page_id, $this->namespace);
+    if ( $namespace == 'Special' || $namespace == 'Admin' )
+    {
+      return 'This page redirects to a Special or Administration page, which is not allowed.';
+    }
+    if ( in_array($this->redirect_stack, $arr_pid) )
+    {
+      return 'This page infinitely redirects with another page (or another series of pages), and the infinite redirect was trapped.';
+    }
+    $page_id_key = $paths->nslist[ $namespace ] . $page_id;
+    if ( !isset($paths->pages[$page_id_key]) )
+    {
+      return 'This page redirects to another page that doesn\'t exist.';
+    }
+    $this->redirect_stack[] = $arr_pid;
+    
+    
+    // Nuke the text cache to avoid infinite loops, gah...
+    $this->text_cache = '';
+    $this->_setup($page_id, $namespace, 0);
+    $this->send();
+    return true;
   }
   
   /**

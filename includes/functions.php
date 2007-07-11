@@ -224,6 +224,40 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
 }
 
 /**
+ * Tells you the title for the given page ID string
+ * @param string Page ID string (ex: Special:Administration)
+ * @return string
+ */
+
+function get_page_title($page_id)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $idata = RenderMan::strToPageID($page_id);
+  $page_id_key = $paths->nslist[ $idata[1] ] . $idata[0];
+  $page_data = $paths->pages[$page_id_key];
+  $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$idata[1]] . str_replace('_', ' ', dirtify_page_id( $idata[0] ) );
+  return $title;
+}
+
+/**
+ * Tells you the title for the given page ID and namespace
+ * @param string Page ID
+ * @param string Namespace
+ * @return string
+ */
+
+function get_page_title_ns($page_id, $namespace)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $page_id_key = $paths->nslist[ $namespace ] . $page_id;
+  $page_data = $paths->pages[$page_id_key];
+  $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$namespace] . str_replace('_', ' ', dirtify_page_id( $page_id ) );
+  return $title;
+}
+
+/**
  * Redirect the user to the specified URL.
  * @param string $url The URL, either relative or absolute.
  * @param string $title The title of the message
