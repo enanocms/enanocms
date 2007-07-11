@@ -816,10 +816,10 @@ class RenderMan {
       
       $img_tag = '<img src="' . $url . '" ';
       
-      if ( isset($r_width) && isset($r_height) && $scale_type != '|thumb' )
-      {
-        $img_tag .= 'width="' . $r_width . '" height="' . $r_height . '" ';
-      }
+      // if ( isset($r_width) && isset($r_height) && $scale_type != '|thumb' )
+      // {
+      // $img_tag .= 'width="' . $r_width . '" height="' . $r_height . '" ';
+      // }
       
       $img_tag .= 'style="border-width: 0px; background-color: white;" ';
       
