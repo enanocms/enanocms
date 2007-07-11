@@ -255,7 +255,15 @@ class RenderMan {
       }
     }
     
-    $text = RenderMan::include_templates($text);
+    $template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
+    $i = 0;
+    while ( preg_match($template_regex, $text) )
+    {
+      $i++;
+      if ( $i == 5 )
+        break;
+      $text = RenderMan::include_templates($text);
+    }
     
     $text = process_tables($text);
     
@@ -450,10 +458,11 @@ class RenderMan {
   
   /**
    * Parses a partial template tag in wikitext, and return an array with the parameters.
-   * @param string The portion of the template tag that contains the parameters. Example:
+   * @param string The portion of the template tag that contains the parameters.
+   * @example
    * <code>
-   * foo = lorem ipsum
-   * bar = dolor sit amet
+   foo = lorem ipsum
+   bar = dolor sit amet
    * </code>
    * @return array Example:
    * [foo] => lorem ipsum
@@ -519,11 +528,12 @@ class RenderMan {
   function include_templates($text)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $template_regex = "/\{\{([A-z0-9_-]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
+    $template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
     if ( $count = preg_match_all($template_regex, $text, $matches) )
     {
       for ( $i = 0; $i < $count; $i++ )
       {
+        $matches[1][$i] = sanitize_page_id($matches[1][$i]);
         $parmsection = trim($matches[2][$i]);
         if ( !empty($parmsection) )
         {
