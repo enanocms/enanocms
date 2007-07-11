@@ -243,7 +243,8 @@ class RenderMan {
     if ( !$plaintext )
     {
       // Process images
-      $text = RenderMan::process_image_tags($text, $taglist);
+      $text   = RenderMan::process_image_tags($text, $taglist);
+      $text = RenderMan::process_imgtags_stage2($text, $taglist);
     }
     
     if($do_params)
@@ -280,10 +281,10 @@ class RenderMan {
       $result = $wiki->transform($text, 'Xhtml');
     }
     
-    if ( !$plaintext )
-    {
-      $result = RenderMan::process_imgtags_stage2($result, $taglist);
-    }
+    // if ( !$plaintext )
+    // {
+    //   $result = RenderMan::process_imgtags_stage2($result, $taglist);
+    // }
     
     // Reinsert <nowiki> sections
     for($i=0;$i<$nw;$i++)
@@ -775,7 +776,7 @@ class RenderMan {
     $taglist = array();
     
     // Wicked huh?
-    $regex = '/\[\[:' . $paths->nslist['File'] . '([\w\s0-9_\(\)!@%\^\+\|\.-]+?)((\|thumb)|(\|([0-9]+)x([0-9]+)))?(\|left|\|right)?(\|(.+))?\]\]/i';
+    $regex = '/\[\[:' . $paths->nslist['File'] . '([\w\s0-9_\(\)!@%\^\+\|\.-]+?)((\|thumb)|(\|([0-9]+)x([0-9]+)))?(\|left|\|right)?(\|raw|\|(.+))?\]\]/i';
     
     preg_match_all($regex, $text, $matches);
     
@@ -792,6 +793,7 @@ class RenderMan {
       
       if ( !isPage( $paths->nslist['File'] . $filename ) )
       {
+        $text = str_replace($full_tag, '[[' . makeUrlNS('File', $filename) . ']]', $text);
         continue;
       }
       
@@ -818,16 +820,16 @@ class RenderMan {
       
       // if ( isset($r_width) && isset($r_height) && $scale_type != '|thumb' )
       // {
-      // $img_tag .= 'width="' . $r_width . '" height="' . $r_height . '" ';
+      //   $img_tag .= 'width="' . $r_width . '" height="' . $r_height . '" ';
       // }
       
-      $img_tag .= 'style="border-width: 0px; background-color: white;" ';
+      $img_tag .= 'style="border-width: 0px; /* background-color: white; */" ';
       
       $img_tag .= '/>';
       
       $complete_tag = '';
       
-      if ( !empty($scale_type) )
+      if ( !empty($scale_type) && $caption != '|raw' )
       {
         $complete_tag .= '<div class="thumbnail" ';
         $clear_text = '';
@@ -853,6 +855,10 @@ class RenderMan {
         }
         
         $complete_tag .= '</div>';
+      }
+      else if ( $caption == '|raw' )
+      {
+        $complete_tag .= $img_tag;
       }
       else
       {
