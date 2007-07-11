@@ -858,7 +858,12 @@ class RenderMan {
       }
       else if ( $caption == '|raw' )
       {
-        $complete_tag .= $img_tag;
+        $complete_tag .= "$img_tag";
+        $taglist[$i] = $complete_tag;
+        
+        $repl = "{$s_delim}e_img_{$i}{$f_delim}";
+        $text = str_replace($full_tag, $repl, $text);
+        continue;
       }
       else
       {

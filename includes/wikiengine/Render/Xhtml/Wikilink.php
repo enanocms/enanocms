@@ -99,7 +99,17 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
         // up what the user typed and what we're checking.
         //$page = $this->urlEncode($page);
         $anchor = $this->urlEncode($anchor);
-        $text = $this->textEncode($text);
+        // $text = $this->textEncode($text);
+        
+        // hackish fix for the "external" image in Oxygen [added for Enano]
+        if ( preg_match('/<(.+?)>/is', $text) )
+        {
+          $nobg = ' style="background-image: none; padding-right: 0;"';
+        }
+        else
+        {
+          $nobg = '';
+        }
         
         // does the page exist?
         if ($exists) {
@@ -123,7 +133,7 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
             // get the CSS class and generate output
             $css = $this->formatConf(' class="%s"', 'css');
 
-            $start = '<a'.$css.' href="'.$href.$as.'">';
+            $start = '<a'.$css.' href="'.$href.$as.'"'.$nobg.'>';
             $end = '</a>';
         } else {
 
@@ -146,7 +156,7 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
             // get the CSS class and generate output
             $css = $this->formatConf(' class="%s"', 'css');
 
-            $start = '<a'.$css.' href="'.$href.$as.'" class="wikilink-nonexistent">';
+            $start = '<a'.$css.' href="'.$href.$as.'"'.$nobg.' class="wikilink-nonexistent">';
             $end = '</a>';
             
         }

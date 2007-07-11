@@ -100,9 +100,15 @@ class Text_Wiki_Render_Xhtml_Url extends Text_Wiki_Render {
             }
 
             // generate a regular link (not an image)
-            $text = $this->textEncode($text);
+            // $text = $this->textEncode($text);
             $css = $this->formatConf(' class="%s"', "css_$type");
             $output = "<a$css href={$quote}$href{$quote}";
+            
+            // hackish fix for the "external" image in Oxygen [added for Enano]
+            if ( preg_match('/<(.+?)>/is', $text) )
+            {
+              $output .= ' style="background-image: none; padding-right: 0;"';
+            }
 
             if ($target) {
                 // use a "popup" window.  this is XHTML compliant, suggested by
