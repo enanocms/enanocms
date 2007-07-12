@@ -1,0 +1,59 @@
+Enano CMS
+Version 1.0
+-----------------------------
+
+Thanks for downloading Enano! If you're looking for an installation guide,
+you can find it at <http://enanocms.org/Help:Installation>.
+
+COPYRIGHT
+-----------------------------
+
+We strongly believe in the idea of Free Software. Enano is released under the
+GNU General Public License; see the file GPL included with this release for
+details.
+
+Most of the PHP code in Enano was written by Dan Fuhry. Some parts were borrowed
+from other projects that are also released under Free licenses; see the various
+files under the licenses/ directory included with this release for details.
+
+CHANGES IN THIS RELEASE
+-----------------------------
+
+Please see <http://enanocms.org/Release_notes/1.0> for a list of changes in
+this release.
+
+UPGRADING FROM PREVIOUS RELEASES
+-----------------------------
+
+This tarball includes an upgrade script that can migrate any previous version
+of Enano to this one. Before you upload the contents of this tarball to your
+server, be sure to delete the config.php and .htaccess files included with this
+tarball, and back up these two files from your server. (.htaccess only needs to
+be backed up if you're using the Tiny URLs option.)
+
+EXPANDING YOUR SITE'S CAPABILITIES
+-----------------------------
+
+There is a gallery of plugins for Enano at
+<http://enanocms.org/Category:Plugins>. It's not very full right now because
+not every plugin has a page on the website yet, and some plugins still have
+yet to be ported to work with some of the newer API changes.
+
+GIVING YOUR SITE A NEW LOOK
+-----------------------------
+
+You can find more themes for Enano at <http://enanocms.org/Category:Themes>.
+Again, we're still working on packaging up themes and creating pages for them,
+so try to be patient. We have quite a few themes in the works.
+
+GETTING SUPPORT
+-----------------------------
+
+Support for Enano is available via the Enano forums at
+<http://forum.enanocms.org>. You can also use our IRC channel
+(irc.freenode.net #enano) or purchase paid support via instant messaging for
+US$20 an hour.
+
+Have fun with Enano!
+
+- The Enano team
