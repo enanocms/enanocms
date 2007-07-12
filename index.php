@@ -11,7 +11,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  *
  */
- 
+
   // Set up gzip encoding before any output is sent
   
   $aggressive_optimize_html = false;
