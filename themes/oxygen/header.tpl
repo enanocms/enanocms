@@ -11,6 +11,7 @@
     {ADDITIONAL_HEADERS}
     
     <script type="text/javascript">
+    // <![CDATA[
     
       function collapseSidebar(side)
       {
@@ -114,6 +115,7 @@
         elem1.style.display = 'block';
         document.onclick = null;
       }
+    // ]]>
     </script>
     
   </head>
@@ -160,7 +162,7 @@
         <tr><td id="mdg-ml"></td><td style="background-color: #FFFFFF;">
           <div class="pad"><div class="contentDiv">
           <div style="float: right;">
-            <image alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
+            <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
           </div>
           <h2 <!-- BEGIN auth_rename --> ondblclick="ajaxRenameInline();" title="Double-click to rename this page" <!-- END auth_rename --> id="h2PageName">{PAGE_NAME}</h2>
             <div id="ajaxEditContainer">

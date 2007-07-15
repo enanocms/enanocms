@@ -1434,7 +1434,7 @@ class template {
       eval($cmd);
     }
     
-    if(count($ob) > 0) $sb_links = '<div style="text-align: center; padding: 5px 0;">'. ( ( getConfig('powered_btn') == '1' ) ? $this->fading_button : '' ) . implode('<br />', $ob).'</div>';
+    if(count($ob) > 0 || getConfig('powered_btn') == '1') $sb_links = '<div style="text-align: center; padding: 5px 0;">'. ( ( getConfig('powered_btn') == '1' ) ? $this->fading_button : '' ) . implode('<br />', $ob).'</div>';
     else $sb_links = '';
     
     $this->sidebar_widget('Links', $sb_links);
