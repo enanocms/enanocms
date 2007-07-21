@@ -338,6 +338,7 @@ switch($_GET['mode'])
        <h3>Declaration of license usage</h3>
        <p>Enano is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.</p>
        <p>This program is distributed in the hope that it will be useful, but <u>without any warranty</u>; without even the implied warranty of <u>merchantability</u> or <u>fitness for a particular purpose</u>. See the GNU General Public License (below) for more details.</p>
+       <p><b>By clicking the button below or otherwise continuing the installation, you indicate your acceptance of this license agreement.</b></p>
        <h3>Human-readable version</h3>
        <p>Enano is distributed under certain licensing terms that we believe make it of the greatest possible use to the public. The license we distribute it under, the GNU General Public License, provides certain terms and conditions that, rather than limit your use of Enano, allow you to get the most out of it. If you would like to read the full text, it can be found below. Here is a human-readable version that we think is a little easier to understand.</p>
        <ul>
@@ -369,7 +370,7 @@ switch($_GET['mode'])
        <form action="install.php?mode=sysreqs" method="post">
          <table border="0">
          <tr>
-         <td><input type="submit" value="Continue" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Ensure that you agree with the terms of the license<br />&bull; Have your database host, name, username, and password available</p></td>
+         <td><input type="submit" value="I agree to the license terms" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Ensure that you agree with the terms of the license<br />&bull; Have your database host, name, username, and password available</p></td>
          </tr>
          </table>
        </form>
@@ -391,6 +392,7 @@ switch($_GET['mode'])
     run_test('return is_writable(ENANO_ROOT.\'/config.php\');', 'Configuration file writable', 'It looks like the configuration file, config.php, is not writable. Enano needs to be able to write to this file in order to install.<br /><br /><b>If you are installing Enano on a SourceForge web site:</b><br />SourceForge mounts the web partitions read-only now, so you will need to use the project shell service to symlink config.php to a file in the /tmp/persistent directory.');
     run_test('return file_exists(\'/usr/bin/convert\');', 'ImageMagick support', 'Enano uses ImageMagick to scale images into thumbnails. Because ImageMagick was not found on your server, Enano will use the width= and height= attributes on the &lt;img&gt; tag to scale images. This can cause somewhat of a performance increase, but bandwidth usage will be higher, especially if you use high-resolution images on your site.<br /><br />If you are sure that you have ImageMagick, you can set the location of the "convert" program using the administration panel after installation is complete.', true);
     run_test('return is_writable(ENANO_ROOT.\'/cache/\');', 'Cache directory writable', 'Apparently the cache/ directory is not writable. Enano will still work, but you will not be able to cache thumbnails, meaning the server will need to re-render them each time they are requested. In some cases, this can cause a significant slowdown.', true);
+    run_test('return is_writable(ENANO_ROOT.\'/files/\');', 'File uploads directory writable', 'It seems that the directory where uploaded files are stored (' . ENANO_ROOT . '/files) cannot be written by the server. Enano will still function, but file uploads will not function, and will be disabled by default.', true);
     echo '</table>';
     if(!$failed)
     {
@@ -404,7 +406,7 @@ switch($_GET['mode'])
         echo '</table>';
       } else {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
-        run_test('return true;', '<b>Your server meets all the requirements for running Enano.</b><br />Click the button below to continue the installation.', 'You should never see this text. Congratulations for being a Enano hacker!');
+        run_test('return true;', '<b>Your server meets all the requirements for running Enano.</b><br />Click the button below to continue the installation.', 'You should never see this text. Congratulations for being an Enano hacker!');
         echo '</table>';
       }
       ?>

@@ -2052,6 +2052,9 @@ The {$site_name} administration team
       } while ( $row = $db->fetchrow() );
     }
     
+    // Cache the sitewide permissions for later use
+    $this->acl_base_cache = $this->perms;
+    
     // Eliminate types that don't apply to this namespace
     foreach ( $this->perms AS $i => $perm )
     {
@@ -2060,9 +2063,6 @@ The {$site_name} administration team
         unset($this->perms[$i]);
       }
     }
-    
-    // Cache the sitewide permissions for later use
-    $this->acl_base_cache = $this->perms;
     
     // Build a query to grab ACL info
     $bs = 'SELECT rules,target_type,target_id FROM '.table_prefix.'acl WHERE ( ';
@@ -2368,24 +2368,21 @@ The {$site_name} administration team
           }
           var testpassed = ' . ( ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0') ? 'false; // CRYPTO-AUTH DISABLED ON USER REQUEST // ' : '' ) . '( ct == v && md5_vm_test() );
           var frm = document.forms.'.$form_name.';
-          if(testpassed)
-          {
-            frm.'.$use_crypt.'.value = \'yes\';
-            var cryptkey = frm.'.$crypt_key.'.value;
-            frm.'.$crypt_key.'.value = hex_md5(cryptkey);
-            cryptkey = hexToByteArray(cryptkey);
-            if(!cryptkey || ( ( typeof cryptkey == \'string\' || typeof cryptkey == \'object\' ) ) && cryptkey.length != keySizeInBits / 8 )
-            {
-              if ( frm._login ) frm._login.disabled = true;
-              len = ( typeof cryptkey == \'string\' || typeof cryptkey == \'object\' ) ? \'\\nLen: \'+cryptkey.length : \'\';
-              alert(\'The key is messed up\\nType: \'+typeof(cryptkey)+len);
-            }
-          }
           function runEncryption()
           {
+            var frm = document.forms.'.$form_name.';
             if(testpassed)
             {
-              var frm = document.forms.'.$form_name.';
+              frm.'.$use_crypt.'.value = \'yes\';
+              var cryptkey = frm.'.$crypt_key.'.value;
+              frm.'.$crypt_key.'.value = hex_md5(cryptkey);
+              cryptkey = hexToByteArray(cryptkey);
+              if(!cryptkey || ( ( typeof cryptkey == \'string\' || typeof cryptkey == \'object\' ) ) && cryptkey.length != keySizeInBits / 8 )
+              {
+                if ( frm._login ) frm._login.disabled = true;
+                len = ( typeof cryptkey == \'string\' || typeof cryptkey == \'object\' ) ? \'\\nLen: \'+cryptkey.length : \'\';
+                alert(\'The key is messed up\\nType: \'+typeof(cryptkey)+len);
+              }
               pass = frm.'.$pw_field.'.value;
               chal = frm.'.$challenge.'.value;
               challenge = hex_md5(pass + chal) + chal;
@@ -2464,6 +2461,14 @@ class Session_ACLPageInfo {
   var $perms = Array();
   
   /**
+   * Array to track which default permissions are being used
+   * @var array
+   * @access private
+   */
+   
+  var $acl_defaults_used = Array();
+  
+  /**
    * Constructor.
    * @param string $page_id The ID of the page to check
    * @param string $namespace The namespace of the page to check.
@@ -2477,10 +2482,12 @@ class Session_ACLPageInfo {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $this->perms = $session->acl_merge_complete($acl_types, $base);
     $this->acl_deps = $acl_deps;
     $this->acl_types = $acl_types;
     $this->acl_descs = $acl_descs;
+    
+    $this->perms = $acl_types;
+    $this->perms = $session->acl_merge_complete($this->perms, $base);
     
     // Build a query to grab ACL info
     $bs = 'SELECT rules FROM '.table_prefix.'acl WHERE ( ';
@@ -2502,7 +2509,8 @@ class Session_ACLPageInfo {
     {
       do {
         $rules = $session->string_to_perm($row['rules']);
-        $this->perms = $session->acl_merge($this->perms, $rules);
+        $is_everyone = ( $row['target_type'] == ACL_TYPE_GROUP && $row['target_id'] == 1 );
+        $this->acl_merge_with_current($rules, $is_everyone);
       } while ( $row = $db->fetchrow() );
     }
     
@@ -2519,6 +2527,7 @@ class Session_ACLPageInfo {
    
   function get_permissions($type, $no_deps = false)
   {
+    // echo '<pre>' . print_r($this->perms, true) . '</pre>';
     global $db, $session, $paths, $template, $plugins; // Common objects
     if ( isset( $this->perms[$type] ) )
     {
@@ -2609,6 +2618,44 @@ class Session_ACLPageInfo {
       }
     }
     return true;
+  }
+  
+  /**
+   * Merges the ACL array sent with the current permissions table, deciding precedence based on whether defaults are in effect or not.
+   * @param array The array to merge into the master ACL list
+   * @param bool If true, $perm is treated as the "new default"
+   * @param int 1 if this is a site-wide ACL, 2 if page-specific. Defaults to 2.
+   */
+  
+  function acl_merge_with_current($perm, $is_everyone = false, $scope = 2)
+  {
+    foreach ( $this->perms as $i => $p )
+    {
+      if ( isset($perm[$i]) )
+      {
+        if ( $is_everyone && !$this->acl_defaults_used[$i] )
+          continue;
+        // Decide precedence
+        if ( isset($this->acl_defaults_used[$i]) )
+        {
+          //echo "$i: default in use, overriding to: {$perm[$i]}<br />";
+          // Defaults are in use, override
+          $this->perms[$i] = $perm[$i];
+          $this->acl_defaults_used[$i] = ( $is_everyone );
+        }
+        else
+        {
+          //echo "$i: default NOT in use";
+          // Defaults are not in use, merge as normal
+          if ( $this->perms[$i] != AUTH_DENY )
+          {
+            //echo ", but overriding";
+            $this->perms[$i] = $perm[$i];
+          }
+          //echo "<br />";
+        }
+      }
+    }
   }
   
 }
