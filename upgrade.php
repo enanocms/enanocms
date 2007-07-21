@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0.1 (Loch Ness)
  * upgrade.php - upgrade script
  * Copyright (C) 2006-2007 Dan Fuhry
  *
@@ -61,7 +61,7 @@ else
 // Everything related to versions goes here!
 
 // Valid versions to upgrade from
-$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3');
+$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3', '1.0');
 
 // Basically a list of dependencies, which should be resolved automatically
 // If, for example, upgrading from 1.0b1 to 1.0RC1 requires one extra query that would not
@@ -72,9 +72,10 @@ $deps_list = Array(
     '1.0b3' => Array('1.0b4'),
     '1.0b4' => Array('1.0RC1'),
     '1.0RC1' => Array('1.0RC2'),
-    '1.0RC2' => Array('1.0RC3')
+    '1.0RC2' => Array('1.0RC3'),
+    '1.0RC3' => Array('1.0')
   );
-$this_version   = '1.0';
+$this_version   = '1.0.1';
 $func_list = Array(
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text'), // ,
     // '1.0RC2' => Array('u_1_0_populate_userpage_comments')

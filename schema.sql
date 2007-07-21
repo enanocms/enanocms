@@ -223,6 +223,26 @@ CREATE TABLE {{TABLE_PREFIX}}search_cache(
   PRIMARY KEY ( search_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
+-- Added in 1.0.1
+
+CREATE TABLE {{TABLE_PREFIX}}page_groups(
+  pg_id mediumint(8) NOT NULL auto_increment,
+  pg_type tinyint(2) NOT NULL DEFAULT 1,
+  pg_name varchar(255) NOT NULL DEFAULT '',
+  pg_target varchar(255) DEFAULT NULL,
+  PRIMARY KEY ( pg_id )
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+
+-- Added in 1.0.1
+
+CREATE TABLE {{TABLE_PREFIX}}page_group_members(
+  pg_member_id int(12) NOT NULL auto_increment,
+  pg_id mediumint(8) NOT NULL,
+  page_id varchar(63) NOT NULL,
+  namespace varchar(63) NOT NULL DEFAULT 'Article',
+  PRIMARY KEY ( pg_member_id )
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),

@@ -141,15 +141,26 @@ function __aclBuildSelector(groups)
   {
     scopediv1 = document.createElement('div');
     scopediv2 = document.createElement('div');
+    scopediv3 = document.createElement('div');
     scopeRadioPage = document.createElement('input');
       scopeRadioPage.type = 'radio';
       scopeRadioPage.name = 'scope';
       scopeRadioPage.value = 'page';
       scopeRadioPage.checked = 'checked';
+      scopeRadioPage.className = '1048576';
+      scopeRadioPage.onclick = function() { var id = 'enACL_pgsel_' + this.className; document.getElementById(id).style.display = 'none'; };
     scopeRadioGlobal = document.createElement('input');
       scopeRadioGlobal.type = 'radio';
       scopeRadioGlobal.name = 'scope';
       scopeRadioGlobal.value = 'global';
+      scopeRadioGlobal.className = '1048576';
+      scopeRadioGlobal.onclick = function() { var id = 'enACL_pgsel_' + this.className; document.getElementById(id).style.display = 'none'; };
+    scopeRadioGroup = document.createElement('input');
+      scopeRadioGroup.type = 'radio';
+      scopeRadioGroup.name = 'scope';
+      scopeRadioGroup.value = 'group';
+      scopeRadioGroup.className = '1048576';
+      scopeRadioGroup.onclick = function() { var id = 'enACL_pgsel_' + this.className; document.getElementById(id).style.display = 'block'; };
     lblPage = document.createElement('label');
       lblPage.style.display = 'block';
       lblPage.appendChild(scopeRadioPage);
@@ -158,11 +169,33 @@ function __aclBuildSelector(groups)
       lblGlobal.style.display = 'block';
       lblGlobal.appendChild(scopeRadioGlobal);
       lblGlobal.appendChild(document.createTextNode('The entire website'));
+    lblGroup = document.createElement('label');
+      lblGroup.style.display = 'block';
+      lblGroup.appendChild(scopeRadioGroup);
+      lblGroup.appendChild(document.createTextNode('A group of pages'));
     scopediv1.appendChild(lblPage);
-    scopediv2.appendChild(lblGlobal);
+    scopediv2.appendChild(lblGroup);
+    scopediv3.appendChild(lblGlobal);
     
     scopedesc = document.createElement('p');
     scopedesc.appendChild(document.createTextNode('What should this access rule control?'));
+    
+    scopePGrp = document.createElement('select');
+    scopePGrp.style.marginLeft = '13px';
+    scopePGrp.style.display = 'none';
+    scopePGrp.id = "enACL_pgsel_1048576";
+    
+    var opt;
+    for ( var i = 0; i < groups.page_groups.length; i++ )
+    {
+      opt = document.createElement('option');
+      opt.value = groups.page_groups[i].id;
+      opt.appendChild(document.createTextNode(groups.page_groups[i].name));
+      scopePGrp.appendChild(opt);
+    }
+    
+    scopediv2.appendChild(scopePGrp);
+    
   }
   
   // Styles
@@ -180,7 +213,7 @@ function __aclBuildSelector(groups)
   container = document.createElement('div');
   container.style.margin = 'auto';
   container.style.width = '360px';
-  container.style.paddingTop = '100px';
+  container.style.paddingTop = '50px';
   
   head = document.createElement('h2');
   head.appendChild(document.createTextNode('Manage page access'));
@@ -197,6 +230,7 @@ function __aclBuildSelector(groups)
     container.appendChild(scopedesc);
     container.appendChild(scopediv1);
     container.appendChild(scopediv2);
+    container.appendChild(scopediv3);
   }
   
   main.appendChild(container);
@@ -590,6 +624,11 @@ function __aclSubmitManager(form)
         {
           obj['page_id'] = false;
           obj['namespace'] = false;
+        }
+        else if(scope == 'group')
+        {
+          obj['page_id'] = document.getElementById('enACL_pgsel_1048576').value;
+          obj['namespace'] = '__PageGroup';
         }
         else
         {

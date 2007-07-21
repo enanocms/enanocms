@@ -357,7 +357,7 @@ function page_Special_GNU_General_Public_License()
   if(file_exists(ENANO_ROOT.'/GPL'))
   {
     echo '<p>The following text represents the license that the <a href="'.makeUrlNS('Special', 'About_Enano').'">Enano</a> content management system is under. To make it easier to read, the text has been wiki-formatted; in no other way has it been changed.</p>';
-    echo RenderMan::render( htmlspecialchars ( file_get_contents ( ENANO_ROOT . '/GPL' ) ) );
+    echo RenderMan::render( file_get_contents ( ENANO_ROOT . '/GPL' ) );
   }
   else
   {

@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0.1 (Loch Ness)
  * Copyright (C) 2006-2007 Dan Fuhry
  * constants.php - important defines used Enano-wide
  *
@@ -32,6 +32,11 @@ define('ACL_TYPE_PRESET', 3);
 // System groups
 define('GROUP_ID_ADMIN', 2);
 define('GROUP_ID_MOD', 3);
+
+// Page group types
+define('PAGE_GRP_CATLINK', 1);
+define('PAGE_GRP_TAGGED', 2);
+define('PAGE_GRP_NORMAL', 3);
 
 //
 // User types - don't touch these

@@ -1,7 +1,8 @@
 <?php
+
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0.1 (Loch Ness)
  * Copyright (C) 2006-2007 Dan Fuhry
  * install.php - handles everything related to installation and initial configuration
  *
@@ -22,7 +23,7 @@ if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_G
 
 define('IN_ENANO_INSTALL', 'true');
 
-define('ENANO_VERSION', '1.0');
+define('ENANO_VERSION', '1.0.1');
 // In beta versions, define ENANO_BETA_VERSION here
 
 if(!defined('scriptPath')) {
@@ -315,7 +316,7 @@ switch($_GET['mode'])
       <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-blue.png" style="display: block; margin: 0 auto; padding-left: 100px;" />
       <h2>Welcome to Enano</h2>
       <h3>version 1.0 &ndash; stable<br />
-      <span style="font-weight: normal;">also affectionately known as "banshee" <tt>:)</tt></span></h3>
+      <span style="font-weight: normal;">also affectionately known as "loch ness" <tt>:)</tt></span></h3>
       <?php
       if ( file_exists('./_nightly.php') )
       {

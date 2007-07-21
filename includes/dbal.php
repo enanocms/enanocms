@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0.1 (Loch Ness)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -280,6 +280,16 @@ class mysql {
     $query = $this->escape($query);
     $q = $this->sql_query('INSERT INTO '.table_prefix.'logs(log_type,     action,         time_id,    date_string, page_text,      author,            edit_summary)
                                                      VALUES(\'security\', \'sql_inject\', '.time().', \'\',        \''.$query.'\', \''.$username.'\', \''.$_SERVER['REMOTE_ADDR'].'\');');
+  }
+  
+  /**
+   * Returns the ID of the row last inserted.
+   * @return int
+   */
+  
+  function insert_id()
+  {
+    return @mysql_insert_id();
   }
   
   function fetchrow($r = false) {

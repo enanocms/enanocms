@@ -1,7 +1,7 @@
 <?php
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0.1 (Loch Ness)
  * Copyright (C) 2006-2007 Dan Fuhry
  * pageutils.php - a class that handles raw page manipulations, used mostly by AJAX requests or their old-fashioned form-based counterparts
  *
@@ -1697,6 +1697,20 @@ class PageUtils {
               );
           }
           $db->free_result();
+          $return['page_groups'] = Array();
+          $q = $db->sql_query('SELECT pg_id,pg_name FROM '.table_prefix.'page_groups ORDER BY pg_name ASC;');
+          if ( !$q )
+            return Array(
+              'mode' => 'error',
+              'error' => $db->get_error()
+              );
+          while ( $row = $db->fetchrow() )
+          {
+            $return['page_groups'][] = Array(
+                'id' => $row['pg_id'],
+                'name' => $row['pg_name']
+              );
+          }
           break;
         case 'seltarget':
           $return['mode'] = 'seltarget';
@@ -1739,7 +1753,7 @@ class PageUtils {
               }
               $db->free_result();
               // Eliminate types that don't apply to this namespace
-              if ( $namespace )
+              if ( $namespace && $namespace != '__PageGroup' )
               {
                 foreach ( $return['current_perms'] AS $i => $perm )
                 {
@@ -1786,7 +1800,7 @@ class PageUtils {
               }
               $db->free_result();
               // Eliminate types that don't apply to this namespace
-              if ( $namespace )
+              if ( $namespace && $namespace != '__PageGroup' )
               {
                 foreach ( $return['current_perms'] AS $i => $perm )
                 {

@@ -3,7 +3,11 @@
 -- ALL NON-SQL LINES, even otherwise blank lines, must start with "--" or they will get sent to MySQL!
 -- Common tasks (version numbers)
 DELETE FROM {{TABLE_PREFIX}}config WHERE config_name='enano_version' OR config_name='enano_beta_version' OR config_name='enano_alpha_version' OR config_name='enano_rc_version';
-INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0' );
+INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0.1' );
+---BEGIN 1.0---
+CREATE TABLE {{TABLE_PREFIX}}page_groups( pg_id mediumint(8) NOT NULL auto_increment, pg_type tinyint(2) NOT NULL DEFAULT 1, pg_name varchar(255) NOT NULL DEFAULT '', pg_target varchar(255) DEFAULT NULL, PRIMARY KEY ( pg_id ) ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+CREATE TABLE {{TABLE_PREFIX}}page_group_members( pg_member_id int(12) NOT NULL auto_increment, pg_id mediumint(8) NOT NULL, page_id varchar(63) NOT NULL, namespace varchar(63) NOT NULL DEFAULT 'Article', PRIMARY KEY ( pg_member_id ) ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+---END 1.0---
 ---BEGIN 1.0RC3---
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;
 UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[$NS_SPECIAL$CreatePage|Create a page]]\n[[$NS_SPECIAL$UploadFile|Upload file]]\n[[$NS_SPECIAL$SpecialPages|Special pages]]\n{if auth_admin}\n[[$NS_SPECIAL$EditSidebar|Edit the sidebar]]\n$ADMIN_LINK$\n{/if}' WHERE item_id=2;

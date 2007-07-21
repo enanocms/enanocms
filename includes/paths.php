@@ -2,7 +2,7 @@
 
 /**
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0.1 (Loch Ness)
  * Copyright (C) 2006-2007 Dan Fuhry
  * paths.php - The part of Enano that actually manages content. Everything related to page handling and namespaces is in here.
  *
@@ -81,6 +81,7 @@ class pathManager {
     $this->addAdminNode('General', 'Backup database', 'DBBackup');
     $this->addAdminNode('Content', 'Manage Pages', 'PageManager');
     $this->addAdminNode('Content', 'Edit page content', 'PageEditor');
+    $this->addAdminNode('Content', 'Manage page groups', 'PageGroups');
     $this->addAdminNode('Appearance', 'Manage themes', 'ThemeManager');
     $this->addAdminNode('Users', 'Manage users', 'UserManager');
     $this->addAdminNode('Users', 'Edit groups', 'GroupManager');
@@ -820,6 +821,57 @@ class pathManager {
     if($match_case)
       $search->match_case = true;
     return $search;
+  }
+  
+  /**
+   * Returns a list of groups that a given page is a member of.
+   * @param string Page ID
+   * @param string Namespace
+   * @return array
+   */
+  
+  function get_page_groups($page_id, $namespace)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $page_id = $db->escape(sanitize_page_id($page_id));
+    if ( !isset($this->nslist[$namespace]) )
+      die('$paths->get_page_groups(): HACKING ATTEMPT');
+    
+    $group_list = array();
+    
+    // What linked categories have this page?
+    $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
+                           LEFT JOIN '.table_prefix.'categories AS c
+                             ON ( c.category_id = g.pg_target AND g.pg_type = ' . PAGE_GRP_CATLINK . ' )
+                           WHERE c.page_id=\'' . $page_id . '\' AND c.namespace=\'' . $namespace . '\';');
+    if ( !$q )
+      $db->_die();
+    
+    while ( $row = $db->fetchrow() )
+    {
+      $group_list[] = $row['pg_id'];
+    }
+    
+    // Static-page groups
+    $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
+                           LEFT JOIN '.table_prefix.'page_group_members AS m
+                             ON ( g.pg_id = m.pg_id )
+                           WHERE m.page_id=\'' . $page_id . '\' AND m.namespace=\'' . $namespace . '\'
+                           GROUP BY g.pg_id;');
+    
+    if ( !$q )
+      $db->_die();
+    
+    while ( $row = $db->fetchrow() )
+    {
+      $group_list[] = $row['pg_id'];
+    }
+    
+    // Tagging ain't implemented yet ;-)
+    
+    return $group_list;
+    
   }
   
 }

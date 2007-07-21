@@ -251,20 +251,8 @@ function ajaxPageNameComplete(o)
         unSelectMenuOn = true;
         submitAuthorized = false;
         body.appendChild(thediv);
-        
-        unObj.onblur = function() { CheckDestroyUsernameDropdowns(thediv.id); };
       }
     });
-}
-
-function CheckDestroyUsernameDropdowns(id)
-{
-  elem = document.getElementById(id);
-  if(!elem) return;
-  if(queryOnObj(elem, 100))
-  {
-    destroyUsernameDropdowns();
-  }
 }
 
 function destroyUsernameDropdowns()

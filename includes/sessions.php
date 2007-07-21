@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.0.1 (Loch Ness)
  * Copyright (C) 2006-2007 Dan Fuhry
  * sessions.php - everything related to security and user management
  *
@@ -2064,6 +2064,14 @@ The {$site_name} administration team
       }
     }
     
+    // PAGE group info
+    $pg_list = $paths->get_page_groups($paths->cpage['urlname_nons'], $paths->namespace);
+    $pg_info = '';
+    foreach ( $pg_list as $g_id )
+    {
+      $pg_info .= ' ( page_id=\'' . $g_id . '\' AND namespace=\'__PageGroup\' ) OR';
+    }
+    
     // Build a query to grab ACL info
     $bs = 'SELECT rules,target_type,target_id FROM '.table_prefix.'acl WHERE ( ';
     $q = Array();
@@ -2077,7 +2085,7 @@ The {$site_name} administration team
     }
     // The reason we're using an ORDER BY statement here is because ACL_TYPE_GROUP is less than ACL_TYPE_USER, causing the user's individual
     // permissions to override group permissions.
-    $bs .= implode(' OR ', $q) . ' ) AND ( page_id=\''.$db->escape($paths->cpage['urlname_nons']).'\' AND namespace=\''.$db->escape($paths->namespace).'\' )     
+    $bs .= implode(' OR ', $q) . ' ) AND (' . $pg_info . ' ( page_id=\''.$db->escape($paths->cpage['urlname_nons']).'\' AND namespace=\''.$db->escape($paths->namespace).'\' ) )     
       ORDER BY target_type ASC, page_id ASC, namespace ASC;';
     $q = $this->sql($bs);
     if ( $row = $db->fetchrow() )
@@ -2489,6 +2497,14 @@ class Session_ACLPageInfo {
     $this->perms = $acl_types;
     $this->perms = $session->acl_merge_complete($this->perms, $base);
     
+    // PAGE group info
+    $pg_list = $paths->get_page_groups($page_id, $namespace);
+    $pg_info = '';
+    foreach ( $pg_list as $g_id )
+    {
+      $pg_info .= ' ( page_id=\'' . $g_id . '\' AND namespace=\'__PageGroup\' ) OR';
+    }
+    
     // Build a query to grab ACL info
     $bs = 'SELECT rules FROM '.table_prefix.'acl WHERE ( ';
     $q = Array();
@@ -2502,7 +2518,7 @@ class Session_ACLPageInfo {
     }
     // The reason we're using an ORDER BY statement here is because ACL_TYPE_GROUP is less than ACL_TYPE_USER, causing the user's individual
     // permissions to override group permissions.
-    $bs .= implode(' OR ', $q) . ' ) AND ( page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\' )     
+    $bs .= implode(' OR ', $q) . ' ) AND (' . $pg_info . ' page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\' )     
       ORDER BY target_type ASC, page_id ASC, namespace ASC;';
     $q = $session->sql($bs);
     if ( $row = $db->fetchrow() )
