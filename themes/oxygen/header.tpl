@@ -22,7 +22,7 @@
         {
           elem.style.display = 'block';
           counter.style.display = 'none';
-          elem.parentNode.style.width = '156px';
+          elem.parentNode.style.width = '';
           if ( !KILL_SWITCH )
           {
             createCookie(side+'_sidebar', 'open', 365);

@@ -705,6 +705,9 @@ switch($_GET['mode'])
         }
       }
       
+      // Log the upgrade
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES(\'security\', \'upgrade_enano\', ' . time() . ', \'' . date('d M Y h:i a') . '\', \'' . mysql_real_escape_string($session->username) . '\', \'' . mysql_real_escape_string($this_version) . '\', \'' . mysql_real_escape_string($_SERVER['REMOTE_ADDR']) . '\');');
+      
       echo 'done!</p>';
       echo '<p>You will be redirected shortly. If you aren\'t redirected, <a href="index.php">click here</a>.</p>
             <script type="text/javascript">setTimeout("window.location=\'index.php\'", 2000)</script>';

@@ -316,7 +316,7 @@ function __aclJSONSubmitAjaxHandler(params)
               act_desc = ( data.type == 'new' ) ? 'Create access rule' : 'Editing permissions';
               target_type_t = ( data.target_type == 1 ) ? 'group' : 'user';
               target_name_t = data.target_name;
-              var scope_type = ( data.page_id == false && data.namespace == false ) ? 'this entire site' : 'this page';
+              var scope_type = ( data.page_id == false && data.namespace == false ) ? 'this entire site' : ( data.namespace == '__PageGroup' ) ? 'this group of pages' : 'this page';
               html = '<h2>'+act_desc+'</h2><p>This panel allows you to edit what the '+target_type_t+' "<b>'+target_name_t+'</b>" can do on <b>' + scope_type + '</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.</p>';
               parser = new templateParser(data.template.acl_field_begin);
               html += parser.run();
@@ -390,7 +390,7 @@ function __aclJSONSubmitAjaxHandler(params)
             b.appendChild(document.createTextNode('Permissions updated'));
             note.appendChild(b);
             note.appendChild(document.createElement('br'));
-            note.appendChild(document.createTextNode('The permissions for '+data.target_name+' on this page have been updated successfully.'));
+            note.appendChild(document.createTextNode('The permissions for '+data.target_name+' on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.'));
             note.appendChild(document.createElement('br'));
             var a = document.createElement('a');
             a.href = 'javascript:void(0);';

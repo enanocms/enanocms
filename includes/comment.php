@@ -233,7 +233,7 @@ class Comments
         // Authorization
         // Like the rest of the ACL system, this call is a one-stop check for ALL ACL entries.
         if ( !$this->perms->get_permissions('post_comments') )
-          $errors[] = 'An ACL entry is preventing the comment from being posted.';
+          $errors[] = 'The site security policy prevents your user account from posting comments;';
         
         // Guest authorization
         if ( getConfig('comments_need_login') == '2' && !$session->user_logged_in )

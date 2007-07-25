@@ -137,7 +137,11 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
   {
     topc = GlideEffect.easeInOut(i, topi, diff_top, frames);
     leftc = GlideEffect.easeInOut(i, lefti, diff_left, frames);
-    setTimeout('var o = fly_in_cache['+rand_seed+']; o.style.top=\''+topc+'px\'; o.style.left=\''+leftc+'px\';', timeout);
+    var code = 'var o = fly_in_cache['+rand_seed+']; o.style.top=\''+topc+'px\';';
+    if ( !height_taken_care_of )
+      code += ' o.style.left=\''+leftc+'px\'';
+    code += ';';
+    setTimeout(code, timeout);
     timeout += timerstep;
     
     var ratio = i / frames;

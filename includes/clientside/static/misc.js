@@ -18,8 +18,17 @@ function fetch_dimensions(o) {
 
 function findParentForm(o)
 {
-  // Not implemented - someone please let me know how to do this, what I need to do is
-  // find the first parent <form> tag above param 'o', not sure how to do it with DOM
+  if ( o.tagName == 'FORM' )
+    return o;
+  while(true)
+  {
+    o = o.parentNode;
+    if ( !o )
+      return false;
+    if ( o.tagName == 'FORM' )
+      return o;
+  }
+  return false;
 }
 
 function ajaxReverseDNS(o, text)
@@ -565,6 +574,8 @@ function paginator_goto(parentobj, this_page, num_pages, perpage, url_string)
   div.innerHTML = 'Go to page:<br /><input type="text" size="2" style="padding: 1px; font-size: 8pt;" value="'+(parseInt(this_page)+1)+'" id="'+vtmp+'" />&emsp;<a href="#" onclick="paginator_submit(this, '+num_pages+', '+perpage+', unescape(\'' + escape(url_string) + '\')); return false;" style="font-size: 14pt; text-decoration: none;">&raquo;</a>&emsp;<a href="#" onclick="fly_out_top(this.parentNode, false, true); return false;" style="font-size: 14pt; text-decoration: none;">&times;</a>';
   
   var body = document.getElementsByTagName('body')[0];
+  domObjChangeOpac(0, div);
+  
   body.appendChild(div);
   
   document.getElementById(vtmp).onkeypress = function(e){if(e.keyCode==13)this.nextSibling.nextSibling.onclick();};
@@ -576,6 +587,7 @@ function paginator_goto(parentobj, this_page, num_pages, perpage, url_string)
   var from = '#33FF33';
   Fat.fade_element(div.id,30,2000,from,Fat.get_bgcolor(div.id));
   */
+  
   fly_in_bottom(div, false, true);
   
   var divh = $(div).Width();
@@ -596,5 +608,32 @@ function paginator_submit(obj, max, perpage, formatstring)
   var url = sprintf(formatstring, String(offset));
   fly_out_top(obj.parentNode, false, true);
   window.location = url;
+}
+
+/**
+ * Insert a DOM object _after_ the specified child.
+ * @param object Parent node
+ * @param object Node to insert
+ * @param object Node to insert after
+ */
+
+function insertAfter(parent, baby, bigsister)
+{
+  try
+  {
+    if ( parent.childNodes[parent.childNodes.length-1] == bigsister )
+      parent.appendChild(baby);
+    else
+      parent.insertBefore(baby, bigsister.nextSibling);
+  }
+  catch(e)
+  {
+    alert(e.toString());
+    if ( window.console )
+    {
+      // Firebug support
+      window.console.warn(e);
+    }
+  }
 }
 

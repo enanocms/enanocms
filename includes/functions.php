@@ -1963,7 +1963,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
       {
         if ( isset($callers[$j]) )
         {
-          $tmp = ( is_callable($callers[$j]) ) ? @call_user_func($callers[$j], $val, $row) : $v;
+          $tmp = ( is_callable($callers[$j]) ) ? @call_user_func($callers[$j], $val, $row) : $val;
           
           if ( $tmp )
           {

@@ -853,6 +853,8 @@ class pathManager {
       $group_list[] = $row['pg_id'];
     }
     
+    $db->free_result();
+    
     // Static-page groups
     $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
                            LEFT JOIN '.table_prefix.'page_group_members AS m

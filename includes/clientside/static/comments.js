@@ -166,7 +166,10 @@ function renderComments(data)
     }
   }
   
-  // Posting form
+  if ( data.auth_post_comments )
+  {
+    
+    // Posting form
   
     html += '<h3>Got something to say?</h3>';
     html += '<p>If you have comments or suggestions on this article, you can shout it out here.';
@@ -192,6 +195,8 @@ function renderComments(data)
     html += '    <tr><td colspan="2" style="text-align: center;"><input type="button" onclick="submitComment();" value="Submit comment" /></td></tr>';
     html += '  </table>';
     html += '</div>';
+    
+  }
     
   document.getElementById('ajaxEditContainer').innerHTML = html;
   

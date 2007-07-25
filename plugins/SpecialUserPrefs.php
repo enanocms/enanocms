@@ -399,7 +399,7 @@ function page_Special_Preferences()
         echo '<div class="info-box" style="margin: 0 0 10px 0;">Your signature has been saved.</div>';
       }
       echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
-      echo $template->tinymce_textarea('new_sig', $session->signature);
+      echo $template->tinymce_textarea('new_sig', htmlspecialchars($session->signature));
       echo '<input type="submit" value="Save signature" />';
       echo '</form>';
       break;
