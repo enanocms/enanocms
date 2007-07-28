@@ -83,7 +83,7 @@ function ajaxEditor()
         <textarea id="ajaxEditArea" rows="20" cols="60" style="display: block; margin: 1em 0 1em 1em; width: 96.5%;">'+ajax.responseText+'</textarea><br />\
           Edit summary: <input id="ajaxEditSummary" size="40" /><br />\
           <input id="ajaxEditMinor" name="minor" type="checkbox" /> <label for="ajaxEditMinor">This is a minor edit</label><br />\
-          <a href="#" onclick="void(ajaxSavePage()); return false;">save changes</a>  |  <a href="#" onclick="void(ajaxShowPreview()); return false;">preview changes</a>  |  <a href="#" onclick="void(ajaxEditor()); return false;">revert changes</a>  |  <a href="#" onclick="void(ajaxDiscard()); return false;">discard changes</a>  |  <a href="#" onclick="ajaxWikiEditHelp(); return false;">formatting help</a>\
+          <a href="#" onclick="void(ajaxSavePage()); return false;">save changes</a>  |  <a href="#" onclick="void(ajaxShowPreview()); return false;">preview changes</a>  |  <a href="#" onclick="void(ajaxEditor()); return false;">revert changes</a>  |  <a href="#" onclick="void(ajaxDiscard()); return false;">discard changes</a>\
           <br />\
           '+editNotice+'\
         </form>';
@@ -760,22 +760,6 @@ function ajaxSetPassword()
   );
 }
 
-function ajaxWikiEditHelp()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  jws.openWin('root3', 640, 480);
-  setAjaxLoading();
-  ajaxGet(stdAjaxPrefix+'&_mode=wikihelp', function() {
-      if(ajax.readyState==4)
-      {
-        unsetAjaxLoading();
-        document.getElementById('cn3').innerHTML = ajax.responseText;
-      }
-    });
-}
-
 function ajaxStartLogin()
 {
   // IE <6 pseudo-compatibility
@@ -865,5 +849,100 @@ function ajaxDisableEmbeddedPHP()
         }
       }
     });
+}
+
+var catHTMLBuf = false;
+
+function ajaxCatToTag()
+{
+  if ( KILL_SWITCH )
+    return false;
+  setAjaxLoading();
+  ajaxGet(stdAjaxPrefix + '&_mode=get_tags', function()
+    {
+      if ( ajax.readyState == 4 )
+      {
+        unsetAjaxLoading();
+        var resptext = String(ajax.responseText + ' ');
+        resptext = resptext.substr(0, resptext.length-1);
+        if ( resptext.substr(0, 1) != '{' )
+        {
+          alert('Invalid JSON response from server:\n' + resptext);
+          return false;
+        }
+        var json = parseJSON(resptext);
+        var catbox = document.getElementById('mdgCatBox');
+        if ( !catbox )
+          return false;
+        var linkbox = catbox.parentNode.firstChild.firstChild.nextSibling;
+        linkbox.firstChild.nodeValue = 'show page categorization';
+        linkbox.onclick = function() { ajaxTagToCat(); return false; };
+        catHTMLBuf = catbox.innerHTML;
+        catbox.innerHTML = '';
+        catbox.appendChild(document.createTextNode('Page tags: '));
+        if ( json.tags.length < 1 )
+        {
+          catbox.appendChild(document.createTextNode('No tags on this page'));
+        }
+        for ( var i = 0; i < json.tags.length; i++ )
+        {
+          catbox.appendChild(document.createTextNode(json.tags[i].name));
+          if ( json.tags[i].can_del )
+          {
+            catbox.appendChild(document.createTextNode(' '));
+            var a = document.createElement('a');
+            a.appendChild(document.createTextNode('[X]'));
+            a.href = '#';
+            a.onclick = function() { return false; }
+            catbox.appendChild(a);
+          }
+          if ( ( i + 1 ) < json.tags.length )
+            catbox.appendChild(document.createTextNode(', '));
+        }
+        if ( json.can_add )
+        {
+          catbox.appendChild(document.createTextNode(' '));
+          var addlink = document.createElement('a');
+          addlink.href = '#';
+          addlink.onclick = function() { try { ajaxAddTagStage1(); } catch(e) { }; return false; };
+          addlink.appendChild(document.createTextNode('(add a tag)'));
+          catbox.appendChild(addlink);
+        }
+      }
+    });
+}
+
+function ajaxAddTagStage1()
+{
+  var catbox = document.getElementById('mdgCatBox');
+  var adddiv = document.createElement('div');
+  var text = document.createElement('input');
+  var addlink = document.createElement('a');
+  addlink.href = '#';
+  addlink.onclick = function() { return false; };
+  addlink.appendChild(document.createTextNode('+ Add'));
+  text.type = 'text';
+  text.size = '15';
+  
+  adddiv.style.margin = '5px 0 0 0';
+  adddiv.appendChild(document.createTextNode('Add a tag: '));
+  adddiv.appendChild(text);
+  adddiv.appendChild(document.createTextNode(' '));
+  adddiv.appendChild(addlink);
+  catbox.appendChild(adddiv);
+}
+
+function ajaxTagToCat()
+{
+  if ( !catHTMLBuf )
+    return false;
+  var catbox = document.getElementById('mdgCatBox');
+  if ( !catbox )
+    return false;
+  var linkbox = catbox.parentNode.firstChild.firstChild.nextSibling;
+  linkbox.firstChild.nodeValue = 'show page tags';
+  linkbox.onclick = function() { ajaxCatToTag(); return false; };
+  catbox.innerHTML = catHTMLBuf;
+  catHTMLBuf = false;
 }
 

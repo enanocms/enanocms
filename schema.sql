@@ -243,6 +243,17 @@ CREATE TABLE {{TABLE_PREFIX}}page_group_members(
   PRIMARY KEY ( pg_member_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
+-- Added in 1.0.1
+
+CREATE TABLE {{TABLE_PREFIX}}tags(
+  tag_id int(12) NOT NULL auto_increment,
+  tag_name varchar(63) NOT NULL DEFAULT 'bla',
+  page_id varchar(255) NOT NULL,
+  namespace varchar(255) NOT NULL,
+  user mediumint(8) NOT NULL DEFAULT 1,
+  PRIMARY KEY ( tag_id )
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),

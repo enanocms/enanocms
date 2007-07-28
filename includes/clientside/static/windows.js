@@ -215,7 +215,7 @@ function getHeight() {
     myHeight = document.body.clientHeight;
   }
   return myHeight;
-}           
+}
 
 function getWidth() {
   var myWidth = 0;

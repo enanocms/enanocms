@@ -170,7 +170,9 @@ $system_table_list = Array(
     table_prefix.'groups',
     table_prefix.'group_members',
     table_prefix.'acl',
-    table_prefix.'search_cache'
+    table_prefix.'search_cache',
+    table_prefix.'page_groups',
+    table_prefix.'page_group_members'
   );
 
 dc_here('common: initializing base classes');

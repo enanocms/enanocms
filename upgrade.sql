@@ -7,6 +7,8 @@ INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_ve
 ---BEGIN 1.0---
 CREATE TABLE {{TABLE_PREFIX}}page_groups( pg_id mediumint(8) NOT NULL auto_increment, pg_type tinyint(2) NOT NULL DEFAULT 1, pg_name varchar(255) NOT NULL DEFAULT '', pg_target varchar(255) DEFAULT NULL, PRIMARY KEY ( pg_id ) ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 CREATE TABLE {{TABLE_PREFIX}}page_group_members( pg_member_id int(12) NOT NULL auto_increment, pg_id mediumint(8) NOT NULL, page_id varchar(63) NOT NULL, namespace varchar(63) NOT NULL DEFAULT 'Article', PRIMARY KEY ( pg_member_id ) ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+CREATE TABLE {{TABLE_PREFIX}}tags( tag_id int(12) NOT NULL auto_increment, tag_name varchar(63) NOT NULL DEFAULT 'bla', page_id varchar(255) NOT NULL, namespace varchar(255) NOT NULL, user mediumint(8) NOT NULL DEFAULT 1, PRIMARY KEY ( tag_id ) ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+UPDATE {{TABLE_PREFIX}}acl SET rules=CONCAT(rules,'tag_create=4;tag_delete_own=4;tag_delete_other=4;') WHERE target_type=1 AND target_id=2;
 ---END 1.0---
 ---BEGIN 1.0RC3---
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;
@@ -24,10 +26,10 @@ ALTER TABLE {{TABLE_PREFIX}}groups ADD COLUMN system_group tinyint(1) NOT NULL D
 UPDATE {{TABLE_PREFIX}}groups SET system_group=1 WHERE group_id=1 OR group_id=2;
 INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(3, 'Moderators', 3, 1);
 ALTER TABLE {{TABLE_PREFIX}}privmsgs ADD COLUMN message_read tinyint(1) NOT NULL DEFAULT 0;
--- Reset default user's theme to Oxygen, to emphasize stable release
-UPDATE {{TABLE_PREFIX}}users SET theme='oxygen',style='bleu' WHERE user_id=1 OR user_id=2;
 -- ...and add the associated ACL rule
 INSERT INTO {{TABLE_PREFIX}}acl(target_type,target_id,page_id,namespace,rules) VALUES(1,3,NULL,NULL,'read=4;post_comments=4;edit_comments=4;edit_page=4;view_source=4;mod_comments=4;history_view=4;history_rollback=4;history_rollback_extra=4;protect=4;rename=3;clear_logs=2;vote_delete=4;vote_reset=4;delete_page=4;set_wiki_mode=2;password_set=2;password_reset=2;mod_misc=2;edit_cat=4;even_when_protected=4;upload_files=2;upload_new_version=3;create_page=3;php_in_pages=2;edit_acl=2;');
+-- Reset default user's theme to Oxygen, to emphasize stable release
+UPDATE {{TABLE_PREFIX}}users SET theme='oxygen',style='bleu' WHERE user_id=1 OR user_id=2;
 -- Create table with extra user information
 CREATE TABLE users_extra( user_id mediumint(8) NOT NULL, user_aim varchar(63) default NULL, user_yahoo varchar(63) default NULL, user_msn varchar(255) default NULL, user_xmpp varchar(255) default NULL, user_homepage text, user_location text, user_job text, user_hobbies text, email_public tinyint(1) NOT NULL default '0', userpage_comments smallint(5) NOT NULL default '0', PRIMARY KEY ( user_id ) );
 -- Turn on the Enano button on the sidebar

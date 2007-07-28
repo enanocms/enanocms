@@ -104,11 +104,6 @@
     case "setpass":
       echo PageUtils::setpass($paths->cpage['urlname_nons'], $paths->namespace, $_POST['password']);
       break;
-    case "wikihelp":
-      $html = file_get_contents('http://enanocms.org/ajax.php?title=Help:Wiki_formatting&_mode=getpage&nofooters');
-      $html = str_replace('src="/Special', 'src="http://enanocms.org/Special', $html);
-      echo '<div class="contentDiv"><h2>Wiki formatting guide</h2>'.$html.'</div>';
-      break;
     case "fillusername":
       $name = (isset($_GET['name'])) ? $db->escape($_GET['name']) : false;
       if ( !$name ) 
@@ -224,6 +219,34 @@
       if ( !$e )
         die( $db->get_error() );
       die('GOOD');
+      break;
+    case 'get_tags':
+      $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+      
+      $ret = array('tags' => array(), 'user_level' => $session->user_level, 'can_add' => $session->get_permissions('tag_create'));
+      $q = $db->sql_query('SELECT t.tag_id, t.tag_name, pg.pg_target IS NULL AS used_in_acl, t.user FROM '.table_prefix.'tags AS t
+        LEFT JOIN '.table_prefix.'page_groups AS pg
+          ON ( ( pg.pg_type = ' . PAGE_GRP_TAGGED . ' AND pg.pg_target=t.tag_name ) OR ( pg.pg_type IS NULL AND pg.pg_target IS NULL ) )
+        WHERE t.page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND t.namespace=\'' . $db->escape($paths->namespace) . '\';');
+      if ( !$q )
+        $db->_die();
+      
+      while ( $row = $db->fetchrow() )
+      {
+        $can_del = ( 
+          ( $session->get_permissions('tag_delete_own') && $row['user'] == $session->user_id && $session->user_logged_in ) || // User created the tag and can remove own tags
+          ( $session->get_permissions('tag_delete_other') && $row['used_in_acl'] != 1 ) || // User can remove tags and the tag isn't used in an ACL (page group)
+          ( $row['used_in_acl'] == 1 && $session->get_permissions('tag_delete_own') && $session->get_permissions('tag_delete_other') && ( $session->get_permissions('edit_acl') || $session->user_level >= USER_LEVEL_ADMIN ) )
+          );
+        $ret['tags'][] = array(
+          'id' => $row['tag_id'],
+          'name' => $row['tag_name'],
+          'can_del' => $can_del
+        );
+      }
+      
+      echo $json->encode($ret);
+      
       break;
     default:
       die('Hacking attempt');

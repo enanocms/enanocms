@@ -40,17 +40,17 @@ function getConfig($n)
 
 function setConfig($n, $v)
 {
-  
+
   global $enano_config, $db;
   $enano_config[$n] = $v;
   $v = $db->escape($v);
-  
+
   $e = $db->sql_query('DELETE FROM '.table_prefix.'config WHERE config_name=\''.$n.'\';');
   if ( !$e )
   {
     $db->_die('Error during generic setConfig() call row deletion.');
   }
-  
+
   $e = $db->sql_query('INSERT INTO '.table_prefix.'config(config_name, config_value) VALUES(\''.$n.'\', \''.$v.'\')');
   if ( !$e )
   {
@@ -82,17 +82,17 @@ function makeUrl($t, $query = false, $escape = false)
     $sep = '&';
   }
   if ( isset($_GET['style'] ) ) {
-    $flags .= $sep . 'style='.$session->style; 
+    $flags .= $sep . 'style='.$session->style;
     $sep = '&';
   }
-  
+
   $url = $session->append_sid(contentPath.$t.$flags);
   if($query)
   {
     $sep = strstr($url, '?') ? '&' : '?';
     $url = $url . $sep . $query;
   }
-  
+
   return ($escape) ? htmlspecialchars($url) : $url;
 }
 
@@ -109,7 +109,7 @@ function makeUrlNS($n, $t, $query = false, $escape = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $flags = '';
-  
+
   if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
   {
     $sep = urlSeparator;
@@ -122,7 +122,7 @@ function makeUrlNS($n, $t, $query = false, $escape = false)
     $flags .= $sep . 'printable';
     $sep = '&';
   }
-  if ( isset( $_GET['theme'] ) ) 
+  if ( isset( $_GET['theme'] ) )
   {
     $flags .= $sep . 'theme='.$session->theme;
     $sep = '&';
@@ -132,7 +132,7 @@ function makeUrlNS($n, $t, $query = false, $escape = false)
     $flags .= $sep . 'style='.$session->style;
     $sep = '&';
   }
-  
+
   if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
   {
     $url = contentPath . $paths->nslist[$n] . $t . $flags;
@@ -142,10 +142,10 @@ function makeUrlNS($n, $t, $query = false, $escape = false)
     // If the path manager hasn't been initted yet, take an educated guess at what the URI should be
     $url = contentPath . $n . ':' . $t . $flags;
   }
-  
+
   if($query)
   {
-    if(strstr($url, '?')) 
+    if(strstr($url, '?'))
     {
       $sep =  '&';
     }
@@ -155,12 +155,12 @@ function makeUrlNS($n, $t, $query = false, $escape = false)
     }
     $url = $url . $sep . $query . $flags;
   }
-  
+
   if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
   {
     $url = $session->append_sid($url);
   }
-  
+
   return ($escape) ? htmlspecialchars($url) : $url;
 }
 
@@ -177,7 +177,7 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $flags = '';
-  
+
   if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
   {
     $sep = urlSeparator;
@@ -190,7 +190,7 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
     $flags .= $sep . 'printable';
     $sep = '&';
   }
-  if ( isset( $_GET['theme'] ) ) 
+  if ( isset( $_GET['theme'] ) )
   {
     $flags .= $sep . 'theme='.$session->theme;
     $sep = '&';
@@ -200,7 +200,7 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
     $flags .= $sep . 'style='.$session->style;
     $sep = '&';
   }
-  
+
   if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
   {
     $url = $session->append_sid(contentPath . $paths->nslist[$n] . $t . $flags);
@@ -216,10 +216,10 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
     else $sep = '?';
     $url = $url . $sep . $query . $flags;
   }
-  
+
   $baseprot = 'http' . ( isset($_SERVER['HTTPS']) ? 's' : '' ) . '://' . $_SERVER['HTTP_HOST'];
   $url = $baseprot . $url;
-  
+
   return ($escape) ? htmlspecialchars($url) : $url;
 }
 
@@ -232,11 +232,11 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
 function get_page_title($page_id)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  
+
   $idata = RenderMan::strToPageID($page_id);
   $page_id_key = $paths->nslist[ $idata[1] ] . $idata[0];
   $page_data = $paths->pages[$page_id_key];
-  $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$idata[1]] . str_replace('_', ' ', dirtify_page_id( $idata[0] ) );
+  $title = ( isset($page_data['name']) ) ? ( $page_data['namespace'] == 'Article' ? '' : $paths->nslist[ $idata[1] ] ) . $page_data['name'] : $paths->nslist[$idata[1]] . str_replace('_', ' ', dirtify_page_id( $idata[0] ) );
   return $title;
 }
 
@@ -250,7 +250,7 @@ function get_page_title($page_id)
 function get_page_title_ns($page_id, $namespace)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  
+
   $page_id_key = $paths->nslist[ $namespace ] . $page_id;
   $page_data = $paths->pages[$page_id_key];
   $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$namespace] . str_replace('_', ' ', dirtify_page_id( $page_id ) );
@@ -264,17 +264,17 @@ function get_page_title_ns($page_id, $namespace)
  * @param string $message A short message to show to the user
  * @param string $timeout Timeout, in seconds, to delay the redirect. Defaults to 3.
  */
- 
+
 function redirect($url, $title = 'Redirecting...', $message = 'Please wait while you are redirected.', $timeout = 3)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  
+
   if ( $timeout == 0 )
   {
     header('Location: ' . $url);
     header('HTTP/1.1 307 Temporary Redirect');
   }
-  
+
   $template->add_header('<meta http-equiv="refresh" content="' . $timeout . '; url=' . str_replace('"', '\\"', $url) . '" />');
   $template->add_header('<script type="text/javascript">
       function __r() {
@@ -284,15 +284,15 @@ function redirect($url, $title = 'Redirecting...', $message = 'Please wait while
       setTimeout(\'__r();\', ' . $timeout . '000);
     </script>
     ');
-  
+
   $template->tpl_strings['PAGE_NAME'] = $title;
   $template->header(true);
   echo '<p>' . $message . '</p><p>If you are not redirected within ' . ( $timeout + 1 ) . ' seconds, <a href="' . str_replace('"', '\\"', $url) . '">please click here</a>.</p>';
   $template->footer(true);
-  
+
   $db->close();
   exit(0);
-  
+
 }
 
 // Removed wikiFormat() from here, replaced with RenderMan::render
@@ -305,21 +305,21 @@ function redirect($url, $title = 'Redirecting...', $message = 'Please wait while
 
 function isPage($p) {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  
+
   // Try the easy way first ;-)
   if ( isset( $paths->pages[ $p ] ) )
   {
     return true;
   }
-  
+
   // Special case for Special, Template, and Admin pages that can't have slashes in their URIs
   $ns_test = RenderMan::strToPageID( $p );
-  
+
   if($ns_test[1] != 'Special' && $ns_test[1] != 'Template' && $ns_test[1] != 'Admin')
   {
     return false;
   }
-  
+
   $particles = explode('/', $p);
   if ( isset ( $paths->pages[ $particles[ 0 ] ] ) )
   {
@@ -330,6 +330,10 @@ function isPage($p) {
     return false;
   }
 }
+
+/**
+ * These are some old functions that were used with the Midget codebase. They are deprecated and should not be used any more.
+ */
 
 function arrayItemUp($arr, $keyname) {
   $keylist = array_keys($arr);
@@ -436,16 +440,24 @@ function hex2ip($in) {
 
 // Function strip_php moved to RenderMan class
 
+/**
+ * Immediately brings the site to a halt with an error message. Unlike grinding_halt() this can only be called after the config has been
+ * fetched (plugin developers don't even need to worry since plugins are always loaded after the config) and shows the site name and
+ * description.
+ * @param string The title of the error message
+ * @param string The body of the message, this can be HTML, and should be separated into paragraphs using the <p> tag
+ */
+
 function die_semicritical($t, $p)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $db->close();
-  
+
   if ( ob_get_status() )
     ob_end_clean();
-  
+
   dc_here('functions: <span style="color: red">calling die_semicritical</span>');
-  
+
   $tpl = new template_nodb();
   $tpl->load_theme('oxygen', 'bleu');
   $tpl->tpl_strings['SITE_NAME'] = getConfig('site_name');
@@ -455,17 +467,23 @@ function die_semicritical($t, $p)
   $tpl->header();
   echo $p;
   $tpl->footer();
-  
+
   exit;
 }
+
+/**
+ * Halts Enano execution with a message. This doesn't have to be an error message, it's sometimes used to indicate success at an operation.
+ * @param string The title of the message
+ * @param string The body of the message, this can be HTML, and should be separated into paragraphs using the <p> tag
+ */
 
 function die_friendly($t, $p)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  
+
   if ( ob_get_status() )
     ob_end_clean();
-  
+
   dc_here('functions: <span style="color: red">calling die_friendly</span>');
   $paths->cpage['name'] = $t;
   $template->tpl_strings['PAGE_NAME'] = $t;
@@ -473,19 +491,25 @@ function die_friendly($t, $p)
   echo $p;
   $template->footer();
   $db->close();
-  
+
   exit;
 }
+
+/**
+ * Immediately brings the site to a halt with an error message, and focuses on immediately closing the database connection and shutting down Enano in the event that an attack may happen. This should only be used very early on to indicate very severe errors, or if the site may be under attack (like if the DBAL detects a malicious query). In the vast majority of cases, die_semicritical() is more appropriate.
+ * @param string The title of the error message
+ * @param string The body of the message, this can be HTML, and should be separated into paragraphs using the <p> tag
+ */
 
 function grinding_halt($t, $p)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  
+
   $db->close();
-  
+
   if ( ob_get_status() )
     ob_end_clean();
-  
+
   dc_here('functions: <span style="color: red">calling grinding_halt</span>');
   $tpl = new template_nodb();
   $tpl->load_theme('oxygen', 'bleu');
@@ -499,11 +523,17 @@ function grinding_halt($t, $p)
   exit;
 }
 
-function show_category_info() {
+/**
+ * Prints out the categorization box found on most regular pages. Doesn't take or return anything, but assumes that the page information is already set in $paths.
+ */
+
+ /*
+function show_category_info()
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
   dc_here('functions: showing category info');
-  if($template->no_headers && !strpos($_SERVER['REQUEST_URI'], 'ajax.php')) return '';
-  if($paths->namespace=='Category')
+  // if($template->no_headers && !strpos($_SERVER['REQUEST_URI'], 'ajax.php')) return '';
+  if ( $paths->namespace == 'Category' )
   {
     $q = $db->sql_query('SELECT page_id,namespace FROM '.table_prefix.'categories WHERE category_id=\''.$paths->cpage['urlname_nons'].'\' AND namespace=\'Category\' ORDER BY page_id;');
     if(!$q) $db->_die('The category information could not be selected.');
@@ -513,27 +543,49 @@ function show_category_info() {
     echo '<table border="0" cellspacing="1" cellpadding="4">';
     while($row = $db->fetchrow())
     {
-      $ticker++;if($ticker==3) $ticker=0;
-      if($ticker==0) echo '<tr>';
-      echo '<td style="width: 200px;"><a href="'.makeUrlNS($row['namespace'], $row['page_id']).'">'.$paths->pages[$paths->nslist[$row['namespace']].$row['page_id']]['name'].'</a></td>';
-      if($ticker==2) echo '</tr>';
+      $ticker++;
+      if ( $ticker == 3 )
+      {
+        $ticker = 0;
+      }
+      if ( $ticker == 0 )
+      {
+        echo '<tr>';
+      }
+      echo '<td style="width: 200px;"><a href="' . makeUrlNS($row['namespace'], $row['page_id']) . '">' . htmlspecialchars($paths->pages[$paths->nslist[$row['namespace']].$row['page_id']]['name']) . '</a></td>';
+      if ( $ticker == 2 )
+      {
+        echo '</tr>';
+      }
     }
     $db->free_result();
     if($ticker) echo '</tr>';
     echo '</table>';
-    
+
     $q = $db->sql_query('SELECT page_id,namespace FROM '.table_prefix.'categories WHERE category_id=\''.$paths->cpage['urlname_nons'].'\' AND namespace!=\'Category\' ORDER BY page_id;');
-    if(!$q) $db->_die('The category information could not be selected.');
+    if ( !$q )
+    {
+      $db->_die('The category information could not be selected.');
+    }
     $ticker = -1;
     echo '<h3>Pages</h3>';
-    if($db->numrows() < 1) echo '<p>There are no pages in this category.</p>';
+    if ( $db->numrows() < 1 )
+    {
+      echo '<p>There are no pages in this category.</p>';
+    }
     echo '<table border="0" cellspacing="1" cellpadding="4">';
     while($row = $db->fetchrow())
     {
-      $ticker++;if($ticker==3) $ticker=0;
-      if($ticker==0) echo '<tr>';
-      echo '<td style="width: 200px;"><a href="'.makeUrlNS($row['namespace'], $row['page_id']).'">'.$paths->pages[$paths->nslist[$row['namespace']].$row['page_id']]['name'].'</a></td>';
-      if($ticker==2) echo '</tr>';
+      $ticker += ( $ticker == 3 ) ? -3 : 1;
+      if ( $ticker == 0 )
+      {
+        echo '<tr>';
+      }
+      echo '<td style="width: 200px;"><a href="'.makeUrlNS($row['namespace'], $row['page_id']).'">'.htmlspecialchars($paths->pages[$paths->nslist[$row['namespace']].$row['page_id']]['name']).'</a></td>';
+      if ( $ticker == 2 )
+      {
+        echo '</tr>';
+      }
     }
     $db->free_result();
     if($ticker) echo '</tr>';
@@ -551,7 +603,9 @@ function show_category_info() {
       echo '<a href="'.makeUrlNS('Category', $r['category_id']).'">'.$paths->pages[$paths->nslist['Category'].$r['category_id']]['name'].'</a>';
     }
     if( ( $paths->wiki_mode && !$paths->page_protected ) || ( $session->get_permissions('edit_cat') && $session->get_permissions('even_when_protected') ) ) echo ' [ <a href="'.makeUrl($paths->page, 'do=catedit', true).'" onclick="ajaxCatEdit(); return false;">edit categorization</a> ]</div>';
-  } else {
+  } 
+  else
+  {
     echo '<div class="mdg-comment" style="margin-left: 0;">Categories: ';
     echo '(Uncategorized)';
     if( ( $paths->wiki_mode && !$paths->page_protected ) || ( $session->get_permissions('edit_cat') && $session->get_permissions('even_when_protected') ) ) echo ' [ <a href="'.makeUrl($paths->page, 'do=catedit', true).'" onclick="ajaxCatEdit(); return false;">edit categorization</a> ]</div>';
@@ -559,6 +613,180 @@ function show_category_info() {
   }
   $db->free_result();
 }
+*/
+
+function show_category_info()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  if ( $paths->namespace == 'Category' )
+  {
+    // Show member pages and subcategories
+    $q = $db->sql_query('SELECT p.urlname, p.namespace, p.name, p.namespace=\'Category\' AS is_category FROM '.table_prefix.'categories AS c
+                           LEFT JOIN '.table_prefix.'pages AS p
+                             ON ( p.urlname = c.page_id AND p.namespace = c.namespace )
+                           WHERE c.category_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\'
+                           ORDER BY is_category DESC, p.name ASC;');
+    if ( !$q )
+    {
+      $db->_die();
+    }
+    echo '<h3>Subcategories</h3>';
+    echo '<div class="tblholder">';
+    echo '<table border="0" cellspacing="1" cellpadding="4">';
+    echo '<tr>';
+    $ticker = 0;
+    $counter = 0;
+    $switched = false;
+    $class  = 'row1';
+    while ( $row = $db->fetchrow() )
+    {
+      if ( $row['is_category'] == 0 && !$switched )
+      {
+        if ( $counter > 0 )
+        {
+          // Fill-in
+          while ( $ticker < 3 )
+          {
+            $ticker++;
+            echo '<td class="' . $class . '" style="width: 33.3%;"></td>';
+          }
+        }
+        else
+        {
+          echo '<td class="' . $class . '">No subcategories.</td>';
+        }
+        echo '</tr></table></div>' . "\n\n";
+        echo '<h3>Pages</h3>';
+        echo '<div class="tblholder">';
+        echo '<table border="0" cellspacing="1" cellpadding="4">';
+        echo '<tr>';
+        $counter = 0;
+        $ticker = 0;
+        $switched = true;
+      }
+      $counter++;
+      $ticker++;
+      if ( $ticker == 3 )
+      {
+        echo '</tr><tr>';
+        $ticker = 0;
+        $class = ( $class == 'row3' ) ? 'row1' : 'row3';
+      }
+      echo "<td class=\"{$class}\" style=\"width: 33.3%;\">"; // " to workaround stupid jEdit bug
+      
+      $link = makeUrlNS($row['namespace'], sanitize_page_id($row['urlname']));
+      echo '<a href="' . $link . '"';
+      $key = $paths->nslist[$row['namespace']] . sanitize_page_id($row['urlname']);
+      if ( !isPage( $key ) )
+      {
+        echo ' class="wikilink-nonexistent"';
+      }
+      echo '>';
+      $title = get_page_title_ns($row['urlname'], $row['namespace']);
+      echo htmlspecialchars($title);
+      echo '</a>';
+      
+      echo "</td>";
+    }
+    if ( !$switched )
+    {
+      if ( $counter > 0 )
+      {
+        // Fill-in
+        while ( $ticker < 3 )
+        {
+          $ticker++;
+          echo '<td class="' . $class . '" style="width: 33.3%;"></td>';
+        }
+      }
+      else
+      {
+        echo '<td class="' . $class . '">No subcategories.</td>';
+      }
+      echo '</tr></table></div>' . "\n\n";
+      echo '<h3>Pages</h3>';
+      echo '<div class="tblholder">';
+      echo '<table border="0" cellspacing="1" cellpadding="4">';
+      echo '<tr>';
+      $counter = 0;
+      $ticker = 0;
+      $switched = true;
+    }
+    if ( $counter > 0 )
+    {
+      // Fill-in
+      while ( $ticker < 3 )
+      {
+        $ticker++;
+        echo '<td class="' . $class . '" style="width: 33.3%;"></td>';
+      }
+    }
+    else
+    {
+      echo '<td class="' . $class . '">No pages in this category.</td>';
+    }
+    echo '</tr></table></div>' . "\n\n";
+  }
+  
+  if ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
+  {
+    echo '<div class="mdg-comment" style="margin: 10px 0 0 0;">';
+    if ( $session->user_level >= USER_LEVEL_ADMIN )
+    {
+      echo '<div style="float: right;">';
+      echo '(<a href="#" onclick="ajaxCatToTag(); return false;">show page tags</a>)';
+      echo '</div>';
+    }
+    echo '<div id="mdgCatBox">Categories: ';
+    
+    $where = '( c.page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND c.namespace=\'' . $db->escape($paths->namespace) . '\' )';
+    $prefix = table_prefix;
+    $sql = <<<EOF
+SELECT c.category_id FROM {$prefix}categories AS c
+  LEFT JOIN {$prefix}pages AS p
+    ON ( ( p.urlname = c.page_id AND p.namespace = c.namespace ) OR ( p.urlname IS NULL AND p.namespace IS NULL ) )
+  WHERE $where
+  ORDER BY p.name ASC, c.page_id ASC;
+EOF;
+    $q = $db->sql_query($sql);
+    if ( !$q )
+      $db->_die();
+    
+    if ( $row = $db->fetchrow() )
+    {
+      $list = array();
+      do
+      {
+        $cid = sanitize_page_id($row['category_id']);
+        $title = get_page_title_ns($cid, 'Category');
+        $link = makeUrlNS('Category', $cid);
+        $list[] = '<a href="' . $link . '">' . htmlspecialchars($title) . '</a>';
+      }
+      while ( $row = $db->fetchrow() );
+      echo implode(', ', $list);
+    }
+    else
+    {
+      echo '(Uncategorized)';
+    }
+    
+    $can_edit = ( $session->get_permissions('edit_cat') && ( !$paths->page_protected || $session->get_permissions('even_when_protected') ) );
+    if ( $can_edit )
+    {
+      $edit_link = '<a href="' . makeUrl($paths->page, 'do=catedit', true) . '" onclick="ajaxCatEdit(); return false;">edit categorization</a>';
+      echo ' [ ' . $edit_link . ' ]';
+    }
+    
+    echo '</div></div>';
+    
+  }
+  
+}
+
+/**
+ * Prints out the file information box seen on File: pages. Doesn't take or return anything, but assumes that the page information is already set in $paths, and expects $paths->namespace to be File.
+ */
 
 function show_file_info()
 {
@@ -630,6 +858,10 @@ function show_file_info()
   echo '</div><br />';
 }
 
+/**
+ * Shows header information on the current page. Currently this is only the delete-vote feature. Doesn't take or return anything, but assumes that the page information is already set in $paths.
+ */
+
 function display_page_headers()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -653,6 +885,10 @@ function display_page_headers()
   }
 }
 
+/**
+ * Displays page footer information including file and category info. This also has the send_page_footers hook. Doesn't take or return anything, but assumes that the page information is already set in $paths.
+ */
+
 function display_page_footers()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -665,6 +901,10 @@ function display_page_footers()
   show_file_info();
   show_category_info();
 }
+
+/**
+ * Deprecated, do not use.
+ */
 
 function password_prompt($id = false)
 {
@@ -679,6 +919,12 @@ function password_prompt($id = false)
   }
 }
 
+/**
+ * Some sort of primitive hex converter from back in the day. Deprecated, do not use.
+ * @param string Text to encode
+ * @return string
+ */
+
 function str_hex($string){
     $hex='';
     for ($i=0; $i < strlen($string); $i++){
@@ -687,92 +933,111 @@ function str_hex($string){
     return substr($hex, 1, strlen($hex));
 }
 
-// Function pulled from phpBB's smtp.php
-function smtp_get_response($socket, $response, $line = __LINE__) 
-{
-	$server_response = '';
-	while (substr($server_response, 3, 1) != ' ') 
-	{
-		if (!($server_response = fgets($socket, 256))) 
-		{
-      die_friendly('SMTP Error', "<p>Couldn't get mail server response codes</p>");
-		}
-	} 
+/**
+ * Essentially an return code reader for a socket. Don't use this unless you're writing mail code and smtp_send_email doesn't cut it. Ported from phpBB's smtp.php.
+ * @param socket A socket resource
+ * @param string The expected response from the server, this needs to be exactly three characters.
+ */
 
-	if (!(substr($server_response, 0, 3) == $response)) 
-	{ 
+function smtp_get_response($socket, $response, $line = __LINE__)
+{
+  $server_response = '';
+  while (substr($server_response, 3, 1) != ' ')
+  {
+    if (!($server_response = fgets($socket, 256)))
+    {
+      die_friendly('SMTP Error', "<p>Couldn't get mail server response codes</p>");
+    }
+  }
+
+  if (!(substr($server_response, 0, 3) == $response))
+  {
     die_friendly('SMTP Error', "<p>Ran into problems sending mail. Response: $server_response</p>");
-	} 
+  }
 }
+
+/**
+ * Wrapper for smtp_send_email_core that takes the sender as the fourth parameter instead of additional headers.
+ * @param string E-mail address to send to
+ * @param string Subject line
+ * @param string The body of the message
+ * @param string Address of the sender
+ */
 
 function smtp_send_email($to, $subject, $message, $from)
 {
   return smtp_send_email_core($to, $subject, $message, "From: <$from>\n");
 }
 
-// Replacement or substitute for PHP's mail command
-// Ported from phpBB - copyright (C) phpBB group, GPL.
+/**
+ * Replacement or substitute for PHP's mail() builtin function.
+ * @param string E-mail address to send to
+ * @param string Subject line
+ * @param string The body of the message
+ * @param string Message headers, separated by a single newline ("\n")
+ * @copyright (C) phpBB Group
+ * @license GPL
+ */
+
 function smtp_send_email_core($mail_to, $subject, $message, $headers = '')
 {
-	global $board_config;
+  // Fix any bare linefeeds in the message to make it RFC821 Compliant.
+  $message = preg_replace("#(?<!\r)\n#si", "\r\n", $message);
 
-	// Fix any bare linefeeds in the message to make it RFC821 Compliant.
-	$message = preg_replace("#(?<!\r)\n#si", "\r\n", $message);
+  if ($headers != '')
+  {
+    if (is_array($headers))
+    {
+      if (sizeof($headers) > 1)
+      {
+        $headers = join("\n", $headers);
+      }
+      else
+      {
+        $headers = $headers[0];
+      }
+    }
+    $headers = chop($headers);
 
-	if ($headers != '')
-	{
-		if (is_array($headers))
-		{
-			if (sizeof($headers) > 1)
-			{
-				$headers = join("\n", $headers);
-			}
-			else
-			{
-				$headers = $headers[0];
-			}
-		}
-		$headers = chop($headers);
+    // Make sure there are no bare linefeeds in the headers
+    $headers = preg_replace('#(?<!\r)\n#si', "\r\n", $headers);
 
-		// Make sure there are no bare linefeeds in the headers
-		$headers = preg_replace('#(?<!\r)\n#si', "\r\n", $headers);
+    // Ok this is rather confusing all things considered,
+    // but we have to grab bcc and cc headers and treat them differently
+    // Something we really didn't take into consideration originally
+    $header_array = explode("\r\n", $headers);
+    @reset($header_array);
 
-		// Ok this is rather confusing all things considered,
-		// but we have to grab bcc and cc headers and treat them differently
-		// Something we really didn't take into consideration originally
-		$header_array = explode("\r\n", $headers);
-		@reset($header_array);
+    $headers = '';
+    while(list(, $header) = each($header_array))
+    {
+      if (preg_match('#^cc:#si', $header))
+      {
+        $cc = preg_replace('#^cc:(.*)#si', '\1', $header);
+      }
+      else if (preg_match('#^bcc:#si', $header))
+      {
+        $bcc = preg_replace('#^bcc:(.*)#si', '\1', $header);
+        $header = '';
+      }
+      $headers .= ($header != '') ? $header . "\r\n" : '';
+    }
 
-		$headers = '';
-		while(list(, $header) = each($header_array))
-		{
-			if (preg_match('#^cc:#si', $header))
-			{
-				$cc = preg_replace('#^cc:(.*)#si', '\1', $header);
-			}
-			else if (preg_match('#^bcc:#si', $header))
-			{
-				$bcc = preg_replace('#^bcc:(.*)#si', '\1', $header);
-				$header = '';
-			}
-			$headers .= ($header != '') ? $header . "\r\n" : '';
-		}
+    $headers = chop($headers);
+    $cc = explode(', ', $cc);
+    $bcc = explode(', ', $bcc);
+  }
 
-		$headers = chop($headers);
-		$cc = explode(', ', $cc);
-		$bcc = explode(', ', $bcc);
-	}
+  if (trim($subject) == '')
+  {
+    die_friendly(GENERAL_ERROR, "No email Subject specified");
+  }
 
-	if (trim($subject) == '')
-	{
-		die_friendly(GENERAL_ERROR, "No email Subject specified");
-	}
+  if (trim($message) == '')
+  {
+    die_friendly(GENERAL_ERROR, "Email message was blank");
+  }
 
-	if (trim($message) == '')
-	{
-		die_friendly(GENERAL_ERROR, "Email message was blank");
-	}
-  
   // setup SMTP
   $host = getConfig('smtp_server');
   if ( empty($host) )
@@ -788,110 +1053,110 @@ function smtp_send_email_core($mail_to, $subject, $message, $headers = '')
     $smtp_host = $host;
     $port = 25;
   }
-  
+
   $smtp_user = getConfig('smtp_user');
   $smtp_pass = getConfig('smtp_password');
-  
-	// Ok we have error checked as much as we can to this point let's get on
-	// it already.
-	if( !$socket = @fsockopen($smtp_host, $port, $errno, $errstr, 20) )
-	{
-		die_friendly(GENERAL_ERROR, "Could not connect to smtp host : $errno : $errstr");
-	}
 
-	// Wait for reply
-	smtp_get_response($socket, "220", __LINE__);
+  // Ok we have error checked as much as we can to this point let's get on
+  // it already.
+  if( !$socket = @fsockopen($smtp_host, $port, $errno, $errstr, 20) )
+  {
+    die_friendly(GENERAL_ERROR, "Could not connect to smtp host : $errno : $errstr");
+  }
 
-	// Do we want to use AUTH?, send RFC2554 EHLO, else send RFC821 HELO
-	// This improved as provided by SirSir to accomodate
-	if( !empty($smtp_user) && !empty($smtp_pass) )
-	{ 
-		enano_fputs($socket, "EHLO " . $smtp_host . "\r\n");
-		smtp_get_response($socket, "250", __LINE__);
+  // Wait for reply
+  smtp_get_response($socket, "220", __LINE__);
 
-		enano_fputs($socket, "AUTH LOGIN\r\n");
-		smtp_get_response($socket, "334", __LINE__);
+  // Do we want to use AUTH?, send RFC2554 EHLO, else send RFC821 HELO
+  // This improved as provided by SirSir to accomodate
+  if( !empty($smtp_user) && !empty($smtp_pass) )
+  {
+    enano_fputs($socket, "EHLO " . $smtp_host . "\r\n");
+    smtp_get_response($socket, "250", __LINE__);
 
-		enano_fputs($socket, base64_encode($smtp_user) . "\r\n");
-		smtp_get_response($socket, "334", __LINE__);
+    enano_fputs($socket, "AUTH LOGIN\r\n");
+    smtp_get_response($socket, "334", __LINE__);
 
-		enano_fputs($socket, base64_encode($smtp_pass) . "\r\n");
-		smtp_get_response($socket, "235", __LINE__);
-	}
-	else
-	{
-		enano_fputs($socket, "HELO " . $smtp_host . "\r\n");
-		smtp_get_response($socket, "250", __LINE__);
-	}
+    enano_fputs($socket, base64_encode($smtp_user) . "\r\n");
+    smtp_get_response($socket, "334", __LINE__);
 
-	// From this point onward most server response codes should be 250
-	// Specify who the mail is from....
-	enano_fputs($socket, "MAIL FROM: <" . getConfig('contact_email') . ">\r\n");
-	smtp_get_response($socket, "250", __LINE__);
+    enano_fputs($socket, base64_encode($smtp_pass) . "\r\n");
+    smtp_get_response($socket, "235", __LINE__);
+  }
+  else
+  {
+    enano_fputs($socket, "HELO " . $smtp_host . "\r\n");
+    smtp_get_response($socket, "250", __LINE__);
+  }
 
-	// Specify each user to send to and build to header.
-	$to_header = '';
+  // From this point onward most server response codes should be 250
+  // Specify who the mail is from....
+  enano_fputs($socket, "MAIL FROM: <" . getConfig('contact_email') . ">\r\n");
+  smtp_get_response($socket, "250", __LINE__);
 
-	// Add an additional bit of error checking to the To field.
-	$mail_to = (trim($mail_to) == '') ? 'Undisclosed-recipients:;' : trim($mail_to);
-	if (preg_match('#[^ ]+\@[^ ]+#', $mail_to))
-	{
-		enano_fputs($socket, "RCPT TO: <$mail_to>\r\n");
-		smtp_get_response($socket, "250", __LINE__);
-	}
+  // Specify each user to send to and build to header.
+  $to_header = '';
 
-	// Ok now do the CC and BCC fields...
-	@reset($bcc);
-	while(list(, $bcc_address) = each($bcc))
-	{
-		// Add an additional bit of error checking to bcc header...
-		$bcc_address = trim($bcc_address);
-		if (preg_match('#[^ ]+\@[^ ]+#', $bcc_address))
-		{
-			enano_fputs($socket, "RCPT TO: <$bcc_address>\r\n");
-			smtp_get_response($socket, "250", __LINE__);
-		}
-	}
+  // Add an additional bit of error checking to the To field.
+  $mail_to = (trim($mail_to) == '') ? 'Undisclosed-recipients:;' : trim($mail_to);
+  if (preg_match('#[^ ]+\@[^ ]+#', $mail_to))
+  {
+    enano_fputs($socket, "RCPT TO: <$mail_to>\r\n");
+    smtp_get_response($socket, "250", __LINE__);
+  }
 
-	@reset($cc);
-	while(list(, $cc_address) = each($cc))
-	{
-		// Add an additional bit of error checking to cc header
-		$cc_address = trim($cc_address);
-		if (preg_match('#[^ ]+\@[^ ]+#', $cc_address))
-		{
-			enano_fputs($socket, "RCPT TO: <$cc_address>\r\n");
-			smtp_get_response($socket, "250", __LINE__);
-		}
-	}
+  // Ok now do the CC and BCC fields...
+  @reset($bcc);
+  while(list(, $bcc_address) = each($bcc))
+  {
+    // Add an additional bit of error checking to bcc header...
+    $bcc_address = trim($bcc_address);
+    if (preg_match('#[^ ]+\@[^ ]+#', $bcc_address))
+    {
+      enano_fputs($socket, "RCPT TO: <$bcc_address>\r\n");
+      smtp_get_response($socket, "250", __LINE__);
+    }
+  }
 
-	// Ok now we tell the server we are ready to start sending data
-	enano_fputs($socket, "DATA\r\n");
+  @reset($cc);
+  while(list(, $cc_address) = each($cc))
+  {
+    // Add an additional bit of error checking to cc header
+    $cc_address = trim($cc_address);
+    if (preg_match('#[^ ]+\@[^ ]+#', $cc_address))
+    {
+      enano_fputs($socket, "RCPT TO: <$cc_address>\r\n");
+      smtp_get_response($socket, "250", __LINE__);
+    }
+  }
 
-	// This is the last response code we look for until the end of the message.
-	smtp_get_response($socket, "354", __LINE__);
+  // Ok now we tell the server we are ready to start sending data
+  enano_fputs($socket, "DATA\r\n");
 
-	// Send the Subject Line...
-	enano_fputs($socket, "Subject: $subject\r\n");
+  // This is the last response code we look for until the end of the message.
+  smtp_get_response($socket, "354", __LINE__);
 
-	// Now the To Header.
-	enano_fputs($socket, "To: $mail_to\r\n");
+  // Send the Subject Line...
+  enano_fputs($socket, "Subject: $subject\r\n");
 
-	// Now any custom headers....
-	enano_fputs($socket, "$headers\r\n\r\n");
+  // Now the To Header.
+  enano_fputs($socket, "To: $mail_to\r\n");
 
-	// Ok now we are ready for the message...
-	enano_fputs($socket, "$message\r\n");
+  // Now any custom headers....
+  enano_fputs($socket, "$headers\r\n\r\n");
 
-	// Ok the all the ingredients are mixed in let's cook this puppy...
-	enano_fputs($socket, ".\r\n");
-	smtp_get_response($socket, "250", __LINE__);
+  // Ok now we are ready for the message...
+  enano_fputs($socket, "$message\r\n");
 
-	// Now tell the server we are done and close the socket...
-	enano_fputs($socket, "QUIT\r\n");
-	fclose($socket);
+  // Ok the all the ingredients are mixed in let's cook this puppy...
+  enano_fputs($socket, ".\r\n");
+  smtp_get_response($socket, "250", __LINE__);
 
-	return TRUE;
+  // Now tell the server we are done and close the socket...
+  enano_fputs($socket, "QUIT\r\n");
+  fclose($socket);
+
+  return TRUE;
 }
 
 /**
@@ -918,14 +1183,28 @@ function enano_version($long = false, $no_nightly = false)
   return $r;
 }
 
+/**
+ * What kinda sh** was I thinking when I wrote this. Deprecated.
+ */
+
 function _dualurlenc($t) {
   return rawurlencode(rawurlencode($t));
 }
-  
+
+/**
+ * Badly named function to send back eval'able Javascript code with an error message. Deprecated, use JSON instead.
+ * @param string Message to send
+ */
+
 function _die($t) {
   $_ob = 'document.getElementById("ajaxEditContainer").innerHTML = unescape(\'' . rawurlencode('' . $t . '') . '\')';
   die($_ob);
 }
+
+/**
+ * Same as _die(), but sends an SQL backtrace with the error message, and doesn't halt execution.
+ * @param string Message to send
+ */
 
 function jsdie($text) {
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -933,70 +1212,12 @@ function jsdie($text) {
   echo 'document.getElementById("ajaxEditContainer").innerHTML = unescape(\''.$text.'\');';
 }
 
-// HTML sanitizing function - written by Kallahar
-// Original function at: http://quickwired.com/kallahar/smallprojects/php_xss_filter_function.php
-
-// UNUSED - todo: remove this in gold or put it to use
-
-function RemoveXSS($val) {
-  // remove all non-printable characters. CR(0a) and LF(0b) and TAB(9) are allowed
-  // this prevents some character re-spacing such as <java\0script>
-  // note that you have to handle splits with \n, \r, and \t later since they *are* allowed in some inputs
-  $val = preg_replace('/([\x00-\x08][\x0b-\x0c][\x0e-\x20])/', '', $val);
-  
-  // straight replacements, the user should never need these since they're normal characters
-  // this prevents like <IMG SRC=&#X40&#X61&#X76&#X61&#X73&#X63&#X72&#X69&#X70&#X74&#X3A&#X61&#X6C&#X65&#X72&#X74&#X28&#X27&#X58&#X53&#X53&#X27&#X29>
-  $search  = 'abcdefghijklmnopqrstuvwxyz';
-  $search .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  $search .= '1234567890!@#$%^&*()';
-  $search .= '~`";:?+/={}[]-_|\'\\';
-  for ($i = 0; $i < strlen($search); $i++) {
-    // ;? matches the ;, which is optional
-    // 0{0,7} matches any padded zeros, which are optional and go up to 8 chars
-  
-    // &#x0040 @ search for the hex values
-    $val = preg_replace('/(&#[x|X]0{0,8}'.dechex(ord($search[$i])).';?)/i', $search[$i], $val); // with a ;
-    // &#00064 @ 0{0,7} matches '0' zero to seven times
-    $val = preg_replace('/(&#0{0,8}'.ord($search[$i]).';?)/', $search[$i], $val); // with a ;
-  }
-  
-  // now the only remaining whitespace attacks are \t, \n, and \r
-  $ra1 = Array('javascript', 'vbscript', 'expression', 'applet', 'meta', 'xml', 'blink', 'link', 'script', 'embed', 'object', 'iframe', 'frame', 'frameset', 'ilayer', 'layer', 'bgsound', 'title', 'base');
-  $ra2 = Array('onabort', 'onactivate', 'onafterprint', 'onafterupdate', 'onbeforeactivate', 'onbeforecopy', 'onbeforecut', 'onbeforedeactivate', 'onbeforeeditfocus', 'onbeforepaste', 'onbeforeprint', 'onbeforeunload', 'onbeforeupdate', 'onblur', 'onbounce', 'oncellchange', 'onchange', 'onclick', 'oncontextmenu', 'oncontrolselect', 'oncopy', 'oncut', 'ondataavailable', 'ondatasetchanged', 'ondatasetcomplete', 'ondblclick', 'ondeactivate', 'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'onerror', 'onerrorupdate', 'onfilterchange', 'onfinish', 'onfocus', 'onfocusin', 'onfocusout', 'onhelp', 'onkeydown', 'onkeypress', 'onkeyup', 'onlayoutcomplete', 'onload', 'onlosecapture', 'onmousedown', 'onmouseenter', 'onmouseleave', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onmove', 'onmoveend', 'onmovestart', 'onpaste', 'onpropertychange', 'onreadystatechange', 'onreset', 'onresize', 'onresizeend', 'onresizestart', 'onrowenter', 'onrowexit', 'onrowsdelete', 'onrowsinserted', 'onscroll', 'onselect', 'onselectionchange', 'onselectstart', 'onstart', 'onstop', 'onsubmit', 'onunload');
-  $ra = array_merge($ra1, $ra2);
-  
-  $found = true; // keep replacing as long as the previous round replaced something
-  while ($found == true) {
-    $val_before = $val;
-    for ($i = 0; $i < sizeof($ra); $i++) {
-      $pattern = '/';
-      for ($j = 0; $j < strlen($ra[$i]); $j++) {
-        if ($j > 0) {
-          $pattern .= '(';
-          $pattern .= '(&#[x|X]0{0,8}([9][a][b]);?)?';
-          $pattern .= '|(&#0{0,8}([9][10][13]);?)?';
-          $pattern .= ')?';
-        }
-        $pattern .= $ra[$i][$j];
-      }
-      $pattern .= '/i';
-      $replacement = substr($ra[$i], 0, 2).'<b></b>'.substr($ra[$i], 2); // add in <> to nerf the tag
-      $val = preg_replace($pattern, $replacement, $val); // filter out the hex tags
-      if ($val_before == $val) {
-        // no replacements were made, so exit the loop
-        $found = false;
-      }
-    }
-  }
-  return $val;
-}
-
 /**
  * Capitalizes the first letter of a string
  * @param $text string the text to be transformed
  * @return string
  */
- 
+
 function capitalize_first_letter($text)
 {
   return strtoupper(substr($text, 0, 1)) . substr($text, 1);
@@ -1008,7 +1229,7 @@ function capitalize_first_letter($text)
  * @param $value int the value to switch off
  * @return bool
  */
- 
+
 function is_bit($bitfield, $value)
 {
   return ( $bitfield & $value ) ? true : false;
@@ -1019,7 +1240,7 @@ function is_bit($bitfield, $value)
  * @param $text the text to process
  * @return string
  */
- 
+
 function trim_spaces($text)
 {
   $d = true;
@@ -1040,10 +1261,10 @@ function trim_spaces($text)
  * @param $inc int size of each block
  * @return array
  */
- 
+
 function enano_str_split($text, $inc = 1)
 {
-  if($inc < 1) 
+  if($inc < 1)
   {
     return false;
   }
@@ -1078,10 +1299,10 @@ function hex2bin($text)
 
 /**
  * Generates and/or prints a human-readable backtrace
- * @param bool $return - if true, this function returns a string, otherwise returns null
+ * @param bool $return - if true, this function returns a string, otherwise returns null and prints the backtrace
  * @return mixed
  */
- 
+
 function enano_debug_print_backtrace($return = false)
 {
   ob_start();
@@ -1109,7 +1330,7 @@ function enano_debug_print_backtrace($return = false)
  * @param optional string $suffix text after each hex character
  * @return string
  */
- 
+
 function hexencode($text, $prefix = '%', $suffix = '')
 {
   $arr = enano_str_split($text);
@@ -1127,7 +1348,7 @@ function hexencode($text, $prefix = '%', $suffix = '')
  * Enano-ese equivalent of get_magic_quotes_gpc()
  * @return bool
  */
- 
+
 function enano_get_magic_quotes_gpc()
 {
   if(function_exists('get_magic_quotes_gpc'))
@@ -1145,7 +1366,7 @@ function enano_get_magic_quotes_gpc()
  * @param array
  * @return array
  */
- 
+
 function stripslashes_recurse($arr)
 {
   foreach($arr as $k => $xxxx)
@@ -1164,7 +1385,7 @@ function stripslashes_recurse($arr)
  * @param array
  * @return array
  */
- 
+
 function strip_nul_chars($arr)
 {
   foreach($arr as $k => $xxxx_unused)
@@ -1179,7 +1400,7 @@ function strip_nul_chars($arr)
 }
 
 /**
- * If magic_quotes_gpc is on, calls stripslashes() on everything in $_GET/$_POST/$_COOKIE
+ * If magic_quotes_gpc is on, calls stripslashes() on everything in $_GET/$_POST/$_COOKIE. Also strips any NUL characters from incoming requests, as these are typically malicious.
  * @ignore - this doesn't work too well in my tests
  * @todo port version from the PHP manual
  * @return void
@@ -1201,10 +1422,10 @@ function strip_magic_quotes_gpc()
 
 /**
  * A very basic single-character compression algorithm for binary strings/bitfields
- * @param string $bits the text to compress
+ * @param string $bits the text to compress, should be only 1s and 0s
  * @return string
  */
- 
+
 function compress_bitfield($bits)
 {
   $crc32 = crc32($bits);
@@ -1272,7 +1493,7 @@ function compress_bitfield($bits)
  * @param string $bits the compressed bitfield
  * @return string the uncompressed, original (we hope) bitfield OR bool false on error
  */
- 
+
 function uncompress_bitfield($bits)
 {
   if(substr($bits, 0, 4) != 'cbf:')
@@ -1352,7 +1573,7 @@ function export_table($table, $structure = true, $data = true, $compact = false)
       );
     $collist[] = $field;
   }
-  
+
   if ( $structure )
   {
     $db->sql_query('SET SQL_QUOTE_SHOW_CREATE = 0;');
@@ -1382,7 +1603,7 @@ function export_table($table, $structure = true, $data = true, $compact = false)
       $struct = implode("", $struct_arr);
     }
   }
-  
+
   // Structuring complete
   if($data)
   {
@@ -1441,7 +1662,7 @@ function export_table($table, $structure = true, $data = true, $compact = false)
  * Encodes a string value for use in an INSERT statement for given column type $type.
  * @access private
  */
- 
+
 function mysql_encode_column($input, $type)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1529,16 +1750,16 @@ function hexdecode($hex)
 
 function sanitize_html($html, $filter_php = true)
 {
-  
+
   $html = preg_replace('#<([a-z]+)([\s]+)([^>]+?)'.htmlalternatives('javascript:').'(.+?)>(.*?)</\\1>#is', '&lt;\\1\\2\\3javascript:\\59&gt;\\60&lt;/\\1&gt;', $html);
   $html = preg_replace('#<([a-z]+)([\s]+)([^>]+?)'.htmlalternatives('javascript:').'(.+?)>#is', '&lt;\\1\\2\\3javascript:\\59&gt;', $html);
-  
+
   if($filter_php)
     $html = str_replace(
       Array('<?php',    '<?',    '<%',    '?>',    '%>'),
       Array('&lt;?php', '&lt;?', '&lt;%', '?&gt;', '%&gt;'),
       $html);
-  
+
   $tag_whitelist = array_keys ( setupAttributeWhitelist() );
   if ( !$filter_php )
     $tag_whitelist[] = '?php';
@@ -1565,7 +1786,7 @@ function sanitize_html($html, $filter_php = true)
       $quote_char = $chr;
     }
     if ( $chr == '<' && !$in_tag && $next != '/' )
-    {                                          
+    {
       // start of a tag
       $tag_start = $i;
       $in_tag = true;
@@ -1576,26 +1797,26 @@ function sanitize_html($html, $filter_php = true)
       $full_tag = substr($html, $tag_start, ( $i - $tag_start ) + 1 );
       $l = strlen($tag_name) + 2;
       $attribs_only = trim( substr($full_tag, $l, ( strlen($full_tag) - $l - 1 ) ) );
-      
+
       // Debugging message
       // echo htmlspecialchars($full_tag) . '<br />';
-      
+
       if ( !in_array($tag_name, $tag_whitelist) )
       {
         // Illegal tag
         //echo $tag_name . ' ';
-        
+
         $s = ( empty($attribs_only) ) ? '' : ' ';
-        
+
         $sanitized = '&lt;' . $tag_name . $s . $attribs_only . '&gt;';
-        
+
         $html = substr($html, 0, $tag_start) . $sanitized . substr($html, $i + 1);
         $html = str_replace('</' . $tag_name . '>', '&lt;/' . $tag_name . '&gt;', $html);
         $new_i = $tag_start + strlen($sanitized);
-        
+
         $len = strlen($html);
         $i = $new_i;
-        
+
         $in_tag = false;
         $tag_name = '';
         continue;
@@ -1606,14 +1827,14 @@ function sanitize_html($html, $filter_php = true)
           continue;
         $f = fixTagAttributes( $attribs_only, $tag_name );
         $s = ( empty($f) ) ? '' : ' ';
-        
+
         $sanitized = '<' . $tag_name . $f . '>';
         $new_i = $tag_start + strlen($sanitized);
-        
+
         $html = substr($html, 0, $tag_start) . $sanitized . substr($html, $i + 1);
         $len = strlen($html);
         $i = $new_i;
-        
+
         $in_tag = false;
         $tag_name = '';
         continue;
@@ -1629,20 +1850,20 @@ function sanitize_html($html, $filter_php = true)
         $trk_name = false;
       }
     }
-    
+
   }
-  
+
   // Vulnerability from ha.ckers.org/xss.html:
   // <script src="http://foo.com/xss.js"
   // <
   // The rule is so specific because everything else will have been filtered by now
   $html = preg_replace('/<(script|iframe)(.+?)src=([^>]*)</i', '&lt;\\1\\2src=\\3&lt;', $html);
-  
+
   // Unstrip comments
   $html = preg_replace('/&lt;!--([^>]*?)--&gt;/i', '', $html);
-  
+
   return $html;
-  
+
 }
 
 /**
@@ -1653,12 +1874,12 @@ function sanitize_html($html, $filter_php = true)
 
 function wikiformat_process_block($html)
 {
-  
+
   $tok1 = "<litewiki>";
   $tok2 = "</litewiki>";
-  
+
   $block_tags = array('div', 'p', 'table', 'blockquote', 'pre');
-  
+
   $len = strlen($html);
   $in_quote = false;
   $quote_char = '';
@@ -1666,19 +1887,19 @@ function wikiformat_process_block($html)
   $tag_name = '';
   $in_tag = false;
   $trk_name = false;
-  
+
   $diag = 0;
-  
+
   $block_tagname = '';
   $in_blocksec = 0;
   $block_start = 0;
-  
+
   for ( $i = 0; $i < $len; $i++ )
   {
     $chr = $html{$i};
     $prev = ( $i == 0 ) ? '' : $html{ $i - 1 };
     $next = ( ( $i + 1 ) == $len ) ? '' : $html { $i + 1 };
-    
+
     // Are we inside of a quoted section?
     if ( $in_quote && $in_tag )
     {
@@ -1690,7 +1911,7 @@ function wikiformat_process_block($html)
       $in_quote = true;
       $quote_char = $chr;
     }
-    
+
     if ( $chr == '<' && !$in_tag && $next == '/' )
     {
       // Iterate through until we've got a tag name
@@ -1721,19 +1942,19 @@ function wikiformat_process_block($html)
             $full_litewiki = substr($html, $block_start, ( $i - $block_start ));
             $new_text = "{$tok1}{$full_litewiki}{$tok2}";
             $html = substr($html, 0, $block_start) . $new_text . substr($html, $i);
-            
+
             $i += ( strlen($tok1) + strlen($tok2) ) - 1;
             $len = strlen($html);
-            
+
             //die('<pre>' . htmlspecialchars($html) . '</pre>');
           }
         }
       }
-      
+
       $in_tag = false;
       $in_quote = false;
       $tag_name = '';
-      
+
       continue;
     }
     else if ( $chr == '<' && !$in_tag && $next != '/' )
@@ -1749,7 +1970,7 @@ function wikiformat_process_block($html)
       {
         // Inline tag - reset and go to the next one
         // echo '&lt;inline ' . $tag_name . '&gt; ';
-        
+
         $in_tag = false;
         $tag_name = '';
         continue;
@@ -1768,7 +1989,7 @@ function wikiformat_process_block($html)
         {
           $in_blocksec++;
         }
-        
+
         $in_tag = false;
         $tag_name = '';
         continue;
@@ -1784,17 +2005,17 @@ function wikiformat_process_block($html)
         $trk_name = false;
       }
     }
-    
+
     // Tokenization complete
-    
+
   }
-  
+
   $regex = '/' . str_replace('/', '\\/', preg_quote($tok2)) . '([\s]*)' . preg_quote($tok1) . '/is';
   // die(htmlspecialchars($regex));
   $html = preg_replace($regex, '\\1', $html);
-  
+
   return $html;
-  
+
 }
 
 function htmlalternatives($string)
@@ -1834,7 +2055,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
   $out = '';
   $i = 0;
   $this_page = ceil ( $start / $perpage );
-  
+
   // Build paginator
   $begin = '<div class="tblholder" style="display: table; margin: 10px 0 0 auto;">
     <table border="0" cellspacing="1" cellpadding="4">
@@ -1850,7 +2071,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
     {
       $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
       $offset = strval($i * $perpage);
-      $url = sprintf($result_url, $offset);
+      $url = htmlspecialchars(sprintf($result_url, $offset));
       $j = $i + 1;
       $link = ( $offset == strval($start) ) ? "<b>$j</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>$j</a>";
       $blk->assign_vars(array(
@@ -1891,14 +2112,14 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
       'LINK'=>$link
       ));
     $inner .= $blk->run();
-    
+
     // if ( !in_array(1, $list) )
     // {
     //   $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
     //   $blk->assign_vars(array('CLASS'=>$cls,'LINK'=>'...'));
     //   $inner .= $blk->run();
     // }
-    
+
     foreach ( $list as $i )
     {
       if ( $i == $num_pages )
@@ -1914,15 +2135,15 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
         ));
       $inner .= $blk->run();
     }
-    
+
     $total = $num_pages * $perpage - $perpage;
-    
+
     if ( $this_page < $num_pages )
     {
       // $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
       // $blk->assign_vars(array('CLASS'=>$cls,'LINK'=>'...'));
       // $inner .= $blk->run();
-    
+
       $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
       $offset = strval($total);
       $url = sprintf($result_url, $offset);
@@ -1934,16 +2155,16 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
         ));
       $inner .= $blk->run();
     }
-    
+
   }
-  
+
   $inner .= '<td class="row2" style="cursor: pointer;" onclick="paginator_goto(this, '.$this_page.', '.$num_pages.', '.$perpage.', unescape(\'' . rawurlencode($result_url) . '\'));">&darr;</td>';
-  
+
   $paginator = "\n$begin$inner$end\n";
   $out .= $paginator;
-  
+
   $cls = 'row2';
-  
+
   if ( $row = $db->fetchrow($q) )
   {
     $i = 0;
@@ -1964,7 +2185,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
         if ( isset($callers[$j]) )
         {
           $tmp = ( is_callable($callers[$j]) ) ? @call_user_func($callers[$j], $val, $row) : $val;
-          
+
           if ( $tmp )
           {
             $row[$j] = $tmp;
@@ -1977,9 +2198,9 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
     } while ( $row = $db->fetchrow($q) );
     $out .= $footer;
   }
-  
+
   $out .= $paginator;
-  
+
   return $out;
 }
 
@@ -2003,7 +2224,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
   $out = '';
   $i = 0;
   $this_page = ceil ( $start / $perpage );
-  
+
   // Build paginator
   $begin = '<div class="tblholder" style="display: table; margin: 10px 0 0 auto;">
     <table border="0" cellspacing="1" cellpadding="4">
@@ -2030,7 +2251,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
     {
       $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
       $offset = strval($i * $perpage);
-      $url = sprintf($result_url, $offset);
+      $url = htmlspecialchars(sprintf($result_url, $offset));
       $j = $i + 1;
       $link = ( $offset == strval($start) ) ? "<b>$j</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>$j</a>";
       $blk->assign_vars(array(
@@ -2071,14 +2292,14 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       'LINK'=>$link
       ));
     $inner .= $blk->run();
-    
+
     // if ( !in_array(1, $list) )
     // {
     //   $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
     //   $blk->assign_vars(array('CLASS'=>$cls,'LINK'=>'...'));
     //   $inner .= $blk->run();
     // }
-    
+
     foreach ( $list as $i )
     {
       if ( $i == $num_pages )
@@ -2094,15 +2315,15 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
         ));
       $inner .= $blk->run();
     }
-    
+
     $total = $num_pages * $perpage - $perpage;
-    
+
     if ( $this_page < $num_pages )
     {
       // $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
       // $blk->assign_vars(array('CLASS'=>$cls,'LINK'=>'...'));
       // $inner .= $blk->run();
-    
+
       $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
       $offset = strval($total);
       $url = sprintf($result_url, $offset);
@@ -2114,9 +2335,9 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
         ));
       $inner .= $blk->run();
     }
-    
+
   }
-  
+
   if ( $start < $total )
   {
     $url = sprintf($result_url, abs($start + $perpage));
@@ -2128,15 +2349,15 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       ));
     $inner .= $blk->run();
   }
-  
+
   $inner .= '<td class="row2" style="cursor: pointer;" onclick="paginator_goto(this, '.$this_page.', '.$num_pages.', '.$perpage.', unescape(\'' . rawurlencode($result_url) . '\'));">&darr;</td>';
-  
+
   $paginator = "\n$begin$inner$end\n";
   if ( $total > 1 )
     $out .= $paginator;
-  
+
   $cls = 'row2';
-  
+
   if ( sizeof($q) > 0 )
   {
     $i = 0;
@@ -2155,14 +2376,14 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
     }
     $out .= $footer;
   }
-  
+
   if ( $total > 1 )
     $out .= $paginator;
-  
+
   return $out;
 }
 
-/** 
+/**
  * Enano version of fputs for debugging
  */
 
@@ -2183,13 +2404,13 @@ function enano_fputs($socket, $data)
 
 function sanitize_page_id($page_id)
 {
-  
+
   // Remove character escapes
   $page_id = dirtify_page_id($page_id);
-  
+
   $pid_clean = preg_replace('/[\w\.\/:;\(\)@\[\]_-]/', 'X', $page_id);
   $pid_dirty = enano_str_split($pid_clean, 1);
-  
+
   foreach ( $pid_dirty as $id => $char )
   {
     if ( $char == 'X' )
@@ -2203,10 +2424,10 @@ function sanitize_page_id($page_id)
     }
     $pid_dirty[$id] = ".$cid";
   }
-  
+
   $pid_chars = enano_str_split($page_id, 1);
   $page_id_cleaned = '';
-  
+
   foreach ( $pid_chars as $id => $char )
   {
     if ( $pid_dirty[$id] == 'X' )
@@ -2214,14 +2435,14 @@ function sanitize_page_id($page_id)
     else
       $page_id_cleaned .= $pid_dirty[$id];
   }
-  
+
   // global $mime_types;
-          
+
   // $exts = array_keys($mime_types);
   // $exts = '(' . implode('|', $exts) . ')';
-  
+
   // $page_id_cleaned = preg_replace('/\.2e' . $exts . '$/', '.\\1', $page_id_cleaned);
-  
+
   return $page_id_cleaned;
 }
 
@@ -2234,9 +2455,9 @@ function sanitize_page_id($page_id)
 function dirtify_page_id($page_id)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  // First, replace spaces with underscores  
+  // First, replace spaces with underscores
   $page_id = str_replace(' ', '_', $page_id);
-  
+
   // Exception for userpages for IP addresses
   if ( preg_match('/^' . preg_quote($paths->nslist['User']) . '/', $page_id) )
   {
@@ -2244,9 +2465,9 @@ function dirtify_page_id($page_id)
     if ( is_valid_ip($ip) )
       return $page_id;
   }
-  
+
   preg_match_all('/\.[A-Fa-f0-9][A-Fa-f0-9]/', $page_id, $matches);
-  
+
   foreach ( $matches[0] as $id => $char )
   {
     $char = substr($char, 1);
@@ -2255,12 +2476,12 @@ function dirtify_page_id($page_id)
     $char = chr($char);
     $page_id = str_replace($matches[0][$id], $char, $page_id);
   }
-  
+
   return $page_id;
 }
 
 /**
- * Inserts commas into a number to make it more human-readable. Floating point-safe.
+ * Inserts commas into a number to make it more human-readable. Floating point-safe and doesn't flirt with the number like number_format() does.
  * @param int The number to process
  * @return string Input number with commas added
  */
@@ -2319,13 +2540,13 @@ function inject_substr($haystack, $needle, $pos)
  * @param string suspected IP address
  * @return bool true if valid, false otherwise
  */
- 
+
 function is_valid_ip($ip)
 {
   // These came from phpBB3.
   $ipv4 = '(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])';
   $ipv6 = '(?:(?:(?:[\dA-F]{1,4}:){6}(?:[\dA-F]{1,4}:[\dA-F]{1,4}|(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])))|(?:::(?:[\dA-F]{1,4}:){5}(?:[\dA-F]{1,4}:[\dA-F]{1,4}|(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])))|(?:(?:[\dA-F]{1,4}:):(?:[\dA-F]{1,4}:){4}(?:[\dA-F]{1,4}:[\dA-F]{1,4}|(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])))|(?:(?:[\dA-F]{1,4}:){1,2}:(?:[\dA-F]{1,4}:){3}(?:[\dA-F]{1,4}:[\dA-F]{1,4}|(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])))|(?:(?:[\dA-F]{1,4}:){1,3}:(?:[\dA-F]{1,4}:){2}(?:[\dA-F]{1,4}:[\dA-F]{1,4}|(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])))|(?:(?:[\dA-F]{1,4}:){1,4}:(?:[\dA-F]{1,4}:)(?:[\dA-F]{1,4}:[\dA-F]{1,4}|(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])))|(?:(?:[\dA-F]{1,4}:){1,5}:(?:[\dA-F]{1,4}:[\dA-F]{1,4}|(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])))|(?:(?:[\dA-F]{1,4}:){1,6}:[\dA-F]{1,4})|(?:(?:[\dA-F]{1,4}:){1,7}:))';
-  
+
   if ( preg_match("/^{$ipv4}$/", $ip) || preg_match("/^{$ipv6}$/", $ip) )
     return true;
   else
