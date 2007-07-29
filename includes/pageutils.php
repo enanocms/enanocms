@@ -838,9 +838,10 @@ class PageUtils {
       $_ob .= '<p>There are currently no comments on this '.strtolower($namespace).'';
       if($namespace != 'Article') $_ob .= ' page';
       $_ob .= '.</p>';
-    } else $_ob .= '<p>There '.$s.' on this article.</p>';
+    } else $_ob .= '<p>There '.$s.' on this article.';
     if($session->get_permissions('mod_comments') && $num_unapp > 0) $_ob .= ' <span style="color: #D84308">'.$num_unapp.' of those are unapproved.</span>';
     elseif(!$session->get_permissions('mod_comments') && $num_unapp > 0) { $u = ($num_unapp == 1) ? "is $num_unapp comment" : "are $num_unapp comments"; $_ob .= ' However, there ' . $u . ' awating approval.'; }
+    $_ob .= '</p>';
     $list = 'list = { ';
     // _die(htmlspecialchars($ttext));
     $i = -1;
@@ -895,10 +896,10 @@ class PageUtils {
         if($session->get_permissions('edit_comments'))
         {
           // Edit link
-          $strings['EDIT_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=editcomment&amp;id='.$row['comment_id']).'" onclick="editComment(\''.$i.'\'); return false;" id="editbtn_'.$i.'">edit</a>';
+          $strings['EDIT_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=editcomment&amp;id='.$row['comment_id']).'" id="editbtn_'.$i.'">edit</a>';
         
           // Delete link
-          $strings['DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=deletecomment&amp;id='.$row['comment_id']).'" onclick="ajaxDeleteComment(\''.$i.'\'); return false;">delete</a>';
+          $strings['DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=deletecomment&amp;id='.$row['comment_id']).'">delete</a>';
         }
         else
         {
@@ -917,12 +918,12 @@ class PageUtils {
         
         // Mod links
         $applink = '';
-        $applink .= '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=approve&amp;id='.$row['comment_id']).'" onclick="ajaxCommentAdmin(\'approve\', \''.$i.'\'); return false;" id="mdgApproveLink'.$i.'">';
+        $applink .= '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=approve&amp;id='.$row['comment_id']).'" id="mdgApproveLink'.$i.'">';
         if($row['approved']) $applink .= 'Unapprove';
         else $applink .= 'Approve';
         $applink .= '</a>';
         $strings['MOD_APPROVE_LINK'] = $applink; unset($applink);
-        $strings['MOD_DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=delete&amp;id='.$row['comment_id']).'" onclick="ajaxCommentAdmin(\'delete\', \''.$i.'\'); return false;">Delete</a>';
+        $strings['MOD_DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=delete&amp;id='.$row['comment_id']).'">Delete</a>';
         
         // Signature
         $strings['SIGNATURE'] = '';

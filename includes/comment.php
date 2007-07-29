@@ -82,6 +82,7 @@ class Comments
     global $db, $session, $paths, $template, $plugins; // Common objects
     $parser = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
     $data = $parser->decode($json);
+    $data = decode_unicode_array($data);
     if ( !isset($data['mode']) )
     {
       return $parser->encode(Array('mode'=>'error','error'=>'No mode defined!'));

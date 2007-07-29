@@ -164,7 +164,7 @@ function ajaxSavePage()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  goBusy('Saving page...');
+  //goBusy('Saving page...');
   var text = ajaxEscape($('ajaxEditArea').getContent());
   if(document.mdgAjaxEditor.minor.checked) minor='&minor';
   else minor='';

@@ -61,11 +61,12 @@ class Text_Wiki_Render_Xhtml extends Text_Wiki_Render {
 
         // have to check null and false because HTML_ENTITIES is a zero
         if ($type === HTML_ENTITIES) {
+          /*
 
             // keep a copy of the translated version of the delimiter
             // so we can convert it back.
             $new_delim = htmlentities($this->wiki->delim, $quotes, $charset);
-      
+            
             // convert the entities.  we silence the call here so that
             // errors about charsets don't pop up, per counsel from
             // Jan at Horde.  (http://pear.php.net/bugs/bug.php?id=4474)
@@ -84,6 +85,7 @@ class Text_Wiki_Render_Xhtml extends Text_Wiki_Render {
             $text = str_replace(
               $new_delim, $this->wiki->delim, $text
             );
+          */
 
         } elseif ($type === HTML_SPECIALCHARS) {
     

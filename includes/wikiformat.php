@@ -379,7 +379,7 @@ class Text_Wiki {
       if ($this->isError($result)) {
         return $result;
       }
-
+      
       if (is_object($this->formatObj[$format])) {
         $output .= $this->formatObj[$format]->pre();
       }
@@ -387,7 +387,7 @@ class Text_Wiki {
       foreach (array_keys($this->_countRulesTokens) as $rule) {
         $this->loadRenderObj($format, $rule);
       }
-
+      
       $k = strlen($this->source);
       for ($i = 0; $i < $k; $i++) {
 

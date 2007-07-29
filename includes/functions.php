@@ -1418,6 +1418,10 @@ function strip_magic_quotes_gpc()
   $_GET     = strip_nul_chars($_GET);
   $_COOKIE  = strip_nul_chars($_COOKIE);
   $_REQUEST = strip_nul_chars($_REQUEST);
+  $_POST    = decode_unicode_array($_POST);
+  $_GET     = decode_unicode_array($_GET);
+  $_COOKIE  = decode_unicode_array($_COOKIE);
+  $_REQUEST = decode_unicode_array($_REQUEST);
 }
 
 /**
@@ -2576,6 +2580,80 @@ function str_replace_once($needle, $thread, $haystack)
     }
   }
   return $haystack;
+}
+
+/**
+ * From http://us2.php.net/urldecode - decode %uXXXX
+ * @param string The urlencoded string
+ * @return string
+ */
+
+function decode_unicode_url($str)
+{
+  $res = '';
+
+  $i = 0;
+  $max = strlen($str) - 6;
+  while ($i <= $max)
+  {
+    $character = $str[$i];
+    if ($character == '%' && $str[$i + 1] == 'u')
+    {
+      $value = hexdec(substr($str, $i + 2, 4));
+      $i += 6;
+
+      if ($value < 0x0080)
+      {
+        // 1 byte: 0xxxxxxx
+        $character = chr($value);
+      }
+      else if ($value < 0x0800)
+      {
+        // 2 bytes: 110xxxxx 10xxxxxx
+        $character =
+            chr((($value & 0x07c0) >> 6) | 0xc0)
+          . chr(($value & 0x3f) | 0x80);
+      }
+      else
+      {
+        // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
+        $character =
+            chr((($value & 0xf000) >> 12) | 0xe0)
+          . chr((($value & 0x0fc0) >> 6) | 0x80)
+          . chr(($value & 0x3f) | 0x80);
+      }
+    }
+    else
+    {
+      $i++;
+    }
+
+    $res .= $character;
+  }
+
+  return $res . substr($str, $i);
+}
+
+/**
+ * Recursively decodes an array with UTF-8 characters in its strings
+ * @param array Can be multi-depth
+ * @return array
+ */
+
+function decode_unicode_array($array)
+{
+  foreach ( $array as $i => $val )
+  {
+    if ( is_string($val) )
+    {
+      $array[$i] = decode_unicode_url($val);
+    }
+    else
+    {
+      $array[$i] = decode_unicode_array($val);
+    }
+  }
+  return $array;
 }
 
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
