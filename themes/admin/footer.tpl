@@ -9,6 +9,35 @@
         <td class="bottom-left"></td><td class="bottom"></td><td class="bottom-right"></td>
       </tr>
     </table>
+    
+    </td>
+    <td id="td-sidebar" valign="top">
+    
+      <table border="0" cellspacing="0" cellpadding="0" class="wrapper" id="sidebar-show">
+        <tr>
+          <td class="top-left"></td><td class="top">&nbsp;</td><td class="top-right"></td>
+        </tr>
+        <tr>
+          <td class="left"></td>
+          <td class="main">
+            <div id="sidebar">
+              {SIDEBAR_LEFT}
+              {SIDEBAR_RIGHT}
+            </div>
+          </td>
+          <td class="right"></td>
+        </tr>
+        <tr>
+          <td class="bottom-left"></td><td class="bottom"></td><td class="bottom-right"></td>
+        </tr>
+      </table>
+      
+      <div id="sidebar-hide" onclick="admin_expand();" class="collapsed"></div>
+    
+    </td>
+    </tr>
+    </table>
+    
     <div style="display: none;">
     <h2>Your browser does not support CSS.</h2>
      <p>If you can see this text, it means that your browser does not support Cascading Style Sheets (CSS). CSS is a fundemental aspect of XHTML, and as a result it is becoming very widely adopted by websites, including this one. You should consider switching to a more modern web browser, such as Mozilla Firefox or Opera 9.</p>

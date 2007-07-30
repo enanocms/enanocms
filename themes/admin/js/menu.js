@@ -1,3 +1,4 @@
+/*
 var menuClicked = false;
 var menuID = false;
 var menuParent = false;
@@ -49,4 +50,69 @@ function setMenuoffEvents()
   menu.onmouseup   = function() { setTimeout('menuClicked = false;', 100); }
   document.onclick = function() { if ( menuClicked ) return false; adminMenuOff(); }
 }
+*/
+
+function admin_expand()
+{
+  var expander = document.getElementById('sidebar-hide');
+  var content  = document.getElementById('sidebar-show');
+  var holder  = document.getElementById('td-sidebar');
+  if ( content.style.display == 'table' )
+  {
+    createCookie('theme_admin_sidebar', 'collapsed', 3650);
+    admin_collapse_real(expander, content, holder);
+  }
+  else
+  {
+    createCookie('theme_admin_sidebar', 'expanded', 3650);
+    admin_expand_real(expander, content, holder);
+  }
+}
+
+function admin_collapse_real(expander, content, holder)
+{
+  expander.className = 'collapsed';
+  content.style.display = 'none';
+  holder.style.width = '0px';
+  holder.style.paddingRight = '12px';
+  holder.style.paddingLeft = '0px';
+}
+
+function admin_expand_real(expander, content, holder)
+{
+  expander.className = 'expanded';
+  content.style.display = 'table';
+  holder.style.width = '230px';
+  holder.style.paddingLeft = '12px';
+  holder.style.paddingRight = '0px';
+}
+
+function expander_set_height()
+{
+  var expander = document.getElementById('sidebar-hide');
+  var magic = $('header').Height() + $('pagebar_main').Height();
+  var height = getHeight();
+  var exheight = height - magic;
+  expander.style.height = exheight + 'px';
+  expander.style.top = magic + 'px';
+}
+
+function expander_onload()
+{
+  var expander = document.getElementById('sidebar-hide');
+  var content  = document.getElementById('sidebar-show');
+  var holder  = document.getElementById('td-sidebar');
+  if ( readCookie('theme_admin_sidebar') == 'collapsed' )
+  {
+    admin_collapse_real(expander, content, holder);
+  }
+  else if ( readCookie('theme_admin_sidebar') == 'expanded' )
+  {
+    admin_expand_real(expander, content, holder);
+  }
+}
+
+addOnloadHook(expander_set_height);
+addOnloadHook(expander_onload);
+window.onresize = expander_set_height;
 
