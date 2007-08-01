@@ -486,9 +486,12 @@ function setMousePos(event)
       event = window.event;
     }
     clX = event.clientX;
-    sL  = document.body.scrollLeft;
+    if ( document.body )
+      sL  = document.body.scrollLeft;
+    else
+      sL  = 0;
     mouseX = clX + sL;
-    mouseY = event.clientY + document.body.scrollTop;
+    mouseY = event.clientY + ( document.body ? document.body.scrollTop : 0 );
     return;
   }
   if( typeof(event.clientX) == 'number' )

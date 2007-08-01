@@ -13,16 +13,19 @@
  *
  */
 
-  // Set up gzip encoding before any output is sent
+  // Se t up gzip encoding before any output is sent
   
-  $aggressive_optimize_html = false;
+  $aggressive_optimize_html = true;
   
   global $do_gzip;
-  $do_gzip = false;
+  $do_gzip = true;
   
   if(isset($_SERVER['PATH_INFO'])) $v = $_SERVER['PATH_INFO'];
   elseif(isset($_GET['title'])) $v = $_GET['title'];
   else $v = '';
+  
+  if ( isset($_GET['nocompress']) )
+    $aggressive_optimize_html = false;
   
   error_reporting(E_ALL);
   
@@ -371,35 +374,7 @@
     $html = ob_get_contents();
     ob_end_clean();
     
-    // Which tags to strip - you can change this if needed
-    $strip_tags = Array('pre', 'script', 'style', 'enano:no-opt');
-    $strip_tags = implode('|', $strip_tags);
-    
-    // Strip out the tags and replace with placeholders
-    preg_match_all("#<($strip_tags)(.*?)>(.*?)</($strip_tags)>#is", $html, $matches);
-    $seed = md5(microtime() . mt_rand()); // Random value used for placeholders
-    for ($i = 0;$i < sizeof($matches[1]); $i++)
-    {
-      $html = str_replace("<{$matches[1][$i]}{$matches[2][$i]}>{$matches[3][$i]}</{$matches[4][$i]}>", "{DONT_STRIP_ME_NAKED:$seed:$i}", $html);
-    }
-    
-    // Finally, process the HTML
-    $html = preg_replace("#\n([ ]*)#", " ", $html);
-    
-    // Remove annoying spaces between tags
-    $html = preg_replace("#>([ ]*?){2,}<#", "> <", $html);
-    
-    // Re-insert untouchable tags
-    for ($i = 0;$i < sizeof($matches[1]); $i++)
-    {
-      $html = str_replace("{DONT_STRIP_ME_NAKED:$seed:$i}", "<{$matches[1][$i]}{$matches[2][$i]}>{$matches[3][$i]}</{$matches[4][$i]}>", $html);
-    }
-    
-    // Remove <enano:no-opt> blocks (can be used by themes that don't want their HTML optimized)
-    $html = preg_replace('#<(\/|)enano:no-opt(.*?)>#', '', $html);
-    
-    // Tell snoopish users what's going on
-    $html = str_replace('<html>', "\n<!-- NOTE: This HTML document has been Aggressively Optimized(TM) by Enano to make page loading faster. -->\n<html>", $html);
+    $html = aggressive_optimize_html($html);
     
     // Re-enable output buffering to allow the Gzip function (below) to work
     ob_start();
@@ -407,31 +382,8 @@
     // Done, send it to the user
     echo( $html );
   }
-  
-  //
-  // Compress buffered output if required and send to browser
-  //
-  if ( $do_gzip )
-  {
-    //
-    // Copied from phpBB, which was in turn borrowed from php.net
-    //
-    $gzip_contents = ob_get_contents();
-    ob_end_clean();
-  
-    $gzip_size = strlen($gzip_contents);
-    $gzip_crc = crc32($gzip_contents);
-  
-    $gzip_contents = gzcompress($gzip_contents, 9);
-    $gzip_contents = substr($gzip_contents, 0, strlen($gzip_contents) - 4);
-  
-    header('Content-encoding: gzip');
-    echo "\x1f\x8b\x08\x00\x00\x00\x00\x00";
-    echo $gzip_contents;
-    echo pack('V', $gzip_crc);
-    echo pack('V', $gzip_size);
-  }
-  
-  $db->close();
 
+  $db->close();  
+  gzip_output();
+  
 ?>

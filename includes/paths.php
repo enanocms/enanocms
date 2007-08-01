@@ -845,9 +845,16 @@ class pathManager {
     
     // What linked categories have this page?
     $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
-                           LEFT JOIN '.table_prefix.'categories AS c
-                             ON ( c.category_id = g.pg_target AND g.pg_type = ' . PAGE_GRP_CATLINK . ' )
-                           WHERE c.page_id=\'' . $page_id . '\' AND c.namespace=\'' . $namespace . '\';');
+  LEFT JOIN '.table_prefix.'categories AS c
+    ON ( ( c.category_id = g.pg_target AND g.pg_type = ' . PAGE_GRP_CATLINK . ' ) OR c.category_id IS NULL )
+  LEFT JOIN '.table_prefix.'page_group_members AS m
+    ON ( ( g.pg_id = m.pg_id AND g.pg_type = ' . PAGE_GRP_NORMAL . ' ) OR ( m.pg_id IS NULL ) )
+  LEFT JOIN '.table_prefix.'tags AS t
+    ON ( ( t.tag_name = g.pg_target AND pg_type = ' . PAGE_GRP_TAGGED . ' ) OR t.tag_name IS NULL )
+  WHERE
+    ( c.page_id=\'' . $page_id . '\' AND c.namespace=\'' . $namespace . '\' ) OR
+    ( t.page_id=\'' . $page_id . '\' AND t.namespace=\'' . $namespace . '\' ) OR
+    ( m.page_id=\'' . $page_id . '\' AND m.namespace=\'' . $namespace . '\' );');
     if ( !$q )
       $db->_die();
     
@@ -858,6 +865,7 @@ class pathManager {
     
     $db->free_result();
     
+    /*
     // Static-page groups
     $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
                            LEFT JOIN '.table_prefix.'page_group_members AS m
@@ -873,7 +881,20 @@ class pathManager {
       $group_list[] = $row['pg_id'];
     }
     
-    // Tagging ain't implemented yet ;-)
+    // Tag groups
+    
+    $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
+                           LEFT JOIN '.table_prefix.'tags AS t
+                             ON ( t.tag_name = g.pg_target AND pg_type = ' . PAGE_GRP_TAGGED . ' )
+                           WHERE t.page_id = \'' . $page_id . '\' AND t.namespace = \'' . $namespace . '\';');
+    if ( !$q )
+      $db->_die();
+    
+    while ( $row = $db->fetchrow() )
+    {
+      $group_list[] = $row['pg_id'];
+    }
+    */
     
     return $group_list;
     

@@ -91,6 +91,7 @@ require_once(ENANO_ROOT.'/includes/search.php');
 require_once(ENANO_ROOT.'/includes/json.php');
 require_once(ENANO_ROOT.'/includes/wikiengine/Tables.php');
 require_once(ENANO_ROOT.'/includes/pageprocess.php');
+require_once(ENANO_ROOT.'/includes/tagcloud.php');
 
 strip_magic_quotes_gpc();
 
@@ -172,7 +173,8 @@ $system_table_list = Array(
     table_prefix.'acl',
     table_prefix.'search_cache',
     table_prefix.'page_groups',
-    table_prefix.'page_group_members'
+    table_prefix.'page_group_members',
+    table_prefix.'tags'
   );
 
 dc_here('common: initializing base classes');

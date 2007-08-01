@@ -60,10 +60,10 @@ function ajaxEditBlock(id, oElm)
         var thediv = document.createElement('div');
         //if(!oElm.id) oElm.id = 'autoEditButton_'+Math.floor(Math.random() * 100000);
         oElm = oElm.parentNode;
-        o = fetch_offset(oElm);
-        d = fetch_dimensions(oElm);
-        top = o['top'] + d['h'] + 'px';
-        left = o['left'] + 'px';
+        var magic = $(oElm).Top() + $(oElm).Height();
+        var top = String(magic);
+        top = top + 'px';
+        left = $(oElm).Left() + 'px';
         thediv.style.top = top;
         thediv.style.left = left;
         thediv.style.position = 'absolute';
@@ -107,10 +107,13 @@ function ajaxSaveBlock(oElm, id)
         eval(ajax.responseText);
         if(status == 'GOOD')
         {
-          parent = document.getElementById('disabled_'+id).parentNode.parentNode;
+          var _id = 'disabled_' + String(id);
+          var parent = document.getElementById(_id).parentNode.parentNode;
           oElm.parentNode.parentNode.removeChild(oElm.parentNode);
           content = content.replace('%a', unescape('%0A'));
-          parent.firstChild.nextSibling.nextSibling.nextSibling.innerHTML = content; // $content is set in ajax.responseText
+          var obj = ( IE ) ? parent.firstChild.nextSibling.nextSibling : parent.firstChild.nextSibling.nextSibling.nextSibling;
+          if ( obj )
+            obj.innerHTML = content; // $content is set in ajax.responseText
         }
         else
         {

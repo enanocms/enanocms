@@ -732,12 +732,9 @@ function show_category_info()
   if ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
   {
     echo '<div class="mdg-comment" style="margin: 10px 0 0 0;">';
-    if ( $session->user_level >= USER_LEVEL_ADMIN )
-    {
-      echo '<div style="float: right;">';
-      echo '(<a href="#" onclick="ajaxCatToTag(); return false;">show page tags</a>)';
-      echo '</div>';
-    }
+    echo '<div style="float: right;">';
+    echo '(<a href="#" onclick="ajaxCatToTag(); return false;">show page tags</a>)';
+    echo '</div>';
     echo '<div id="mdgCatBox">Categories: ';
     
     $where = '( c.page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND c.namespace=\'' . $db->escape($paths->namespace) . '\' )';
@@ -2654,6 +2651,158 @@ function decode_unicode_array($array)
     }
   }
   return $array;
+}
+
+/**
+ * Sanitizes a page tag.
+ * @param string
+ * @return string
+ */
+
+function sanitize_tag($tag)
+{
+  $tag = strtolower($tag);
+  $tag = preg_replace('/[^\w _-]+/', '', $tag);
+  $tag = trim($tag);
+  return $tag;
+}
+
+/**
+ * Gzips the output buffer.
+ */
+
+function gzip_output()
+{
+  global $do_gzip;
+  
+  //
+  // Compress buffered output if required and send to browser
+  //
+  if ( $do_gzip && function_exists('ob_gzhandler') )
+  {
+    //
+    // Copied from phpBB, which was in turn borrowed from php.net
+    //
+    $gzip_contents = ob_get_contents();
+    ob_end_clean();
+    
+    header('Content-encoding: gzip');
+    $gzip_contents = ob_gzhandler($gzip_contents);
+    echo $gzip_contents;
+  }
+}
+
+/**
+ * Aggressively and hopefully non-destructively optimizes a blob of HTML.
+ * @param string HTML to process
+ * @return string much snaller HTML
+ */
+
+function aggressive_optimize_html($html)
+{
+  $size_before = strlen($html);
+  
+  // kill carriage returns
+  $html = str_replace("\r", "", $html);
+  
+  // Optimize (but don't obfuscate) Javascript
+  preg_match_all('/<script(.*?)>(.+?)<\/script>/is', $html, $jscript);
+  
+  // list of Javascript reserved words - from about.com
+  $reserved_words = array('abstract', 'as', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class', 'continue', 'const', 'debugger', 'default', 'delete', 'do',
+                          'double', 'else', 'enum', 'export', 'extends', 'false', 'final', 'finally', 'float', 'for', 'function', 'goto', 'if', 'implements', 'import',
+                          'in', 'instanceof', 'int', 'interface', 'is', 'long', 'namespace', 'native', 'new', 'null', 'package', 'private', 'protected', 'public',
+                          'return', 'short', 'static', 'super', 'switch', 'synchronized', 'this', 'throw', 'throws', 'transient', 'true', 'try', 'typeof', 'use', 'var',
+                          'void', 'volatile', 'while', 'with');
+  
+  $reserved_words = '(' . implode('|', $reserved_words) . ')';
+  
+  for ( $i = 0; $i < count($jscript[0]); $i++ )
+  {
+    $js =& $jscript[2][$i];
+    
+    // for line optimization, explode it
+    $particles = explode("\n", $js);
+    
+    foreach ( $particles as $j => $atom )
+    {
+      // Remove comments
+      $atom = preg_replace('#\/\/(.+)#i', '', $atom);
+      
+      $atom = trim($atom);
+      if ( empty($atom) )
+        unset($particles[$j]);
+      else
+        $particles[$j] = $atom;
+    }
+    
+    $js = implode("\n", $particles);
+    
+    $js = preg_replace('#/\*(.*?)\*/#s', '', $js);
+    
+    // find all semicolons and then linebreaks, and replace with a single semicolon
+    $js = str_replace(";\n", ';', $js);
+    
+    // starting braces
+    $js = preg_replace('/\{([\s]+)/m', '{', $js);
+    $js = str_replace(")\n{", '){', $js);
+    
+    // ending braces (tricky)
+    $js = preg_replace('/\}([^;])/m', '};\\1', $js);
+    
+    // other rules
+    $js = str_replace("};\n", "};", $js);
+    $js = str_replace(",\n", ',', $js);
+    $js = str_replace("[\n", '[', $js);
+    $js = str_replace("]\n", ']', $js);
+    $js = str_replace("\n}", '}', $js);
+    
+    // newlines immediately before reserved words
+    $js = preg_replace("/(\)|;)\n$reserved_words/is", '\\1\\2', $js);
+    
+    // fix for firefox issue
+    $js = preg_replace('/\};([\s]*)(else|\))/i', '}\\2', $js);
+    
+    // apply changes
+    $html = str_replace($jscript[0][$i], "<script{$jscript[1][$i]}>$js</script>", $html);
+  }
+  
+  // Which tags to strip - you can change this if needed
+  $strip_tags = Array('pre', 'script', 'style', 'enano:no-opt');
+  $strip_tags = implode('|', $strip_tags);
+  
+  // Strip out the tags and replace with placeholders
+  preg_match_all("#<($strip_tags)(.*?)>(.*?)</($strip_tags)>#is", $html, $matches);
+  $seed = md5(microtime() . mt_rand()); // Random value used for placeholders
+  for ($i = 0;$i < sizeof($matches[1]); $i++)
+  {
+    $html = str_replace($matches[0][$i], "{DONT_STRIP_ME_NAKED:$seed:$i}", $html);
+  }
+  
+  // Finally, process the HTML
+  $html = preg_replace("#\n([ ]*)#", " ", $html);
+  
+  // Remove annoying spaces between tags
+  $html = preg_replace("#>([ ][ ]+)<#", "> <", $html);
+  
+  // Re-insert untouchable tags
+  for ($i = 0;$i < sizeof($matches[1]); $i++)
+  {
+    $html = str_replace("{DONT_STRIP_ME_NAKED:$seed:$i}", "<{$matches[1][$i]}{$matches[2][$i]}>{$matches[3][$i]}</{$matches[4][$i]}>", $html);
+  }
+  
+  // Remove <enano:no-opt> blocks (can be used by themes that don't want their HTML optimized)
+  $html = preg_replace('#<(\/|)enano:no-opt(.*?)>#', '', $html);
+  
+  $size_after = strlen($html);
+  
+  // Tell snoopish users what's going on
+  $html = str_replace('<html>', "\n".'<!-- NOTE: Enano has performed an HTML optimization routine on the HTML you see here. This is to enhance page loading speeds.
+     To view the uncompressed source of this page, add the "nocompress" parameter to the URI of this page: index.php?title=Main_Page&nocompress or Main_Page?nocompress'."
+     Size before compression: $size_before bytes
+     Size after compression:  $size_after bytes
+     -->\n<html>", $html);
+  return $html;
 }
 
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');

@@ -224,7 +224,7 @@
       $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
       
       $ret = array('tags' => array(), 'user_level' => $session->user_level, 'can_add' => $session->get_permissions('tag_create'));
-      $q = $db->sql_query('SELECT t.tag_id, t.tag_name, pg.pg_target IS NULL AS used_in_acl, t.user FROM '.table_prefix.'tags AS t
+      $q = $db->sql_query('SELECT t.tag_id, t.tag_name, pg.pg_target IS NOT NULL AS used_in_acl, t.user FROM '.table_prefix.'tags AS t
         LEFT JOIN '.table_prefix.'page_groups AS pg
           ON ( ( pg.pg_type = ' . PAGE_GRP_TAGGED . ' AND pg.pg_target=t.tag_name ) OR ( pg.pg_type IS NULL AND pg.pg_target IS NULL ) )
         WHERE t.page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND t.namespace=\'' . $db->escape($paths->namespace) . '\';');
@@ -233,19 +233,139 @@
       
       while ( $row = $db->fetchrow() )
       {
-        $can_del = ( 
-          ( $session->get_permissions('tag_delete_own') && $row['user'] == $session->user_id && $session->user_logged_in ) || // User created the tag and can remove own tags
-          ( $session->get_permissions('tag_delete_other') && $row['used_in_acl'] != 1 ) || // User can remove tags and the tag isn't used in an ACL (page group)
-          ( $row['used_in_acl'] == 1 && $session->get_permissions('tag_delete_own') && $session->get_permissions('tag_delete_other') && ( $session->get_permissions('edit_acl') || $session->user_level >= USER_LEVEL_ADMIN ) )
-          );
+        $can_del = true;
+        
+        $perm = ( $row['user'] != $session->user_id ) ?
+                'tag_delete_other' :
+                'tag_delete_own';
+        
+        if ( $row['user'] == 1 && !$session->user_logged_in )
+          // anonymous user trying to delete tag (hardcode blacklisted)
+          $can_del = false;
+          
+        if ( !$session->get_permissions($perm) )
+          $can_del = false;
+        
+        if ( $row['used_in_acl'] == 1 && !$session->get_permissions('edit_acl') && $session->user_level < USER_LEVEL_ADMIN )
+          $can_del = false;
+        
         $ret['tags'][] = array(
           'id' => $row['tag_id'],
           'name' => $row['tag_name'],
-          'can_del' => $can_del
+          'can_del' => $can_del,
+          'acl' => ( $row['used_in_acl'] == 1 )
         );
       }
       
       echo $json->encode($ret);
+      
+      break;
+    case 'addtag':
+      $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+      $resp = array(
+          'success' => false,
+          'error' => 'No error',
+          'can_del' => ( $session->get_permissions('tag_delete_own') && $session->user_logged_in ),
+          'in_acl' => false
+        );
+      
+      // first of course, are we allowed to tag pages?
+      if ( !$session->get_permissions('tag_create') )
+      {
+        $resp['error'] = 'You are not permitted to tag pages.';
+        die($json->encode($resp));
+      }
+      
+      // sanitize the tag name
+      $tag = sanitize_tag($_POST['tag']);
+      $tag = $db->escape($tag);
+      
+      if ( strlen($tag) < 2 )
+      {
+        $resp['error'] = 'Tags must consist of at least 2 alphanumeric characters.';
+        die($json->encode($resp));
+      }
+      
+      // check if tag is already on page
+      $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'tags WHERE page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND namespace=\'' . $db->escape($paths->namespace) . '\' AND tag_name=\'' . $tag . '\';');
+      if ( !$q )
+        $db->_die();
+      if ( $db->numrows() > 0 )
+      {
+        $resp['error'] = 'This page already has this tag.';
+        die($json->encode($resp));
+      }
+      $db->free_result();
+      
+      // tricky: make sure this tag isn't being used in some page group, and thus adding it could affect page access
+      $can_edit_acl = ( $session->get_permissions('edit_acl') || $session->user_level >= USER_LEVEL_ADMIN );
+      $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'page_groups WHERE pg_type=' . PAGE_GRP_TAGGED . ' AND pg_target=\'' . $tag . '\';');
+      if ( !$q )
+        $db->_die();
+      if ( $db->numrows() > 0 && !$can_edit_acl )
+      {
+        $resp['error'] = 'This tag is used in an ACL page group, and thus can\'t be added to a page by people without administrator privileges.';
+        die($json->encode($resp));
+      }
+      $resp['in_acl'] = ( $db->numrows() > 0 );
+      $db->free_result();
+      
+      // we're good
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'tags(tag_name,page_id,namespace,user) VALUES(\'' . $tag . '\', \'' . $db->escape($paths->cpage['urlname_nons']) . '\', \'' . $db->escape($paths->namespace) . '\', ' . $session->user_id . ');');
+      if ( !$q )
+        $db->_die();
+      
+      $resp['success'] = true;
+      $resp['tag'] = $tag;
+      $resp['tag_id'] = $db->insert_id();
+      
+      echo $json->encode($resp);
+      break;
+    case 'deltag':
+      
+      $tag_id = intval($_POST['tag_id']);
+      if ( empty($tag_id) )
+        die('Invalid tag ID');
+      
+      $q = $db->sql_query('SELECT t.tag_id, t.user, t.page_id, t.namespace, pg.pg_target IS NOT NULL AS used_in_acl FROM '.table_prefix.'tags AS t
+  LEFT JOIN '.table_prefix.'page_groups AS pg
+    ON ( pg.pg_id IS NULL OR ( pg.pg_target = t.tag_name AND pg.pg_type = ' . PAGE_GRP_TAGGED . ' ) )
+  WHERE t.tag_id=' . $tag_id . ';');
+      
+      if ( !$q )
+        $db->_die();
+      
+      if ( $db->numrows() < 1 )
+        die('Could not find a tag with that ID');
+      
+      $row = $db->fetchrow();
+      $db->free_result();
+      
+      if ( $row['page_id'] == $paths->cpage['urlname_nons'] && $row['namespace'] == $paths->namespace )
+        $perms =& $session;
+      else
+        $perms = $session->fetch_page_acl($row['page_id'], $row['namespace']);
+        
+      $perm = ( $row['user'] != $session->user_id ) ?
+                'tag_delete_other' :
+                'tag_delete_own';
+      
+      if ( $row['user'] == 1 && !$session->user_logged_in )
+        // anonymous user trying to delete tag (hardcode blacklisted)
+        die('You are not authorized to delete this tag.');
+        
+      if ( !$perms->get_permissions($perm) )
+        die('You are not authorized to delete this tag.');
+      
+      if ( $row['used_in_acl'] == 1 && !$perms->get_permissions('edit_acl') && $session->user_level < USER_LEVEL_ADMIN )
+        die('You are not authorized to delete this tag.');
+      
+      // We're good
+      $q = $db->sql_query('DELETE FROM '.table_prefix.'tags WHERE tag_id = ' . $tag_id . ';');
+      if ( !$q )
+        $db->_die();
+      
+      echo 'success';
       
       break;
     default:

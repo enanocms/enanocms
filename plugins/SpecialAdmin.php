@@ -1888,7 +1888,7 @@ function page_Admin_ThemeManager()
     }
   }
   elseif(isset($_POST['install'])) {
-    $q = 'SELECT * FROM '.table_prefix.'themes;';
+    $q = 'SELECT theme_id FROM '.table_prefix.'themes;';
     $s = $db->sql_query($q);
     if(!$s) die('Error getting theme count: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
     $n = $db->numrows($s);
@@ -1896,10 +1896,42 @@ function page_Admin_ThemeManager()
     $theme_id = $_POST['theme_id'];
     $theme = Array();
     include('./themes/'.$theme_id.'/theme.cfg');
-    $q = 'INSERT INTO '.table_prefix.'themes(theme_id,theme_name,theme_order,enabled) VALUES(\''.$theme['theme_id'].'\', \''.$theme['theme_name'].'\', '.$n.', 1)';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error inserting theme data: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    else echo('<div class="info-box">Theme "'.$theme['theme_name'].'" installed.</div>');
+    if ( !isset($theme['theme_id']) )
+    {
+      echo '<div class="error-box">Could not load theme.cfg (theme metadata file)</div>';
+    }
+    else
+    {
+      $default_style = false;
+      if ( $dh = opendir('./themes/' . $theme_id . '/css') )
+      {
+        while ( $file = readdir($dh) )
+        {
+          if ( $file != '_printable.css' && preg_match('/\.css$/i', $file) )
+          {
+            $default_style = $file;
+            break;
+          }
+        }
+        closedir($dh);
+      }
+      else
+      {
+        die('The /css subdirectory could not be located in the theme\'s directory');
+      }
+      
+      if ( $default_style )
+      {
+        $q = 'INSERT INTO '.table_prefix.'themes(theme_id,theme_name,theme_order,enabled,default_style) VALUES(\''.$db->escape($theme['theme_id']).'\', \''.$db->escape($theme['theme_name']).'\', '.$n.', 1, \'' . $db->escape($default_style) . '\')';
+        $s = $db->sql_query($q);
+        if(!$s) die('Error inserting theme data: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+        else echo('<div class="info-box">Theme "'.$theme['theme_name'].'" installed.</div>');
+      }
+      else
+      {
+        echo '<div class="error-box">Could not determine the default style for the theme.</div>';
+      }
+    }
   }
   echo('
   <h3>Currently installed themes</h3>

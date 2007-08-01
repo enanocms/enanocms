@@ -67,7 +67,7 @@
       
       function ajaxRenameInline()
       {
-        if ( KILL_SWITCH )
+        if ( KILL_SWITCH || IE )
           return false;
         // This trick is _so_ vBulletin...
         elem = document.getElementById('h2PageName');
@@ -101,10 +101,12 @@
       }
       function ajaxRenameInlineCancel(e)
       {
+        if ( typeof(e) != 'object' && IE )
+          e = window.event;
         elem1 = document.getElementById('h2PageName');
         elem2 = document.getElementById('pageheading');
         if(!elem1 || !elem2) return;
-        if ( e.target )
+        if ( typeof(e) == 'object' && e.target )
         {
           if(e.target == elem2)
             return;

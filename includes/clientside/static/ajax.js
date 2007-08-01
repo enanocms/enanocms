@@ -893,7 +893,8 @@ function ajaxCatToTag()
             var a = document.createElement('a');
             a.appendChild(document.createTextNode('[X]'));
             a.href = '#';
-            a.onclick = function() { return false; }
+            a._js_tag_id = json.tags[i].id;
+            a.onclick = function() { ajaxDeleteTag(this, this._js_tag_id); return false; }
             catbox.appendChild(a);
           }
           if ( ( i + 1 ) < json.tags.length )
@@ -912,17 +913,28 @@ function ajaxCatToTag()
     });
 }
 
+var addtag_open = false;
+
 function ajaxAddTagStage1()
 {
+  if ( addtag_open )
+    return false;
   var catbox = document.getElementById('mdgCatBox');
   var adddiv = document.createElement('div');
   var text = document.createElement('input');
   var addlink = document.createElement('a');
   addlink.href = '#';
-  addlink.onclick = function() { return false; };
+  addlink.onclick = function() { ajaxAddTagStage2(this.parentNode.firstChild.nextSibling.value, this.parentNode); return false; };
   addlink.appendChild(document.createTextNode('+ Add'));
   text.type = 'text';
   text.size = '15';
+  text.onkeyup = function(e)
+  {
+    if ( e.keyCode == 13 )
+    {
+      ajaxAddTagStage2(this.value, this.parentNode);
+    }
+  }
   
   adddiv.style.margin = '5px 0 0 0';
   adddiv.appendChild(document.createTextNode('Add a tag: '));
@@ -930,6 +942,119 @@ function ajaxAddTagStage1()
   adddiv.appendChild(document.createTextNode(' '));
   adddiv.appendChild(addlink);
   catbox.appendChild(adddiv);
+  addtag_open = true;
+}
+
+var addtag_nukeme = false;
+
+function ajaxAddTagStage2(tag, nukeme)
+{
+  if ( !addtag_open )
+    return false;
+  if ( addtag_nukeme )
+    return false;
+  addtag_nukeme = nukeme;
+  tag = ajaxEscape(tag);
+  setAjaxLoading();
+  ajaxPost(stdAjaxPrefix + '&_mode=addtag', 'tag=' + tag, function()
+    {
+      if ( ajax.readyState == 4 )
+      {
+        unsetAjaxLoading();
+        var nukeme = addtag_nukeme;
+        addtag_nukeme = false;
+        var resptext = String(ajax.responseText + ' ');
+        resptext = resptext.substr(0, resptext.length-1);
+        if ( resptext.substr(0, 1) != '{' )
+        {
+          alert('Invalid JSON response from server:\n' + resptext);
+          return false;
+        }
+        var json = parseJSON(resptext);
+        var parent = nukeme.parentNode;
+        parent.removeChild(nukeme);
+        addtag_open = false;
+        if ( json.success )
+        {
+          var node = parent.childNodes[1];
+          var insertafter = false;
+          var nukeafter = false;
+          if ( node.nodeValue == 'No tags on this page' )
+          {
+            nukeafter = true;
+          }
+          insertafter = parent.childNodes[ parent.childNodes.length - 3 ];
+          // these need to be inserted in reverse order
+          if ( json.can_del )
+          {
+            var a = document.createElement('a');
+            a.appendChild(document.createTextNode('[X]'));
+            a.href = '#';
+            a._js_tag_id = json.tag_id;
+            a.onclick = function() { ajaxDeleteTag(this, this._js_tag_id); return false; }
+            insertAfter(parent, a, insertafter);
+            insertAfter(parent, document.createTextNode(' '), insertafter);
+          }
+          insertAfter(parent, document.createTextNode(json.tag), insertafter);
+          if ( !nukeafter )
+          {
+            insertAfter(parent, document.createTextNode(', '), insertafter);
+          }
+          if ( nukeafter )
+          {
+            parent.removeChild(insertafter);
+          }
+        }
+        else
+        {
+          alert(json.error);
+        }
+      }
+    });
+}
+
+function ajaxDeleteTag(parentobj, tag_id)
+{
+  var arrDelete = [ parentobj, parentobj.previousSibling, parentobj.previousSibling.previousSibling ];
+  var parent = parentobj.parentNode;
+  var writeNoTags = false;
+  if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == ', ' )
+    arrDelete.push(parentobj.previousSibling.previousSibling.previousSibling);
+  else if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == 'Page tags: ' )
+    arrDelete.push(parentobj.nextSibling);
+  
+  if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == 'Page tags: ' &&
+       parentobj.nextSibling.nextSibling.firstChild )
+    if ( parentobj.nextSibling.nextSibling.firstChild.nodeValue == '(add a tag)')
+      writeNoTags = true;
+    
+  ajaxPost(stdAjaxPrefix + '&_mode=deltag', 'tag_id=' + String(tag_id), function()
+    {
+      if ( ajax.readyState == 4 )
+      {
+        if ( ajax.responseText == 'success' )
+        {
+          for ( var i = 0; i < arrDelete.length; i++ )
+          {
+            try
+            {
+              parent.removeChild(arrDelete[i]);
+            } catch(e) {}
+          }
+          if ( writeNoTags )
+          {
+            var node1 = document.createTextNode('No tags on this page');
+            var node2 = document.createTextNode(' ');
+            insertAfter(parent, node1, parent.firstChild);
+            insertAfter(parent, node2, node1);
+          }
+        }
+        else
+        {
+          alert(ajax.responseText);
+        }
+      }
+    });
 }
 
 function ajaxTagToCat()

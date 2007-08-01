@@ -812,7 +812,7 @@ switch($_GET['mode'])
         <tr><td>Your e-mail address:</td><td><input onkeyup="verify();" name="admin_email" type="text" size="30" /></td><td><img id="s_email" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
         <tr>
           <td>
-            Allow administrative embedding of PHP:<br />
+            Allow administrators to embed PHP code into pages:<br />
             <small><span style="color: #D84308">Do not under any circumstances enable this option without reading these
                    <a href="install.php?mode=pophelp&amp;topic=admin_embed_php"
                       onclick="window.open(this.href, 'pophelpwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes'); return false;"
@@ -1010,7 +1010,7 @@ switch($_GET['mode'])
       {
         echo 'Dropping existing Enano tables...';
         // Our list of tables included in Enano
-        $tables = Array( 'mdg_categories', 'mdg_comments', 'mdg_config', 'mdg_logs', 'mdg_page_text', 'mdg_session_keys', 'mdg_pages', 'mdg_users', 'mdg_users_extra', 'mdg_themes', 'mdg_buddies', 'mdg_banlist', 'mdg_files', 'mdg_privmsgs', 'mdg_sidebar', 'mdg_hits', 'mdg_search_index', 'mdg_groups', 'mdg_group_members', 'mdg_acl', 'mdg_search_cache' );
+        $tables = Array( 'mdg_categories', 'mdg_comments', 'mdg_config', 'mdg_logs', 'mdg_page_text', 'mdg_session_keys', 'mdg_pages', 'mdg_users', 'mdg_users_extra', 'mdg_themes', 'mdg_buddies', 'mdg_banlist', 'mdg_files', 'mdg_privmsgs', 'mdg_sidebar', 'mdg_hits', 'mdg_search_index', 'mdg_groups', 'mdg_group_members', 'mdg_acl', 'mdg_search_cache', 'mdg_tags', 'mdg_page_groups', 'mdg_page_group_members' );
         $tables = implode(', ', $tables);
         $tables = str_replace('mdg_', $_POST['table_prefix'], $tables);
         $query_of_death = 'DROP TABLE '.$tables.';';

@@ -504,7 +504,7 @@ function page_Admin_PageGroups()
           if ( strval(intval($id)) == $id )
             $good[] = $id;
         }
-        $subquery = 'pg_member_id=' . implode(' OR pg_member_id=', $good);
+        $subquery = ( count($good) > 0 ) ? 'pg_member_id=' . implode(' OR pg_member_id=', $good) : "'foo'='foo'";
         $sql = 'DELETE FROM '.table_prefix."page_group_members WHERE ( $subquery ) AND pg_id=$edit_id;";
         if ( !$db->sql_query($sql) )
         {
@@ -598,7 +598,7 @@ function page_Admin_PageGroups()
           // More javascript magic!
           ?>
           <script type="text/javascript">
-            var __pg_edit_submitAuthorized = true;;
+            var __pg_edit_submitAuthorized = true;
             var __ol_pg_edit_setup = function()
             {
               var input = document.getElementById('inptext_pg_add_member');
@@ -688,6 +688,8 @@ function page_Admin_PageGroups()
           $ajax_page_add = true;
           
           break;
+        case PAGE_GRP_TAGGED:
+          break;
       }
       
       if ( $ajax_page_add )
@@ -696,21 +698,27 @@ function page_Admin_PageGroups()
       }
       else
       {
-        
+        echo '<tr><th colspan="3" class="subhead">
+                <input type="submit" name="action[edit_save]" value="Save and update" />
+                <input type="submit" name="action[noop]" value="Cancel all changes" />
+              </th></tr>';
       }
       
       echo '  </table>
             </div>';
       echo '</form>';
       
-      // This needs to be outside of the form.
-      echo '<div class="tblholder"><table border="0" cellspacing="1" cellpadding="4"><tr>';
-      echo '<th colspan="2">On-the-fly tools</th></tr>';
-      echo '<tr>';
-      // Add pages AJAX form
-      echo '<td class="row2">Add page:<br /><small>You can add multiple pages by entering part of a page title, and it will be auto-completed. Press Enter to quickly add the page. This only works if you a really up-to-date browser.</small></td>';
-      echo '<td class="row1"><input type="text" size="30" name="pg_add_member" id="inptext_pg_add_member" /></td>';
-      echo '</tr></table></div>';
+      if ( $ajax_page_add )
+      {
+        // This needs to be outside of the form.
+        echo '<div class="tblholder"><table border="0" cellspacing="1" cellpadding="4"><tr>';
+        echo '<th colspan="2">On-the-fly tools</th></tr>';
+        echo '<tr>';
+        // Add pages AJAX form
+        echo '<td class="row2">Add page:<br /><small>You can add multiple pages by entering part of a page title, and it will be auto-completed. Press Enter to quickly add the page. This only works if you a really up-to-date browser.</small></td>';
+        echo '<td class="row1"><input type="text" size="30" name="pg_add_member" id="inptext_pg_add_member" /></td>';
+        echo '</tr></table></div>';
+      }
       
       return;
     }
