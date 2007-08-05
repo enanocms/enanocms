@@ -42,6 +42,7 @@ function expander_set_height()
   var exheight = height - magic;
   expander.style.height = exheight + 'px';
   expander.style.top = magic + 'px';
+  expander_set_pos();
 }
 
 function expander_onload()
@@ -59,7 +60,26 @@ function expander_onload()
   }
 }
 
+function expander_set_pos()
+{
+  var winheight = getHeight();
+  var magic = $('header').Height() + $('pagebar_main').Height();
+  var top = getScrollOffset();
+  if ( typeof(top) != 'number' )
+  {
+    return null;
+  }
+  magic = magic - top;
+  if ( magic < 0 )
+    magic = 0;
+  var bartop = magic + top;
+  var barheight = winheight - magic;
+  var expander = document.getElementById('sidebar-hide');
+  expander.style.top = bartop + 'px';
+  expander.style.height = barheight + 'px';
+}
+
 addOnloadHook(expander_set_height);
 addOnloadHook(expander_onload);
 window.onresize = expander_set_height;
-
+window.onscroll = expander_set_pos;

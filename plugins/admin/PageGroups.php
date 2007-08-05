@@ -404,7 +404,7 @@ function page_Admin_PageGroups()
       $q = $db->sql_query('DELETE FROM '.table_prefix.'page_group_members WHERE pg_id=' . $delete_id . ';');
       if ( !$q )
         $db->_die();
-      echo "<div class='info-box'>The group ".'"'."$pg_name".'"'." has been deleted.</div>";
+      echo "<div class='info-box'>The group ".'"'.htmlspecialchars("$pg_name").'"'." has been deleted.</div>";
     }
     else if ( isset($_POST['action']['edit']) && !isset($_POST['action']['noop']) )
     {
@@ -439,15 +439,25 @@ function page_Admin_PageGroups()
           return;
         }
         
+        /*
+        // We're gonna allow adding nonexistent pages for now
         if ( !isPage($page) )
         {
           $return = array('mode' => 'error', 'text' => 'The page you are trying to add (' . htmlspecialchars($page) . ') does not exist.');
           echo $json->encode($return);
           return;
         }
+        */
         
         list($page_id, $namespace) = RenderMan::strToPageID($page);
         $page_id = sanitize_page_id($page_id);
+        
+        if ( !isset($paths->namespace[$namespace]) )
+        {
+          $return = array('mode' => 'error', 'text' => 'Invalid namespace return from RenderMan::strToPageID()');
+          echo $json->encode($return);
+          return;
+        }
         
         $q = $db->sql_query('SELECT "x" FROM '.table_prefix.'page_group_members WHERE pg_id=' . $edit_id . ' AND page_id=\'' . $db->escape($page_id) . '\' AND namespace=\'' . $namespace . '\';');
         if ( !$q )
@@ -479,9 +489,76 @@ function page_Admin_PageGroups()
         return;
       }
       
-      if ( isset($_POST['action']['edit_save']) )
+      if ( isset($_POST['action']['edit_save']) && isset($_POST['pg_name']) )
       {
         $edit_id = $_POST['action']['edit'];
+        $edit_id = intval($edit_id);
+        if ( !empty($edit_id) )
+        {
+          // Update group name
+          $new_name = $_POST['pg_name'];
+          if ( empty($new_name) )
+          {
+            echo '<div class="error-box">Please enter a valid name for this group.</div>';
+          }
+          else
+          {
+            $q = $db->sql_query('SELECT pg_name FROM '.table_prefix.'page_groups WHERE pg_id=' . $edit_id . ';');
+            if ( !$q )
+              $db->_die();
+            $row = $db->fetchrow();
+            $db->free_result();
+            if ( $new_name != $row['pg_name'] )
+            {
+              $new_name = $db->escape(trim($new_name));
+              $q = $db->sql_query('UPDATE '.table_prefix.'page_groups SET pg_name=\'' . $new_name . '\' WHERE pg_id=' . $edit_id . ';');
+              if ( !$q )
+                $db->_die();
+              else
+                echo '<div class="info-box">The group name was updated successfully.</div>';
+            }
+            if ( $_POST['pg_type'] == PAGE_GRP_TAGGED )
+            {
+              $target = $_POST['pg_target'];
+              $target = sanitize_tag($target);
+              if ( empty($target) )
+              {
+                echo '<div class="error-box">Please enter a valid tag.</div>';
+              }
+              else
+              {
+                $target = $db->escape($target);
+                $q = $db->sql_query('UPDATE '.table_prefix.'page_groups SET pg_target=\'' . $target . '\' WHERE pg_id=' . $edit_id . ';');
+                if ( !$q )
+                  $db->_die();
+                else
+                  echo '<div class="info-box">The affecting tag was updated.</div>';
+              }
+            }
+            else if ( $_POST['pg_type'] == PAGE_GRP_CATLINK )
+            {
+              $target = $_POST['pg_target'];
+              if ( empty($target) )
+              {
+                echo '<div class="error-box">No category ID specified on POST URI.</div>';
+              }
+              else
+              {
+                $target = $db->escape($target);
+                $q = $db->sql_query('UPDATE '.table_prefix.'page_groups SET pg_target=\'' . $target . '\' WHERE pg_id=' . $edit_id . ';');
+                if ( !$q )
+                  $db->_die();
+                else
+                  echo '<div class="info-box">The affecting category was updated.</div>';
+              }
+            }
+          }
+        }
+      }
+      else if ( isset($_POST['action']['edit_save']) )
+      {
+        $edit_id = $_POST['action']['edit'];
+        $edit_id = intval($edit_id);
       }
       else
       {
@@ -495,7 +572,7 @@ function page_Admin_PageGroups()
         return;
       }
       
-      if ( isset($_POST['action']['edit_save']['do_rm']) )
+      if ( isset($_POST['action']['edit_save']['do_rm']) && !isset($_POST['pg_name']) )
       {
         $vals = array_keys($_POST['action']['edit_save']['rm']);
         $good = array();
@@ -504,13 +581,20 @@ function page_Admin_PageGroups()
           if ( strval(intval($id)) == $id )
             $good[] = $id;
         }
-        $subquery = ( count($good) > 0 ) ? 'pg_member_id=' . implode(' OR pg_member_id=', $good) : "'foo'='foo'";
-        $sql = 'DELETE FROM '.table_prefix."page_group_members WHERE ( $subquery ) AND pg_id=$edit_id;";
-        if ( !$db->sql_query($sql) )
+        $subquery = ( count($good) > 0 ) ? 'pg_member_id=' . implode(' OR pg_member_id=', $good) : "'foo'='bar'";
+        if ( $subquery == "'foo'='bar'" )
         {
-          $db->_die();
+          echo '<div class="warning-box">No pages were selected for deletion, and thus none were deleted.</div>';
         }
-        echo '<div class="info-box">The requested page group members have been deleted.</div>';
+        else
+        {
+          $sql = 'DELETE FROM '.table_prefix."page_group_members WHERE ( $subquery ) AND pg_id=$edit_id;";
+          if ( !$db->sql_query($sql) )
+          {
+            $db->_die();
+          }
+          echo '<div class="info-box">The requested page group members have been deleted.</div>';
+        }
       }
       
       // Fetch information about page group
@@ -529,6 +613,7 @@ function page_Admin_PageGroups()
       
       echo '<form name="pg_edit_frm" action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
       echo '<input type="hidden" name="action[edit]" value="' . $edit_id . '" />';
+      echo '<input type="hidden" name="pg_type" value="' . $row['pg_type'] . '" />';
       echo '<div class="tblholder">
               <table border="0" cellspacing="1" cellpadding="4">
                 <tr>
@@ -553,10 +638,20 @@ function page_Admin_PageGroups()
       switch ( $row['pg_type'] )
       {
         case PAGE_GRP_NORMAL:
+          
           // You have guessed correct.
           // *Sits in chair for 10 minutes listening to the radio in an effort to put off writing the code you see below*
           
           echo '<tr><th colspan="3" class="subhead"><input type="submit" name="action[edit_save]" value="Save group name" /></th></tr>';
+          echo '</table></div>';
+          echo '</form>';
+          echo '<form name="pg_static_rm_frm" action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" enctype="multipart/form-data">';
+          echo '<input type="hidden" name="action[edit]" value="' . $edit_id . '" />';
+          echo '<div class="tblholder">
+                  <table border="0" cellspacing="1" cellpadding="4">
+                    <tr>
+                      <th colspan="3">Remove pages from this group</th>
+                    </tr>';
           
           $q = $db->sql_query('SELECT m.pg_member_id,m.page_id,m.namespace FROM '.table_prefix.'page_group_members AS m
                                  LEFT JOIN '.table_prefix.'pages AS p
@@ -689,6 +784,50 @@ function page_Admin_PageGroups()
           
           break;
         case PAGE_GRP_TAGGED:
+          echo '<tr>
+                  <td class="row2">
+                    Include pages with this tag:
+                  </td>
+                  <td class="row1">
+                    <input type="text" name="pg_target" value="' . htmlspecialchars($row['pg_target']) . '" size="30" />
+                  </td>
+                </tr>';
+          break;
+        case PAGE_GRP_CATLINK:
+          
+          // Build category list
+          $q = $db->sql_query('SELECT name,urlname FROM '.table_prefix.'pages WHERE namespace=\'Category\';');
+          if ( !$q )
+            $db->_die();
+          
+          if ( $db->numrows() < 1 )
+          {
+            $catlist = 'There aren\'t any categories on this site.';
+          }
+          else
+          {
+            $catlist = '<select name="pg_target">';
+            while ( $catrow = $db->fetchrow() )
+            {
+              $selected = ( $catrow['urlname'] == $row['pg_target'] ) ? ' selected="selected"' : '';
+              $catlist .= '<option value="' . htmlspecialchars($catrow['urlname']) . '"' . $selected . '>' . htmlspecialchars($catrow['name']) . '</option>';
+            }
+            $catlist .= '</select>';
+          }
+          
+          echo '<tr>
+                  <td class="row2">
+                    Include pages that are in this category:<br />
+                    <small><b>Reminder:</b> Enano does not automatically place any access controls on the category. If you
+                           don\'t want users to be able to freely add and remove pages from the category (assuming Wiki Mode is enabled
+                           for the category) then you need to enable protection on the category using the button on the more options menu.
+                           </small>
+                  </td>
+                  <td class="row1">
+                    ' . $catlist . '
+                  </td>
+                </tr>';
+          
           break;
       }
       

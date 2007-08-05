@@ -164,7 +164,7 @@
         for($i=0;$i<sizeof($u);$i++) // Can't use foreach because we need the value of $i and we need to use both $u and $n
         {
           echo "userlist[$i] = '".addslashes($n[$i])."';\n";
-          echo "namelist[$i] = '".addslashes($u[$i])."';\n";
+          echo "namelist[$i] = '".addslashes(htmlspecialchars($u[$i]))."';\n";
         }
       } else {
         die('userlist = new Array(); namelist = new Array(); errorstring=\'No page matches found.\'');

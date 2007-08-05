@@ -2680,15 +2680,19 @@ function gzip_output()
   //
   if ( $do_gzip && function_exists('ob_gzhandler') )
   {
-    //
-    // Copied from phpBB, which was in turn borrowed from php.net
-    //
     $gzip_contents = ob_get_contents();
     ob_end_clean();
     
-    header('Content-encoding: gzip');
-    $gzip_contents = ob_gzhandler($gzip_contents);
-    echo $gzip_contents;
+    $return = ob_gzhandler($gzip_contents);
+    if ( $return )
+    {
+      header('Content-encoding: gzip');
+      echo $gzip_contents;
+    }
+    else
+    {
+      echo $gzip_contents;
+    }
   }
 }
 
@@ -2763,8 +2767,9 @@ function aggressive_optimize_html($html)
     // fix for firefox issue
     $js = preg_replace('/\};([\s]*)(else|\))/i', '}\\2', $js);
     
+    $replacement = "<script{$jscript[1][$i]}>/* <![CDATA[ */ $js /* ]]> */</script>";
     // apply changes
-    $html = str_replace($jscript[0][$i], "<script{$jscript[1][$i]}>$js</script>", $html);
+    $html = str_replace($jscript[0][$i], $replacement, $html);
   }
   
   // Which tags to strip - you can change this if needed
@@ -2797,11 +2802,11 @@ function aggressive_optimize_html($html)
   $size_after = strlen($html);
   
   // Tell snoopish users what's going on
-  $html = str_replace('<html>', "\n".'<!-- NOTE: Enano has performed an HTML optimization routine on the HTML you see here. This is to enhance page loading speeds.
+  $html = str_replace('<html', "\n".'<!-- NOTE: Enano has performed an HTML optimization routine on the HTML you see here. This is to enhance page loading speeds.
      To view the uncompressed source of this page, add the "nocompress" parameter to the URI of this page: index.php?title=Main_Page&nocompress or Main_Page?nocompress'."
      Size before compression: $size_before bytes
      Size after compression:  $size_after bytes
-     -->\n<html>", $html);
+     -->\n<html", $html);
   return $html;
 }
 

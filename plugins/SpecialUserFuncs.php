@@ -577,8 +577,7 @@ function page_Special_Contributions() {
   {
     echo 'No user selected!';
     $template->footer();
-    $db->close();
-    exit;
+    return;
   }
   
   $user = $db->escape($user);
@@ -587,8 +586,10 @@ function page_Special_Contributions() {
   if(!$db->sql_query($q)) $db->_die('The history data for the page "'.$paths->cpage['name'].'" could not be selected.');
   echo 'History of edits and actions<h3>Edits:</h3>';
   if($db->numrows() < 1) echo 'No history entries in this category.';
-  while($r = $db->fetchrow()) {    
-    echo '<a href="#" onclick="ajaxHistView(\''.$r['time_id'].'\', \''.$paths->nslist[$r['namespace']].$r['page_id'].'\'); return false;"><i>'.$r['date_string'].'</i></a> (<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">revert</a>) <a href="'.makeUrl($paths->nslist[$r['namespace']].$r['page_id']).'">'.$paths->nslist[$r['namespace']].$r['page_id'].'</a>: '.$r['edit_summary'];
+  while($r = $db->fetchrow())
+  {
+    $title = get_page_title($r['page_id'], $r['namespace']);    
+    echo '<a href="' . makeUrlNS($r['namespace'], $r['page_id'], "oldid={$r['time_id']}", true) . '" onclick="ajaxHistView(\''.$r['time_id'].'\', \''.$paths->nslist[$r['namespace']].$r['page_id'].'\'); return false;"><i>'.$r['date_string'].'</i></a> (<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">revert to</a>) <a href="'.makeUrl($paths->nslist[$r['namespace']].$r['page_id']).'">'.htmlspecialchars($title).'</a>: '.$r['edit_summary'];
     if($r['minor_edit']) echo '<b> - minor edit</b>';
     echo '<br />';
   }
@@ -597,17 +598,22 @@ function page_Special_Contributions() {
   $q = 'SELECT log_type,time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit,page_id,namespace FROM '.table_prefix.'logs WHERE author=\''.$user.'\' AND action!=\'edit\' ORDER BY time_id DESC;';
   if(!$db->sql_query($q)) $db->_die('The history data for the page "'.$paths->cpage['name'].'" could not be selected.');
   if($db->numrows() < 1) echo 'No history entries in this category.';
-  while($r = $db->fetchrow()) {
-    if($r['log_type']=='page') {
-    echo '(<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">rollback</a>) <i>'.$r['date_string'].'</i> <a href="'.makeUrl($paths->nslist[$r['namespace']].$r['page_id']).'">'.$paths->nslist[$r['namespace']].$r['page_id'].'</a>: ';
-    if($r['action']=='prot') echo 'Protected page; reason: '.$r['edit_summary'];
-    elseif($r['action']=='unprot') echo 'Unprotected page; reason: '.$r['edit_summary'];
-    elseif($r['action']=='rename') echo 'Renamed page; old title was: '.$r['edit_summary'];
-    elseif($r['action']=='create') echo 'Created page';
-    elseif($r['action']=='delete') echo 'Deleted page';
-    if($r['minor_edit']) echo '<b> - minor edit</b>';
-    echo '<br />';
-    } elseif($r['log_type']=='security') {
+  while($r = $db->fetchrow()) 
+  {
+    if ( $r['log_type'] == 'page' )
+    {
+      $title = get_page_title($r['page_id'], $r['namespace']);
+      echo '(<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">rollback</a>) <i>'.$r['date_string'].'</i> <a href="'.makeUrl($paths->nslist[$r['namespace']].$r['page_id']).'">'.htmlspecialchars($title).'</a>: ';
+      if      ( $r['action'] == 'prot'   ) echo 'Protected page; reason: '.$r['edit_summary'];
+      else if ( $r['action'] == 'unprot' ) echo 'Unprotected page; reason: '.$r['edit_summary'];
+      else if ( $r['action'] == 'rename' ) echo 'Renamed page; old title was: '.htmlspecialchars($r['edit_summary']);
+      else if ( $r['action'] == 'create' ) echo 'Created page';
+      else if ( $r['action'] == 'delete' ) echo 'Deleted page';
+      if ( $r['minor_edit'] ) echo '<b> - minor edit</b>';
+      echo '<br />';
+    }
+    else if($r['log_type']=='security') 
+    {
       // Not implemented, and when it is, it won't be public
     }
   }
@@ -621,6 +627,10 @@ function page_Special_ChangeStyle()
   if(!$session->user_logged_in) die_friendly('Access denied', '<p>You must be logged in to change your style. Spoofer.</p>');
   if(isset($_POST['theme']) && isset($_POST['style']) && isset($_POST['return_to']))
   {
+    if ( !preg_match('/^([a-z0-9_-]+)$/i', $_POST['theme']) )
+      die('Hacking attempt');
+    if ( !preg_match('/^([a-z0-9_-]+)$/i', $_POST['style']) )
+      die('Hacking attempt');
     $d = ENANO_ROOT . '/themes/' . $_POST['theme'];
     $f = ENANO_ROOT . '/themes/' . $_POST['theme'] . '/css/' . $_POST['style'] . '.css';
     if(!file_exists($d) || !is_dir($d)) die('The directory "'.$d.'" does not exist.');

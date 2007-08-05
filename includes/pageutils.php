@@ -608,13 +608,14 @@ class PageUtils {
         
         // Action taken
         echo '<td class="'.$cls.'">';
+        // Some of these are sanitized at insert-time. Others follow the newer Enano policy of stripping HTML at runtime.
         if    ($r['action']=='prot')     echo 'Protected page</td><td class="'.$cls.'">Reason: '.$r['edit_summary'];
         elseif($r['action']=='unprot')   echo 'Unprotected page</td><td class="'.$cls.'">Reason: '.$r['edit_summary'];
         elseif($r['action']=='semiprot') echo 'Semi-protected page</td><td class="'.$cls.'">Reason: '.$r['edit_summary'];
-        elseif($r['action']=='rename')   echo 'Renamed page</td><td class="'.$cls.'">Old title: '.$r['edit_summary'];
+        elseif($r['action']=='rename')   echo 'Renamed page</td><td class="'.$cls.'">Old title: '.htmlspecialchars($r['edit_summary']);
         elseif($r['action']=='create')   echo 'Created page</td><td class="'.$cls.'">';
         elseif($r['action']=='delete')   echo 'Deleted page</td><td class="'.$cls.'">Reason: '.$r['edit_summary'];
-        elseif($r['action']=='reupload') echo 'Uploaded new file version</td><td class="'.$cls.'">Reason: '.$r['edit_summary'];
+        elseif($r['action']=='reupload') echo 'Uploaded new file version</td><td class="'.$cls.'">Reason: '.htmlspecialchars($r['edit_summary']);
         echo '</td>';
         
         // Actions!

@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>{PAGE_NAME} &bull; {SITE_NAME}</title>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -19,7 +19,7 @@
         elem = document.getElementById('pagetitle');
         if(!elem) return;
         elem.style.display = 'none';
-        name = elem.innerHTML;
+        name = elem.firstChild.nodeValue;
         textbox = document.createElement('input');
         textbox.type = 'text';
         textbox.value = name;
@@ -36,7 +36,8 @@
         if(!elem1 || !elem2) return;
         value = elem2.value;
         elem2.parentNode.removeChild(elem2); // just destroy the thing
-        elem1.innerHTML = value;
+        elem1.removeChild(elem1.firstChild);
+        elem1.appendChild(document.createTextNode(value));
         elem1.style.display = 'block';
         if(!value || value=='') return;
         ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+escape(value), function() {

@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>{PAGE_NAME} &bull; {SITE_NAME}</title>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -36,7 +36,7 @@
         <td class="left"></td>
         <td class="main">
           <div style="float: right;">
-            <image alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
+            <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
           </div>
           <h2 class="pagename">{PAGE_NAME}</h2>
           <div id="ajaxEditContainer">
