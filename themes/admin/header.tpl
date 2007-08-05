@@ -5,6 +5,9 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="{SCRIPTPATH}/includes/clientside/css/enano-shared.css" />
     <link id="mdgCss" rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
+    <!--[if IE]>
+    <link id="mdgCss" rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css-ie/iefixes.css" />
+    <![endif]-->
     {JS_DYNAMIC_VARS}
     <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/static/enano-lib-basic.js"></script>
     <script type="text/javascript" src="{SCRIPTPATH}/themes/admin/js/menu.js"></script>

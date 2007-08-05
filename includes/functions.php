@@ -2058,7 +2058,12 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
   $this_page = ceil ( $start / $perpage );
 
   // Build paginator
-  $begin = '<div class="tblholder" style="display: table; margin: 10px 0 0 auto;">
+  $pg_css = ( strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') ) ?
+            // IE-specific hack
+            'display: block; width: 1px;':
+            // Other browsers
+            'display: table; margin: 10px 0 0 auto;';
+  $begin = '<div class="tblholder" style="'. $pg_css . '">
     <table border="0" cellspacing="1" cellpadding="4">
       <tr><th>Page:</th>';
   $block = '<td class="row1" style="text-align: center;">{LINK}</td>';

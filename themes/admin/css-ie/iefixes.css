@@ -1,0 +1,9 @@
+table.wrapper td.top-left     { width: 37px; height: 28px; background-image: url(../images/window-gif/window-topcorners.gif); background-repeat: no-repeat; }
+table.wrapper td.top          {              height: 28px; background-image: url(../images/window-gif/window-top.gif); background-repeat: repeat-x; }
+table.wrapper td.top-right    { width: 37px; height: 28px; background-image: url(../images/window-gif/window-topcorners.gif); background-repeat: no-repeat; background-position: -37px 0px; }
+table.wrapper td.left         { width: 37px;               background-image: url(../images/window-gif/window-left.gif); background-repeat: repeat-y; }
+table.wrapper td.right        { width: 37px;               background-image: url(../images/window-gif/window-right.gif); background-repeat: repeat-y; }
+table.wrapper td.bottom-left  { width: 37px; height: 44px; background-image: url(../images/window-gif/window-bottomcorners.gif); background-repeat: no-repeat; }
+table.wrapper td.bottom       {              height: 44px; background-image: url(../images/window-gif/window-bottom.gif); background-repeat: repeat-x; }
+table.wrapper td.bottom-right { width: 37px; height: 44px; background-image: url(../images/window-gif/window-bottomcorners.gif); background-repeat: no-repeat; background-position: -37px 0px; }
+
