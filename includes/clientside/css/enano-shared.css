@@ -1,13 +1,17 @@
 /*
  * Shared stuff that all Enano themes (should) use
  */
-
+ 
 /* Information, warning, question, error, and wait boxes */
 div.error-box                     { background-image: url(../../../images/error.png);    background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFF4F4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
 div.info-box                      { background-image: url(../../../images/info.png);     background-position: 8px 8px; background-repeat: no-repeat; background-color: #F4F4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
 div.warning-box                   { background-image: url(../../../images/warning.png);  background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFFFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
 div.question-box                  { background-image: url(../../../images/question.png); background-position: 8px 8px; background-repeat: no-repeat; background-color: #F4FFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
 div.wait-box                      { background-image: url(../../../images/wait.png);     background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFF4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
+
+/* IE-only stylesheet \*/
+@import url("enano-shared-ie.css");
+/* End IE-only stylesheet */
 
 div.error-box-mini                { background-image: url(../../../images/mini-error.png);    background-position: 5px center; background-repeat: no-repeat; background-color: #FFF4F4; border: 1px solid #406080; padding: 4px 4px 4px 26px; margin: 1em 0; min-height: 17px; }
 div.info-box-mini                 { background-image: url(../../../images/mini-info.png);     background-position: 5px center; background-repeat: no-repeat; background-color: #F4F4FF; border: 1px solid #406080; padding: 4px 4px 4px 26px; margin: 1em 0; min-height: 17px; }
@@ -432,6 +436,7 @@ span.tc_word_normal {
 span.tc_word_small {
   font-family: Arial, helvetica, sans-serif;
   font-size: 8pt;
+  color: #000;
 }
 span.tc_word_normal a, span.tc_word_small a {
   color: inherit !important;
@@ -471,34 +476,35 @@ span.tc_normal_index_8 {
   font-size: 0.8em;
 }
 span.tc_small_index_1 {
-  color: #000;
+  opacity: 1;
   font-size: 1.4em;
 }
 span.tc_small_index_2 {
-  color: #333;
+  opacity: 0.8;
   font-size: 1.3em;
 }
 span.tc_small_index_3 {
-  color: #666;
+  opacity: 0.6;
   font-size: 1.2em;
 }
 span.tc_small_index_4 {
-  color: #999;
+  opacity: 0.5;
   font-size: 1em;
 }
 span.tc_small_index_5 {
-  color: #aaa;
+  opacity: 0.45;
   font-size: 1.3em;
 }
 span.tc_small_index_6 {
-  color: #bbb;
+  opacity: 0.4;
   font-size: 1.1em;
 }
 span.tc_small_index_7 {
-  color: #ccc;
+  opacity: 0.35;
   font-size: 0.9em;
 }
 span.tc_small_index_8 {
-  color: #ddd;
+  opacity: 0.3;
   font-size: 0.7em;
 }
+

@@ -69,7 +69,7 @@ a.mceMoreColors:hover {border: 1px solid #0A246A;}
 /* MSIE 6 specific rules */
 
 * html a.mceButtonNormal img, * html a.mceButtonSelected img, * html a.mceButtonDisabled img {border: 0 !important; margin-top: 2px; margin-bottom: 1px;}
-* html a.mceButtonDisabled img {filter:progid:DXImageTransform.Microsoft.Alpha(opacity=30); border: 0 !important;}
+* html a.mceButtonDisabled img {/* \*/ filter:progid:DXImageTransform.Microsoft.Alpha(opacity=30); /* */ border: 0 !important;}
 * html a.mceButtonDisabled {border: 1px solid #F0F0EE !important;}
 * html a.mceButtonNormal, * html a.mceButtonSelected {border: 1px solid #F0F0EE !important; cursor: default;}
 * html a.mceButtonSelected {border: 1px solid #6779AA !important; background-color: #D4D5D8;}
@@ -84,7 +84,7 @@ a.mceMoreColors:hover {border: 1px solid #0A246A;}
 /* MSIE 7 specific rules */
 
 *:first-child+html a.mceButtonNormal img, *:first-child+html a.mceButtonSelected img, *:first-child+html a.mceButtonDisabled img {border: 0 !important; margin-top: 2px; margin-bottom: 1px;}
-*:first-child+html a.mceButtonDisabled img {filter:progid:DXImageTransform.Microsoft.Alpha(opacity=30); border: 0 !important;}
+*:first-child+html a.mceButtonDisabled img { /* \*/ filter:progid:DXImageTransform.Microsoft.Alpha(opacity=30); /* */ border: 0 !important;}
 *:first-child+html a.mceButtonDisabled {border: 1px solid #F0F0EE !important;}
 *:first-child+html a.mceButtonNormal, *:first-child+html a.mceButtonSelected {border: 1px solid #F0F0EE !important; cursor: default;}
 *:first-child+html a.mceButtonSelected {border: 1px solid #6779AA !important; background-color: #D4D5D8;}
