@@ -58,6 +58,13 @@ $plugins->attachHook('base_classes_initted', '
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
+    
+    $paths->add_page(Array(
+      \'name\'=>\'Tag cloud\',
+      \'urlname\'=>\'TagCloud\',
+      \'namespace\'=>\'Special\',
+      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
+      ));
     ');
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
@@ -365,5 +372,108 @@ function page_Special_GNU_General_Public_License()
   }
   $template->footer();
 }
+
+function page_Special_TagCloud()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $template->header();
+  
+  if ( $tag = $paths->getParam(0) )
+  {
+    $tag = sanitize_tag($tag);
+    $q = $db->sql_query('SELECT page_id, namespace FROM '.table_prefix.'tags WHERE tag_name=\'' . $db->escape($tag) . '\';');
+    if ( !$q )
+      $db->_die();
+    if ( $row = $db->fetchrow() )
+    {
+      echo '<div class="tblholder">
+              <table border="0" cellspacing="1" cellpadding="4">';
+      echo '<tr><th colspan="2">Pages tagged "' . htmlspecialchars($tag) . '"</th></tr>';
+      echo '<tr>';
+      $i = 0;
+      $td_class = 'row1';
+      do
+      {
+        if ( $i % 2 == 0 && $i > 1 )
+        {
+          $td_class = ( $td_class == 'row2' ) ? 'row1' : 'row2';
+          echo '</tr><tr>';
+        }
+        $i++;
+        $title = get_page_title_ns($row['page_id'], $row['namespace']);
+        if ( $row['namespace'] != 'Article' && isset($paths->nslist[$row['namespace']]) )
+          $title = $paths->nslist[$row['namespace']] . $title;
+        $url = makeUrlNS($row['namespace'], $row['page_id']);
+        $class = ( isPage( $paths->nslist[$row['namespace']] . $row['page_id'] ) ) ? '' : ' class="wikilink-nonexistent"';
+        $link = '<a href="' . htmlspecialchars($url) . '"' . $class . '>' . htmlspecialchars($title) . '</a>';
+        echo "<td class=\"$td_class\" style=\"width: 50%;\">$link</td>";
+        // " workaround for jEdit highlighting bug
+      }
+      while ( $row = $db->fetchrow() );
+      while ( $i % 2 > 0 )
+      {
+        $i++;
+        echo "<td class=\"$td_class\" style=\"width: 50%;\"></td>";
+      }
+      // " workaround for jEdit highlighting bug
+      echo '<tr>
+              <th colspan="2" class="subhead"><a href="' . makeUrlNS('Special', 'TagCloud') . '" style="color: white;">&laquo; Return to tag cloud</a></th>
+            </tr>';
+      echo '</table>';
+      echo '</div>';
+    }
+  }
+  else
+  {
+    $cloud = new TagCloud();
+    
+    $q = $db->sql_query('SELECT tag_name FROM '.table_prefix.'tags;');
+    if ( !$q )
+      $db->_die();
+    if ( $db->numrows() < 1 )
+    {
+      echo '<p>No pages are tagged yet.</p>';
+    }
+    else
+    {
+      echo '<h3>Summary of page tagging</h3>';
+      while ( $row = $db->fetchrow() )
+      {
+        $cloud->add_word($row['tag_name']);
+      }
+      echo $cloud->make_html('normal');
+      echo '<p>Hover your mouse over a tag to see how many pages have the tag. Click on a tag to see a list of the pages that have it.</p>';
+    }
+  }
+  
+  $template->footer();
+}
+
+// tag cloud sidebar block
+function sidebar_add_tag_cloud()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  $cloud = new TagCloud();
+    
+  $q = $db->sql_query('SELECT tag_name FROM '.table_prefix.'tags;');
+  if ( !$q )
+    $db->_die();
+  if ( $db->numrows() < 1 )
+  {
+    $sb_html = 'No pages are tagged yet.';
+  }
+  else
+  {
+    while ( $row = $db->fetchrow() )
+    {
+      $cloud->add_word($row['tag_name']);
+    }
+    $sb_html = $cloud->make_html('small', 'justify') . '<br /><a style="text-align: center;" href="' . makeUrlNS('Special', 'TagCloud') . '">Larger version</a>';
+  }
+  $template->sidebar_widget('Tag cloud', "<div style='padding: 5px;'>$sb_html</div>");
+}
+
+$plugins->attachHook('compile_template', 'sidebar_add_tag_cloud();');
 
 ?>

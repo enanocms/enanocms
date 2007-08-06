@@ -51,7 +51,7 @@ class TagCloud
   
   function add_word($word)
   {
-    $word = strtolower($word);
+    $word = sanitize_tag($word);
     
     if ( isset($this->words[$word]) )
       $this->words[$word] += 1;
@@ -125,25 +125,33 @@ class TagCloud
   
   /**
    * Generates and returns HTML for the cloud.
+   * @param string Optional. The CSS class applied to all <span> tags. Can be "normal" or "small". Defaults to "normal".
+   * @param string Optional. The alignment for the div. Defaults to "center".
    * @return string
    */
    
-  function make_html()
+  function make_html($span_class = 'normal', $div_align = 'center')
   {
     $html = array();
     $max  = max($this->words);
     $size = $this->get_cloud_size();
+    $inc = 0;
     if ( count($this->words) > 0 )
     {
       foreach ( $this->words as $word => $popularity )
       {
+        $inc++;
         $word = htmlspecialchars($word);
         $percent = ( $popularity / $max ) * 100;
         $index = $this->get_scale_class($percent);
-        $html[] = "<span class='tc_word tc_index_$index'>$word</span>";
+        $newline = ( $inc == 5 ) ? "<br />" : '';
+        ( $inc == 5 ) ? $inc = 0 : null;
+        $url = makeUrlNS('Special', 'TagCloud/' . htmlspecialchars($word));
+        $s = ( $popularity != 1 ) ? 's' : '';
+        $html[] = "<span class='tc_word_{$span_class} tc_{$span_class}_index_{$index}'><a href='$url' title='$popularity page$s'>$word</a></span>"; // $newline";
       }
     }
-    $html = implode("\n", $html);
+    $html = '<div style="text-align: ' . $div_align . '; margin: 0 auto; max-width: 400px;">' . implode("\n", $html) . '</div>';
     return $html;
   }
    

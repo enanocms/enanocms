@@ -422,3 +422,83 @@ td.diff-deletedline { background: #ffa; font-size: smaller; }
 td.diff-context { background: #eee; font-size: smaller; }
 span.diffchange { color: red; font-weight: bold; }
 
+/* Tag cloud */
+span.tc_word_normal {
+  font-family: Arial, helvetica, sans-serif;
+  font-size: 10pt;
+  letter-spacing: 3px;
+  padding: 4px 4px 4px 4px;
+}
+span.tc_word_small {
+  font-family: Arial, helvetica, sans-serif;
+  font-size: 8pt;
+}
+span.tc_word_normal a, span.tc_word_small a {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+/* These are from http://www.lotsofcode.com/php/tutorials/tag-cloud */
+span.tc_normal_index_1 {
+  color: #000;
+  font-size: 2.4em;
+}
+span.tc_normal_index_2 {
+  color: #333;
+  font-size: 2.2em;
+}
+span.tc_normal_index_3 {
+  color: #666;
+  font-size: 2.0em;
+}
+span.tc_normal_index_4 {
+  color: #999;
+  font-size: 1em;
+}
+span.tc_normal_index_5 {
+  color: #aaa;
+  font-size: 1.6em;
+}
+span.tc_normal_index_6 {
+  color: #bbb;
+  font-size: 1.4em;
+}
+span.tc_normal_index_7 {
+  color: #ccc;
+  font-size: 1.2em;
+}
+span.tc_normal_index_8 {
+  color: #ddd;
+  font-size: 0.8em;
+}
+span.tc_small_index_1 {
+  color: #000;
+  font-size: 1.4em;
+}
+span.tc_small_index_2 {
+  color: #333;
+  font-size: 1.3em;
+}
+span.tc_small_index_3 {
+  color: #666;
+  font-size: 1.2em;
+}
+span.tc_small_index_4 {
+  color: #999;
+  font-size: 1em;
+}
+span.tc_small_index_5 {
+  color: #aaa;
+  font-size: 1.3em;
+}
+span.tc_small_index_6 {
+  color: #bbb;
+  font-size: 1.1em;
+}
+span.tc_small_index_7 {
+  color: #ccc;
+  font-size: 0.9em;
+}
+span.tc_small_index_8 {
+  color: #ddd;
+  font-size: 0.7em;
+}

@@ -753,7 +753,7 @@ class PageProcessor
           $parser->assign_bool(array(
             'page_exists' => true
             ));
-          $page_title = $paths->pages[ $c_page_id ]['name'];
+          $page_title = htmlspecialchars($paths->pages[ $c_page_id ]['name']);
         }
         else
         {
