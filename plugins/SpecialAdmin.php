@@ -2,7 +2,7 @@
 /*
 Plugin Name: Runt - the Enano administration panel
 Plugin URI: http://enanocms.org/
-Description: Provides the page Special:Administration, which is the AJAX frontend to the various Admin:
+Description: Provides the page Special:Administration, which is the AJAX frontend to the various Admin pagelets. This plugin cannot be disabled.
 Author: Dan Fuhry
 Version: 1.0.1
 Author URI: http://enanocms.org/
@@ -549,13 +549,13 @@ function page_Admin_PluginManager() {
           echo('<h3>Error disabling plugin</h3><p>The demo lockdown plugin cannot be disabled in demo mode.</p>');
           break;
         }
-        if ( $_GET['plugin'] != 'SpecialAdmin.php' )
+        if ( !in_array($_GET['plugin'], $plugins->system_plugins) )
         {
           setConfig('plugin_'.$_GET['plugin'], '0');
         }
         else 
         {
-          echo('<h3>Error disabling plugin</h3><p>The administration panel plugin cannot be disabled.</p>');
+          echo('<h3>Error disabling plugin</h3><p>The plugin you selected cannot be disabled because it is a system plugin.</p>');
         }
         break;
     }
@@ -563,6 +563,7 @@ function page_Admin_PluginManager() {
   $dir = './plugins/';
   $plugin_list = Array();
   $system = Array();
+  $show_system = ( isset($_GET['show_system']) && $_GET['show_system'] == 'yes' );
   
   if (is_dir($dir))
   {
@@ -572,10 +573,12 @@ function page_Admin_PluginManager() {
       {
         if(preg_match('#^(.*?)\.php$#is', $file) && $file != 'index.php')
         {
+          unset($thelist);
           if ( in_array($file, $plugins->system_plugins) )
           {
+            if ( !$show_system )
+              continue;
             $thelist =& $system;
-            continue;
           }
           else
           {
@@ -614,28 +617,48 @@ function page_Admin_PluginManager() {
   }
   echo('<div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
       <tr><th>Plugin filename</th><th>Plugin name</th><th>Description</th><th>Author</th><th>Version</th><th></th></tr>');
-    $plugin_files = array_keys($plugin_list);
+    $plugin_files_1 = array_keys($plugin_list);
+    $plugin_files_2 = array_keys($system);
+    $plugin_files = array_values(array_merge($plugin_files_1, $plugin_files_2));
     $cls = 'row2';
     for ( $i = 0; $i < sizeof($plugin_files); $i++ )
     {
       $cls = ( $cls == 'row2' ) ? 'row3' : 'row2';
+      $this_plugin = ( isset($system[$plugin_files[$i]]) ) ? $system[$plugin_files[$i]] : $plugin_list[$plugin_files[$i]];
+      $is_system = ( $system[$plugin_files[$i]] );
+      $bgcolor = '';
+      if ( $is_system && $cls == 'row2' )
+        $bgcolor = ' style="background-color: #FFD8D8;"';
+      else if ( $is_system && $cls == 'row3' )
+        $bgcolor = ' style="background-color: #FFD0D0;"';
       echo '<tr>
-              <td class="'.$cls.'">'.$plugin_files[$i].'</td>
-              <td class="'.$cls.'"><a href="'.$plugin_list[$plugin_files[$i]]['uri'].'">'.$plugin_list[$plugin_files[$i]]['name'].'</a></td>
-              <td class="'.$cls.'">'.$plugin_list[$plugin_files[$i]]['desc'].'</td>
-              <td class="'.$cls.'"><a href="'.$plugin_list[$plugin_files[$i]]['aweb'].'">'.$plugin_list[$plugin_files[$i]]['auth'].'</a></td>
-              <td class="'.$cls.'">'.$plugin_list[$plugin_files[$i]]['vers'].'</td>
-              <td class="'.$cls.'">';
-      if ( getConfig('plugin_'.$plugin_files[$i]) == '1' )
+              <td class="'.$cls.'"'.$bgcolor.'>'.$plugin_files[$i].'</td>
+              <td class="'.$cls.'"'.$bgcolor.'><a href="'.$this_plugin['uri'].'">'.$this_plugin['name'].'</a></td>
+              <td class="'.$cls.'"'.$bgcolor.'>'.$this_plugin['desc'].'</td>
+              <td class="'.$cls.'"'.$bgcolor.'><a href="'.$this_plugin['aweb'].'">'.$this_plugin['auth'].'</a></td>
+              <td class="'.$cls.'"'.$bgcolor.'>'.$this_plugin['vers'].'</td>
+              <td class="'.$cls.'"'.$bgcolor.'>';
+      if ( !in_array($plugin_files[$i], $plugins->system_plugins) )
       {
-        echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;action=disable&amp;plugin='.$plugin_files[$i].'">Disable</a>';
+        if ( getConfig('plugin_'.$plugin_files[$i]) == '1' )
+        {
+          echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=disable&amp;plugin='.$plugin_files[$i].'">Disable</a>';
+        }
+        else
+        {
+          echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=enable&amp;plugin='.$plugin_files[$i].'">Enable</a>';
+        }
       }
       else
       {
-        echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;action=enable&amp;plugin='.$plugin_files[$i].'">Enable</a>';
+        echo '[System]';
       }
       echo '</td></tr>';
     }
+    $showhide_link = ( $show_system ) ?
+    '<a style="color: white;" href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'] . '&show_system=no', true) . '">Hide system plugins</a>' :
+    '<a style="color: white;" href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'] . '&show_system=yes', true) . '">Show system plugins</a>' ;
+    echo '<tr><th colspan="6" class="subhead">'.$showhide_link.'</th></tr>';
     echo '</table></div>';
 }
 

@@ -1,6 +1,6 @@
           </div>
           <div class="footer">
-            {COPYRIGHT}<br />Powered by <a href="{CONTENTPATH}{NS_SPECIAL}About_Enano{ADMIN_SID_AUTO}">Enano</a> &bull; Copyright &copy; 2007 Dan Fuhry
+            {COPYRIGHT}<br />Powered by <a href="<!-- BEGIN stupid_mode -->http://enanocms.org/<!-- BEGINELSE stupid_mode -->{URL_ABOUT_ENANO}<!-- END stupid_mode -->">Enano</a> &bull; Copyright &copy; 2007 Dan Fuhry
           </div>
         </td>
         <td class="right"></td>

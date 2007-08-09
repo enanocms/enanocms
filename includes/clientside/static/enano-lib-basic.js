@@ -246,6 +246,7 @@ var thefiles = [
   'editor.js',
   'dynano.js',
   'flyin.js',
+  'paginate.js',
   'loader.js'
 ];
 

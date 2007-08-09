@@ -557,59 +557,6 @@ function sprintf()
   return str;
 }
 
-function paginator_goto(parentobj, this_page, num_pages, perpage, url_string)
-{
-  var height = $(parentobj).Height();
-  var width  = $(parentobj).Width();
-  var left   = $(parentobj).Left();
-  var top    = $(parentobj).Top();
-  var left_pos = left + width ;
-  var top_pos = height + top;
-  var div = document.createElement('div');
-  div.style.position = 'absolute';
-  div.style.top = top_pos + 'px';
-  div.className = 'question-box';
-  div.style.margin = '1px 0 0 2px';
-  var vtmp = 'input_' + Math.floor(Math.random() * 1000000);
-  div.innerHTML = 'Go to page:<br /><input type="text" size="2" style="padding: 1px; font-size: 8pt;" value="'+(parseInt(this_page)+1)+'" id="'+vtmp+'" />&emsp;<a href="#" onclick="paginator_submit(this, '+num_pages+', '+perpage+', unescape(\'' + escape(url_string) + '\')); return false;" style="font-size: 14pt; text-decoration: none;">&raquo;</a>&emsp;<a href="#" onclick="fly_out_top(this.parentNode, false, true); return false;" style="font-size: 14pt; text-decoration: none;">&times;</a>';
-  
-  var body = document.getElementsByTagName('body')[0];
-  domObjChangeOpac(0, div);
-  
-  body.appendChild(div);
-  
-  document.getElementById(vtmp).onkeypress = function(e){if(e.keyCode==13)this.nextSibling.nextSibling.onclick();};
-  document.getElementById(vtmp).focus();
-  
-  // fade the div
-  /*
-  if(!div.id) div.id = 'autofade_'+Math.floor(Math.random() * 100000);
-  var from = '#33FF33';
-  Fat.fade_element(div.id,30,2000,from,Fat.get_bgcolor(div.id));
-  */
-  
-  fly_in_bottom(div, false, true);
-  
-  var divh = $(div).Width();
-  left_pos = left_pos - divh;
-  div.style.left = left_pos + 'px';
-}
-
-function paginator_submit(obj, max, perpage, formatstring)
-{
-  var userinput = obj.previousSibling.previousSibling.value;
-  userinput = parseInt(userinput);
-  var offset = ( userinput - 1 ) * perpage;
-  if ( userinput > max || isNaN(userinput) || userinput < 1 )
-  {
-    new messagebox(MB_OK|MB_ICONSTOP, 'Invalid entry', 'Please enter a page number between 1 and ' + max + '.');
-    return false;
-  }
-  var url = sprintf(formatstring, String(offset));
-  fly_out_top(obj.parentNode, false, true);
-  window.location = url;
-}
-
 /**
  * Insert a DOM object _after_ the specified child.
  * @param object Parent node

@@ -826,6 +826,12 @@ class RenderMan {
       
       $img_tag .= 'style="border-width: 0px; /* background-color: white; */" ';
       
+      $code = $plugins->setHook('img_tag_parse_img');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      
       $img_tag .= '/>';
       
       $complete_tag = '';
@@ -868,7 +874,13 @@ class RenderMan {
       }
       else
       {
-        $complete_tag .= '<a href="' . makeUrlNS('File', $filename) . '" style="display: block;">';
+        $complete_tag .= '<a href="' . makeUrlNS('File', $filename) . '" style="display: block;"';
+        $code = $plugins->setHook('img_tag_parse_link');
+        foreach ( $code as $cmd )
+        {
+          eval($cmd);
+        }
+        $complete_tag .= '>';
         $complete_tag .= $img_tag;
         $complete_tag .= '</a>';
       }

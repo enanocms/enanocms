@@ -747,7 +747,8 @@ class template {
       'THEME_ID'=>$this->theme,
       'STYLE_ID'=>$this->style,
       'JS_DYNAMIC_VARS'=>$js_dynamic,
-      'UNREAD_PMS'=>$session->unread_pms
+      'UNREAD_PMS'=>$session->unread_pms,
+      'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', true)
       );
     
     foreach ( $paths->nslist as $ns_id => $ns_prefix )

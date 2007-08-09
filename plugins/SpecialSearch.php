@@ -4,7 +4,7 @@ Plugin Name: Search UI/frontend
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:Search, which is a frontend to the Enano search engine.
 Author: Dan Fuhry
-Version: 1.0
+Version: 1.0.1
 Author URI: http://enanocms.org/
 */
 

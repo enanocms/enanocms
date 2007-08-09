@@ -4,7 +4,7 @@ Plugin Name: Special user/login-related pages
 Plugin URI: http://enanocms.org/
 Description: Provides the pages Special:Login, Special:Logout, Special:Register, and Special:Preferences.
 Author: Dan Fuhry
-Version: 1.0
+Version: 1.0.1
 Author URI: http://enanocms.org/
 */
 

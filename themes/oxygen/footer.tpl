@@ -12,7 +12,7 @@
                  -->
             <div id="credits">
               {COPYRIGHT}<br />
-              Powered by <a href="http://www.enanocms.org">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
+              Powered by <a href="<!-- BEGIN stupid_mode -->http://enanocms.org/<!-- BEGINELSE stupid_mode -->{URL_ABOUT_ENANO}<!-- END stupid_mode -->">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
             </div>
           
           </td><td id="mdg-btr"></td></tr>

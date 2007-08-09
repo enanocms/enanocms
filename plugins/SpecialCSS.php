@@ -4,7 +4,7 @@ Plugin Name: CSS Backend
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:CSS, which is used in template files to reference the style sheet. Disabling or deleting this plugin will result in site instability.
 Author: Dan Fuhry
-Version: 1.0
+Version: 1.0.1
 Author URI: http://enanocms.org/
 */
 

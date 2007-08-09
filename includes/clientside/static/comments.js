@@ -1,8 +1,10 @@
 // Comments
 
 var comment_template = false;
+var comment_render_track = 0;
 
-function ajaxComments(parms) {
+function ajaxComments(parms)
+{
   setAjaxLoading();
   var pid = strToPageID(title);
   if(!parms)
@@ -106,64 +108,9 @@ function renderComments(data)
   
   if ( data.count_total > 0 )
   {
-    var parser = new templateParser(comment_template);
-    for ( var i = 0; i < data.comments.length; i++ )
-    {
-      var tplvars = new Object();
-      
-      if ( data.comments[i].approved != '1' && !data.auth_mod_comments )
-        continue;
-      
-      tplvars.ID = i;
-      tplvars.DATETIME = data.comments[i].time;
-      tplvars.SUBJECT = data.comments[i].subject;
-      tplvars.DATA = data.comments[i].comment_data;
-      tplvars.SIGNATURE = data.comments[i].signature;
-      
-      if ( data.comments[i].approved != '1' )
-        tplvars.SUBJECT += ' <span style="color: #D84308">(Unapproved)</span>';
-      
-      // Name
-      tplvars.NAME = data.comments[i].name;
-      if ( data.comments[i].user_id > 1 )
-        tplvars.NAME = '<a href="' + makeUrlNS('User', data.comments[i].name) + '">' + data.comments[i].name + '</a>';
-      
-      // User level
-      tplvars.USER_LEVEL = 'Guest';
-      if ( data.comments[i].user_level >= data.user_level.member ) tplvars.USER_LEVEL = 'Member';
-      if ( data.comments[i].user_level >= data.user_level.mod ) tplvars.USER_LEVEL = 'Moderator';
-      if ( data.comments[i].user_level >= data.user_level.admin ) tplvars.USER_LEVEL = 'Administrator';
-      
-      // Send PM link
-      tplvars.SEND_PM_LINK=(data.comments[i].user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( data.comments[i].name.replace(/ /g, '_') )) +'">Send private message</a><br />':'';
-      
-      // Add buddy link
-      tplvars.ADD_BUDDY_LINK=(data.comments[i].user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( data.comments[i].name.replace(/ /g, '_') )) +'">Add to buddy list</a><br />':'';
-      
-      // Edit link
-      tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">edit</a>';
-      
-      // Delete link
-      tplvars.DELETE_LINK='<a href="#delete_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">delete</a>';
-      
-      // Moderation: (Un)approve link
-      var appr = ( data.comments[i].approved == 1 ) ? 'Unapprove' : 'Approve';
-      tplvars.MOD_APPROVE_LINK='<a href="#approve_'+i+'" id="comment_approve_'+i+'" onclick="approveComment(\''+i+'\'); return false;">'+appr+'</a>';
-      
-      // Moderation: Delete post link
-      tplvars.MOD_DELETE_LINK='<a href="#mod_del_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">Delete</a>';
-      
-      var tplbool = new Object();
-      
-      tplbool.signature = ( data.comments[i].signature == '' ) ? false : true;
-      tplbool.can_edit = ( data.auth_edit_comments && ( ( data.comments[i].user_id == data.user_id && data.logged_in ) || data.auth_mod_comments ) );
-      tplbool.auth_mod = data.auth_mod_comments;
-      
-      parser.assign_vars(tplvars);
-      parser.assign_bool(tplbool);
-      
-      html += '<div id="comment_holder_' + i + '"><input type="hidden" value="'+data.comments[i].comment_id+'" /><input type="hidden" id="comment_source_'+i+'" />' + parser.run() + '</div>';
-    }
+    comment_render_track = 0;
+    var commentpages = new paginator(data.comments, _render_comment, 0, 10, data);
+    html += commentpages.html;
   }
   
   if ( data.auth_post_comments )
@@ -200,11 +147,72 @@ function renderComments(data)
     
   document.getElementById('ajaxEditContainer').innerHTML = html;
   
-  for ( i = 0; i < data.comments.length; i++ )
-  {
-    document.getElementById('comment_source_'+i).value = data.comments[i].comment_source;
-  }
+  //for ( i = 0; i < data.comments.length; i++ )
+  //{
+  //  document.getElementById('comment_source_'+i).value = data.comments[i].comment_source;
+  //}
   
+}
+
+var _render_comment = function(this_comment, data)
+{
+  var i = comment_render_track;
+  comment_render_track++;
+  var parser = new templateParser(comment_template);
+  var tplvars = new Object();
+  
+  if ( this_comment.approved != '1' && !data.auth_mod_comments )
+    return '';
+  
+  tplvars.ID = i;
+  tplvars.DATETIME = this_comment.time;
+  tplvars.SUBJECT = this_comment.subject;
+  tplvars.DATA = this_comment.comment_data;
+  tplvars.SIGNATURE = this_comment.signature;
+  
+  if ( this_comment.approved != '1' )
+    tplvars.SUBJECT += ' <span style="color: #D84308">(Unapproved)</span>';
+  
+  // Name
+  tplvars.NAME = this_comment.name;
+  if ( this_comment.user_id > 1 )
+    tplvars.NAME = '<a href="' + makeUrlNS('User', this_comment.name) + '">' + this_comment.name + '</a>';
+  
+  // User level
+  tplvars.USER_LEVEL = 'Guest';
+  if ( this_comment.user_level >= data.user_level.member ) tplvars.USER_LEVEL = 'Member';
+  if ( this_comment.user_level >= data.user_level.mod ) tplvars.USER_LEVEL = 'Moderator';
+  if ( this_comment.user_level >= data.user_level.admin ) tplvars.USER_LEVEL = 'Administrator';
+  
+  // Send PM link
+  tplvars.SEND_PM_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">Send private message</a><br />':'';
+  
+  // Add buddy link
+  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">Add to buddy list</a><br />':'';
+  
+  // Edit link
+  tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">edit</a>';
+  
+  // Delete link
+  tplvars.DELETE_LINK='<a href="#delete_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">delete</a>';
+  
+  // Moderation: (Un)approve link
+  var appr = ( this_comment.approved == 1 ) ? 'Unapprove' : 'Approve';
+  tplvars.MOD_APPROVE_LINK='<a href="#approve_'+i+'" id="comment_approve_'+i+'" onclick="approveComment(\''+i+'\'); return false;">'+appr+'</a>';
+  
+  // Moderation: Delete post link
+  tplvars.MOD_DELETE_LINK='<a href="#mod_del_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">Delete</a>';
+  
+  var tplbool = new Object();
+  
+  tplbool.signature = ( this_comment.signature == '' ) ? false : true;
+  tplbool.can_edit = ( data.auth_edit_comments && ( ( this_comment.user_id == data.user_id && data.logged_in ) || data.auth_mod_comments ) );
+  tplbool.auth_mod = data.auth_mod_comments;
+  
+  parser.assign_vars(tplvars);
+  parser.assign_bool(tplbool);
+  
+  return '<div id="comment_holder_' + i + '"><input type="hidden" value="'+this_comment.comment_id+'" /><input type="hidden" id="comment_source_'+i+'" />' + parser.run() + '</div>';
 }
 
 function displayCommentForm()

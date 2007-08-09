@@ -1119,7 +1119,7 @@ switch($_GET['mode'])
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.+) '.scriptPath.'/index.php/$1 [L,QSA]
+RewriteRule ^(.+) '.scriptPath.'/index.php?title=$1 [L,QSA]
 RewriteRule \.(php|html|gif|jpg|png|css|js)$ - [L]
 ');
         fclose($ht);

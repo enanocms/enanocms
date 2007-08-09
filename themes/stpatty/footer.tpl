@@ -9,7 +9,7 @@
                  
                  -Dan
                  -->
-          {COPYRIGHT} &bull; Powered by <a href="<!-- BEGIN stupid_mode -->http://www.enanocms.org/<!-- BEGINELSE stupid_mode -->{CONTENTPATH}{NS_SPECIAL}About_Enano{ADMIN_SID_AUTO}<!-- END stupid_mode -->">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
+          {COPYRIGHT} &bull; Powered by <a href="<!-- BEGIN stupid_mode -->http://enanocms.org/<!-- BEGINELSE stupid_mode -->{URL_ABOUT_ENANO}<!-- END stupid_mode -->">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
         </div>
       </div>
     </div>

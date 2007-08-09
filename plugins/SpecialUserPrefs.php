@@ -4,7 +4,7 @@ Plugin Name: User control panel
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:Preferences.
 Author: Dan Fuhry
-Version: 1.0
+Version: 1.0.1
 Author URI: http://enanocms.org/
 */
 
