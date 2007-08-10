@@ -1,4 +1,9 @@
+/*
+ * IE doesn't like display: table.
+ */
+
 var TBL_SHOW = ( IE ) ? 'block' : 'table';
+
 function admin_expand()
 {
   var expander = document.getElementById('sidebar-hide');

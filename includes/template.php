@@ -165,8 +165,8 @@ class template {
         <script language="JavaScript">
         function correctPNG() // correctly handle PNG transparency in Win IE 5.5 & 6.
         {
-           var arVersion = navigator.appVersion.split("MSIE")
-           var version = parseFloat(arVersion[1])
+           var arVersion = navigator.appVersion.split("MSIE");
+           var version = parseFloat(arVersion[1]);
            if (version >= 5.5 && typeof(document.body.filters) == "object")
            {
               for(var i=0; i<document.images.length; i++)
@@ -748,7 +748,7 @@ class template {
       'STYLE_ID'=>$this->style,
       'JS_DYNAMIC_VARS'=>$js_dynamic,
       'UNREAD_PMS'=>$session->unread_pms,
-      'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', true)
+      'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', '', true)
       );
     
     foreach ( $paths->nslist as $ns_id => $ns_prefix )

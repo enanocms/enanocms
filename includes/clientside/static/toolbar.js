@@ -40,7 +40,10 @@ function selectButtonMajor(which)
 {
   if ( !document.getElementById('pagebar_main') )
     return false;
-  if(typeof(document.getElementById('mdgToolbar_'+which)) == 'object')
+  var dom = document.getElementById('mdgToolbar_'+which);
+  if ( !dom )
+    return false;
+  if(typeof(dom) == 'object')
   {
     unselectAllButtonsMajor();
     document.getElementById('mdgToolbar_'+which).className = 'selected';

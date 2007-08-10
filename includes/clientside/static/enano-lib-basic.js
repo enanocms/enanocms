@@ -9,7 +9,7 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  *
- * For more information about Enano, please visit http://www.enanocms.org/.
+ * For more information about Enano, please visit http://enanocms.org/.
  * All of the code in these script files may be used freely so long as the above license block is displayed and your
  * modified code is distributed under the GPL. See the page Special:About_Enano on this website for more information.
  */

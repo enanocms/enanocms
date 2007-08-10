@@ -731,7 +731,7 @@ function show_category_info()
   
   if ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
   {
-    echo '<div class="mdg-comment" style="margin: 10px 0 0 0;">';
+    echo '<div class="mdg-comment" style="margin: 10px 0 0 0;" id="category_box_wrapper">';
     echo '<div style="float: right;">';
     echo '(<a href="#" onclick="ajaxCatToTag(); return false;">show page tags</a>)';
     echo '</div>';

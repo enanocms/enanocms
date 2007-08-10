@@ -60,19 +60,25 @@ function paginator(data, callback, offset, perpage, passer)
   pagin_objects[this.random_id] = this;
 }
 
+/**
+ * Yet another demonstration of the fact that with the right tools, any amount of Javascript can be ported from PHP.
+ * @access private
+ */
+
 function _build_paginator(this_page)
 {
-  var begin = '<div class="tblholder" style="display: table; margin: 10px 0 0 auto;"><table border="0" cellspacing="1" cellpadding="4"><tr><th>Page:</th>';
-  var block = '<td class="row1" style="text-align: center;">{LINK}</td>';
+  var div_styling = ( IE ) ? 'width: 1px; margin: 10px auto 10px 0;' : 'display: table; margin: 10px 0 0 auto;';
+  var begin = '<div class="tblholder" style="'+div_styling+'"><table border="0" cellspacing="1" cellpadding="4"><tr><th>Page:</th>';
+  var block = '<td class="row1" style="text-align: center; white-space: nowrap;">{LINK}</td>';
   var end = '</tr></table></div>';
   var blk = new templateParser(block);
   var inner = '';
   var cls = 'row2';
   
-  if ( this.offset > 0 )
+  if ( this_page > 0 )
   {
-    var url = '#';
-    var link = "<a href=\""+url+"\" style='text-decoration: none;'>&laquo; Prev</a>";
+    var url = '#page_'+(this_page);
+    var link = "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this_page-1)+"); return false;\" style='text-decoration: none;'>&laquo; Prev</a>";
     cls = ( cls == 'row1' ) ? 'row2' : 'row1';
     blk.assign_vars({
         CLASS: cls,
@@ -85,8 +91,8 @@ function _build_paginator(this_page)
     for ( var i = 0; i < this.num_pages; i++ )
     {
       cls = ( cls == 'row1' ) ? 'row2' : 'row1';
-      var url = '#';
       var j = i + 1;
+      var url = '#page_'+j;
       var link = ( i == this_page ) ? "<b>"+j+"</b>" : "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+i+"); return false;\" style='text-decoration: none;'>"+j+"</a>";
       blk.assign_vars({
           CLASS: cls,
@@ -100,10 +106,10 @@ function _build_paginator(this_page)
     if ( this_page + 5 > this.num_pages )
     {
       var list = new Array();
-      var tp = this_page;
-      if ( this_page + 0 == this.num_pages ) tp = tp - 3;
-      if ( this_page + 1 == this.num_pages ) tp = tp - 2;
-      if ( this_page + 2 == this.num_pages ) tp = tp - 1;
+      var tp = this_page;                    // The vectors below used to be 3, 2, and 1
+      if ( this_page + 0 == this.num_pages ) tp = tp - 2;
+      if ( this_page + 1 == this.num_pages ) tp = tp - 1;
+      if ( this_page + 2 == this.num_pages ) tp = tp - 0;
       for ( var i = tp - 1; i <= tp + 1; i++ )
       {
         list.push(i);
@@ -119,8 +125,8 @@ function _build_paginator(this_page)
         list.push(lower + i);
       }
     }
-    var url = '#';
-    var link = ( 0 == this.offset ) ? "<b>First</b>" : "<a href=\""+url+"\" style='text-decoration: none;'>&laquo; First</a>";
+    var url = '#page_1';
+    var link = ( 0 == this_page ) ? "<b>First</b>" : "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', 0); return false;\" style='text-decoration: none;'>&laquo; First</a>";
     blk.assign_vars({
         CLASS: cls,
         LINK: link
@@ -140,18 +146,15 @@ function _build_paginator(this_page)
       if ( i == this.num_pages )
         break;
       cls = ( cls == 'row1' ) ? 'row2' : 'row1';
-      var offset = i * this_page;
-      var url = '#';
       var j = i + 1;
-      var link = ( offset == this.offset ) ? "<b>"+j+"</b>" : "<a href=\""+url+"\" style='text-decoration: none;'>"+j+"</a>";
+      var url = '#page_'+j;
+      var link = ( i == this_page ) ? "<b>"+j+"</b>" : "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+i+"); return false;\" style='text-decoration: none;'>"+j+"</a>";
       blk.assign_vars({
           CLASS: cls,
           LINK: link
         });
       inner += blk.run();
     }
-
-    var total = num_pages * perpage - perpage;
 
     if ( this_page < this.num_pages )
     {
@@ -160,9 +163,8 @@ function _build_paginator(this_page)
       // $inner .= $blk->run();
 
       cls = ( cls == 'row1' ) ? 'row2' : 'row1';
-      var url = '#';
-      var j = i + 1;
-      var link = ( total == this.offset ) ? "<b>Last</b>" : "<a href=\""+url+"\" style='text-decoration: none;'>Last &raquo;</a>";
+      var url = '#page_' + String( this.num_pages-1 );
+      var link = ( ( this.num_pages - 1 ) == this_page ) ? "<b>Last</b>" : "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this.num_pages-1)+"); return false;\" style='text-decoration: none;'>Last &raquo;</a>";
       blk.assign_vars({
           CLASS: cls,
           LINK: link
@@ -172,10 +174,10 @@ function _build_paginator(this_page)
 
   }
 
-  if ( this.offset < total )
+  if ( this_page < ( this.num_pages - 1 ) )
   {
-    var url = '#page_' + abs(this.offset + this.perpage);
-    var link = "<a href=\""+url+"\" style='text-decoration: none;'>Next &raquo;</a>";
+    var url = '#page_' + String(this_page + 2);
+    var link = "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this_page+1)+"); return false;\" style='text-decoration: none;'>Next &raquo;</a>";
     cls = ( cls == 'row1' ) ? 'row2' : 'row1';
     blk.assign_vars({
           CLASS: cls,
@@ -194,13 +196,63 @@ function _build_paginator(this_page)
 function jspaginator_goto(pagin_id, jump_to)
 {
   var theobj = pagin_objects[pagin_id];
+  var current_div = false;
+  var new_div = false;
   for ( var i = 0; i < theobj.num_pages; i++ )
   {
-    var display = ( i == jump_to ) ? 'block' : 'none';
     var thediv = document.getElementById(pagin_id + '_' + i);
-    if ( thediv )
-      thediv.style.display = display;
+    if ( !thediv )
+    {
+      // if ( window.console )
+        // window.console.error('jspaginator_goto(): got a bad DOM object in loop');
+      return false;
+    }
+    // window.console.debug("Div "+i+' of '+(theobj.num_pages-1)+': ', thediv);
+    if ( thediv.style.display != 'none' )
+      current_div = thediv;
+    else if ( i == jump_to )
+      new_div = thediv;
   }
+  
+  if ( !new_div )
+  {
+    // if ( window.console )
+      // window.console.error('jspaginator_goto(): didn\'t get new div');
+    return false;
+  }
+  if ( !current_div )
+  {
+    // if ( window.console )
+      // window.console.error('jspaginator_goto(): didn\'t get current div');
+    return false;
+  }
+  
+  // window.console.debug(current_div);
+  // window.console.debug(new_div);
+  
+  // White-out the old div and fade in the new one
+  
+  if ( IE || is_Safari )
+  {
+    current_div.style.display = 'none';
+    new_div.style.display = 'block';
+  }
+  else
+  {
+    var fade_time = 375;
+    var code = 'var old = \'' + current_div.id + '\';';
+    code    += 'var newer = \'' + new_div.id + '\';';
+    code    += 'document.getElementById(old).style.display = "none";';
+    code    += 'changeOpac(0, newer);';
+    code    += 'document.getElementById(newer).style.display = "block";';
+    code    += 'opacity(newer, 0, 100, '+fade_time+');';
+    // if ( window.console )
+      // window.console.debug('metacode for fader: ', code);
+    opacity(current_div.id, 100, 0, fade_time);
+    setTimeout(code, (fade_time + 50));
+  }
+  
+  
   var pg_control = theobj._build_control(jump_to);
   var divs = getElementsByClassName(document, 'div', pagin_id + '_control');
   for ( var i = 0; i < divs.length; i++ )

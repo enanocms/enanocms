@@ -34,7 +34,7 @@ function ajaxComments(parms)
       switch(response.mode)
       {
         case 'fetch':
-          document.getElementById('ajaxEditContainer').innerHTML = 'Rendering response...';
+          document.getElementById('ajaxEditContainer').innerHTML = '<div class="wait-box">Rendering '+response.count_total+' comments...</div>';
           if(response.template)
             comment_template = response.template;
           setAjaxLoading();
@@ -53,7 +53,7 @@ function ajaxComments(parms)
           materializeComment(response);
           break;
         case 'error':
-          alert(response.error);
+          new messagebox(MB_OK|MB_ICONSTOP, ( response.title ? response.title : 'Error fetching comment data' ), response.error);
           break;
         default:
           alert(ajax.responseText);
@@ -183,12 +183,12 @@ var _render_comment = function(this_comment, data)
   if ( this_comment.user_level >= data.user_level.member ) tplvars.USER_LEVEL = 'Member';
   if ( this_comment.user_level >= data.user_level.mod ) tplvars.USER_LEVEL = 'Moderator';
   if ( this_comment.user_level >= data.user_level.admin ) tplvars.USER_LEVEL = 'Administrator';
-  
+                              
   // Send PM link
-  tplvars.SEND_PM_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">Send private message</a><br />':'';
+  tplvars.SEND_PM_LINK=(this_comment.user_id>1 && data.logged_in)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">Send private message</a><br />':'';
   
   // Add buddy link
-  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">Add to buddy list</a><br />':'';
+  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1 && data.logged_in)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">Add to buddy list</a><br />':'';
   
   // Edit link
   tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">edit</a>';

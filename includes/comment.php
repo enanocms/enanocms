@@ -85,7 +85,15 @@ class Comments
     $data = decode_unicode_array($data);
     if ( !isset($data['mode']) )
     {
-      return $parser->encode(Array('mode'=>'error','error'=>'No mode defined!'));
+      $ret = Array('mode'=>'error','error'=>'No mode defined!');
+      echo $parser->encode($ret);
+      return $ret;
+    }
+    if ( getConfig('enable_comments') == '0' )
+    {
+      $ret = Array('mode'=>'error','error'=>'Comments are not enabled on this site.');
+      echo $parser->encode($ret);
+      return $ret;
     }
     $ret = Array();
     $ret['mode'] = $data['mode'];
