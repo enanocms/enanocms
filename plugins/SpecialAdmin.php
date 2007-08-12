@@ -1601,10 +1601,10 @@ function page_Admin_PageManager()
     }
     echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration'.htmlspecialchars(urlSeparator).(( isset($_GET['sqldbg']) ) ? 'sqldbg&amp;' : '') .'module='.$paths->cpage['module']).'" method="post">';
     ?>
-    <h3>Modify page: <?php echo $_POST['name']; ?></h3>
+    <h3>Modify page: <?php echo htmlspecialchars($_POST['name']); ?></h3>
      <table border="0">
        <tr><td>Namespace:</td><td><select name="namespace"><?php $nm = array_keys($paths->nslist); foreach($nm as $ns) { if($ns != 'Special' && $ns != 'Admin') { echo '<option '; if($_POST['namespace']==$ns) echo 'selected="selected" '; echo 'value="'.$ns.'">'; if($paths->nslist[$ns] == '') echo '[No prefix]'; else echo $paths->nslist[$ns]; echo '</option>'; } } ?></select></td></tr>
-       <tr><td>Page title:</td><td><input type="text" name="name" value="<?php echo $cpage['name']; ?>" /></td></tr>
+       <tr><td>Page title:</td><td><input type="text" name="name" value="<?php echo htmlspecialchars($cpage['name']); ?>" /></td></tr>
        <tr><td>Page URL string:<br /><small>No spaces, and don't enter the namespace prefix (e.g. User:).<br />Changing this value is usually not a good idea, especially for templates and project pages.</small></td><td><input type="text" name="page_id" value="<?php echo htmlspecialchars(dirtify_page_id($cpage['urlname_nons'])); ?>" /></td></tr>
        <tr><td></td><td><input <?php if($cpage['comments_on']) echo 'checked="checked"'; ?> name="comments_on" type="checkbox" id="cmt" />  <label for="cmt">Enable comments for this page</label></td></tr>
        <tr><td></td><td><input <?php if($cpage['special']) echo 'checked="checked"'; ?> name="special" type="checkbox" id="spc" />  <label for="spc">Bypass the template engine for this page</label><br /><small>This option enables you to use your own HTML headers and other code. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages, meaning you can use Enano's API on the page.</small></td></tr>
@@ -1628,7 +1628,7 @@ function page_Admin_PageManager()
       <?php
         for($i=0;$i<sizeof($paths->pages)/2;$i++)
         {
-          if($paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['namespace'] != 'Special') echo '<option value="'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['urlname_nons'].'">'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['name'].'</option>'."\n";
+          if($paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['namespace'] != 'Special') echo '<option value="'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['urlname_nons'].'">'.htmlspecialchars($paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['name']).'</option>'."\n";
         }
       ?>
       </select>  <input type="submit" name="select" value="Select" /></p>
