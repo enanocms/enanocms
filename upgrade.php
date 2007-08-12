@@ -373,7 +373,7 @@ function u_1_0_populate_userpage_comments()
 function u_1_0_RC3_make_users_extra()
 {
   global $db;
-  $q = $db->sql_query('SELECT user_id FROM users WHERE user_id > 1;');
+  $q = $db->sql_query('SELECT user_id FROM '.table_prefix.'users WHERE user_id > 1;');
   if ( !$q )
     $db->_die();
   
