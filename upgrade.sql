@@ -9,6 +9,7 @@ CREATE TABLE {{TABLE_PREFIX}}page_groups( pg_id mediumint(8) NOT NULL auto_incre
 CREATE TABLE {{TABLE_PREFIX}}page_group_members( pg_member_id int(12) NOT NULL auto_increment, pg_id mediumint(8) NOT NULL, page_id varchar(63) NOT NULL, namespace varchar(63) NOT NULL DEFAULT 'Article', PRIMARY KEY ( pg_member_id ) ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 CREATE TABLE {{TABLE_PREFIX}}tags( tag_id int(12) NOT NULL auto_increment, tag_name varchar(63) NOT NULL DEFAULT 'bla', page_id varchar(255) NOT NULL, namespace varchar(255) NOT NULL, user mediumint(8) NOT NULL DEFAULT 1, PRIMARY KEY ( tag_id ) ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 UPDATE {{TABLE_PREFIX}}acl SET rules=CONCAT(rules,'tag_create=4;tag_delete_own=4;tag_delete_other=4;') WHERE target_type=1 AND target_id=2;
+DELETE FROM {{TABLE_PREFIX}}search_cache;
 ---END 1.0---
 ---BEGIN 1.0RC3---
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_coppa tinyint(1) NOT NULL DEFAULT 0;

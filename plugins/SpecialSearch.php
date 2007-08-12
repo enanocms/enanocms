@@ -396,7 +396,7 @@ TPLCODE;
   $regex = '/(' . implode('|', $words2) . ')/i';
   $pt = preg_replace($regex, '<span class="search-term">\\1</span>', $pt);
   
-  $title = preg_replace($regex, '<span class="title-search-term">\\1</span>', $paths->pages[$page]['name']);
+  $title = preg_replace($regex, '<span class="title-search-term">\\1</span>', htmlspecialchars($paths->pages[$page]['name']));
   
   $cut_off = false;
   
