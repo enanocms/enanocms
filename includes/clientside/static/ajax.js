@@ -1064,6 +1064,7 @@ function ajaxTagToCat()
   var catbox = document.getElementById('mdgCatBox');
   if ( !catbox )
     return false;
+  addtag_open = false;
   var linkbox = catbox.parentNode.firstChild.firstChild.nextSibling;
   linkbox.firstChild.nodeValue = 'show page tags';
   linkbox.onclick = function() { ajaxCatToTag(); return false; };

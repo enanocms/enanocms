@@ -324,13 +324,7 @@ function page_Special_About_Enano()
           <table border="0" style="margin: 0 auto; background: none; width: 100%;" cellpadding="5">
             <tr>
               <td style="text-align: center;">
-                <a href="http://enanocms.org/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
-                    <img alt="Powered by Enano"
-                         src="<?php echo scriptPath; ?>/images/about-powered-enano.png"
-                         onmouseover="this.src='<?php echo scriptPath; ?>/images/about-powered-enano-hover.png';"
-                         onmouseout="this.src='<?php echo scriptPath; ?>/images/about-powered-enano.png';"
-                         style="border-width: 0px;" width="88" height="31" />
-                  </a>
+                <?php echo $template->fading_button; ?>
               </td>
               <td style="text-align: center;">
                 <a href="http://www.php.net/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">

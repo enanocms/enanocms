@@ -42,12 +42,9 @@ class template {
     $this->plugin_blocks = Array();
     $this->theme_loaded = false;
     
-    $this->fading_button = '<a href="http://enanocms.org" onclick="if ( !KILL_SWITCH ) { window.open(this.href); return false; }" style="text-align: center; margin: 0 auto; display: table; background-image: none;">
-                            <img alt="Powered by Enano CMS" style="border-width: 0; position: absolute;" 
-                                 src="' . scriptPath . '/images/about-powered-enano.png" id="enanoFader" onmouseover="domOpacity(this, 100, 0, 500);" 
-                                 onmouseout="opacity(this.id, 0, 100, 500);" />
-                            <img alt="Powered by Enano CMS" style="border-width: 0px;" src="' . scriptPath . '/images/about-powered-enano-hover.png" />
-                          </a>';
+    $this->fading_button = '<div style="background-image: url('.scriptPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto;">
+                              <a href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
+                            </div>';
     
     $this->theme_list = Array();
     $this->named_theme_list = Array();
