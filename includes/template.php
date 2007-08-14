@@ -732,7 +732,7 @@ class template {
       'ADMIN_SID_AMP_HTML'=>$ash,
       'ADMIN_SID_AUTO'=>$as2,
       'ADDITIONAL_HEADERS'=>$this->additional_headers,
-      'COPYRIGHT'=>getConfig('copyright_notice'),
+      'COPYRIGHT'=>RenderMan::parse_internal_links(getConfig('copyright_notice')),
       'TOOLBAR_EXTRAS'=>$this->toolbar_menu,
       'REQUEST_URI'=>$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
       'STYLE_LINK'=>makeUrlNS('Special', 'CSS'.$p, null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
@@ -1672,6 +1672,7 @@ class template_nodb {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!$this->no_headers) {
       global $_starttime;
+      
       $f = microtime(true);
       $f = $f - $_starttime;
       $f = round($f, 4);
@@ -1681,6 +1682,9 @@ class template_nodb {
       $dbg = 'Time: '.$f.'s  |  Queries: '.$nq;
       $t = $this->process_template('footer.tpl');
       $t = str_replace('[[Stats]]', $dbg, $t);
+      $t = str_replace('[[NumQueries]]', (string)$db->num_queries, $t);
+      $t = str_replace('[[GenTime]]', (string)$f, $t);
+      
       echo $t;
     }
     else return '';

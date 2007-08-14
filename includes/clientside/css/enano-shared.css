@@ -150,6 +150,8 @@ div.toolbar_vert li span {
   padding-right: 5px;
 }
 
+div.breadcrumbs                   { margin: 10px 0; padding: 5px; border: 1px solid #AAAAAA; background-color: #E8E8E8; font-size: smaller; font-weight: bold; }
+
 /* Tables */
 .tblholder                        { margin: 10px 0 0 0; padding: 0; border: 1px solid #AAAAAA; background-color: #E8E8E8; }
 

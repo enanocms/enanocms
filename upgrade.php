@@ -493,6 +493,7 @@ switch($_GET['mode'])
         <li>You have completely backed up your database (<b><?php echo "$dbhost:$dbname"; ?></b>)</li>
         <li>You have backed up the entire Enano directory (<b><?php echo ENANO_ROOT; ?></b>)</li>
         <li>You have reviewed the release notes for this version, and you<br />are comfortable with any known bugs or issues</li>
+        <li>If you've configured Enano to work using a MySQL user with restricted<br />privileges, you need to enable ALTER, CREATE TABLE, and CREATE INDEX privileges<br />for this upgrade to work.</li>
       </ul>
     </div>
     <div style="text-align: center; margin-top: 10px;">

@@ -11,8 +11,8 @@
                  -Dan
                  -->
             <div id="credits">
-              {COPYRIGHT}<br />
-              Powered by <a href="<!-- BEGIN stupid_mode -->http://enanocms.org/<!-- BEGINELSE stupid_mode -->{URL_ABOUT_ENANO}<!-- END stupid_mode -->">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
+              <b>{COPYRIGHT}</b><br />
+              Website engine powered by <a href="<!-- BEGIN stupid_mode -->http://enanocms.org/<!-- BEGINELSE stupid_mode -->{URL_ABOUT_ENANO}<!-- END stupid_mode -->">Enano</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>&nbsp;&nbsp;|&nbsp;&nbsp;Generated in [[GenTime]]sec
             </div>
           
           </td><td id="mdg-btr"></td></tr>

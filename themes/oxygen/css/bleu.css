@@ -28,7 +28,7 @@ div.slideblock2                    { overflow: hidden; background-color: #DDD; m
 .dbx-handle                        { cursor: move !important; }
 
 /* The credits thingy at the bottom */
-div#credits                        { margin: 0; padding: 10px; padding-bottom: 0px; padding-top: 12px; background-color: #E8E8E8; color: #AAA; font-size: 7pt; }
+div#credits                        { margin: 0; padding: 10px; padding-bottom: 0px; padding-top: 12px; background-color: #E8E8E8; color: #AAA; font-size: 7pt; font-family: lucida grande, verdana, arial, sans-serif; }
 div#credits a                      { color: #90B0D0; text-decoration: none; }
 div#credits a:hover                { color: #80A0C0; text-decoration: underline; }
 

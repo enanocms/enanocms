@@ -408,13 +408,59 @@ class RenderMan {
   function sanitize_html($text)
   {
     $text = htmlspecialchars($text);
-    $allowed_tags = Array('b', 'i', 'u', 'pre', 'code', 'tt', 'br', 'p', 'nowiki', '!--([^.]+)--');
+    $allowed_tags = Array('b', 'i', 'u', 'pre', 'code', 'tt', 'br', 'p', 'nowiki', '!--([\w\W]+)--');
     foreach($allowed_tags as $t)
     {
       $text = preg_replace('#&lt;'.$t.'&gt;(.*?)&lt;/'.$t.'&gt;#is', '<'.$t.'>\\1</'.$t.'>', $text);
       $text = preg_replace('#&lt;'.$t.' /&gt;#is', '<'.$t.' />', $text);
       $text = preg_replace('#&lt;'.$t.'&gt;#is', '<'.$t.'>', $text);
     }
+    return $text;
+  }
+  
+  /**
+   * Parses internal links (wikilinks) in a block of text.
+   * @param string Text to process
+   * @return string
+   */
+  
+  function parse_internal_links($text)
+  {
+    
+    // stage 1 - links with alternate text
+    preg_match_all('/\[\[([^\[\]<>\{\}\|]+)\|(.+?)\]\]/', $text, $matches);
+    foreach ( $matches[0] as $i => $match )
+    {
+      list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
+      $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
+      
+      $url = makeUrl($pid_clean, false, true);
+      $inner_text = $matches[2][$i];
+      $quot = '"';
+      $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
+      
+      $link = "<a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a>";
+      
+      $text = str_replace($match, $link, $text);
+    }
+    
+    // stage 2 - links with no alternate text
+    preg_match_all('/\[\[([^\[\]<>\{\}\|]+)\]\]/', $text, $matches);
+    foreach ( $matches[0] as $i => $match )
+    {
+      list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
+      $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
+      
+      $url = makeUrl($matches[1][$i], false, true);
+      $inner_text = htmlspecialchars(get_page_title($pid_clean));
+      $quot = '"';
+      $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
+      
+      $link = "<a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a>";
+      
+      $text = str_replace($match, $link, $text);
+    }
+    
     return $text;
   }
   

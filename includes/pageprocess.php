@@ -212,7 +212,7 @@ class PageProcessor
         return false;
       }
     }
-    else if ( $this->namespace == 'User' )
+    else if ( $this->namespace == 'User' && strpos($this->page_id, '/') === false )
     {
       $this->_handle_userpage();
     }
@@ -371,6 +371,8 @@ class PageProcessor
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     $text = $this->fetch_text();
+    $text = preg_replace('/([\s]*)__NOBREADCRUMBS__([\s]*)/', '', $text);
+    $text = preg_replace('/([\s]*)__NOTOC__([\s]*)/', '', $text);
     
     $redir_enabled = false;
     if ( preg_match('/^#redirect \[\[([^\]]+?)\]\]/i', $text, $match ) )
@@ -418,6 +420,7 @@ class PageProcessor
     $template->tpl_strings['PAGE_NAME'] = htmlspecialchars( $this->title );
     
     $this->header();
+    $this->do_breadcrumbs();
     
     if ( $_errormsg )
     {
@@ -631,6 +634,8 @@ class PageProcessor
         ));
     
     $target_username = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $target_username);
+    $target_username = explode('/', $target_username);
+    $target_username = $target_username[0];
     
     if ( ( $page_name == str_replace('_', ' ', $this->page_id) || $page_name == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) ) || !$this->page_exists )
     {
@@ -1044,8 +1049,11 @@ class PageProcessor
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $this->header();
     header('HTTP/1.1 404 Not Found');
+    
+    $this->header();
+    $this->do_breadcrumbs();
+    
     if ( $userpage )
     {
       echo '<h3>There is no page with this title yet.</h3>
@@ -1078,10 +1086,66 @@ class PageProcessor
       }
       $db->free_result();
     }
+    if ( $session->user_level >= USER_LEVEL_ADMIN )
+    {
+      echo '<p>Additional admin options: <a href="' . makeUrl($paths->page, 'do=detag', true) . '" title="Remove any tags on this page">detag page</a></p>';
+    }
     echo '<p>
             HTTP Error: 404 Not Found
           </p>';
     $this->footer();
+  }
+  
+  /**
+   * Echoes out breadcrumb data, if appropriate.
+   * @access private
+   */
+  
+  function do_breadcrumbs()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    if ( strpos($this->text_cache, '__NOBREADCRUMBS__') !== false )
+      return false;
+    $breadcrumb_data = explode('/', $this->page_id);
+    if ( count($breadcrumb_data) > 1 )
+    {
+      echo '<!-- Start breadcrumbs -->
+            <div class="breadcrumbs">
+              ';
+      foreach ( $breadcrumb_data as $i => $higherpage )
+      {
+        $higherpage = $paths->nslist[$this->namespace] . sanitize_page_id(implode('/', array_slice($breadcrumb_data, 0, ($i+1))));
+        if ( ($i + 1) == count($breadcrumb_data) )
+        {
+          $title = get_page_title($higherpage, false);
+          if ( !$this->page_exists )
+          {
+            $title = explode('/', $title);
+            $title = array_reverse($title);
+            $title = $title[0];
+          }
+          echo htmlspecialchars($title);
+          break;
+        }
+        else if ( isPage($higherpage) )
+        {
+          $title = get_page_title($higherpage, false);
+          echo '<a href="' . makeUrl($higherpage, false, true) . '">' . htmlspecialchars($title) . '</a>';
+        }
+        else
+        {
+          $title = get_page_title($higherpage, false);
+          $title = explode('/', $title);
+          $title = array_reverse($title);
+          $title = $title[0];
+          echo '<a href="' . makeUrl($higherpage, false, true) . '" class="wikilink-nonexistent">' . htmlspecialchars($title) . '</a>';
+        }
+        echo ' &raquo; ';
+      }
+      echo '</div>
+            <!-- End breadcrumbs -->
+            ';
+    }
   }
   
   /**

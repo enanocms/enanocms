@@ -83,8 +83,17 @@ class mysql {
     $bt = $this->latest_query; // $this->sql_backtrace();
     $e = htmlspecialchars(mysql_error());
     if($e=='') $e='&lt;none&gt;';
-    if(defined('ENANO_CONFIG_FETCHED')) die_semicritical('Database error', '<h3>An error occurred during a database query.</h3><p>'.$t.'<br />Error returned by MySQL: '.$e.'<br />SQL Backtrace:</p><pre>'.$bt.'</pre>');
-    else                                   grinding_halt('Database error', '<h3>An error occurred during a database query.</h3><p>'.$t.'<br />Error returned by MySQL: '.$e.'<br />SQL Backtrace:</p><pre>'.$bt.'</pre>');
+    $t = ( !empty($t) ) ? $t : '&lt;No error description provided&gt;';
+    global $email;
+    $email_info = ( defined('ENANO_CONFIG_FETCHED') && is_object($email) ) ? ', at &lt;' . $email->jscode() . $email->encryptEmail(getConfig('contact_email')) . '&gt;' : '';
+    $internal_text = '<h3>The site was unable to finish serving your request.</h3>
+                      <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site' . $email_info . '.</p>
+                      <p>Description or location of error: '.$t.'<br />
+                      Error returned by MySQL extension: ' . $e . '<br />
+                      Most recent SQL query:</p>
+                      <pre>'.$bt.'</pre>';
+    if(defined('ENANO_CONFIG_FETCHED')) die_semicritical('Database error', $internal_text);
+    else                                   grinding_halt('Database error', $internal_text);
     exit;
   }
   
@@ -101,8 +110,15 @@ class mysql {
     $bt = $this->sql_backtrace();
     $e = htmlspecialchars(mysql_error());
     if($e=='') $e='&lt;none&gt;';
-    $text = '<h3>An error occurred during a database query.</h3><p>'.$t.'<br />Error returned by MySQL: '.$e.'<br />SQL Backtrace:</p><pre>'.$bt.'</pre>';
-    return $text;
+    global $email;
+    $email_info = ( defined('ENANO_CONFIG_FETCHED') && is_object($email) ) ? ', at &lt;' . $email->jscode() . $email->encryptEmail(getConfig('contact_email')) . '&gt;' : '';
+    $internal_text = '<h3>The site was unable to finish serving your request.</h3>
+                      <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site' . $email_info . '.</p>
+                      <p>Description or location of error: '.$t.'<br />
+                      Error returned by MySQL extension: ' . $e . '<br />
+                      Most recent SQL query:</p>
+                      <pre>'.$bt.'</pre>';
+    return $internal_text;
   }
   
   function connect() {

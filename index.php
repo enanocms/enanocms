@@ -359,6 +359,20 @@
       echo PageUtils::pagediff($paths->cpage['urlname_nons'], $paths->namespace, $id1, $id2);
       $template->footer();
       break;
+    case 'detag':
+      if ( $session->user_level < USER_LEVEL_ADMIN )
+      {
+        die_friendly('Access denied', '<p>You need to be an administrator to detag pages.</p>');
+      }
+      if ( $paths->page_exists )
+      {
+        die_friendly('Invalid request', '<p>The detag action is only valid for pages that have been deleted in the past.</p>');
+      }
+      $q = $db->sql_query('DELETE FROM '.table_prefix.'tags WHERE page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND namespace=\'' . $paths->namespace . '\';');
+      if ( !$q )
+        $db->_die('Detag query, index.php:'.__LINE__);
+      die_friendly('Page detagged', '<p>All stale tags have been removed from this page.</p>');
+      break;
     case 'aclmanager':
       $data = ( isset($_POST['data']) ) ? $_POST['data'] : Array('mode' => 'listgroups');
       PageUtils::aclmanager($data);

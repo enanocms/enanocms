@@ -71,6 +71,7 @@ function makeUrl($t, $query = false, $escape = false)
   global $db, $session, $paths, $template, $plugins; // Common objects
   $flags = '';
   $sep = urlSeparator;
+  $t = sanitize_page_id($t);
   if ( isset($_GET['printable'] ) )
   {
     $flags .= $sep . 'printable=yes';
@@ -226,17 +227,24 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
 /**
  * Tells you the title for the given page ID string
  * @param string Page ID string (ex: Special:Administration)
+ * @param bool Optional. If true, and if the namespace turns out to be something other than Article, the namespace prefix will be prepended to the return value.
  * @return string
  */
 
-function get_page_title($page_id)
+function get_page_title($page_id, $show_ns = true)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
 
   $idata = RenderMan::strToPageID($page_id);
   $page_id_key = $paths->nslist[ $idata[1] ] . $idata[0];
+  $page_id_key = sanitize_page_id($page_id_key);
   $page_data = $paths->pages[$page_id_key];
-  $title = ( isset($page_data['name']) ) ? ( $page_data['namespace'] == 'Article' ? '' : $paths->nslist[ $idata[1] ] ) . $page_data['name'] : $paths->nslist[$idata[1]] . str_replace('_', ' ', dirtify_page_id( $idata[0] ) );
+  $title = ( isset($page_data['name']) ) ?
+    ( ( $page_data['namespace'] == 'Article' || !$show_ns ) ?
+      '' :
+      $paths->nslist[ $idata[1] ] )
+    . $page_data['name'] :
+    ( $show_ns ? $paths->nslist[$idata[1]] : '' ) . str_replace('_', ' ', dirtify_page_id( $idata[0] ) );
   return $title;
 }
 
