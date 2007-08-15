@@ -935,6 +935,7 @@ class PageProcessor
   
   function _handle_redirect($page_id, $namespace)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
     $arr_pid = array($this->page_id, $this->namespace);
     if ( $namespace == 'Special' || $namespace == 'Admin' )
     {
@@ -944,7 +945,7 @@ class PageProcessor
     {
       return 'This page infinitely redirects with another page (or another series of pages), and the infinite redirect was trapped.';
     }
-    $page_id_key = $paths->nslist[ $namespace ] . $page_id;
+    $page_id_key = $paths->nslist[ $namespace ] . sanitize_page_id($page_id);
     if ( !isset($paths->pages[$page_id_key]) )
     {
       return 'This page redirects to another page that doesn\'t exist.';
