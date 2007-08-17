@@ -384,14 +384,13 @@ class pathManager {
   {
     if( is_string(getConfig('main_page')) )
     {
-      header('Location: '.makeUrl(getConfig('main_page')));
-      die('If you aren\'t redirected, <a href="' . makeUrl(getConfig('main_page')) . '">click here</a>.');
+      $main_page = makeUrl(getConfig('main_page'));
     }
     else
     {
-      header('Location: '.makeUrl($this->pages[0]['urlname']));
-      die('If you aren\'t redirected, <a href="' . makeUrl($this->pages[0]['urlname']) . '">click here</a>.');
+      $main_page = makeUrl($this->pages[0]['urlname']);
     }
+    redirect($main_page, 'Redirecting...', 'Invalid request, redirecting to main page', 0);
     exit;
   }
   

@@ -124,6 +124,8 @@ function page_Special_Login()
   {
     $level = USER_LEVEL_MEMBER;
   }
+  if ( $level <= USER_LEVEL_MEMBER && $session->user_logged_in )
+    $paths->main_page();
   $template->header();
   echo '<form action="'.makeUrl($paths->nslist['Special'].'Login').'" method="post" name="loginform" onsubmit="runEncryption();">';
   $header = ( $level > USER_LEVEL_MEMBER ) ? 'Please re-enter your login details' : 'Please enter your username and password to log in.';
@@ -274,11 +276,11 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       if(isset($_POST['return_to']))
       {
         $name = ( isset($paths->pages[$_POST['return_to']]['name']) ) ? $paths->pages[$_POST['return_to']]['name'] : $_POST['return_to'];
-        redirect( makeUrl($_POST['return_to']), 'Login successful', 'You have successfully logged into the '.getConfig('site_name').' site as "'.$session->username.'". Redirecting to ' . $name . '...' );
+        redirect( makeUrl($_POST['return_to'], false, true), 'Login successful', 'You have successfully logged into the '.getConfig('site_name').' site as "'.$session->username.'". Redirecting to ' . $name . '...' );
       }
       else
       {
-        $paths->main_page();
+        redirect( makeUrl(getConfig('main_page'), false, true), 'Login successful', 'You have successfully logged into the '.getConfig('site_name').' site as "'.$session->username.'". Redirecting to the main page...' );
       }
     }
     else
@@ -308,8 +310,14 @@ function SpecialLogin_SendResponse_PasswordReset($user_id, $passkey)
 
 function page_Special_Logout() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  if ( !$session->user_logged_in )
+    $paths->main_page();
+  
   $l = $session->logout();
-  if($l == 'success') $paths->main_page();
+  if ( $l == 'success' )
+  {
+    redirect(makeUrl(getConfig('main_page'), false, true), 'Logged out', 'You have been successfully logged out, and all cookies have been cleared. You will now be transferred to the main page.', 4);
+  }
   $template->header();
   echo '<h3>An error occurred during the logout process.</h3><p>'.$l.'</p>';
   $template->footer();
@@ -322,6 +330,10 @@ function page_Special_Register()
   {
     $s = ($session->user_level >= USER_LEVEL_ADMIN) ? '<p>Oops...it seems that you <em>are</em> the administrator...hehe...you can also <a href="'.makeUrl($paths->page, 'IWannaPlayToo', true).'">force account registration to work</a>.</p>' : '';
     die_friendly('Registration disabled', '<p>The administrator has disabled new user registration on this site.</p>' . $s);
+  }
+  if ( $session->user_level < USER_LEVEL_ADMIN && $session->user_logged_in )
+  {
+    $paths->main_page();
   }
   if(isset($_POST['submit'])) 
   {

@@ -1084,12 +1084,12 @@ class PageProcessor
       {
         $r = $db->fetchrow();
         echo '<p><b>This page was deleted on ' . $r['date_string'] . '.</b> The stated reason was:</p><blockquote>' . $r['edit_summary'] . '</blockquote><p>You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">roll back</a> the deletion.</p>';
+        if ( $session->user_level >= USER_LEVEL_ADMIN )
+        {
+          echo '<p>Additional admin options: <a href="' . makeUrl($paths->page, 'do=detag', true) . '" title="Remove any tags on this page">detag page</a></p>';
+        }
       }
       $db->free_result();
-    }
-    if ( $session->user_level >= USER_LEVEL_ADMIN )
-    {
-      echo '<p>Additional admin options: <a href="' . makeUrl($paths->page, 'do=detag', true) . '" title="Remove any tags on this page">detag page</a></p>';
     }
     echo '<p>
             HTTP Error: 404 Not Found
