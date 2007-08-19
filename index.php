@@ -345,9 +345,45 @@
       break;
     case 'setwikimode':
       if(!$session->get_permissions('set_wiki_mode')) die_friendly('Access denied', '<p>Changing the wiki mode setting <u>requires</u> admin rights.</p>');
-      if(!isset($_GET['level']) || ( isset($_GET['level']) && !preg_match('#^([0-9])$#', $_GET['level']))) die_friendly('Invalid request', '<p>Level not specified</p>');
-      $template->header();
-      $template->footer();
+      if ( isset($_POST['finish']) )
+      {
+        $level = intval($_POST['level']);
+        if ( !in_array($level, array(0, 1, 2) ) )
+        {
+          die_friendly('Invalid request', '<p>Level not specified</p>');
+        }
+        $q = $db->sql_query('UPDATE '.table_prefix.'pages SET wiki_mode=' . $level . ' WHERE urlname=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND namespace=\'' . $paths->namespace . '\';');
+        if ( !$q )
+          $db->_die();
+        redirect(makeUrl($paths->page), htmlspecialchars($paths->cpage['name']), 'Wiki mode for this page has been set. Redirecting you to the page...', 2);
+      }
+      else
+      {
+        $template->header();
+        if(!isset($_GET['level']) || ( isset($_GET['level']) && !preg_match('#^([0-9])$#', $_GET['level']))) die_friendly('Invalid request', '<p>Level not specified</p>');
+          $level = intval($_GET['level']);
+          if ( !in_array($level, array(0, 1, 2) ) )
+          {
+            die_friendly('Invalid request', '<p>Level not specified</p>');
+          }
+        echo '<form action="' . makeUrl($paths->page, 'do=setwikimode', true) . '" method="post">';
+        echo '<input type="hidden" name="finish" value="foo" />';
+        echo '<input type="hidden" name="level" value="' . $level . '" />';
+        $level_txt = ( $level == 0 ) ? 'disabled' : ( ( $level == 1 ) ? 'enabled' : 'use the global setting' );
+        $blurb = ( $level == 0 || ( $level == 2 && getConfig('wiki_mode') != '1' ) ) ? 'Because this will disable the wiki behavior on this page, several features, most
+           notably the ability for users to vote to have this page deleted, will be disabled as they are not relevant to non-wiki pages. In addition, users will not be able
+           to edit this page unless an ACL rule specifically permits them.' : 'Because this will enable the wiki behavior on this page, users will gain the ability to
+           freely edit this page unless an ACL rule specifically denies them. If your site is public and gets good traffic, you should be aware of the possiblity of vandalism, and you need to be ready to revert
+           malicious edits to this page.';
+        ?>
+        <h3>You are changing wiki mode for this page.</h3>
+        <p>Wiki features will be set to <?php echo $level_txt; ?>. <?php echo $blurb; ?></p>
+        <p>If you want to continue, please click the button below.</p>
+        <p><input type="submit" value="Set wiki mode" /></p>
+        <?php
+        echo '</form>';
+        $template->footer();
+      }
       break;
     case 'diff':
       $template->header();
