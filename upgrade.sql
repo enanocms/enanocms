@@ -57,6 +57,7 @@ UPDATE {{TABLE_PREFIX}}users SET user_level=9 WHERE user_level=2;
 UPDATE {{TABLE_PREFIX}}users SET user_level=5 WHERE user_level=1;
 UPDATE {{TABLE_PREFIX}}users SET user_level=2 WHERE user_level=0;
 UPDATE {{TABLE_PREFIX}}users SET user_level=1 WHERE user_level=-1;
+INSERT INTO {{TABLE_PREFIX}}acl(target_type,target_id,page_id,namespace,rules) VALUES(1,2,NULL,NULL,'read=4;post_comments=4;edit_comments=4;edit_page=4;view_source=4;mod_comments=4;history_view=4;history_rollback=4;history_rollback_extra=4;protect=4;rename=4;clear_logs=4;vote_delete=4;vote_reset=4;delete_page=4;tag_create=4;tag_delete_own=4;tag_delete_other=4;set_wiki_mode=4;password_set=4;password_reset=4;mod_misc=4;edit_cat=4;even_when_protected=4;upload_files=4;upload_new_version=4;create_page=4;php_in_pages={{ADMIN_EMBED_PHP}};edit_acl=4;');
 -- Group system
 CREATE TABLE {{TABLE_PREFIX}}groups( group_id mediumint(5) UNSIGNED NOT NULL auto_increment, group_name varchar(64), group_type tinyint(1) NOT NULL DEFAULT 1, PRIMARY KEY ( group_id ) );
 CREATE TABLE {{TABLE_PREFIX}}group_members( member_id int(12) UNSIGNED NOT NULL auto_increment, group_id mediumint(5) UNSIGNED NOT NULL, user_id int(12) NOT NULL, is_mod tinyint(1) NOT NULL DEFAULT 0, pending tinyint(1) NOT NULL DEFAULT 0, PRIMARY KEY ( member_id ) );
