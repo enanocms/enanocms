@@ -214,23 +214,25 @@ function u_1_0_RC1_update_user_ids()
     return true;
   // Find the first unused user ID
   $used = Array();
-  $q = $db->sql_query('SELECT user_id FROM '.table_prefix.'users');
+  $q = $db->sql_query('SELECT user_id FROM '.table_prefix.'users;');
   if ( !$q )
     $db->_die();
-  $c = false;
+  $notfirst = false;
   while ( $row = $db->fetchrow() )
   {
     $i = intval($row['user_id']);
     $used[$i] = true;
-    if ( !isset($used[$i - 1]) && $c )
+    if ( !isset($used[$i - 1]) && $notfirst )
     {
       $id = $i - 1;
       break;
     }
-    $c = true;
+    $notfirst = true;
   }
   if ( !isset($id) )
     $id = $i + 1;
+  if ( $id == 0 )
+    $id = 2;
   $db->free_result();
   
   $q = $db->sql_query('UPDATE '.table_prefix.'users SET user_id=' . $id . ' WHERE user_id=1;');
@@ -373,7 +375,7 @@ function u_1_0_populate_userpage_comments()
 function u_1_0_RC3_make_users_extra()
 {
   global $db;
-  $q = $db->sql_query('SELECT user_id FROM '.table_prefix.'users WHERE user_id > 1;');
+  $q = $db->sql_query('SELECT user_id FROM '.table_prefix.'users WHERE user_id > 0;');
   if ( !$q )
     $db->_die();
   
@@ -384,6 +386,8 @@ function u_1_0_RC3_make_users_extra()
   }
   
   $ids = '(' . implode('),(', $ids) . ')';
+  if ( $ids == '' )
+    return false;
   $sql = "INSERT INTO " . table_prefix . "users_extra(user_id) VALUES$ids;";
   
   if ( !$db->sql_query($sql) )
