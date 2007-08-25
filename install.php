@@ -216,8 +216,8 @@ switch($_GET['mode'])
                        is enabled, an attacker can run arbitrary code on your server! Enabling this will also allow administrators to
                        embed Javascript and arbitrary HTML and CSS.</p>
                     <p>If you don\'t have experience coding in PHP, you can safely disable this option. You may change this at any time
-                       using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection, or by
-                       using the "embedded PHP kill switch" in the administration panel.</p>';
+                       using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection. <!-- , or by
+                       using the "embedded PHP kill switch" in the administration panel. --></p>';
         break;
       default:
         $title = 'Invalid topic';
@@ -759,7 +759,7 @@ switch($_GET['mode'])
       {
         var frm = document.forms.login;
         ret = true;
-        if(frm.admin_user.value.match(/^([A-z0-9 \-\.]+)$/g))
+        if ( frm.admin_user.value.match(/^([A-z0-9 \-\.]+)$/g) && !frm.admin_user.value.match(/^(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/) && frm.admin_user.value.toLowerCase() != 'anonymous' )
         {
           document.getElementById('s_user').src = 'images/good.gif';
         }
@@ -806,7 +806,7 @@ switch($_GET['mode'])
       ?>
       <p>Next, enter your desired username and password. The account you create here will be used to administer your site.</p>
       <table border="0">
-        <tr><td><b>Administration username</b><br />The administration username you will use to log into your site.</td><td><input onkeyup="verify();" name="admin_user" type="text" size="30" /></td><td><img id="s_user" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td><b>Administration username</b><br /><small>The administration username you will use to log into your site.<br />This cannot be "anonymous" or in the form of an IP address.</small></td><td><input onkeyup="verify();" name="admin_user" type="text" size="30" /></td><td><img id="s_user" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
         <tr><td>Administration password:</td><td><input onkeyup="verify();" name="admin_pass" type="password" size="30" /></td><td rowspan="2"><img id="s_password" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
         <tr><td>Enter it again to confirm:</td><td><input onkeyup="verify();" name="admin_pass_confirm" type="password" size="30" /></td></tr>
         <tr><td>Your e-mail address:</td><td><input onkeyup="verify();" name="admin_email" type="text" size="30" /></td><td><img id="s_email" alt="Good/bad icon" src="images/bad.gif" /></td></tr>

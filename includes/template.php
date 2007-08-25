@@ -1682,7 +1682,14 @@ class template_nodb {
       $dbg = 'Time: '.$f.'s  |  Queries: '.$nq;
       $t = $this->process_template('footer.tpl');
       $t = str_replace('[[Stats]]', $dbg, $t);
-      $t = str_replace('[[NumQueries]]', (string)$db->num_queries, $t);
+      if ( is_object($db) )
+      {
+        $t = str_replace('[[NumQueries]]', (string)$db->num_queries, $t);
+      }
+      else
+      {
+        $t = str_replace('[[NumQueries]]', '0', $t);
+      }
       $t = str_replace('[[GenTime]]', (string)$f, $t);
       
       echo $t;

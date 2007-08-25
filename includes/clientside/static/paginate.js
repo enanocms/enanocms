@@ -193,8 +193,12 @@ function _build_paginator(this_page)
   
 }
 
+var __paginateLock = false;
+
 function jspaginator_goto(pagin_id, jump_to)
 {
+  if ( __paginateLock )
+    return false;
   var theobj = pagin_objects[pagin_id];
   var current_div = false;
   var new_div = false;
@@ -239,6 +243,7 @@ function jspaginator_goto(pagin_id, jump_to)
   }
   else
   {
+    __paginateLock = true;
     var fade_time = 375;
     var code = 'var old = \'' + current_div.id + '\';';
     code    += 'var newer = \'' + new_div.id + '\';';
@@ -246,6 +251,7 @@ function jspaginator_goto(pagin_id, jump_to)
     code    += 'changeOpac(0, newer);';
     code    += 'document.getElementById(newer).style.display = "block";';
     code    += 'opacity(newer, 0, 100, '+fade_time+');';
+    code    += '__paginateLock = false;';
     // if ( window.console )
       // window.console.debug('metacode for fader: ', code);
     opacity(current_div.id, 100, 0, fade_time);

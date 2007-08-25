@@ -92,7 +92,9 @@ define('CRITICAL_ERROR', 'Critical error');
 
 // Security
 
-define('AES_BITS', 192); // AES cipher strength - defaults to 192 and cannot be changed after installation
+// AES cipher strength - defaults to 192 and cannot be changed after installation.
+// This can be 128, 192, or 256.
+define('AES_BITS', 192);
 
 // Define this to enable Mcrypt support which makes encryption work faster. This is only triggered if Mcrypt support is detected.
 // THIS IS DISABLED BECAUSE MCRYPT DOES NOT SEEM TO SUPPORT THE AES BLOCK SIZES THAT ENANO USES.
