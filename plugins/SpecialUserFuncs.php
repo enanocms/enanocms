@@ -395,15 +395,109 @@ function page_Special_Register()
         <div class="tblholder">
           <table border="0" width="100%" cellspacing="1" cellpadding="4">
             <tr><th class="subhead" colspan="3">Please tell us a little bit about yourself.</th></tr>
+            
             <?php if(isset($_POST['submit'])) echo '<tr><td colspan="3" class="row2" style="color: red;">'.$s.'</td></tr>'; ?>
-            <tr><td class="row1" style="width: 50%;">Preferred username:<span id="e_username"></span></td><td class="row1" style="width: 50%;"><input type="text" name="username" size="30" onkeyup="namegood = false; validateForm();" onblur="checkUsername();" /></td><td class="row1" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_username" /></td></tr>
-            <tr><td class="row3" style="width: 50%;" rowspan="2">Password:<span id="e_password"></span></td><td class="row3" style="width: 50%;"><input type="password" name="password" size="30" onkeyup="validateForm();" /></td><td rowspan="2" class="row3" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_password" /></td></tr>
-            <tr><td class="row3" style="width: 50%;"><input type="password" name="password_confirm" size="30" onkeyup="validateForm();" /> <small>Enter your password again to confirm.</small></td></tr>
-            <tr><td class="row1" style="width: 50%;"><?php if ( $coppa ) echo 'Your parent or guardian\'s e'; else echo 'E'; ?>-mail address:<?php if(getConfig('account_activation')=='user') echo '<br /><small>An e-mail with an account activation key will be sent to this address, so please ensure that it is correct.</small></td>'; ?><td class="row1" style="width: 50%;"><input type="text" name="email" size="30" onkeyup="validateForm();" /></td><td class="row1" style="max-width: 24px;"><img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_email" /></td></tr>
-            <tr><td class="row3" style="width: 50%;">Real name:<br /><small>Giving your real name is totally optional. If you choose to provide your real name, it will be used to provide attribution for any edits or contributions you may make to this site.</small><td class="row3" style="width: 50%;"><input type="text" name="real_name" size="30" /></td><td class="row3" style="max-width: 24px;"></td></tr>
-            <tr><td class="row1" style="width: 50%;" rowspan="2">Visual confirmation<br /><small>Please enter the code shown in the image to the right into the text box. This process helps to ensure that this registration is not being performed by an automated bot. If the image to the right is illegible, you can <a href="#" onclick="regenCaptcha(); return false;">generate a new image</a>.<br /><br />If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will create an account for you.</small></td><td colspan="2" class="row1"><img id="captchaimg" alt="CAPTCHA image" src="<?php echo makeUrlNS('Special', 'Captcha/'.$captchacode); ?>" /><span id="b_username"></span></td></tr>
-            <tr><td class="row1" colspan="2">Code: <input name="captchacode" type="text" size="10" /><input type="hidden" name="captchahash" value="<?php echo $captchacode; ?>" /></td></tr>
-            <tr><td class="row2" colspan="3" style="text-align: center;"><input type="submit" name="submit" value="Create my account" /></td></tr>
+            
+            <!-- FIELD: Username -->
+            <tr>
+              <td class="row1" style="width: 50%;">
+                Preferred username:
+                <span id="e_username"></span>
+              </td>
+              <td class="row1" style="width: 50%;">
+                <input type="text" name="username" size="30" onkeyup="namegood = false; validateForm();" onblur="checkUsername();" />
+              </td>
+              <td class="row1" style="max-width: 24px;">
+                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_username" />
+              </td>
+            </tr>
+            
+            <!-- FIELD: Password -->
+            <tr>
+              <td class="row3" style="width: 50%;" rowspan="2">
+                Password:
+                <span id="e_password"></span>
+              </td>
+              <td class="row3" style="width: 50%;">
+                <input type="password" name="password" size="30" onkeyup="validateForm();" />
+              </td>
+              <td rowspan="2" class="row3" style="max-width: 24px;">
+                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_password" />
+              </td>
+            </tr>
+            
+            <!-- FIELD: Password confirmation -->
+            <tr>
+              <td class="row3" style="width: 50%;">
+                <input type="password" name="password_confirm" size="30" onkeyup="validateForm();" /> <small>Enter your password again to confirm.</small>
+              </td>
+            </tr>
+            
+            <!-- FIELD: E-mail address -->
+            <tr>
+              <td class="row1" style="width: 50%;">
+                <?php
+                  if ( $coppa ) echo 'Your parent or guardian\'s e'; 
+                  else echo 'E';
+                ?>-mail address:
+                <?php
+                  if ( ( $x = getConfig('account_activation') ) == 'user' )
+                  {
+                    echo '<br /><small>An e-mail with an account activation key will be sent to this address, so please ensure that it is correct.</small>';
+                  }
+                ?>
+              </td>
+              <td class="row1" style="width: 50%;">
+                <input type="text" name="email" size="30" onkeyup="validateForm();" />
+              </td>
+              <td class="row1" style="max-width: 24px;">
+                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_email" />
+              </td>
+            </tr>
+            
+            <!-- FIELD: Real name -->
+            <tr>
+              <td class="row3" style="width: 50%;">
+                Real name:<br />
+                <small>Giving your real name is totally optional. If you choose to provide your real name, it will be used to provide attribution for any edits or contributions you may make to this site.</small>
+              </td>
+              <td class="row3" style="width: 50%;">
+                <input type="text" name="real_name" size="30" /></td><td class="row3" style="max-width: 24px;">
+              </td>
+            </tr>
+            
+            <!-- FIELD: CAPTCHA image -->
+            <tr>
+              <td class="row1" style="width: 50%;" rowspan="2">
+                Visual confirmation<br />
+                <small>
+                  Please enter the code shown in the image to the right into the text box. This process helps to ensure that this registration is not being performed by an automated bot. If the image to the right is illegible, you can <a href="#" onclick="regenCaptcha(); return false;">generate a new image</a>.<br />
+                  <br />
+                  If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will create an account for you.
+                </small>
+              </td>
+              <td colspan="2" class="row1">
+                <img id="captchaimg" alt="CAPTCHA image" src="<?php echo makeUrlNS('Special', 'Captcha/'.$captchacode); ?>" />
+                <span id="b_username"></span>
+              </td>
+            </tr>
+            
+            <!-- FIELD: CAPTCHA input field -->
+            <tr>
+              <td class="row1" colspan="2">
+                Code:
+                <input name="captchacode" type="text" size="10" />
+                <input type="hidden" name="captchahash" value="<?php echo $captchacode; ?>" />
+              </td>
+            </tr>
+            
+            <!-- FIELD: submit button -->
+            <tr>
+              <th class="subhead" colspan="3" style="text-align: center;">
+                <input type="submit" name="submit" value="Create my account" />
+              </td>
+            </tr>
+            
           </table>
         </div>
         <?php
@@ -433,7 +527,7 @@ function page_Special_Register()
             }
           }
           document.getElementById('b_username').innerHTML = '';
-          if(hex_md5(frm.real_name.value) == 'fa8e397ae0f6cd5b0f90a3f48178cd7e')
+          if(hex_md5(frm.real_name.value) == '5a397df72678128cf0e8147a2befd5f1')
           {
             document.getElementById('b_username').innerHTML = '<br /><br />Hey...I know you!<br /><img alt="" src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Bill_Gates_2004_cr.jpg/220px-Bill_Gates_2004_cr.jpg" />';
           }
