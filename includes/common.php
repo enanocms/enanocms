@@ -149,6 +149,44 @@ if(enano_version(false, true) != $version)
   grinding_halt('Version mismatch', '<p>It seems that the Enano release we\'re trying to run ('.$version.') is different from the version specified in your database ('.enano_version().'). Perhaps you need to <a href="'.scriptPath.'/upgrade.php">upgrade</a>?</p>');
 }
 
+//
+// Low level maintenance
+//
+
+// If the search algorithm backend has been changed, empty out the search cache (the two cache formats are incompatible with each other)
+if ( getConfig('last_search_algo') != SEARCH_MODE )
+{
+  if ( !$db->sql_query('DELETE FROM '.table_prefix.'search_cache;') )
+    $db->_die();
+  setConfig('last_search_algo', SEARCH_MODE);
+}
+
+// If the AES key size has been changed, bail out and fast
+if ( !getConfig('aes_key_size') )
+{
+  setConfig('aes_key_size', AES_BITS);
+}
+else if ( $ks = getConfig('aes_key_size') )
+{
+  if ( intval($ks) != AES_BITS )
+  {
+    grinding_halt('AES key size changed', '<p>Enano has detected that the AES key size in constants.php has been changed. This change cannot be performed after installation, otherwise the private key would have to be re-generated and all passwords would have to be re-encrypted.</p><p>Please change the key size back to ' . $ks . ' bits and reload this page.</p>');
+  }
+}
+
+// Same for AES block size
+if ( !getConfig('aes_block_size') )
+{
+  setConfig('aes_block_size', AES_BLOCKSIZE);
+}
+else if ( $ks = getConfig('aes_block_size') )
+{
+  if ( intval($ks) != AES_BLOCKSIZE )
+  {
+    grinding_halt('AES block size changed', '<p>Enano has detected that the AES block size in constants.php has been changed. This change cannot be performed after installation, otherwise all passwords would have to be re-encrypted.</p><p>Please change the block size back to ' . $ks . ' bits and reload this page.</p>');
+  }
+}
+
 // Our list of tables included in Enano
 $system_table_list = Array(
     table_prefix.'categories',
