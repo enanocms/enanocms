@@ -83,6 +83,7 @@ function page_Special_Search()
       $q .= implode(' ', $req);
     }
   }
+  $q = trim($q);
   $template->header();
   if(!empty($q))
   {
