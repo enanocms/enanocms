@@ -147,10 +147,10 @@ function renderComments(data)
     
   document.getElementById('ajaxEditContainer').innerHTML = html;
   
-  //for ( i = 0; i < data.comments.length; i++ )
-  //{
-  //  document.getElementById('comment_source_'+i).value = data.comments[i].comment_source;
-  //}
+  for ( i = 0; i < data.comments.length; i++ )
+  {
+    document.getElementById('comment_source_'+i).value = data.comments[i].comment_source;
+  }
   
 }
 
@@ -230,7 +230,7 @@ function hideCommentForm()
 function editComment(id, link)
 {
   var ctr = document.getElementById('subject_'+id);
-  var subj = trim(ctr.firstChild.nodeValue); // If there's a span in there that says 'unapproved', this eliminates it
+  var subj = ( ctr.firstChild ) ? trim(ctr.firstChild.nodeValue) : ''; // If there's a span in there that says 'unapproved', this eliminates it
   ctr.innerHTML = '';
   var ipt = document.createElement('input');
   ipt.id = 'subject_edit_'+id;
@@ -273,9 +273,12 @@ function saveComment(id, link)
 
 function deleteComment(id)
 {
-  //var c = confirm('Do you really want to delete this comment?');
-  //if(!c);
-  //  return false;
+  if ( !shift )
+  {
+    var c = confirm('Do you really want to delete this comment?');
+    if(!c)
+      return false;
+  }
   var div = document.getElementById('comment_holder_'+id);
   var real_id = div.getElementsByTagName('input')[0]['value'];
   var req = {
@@ -300,6 +303,16 @@ function submitComment()
   {
     var captcha_code = '';
     var captcha_id   = '';
+  }
+  if ( subj == '' )
+  {
+    new messagebox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter a subject for your comment.');
+    return false;
+  }
+  if ( text == '' )
+  {
+    new messagebox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter some text for the body of your comment .');
+    return false;
   }
   var req = {
     'mode' : 'submit',

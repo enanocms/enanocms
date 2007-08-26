@@ -1591,7 +1591,15 @@ class PageUtils {
    
   function genPreview($text)
   {
-    return '<div class="info-box"><b>Reminder:</b> This is only a preview - your changes to this page have not yet been saved.</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 1em 0 1em 1em;">'.RenderMan::render(RenderMan::preprocess_text($text, false, false)).'</div>';
+    $ret = '<div class="info-box"><b>Reminder:</b> This is only a preview - your changes to this page have not yet been saved.</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 1em 0 1em 1em;">';
+    $text = RenderMan::render(RenderMan::preprocess_text($text, false, false));
+    ob_start();
+    eval('?>' . $text);
+    $text = ob_get_contents();
+    ob_end_clean();
+    $ret .= $text;
+    $ret .= '</div>';
+    return $ret;
   }
   
   /**

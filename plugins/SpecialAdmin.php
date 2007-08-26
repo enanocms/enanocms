@@ -793,7 +793,7 @@ function page_Admin_UserManager() {
   if(isset($_POST['go']))
   {
     // We need the user ID before we can do anything
-    $q = $db->sql_query('SELECT user_id,username,email,real_name,style,user_level FROM '.table_prefix.'users WHERE username=\'' . $db->escape($_POST['username']) . '\'');
+    $q = $db->sql_query('SELECT user_id,username,email,real_name,style,user_level,account_active FROM '.table_prefix.'users WHERE username=\'' . $db->escape($_POST['username']) . '\'');
     if ( !$q )
     {
       die('Error selecting user ID: '.mysql_error());
@@ -848,13 +848,30 @@ function page_Admin_UserManager() {
           }
         }
         
+        // update account activation
+        if ( isset($_POST['account_active']) )
+        {
+          // activate account
+          $q = $db->sql_query('UPDATE '.table_prefix.'users SET account_active=1 WHERE user_id=' . intval($r['user_id']) . ';');
+          if ( !$q )
+            $db->_die();
+        }
+        else
+        {
+          // deactivate account and throw away the old key
+          $actkey = sha1 ( microtime() . mt_rand() );
+          $q = $db->sql_query('UPDATE '.table_prefix.'users SET account_active=0,activation_key=\'' . $actkey . '\' WHERE user_id=' . intval($r['user_id']) . ';');
+          if ( !$q )
+            $db->_die();
+        }
+        
         echo('<div class="info-box">Your changes have been saved.</div>');
       }
       else
       {
         echo('<div class="error-box">Error saving changes: '.implode('<br />', $re).'</div>');
       }
-      $q = $db->sql_query('SELECT user_id,username,email,real_name,style,user_level FROM '.table_prefix.'users WHERE username=\''.$db->escape($_POST['username']).'\'');
+      $q = $db->sql_query('SELECT user_id,username,email,real_name,style,user_level,account_active FROM '.table_prefix.'users WHERE username=\''.$db->escape($_POST['username']).'\'');
       if ( !$q )
       {
         die('Error selecting user ID: '.mysql_error());
@@ -898,6 +915,7 @@ function page_Admin_UserManager() {
           <tr><td>Real Name:</td><td><input ' . $disabled . ' type="text" name="real_name" value="'.$r['real_name'].'" /></td></tr>
           ' . ( ( !empty($disabled) ) ? '<tr><td colspan="2"><small>To change your e-mail address, password, or real name, please use the user control panel.</small></td></tr>' : '' ) . '
           <tr><td>User level:</td><td><select name="level"><option '); if($r['user_level']==USER_LEVEL_CHPREF) echo('SELECTED'); echo(' value="'.USER_LEVEL_CHPREF.'">Regular User</option><option '); if($r['user_level']==USER_LEVEL_MOD) echo('SELECTED'); echo(' value="'.USER_LEVEL_MOD.'">Moderator</option><option '); if($r['user_level']==USER_LEVEL_ADMIN) echo('SELECTED'); echo(' value="'.USER_LEVEL_ADMIN.'">Administrator</option></select></td></tr>
+          <tr><td></td><td><label><input type="checkbox" name="account_active"' . ( $r['account_active'] == '1' ? ' checked="checked"' : '' ) . ' /> Account is active</label><br /><small>If this is unchecked, the activation key will be reset, meaning that any activation e-mails sent will be invalidated.</small></td></tr>
           <tr><td>Delete user:</td><td><input type="hidden" name="go" /><input type="hidden" name="username" value="'.$r['username'].'" /><input onclick="return confirm(\'This is your last warning.\n\nAre you sure you want to delete this user account? Even if you delete this user account, the username will be shown in page edit history, comments, and other areas of the site.\n\nDeleting a user account CANNOT BE UNDONE and should only be done in extreme circumstances.\n\nIf the user has violated the site policy, deleting the account will not prevent him from using the site, for that you need to add a new ban rule.\n\nContinue deleting this user account?\')" type="submit" name="deleteme" value="Delete this user" style="color: red;" /> <label><input type="checkbox" name="delete_conf" /> I\'m absolutely sure</label>
           <tr><td align="center" colspan="2">
           <input type="submit" name="save" value="Save Changes" /></td></tr>

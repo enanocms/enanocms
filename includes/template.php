@@ -446,7 +446,7 @@ class template {
         $ctmp = ' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(1); return false; }" id="wikibtn_1" title="Forces wiki functions to be allowed on this page."'.$ctmp,
+          'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(1); return false; }" id="wikibtn_1" title="Forces wiki functions to be allowed on this page."'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=1', true),
           'TEXT' => 'on'
         ));
@@ -459,7 +459,7 @@ class template {
         $ctmp=' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(0); return false; }" id="wikibtn_0" title="Forces wiki functions to be disabled on this page."'.$ctmp,
+          'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(0); return false; }" id="wikibtn_0" title="Forces wiki functions to be disabled on this page."'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=0', true),
           'TEXT' => 'off'
         ));
@@ -472,7 +472,7 @@ class template {
         $ctmp=' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(2); return false; }" id="wikibtn_2" title="Causes this page to use the global wiki mode setting (default)"'.$ctmp,
+          'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(2); return false; }" id="wikibtn_2" title="Causes this page to use the global wiki mode setting (default)"'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=2', true),
           'TEXT' => 'global'
         ));
