@@ -969,12 +969,37 @@ class PageProcessor
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
+    // Log it for crying out loud
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
+    
     $ob = '';
-    $template->tpl_strings['PAGE_NAME'] = 'Access denied';
+    //$template->tpl_strings['PAGE_NAME'] = 'Access denied';
+    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars( $this->title );
       
     if ( $this->send_headers )
     {
       $ob .= $template->getHeader();
+    }
+    
+    if ( count($this->redirect_stack) > 0 )
+    {
+      $stack = array_reverse($this->redirect_stack);
+      foreach ( $stack as $oldtarget )
+      {
+        $url = makeUrlNS($oldtarget[1], $oldtarget[0], 'redirect=no', true);
+        $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
+        $page_data = $paths->pages[$page_id_key];
+        $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
+        $a = '<a href="' . $url . '">' . $title . '</a>';
+        
+        $url = makeUrlNS($this->namespace, $this->page_id, 'redirect=no', true);
+        $page_id_key = $paths->nslist[ $this->namespace ] . $this->page_id;
+        $page_data = $paths->pages[$page_id_key];
+        $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$this->namespace] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $this->page_id ) ) );
+        $b = '<a href="' . $url . '">' . $title . '</a>';
+        
+        $ob .= '<small>(Redirected to ' . $b . ' from ' . $a . ')<br /></small>';
+      }
     }
     
     $ob .= '<div class="error-box"><b>Access to this page is denied.</b><br />This may be because you are not logged in or you have not met certain criteria for viewing this page.</div>';

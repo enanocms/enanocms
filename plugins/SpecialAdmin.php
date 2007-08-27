@@ -128,10 +128,19 @@ Using the links on the left you can control every aspect of your website\'s look
     $q = $db->sql_query($l);
     while($r = $db->fetchrow())
     {
+      if ( $r['action'] == 'illegal_page' )
+      {
+        list($illegal_id, $illegal_ns) = unserialize($r['page_text']);
+        $url = makeUrlNS($illegal_ns, $illegal_id, false, true);
+        $title = get_page_title_ns($illegal_id, $illegal_ns);
+        $class = ( isPage($paths->nslist[$illegal_ns] . $illegal_id) ) ? '' : ' class="wikilink-nonexistent"';
+        $illegal_link = '<a href="' . $url . '"' . $class . ' onclick="window.open(this.href); return false;">' . $title . '</a>';
+      }
       if($cls == 'row2') $cls = 'row1';
       else $cls = 'row2';
       echo '<tr><td class="'.$cls.'">';
-      switch($r['action']) {
+      switch($r['action'])
+      {
         case "admin_auth_good": echo 'Successful elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Authentication level: $level</small>"; } break;
         case "admin_auth_bad":  echo 'Failed elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Attempted auth level: $level</small>"; } break;
         case "activ_good": echo 'Successful account activation'; break;
@@ -142,6 +151,7 @@ Using the links on the left you can control every aspect of your website\'s look
         case "db_backup": echo 'Database backup created<br /><small>Tables: ' . $r['page_text'] . '</small>'; break;
         case "install_enano": echo "Installed Enano version {$r['page_text']}"; break;
         case "upgrade_enano": echo "Upgraded Enano to version {$r['page_text']}"; break;
+        case "illegal_page": echo "Unauthorized viewing attempt<br /><small>Page: {$illegal_link}</small>"; break;
       }
       echo '</td><td class="'.$cls.'">'.date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="Click for reverse DNS info">'.$r['edit_summary'].'</td></tr>';
     }
@@ -788,6 +798,12 @@ function page_Admin_UserManager() {
   {
     echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
     return;
+  }
+  
+  if ( isset($_GET['src']) && $_GET['src'] == 'get' && !empty($_GET['user']) )
+  {
+    $_POST['go'] = true;
+    $_POST['username'] = $_GET['user'];
   }
   
   if(isset($_POST['go']))
@@ -2312,7 +2328,7 @@ function page_Admin_DBBackup()
       @set_time_limit(300); // five minutes
     // Do the actual export
     $aesext = ( defined('SQL_BACKUP_CRYPT') ) ? '.tea' : '';
-    $filename = 'enano_backup_' . date('dmy') . '.sql' . $aesext;
+    $filename = 'enano_backup_' . date('ymd') . '.sql' . $aesext;
     ob_start();
     header('Content-disposition: attachment, filename="'.$filename.'";');
     header('Content-type: application/transact-sql');
@@ -2342,6 +2358,7 @@ HEADER;
     }
     foreach($tables as $t)
     {
+      // THE FOLLOWING COMMENT DOES NOT APPLY AS OF 1.0.
       // Sorry folks - this script CAN'T backup enano_files, enano_search_index, and enano_search_cache due to the sheer size of the tables.
       // If encryption is enabled the log data will be excluded too.
       echo export_table(

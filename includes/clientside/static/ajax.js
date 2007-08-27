@@ -812,6 +812,28 @@ function ajaxAdminPage()
   window.location = loc;
 }
 
+function ajaxAdminUser(username)
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
+  if ( auth_level < USER_LEVEL_ADMIN )
+  {
+    ajaxPromptAdminAuth(function(k) {
+      ENANO_SID = k;
+      auth_level = USER_LEVEL_ADMIN;
+      var loc = String(window.location + '');
+      window.location = append_sid(loc);
+      var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'UserManager&src=get&user=' + ajaxEscape(username));
+      if ( (ENANO_SID + ' ').length > 1 )
+        window.location = loc;
+    }, 9);
+    return false;
+  }
+  var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'UserManager&src=get&user=' + ajaxEscape(username));
+  window.location = loc;
+}
+
 function ajaxDisableEmbeddedPHP()
 {
   // IE <6 pseudo-compatibility

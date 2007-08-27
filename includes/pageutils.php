@@ -1943,11 +1943,25 @@ class PageUtils {
         {
           echo '<option value="' . $group['id'] . '">' . $group['name'] . '</option>';
         }
+        // page group selector
+        $groupsel = '';
+        if ( count($response['page_groups']) > 0 )
+        {
+          $groupsel = '<p><label><input type="radio" name="data[scope]" value="page_group" /> A group of pages</label></p>
+                       <p><select name="data[pg_id]">';
+          foreach ( $response['page_groups'] as $grp )
+          {
+            $groupsel .= '<option value="' . $grp['id'] . '">' . htmlspecialchars($grp['name']) . '</option>';
+          }
+          $groupsel .= '</select></p>';
+        }
+        
         echo '</select></p>
               <p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_USER . '" /> A specific user</label></p>
               <p>' . $template->username_field('data[target_id_user]') . '</p>
               <p>What should this access rule control?</p>
               <p><label><input name="data[scope]" value="only_this" type="radio" checked="checked" /> Only this page</p>
+              ' . $groupsel . '
               <p><label><input name="data[scope]" value="entire_site" type="radio" /> The entire site</p>
               <div style="margin: 0 auto 0 0; text-align: right;">
                 <input name="data[mode]" value="seltarget" type="hidden" />
@@ -1999,7 +2013,7 @@ class PageUtils {
           echo '<h3>Create new rule</h3>';
         }
         $type  = ( $response['target_type'] == ACL_TYPE_GROUP ) ? 'group' : 'user';
-        $scope = ( $response['page_id'] ) ? 'this page' : 'this entire site';
+        $scope = ( $response['page_id'] ) ? ( $response['namespace'] == '__PageGroup' ? 'this group of pages' : 'this page' ) : 'this entire site';
         echo 'This panel allows you to edit what the '.$type.' "'.$response['target_name'].'" can do on <b>'.$scope.'</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.';
         echo $formstart;
         $parser = $template->makeParserText( $response['template']['acl_field_begin'] );
@@ -2047,7 +2061,7 @@ class PageUtils {
                 <input type="hidden" name="data[target_type]" value="' . $response['target_type'] . '" />
                 <input type="hidden" name="data[target_id]" value="' . $response['target_id'] . '" />
                 <input type="hidden" name="data[target_name]" value="' . $response['target_name'] . '" />
-                <input type="submit" value="Save changes" />&nbsp;&nbsp;<input type="submit" name="data[act_delete_rule]" value="Delete rule" style="color: #AA0000;" onclick="return confirm(\'Do you really want to delete this ACL rule?\');" />
+                ' . ( ( $response['type'] == 'edit' ) ? '<input type="submit" value="Save changes" />&nbsp;&nbsp;<input type="submit" name="data[act_delete_rule]" value="Delete rule" style="color: #AA0000;" onclick="return confirm(\'Do you really want to delete this ACL rule?\');" />' : '<input type="submit" value="Create rule" />' ) . '
               </div>';
         echo $formend;
         break;
@@ -2096,6 +2110,11 @@ class PageUtils {
         {
           $parms['page_id']   = false;
           $parms['namespace'] = false;
+        }
+        else if ( $parms['scope'] == 'page_group' )
+        {
+          $parms['page_id'] = $parms['pg_id'];
+          $parms['namespace'] = '__PageGroup';
         }
         
         break;

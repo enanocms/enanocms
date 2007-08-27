@@ -41,6 +41,28 @@ function userprefs_menu_add($section, $text, $link)
   }
 }
 
+$plugins->attachHook('compile_template', 'userprefs_jbox_setup($button, $tb, $menubtn);');
+
+function userprefs_jbox_setup(&$button, &$tb, &$menubtn)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  if ( $paths->namespace != 'Special' || $paths->cpage['urlname_nons'] != 'Preferences' )
+    return false;
+  
+  $tb .= "<ul>$template->toolbar_menu</ul>";
+  $template->toolbar_menu = '';
+  
+  $button->assign_vars(array(
+      'TEXT' => 'list of registered members',
+      'FLAGS' => '',
+      'PARENTFLAGS' => '',
+      'HREF' => makeUrlNS('Special', 'Memberlist')
+    ));
+  
+  $tb .= $button->run();
+}
+
 function userprefs_menu_html()
 {
   global $userprefs_menu;

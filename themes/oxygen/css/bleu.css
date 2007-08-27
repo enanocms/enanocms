@@ -71,6 +71,16 @@ div.tblholder th                  { padding: 4px; background-color: #7080A0; fon
 div.tblholder th.subhead          { padding: 4px; background-color: #90A0B0; font-weight: bold; text-align: center; color: #FFFFFF; }
 div.tblholder table               { background-color: #FFFFFF; width: 100%; }
 
+div.tblholder th a {
+  color: #FFFFFF !important;
+  text-decoration: underline !important;
+}
+
+div.tblholder th a:hover {
+  color: #FFFF00 !important;
+  text-decoration: underline !important;
+}
+
 /* The "page tools" bar below the site logo but above the page content 
 div.pagebar                       { background-color: #B0D0F0; margin-top: 0px; padding: 3px; font-size: 7pt; }
 div.pagebar a                     { cursor: pointer; padding: 3px; margin-left: 3px; margin-right: 3px; text-decoration: none; color: #406080; }
@@ -222,6 +232,7 @@ input#pageheading                         { font-size: 14pt; border-bottom: 1px 
 input[type ^="button"], input[type ^="submit"] {
   background-image: url(../images/buttonbg.gif);
   background-repeat: repeat-x;
+  color: #202020;
 }
 
 /* JWS window theming */

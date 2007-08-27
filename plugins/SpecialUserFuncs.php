@@ -83,6 +83,13 @@ $plugins->attachHook('base_classes_initted', '
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
+    
+    $paths->add_page(Array(
+      \'name\'=>\'Member list\',
+      \'urlname\'=>\'Memberlist\',
+      \'namespace\'=>\'Special\',
+      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
+      ));
     ');
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
@@ -1064,6 +1071,187 @@ function page_Special_PasswordReset()
           <p><input type="submit" name="do_reset" value="Mail new password" /></p>
         </form>';
   $template->footer();
+}
+
+function page_Special_Memberlist()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  $template->header();
+  
+  $startletters = 'abcdefghijklmnopqrstuvwxyz';
+  $startletters = enano_str_split($startletters);
+  $startletter = ( isset($_GET['letter']) ) ? strtolower($_GET['letter']) : '';
+  if ( !in_array($startletter, $startletters) && $startletter != 'chr' )
+  {
+    $startletter = '';
+  }
+  
+  $startletter_sql = $startletter;
+  if ( $startletter == 'chr' )
+  {
+    $startletter_sql = '([^a-z])';
+  }
+  
+  // determine number of rows
+  $q = $db->sql_query('SELECT u.user_id FROM '.table_prefix.'users AS u WHERE u.username REGEXP "^' . $startletter_sql . '" AND u.username != "Anonymous";');
+  if ( !$q )
+    $db->_die();
+  
+  $num_rows = $db->numrows();
+  $db->free_result();
+  
+  // offset
+  $offset = ( isset($_GET['offset']) && strval(intval($_GET['offset'])) === $_GET['offset']) ? intval($_GET['offset']) : 0;
+  
+  // sort order
+  $sortkeys = array(
+      'uid' => 'u.user_id',
+      'username' => 'u.username',
+      'email' => 'u.email'
+    );
+  
+  $sortby = ( isset($_GET['sort']) && isset($sortkeys[$_GET['sort']]) ) ? $_GET['sort'] : 'username';
+  $sort_sqllet = $sortkeys[$sortby];
+  
+  $target_order = ( isset($_GET['orderby']) && in_array($_GET['orderby'], array('ASC', 'DESC')) )? $_GET['orderby'] : 'ASC';
+  
+  $sortorders = array();
+  foreach ( $sortkeys as $k => $_unused )
+  {
+    $sortorders[$k] = ( $sortby == $k ) ? ( $target_order == 'ASC' ? 'DESC' : 'ASC' ) : 'ASC';
+  }
+  
+  // Why 3.3714%? 100 percent / 28 cells, minus a little (0.2% / cell) to account for cell spacing
+  
+  echo '<div class="tblholder">
+          <table border="0" cellspacing="1" cellpadding="4" style="text-align: center;">
+            <tr>';
+  echo '<td class="row1" style="width: 3.3714%;"><a href="' . makeUrlNS('Special', 'Memberlist', 'letter=&sort=' . $sortby . '&orderby=' . $target_order, true) . '">All</a></td>';
+  echo '<td class="row1" style="width: 3.3714%;"><a href="' . makeUrlNS('Special', 'Memberlist', 'letter=chr&sort=' . $sortby . '&orderby=' . $target_order, true) . '">#</a></td>';
+  foreach ( $startletters as $letter )
+  {
+    echo '<td class="row1" style="width: 3.3714%;"><a href="' . makeUrlNS('Special', 'Memberlist', 'letter=' . $letter . '&sort=' . $sortby . '&orderby=' . $target_order, true) . '">' . strtoupper($letter) . '</a></td>';
+  }
+  echo '    </tr>
+          </table>
+        </div>';
+  
+  // formatter parameters
+  $formatter = new MemberlistFormatter();
+  $formatters = array(
+    'username' => array($formatter, 'username'),
+    'user_level' => array($formatter, 'user_level'),
+    'email' => array($formatter, 'email')
+    );
+  
+  // Column markers
+  $headings = '<tr>
+                 <th style="max-width: 50px;">
+                   <a href="' . makeUrlNS('Special', 'Memberlist', 'letter=' . $startletter . '&sort=uid&orderby=' . $sortorders['uid'], true) . '">#</a>
+                 </th>
+                 <th>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', 'letter=' . $startletter . '&sort=username&orderby=' . $sortorders['username'], true) . '">Username</a>
+                 </th>
+                 <th>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', 'letter=' . $startletter . '&sort=email&orderby=' . $sortorders['email'], true) . '">E-mail</a>
+                 </th>
+               </tr>';
+  
+  $q = $db->sql_unbuffered_query('SELECT u.user_id, u.username, u.reg_time, u.email, u.user_level, x.email_public FROM '.table_prefix.'users AS u
+                                    LEFT JOIN '.table_prefix.'users_extra AS x
+                                      ON ( u.user_id = x.user_id )
+                                    WHERE u.username REGEXP "^' . $startletter_sql . '" AND u.username != "Anonymous"
+                                    ORDER BY ' . $sort_sqllet . ' ' . $target_order . ';');
+  if ( !$q )
+    $db->_die();
+  
+  $html = paginate(
+            $q,                                                                                                       // MySQL result resource
+            '<tr>
+               <td class="{_css_class}">{user_id}</td>
+               <td class="{_css_class}" style="text-align: left;">{username}<br /><small>{user_level}</small></td>
+               <td class="{_css_class}">{email}</small></td>
+             </tr>
+             ',                                                                                                       // TPL code for rows
+             $num_rows,                                                                                               // Number of results
+             makeUrlNS('Special', 'Memberlist', 'letter=' . $startletter . '&offset=%s&sort=' . $sortby . '&orderby=' . $target_order ), // Result URL
+             $offset,                                                                                                 // Start at this number
+             25,                                                                                                      // Results per page
+             $formatters,                                                                                             // Formatting hooks
+             '<div class="tblholder">
+                <table border="0" cellspacing="1" cellpadding="4" style="text-align: center;">
+                  ' . $headings . '
+                 ',                                                                                                   // Header (printed before rows)
+             '  ' . $headings . '
+                 </table>
+              </div>
+              '                                                                                                       // Footer (printed after rows)
+          );
+  
+  if ( $num_rows < 1 )
+  {
+    echo '<p>Sorry - no users with usernames that start with that letter could be found.</p>';
+  }
+  else
+  {
+    echo $html;
+  }
+  
+  $template->footer();
+}
+
+/**
+ * Class for formatting results for the memberlist.
+ * @access private
+ */
+
+class MemberlistFormatter
+{
+  function username($username, $row)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    $userpage = $paths->nslist['User'] . sanitize_page_id($username);
+    $class = ( isPage($userpage) ) ? ' title="Click to view this user\'s userpage"' : ' class="wikilink-nonexistent" title="This user hasn\'t created a userpage yet, but you can still view profile details by clicking this link."';
+    $anchor = '<a href="' . makeUrlNS('User', sanitize_page_id($username)) . '"' . $class . '>' . htmlspecialchars($username) . '</a>';
+    if ( $session->user_level >= USER_LEVEL_ADMIN )
+    {
+      $anchor .= ' <small>- <a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&username=' . urlencode($username), true) . '"
+                               onclick="ajaxAdminUser(\'' . addslashes(htmlspecialchars($username)) . '\'); return false;">Administer user</a></small>';
+    }
+    return $anchor;
+  }
+  function user_level($level, $row)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    switch ( $level )
+    {
+      case USER_LEVEL_GUEST:
+        $s_level = 'Guest'; break;
+      case USER_LEVEL_MEMBER:
+      case USER_LEVEL_CHPREF:
+        $s_level = 'Member'; break;
+      case USER_LEVEL_MOD:
+        $s_level = 'Moderator'; break;
+      case USER_LEVEL_ADMIN:
+        $s_level = 'Site administrator'; break;
+      default:
+        $s_level = 'Unknown (level ' . $level . ')';
+    }
+    return $s_level;
+  }
+  function email($addy, $row)
+  {
+    if ( $row['email_public'] == '1' )
+    {
+      global $email;
+      $addy = $email->encryptEmail($addy);
+      return $addy;
+    }
+    else
+    {
+      return '<small>&lt;Non-public&gt;</small>';
+    }
+  }
 }
 
 ?>
