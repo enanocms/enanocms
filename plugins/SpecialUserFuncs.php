@@ -1092,14 +1092,6 @@ function page_Special_Memberlist()
     $startletter_sql = '([^a-z])';
   }
   
-  // determine number of rows
-  $q = $db->sql_query('SELECT u.user_id FROM '.table_prefix.'users AS u WHERE u.username REGEXP "^' . $startletter_sql . '" AND u.username != "Anonymous";');
-  if ( !$q )
-    $db->_die();
-  
-  $num_rows = $db->numrows();
-  $db->free_result();
-  
   // offset
   $offset = ( isset($_GET['offset']) && strval(intval($_GET['offset'])) === $_GET['offset']) ? intval($_GET['offset']) : 0;
   
@@ -1144,23 +1136,57 @@ function page_Special_Memberlist()
     'email' => array($formatter, 'email')
     );
   
+  // User search             
+  if ( isset($_GET['finduser']) )
+  {
+    $finduser = str_replace(array(  '%',   '_'),
+                            array('\\%', '\\_'),
+                            $_GET['finduser']);
+    $finduser = str_replace(array('*', '?'),
+                            array('%', '_'),
+                            $finduser);
+    $finduser = $db->escape($finduser);
+    $username_where = 'u.username LIKE "' . $finduser . '"';
+    $finduser_url = 'finduser=' . rawurlencode($_GET['finduser']) . '&';
+  }
+  else
+  {
+    $username_where = 'u.username REGEXP "^' . $startletter_sql . '"';
+    $finduser_url = '';
+  }
+  
   // Column markers
   $headings = '<tr>
                  <th style="max-width: 50px;">
-                   <a href="' . makeUrlNS('Special', 'Memberlist', 'letter=' . $startletter . '&sort=uid&orderby=' . $sortorders['uid'], true) . '">#</a>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=uid&orderby=' . $sortorders['uid'], true) . '">#</a>
                  </th>
                  <th>
-                   <a href="' . makeUrlNS('Special', 'Memberlist', 'letter=' . $startletter . '&sort=username&orderby=' . $sortorders['username'], true) . '">Username</a>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=username&orderby=' . $sortorders['username'], true) . '">Username</a>
                  </th>
                  <th>
-                   <a href="' . makeUrlNS('Special', 'Memberlist', 'letter=' . $startletter . '&sort=email&orderby=' . $sortorders['email'], true) . '">E-mail</a>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=email&orderby=' . $sortorders['email'], true) . '">E-mail</a>
                  </th>
                </tr>';
+               
+  // determine number of rows
+  $q = $db->sql_query('SELECT u.user_id FROM '.table_prefix.'users AS u WHERE ' . $username_where . ' AND u.username != "Anonymous";');
+  if ( !$q )
+    $db->_die();
   
+  $num_rows = $db->numrows();
+  $db->free_result();
+  
+  if ( !empty($finduser_url) )
+  {
+    $s = ( $num_rows == 1 ) ? '' : 'es';
+    echo "<h3 style='float: left;'>Search returned $num_rows match$s</h3>";
+  }
+  
+  // main selector
   $q = $db->sql_unbuffered_query('SELECT u.user_id, u.username, u.reg_time, u.email, u.user_level, x.email_public FROM '.table_prefix.'users AS u
                                     LEFT JOIN '.table_prefix.'users_extra AS x
                                       ON ( u.user_id = x.user_id )
-                                    WHERE u.username REGEXP "^' . $startletter_sql . '" AND u.username != "Anonymous"
+                                    WHERE ' . $username_where . ' AND u.username != "Anonymous"
                                     ORDER BY ' . $sort_sqllet . ' ' . $target_order . ';');
   if ( !$q )
     $db->_die();
@@ -1174,7 +1200,7 @@ function page_Special_Memberlist()
              </tr>
              ',                                                                                                       // TPL code for rows
              $num_rows,                                                                                               // Number of results
-             makeUrlNS('Special', 'Memberlist', 'letter=' . $startletter . '&offset=%s&sort=' . $sortby . '&orderby=' . $target_order ), // Result URL
+             makeUrlNS('Special', 'Memberlist', ( str_replace('%', '%%', $finduser_url) ) . 'letter=' . $startletter . '&offset=%s&sort=' . $sortby . '&orderby=' . $target_order ), // Result URL
              $offset,                                                                                                 // Start at this number
              25,                                                                                                      // Results per page
              $formatters,                                                                                             // Formatting hooks
@@ -1185,12 +1211,17 @@ function page_Special_Memberlist()
              '  ' . $headings . '
                  </table>
               </div>
-              '                                                                                                       // Footer (printed after rows)
+              ' .
+              '<div style="float: left;">
+                <form action="' . makeUrlNS('Special', 'Memberlist') . '" method="get" onsubmit="if ( !submitAuthorized ) return false;">'
+               . '<p>Find a member: ' . $template->username_field('finduser') . ' <input type="submit" value="Go" /><br /><small>You may use the following wildcards: * to match multiple characters, ? to match a single character.</small></p>'
+               . '</form>
+               </div>'                                                                                                // Footer (printed after rows)
           );
   
   if ( $num_rows < 1 )
   {
-    echo '<p>Sorry - no users with usernames that start with that letter could be found.</p>';
+    echo ( isset($_GET['finduser']) ) ? '<p>Sorry - no users that matched your query could be found. Please try some different search terms.</p>' : '<p>Sorry - no users with usernames that start with that letter could be found.</p>';
   }
   else
   {
