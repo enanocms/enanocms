@@ -67,7 +67,7 @@ CREATE TABLE {{TABLE_PREFIX}}pages(
   wiki_mode tinyint(1) NOT NULL DEFAULT 2,
   delvotes int(10) NOT NULL default 0,
   password varchar(40) NOT NULL DEFAULT '',
-  delvote_ips text NOT NULL DEFAULT ''
+  delvote_ips text DEFAULT NULL
 ) CHARACTER SET `utf8`;
 
 CREATE TABLE {{TABLE_PREFIX}}session_keys(
