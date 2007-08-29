@@ -709,6 +709,13 @@ class PageProcessor
       echo '<tr><td class="row3">Real name: ' . $userdata['real_name'] . '</td></tr>';
     }
     
+    // Administer user button
+    
+    if ( $session->user_level >= USER_LEVEL_ADMIN )
+    {
+      echo '<tr><td class="row1"><a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&user=' . urlencode($target_username), true) . '" onclick="ajaxAdminUser(\'' . addslashes($target_username) . '\'); return false;">Administer user</a></td></tr>';
+    }
+    
     // Comments
     
     echo '<tr><th class="subhead">' . htmlspecialchars($target_username) . '\'s latest comments</th></tr>';

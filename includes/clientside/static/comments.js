@@ -181,14 +181,14 @@ var _render_comment = function(this_comment, data)
   // User level
   tplvars.USER_LEVEL = 'Guest';
   if ( this_comment.user_level >= data.user_level.member ) tplvars.USER_LEVEL = 'Member';
-  if ( this_comment.user_level >= data.user_level.mod ) tplvars.USER_LEVEL = 'Moderator';
-  if ( this_comment.user_level >= data.user_level.admin ) tplvars.USER_LEVEL = 'Administrator';
+  if ( this_comment.user_level >= data.user_level.mod )    tplvars.USER_LEVEL = 'Moderator';
+  if ( this_comment.user_level >= data.user_level.admin )  tplvars.USER_LEVEL = 'Administrator';
                               
   // Send PM link
   tplvars.SEND_PM_LINK=(this_comment.user_id>1 && data.logged_in)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">Send private message</a><br />':'';
   
   // Add buddy link
-  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1 && data.logged_in)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">Add to buddy list</a><br />':'';
+  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1 && data.logged_in && this_comment.is_buddy != 1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">Add to buddy list</a><br />':'';
   
   // Edit link
   tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">edit</a>';
@@ -208,6 +208,13 @@ var _render_comment = function(this_comment, data)
   tplbool.signature = ( this_comment.signature == '' ) ? false : true;
   tplbool.can_edit = ( data.auth_edit_comments && ( ( this_comment.user_id == data.user_id && data.logged_in ) || data.auth_mod_comments ) );
   tplbool.auth_mod = data.auth_mod_comments;
+  tplbool.is_friend = ( this_comment.is_buddy == 1 && this_comment.is_friend == 1 );
+  tplbool.is_foe = ( this_comment.is_buddy == 1 && this_comment.is_friend == 0 );
+  
+  if ( tplbool.is_friend )
+    tplvars.USER_LEVEL += '<br /><b>On your friend list</b>';
+  else if ( tplbool.is_foe )
+    tplvars.USER_LEVEL += '<br /><b>On your foe list</b>';
   
   parser.assign_vars(tplvars);
   parser.assign_bool(tplbool);

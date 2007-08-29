@@ -4,16 +4,16 @@
       <th colspan="2" style="text-align: left;">{DATETIME}</th>
     </tr>
     <tr>
-      <td style="width: 120px; height: 100%;" rowspan="4" valign="top" class="row1">
+      <td style="width: 120px; height: 100%;" rowspan="4" valign="top" class="row1<!-- BEGIN is_friend --> row1_green<!-- END is_friend --><!-- BEGIN is_foe --> row1_red<!-- END is_foe -->">
         <table border="0" width="100%" style="height: 100%;" cellspacing="0" cellpadding="0">
           <tr>
-            <td valign="top" class="row1">
+            <td valign="top" class="row1<!-- BEGIN is_friend --> row1_green<!-- END is_friend --><!-- BEGIN is_foe --> row1_red<!-- END is_foe -->">
               <b>{NAME}</b><br />
               <small>{USER_LEVEL}</small>
             </td>
           </tr>
           <tr>
-            <td valign="bottom" class="row1">
+            <td valign="bottom" class="row1<!-- BEGIN is_friend --> row1_green<!-- END is_friend --><!-- BEGIN is_foe --> row1_red<!-- END is_foe -->">
               {SEND_PM_LINK} {ADD_BUDDY_LINK}
             </td>
           </tr>

@@ -60,7 +60,7 @@ function stats_top_pages($num = 5)
   }
   
   $data = array();
-  $q = $db->sql_query('SELECT COUNT(hit_id) AS num_hits, page_id, namespace FROM hits GROUP BY page_id, namespace ORDER BY num_hits DESC LIMIT ' . $num . ';');
+  $q = $db->sql_query('SELECT COUNT(hit_id) AS num_hits, page_id, namespace FROM '.table_prefix.'hits GROUP BY page_id, namespace ORDER BY num_hits DESC LIMIT ' . $num . ';');
   
   while ( $row = $db->fetchrow() )
   {

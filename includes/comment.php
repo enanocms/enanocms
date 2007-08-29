@@ -106,11 +106,15 @@ class Comments
         {
           $ret['template'] = file_get_contents(ENANO_ROOT . '/themes/' . $template->theme . '/comment.tpl');
         }
-        $q = $db->sql_query('SELECT c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,u.user_level,u.user_id,u.signature FROM '.table_prefix.'comments AS c
+        $q = $db->sql_query('SELECT c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,u.user_level,u.user_id,u.signature, b.buddy_id IS NOT NULL AS is_buddy, ( b.is_friend IS NOT NULL AND b.is_friend=1 ) AS is_friend FROM '.table_prefix.'comments AS c
                                LEFT JOIN '.table_prefix.'users AS u
                                  ON (u.user_id=c.user_id)
+                               LEFT JOIN '.table_prefix.'buddies AS b
+                                 ON ( ( b.user_id=' . $session->user_id.' AND b.buddy_user_id=c.user_id ) OR b.user_id IS NULL)
                                WHERE page_id=\'' . $this->page_id . '\'
-                                 AND namespace=\'' . $this->namespace . '\';');
+                                 AND namespace=\'' . $this->namespace . '\'
+                               GROUP BY c.comment_id
+                               ORDER BY c.time ASC;');
         $count_appr = 0;
         $count_total = 0;
         $count_unappr = 0;
@@ -133,6 +137,18 @@ class Comments
             
             // Format text
             $row['comment_data'] = RenderMan::render($row['comment_data']);
+            
+            if ( $row['is_buddy'] == 1 && $row['is_friend'] == 0 )
+            {
+              $seed = md5(sha1(mt_rand() . microtime()));
+              $wrapper = '
+                <div id="posthide_'.$seed.'" style="display: none;">
+                  ' . $row['comment_data'] . '
+                </div>
+                <p><span style="opacity: 0.4; filter: alpha(opacity=40);">Post from foe hidden.</span> <span style="text-align: right;"><a href="#showpost" onclick="document.getElementById(\'posthide_'.$seed.'\').style.display=\'block\'; this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode); return false;">Display post</a></span></p>
+              ';
+              $row['comment_data'] = $wrapper;
+            }
             
             // Format date
             $row['time'] = date('F d, Y h:i a', $row['time']);

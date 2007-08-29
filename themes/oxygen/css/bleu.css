@@ -71,6 +71,14 @@ div.tblholder th                  { padding: 4px; background-color: #7080A0; fon
 div.tblholder th.subhead          { padding: 4px; background-color: #90A0B0; font-weight: bold; text-align: center; color: #FFFFFF; }
 div.tblholder table               { background-color: #FFFFFF; width: 100%; }
 
+/* Colored table cells */
+div.tblholder td.row1_red         { padding: 4px; background-color: #F8E0E0; }
+div.tblholder td.row2_red         { padding: 4px; background-color: #FFF0F0; }
+div.tblholder td.row3_red         { padding: 4px; background-color: #FFE8E8; }
+div.tblholder td.row1_green       { padding: 4px; background-color: #E0F8E0; }
+div.tblholder td.row2_green       { padding: 4px; background-color: #F0FFF0; }
+div.tblholder td.row3_green       { padding: 4px; background-color: #E8FFE8; }
+
 div.tblholder th a {
   color: #FFFFFF !important;
   text-decoration: underline !important;
