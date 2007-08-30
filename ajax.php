@@ -188,7 +188,7 @@
       if(!$session->get_permissions('mod_misc')) die('Go somewhere else for your reverse DNS info!');
       $ip = $_GET['ip'];
       $rdns = gethostbyaddr($ip);
-      if($rdns == $ip) echo 'Unable to get reverse DNS information. Perhaps the IP address does not exist anymore.';
+      if($rdns == $ip) echo 'Unable to get reverse DNS information. Perhaps the DNS server is down or the PTR record no longer exists.';
       else echo $rdns;
       break;
     case 'acljson':

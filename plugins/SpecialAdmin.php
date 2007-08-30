@@ -41,6 +41,7 @@ $plugins->attachHook('base_classes_initted', '
 
 // Admin pages that were too enormous to be in this file were split off into the plugins/admin/ directory in 1.0.1
 require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
+require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 
@@ -104,61 +105,10 @@ Using the links on the left you can control every aspect of your website\'s look
   
   // Security log
   echo '<h3>Security log</h3>';
-  echo '<div class="tblholder" style="/* max-height: 500px; clip: rect(0px,auto,auto,0px); overflow: auto; */"><table border="0" cellspacing="1" cellpadding="4" width="100%">';
-  $cls = 'row2';                                                                                               
-  echo '<tr><th style="width: 60%;">Type</th><th>Date</th><th>Username</th><th>IP Address</th></tr>';
-  require('config.php');
-  $hash = md5($dbpasswd);
-  unset($dbname, $dbhost, $dbuser, $dbpasswd);
-  unset($dbname, $dbhost, $dbuser, $dbpasswd); // PHP5 Zend bug
-  if ( defined('ENANO_DEMO_MODE') && !isset($_GET[ $hash ]) && substr($_SERVER['REMOTE_ADDR'], 0, 8) != '192.168.' )
-  {
-    echo '<tr><td class="row1" colspan="4">Logs are recorded but not displayed for privacy purposes in the demo.</td></tr>';
-  }
-  else
-  {
-    if(isset($_GET['fulllog']))
-    {
-      $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;';
-    }
-    else
-    {
-      $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC LIMIT 5';
-    }
-    $q = $db->sql_query($l);
-    while($r = $db->fetchrow())
-    {
-      if ( $r['action'] == 'illegal_page' )
-      {
-        list($illegal_id, $illegal_ns) = unserialize($r['page_text']);
-        $url = makeUrlNS($illegal_ns, $illegal_id, false, true);
-        $title = get_page_title_ns($illegal_id, $illegal_ns);
-        $class = ( isPage($paths->nslist[$illegal_ns] . $illegal_id) ) ? '' : ' class="wikilink-nonexistent"';
-        $illegal_link = '<a href="' . $url . '"' . $class . ' onclick="window.open(this.href); return false;">' . $title . '</a>';
-      }
-      if($cls == 'row2') $cls = 'row1';
-      else $cls = 'row2';
-      echo '<tr><td class="'.$cls.'">';
-      switch($r['action'])
-      {
-        case "admin_auth_good": echo 'Successful elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Authentication level: $level</small>"; } break;
-        case "admin_auth_bad":  echo 'Failed elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); echo "<br /><small>Attempted auth level: $level</small>"; } break;
-        case "activ_good": echo 'Successful account activation'; break;
-        case "auth_good": echo 'Successful regular user logon'; break;
-        case "activ_bad": echo 'Failed account activation'; break;
-        case "auth_bad": echo 'Failed regular user logon'; break;
-        case "sql_inject": echo 'SQL injection attempt<div style="max-width: 90%; clip: rect(0px,auto,auto,0px); overflow: auto; display: block; font-size: smaller;">Offending query: ' . htmlspecialchars($r['page_text']) . '</div>'; break;
-        case "db_backup": echo 'Database backup created<br /><small>Tables: ' . $r['page_text'] . '</small>'; break;
-        case "install_enano": echo "Installed Enano version {$r['page_text']}"; break;
-        case "upgrade_enano": echo "Upgraded Enano to version {$r['page_text']}"; break;
-        case "illegal_page": echo "Unauthorized viewing attempt<br /><small>Page: {$illegal_link}</small>"; break;
-      }
-      echo '</td><td class="'.$cls.'">'.date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="Click for reverse DNS info">'.$r['edit_summary'].'</td></tr>';
-    }
-    $db->free_result();
-  }
-  echo '</table></div>';
-  if(!isset($_GET['fulllog'])) echo '<p><a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'Home&amp;fulllog\'); return false;">Full security log</a></p>';
+  $seclog = get_security_log(5);
+  echo $seclog;
+  
+  echo '<p><a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'SecurityLog\'); return false;">Full security log</a></p>';
   
 }
 
@@ -488,12 +438,69 @@ function page_Admin_UploadConfig()
   
   if(isset($_POST['save']))
   {
-    if(isset($_POST['enable_uploads'])) setConfig('enable_uploads', '1'); else setConfig('enable_uploads', '0');
-    if(isset($_POST['enable_imagemagick'])) setConfig('enable_imagemagick', '1'); else setConfig('enable_imagemagick', '0');
-    if(isset($_POST['cache_thumbs'])) setConfig('cache_thumbs', '1'); else setConfig('cache_thumbs', '0');
-    if(isset($_POST['file_history'])) setConfig('file_history', '1'); else setConfig('file_history', '0');
-    if(file_exists($_POST['imagemagick_path'])) setConfig('imagemagick_path', $_POST['imagemagick_path']);
-    else echo '<span style="color: red"><b>Warning:</b> the file "'.$_POST['imagemagick_path'].'" was not found, and the ImageMagick file path was not updated.</span>';
+    if(isset($_POST['enable_uploads']) && getConfig('enable_uploads') != '1')
+    {
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","upload_enable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      if ( !$q )
+        $db->_die();
+      setConfig('enable_uploads', '1');
+    }
+    else if ( !isset($_POST['enable_uploads']) && getConfig('enable_uploads') == '1' )
+    {
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","upload_disable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      if ( !$q )
+        $db->_die();
+      setConfig('enable_uploads', '0');
+    }
+    if(isset($_POST['enable_imagemagick']) && getConfig('enable_imagemagick') != '1')
+    {
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","magick_enable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      if ( !$q )
+        $db->_die();
+      setConfig('enable_imagemagick', '1');
+    }
+    else if ( !isset($_POST['enable_imagemagick']) && getConfig('enable_imagemagick') == '1' )
+    {
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","magick_disable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      if ( !$q )
+        $db->_die();
+      setConfig('enable_imagemagick', '0');
+    }
+    if(isset($_POST['cache_thumbs']))
+    {
+      setConfig('cache_thumbs', '1');
+    }
+    else
+    {
+      setConfig('cache_thumbs', '0');
+    }
+    if(isset($_POST['file_history']) && getConfig('file_history') != '1' )
+    {
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","filehist_enable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      if ( !$q )
+        $db->_die();
+      setConfig('file_history', '1');
+    }
+    else if ( !isset($_POST['file_history']) && getConfig('file_history') == '1' )
+    {
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","filehist_disable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      if ( !$q )
+        $db->_die();
+      setConfig('file_history', '0');
+    }
+    if(file_exists($_POST['imagemagick_path']) && $_POST['imagemagick_path'] != getConfig('imagemagick_path'))
+    {
+      $old = getConfig('imagemagick_path');
+      $oldnew = "{$old}||{$_POST['imagemagick_path']}";
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","magick_path",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($oldnew) . '");');
+      if ( !$q )
+        $db->_die();
+      setConfig('imagemagick_path', $_POST['imagemagick_path']);
+    }
+    else if ( $_POST['imagemagick_path'] != getConfig('imagemagick_path') )
+    {
+      echo '<span style="color: red"><b>Warning:</b> the file "'.htmlspecialchars($_POST['imagemagick_path']).'" was not found, and the ImageMagick file path was not updated.</span>';
+    }
     $max_upload = floor((float)$_POST['max_file_size'] * (int)$_POST['fs_units']);
     if ( $max_upload > 1048576 && defined('ENANO_DEMO_MODE') )
     {
@@ -531,7 +538,7 @@ function page_Admin_UploadConfig()
   <p>Lastly, you can choose whether file history will be saved. If this option is turned on, you will be able to roll back any malicious
      changes made to uploaded files, but this requires a significant amount of database storage. You should probably leave this option
      enabled unless you have less than 250MB of MySQL database space.</p>
-  <p><label><input type="checkbox" name="file_history" <?php if(getConfig('file_history')=='1' && is_writable(ENANO_ROOT.'/cache/')) echo 'checked="checked"'; ?> /> Keep a history of uploaded files</label></p>
+  <p><label><input type="checkbox" name="file_history" <?php if(getConfig('file_history')=='1') echo 'checked="checked"'; ?> /> Keep a history of uploaded files</label></p>
   <hr style="margin-left: 1em;" />
   <p><input type="submit" name="save" value="Save changes" style="font-weight: bold;" /></p>
   <?php
@@ -551,6 +558,9 @@ function page_Admin_PluginManager() {
     switch($_GET['action'])
     {
       case "enable":
+        $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","plugin_enable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
+        if ( !$q )
+          $db->_die();
         setConfig('plugin_'.$_GET['plugin'], '1');
         break;
       case "disable":
@@ -561,6 +571,9 @@ function page_Admin_PluginManager() {
         }
         if ( !in_array($_GET['plugin'], $plugins->system_plugins) )
         {
+          $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","plugin_disable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
+          if ( !$q )
+            $db->_die();
           setConfig('plugin_'.$_GET['plugin'], '0');
         }
         else 

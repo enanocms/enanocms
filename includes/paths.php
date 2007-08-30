@@ -89,8 +89,9 @@ class pathManager {
     $this->addAdminNode('Users', 'Manage users', 'UserManager');
     $this->addAdminNode('Users', 'Edit groups', 'GroupManager');
     $this->addAdminNode('Users', 'COPPA support', 'COPPA');
-    $this->addAdminNode('Users', 'Ban control', 'BanControl');
     $this->addAdminNode('Users', 'Mass e-mail', 'MassEmail');
+    $this->addAdminNode('Security', 'Security log', 'SecurityLog');
+    $this->addAdminNode('Security', 'Ban control', 'BanControl');
     
     $code = $plugins->setHook('acl_rule_init');
     foreach ( $code as $cmd )
