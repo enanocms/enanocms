@@ -1588,7 +1588,7 @@ function page_Admin_PageManager()
           $q .= ' WHERE ';
           $k = array_keys($cpage);
           if ( !isset($cpage) )
-            die('no cpage');
+            die('[internal] no cpage');
           foreach($k as $c)
           {
             if($c != 'urlname_nons' && $c != 'urlname' && $c != 'really_protected')

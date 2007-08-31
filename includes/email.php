@@ -368,7 +368,6 @@ class EmailEncryptor
         if($this->p*$this->q < 255)
           break;
         $k = $this->makeKey($allCharacters);
-        die('<pre>'.print_r($k, true).'</pre>');
         $encrypted = $k['X'];
         $decrypted = $this->goForth($encrypted,$this->p*$this->q,$k['D']);
         if($decrypted != $allCharacters) {

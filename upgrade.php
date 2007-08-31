@@ -397,6 +397,13 @@ function u_1_0_RC3_make_users_extra()
 switch($_GET['mode'])
 {
   case "login":
+    if ( $session->user_logged_in && $session->user_level < $ul_admin )
+    {
+      $template->header();
+      echo '<p>Your user account does not have permission to perform an upgrade of Enano. Return to the <a href="index.php">index page</a>.</p>';
+      $template->footer();
+      exit;
+    }
     if($session->user_logged_in && $session->user_level >= $ul_admin)
     {
       if(isset($_POST['login']))
