@@ -872,7 +872,8 @@ function display_page_headers()
   global $db, $session, $paths, $template, $plugins; // Common objects
   if($session->get_permissions('vote_reset') && $paths->cpage['delvotes'] > 0)
   {
-    $hr = implode(', ', explode('|', $paths->cpage['delvote_ips']));
+    $delvote_ips = unserialize($paths->cpage['delvote_ips']);
+    $hr = htmlspecialchars(implode(', ', $delvote_ips['u']));
     $is = 'is';
     $s = '';
     $s2 = 's';

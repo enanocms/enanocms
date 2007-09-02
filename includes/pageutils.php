@@ -405,18 +405,23 @@ class PageUtils {
     
     $prot = ( $namespace == 'System' ) ? 1 : 0;
     
+    $ips = array(
+      'ip' => array(),
+      'u' => array()
+      );
+    
     $page_data = Array(
       'name'=>$name,
       'urlname'=>$page_id,
       'namespace'=>$namespace,
-      'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>$prot,'delvotes'=>0,'delvote_ips'=>'','wiki_mode'=>2,
+      'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>$prot,'delvotes'=>0,'delvote_ips'=>serialize($ips),'wiki_mode'=>2,
     );
     
     // die('PageUtils::createpage: Creating page with this data:<pre>' . print_r($page_data, true) . '</pre>');
     
     $paths->add_page($page_data);
     
-    $qa = $db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace,visible,protected) VALUES(\''.$db->escape($name).'\', \''.$db->escape($page_id).'\', \''.$namespace.'\', '. ( $visible ? '1' : '0' ) .', '.$prot.');');
+    $qa = $db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace,visible,protected,delvote_ips) VALUES(\''.$db->escape($name).'\', \''.$db->escape($page_id).'\', \''.$namespace.'\', '. ( $visible ? '1' : '0' ) .', '.$prot.', \'' . $db->escape(serialize($ips)) . '\');');
     $qb = $db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace) VALUES(\''.$db->escape($page_id).'\', \''.$namespace.'\');');
     $qc = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'create\', \''.$session->username.'\', \''.$db->escape($page_id).'\', \''.$namespace.'\');');
     
@@ -1302,25 +1307,60 @@ class PageUtils {
   function delvote($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$session->get_permissions('vote_delete'))
+    if ( !$session->get_permissions('vote_delete') )
+    {
       return 'Access denied';
-    $pname = $paths->nslist[$namespace] . $page_id;
-    $cv = $paths->pages[$pname]['delvotes'];
-    $ips = $paths->pages[$pname]['delvote_ips'];
-    $ips = explode('|', $ips);
-    if(in_array($_SERVER['REMOTE_ADDR'], $ips)) return('It appears that you have already voted to have this page deleted.');
-    if($session->user_logged_in)
-      if(in_array($session->username, $ips))
-        return('It appears that you have already voted to have this page deleted.');
-    $ips[] = $_SERVER['REMOTE_ADDR'];
-    if($session->user_logged_in) $ips[] = $session->username;
-    $ips = implode('|', $ips);
-    $ips = substr($ips, 1, strlen($ips));
+    }
+    
+    if ( $namespace == 'Admin' || $namespace == 'Special' || $namespace == 'System' )
+    {
+      return 'Special pages and system messages can\'t be voted for deletion.';
+    }
+    
+    $pname = $paths->nslist[$namespace] . sanitize_page_id($page_id);
+    
+    if ( !isset($paths->pages[$pname]) )
+    {
+      return 'The page does not exist.';
+    }
+    
+    $cv  =& $paths->pages[$pname]['delvotes'];
+    $ips =  $paths->pages[$pname]['delvote_ips'];
+    
+    if ( empty($ips) )
+    {
+      $ips = array(
+        'ip' => array(),
+        'u' => array()
+        );
+    }
+    else
+    {
+      $ips = @unserialize($ips);
+      if ( !$ips )
+      {
+        $ips = array(
+        'ip' => array(),
+        'u' => array()
+        );
+      }
+    }
+    
+    if ( in_array($session->username, $ips['u']) || in_array($_SERVER['REMOTE_ADDR'], $ips['ip']) )
+    {
+      return 'It appears that you have already voted to have this page deleted.';
+    }
+    
+    $ips['u'][] = $session->username;
+    $ips['ip'][] = $_SERVER['REMOTE_ADDR'];
+    $ips = $db->escape( serialize($ips) );
+    
     $cv++;
+    
     $q = 'UPDATE '.table_prefix.'pages SET delvotes='.$cv.',delvote_ips=\''.$ips.'\' WHERE urlname=\''.$page_id.'\' AND namespace=\''.$namespace.'\'';
     $w = $db->sql_query($q);
-    if(!$w) return("Error updating pages table: ".mysql_error()."\n\nAttemped SQL:\n".$q);
-    return('Your vote to have this page deleted has been cast.'."\nYou are encouraged to leave a comment explaining the reason for your vote.");
+    
+    return 'Your vote to have this page deleted has been cast.'."\nYou are encouraged to leave a comment explaining the reason for your vote.";
   }
   
   /**
@@ -1334,7 +1374,7 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!$session->get_permissions('vote_reset')) die('You need moderator rights in order to do this, stinkin\' hacker.');
-    $q = 'UPDATE '.table_prefix.'pages SET delvotes=0,delvote_ips=\'\' WHERE urlname=\''.$page_id.'\' AND namespace=\''.$namespace.'\'';
+    $q = 'UPDATE '.table_prefix.'pages SET delvotes=0,delvote_ips=\'' . $db->escape(serialize(array('ip'=>array(),'u'=>array()))) . '\' WHERE urlname=\''.$page_id.'\' AND namespace=\''.$namespace.'\'';
     $e = $db->sql_query($q);
     if(!$e) $db->_die('The number of delete votes was not reset.');
     else return('The number of votes for having this page deleted has been reset to zero.');

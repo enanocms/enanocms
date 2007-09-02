@@ -127,6 +127,12 @@ function page_Special_CreatePage()
       $db->_die('An SQL injection attempt was caught at '.dirname(__FILE__).':'.__LINE__.'.');
     }
     
+    $ips = array(
+      'ip' => array(),
+      'u' => array()
+      );
+    $ips = $db->escape(serialize($ips));
+    
     $urlname = sanitize_page_id($urlname);
     $urlname = $db->escape($urlname);
     
@@ -140,7 +146,7 @@ function page_Special_CreatePage()
       $db->_die('The page log could not be updated.');
     }
     
-    $q = $db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace) VALUES(\''.$name.'\', \''.$urlname.'\', \''.$_POST['namespace'].'\');');
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace,delvote_ips) VALUES(\''.$name.'\', \''.$urlname.'\', \''.$_POST['namespace'].'\',\'' . $ips . '\');');
     if ( !$q )
     {
       $db->_die('The page entry could not be inserted.');

@@ -77,6 +77,7 @@ $deps_list = Array(
   );
 $this_version   = '1.0.1';
 $func_list = Array(
+    '1.0' => Array('u_1_0_1_update_del_votes'),
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text'), // ,
     // '1.0RC2' => Array('u_1_0_populate_userpage_comments')
     '1.0RC3' => Array('u_1_0_RC3_make_users_extra')
@@ -353,23 +354,51 @@ function u_1_0_RC1_update_page_text()
   }
 }
 
-function u_1_0_populate_userpage_comments()
+function u_1_0_1_update_del_votes()
 {
-  //
-  // UNFINISHED...
-  //
-  
-  /*
   global $db;
-  $q = $db->sql_query('SELECT COUNT(c.comment_id) AS num_comments...');
+  $q = $db->sql_query('SELECT urlname, namespace, delvote_ips FROM '.table_prefix.'pages;');
   if ( !$q )
     $db->_die();
   
-  while ( $row = $db->fetchrow() )
+  while ( $row = $db->fetchrow($q) )
   {
-    
+    $ips = strval($row['delvote_ips']);
+    if ( is_array( @unserialize($ips) ) )
+      continue;
+    $ips = explode('|', $ips);
+    $new = array(
+      'ip' => array(),
+      'u' => array()
+      );
+    $i = 0;
+    $prev = '';
+    $prev_is_ip = false;
+    foreach ( $ips as $ip )
+    {
+      $i++;
+      $current_is_ip = is_valid_ip($ip);
+      if ( $current_is_ip && $prev_is_ip )
+      {
+        $new['u'][] = $prev;
+      }
+      if ( $current_is_ip )
+      {
+        $new['ip'][] = $ip;
+      }
+      else
+      {
+        $new['u'][] = $ip;
+      }
+      $prev = $ip;
+      $prev_is_ip = $current_is_ip;
+    }
+    $new = serialize($new);
+    $e = $db->sql_query('UPDATE '.table_prefix.'pages SET delvote_ips=\'' . $db->escape($new) . '\' WHERE urlname=\'' . $db->escape($row['urlname']) . '\' AND namespace=\'' . $db->escape($row['namespace']) . '\';');
+    if ( !$e )
+      $db->_die();
   }
-  */
+  $db->free_result($q);
 }
 
 function u_1_0_RC3_make_users_extra()
