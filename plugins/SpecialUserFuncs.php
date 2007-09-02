@@ -1099,7 +1099,8 @@ function page_Special_Memberlist()
   $sortkeys = array(
       'uid' => 'u.user_id',
       'username' => 'u.username',
-      'email' => 'u.email'
+      'email' => 'u.email',
+      'regist' => 'u.reg_time'
     );
   
   $sortby = ( isset($_GET['sort']) && isset($sortkeys[$_GET['sort']]) ) ? $_GET['sort'] : 'username';
@@ -1133,7 +1134,8 @@ function page_Special_Memberlist()
   $formatters = array(
     'username' => array($formatter, 'username'),
     'user_level' => array($formatter, 'user_level'),
-    'email' => array($formatter, 'email')
+    'email' => array($formatter, 'email'),
+    'reg_time' => array($formatter, 'reg_time')
     );
   
   // User search             
@@ -1164,7 +1166,13 @@ function page_Special_Memberlist()
                    <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=username&orderby=' . $sortorders['username'], true) . '">Username</a>
                  </th>
                  <th>
+                   Title
+                 </th>
+                 <th>
                    <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=email&orderby=' . $sortorders['email'], true) . '">E-mail</a>
+                 </th>
+                 <th>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=regist&orderby=' . $sortorders['regist'], true) . '">Registered</a>
                  </th>
                </tr>';
                
@@ -1183,7 +1191,7 @@ function page_Special_Memberlist()
   }
   
   // main selector
-  $q = $db->sql_unbuffered_query('SELECT u.user_id, u.username, u.reg_time, u.email, u.user_level, x.email_public FROM '.table_prefix.'users AS u
+  $q = $db->sql_unbuffered_query('SELECT u.user_id, u.username, u.reg_time, u.email, u.user_level, u.reg_time, x.email_public FROM '.table_prefix.'users AS u
                                     LEFT JOIN '.table_prefix.'users_extra AS x
                                       ON ( u.user_id = x.user_id )
                                     WHERE ' . $username_where . ' AND u.username != "Anonymous"
@@ -1195,8 +1203,10 @@ function page_Special_Memberlist()
             $q,                                                                                                       // MySQL result resource
             '<tr>
                <td class="{_css_class}">{user_id}</td>
-               <td class="{_css_class}" style="text-align: left;">{username}<br /><small>{user_level}</small></td>
+               <td class="{_css_class}" style="text-align: left;">{username}</td>
+               <td class="{_css_class}">{user_level}</td>
                <td class="{_css_class}">{email}</small></td>
+               <td class="{_css_class}">{reg_time}</td>
              </tr>
              ',                                                                                                       // TPL code for rows
              $num_rows,                                                                                               // Number of results
@@ -1282,6 +1292,59 @@ class MemberlistFormatter
     {
       return '<small>&lt;Non-public&gt;</small>';
     }
+  }
+  /**
+   * Format a time as a reference to a day, with user-friendly "X days ago"/"Today"/"Yesterday" returned when relevant.
+   * @param int UNIX timestamp
+   * @return string
+   */
+  
+  function format_date($time)
+  {
+    // Our formattting string to pass to date()
+    // This should not include minute/second info, only today's date in whatever format suits your fancy
+    $formatstring = 'F j, Y';
+    // Today's date
+    $today = date($formatstring);
+    // Yesterday's date
+    $yesterday = date($formatstring, (time() - (24*60*60)));
+    // Date on the input
+    $then = date($formatstring, $time);
+    // "X days ago" logic
+    for ( $i = 2; $i <= 6; $i++ )
+    {
+      // hours_in_day * minutes_in_hour * seconds_in_minute * num_days
+      $offset = 24 * 60 * 60 * $i;
+      $days_ago = date($formatstring, (time() - $offset));
+      // so does the input timestamp match the date from $i days ago?
+      if ( $then == $days_ago )
+      {
+        // yes, return $i
+        return "$i days ago";
+      }
+    }
+    // either yesterday, today, or before 6 days ago
+    switch($then)
+    {
+      case $today:
+        return 'Today';
+      case $yesterday:
+        return 'Yesterday';
+      default:
+        return $then;
+    }
+    //     .--.
+    //    |o_o |
+    //    |!_/ |
+    //   //   \ \
+    //  (|     | )
+    // /'\_   _/`\
+    // \___)=(___/
+    return 'Linux rocks!';
+  }
+  function reg_time($time, $row)
+  {
+    return $this->format_date($time);
   }
 }
 
