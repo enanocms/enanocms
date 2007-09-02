@@ -380,6 +380,7 @@ function u_1_0_1_update_del_votes()
       $current_is_ip = is_valid_ip($ip);
       if ( $current_is_ip && $prev_is_ip )
       {
+        $i++;
         $new['u'][] = $prev;
       }
       if ( $current_is_ip )
@@ -392,6 +393,10 @@ function u_1_0_1_update_del_votes()
       }
       $prev = $ip;
       $prev_is_ip = $current_is_ip;
+    }
+    if ( $i % 2 == 1 && $prev_is_ip )
+    {
+      $new['u'][] = $ip;
     }
     $new = serialize($new);
     $e = $db->sql_query('UPDATE '.table_prefix.'pages SET delvote_ips=\'' . $db->escape($new) . '\' WHERE urlname=\'' . $db->escape($row['urlname']) . '\' AND namespace=\'' . $db->escape($row['namespace']) . '\';');
