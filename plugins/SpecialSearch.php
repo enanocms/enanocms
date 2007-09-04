@@ -84,6 +84,18 @@ function page_Special_Search()
     }
   }
   $q = trim($q);
+  
+  if ( !empty($q) && !isset($_GET['search']) )
+  {
+    list($pid, $ns) = RenderMan::strToPageID($q);
+    $pid = sanitize_page_id($pid);
+    $key = $paths->nslist[$ns] . $pid;
+    if ( isPage($key) )
+    {
+      redirect(makeUrl($key), 'Results', 'found page', 0);
+    }
+  }
+  
   $template->header();
   if(!empty($q))
   {
@@ -96,7 +108,7 @@ function page_Special_Search()
       $q_tl = strtolower( str_replace('_', ' ', $q) );
       $p_lc = strtolower($pg['urlname']);
       $p_tl = strtolower($pg['name']);
-      if ( strstr($p_tl, $q_tl) || strstr($p_lc, $q_lc) )
+      if ( strstr($p_tl, $q_tl) || strstr($p_lc, $q_lc) && $pg['visible'] == 1 )
       {
         echo '<div class="usermessage">Perhaps you were looking for <b><a href="' . makeUrl($pg['urlname'], false, true) . '">' . htmlspecialchars($pg['name']) . '</a></b>?</div>';
         break;
@@ -229,7 +241,10 @@ function page_Special_Search()
     ?>
     <form action="<?php echo makeUrl($paths->page); ?>" method="get">
       <p>
-        <input type="text" name="q" size="40" value="<?php echo htmlspecialchars( $q ); ?>" />  <input type="submit" value="Search" />  <small><a href="<?php echo makeUrlNS('Special', 'Search'); ?>">Advanced Search</a></small>
+        <?php if ( $session->sid_super ): ?>
+          <input type="hidden" name="auth" value="<?php echo $session->sid_super; ?>" />
+        <?php endif; ?>
+        <input type="text" name="q" size="40" value="<?php echo htmlspecialchars( $q ); ?>" /> <input type="submit" value="Go" style="font-weight: bold;" /> <input name="search" type="submit" value="Search" />  <small><a href="<?php echo makeUrlNS('Special', 'Search'); ?>">Advanced Search</a></small>
       </p>
     </form>
     <?php

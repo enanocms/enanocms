@@ -731,6 +731,7 @@ class template {
       'ADMIN_SID_AMP'=>$asa,
       'ADMIN_SID_AMP_HTML'=>$ash,
       'ADMIN_SID_AUTO'=>$as2,
+      'ADMIN_SID_RAW'=> ( is_string($session->sid_super) ? $session->sid_super : '' ),
       'ADDITIONAL_HEADERS'=>$this->additional_headers,
       'COPYRIGHT'=>RenderMan::parse_internal_links(getConfig('copyright_notice')),
       'TOOLBAR_EXTRAS'=>$this->toolbar_menu,
