@@ -509,6 +509,9 @@ class PageUtils {
       
       echo '<form action="'.makeUrlNS($namespace, $page_id, 'do=diff').'" onsubmit="ajaxHistDiff(); return false;" method="get">
             <input type="submit" value="Compare selected revisions" />
+            ' . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars($paths->nslist[$namespace] . $page_id) . '" />' : '' ) . '
+            ' . ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : '') . '
+            <input type="hidden" name="do" value="diff" />
             <br /><span>&nbsp;</span>
             <div class="tblholder">
             <table border="0" width="100%" cellspacing="1" cellpadding="4">

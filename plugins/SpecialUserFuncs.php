@@ -1224,6 +1224,8 @@ function page_Special_Memberlist()
               ' .
               '<div style="float: left;">
                 <form action="' . makeUrlNS('Special', 'Memberlist') . '" method="get" onsubmit="if ( !submitAuthorized ) return false;">'
+               . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->nslist[$paths->namespace] . $paths->cpage['urlname_nons'] ) . '" />' : '' )
+               . ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : '')
                . '<p>Find a member: ' . $template->username_field('finduser') . ' <input type="submit" value="Go" /><br /><small>You may use the following wildcards: * to match multiple characters, ? to match a single character.</small></p>'
                . '</form>
                </div>'                                                                                                // Footer (printed after rows)

@@ -71,7 +71,7 @@ function page_Special_Search()
       {
         $not[$i] = '-' . $not[$i];
       }
-      $q .= implode(' ', $not);
+      $q .= implode(' ', $not) . ' ';
     }
     if(!empty($_GET['require_words']))
     {
@@ -80,7 +80,7 @@ function page_Special_Search()
       {
         $req[$i] = '+' . $req[$i];
       }
-      $q .= implode(' ', $req);
+      $q .= implode(' ', $req) . ' ';
     }
   }
   $q = trim($q);
@@ -244,6 +244,9 @@ function page_Special_Search()
         <?php if ( $session->sid_super ): ?>
           <input type="hidden" name="auth" value="<?php echo $session->sid_super; ?>" />
         <?php endif; ?>
+        <?php if ( urlSeparator == '&' ): ?>
+          <input type="hidden" name="title" value="<?php echo $paths->nslist['Special'] . 'Search'; ?>" />
+        <?php endif; ?>
         <input type="text" name="q" size="40" value="<?php echo htmlspecialchars( $q ); ?>" /> <input type="submit" value="Go" style="font-weight: bold;" /> <input name="search" type="submit" value="Search" />  <small><a href="<?php echo makeUrlNS('Special', 'Search'); ?>">Advanced Search</a></small>
       </p>
     </form>
@@ -254,6 +257,9 @@ function page_Special_Search()
   ?>
     <br />
     <form action="<?php echo makeUrl($paths->page); ?>" method="get">
+      <?php if ( urlSeparator == '&' ): ?>
+        <input type="hidden" name="title" value="<?php echo $paths->nslist['Special'] . 'Search'; ?>" />
+      <?php endif; ?>
       <div class="tblholder">
         <table border="0" style="width: 100%;" cellspacing="1" cellpadding="4">
           <tr><th colspan="2">Advanced Search</th></tr>

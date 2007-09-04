@@ -5,6 +5,8 @@
 DELETE FROM {{TABLE_PREFIX}}config WHERE config_name='enano_version' OR config_name='enano_beta_version' OR config_name='enano_alpha_version' OR config_name='enano_rc_version';
 INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0.1' );
 ---BEGIN 1.0---
+-- Fix for obnoxious $_GET issue
+UPDATE {{TABLE_PREFIX}}sidebar SET block_content='<div class="slideblock2" style="padding: 0px;"><form action="$CONTENTPATH$$NS_SPECIAL$Search" method="get" style="padding: 0; margin: 0;"><p><input type="hidden" name="title" value="$NS_SPECIAL$Search" />$INPUT_AUTH$<input name="q" alt="Search box" type="text" size="10" style="width: 70%" /> <input type="submit" value="Go" style="width: 20%" /></p></form></div>' WHERE block_name='Search' AND item_id=4;
 -- Added on advice from Neal
 INSERT INTO {{TABLE_PREFIX}}acl(target_type,target_id,page_id,namespace,rules) VALUES(2,1,'Memberlist','Special','read=1;mod_misc=1;upload_files=1;upload_new_version=1;create_page=1;edit_acl=1;');
 -- Bugfix for MySQL 5.0.45, see http://forum.enanocms.org/viewtopic.php?f=5&t=8
