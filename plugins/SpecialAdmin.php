@@ -2531,7 +2531,6 @@ function page_Special_Administration()
       'icon_26' : '<?php echo scriptPath; ?>/images/icons/minusbottom.gif',// junction for opened node
       'icon_27' : '<?php echo scriptPath; ?>/images/icons/minus.gif'       // junction for last opended node
     };
-    addOnloadHook(keepalive_onload);
     <?php
     echo $paths->parseAdminTree(); // Make a Javascript array that defines the tree
     if(!isset($_GET['module'])) { echo 'addOnloadHook(_enanoAdminOnload);'; } ?>
