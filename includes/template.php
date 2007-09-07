@@ -762,6 +762,12 @@ class template {
     $this->tpl_bool['sidebar_left']  = ( $this->tpl_strings['SIDEBAR_LEFT']  != $min) ? true : false;
     $this->tpl_bool['sidebar_right'] = ( $this->tpl_strings['SIDEBAR_RIGHT'] != $min) ? true : false;
     $this->tpl_bool['right_sidebar'] = $this->tpl_bool['sidebar_right']; // backward compatibility
+    
+    $code = $plugins->setHook('template_var_init_end');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
   }
   
   function header($simple = false) 

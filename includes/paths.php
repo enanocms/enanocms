@@ -509,6 +509,9 @@ class pathManager {
       $ret .= "      ],\n";
     }
     $ret .= "    ['Log out of admin panel', 'javascript:ajaxPage(\\'".$this->nslist['Admin']."AdminLogout\\');'],\n";
+    $ret .= "    ['<span id=\\'keepalivestat\\'>Loading keep-alive control...</span>', 'javascript:ajaxToggleKeepalive();', 
+                   ['About keep-alive', 'javascript:aboutKeepAlive();']
+                 ],\n";
     // I used this while I painstakingly wrote the Runt code that auto-expands certain nodes based on the value of a bitfield stored in a cookie. *shudders*
     // $ret .= "    ['(debug) Clear menu bitfield', 'javascript:createCookie(\\'admin_menu_state\\', \\'1\\', 365);'],\n";
     $ret .= "]\n];";

@@ -368,6 +368,9 @@
       echo 'success';
       
       break;
+    case 'ping':
+      echo 'pong';
+      break;
     default:
       die('Hacking attempt');
       break;
