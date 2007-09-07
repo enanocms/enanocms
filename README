@@ -1,5 +1,5 @@
 Enano CMS
-Version 1.0
+Version 1.0.1
 -----------------------------
 
 Thanks for downloading Enano! If you're looking for an installation guide,
@@ -19,7 +19,7 @@ files under the licenses/ directory included with this release for details.
 CHANGES IN THIS RELEASE
 -----------------------------
 
-Please see <http://enanocms.org/Release_notes/1.0> for a list of changes in
+Please see <http://enanocms.org/Release_notes/1.0.1> for a list of changes in
 this release.
 
 UPGRADING FROM PREVIOUS RELEASES
@@ -29,7 +29,7 @@ This tarball includes an upgrade script that can migrate any previous version
 of Enano to this one. Before you upload the contents of this tarball to your
 server, be sure to delete the config.php and .htaccess files included with this
 tarball, and back up these two files from your server. (.htaccess only needs to
-be backed up if you're using the Tiny URLs option.)
+be backed up if you're using the Tiny URLs option and/or you have Apache.)
 
 EXPANDING YOUR SITE'S CAPABILITIES
 -----------------------------
@@ -57,3 +57,8 @@ US$20 an hour.
 Have fun with Enano!
 
 - The Enano team
+  Dan Fuhry     <dan@enanocms.org>
+  Neal Gompa    <neal@enanocms.org>
+  Manoj Maddali <manoj@enanocms.org>
+  ThGeneral8    <the.true.general@googlemail.com>
+
