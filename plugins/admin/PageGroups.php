@@ -259,6 +259,10 @@ function page_Admin_PageGroups()
         $catlist .= '</select>';
       }
       
+      echo '<script type="text/javascript">
+              var __pg_edit_submitAuthorized = true;
+            </script>';
+      
       echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized || !__pg_edit_submitAuthorized) return false;" enctype="multipart/form-data">';
       
       echo '<div class="tblholder">

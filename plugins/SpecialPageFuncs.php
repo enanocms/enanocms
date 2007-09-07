@@ -206,18 +206,24 @@ function PagelistingFormatter($id, $row)
   static $rowtracker = 0;
   static $tdclass = 'row2';
   static $per_row = 2;
+  static $first = true;
   $return = '';
-  if ( $crap === false && $row === false )
+  if ( $id === false && $row === false )
   {
     $rowtracker = 0;
+    $first = true;
     return false;
   }
   $rowtracker++;
-  if ( $rowtracker == $per_row )
+  if ( $rowtracker == $per_row || $first )
   {
     $rowtracker = 0;
     $tdclass = ( $tdclass == 'row2' ) ? 'row1' : 'row2';
   }
+  if ( $rowtracker == 0 && !$first )
+    $return .= "</tr>\n<tr>";
+  
+  $first = false;
   
   preg_match('/^ns=(' . implode('|', array_keys($paths->nslist)) . ');pid=(.*?)$/i', $id, $match);
   $namespace =& $match[1];
@@ -231,9 +237,6 @@ function PagelistingFormatter($id, $row)
   $td = '<td class="' . $tdclass . '" style="width: 50%;">' . $link . '</td>';
   
   $return .= $td;
-  
-  if ( $rowtracker == ($per_row - 1) )
-    $return .= "</tr>\n<tr>";
   
   return $return;
 }
@@ -251,6 +254,24 @@ function page_Special_AllPages()
     $db->_die();
   $row = $db->fetchrow_num();
   $count = $row[0];
+  
+  switch($count % 4)
+  {
+    case 0:
+    case 2:
+      // even number of results; do nothing
+      $last_cell = '';
+      break;
+    case 1:
+      // odd number of results and odd number of rows, use row1
+      $last_cell = '<td class="row1"></td>';
+      break;
+    case 3:
+      // odd number of results and even number of rows, use row2
+      $last_cell = '<td class="row2"></td>';
+      break;
+  }
+  
   $db->free_result();
   
   $q = $db->sql_unbuffered_query('SELECT CONCAT("ns=",namespace,";pid=",urlname) AS identifier, name FROM '.table_prefix.'pages WHERE visible!=0 ORDER BY name ASC;');
@@ -273,7 +294,7 @@ function page_Special_AllPages()
       '<div class="tblholder">
          <table border="0" cellspacing="1" cellpadding="4">
            <tr>',          // print at start
-      '    </tr>
+      '    ' . $last_cell . '</tr>
          </table>
        </div>'             // print at end
        );

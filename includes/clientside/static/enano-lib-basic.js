@@ -35,6 +35,8 @@ function checkIt(string) {
 if (checkIt('msie')) IE = true;
 else IE = false;
 
+var is_Opera = ( checkIt('opera') ) ? true : false;
+
 var KILL_SWITCH = false;
 
 if ( IE )
@@ -214,6 +216,39 @@ if ( window.location.hash )
   }
 }
 
+var onload_hooks = new Array();
+
+function addOnloadHook(func)
+{
+  if ( typeof ( func ) == 'function' )
+  {
+    if ( typeof(onload_hooks.push) == 'function' )
+    {
+      onload_hooks.push(func);
+    }
+    else
+    {
+      onload_hooks[onload_hooks.length] = func;
+    }
+  }
+}
+
+function runOnloadHooks(e)
+{
+  var _errorTrapper = 0;
+  for ( var _oLc = 0; _oLc < onload_hooks.length; _oLc++ )
+  {
+    _errorTrapper++;
+    if ( _errorTrapper >= 1000 )
+      break;
+    var _f = onload_hooks[_oLc];
+    if ( typeof(_f) == 'function' )
+    {
+      _f(e);
+    }
+  }
+}
+
 var head = document.getElementsByTagName('head')[0];
 if ( !KILL_SWITCH )
 {
@@ -268,39 +303,6 @@ for(var f in thefiles)
   }
   script.src=scriptPath+"/includes/clientside/static/"+thefiles[f];
   head.appendChild(script);
-}
-
-var onload_hooks = new Array();
-
-function addOnloadHook(func)
-{
-  if ( typeof ( func ) == 'function' )
-  {
-    if ( typeof(onload_hooks.push) == 'function' )
-    {
-      onload_hooks.push(func);
-    }
-    else
-    {
-      onload_hooks[onload_hooks.length] = func;
-    }
-  }
-}
-
-function runOnloadHooks(e)
-{
-  var _errorTrapper = 0;
-  for ( var _oLc = 0; _oLc < onload_hooks.length; _oLc++ )
-  {
-    _errorTrapper++;
-    if ( _errorTrapper >= 1000 )
-      break;
-    var _f = onload_hooks[_oLc];
-    if ( typeof(_f) == 'function' )
-    {
-      _f(e);
-    }
-  }
 }
 
 addOnloadHook(function() {

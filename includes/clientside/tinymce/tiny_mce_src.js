@@ -559,7 +559,8 @@ TinyMCE_Engine.prototype = {
 
 	addMCEControl : function(replace_element, form_element_name, target_document) {
 		var id = "mce_editor_" + tinyMCE.idCounter++;
-		var inst = new TinyMCE_Control(tinyMCE.settings);
+    
+    var inst = new TinyMCE_Control(tinyMCE.settings);
 
 		inst.editorId = id;
 		this.instances[id] = inst;
@@ -2494,11 +2495,12 @@ var tinyMCELang = {};
 /* file:jscripts/tiny_mce/classes/TinyMCE_Control.class.js */
 
 function TinyMCE_Control(settings) {
+  
 	var t, i, to, fu, p, x, fn, fu, pn, s = settings;
 
 	this.undoRedoLevel = true;
 	this.isTinyMCE_Control = true;
-
+  
 	// Default settings
 	this.settings = s;
 	this.settings['theme'] = tinyMCE.getParam("theme", "default");
