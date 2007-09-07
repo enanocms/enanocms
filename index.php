@@ -263,7 +263,7 @@
         ?>
         <form action="<?php echo makeUrl($paths->page, 'do=flushlogs'); ?>" method="post">
           <h3>You are about to <span style="color: red;">destroy</span> all logged edits and actions on this page.</h3>
-           <p>Unlike deleting or editing this page, this action is <u>not reversible</u>! You should only do this if you are desperate for
+           <p>Unlike deleting or editing this page, this action is <u>not reversible</u>! You should only do this if you are desparate for
               database space.</p>
            <p>Do you really want to continue?</p>
            <p><input type="submit" name="_downthejohn" value="Flush logs" style="color: red; font-weight: bold;" /></p>

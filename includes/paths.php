@@ -347,10 +347,20 @@ class pathManager {
       {
         $this->cpage['protected'] = 1;
       }
-      if($this->namespace=='Special')
+      if($this->namespace == 'Special')
       {
         // Can't load nonexistent pages
-        $this->main_page();
+        if( is_string(getConfig('main_page')) )
+        {
+          $main_page = makeUrl(getConfig('main_page'));
+        }
+        else
+        {
+          $main_page = makeUrl($this->pages[0]['urlname']);
+        }
+        $sp_link = '<a href="' . makeUrlNS('Special', 'SpecialPages') . '">here</a>';
+        redirect($main_page, 'Can\'t load special page', 'The special page you requested could not be found. This may be due to a plugin failing to load. A list of all special pages on this website can be viewed '.$sp_link.'. You will be redirected to the main page in 15 seconds.', 14);
+        exit;
       }
       // Allow the user to create/modify his user page uncondtionally (admins can still protect the page)
       if($this->page == $this->nslist['User'].str_replace(' ', '_', $session->username)) 

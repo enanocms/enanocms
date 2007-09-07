@@ -200,47 +200,86 @@ function page_Special_CreatePage()
   $template->footer();
 }
 
+function PagelistingFormatter($id, $row)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  static $rowtracker = 0;
+  static $tdclass = 'row2';
+  static $per_row = 2;
+  $return = '';
+  if ( $crap === false && $row === false )
+  {
+    $rowtracker = 0;
+    return false;
+  }
+  $rowtracker++;
+  if ( $rowtracker == $per_row )
+  {
+    $rowtracker = 0;
+    $tdclass = ( $tdclass == 'row2' ) ? 'row1' : 'row2';
+  }
+  
+  preg_match('/^ns=(' . implode('|', array_keys($paths->nslist)) . ');pid=(.*?)$/i', $id, $match);
+  $namespace =& $match[1];
+  $page_id   =& $match[2];
+  $page_id   = sanitize_page_id($page_id);
+  
+  $url = makeUrlNS($namespace, $page_id);
+  $url = htmlspecialchars($url);
+  
+  $link = '<a href="' . $url . '">' . htmlspecialchars($row['name']) . '</a>';
+  $td = '<td class="' . $tdclass . '" style="width: 50%;">' . $link . '</td>';
+  
+  $return .= $td;
+  
+  if ( $rowtracker == ($per_row - 1) )
+    $return .= "</tr>\n<tr>";
+  
+  return $return;
+}
+
 function page_Special_AllPages() 
 {
   // This should be an easy one
   global $db, $session, $paths, $template, $plugins; // Common objects
   $template->header();
   $sz = sizeof( $paths->pages ) / 2;
-  echo '<p>Below is a list of all of the pages on this website.</p><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">';
-  $cclass = 'row1';
-  for ( $i = 0; $i < $sz; $i = $i )
-  {
-    if ( $cclass == 'row1')
-    {
-      $cclass='row3';
-    }
-    else if ( $cclass == 'row3')
-    {
-      $cclass='row1';
-    }
-    echo '<tr>';
-    for ( $j = 0; $j < 2; $j = $j )
-    {
-      if ( $i < $sz && $paths->pages[$i]['namespace'] != 'Special' && $paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['visible'] == 1)
-      {
-        echo '<td style="width: 50%" class="'.$cclass.'"><a href="'.makeUrl($paths->pages[$i]['urlname']).'">';
-        if ( $paths->pages[$i]['namespace'] != 'Article' )
-        {
-          echo '('.$paths->pages[$i]['namespace'].') ';
-        }
-        echo $paths->pages[$i]['name'].'</a></td>';
-        $j++;
-      }
-      else if ( $i >= $sz )
-      {
-        echo '<td style="width: 50%" class="row2"></td>';
-        $j++;
-      }
-      $i++;
-    }
-    echo '</tr>';
-  }
-  echo '</table></div>';
+  echo '<p>Below is a list of all of the pages on this website.</p>';
+  
+  $q = $db->sql_query('SELECT COUNT(urlname) FROM '.table_prefix.'pages WHERE visible!=0;');
+  if ( !$q )
+    $db->_die();
+  $row = $db->fetchrow_num();
+  $count = $row[0];
+  $db->free_result();
+  
+  $q = $db->sql_unbuffered_query('SELECT CONCAT("ns=",namespace,";pid=",urlname) AS identifier, name FROM '.table_prefix.'pages WHERE visible!=0 ORDER BY name ASC;');
+  if ( !$q )
+    $db->_die();
+  
+  $offset = ( isset($_GET['offset']) ) ? intval($_GET['offset']) : 0;
+  
+  // reset formatter
+  PagelistingFormatter(false, false);
+  
+  $result = paginate(
+      $q,                  // result resource
+      '{identifier}',      // formatting template
+      $count,              // # of results
+      makeUrlNS('Special', 'AllPages', 'offset=%s'), // result URL
+      $offset,             // start offset
+      40,                  // results per page
+      array( 'identifier' => 'PagelistingFormatter' ), // hooks
+      '<div class="tblholder">
+         <table border="0" cellspacing="1" cellpadding="4">
+           <tr>',          // print at start
+      '    </tr>
+         </table>
+       </div>'             // print at end
+       );
+  
+  echo $result;
+  
   $template->footer();
 }
 

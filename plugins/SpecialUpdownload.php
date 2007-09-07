@@ -36,7 +36,7 @@ $plugins->attachHook('base_classes_initted', '
       \'name\'=>\'Download file\',
       \'urlname\'=>\'DownloadFile\',
       \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
+      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     ');
 

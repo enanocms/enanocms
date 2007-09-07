@@ -67,14 +67,14 @@ $plugins->attachHook('base_classes_initted', '
       \'name\'=>\'Activate user account\',
       \'urlname\'=>\'ActivateAccount\',
       \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
+      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
       \'name\'=>\'Captcha\',
       \'urlname\'=>\'Captcha\',
       \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
+      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
@@ -828,9 +828,9 @@ function page_Special_ActivateAccount()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $user = $paths->getParam(0);
-  if(!$user) die_friendly('Account activation error', '<p>The URL was incorrect.</p>');
+  if(!$user) die_friendly('Account activation error', '<p>This page can only be accessed using links sent to users via e-mail.</p>');
   $key = $paths->getParam(1);
-  if(!$key) die_friendly('Account activation error', '<p>The URL was incorrect.</p>');
+  if(!$key) die_friendly('Account activation error', '<p>This page can only be accessed using links sent to users via e-mail.</p>');
   $s = $session->activate_account(str_replace('_', ' ', $user), $key);
   if($s > 0) die_friendly('Activation successful', '<p>Your account is now active. Thank you for registering.</p>');
   else die_friendly('Activation failed', '<p>The activation key was probably incorrect.</p>');
