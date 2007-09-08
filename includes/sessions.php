@@ -392,10 +392,57 @@ class sessionManager {
               $solution = 'Please check your e-mail; you should have been sent a message with instructions on how to activate your account. If you do not receive an e-mail from this site within 24 hours, please contact the site administration for further assistance.';
               break;
             case 'admin':
-              $solution = 'This website has been configured so that all user accounts must be activated by the administrator before they can be used, so your account will most likely be activated the next time the one of the administrators visits the site.';
+              $solution = 'This website has been configured so that all user accounts must be activated by the administrator before they can be used, so your account will most likely be activated the next time an administrator visits the site.';
               break;
           }
-          die_semicritical('Account error', '<p>It appears that your user account has not yet been activated. '.$solution.'</p>');
+          
+          // admin activation request opportunity
+          $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\' AND edit_summary=\'' . $db->escape($userdata['username']) . '\';');
+          if ( !$q )
+            $db->_die();
+          
+          $can_request = ( $db->numrows() < 1 );
+          $db->free_result();
+          
+          if ( isset($_POST['logout']) )
+          {
+            $this->sid = $_COOKIE['sid'];
+            $this->user_logged_in = true;
+            $this->user_id =       intval($userdata['user_id']);
+            $this->username =      $userdata['username'];
+            $this->auth_level =    USER_LEVEL_MEMBER;
+            $this->user_level =    USER_LEVEL_MEMBER;
+            $this->logout();
+            redirect(scriptPath . '/', 'Logged out', 'You have successfully been logged out. All cookies cleared.', 4);
+          }
+          
+          if ( $can_request && !isset($_POST['activation_request']) )
+          {
+            $form = '<p>If you are having trouble or did not receive the e-mail, you can request account activation from the administrators of this site.</p>
+                     <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+                       <p><input type="submit" name="activation_request" value="Request account activation" /> <input type="submit" name="logout" value="Log out" /></p>
+                     </form>';
+          }
+          else
+          {
+            if ( $can_request && isset($_POST['activation_request']) )
+            {
+              $this->admin_activation_request($userdata['username']);
+              $form = '<p>A request has just been sent to the administrators of this site. They will be able to activate your account or send you another activation e-mail if needed.</p>
+                       <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+                         <p><input type="submit" name="logout" value="Log out" /></p>
+                       </form>';
+            }
+            else
+            {
+              $form = '<p>There is an active request in the administrators\' control panel for your account to be activated.</p>
+                       <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+                         <p><input type="submit" name="logout" value="Log out" /></p>
+                       </form>';
+            }
+          }
+          
+          die_semicritical('Account error', '<p>It appears that your user account has not yet been activated. '.$solution.'</p>' . $form);
         }
         
         $this->sid = $_COOKIE['sid'];
