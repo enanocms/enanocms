@@ -584,3 +584,14 @@ function insertAfter(parent, baby, bigsister)
   }
 }
 
+/**
+ * Validates an e-mail address.
+ * @param string E-mail address
+ * @return bool
+ */
+
+function validateEmail(email)
+{
+  return ( email.match(/^(?:[\w\d]+\.?)+@((?:(?:[\w\d]\-?)+\.)+\w{2,4}|localhost)$/) ) ? true : false;
+}
+

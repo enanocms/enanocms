@@ -1629,7 +1629,7 @@ class template_nodb {
       'SIDEBAR_EXTRA'=>'',
       'COPYRIGHT'=>'Enano and all of its code, graphics, and more code is copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
       'TOOLBAR_EXTRAS'=>'',
-      'REQUEST_URI'=>$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+      'REQUEST_URI'=>( isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '' ).$_SERVER['REQUEST_URI'],
       'STYLE_LINK'=>$slink,
       'LOGOUT_LINK'=>'',
       'THEME_LINK'=>'',

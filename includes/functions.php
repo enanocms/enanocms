@@ -512,8 +512,12 @@ function die_friendly($t, $p)
 function grinding_halt($t, $p)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  if ( !defined('scriptPath') )
+    require( ENANO_ROOT . '/config.php' );
 
-  $db->close();
+  if ( is_object($db) )
+    $db->close();
 
   if ( ob_get_status() )
     ob_end_clean();
@@ -2723,6 +2727,18 @@ function aggressive_optimize_html($html)
   // kill carriage returns
   $html = str_replace("\r", "", $html);
   
+  // Which tags to strip for JAVASCRIPT PROCESSING ONLY - you can change this if needed
+  $strip_tags = Array('enano:no-opt');
+  $strip_tags = implode('|', $strip_tags);
+  
+  // Strip out the tags and replace with placeholders
+  preg_match_all("#<($strip_tags)(.*?)>(.*?)</($strip_tags)>#is", $html, $matches);
+  $seed = md5(microtime() . mt_rand()); // Random value used for placeholders
+  for ($i = 0;$i < sizeof($matches[1]); $i++)
+  {
+    $html = str_replace($matches[0][$i], "{DONT_STRIP_ME_NAKED:$seed:$i}", $html);
+  }
+  
   // Optimize (but don't obfuscate) Javascript
   preg_match_all('/<script(.*?)>(.+?)<\/script>/is', $html, $jscript);
   
@@ -2784,6 +2800,12 @@ function aggressive_optimize_html($html)
     $replacement = "<script{$jscript[1][$i]}>/* <![CDATA[ */ $js /* ]]> */</script>";
     // apply changes
     $html = str_replace($jscript[0][$i], $replacement, $html);
+  }
+  
+  // Re-insert untouchable tags
+  for ($i = 0;$i < sizeof($matches[1]); $i++)
+  {
+    $html = str_replace("{DONT_STRIP_ME_NAKED:$seed:$i}", "<{$matches[1][$i]}{$matches[2][$i]}>{$matches[3][$i]}</{$matches[4][$i]}>", $html);
   }
   
   // Which tags to strip - you can change this if needed

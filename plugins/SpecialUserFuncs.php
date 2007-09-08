@@ -365,7 +365,7 @@ function page_Special_Register()
         $s = $session->create_user($_POST['username'], $_POST['password'], $_POST['email'], $_POST['real_name'], $coppa);
       }
     }
-    if($s == 'success' && !isset($coppa))
+    if($s == 'success' && !$coppa)
     {
       switch(getConfig('account_activation'))
       {
@@ -512,108 +512,119 @@ function page_Special_Register()
           echo '<input type="hidden" name="coppa" value="' . $val . '" />';
         ?>
       </form>
-      <script type="text/javascript">
-        // <![CDATA[
-        var namegood = false;
-        function validateForm()
-        {
-          var frm = document.forms.regform;
-          failed = false;
-          
-          // Username
-          if(!namegood)
+      <!-- Don't optimize this script, it fails when compressed -->
+      <enano:no-opt>
+        <script type="text/javascript">
+          // <![CDATA[
+          var namegood = false;
+          function validateForm()
           {
-            if(frm.username.value.match(/^([A-z0-9 \!@\-\(\)]+){2,}$/ig))
+            var frm = document.forms.regform;
+            failed = false;
+            
+            // Username
+            if(!namegood)
             {
-              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
-              document.getElementById('e_username').innerHTML = ''; // '<br /><small><b>Checking availability...</b></small>';
+              if(frm.username.value.match(/^([A-z0-9 \!@\-\(\)]+){2,}$/ig))
+              {
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
+                document.getElementById('e_username').innerHTML = ''; // '<br /><small><b>Checking availability...</b></small>';
+              } else {
+                failed = true;
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+                document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
+              }
+            }
+            document.getElementById('b_username').innerHTML = '';
+            if(hex_md5(frm.real_name.value) == '5a397df72678128cf0e8147a2befd5f1')
+            {
+              document.getElementById('b_username').innerHTML = '<br /><br />Hey...I know you!<br /><img alt="" src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Bill_Gates_2004_cr.jpg/220px-Bill_Gates_2004_cr.jpg" />';
+            }
+            
+            // Password
+            if(frm.password.value.match(/^(.+){6,}$/ig) && frm.password_confirm.value.match(/^(.+){6,}$/ig) && frm.password.value == frm.password_confirm.value)
+            {
+              document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/good.gif';
+              document.getElementById('e_password').innerHTML = '<br /><small>The password you entered is valid.</small>';
             } else {
               failed = true;
-              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-              document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
-            }
-          }
-          document.getElementById('b_username').innerHTML = '';
-          if(hex_md5(frm.real_name.value) == '5a397df72678128cf0e8147a2befd5f1')
-          {
-            document.getElementById('b_username').innerHTML = '<br /><br />Hey...I know you!<br /><img alt="" src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Bill_Gates_2004_cr.jpg/220px-Bill_Gates_2004_cr.jpg" />';
-          }
-          
-          // Password
-          if(frm.password.value.match(/^(.+){6,}$/ig) && frm.password_confirm.value.match(/^(.+){6,}$/ig) && frm.password.value == frm.password_confirm.value)
-          {
-            document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/good.gif';
-            document.getElementById('e_password').innerHTML = '<br /><small>The password you entered is valid.</small>';
-          } else {
-            failed = true;
-            if(frm.password.value.length < 6)
-              document.getElementById('e_password').innerHTML = '<br /><small>Your password must be at least six characters in length.</small>';
-            else if(frm.password.value != frm.password_confirm.value)
-              document.getElementById('e_password').innerHTML = '<br /><small>The passwords you entered do not match.</small>';
-            else
-              document.getElementById('e_password').innerHTML = '';
-            document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/bad.gif';
-          }
-          
-          // E-mail address
-          if(frm.email.value.match(/^(?:[\w\d]+\.?)+@(?:(?:[\w\d]\-?)+\.)+\w{2,4}$/))
-          {
-            document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/good.gif';
-          } else {
-            failed = true;
-            document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/bad.gif';
-          }
-          if(failed)
-          {
-            frm.submit.disabled = 'disabled';
-          } else {
-            frm.submit.disabled = false;
-          }
-        }
-        function checkUsername()
-        {
-          var frm = document.forms.regform;
-          
-          if(!namegood)
-          {
-            if(frm.username.value.match(/^([A-z0-9 \.:\!@\#\*]+){2,}$/ig))
-            {
-              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
-              document.getElementById('e_username').innerHTML = '';
-            } else {
-              document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-              document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
-              return false;
-            }
-          }
-          
-          document.getElementById('e_username').innerHTML = '<br /><small><b>Checking availability...</b></small>';
-          ajaxGet('<?php echo scriptPath; ?>/ajax.php?title=null&_mode=checkusername&name='+escape(frm.username.value), function() {
-            if(ajax.readyState == 4)
-              if(ajax.responseText == 'good')
+              if(frm.password.value.length < 6)
               {
-                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/good.gif';
-                document.getElementById('e_username').innerHTML = '<br /><small><b>This username is available.</b></small>';
-                namegood = true;
-              } else if(ajax.responseText == 'bad') {
-                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-                document.getElementById('e_username').innerHTML = '<br /><small><b>Error: that username is already taken.</b></small>';
-                namegood = false;
-              } else {
-                document.getElementById('e_username').innerHTML = ajax.responseText;
+                document.getElementById('e_password').innerHTML = '<br /><small>Your password must be at least six characters in length.</small>';
               }
-          });
-        }
-        function regenCaptcha()
-        {
-          var frm = document.forms.regform;
-          document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/"); ?>'+frm.captchahash.value+'/'+Math.floor(Math.random() * 100000);
-          return false;
-        }
-        validateForm();
-        setTimeout('checkUsername();', 1000);
-        // ]]>
-      </script>
+              else if(frm.password.value != frm.password_confirm.value)
+              {
+                document.getElementById('e_password').innerHTML = '<br /><small>The passwords you entered do not match.</small>';
+              }
+              else
+              {
+                document.getElementById('e_password').innerHTML = '';
+              }
+              document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/bad.gif';
+            }
+            
+            // E-mail address
+            
+            // workaround for idiot jEdit bug
+            if ( validateEmail(frm.email.value) )
+            {
+              document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/good.gif';
+            } else {
+              failed = true;
+              document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/bad.gif';
+            }
+            if(failed)
+            {
+              frm.submit.disabled = 'disabled';
+            } else {
+              frm.submit.disabled = false;
+            }
+          }
+          function checkUsername()
+          {
+            var frm = document.forms.regform;
+            
+            if(!namegood)
+            {
+              if(frm.username.value.match(/^([A-z0-9 \.:\!@\#\*]+){2,}$/ig))
+              {
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
+                document.getElementById('e_username').innerHTML = '';
+              } else {
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+                document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
+                return false;
+              }
+            }
+            
+            document.getElementById('e_username').innerHTML = '<br /><small><b>Checking availability...</b></small>';
+            ajaxGet('<?php echo scriptPath; ?>/ajax.php?title=null&_mode=checkusername&name='+escape(frm.username.value), function() {
+              if(ajax.readyState == 4)
+                if(ajax.responseText == 'good')
+                {
+                  document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/good.gif';
+                  document.getElementById('e_username').innerHTML = '<br /><small><b>This username is available.</b></small>';
+                  namegood = true;
+                } else if(ajax.responseText == 'bad') {
+                  document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+                  document.getElementById('e_username').innerHTML = '<br /><small><b>Error: that username is already taken.</b></small>';
+                  namegood = false;
+                } else {
+                  document.getElementById('e_username').innerHTML = ajax.responseText;
+                }
+            });
+          }
+          function regenCaptcha()
+          {
+            var frm = document.forms.regform;
+            document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/"); ?>'+frm.captchahash.value+'/'+Math.floor(Math.random() * 100000);
+            return false;
+          }
+          validateForm();
+          setTimeout('checkUsername();', 1000);
+          // ]]>
+        </script>
+      </enano:no-opt>
     <?php
   }
   else
