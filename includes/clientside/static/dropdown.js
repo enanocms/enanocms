@@ -123,7 +123,7 @@ function jBoxOverHandlerBin(obj)
     if(typeof(others[i]) == 'object')
     {
       others[i].style.display = 'none';
-      others[i].previousSibling.className = '';
+      $(others[i].previousSibling).rmClass('liteselected');
     }
   }
   var others = obj.parentNode.getElementsByTagName('div');
@@ -134,13 +134,14 @@ function jBoxOverHandlerBin(obj)
       if ( others[i].className == 'submenu' )
       {
         others[i].style.display = 'none';
-        others[i].previousSibling.className = '';
+        $(others[i].previousSibling).rmClass('liteselected');
       }
     }
   }
   if(obj.nextSibling.tagName.toLowerCase() == 'ul' || ( obj.nextSibling.tagName.toLowerCase() == 'div' && obj.nextSibling.className == 'submenu' ))
   {
-    obj.className = 'liteselected';
+    $(a).addClass('liteselected');
+    //obj.className = 'liteselected';
     var ul = obj.nextSibling;
     var dim = fetch_dimensions(obj);
     var off = fetch_offset(obj);
@@ -197,7 +198,7 @@ function jBoxOutHandlerBin(obj, event)
   
   if (!isOverObj(a, false, event) && !isOverObj(ul, true, event))
   {
-    a.className = '';
+    $(a).rmClass('liteselected');
     
     if ( jBox_slide_enable )
     {
@@ -399,7 +400,7 @@ function jBoxGarbageCollection(e)
         {
           if ( !isOverObj(uls[j], false, e) )
           {
-            uls[j].previousSibling.className = '';
+            $(uls[j].previousSibling).rmClass('liteselected');
             //uls[j].style.display = 'none';
             slideIn(uls[j]);
           }
@@ -412,7 +413,7 @@ function jBoxGarbageCollection(e)
         {
           if ( !isOverObj(uls[j], false, e) )
           {
-            uls[j].previousSibling.className = '';
+            $(uls[j].previousSibling).rmClass('liteselected');
             //uls[j].style.display = 'none';
             slideIn(uls[j]);
           }

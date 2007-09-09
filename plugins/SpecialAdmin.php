@@ -860,19 +860,31 @@ function page_Admin_UserManager() {
           // We need to update group memberships
           if ( $old_level == USER_LEVEL_ADMIN ) 
           {
+            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","u_from_admin",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_POST['new_username']) . '");');
+            if ( !$q )
+              $db->_die();
             $session->remove_user_from_group($user_id, GROUP_ID_ADMIN);
           }
           else if ( $old_level == USER_LEVEL_MOD ) 
           {
+            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","u_from_mod",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_POST['new_username']) . '");');
+            if ( !$q )
+              $db->_die();
             $session->remove_user_from_group($user_id, GROUP_ID_MOD);
           }
           
           if ( $new_level == USER_LEVEL_ADMIN )
           {
+            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","u_to_admin",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_POST['new_username']) . '");');
+            if ( !$q )
+              $db->_die();
             $session->add_user_to_group($user_id, GROUP_ID_ADMIN, false);
           }
           else if ( $new_level == USER_LEVEL_MOD )
           {
+            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","u_to_mod",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_POST['new_username']) . '");');
+            if ( !$q )
+              $db->_die();
             $session->add_user_to_group($user_id, GROUP_ID_MOD, false);
           }
         }
@@ -2064,12 +2076,66 @@ function page_Admin_BanControl()
   }
   if(isset($_POST['create']) && !defined('ENANO_DEMO_MODE'))
   {
-    $q = 'INSERT INTO '.table_prefix.'banlist(ban_type,ban_value,reason,is_regex) VALUES( ' . $db->escape($_POST['type']) . ', \'' . $db->escape($_POST['value']) . '\', \''.$db->escape($_POST['reason']).'\'';
-      if(isset($_POST['regex'])) $q .= ', 1';
-      else $q .= ', 0';
-    $q .= ');';
-    $e = $db->sql_query($q);
-    if(!$e) $db->_die('The banlist could not be updated.');
+    $type = intval($_POST['type']);
+    $value = trim($_POST['value']);
+    if ( !in_array($type, array(BAN_IP, BAN_USER, BAN_EMAIL)) )
+    {
+      echo '<div class="error-box">Hacking attempt.</div>';
+    }
+    else if ( empty($value) )
+    {
+      echo '<div class="error-box">Please enter something to ban.</div>';
+    }
+    else
+    {
+      $entries = array();
+      $input = explode(',', $_POST['value']);
+      $error = false;
+      foreach ( $input as $entry )
+      {
+        $entry = trim($entry);
+        if ( empty($entry) )
+        {
+          echo '<div class="error-box">Malformed entry.</div>';
+          $error = true;
+          break;
+        }
+        if ( $type == BAN_IP )
+        {
+          // parse a range of addresses
+          $range = parse_ip_range($entry);
+          if ( !$range )
+          {
+            $error = true;
+            echo '<div class="error-box">Malformed IP address expression.</div>';
+            break;
+          }
+          foreach ($range as $ip)
+          {
+            $entries[] = $ip;
+          }
+        }
+        else
+        {
+          $entries[] = $entry;
+        }
+      }
+      if ( !$error )
+      {
+        $regex = ( isset($_POST['regex']) ) ? '1' : '0';
+        $to_insert = array();                                                         
+        $reason = $db->escape($_POST['reason']);
+        foreach ( $entries as $entry )
+        {
+          $entry = $db->escape($entry);
+          $to_insert[] = "($type, '$entry', '$reason', $regex)";
+        }
+        $q = 'INSERT INTO '.table_prefix."banlist(ban_type, ban_value, reason, is_regex)\n  VALUES" . implode(",\n  ", $to_insert) . ';';
+        @set_time_limit(0);
+        $e = $db->sql_query($q);
+        if(!$e) $db->_die('The banlist could not be updated.');
+      }
+    }
   }
   else if ( isset($_POST['create']) && defined('ENANO_DEMO_MODE') )
   {
@@ -2077,25 +2143,29 @@ function page_Admin_BanControl()
   }
   $q = $db->sql_query('SELECT ban_id,ban_type,ban_value,is_regex FROM '.table_prefix.'banlist ORDER BY ban_type;');
   if(!$q) $db->_die('The banlist data could not be selected.');
-  echo '<table border="0" cellspacing="1" cellpadding="4">';
+  echo '<div class="tblholder" style="max-height: 800px; clip: rect(0px,auto,auto,0px); overflow: auto;">
+          <table border="0" cellspacing="1" cellpadding="4">';
   echo '<tr><th>Type</th><th>Value</th><th>Regular Expression</th><th></th></tr>';
-  if($db->numrows() < 1) echo '<td colspan="4">No ban rules yet.</td>';
+  if($db->numrows() < 1) echo '<td class="row1" colspan="4">No ban rules yet.</td>';
+  $cls = 'row2';
   while($r = $db->fetchrow())
   {
+    $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
     if($r['ban_type']==BAN_IP) $t = 'IP address';
     elseif($r['ban_type']==BAN_USER) $t = 'Username';
     elseif($r['ban_type']==BAN_EMAIL) $t = 'E-mail address';
     if($r['is_regex']) $g = 'Yes'; else $g = 'No';
-    echo '<tr><td>'.$t.'</td><td>'.$r['ban_value'].'</td><td>'.$g.'</td><td><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'BanControl&amp;action=delete&amp;id='.$r['ban_id']).'">Delete</a></td></tr>';
+    echo '<tr><td class="'.$cls.'">'.$t.'</td><td class="'.$cls.'">'.$r['ban_value'].'</td><td class="'.$cls.'">'.$g.'</td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'BanControl&amp;action=delete&amp;id='.$r['ban_id']).'">Delete</a></td></tr>';
   }
   $db->free_result();
-  echo '</table>';
+  echo '</table></div>';
   echo '<h3>Create new ban rule</h3>';
   echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
   ?>
   Type: <select name="type"><option value="<?php echo BAN_IP; ?>">IP address</option><option value="<?php echo BAN_USER; ?>">Username</option><option value="<?php echo BAN_EMAIL; ?>">E-mail address</option></select><br />
   Rule: <input type="text" name="value" size="30" /><br />
-  Reason to show to the banned user: <textarea name="reason" rows="7" cols="20"></textarea><br />
+  <small>You can ban multiple IP addresses, users, or e-mail addresses by separating entries with a single comma (User1,User2). Do not put a space after the comma. For IP addresses, you may specify ranges like 172|192.168.4-30|90-167.1-90, which will turn into 172 and 192 . 168 . 4-30 and 90-167 . 1 - 90, which matches 18,899 IP addresses. Don't specify large ranges (like the example one here) at once or you risk temporarily (~60sec) overloading the server.</small><br />
+  Reason to show to the banned user: <textarea name="reason" rows="7" cols="40"></textarea><br />
   <input type="checkbox" name="regex" id="regex" />  <label for="regex">This rule is a regular expression</label> (advanced users only)<br />
   <input type="submit" style="font-weight: bold;" name="create" value="Create new ban rule" />
   <?php

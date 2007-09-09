@@ -196,7 +196,7 @@ class mysql {
     $quotepos  = 0;
     $prev_is_quote = false;
     $just_started = false;
-    for($i=0;$i<strlen($q);$i++,$c=substr($q, $i, 1))
+    for ( $i = 0; $i < strlen($q); $i++, $c = substr($q, $i, 1) )
     {
       $next = substr($q, $i+1, 1);
       $next2 = substr($q, $i+2, 1);
@@ -206,8 +206,8 @@ class mysql {
       {
         if($quotechar)
         {
-          if(
-              ( $quotechar == $c && $quotechar != $next && ( $quotechar != $prev || $just_entered ) && $prev != '\\') ||
+          if (
+              ( $quotechar == $c && $quotechar != $next && ( $quotechar != $prev || $just_started ) && $prev != '\\') ||
               ( $prev2 == '\\' && $prev == $quotechar && $quotechar == $c )
             )
           {
@@ -222,17 +222,20 @@ class mysql {
         {
           $quotechar = $c;
           $quotepos  = $i;
-          $just_entered = true;
+          $just_started = true;
         }
         if($debug) echo '$db-&gt;check_query(): found quote char as pos: '.$i.'<br />';
         continue;
       }
-      $just_entered = false;
+      $just_started = false;
     }
     if(substr(trim($q), strlen(trim($q))-1, 1) == ';') $q = substr(trim($q), 0, strlen(trim($q))-1);
     for($i=0;$i<strlen($q);$i++,$c=substr($q, $i, 1))
     {
-      if( ( $c == ';' && $i != $sz-1 ) || $c . substr($q, $i+1, 1) == '--') // Don't permit semicolons in mid-query, and never allow comments
+      if ( 
+           ( ( $c == ';' && $i != $sz-1 ) || $c . substr($q, $i+1, 1) == '--' )
+        || ( in_array($c, Array('"', "'", '`')) )
+         ) // Don't permit semicolons in mid-query, and never allow comments
       {
         // Injection attempt!
         if($debug)
@@ -247,6 +250,11 @@ class mysql {
         }
         return false;
       }
+    }
+    if ( preg_match('/[\s]+(SAFE_QUOTE|[\S]+)=\\1($|[\s]+)/', $q, $match) )
+    {
+      if ( $debug ) echo 'Found always-true test in query, injection attempt caught, match:<br />' . '<pre>' . print_r($match, true) . '</pre>';
+      return false;
     }
     return true;
   }

@@ -152,6 +152,10 @@ function seclog_format_inner($r, $f = false)
     case "plugin_disable":   $return .= "Disabled plugin: {$r['page_text']}"; break;
     case "plugin_enable":    $return .= "Enabled plugin: {$r['page_text']}"; break;
     case "seclog_unauth":    $return .= "Unauthorized attempt to call security log fetcher"; break;
+    case "u_from_admin":     $return .= "User {$r['page_text']} demoted from Administrators group"; break;
+    case "u_from_mod":       $return .= "User {$r['page_text']} demoted from Moderators group"; break;
+    case "u_to_admin":       $return .= "User {$r['page_text']} added to Administrators group"; break;
+    case "u_to_mod":         $return .= "User {$r['page_text']} added to Moderators group"; break;
   }
   $return .= '</td><td class="'.$cls.'">'.date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="Click for reverse DNS info">'.$r['edit_summary'].'</td></tr>';
   return $return;

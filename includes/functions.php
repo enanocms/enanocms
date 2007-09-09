@@ -2846,6 +2846,85 @@ function aggressive_optimize_html($html)
   return $html;
 }
 
+/**
+ * For an input range of numbers (like 25-256) returns an array filled with all numbers in the range, inclusive.
+ * @param string
+ * @return array
+ */
+
+function int_range($range)
+{
+  if ( strval(intval($range)) == $range )
+    return $range;
+  if ( !preg_match('/^[0-9]+(-[0-9]+)?$/', $range) )
+    return false;
+  $ends = explode('-', $range);
+  if ( count($ends) != 2 )
+    return $range;
+  $ret = array();
+  if ( $ends[1] < $ends[0] )
+    $ends = array($ends[1], $ends[0]);
+  else if ( $ends[0] == $ends[1] )
+    return array($ends[0]);
+  for ( $i = $ends[0]; $i <= $ends[1]; $i++ )
+  {
+    $ret[] = $i;
+  }
+  return $ret;
+}
+
+/**
+ * Parses a range or series of IP addresses, and returns the raw addresses. Only parses ranges in the last two octets to prevent DOSing.
+ * Syntax for ranges: x.x.x.x; x|y.x.x.x; x.x.x-z.x; x.x.x-z|p.q|y
+ * @param string IP address range string
+ * @return array
+ */
+
+function parse_ip_range($range)
+{
+  $octets = explode('.', $range);
+  if ( count($octets) != 4 )
+    // invalid range
+    return $range;
+  $i = 0;
+  $possibilities = array( 0 => array(), 1 => array(), 2 => array(), 3 => array() );
+  foreach ( $octets as $octet )
+  {
+    $existing =& $possibilities[$i];
+    $inner = explode('|', $octet);
+    foreach ( $inner as $bit )
+    {
+      if ( $i >= 2 )
+      {
+        $bits = int_range($bit);
+        if ( $bits === false )
+          return false;
+        else if ( !is_array($bits) )
+          $existing[] = intval($bits);
+        else
+          $existing = array_merge($existing, $bits);
+      }
+      else
+      {
+        $bit = intval($bit);
+        $existing[] = $bit;
+      }
+    }
+    $existing = array_unique($existing);
+    $i++;
+  }
+  $ips = array();
+  
+  // The only way to combine all those possibilities. ;-)
+  foreach ( $possibilities[0] as $oc1 )
+    foreach ( $possibilities[1] as $oc2 )
+      foreach ( $possibilities[2] as $oc3 )
+        foreach ( $possibilities[3] as $oc4 )
+          $ips[] = "$oc1.$oc2.$oc3.$oc4";
+        
+  return $ips;
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>
