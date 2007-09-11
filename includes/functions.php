@@ -674,7 +674,7 @@ function show_category_info()
         echo '<table border="0" cellspacing="1" cellpadding="4">';
         echo '<tr>';
         $counter = 0;
-        $ticker = 0;
+        $ticker = -1;
         $switched = true;
       }
       $counter++;
@@ -706,7 +706,7 @@ function show_category_info()
       if ( $counter > 0 )
       {
         // Fill-in
-        while ( $ticker < 3 )
+        while ( $ticker < 2 )
         {
           $ticker++;
           echo '<td class="' . $class . '" style="width: 33.3%;"></td>';
@@ -728,7 +728,7 @@ function show_category_info()
     if ( $counter > 0 )
     {
       // Fill-in
-      while ( $ticker < 3 )
+      while ( $ticker < 2 )
       {
         $ticker++;
         echo '<td class="' . $class . '" style="width: 33.3%;"></td>';

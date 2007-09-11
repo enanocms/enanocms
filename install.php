@@ -23,7 +23,7 @@ if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_G
 
 define('IN_ENANO_INSTALL', 'true');
 
-define('ENANO_VERSION', '1.0.1');
+define('ENANO_VERSION', '1.0.1.1');
 // In beta versions, define ENANO_BETA_VERSION here
 
 if(!defined('scriptPath')) {
@@ -315,7 +315,7 @@ switch($_GET['mode'])
     <div style="text-align: center; margin-top: 10px;">
       <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-blue.png" style="display: block; margin: 0 auto; padding-left: 100px;" />
       <h2>Welcome to Enano</h2>
-      <h3>version 1.0.1 &ndash; stable<br />
+      <h3>version 1.0.1.1 &ndash; stable<br />
       <span style="font-weight: normal;">also affectionately known as "loch ness" <tt>:)</tt></span></h3>
       <?php
       if ( file_exists('./_nightly.php') )

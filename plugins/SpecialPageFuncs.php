@@ -383,7 +383,7 @@ function page_Special_About_Enano()
       <p style="margin-left 2em;">Free Software Foundation, Inc.,<br />
          51 Franklin Street, Fifth Floor<br />
          Boston, MA 02110-1301, USA</p>
-      <p>Alternatively, you can <a href="http://www.gnu.org/copyleft/gpl.html">read it online</a>.</p>
+      <p>Alternatively, you can <a href="http://www.gnu.org/licenses/old-licenses/gpl-2.0.html">read it online</a>.</p>
       </td></tr>
       <tr>
         <td class="row2" colspan="2">

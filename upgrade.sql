@@ -3,7 +3,10 @@
 -- ALL NON-SQL LINES, even otherwise blank lines, must start with "--" or they will get sent to MySQL!
 -- Common tasks (version numbers)
 DELETE FROM {{TABLE_PREFIX}}config WHERE config_name='enano_version' OR config_name='enano_beta_version' OR config_name='enano_alpha_version' OR config_name='enano_rc_version';
-INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0.1' );
+INSERT INTO {{TABLE_PREFIX}}config (config_name, config_value) VALUES( 'enano_version', '1.0.1.1' );
+---BEGIN 1.0.1---
+-- No changes in this release
+---END 1.0.1---
 ---BEGIN 1.0---
 -- Fix for obnoxious $_GET issue
 UPDATE {{TABLE_PREFIX}}sidebar SET block_type=1,block_content='<div class="slideblock2" style="padding: 0px;"><form action="$CONTENTPATH$$NS_SPECIAL$Search" method="get" style="padding: 0; margin: 0;"><p><input type="hidden" name="title" value="$NS_SPECIAL$Search" />$INPUT_AUTH$<input name="q" alt="Search box" type="text" size="10" style="width: 70%" /> <input type="submit" value="Go" style="width: 20%" /></p></form></div>' WHERE block_name='Search' AND item_id=4;
