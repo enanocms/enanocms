@@ -1658,7 +1658,8 @@ function page_Admin_PageManager()
       echo '<div class="info-box">This page has been deleted.</p><p><a href="javascript:ajaxPage(\''.$paths->nslist['Admin'].'PageManager\');">Return to Page manager</a><br /><a href="javascript:ajaxPage(\''.$paths->nslist['Admin'].'Home\');">Admin home</a></div>';
       return;
     }
-    echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration'.htmlspecialchars(urlSeparator).(( isset($_GET['sqldbg']) ) ? 'sqldbg&amp;' : '') .'module='.$paths->cpage['module']).'" method="post">';
+    $url = makeUrlNS('Special', 'Administration', 'module='.$paths->cpage['module'], true);
+    echo '<form action="'.$url.'" method="post">';
     ?>
     <h3>Modify page: <?php echo htmlspecialchars($_POST['name']); ?></h3>
      <table border="0">
