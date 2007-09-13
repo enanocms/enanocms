@@ -1493,7 +1493,7 @@ class sessionManager {
   function send_activation_mail($u, $actkey = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $q = $this->sql('SELECT username,email FROM '.table_prefix.'users WHERE user_id=1 OR user_level=' . USER_LEVEL_ADMIN . ' ORDER BY user_id ASC;');
+    $q = $this->sql('SELECT username,email FROM '.table_prefix.'users WHERE user_id=2 OR user_level=' . USER_LEVEL_ADMIN . ' ORDER BY user_id ASC;');
     $un = $db->fetchrow();
     $admin_user = $un['username'];
     $q = $this->sql('SELECT username,activation_key,account_active,email FROM '.table_prefix.'users WHERE username=\''.$db->escape($u).'\';');
