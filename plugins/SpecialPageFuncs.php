@@ -406,7 +406,7 @@ function page_Special_About_Enano()
           </table>
         </td>
       </tr>
-      <tr><td style="width: 100px;" class="row1"><a href="http://enanocms.org">Enano</a> version:</td><td class="row1"><?php echo enano_version(true); ?></td></tr>
+      <tr><td style="width: 100px;" class="row1"><a href="http://enanocms.org">Enano</a> version:</td><td class="row1"><?php echo enano_version(true) . ' (' . enano_codename() . ')'; ?></td></tr>
       <tr><td style="width: 100px;" class="row2">Web server:</td><td class="row2"><?php if(isset($_SERVER['SERVER_SOFTWARE'])) echo $_SERVER['SERVER_SOFTWARE']; else echo 'Unable to determine web server software.'; ?></td></tr>
       <tr><td style="width: 100px;" class="row1">Server platform:</td><td class="row1"><?php echo $platform; ?></td></tr>
       <tr><td style="width: 100px;" class="row2"><a href="http://www.php.net/">PHP</a> version:</td><td class="row2"><?php echo PHP_VERSION; ?></td></tr>

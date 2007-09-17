@@ -1194,6 +1194,30 @@ function enano_version($long = false, $no_nightly = false)
 }
 
 /**
+ * Give the codename of the release of Enano being run.
+ * @return string
+ */
+
+function enano_codename()
+{
+  $names = array(
+      '1.0RC1' => 'Leprechaun',
+      '1.0RC2' => 'Clurichaun',
+      '1.0RC3' => 'Druid',
+      '1.0'    => 'Banshee',
+      '1.0.1'  => 'Loch Ness',
+      '1.0.1.1'=> 'Loch Ness internal bugfix build',
+      '1.0.2'  => 'Coblynau'
+    );
+  $version = enano_version();
+  if ( isset($names[$version]) )
+  {
+    return $names[$version];
+  }
+  return 'Anonymous build';
+}
+
+/**
  * What kinda sh** was I thinking when I wrote this. Deprecated.
  */
 
@@ -2923,6 +2947,183 @@ function parse_ip_range($range)
           $ips[] = "$oc1.$oc2.$oc3.$oc4";
         
   return $ips;
+}
+
+function password_score_len($password)
+{
+  if ( !is_string($password) )
+  {
+    return -10;
+  }
+  $len = strlen($password);
+  $score = $len - 7;
+  return $score;
+}
+
+/**
+ * Give a numerical score for how strong a password is. This is an open-ended scale based on a score added to or subtracted
+ * from based on certain complexity rules. Anything less than about 1 or 0 is weak, 3-4 is strong, and 10 is not to be easily cracked.
+ * Based on the Javascript function of the same name.
+ * @param string Password to test
+ * @param null Will be filled with an array of debugging info
+ * @return int
+ */
+
+function password_score($password, &$debug = false)
+{
+  if ( !is_string($password) )
+  {
+    return -10;
+  }
+  $score = 0;
+  $debug = array();
+  // length check
+  $lenscore = password_score_len($password);
+  
+  $debug[] = "<b>How this score was calculated</b>\nYour score was tallied up based on an extensive algorithm which outputted\nthe following scores based on traits of your password. Above you can see the\ncomposite score; your individual scores based on certain tests are below.\n\nThe scale is open-ended, with a minimum score of -10. 10 is very strong, 4\nis strong, 1 is good and -3 is fair. Below -3 scores \"Weak.\"\n";
+  
+  $debug[] = 'Adding '.$lenscore.' points for length';
+  
+  $score += $lenscore;
+    
+  $has_upper_lower = false;
+  $has_symbols     = false;
+  $has_numbers     = false;
+  
+  // contains uppercase and lowercase
+  if ( preg_match('/[A-z]+/', $password) && strtolower($password) != $password )
+  {
+    $score += 1;
+    $has_upper_lower = true;
+    $debug[] = 'Adding 1 point for having uppercase and lowercase';
+  }
+  
+  // contains symbols
+  if ( preg_match('/[^A-z0-9]+/', $password) )
+  {
+    $score += 1;
+    $has_symbols = true;
+    $debug[] = 'Adding 1 point for having nonalphanumeric characters (matching /[^A-z0-9]+/)';
+  }
+  
+  // contains numbers
+  if ( preg_match('/[0-9]+/', $password) )
+  {
+    $score += 1;
+    $has_numbers = true;
+    $debug[] = 'Adding 1 point for having numbers';
+  }
+  
+  if ( $has_upper_lower && $has_symbols && $has_numbers && strlen($password) >= 9 )
+  {
+    // if it has uppercase and lowercase letters, symbols, and numbers, and is of considerable length, add some serious points
+    $score += 4;
+    $debug[] = 'Adding 4 points for having uppercase and lowercase, numbers, and nonalphanumeric and being more than 8 characters';
+  }
+  else if ( $has_upper_lower && $has_symbols && $has_numbers )
+  {
+    // still give some points for passing complexity check
+    $score += 2;
+    $debug[] = 'Adding 2 points for having uppercase and lowercase, numbers, and nonalphanumeric';
+  }
+  else if ( ( $has_upper_lower && $has_symbols ) ||
+            ( $has_upper_lower && $has_numbers ) ||
+            ( $has_symbols && $has_numbers ) )
+  {
+    // if 2 of the three main complexity checks passed, add a point
+    $score += 1;
+    $debug[] = 'Adding 1 point for having 2 of 3 complexity checks';
+  }
+  else if ( preg_match('/^[0-9]*?([a-z]+)[0-9]?$/', $password) )
+  {
+    // password is something like magnum1 which will be cracked in seconds
+    $score += -4;
+    $debug[] = 'Adding -4 points for being of the form [number][word][number]';
+  }
+  else if ( ( !$has_upper_lower && !$has_numbers && $has_symbols ) ||
+            ( !$has_upper_lower && !$has_symbols && $has_numbers ) ||
+            ( !$has_numbers && !$has_symbols && $has_upper_lower ) )
+  {
+    $score += -2;
+    $debug[] = 'Adding -2 points for only meeting 1 complexity check';
+  }
+  else if ( !$has_upper_lower && !$has_numbers && !$has_symbols )
+  {
+    $debug[] = 'Adding -3 points for not meeting any complexity checks';
+    $score += -3;
+  }
+  
+  //
+  // Repetition
+  // Example: foobar12345 should be deducted points, where f1o2o3b4a5r should be given points
+  //
+  
+  if ( preg_match('/([A-Z][A-Z][A-Z][A-Z]|[a-z][a-z][a-z][a-z])/', $password) )
+  {
+    $debug[] = 'Adding -2 points for having more than 4 letters of the same case in a row';
+    $score += -2;
+  }
+  else if ( preg_match('/([A-Z][A-Z][A-Z]|[a-z][a-z][a-z])/', $password) )
+  {
+    $debug[] = 'Adding -1 points for having more than 3 letters of the same case in a row';
+    $score += -1;
+  }
+  else if ( preg_match('/[A-z]/', $password) && !preg_match('/([A-Z][A-Z][A-Z]|[a-z][a-z][a-z])/', $password) )
+  {
+    $debug[] = 'Adding 1 point for never having more than 2 letters of the same case in a row';
+    $score += 1;
+  }
+  
+  if ( preg_match('/[0-9][0-9][0-9][0-9]/', $password) )
+  {
+    $debug[] = 'Adding -2 points for having 4 or more numbers in a row';
+    $score += -2;
+  }
+  else if ( preg_match('/[0-9][0-9][0-9]/', $password) )
+  {
+    $debug[] = 'Adding -1 points for having 3 or more numbers in a row';
+    $score += -1;
+  }
+  else if ( $has_numbers && !preg_match('/[0-9][0-9][0-9]/', $password) )
+  {
+    $debug[] = 'Adding 1 point for never more than 2 numbers in a row';
+    $score += -1;
+  }
+  
+  // make passwords like fooooooooooooooooooooooooooooooooooooo totally die by subtracting a point for each character repeated at least 3 times in a row
+  $prev_char = '';
+  $warn = false;
+  $loss = 0;
+  for ( $i = 0; $i < strlen($password); $i++ )
+  {
+    $chr = $password{$i};
+    if ( $chr == $prev_char && $warn )
+    {
+      $loss += -1;
+    }
+    else if ( $chr == $prev_char && !$warn )
+    {
+      $warn = true;
+    }
+    else if ( $chr != $prev_char && $warn )
+    {
+      $warn = false;
+    }
+    $prev_char = $chr;
+  }
+  if ( $loss < 0 )
+  {
+    $debug[] = 'Adding '.$loss.' points for immediate character repetition';
+    $score += $loss;
+    // this can bring the score below -10 sometimes
+    if ( $score < -10 )
+    {
+      $debug[] = 'Setting score to -10 because it went below ('.$score.')';
+      $score = -10;
+    }
+  }
+  
+  return $score;
 }
 
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
