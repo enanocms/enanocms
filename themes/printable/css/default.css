@@ -61,7 +61,7 @@ div.contentDiv a.wikilink-nonexistent:hover { color: #707070; border-bottom: 1px
 /* Well, not Midget and not comments (usually), but that's what the class is called ;-). Basically an informational window or used as a wrapper for tables. */
 .mdg-comment, .mdg-infobox        { margin-left: 1em; padding: 7px; border: 1px solid #AAAAAA; background-color: #E8E8E8; }
 
-.tblholder                        { margin: 10px 0 0 0; padding: 0; border: 1px solid #AAAAAA; background-color: #E8E8E8; }
+.tblholder                        { margin: 10px 0 0 0; padding: 0; border-width: 0 0 1px 1px; border-style: solid; border-color: #AAAAAA; background-color: #E8E8E8; }
 
 /* The beautiful tables inside what may not obviously be mdg-comment divs */
 div.tblholder td.row1             { padding: 4px; border-color: #E0E0E0; border-width: 1px 1px 0 0; border-style: solid; background-color: #FFFFFF; }

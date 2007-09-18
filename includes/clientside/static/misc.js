@@ -449,7 +449,7 @@ function ajaxValidateLogin()
   window.console.debug(json_data);
   json_data = toJSONString(json_data);
   window.console.debug(json_data);
-  json_data = ajaxAltEscape(json_data);
+  json_data = encodeURIComponent(json_data);
   window.console.debug(json_data);
   
   var loading_win = '<div align="center" style="text-align: center;"> \

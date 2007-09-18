@@ -151,7 +151,7 @@ class sessionManager {
    */
    
   //var $valid_username = '([A-Za-z0-9 \!\@\(\)-]+)';
-  var $valid_username = '([^<>_&\?\'"%\n\r\t\a]+)';
+  var $valid_username = '([^<>_&\?\'"%\n\r\t\a\/]+)';
    
   /**
    * What we're allowed to do as far as permissions go. This changes based on the value of the "auth" URI param.
@@ -578,19 +578,20 @@ class sessionManager {
     $success = false;
     
     // Escaped username
-    $db_username = $this->prepare_text(strtolower($username));
+    $db_username_lower = $this->prepare_text(strtolower($username));
+    $db_username       = $this->prepare_text($username);
     
     // Select the user data from the table, and decrypt that so we can verify the password
-    $this->sql('SELECT password,old_encryption,user_id,user_level,theme,style,temp_password,temp_password_time FROM '.table_prefix.'users WHERE lcase(username)=\''.$db_username.'\' OR username=\'' . $db_username . '\';');
+    $this->sql('SELECT password,old_encryption,user_id,user_level,theme,style,temp_password,temp_password_time FROM '.table_prefix.'users WHERE lcase(username)=\''.$db_username_lower.'\' OR username=\'' . $db_username . '\';');
     if($db->numrows() < 1)
     {
+      return "The username and/or password is incorrect.\n$db->latest_query";
       // This wasn't logged in <1.0.2, dunno how it slipped through
       if($level > USER_LEVEL_MEMBER)
         $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
         $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
-      return "The username and/or password is incorrect.";
     }
     $row = $db->fetchrow();
     
@@ -1401,6 +1402,7 @@ class sessionManager {
     $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
     
     if(!preg_match('#^'.$this->valid_username.'$#', $username)) return 'The username you chose contains invalid characters.';
+    $user_orig = $username;
     $username = $this->prepare_text($username);
     $email = $this->prepare_text($email);
     $real_name = $this->prepare_text($real_name);
@@ -1484,6 +1486,30 @@ class sessionManager {
       $user_id =& $row['user_id'];
       $this->sql('INSERT INTO '.table_prefix.'users_extra(user_id) VALUES(' . $user_id . ');');
     }
+    
+    // Grant edit and very limited mod access to the userpage
+    $acl_data = array(
+        'read' => AUTH_ALLOW,
+        'view_source' => AUTH_ALLOW,
+        'edit_page' => AUTH_ALLOW,
+        'post_comments' => AUTH_ALLOW,
+        'edit_comments' => AUTH_ALLOW, // only allows editing own comments
+        'history_view' => AUTH_ALLOW,
+        'history_rollback' => AUTH_ALLOW,
+        'rename' => AUTH_ALLOW,
+        'delete_page' => AUTH_ALLOW,
+        'tag_create' => AUTH_ALLOW,
+        'tag_delete_own' => AUTH_ALLOW,
+        'tag_delete_other' => AUTH_ALLOW,
+        'edit_cat' => AUTH_ALLOW,
+        'create_page' => AUTH_ALLOW
+      );
+    $acl_data = $db->escape($this->perm_to_string($acl_data));
+    $userpage = $db->escape(sanitize_page_id($user_orig));
+    $cols = "target_type, target_id, page_id, namespace, rules";
+    $vals = ACL_TYPE_USER . ", $user_id, '$userpage', 'User', '$acl_data'";
+    $q = "INSERT INTO ".table_prefix."acl($cols) VALUES($vals);";
+    $this->sql($q);
     
     // Require the account to be activated?
     if ( $coppa )
