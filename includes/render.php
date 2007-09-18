@@ -72,7 +72,7 @@ class RenderMan {
     $chartag = $row['char_tag'];
     unset($row); // Free some memory
     
-    if ( preg_match('#^\#redirect \[\[(.+?)\]\]#', $message, $m) && $redir && !isset($_GET['redirect']) || ( isset($_GET['redirect']) && $_GET['redirect'] != 'no' ) )
+    if ( preg_match("#^\#redirect \[\[([^\]\r\n\a\t]+?)\]\]#", $message, $m) && $redir && ( !isset($_GET['redirect']) || ( isset($_GET['redirect']) && $_GET['redirect'] != 'no' ) ) )
     {
       dc_here('render: looks like a redirect page to me...');
       $old = $paths->cpage;

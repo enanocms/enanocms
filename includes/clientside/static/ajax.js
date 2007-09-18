@@ -44,6 +44,16 @@ function ajaxPost(uri, parms, f) {
 
 function ajaxEscape(text)
 {
+  /*
+  text = escape(text);
+  text = text.replace(/\+/g, '%2B', text);
+  */
+  text = window.encodeURIComponent(text);
+  return text;
+}
+
+function ajaxAltEscape(text)
+{
   text = escape(text);
   text = text.replace(/\+/g, '%2B', text);
   return text;

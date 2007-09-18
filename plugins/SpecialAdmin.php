@@ -191,6 +191,17 @@ function page_Admin_GeneralConfig() {
     setConfig('smtp_user', $_POST['smtp_user']);
     if($_POST['smtp_pass'] != 'XXXXXXXXXXXX') setConfig('smtp_password', $_POST['smtp_pass']);
     
+    // Password strength
+    if ( isset($_POST['pw_strength_enable']) ) setConfig('pw_strength_enable', '1');
+    else                                       setConfig('pw_strength_enable', '0');
+    
+    $strength = intval($_POST['pw_strength_minimum']);
+    if ( $strength >= -10 && $strength <= 30 )
+    {
+      $strength = strval($strength);
+      setConfig('pw_strength_minimum', $strength);
+    }
+    
     echo '<div class="info-box">Your changes to the site configuration have been saved.</div><br />';
     
   }
@@ -336,6 +347,28 @@ function page_Admin_GeneralConfig() {
           echo '<label><input'; if(getConfig('account_activation') == 'user') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="user" /> User</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="admin" /> Admin</label>';
           ?>
+        </td>
+      </tr>
+      
+      <tr><th colspan="2">Password strength</th></tr>
+      
+      <tr>
+        <td class="row2">
+          <b>Enable password strength analysis</b><br />
+          <small>This should be enabled in most cases. When this is enabled, a strength meter and a numerical score will be displayed wherever a password can be changed.</small>
+        </td>
+        <td class="row2">
+          <label><input type="checkbox" name="pw_strength_enable" <?php if ( getConfig('pw_strength_enable') == '1' ) echo 'checked="checked" '; ?>/> Enabled</label>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <b>Minimum strength score</b><br />
+          <small>This is the lowest score a password will be allowed to have. -10 will allow any password. A score of under -3 is considered weak, under 1 is fair, under 4 is good, under 10 is strong, and 10 and above are very strong. The scale is open-ended. This only has an effect if the meter is enabled above.</small>
+        </td>
+        <td class="row1">
+          <input type="text" name="pw_strength_minimum" value="<?php echo ( $x = getConfig('pw_strength_minimum') ) ? $x : '-10'; ?>" />
         </td>
       </tr>
       
@@ -946,12 +979,15 @@ function page_Admin_UserManager() {
     else
     {
       $disabled = ( $r['user_id'] == $session->user_id ) ? ' disabled="disabled" ' : '';
+      $evt_get_score = ( getConfig('pw_strength_enable') == '1' ) ? 'onkeyup="password_score_field(this);" style="margin-right: 7px;" ' : '';
+      $meter         = ( getConfig('pw_strength_enable') == '1' ) ? '<tr><td></td><td><div id="pwmeter"></div><p><small>Password complexity requirements are not enforced here.</small></p></td></tr>' : '';
       echo('
       <h3>Edit User Info</h3>
       <form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">
         <table border="0" style="margin-left: 0.2in;">   
           <tr><td>Username:</td><td><input type="text" name="new_username" value="'.$r['username'].'" /></td></tr>
-          <tr><td>New Password:</td><td><input ' . $disabled . ' type="password" name="new_pass" /></td></tr>
+          <tr><td>New Password:</td><td><input ' . $disabled . ' type="password" name="new_pass" '.$evt_get_score.'/></td></tr>
+          '.$meter.'
           <tr><td>E-mail:</td><td><input ' . $disabled . ' type="text" name="email" value="'.$r['email'].'" /></td></tr>
           <tr><td>Real Name:</td><td><input ' . $disabled . ' type="text" name="real_name" value="'.$r['real_name'].'" /></td></tr>
           ' . ( ( !empty($disabled) ) ? '<tr><td colspan="2"><small>To change your e-mail address, password, or real name, please use the user control panel.</small></td></tr>' : '' ) . '

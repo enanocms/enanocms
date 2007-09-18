@@ -1146,7 +1146,7 @@ EOF;
     
     $text_parser = $this->makeParserText($tplvars['sidebar_button']);
     
-    preg_match_all('#\[\[([a-zA-Z0-9 -_]*?)\]\]#is', $message, $il);
+    preg_match_all("#\[\[([^\|\]\n\a\r\t]*?)\]\]#is", $message, $il);
     for($i=0;$i<sizeof($il[1]);$i++)
     {
       $href = makeUrl(str_replace(' ', '_', $il[1][$i]), null, true);
@@ -1158,7 +1158,7 @@ EOF;
       $message = str_replace("[[{$il[1][$i]}]]", $text_parser->run(), $message);
     }
     
-    preg_match_all('#\[\[([a-zA-Z0-9 -_]*?)\|([a-zA-Z0-9!@\#\$%\^&\*\(\)\{\} -_]*?)\]\]#is', $message, $il);
+    preg_match_all('#\[\[([^\|\]\n\a\r\t]*?)\|([^\]\r\n\a\t]*?)\]\]#is', $message, $il);
     for($i=0;$i<sizeof($il[1]);$i++)
     {
       $href = makeUrl(str_replace(' ', '_', $il[1][$i]), null, true);

@@ -282,6 +282,7 @@ var thefiles = [
   'dynano.js',
   'flyin.js',
   'paginate.js',
+  'pwstrength.js',
   'loader.js'
 ];
 

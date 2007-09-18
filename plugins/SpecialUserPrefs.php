@@ -214,7 +214,14 @@ function page_Special_Preferences()
           {
             // Perform checks
             if ( strlen($newpass) < 6 )
-              $errors .= '<div class="error-box">Password must be at least 6 characters. You hacked my script, darn you!</div>';
+              $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">Password must be at least 6 characters. You hacked my script, darn you!</div>';
+            if ( getConfig('pw_strength_enable') == '1' )
+            {
+              $score_inp = password_score($newpass);
+              $score_min = intval( getConfig('pw_strength_minimum') );
+              if ( $score_inp < $score_min )
+                $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">Your password did not meet the complexity score requirement for this site. Your password scored '. $score_inp .', while a score of at least '. $score_min .' is needed.</div>';
+            }
             // Encrypt new password
             if ( empty($errors) )
             {
@@ -304,6 +311,12 @@ function page_Special_Preferences()
       break;
     case 'EmailPassword':
       
+      $errors = trim($errors);
+      if ( !empty($errors) )
+      {
+        echo $errors;
+      }
+      
       echo '<form action="' . makeUrlNS('Special', 'Preferences/EmailPassword') . '" method="post" onsubmit="return runEncryption();" name="empwform" >';
       
       // Password change form
@@ -312,20 +325,22 @@ function page_Special_Preferences()
       echo '<fieldset>
         <legend>Change password</legend>
         Type a new password:<br />
-          <input type="password" name="newpass" size="30" tabindex="1" />
+          <input type="password" name="newpass" size="30" tabindex="1" ' . ( getConfig('pw_strength_enable') == '1' ? 'onkeyup="password_score_field(this);" ' : '' ) . '/>' . ( getConfig('pw_strength_enable') == '1' ? '<span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span>' : '' ) . '
         <br />
         <br />
         Type the password again to confirm:<br />
-          <input type="password" name="newpass_conf" size="30" tabindex="2" />
+        <input type="password" name="newpass_conf" size="30" tabindex="2" />
+        ' . ( getConfig('pw_strength_enable') == '1' ? '<br /><br /><div id="pwmeter"></div>
+        <small>Your password needs to score at least <b>'.getConfig('pw_strength_minimum').'</b> in order to be accepted.</small>' : '' ) . '
       </fieldset><br />
       <fieldset>
         <legend>Change e-mail address</legend>
         New e-mail address:<br />
-          <input type="text" name="newemail" size="30" tabindex="3" />
+          <input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail" size="30" tabindex="3" />
         <br />
         <br />
         Confirm e-mail address:<br />
-          <input type="text" name="newemail_conf" size="30" tabindex="4" />
+          <input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail_conf" size="30" tabindex="4" />
       </fieldset>
       <input type="hidden" name="use_crypt" value="no" />
       <input type="hidden" name="crypt_key" value="' . $pubkey . '" />
@@ -338,6 +353,9 @@ function page_Special_Preferences()
       // ENCRYPTION CODE
       ?>
       <script type="text/javascript">
+      <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
+      password_score_field(document.forms.empwform.newpass);
+      <?php endif; ?>
         disableJSONExts();
         str = '';
         for(i=0;i<keySizeInBits/4;i++) str+='0';

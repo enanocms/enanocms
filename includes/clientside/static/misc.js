@@ -446,8 +446,11 @@ function ajaxValidateLogin()
     'level' : ajax_auth_level_cache
   };
   
+  window.console.debug(json_data);
   json_data = toJSONString(json_data);
-  json_data = ajaxEscape(json_data);
+  window.console.debug(json_data);
+  json_data = ajaxAltEscape(json_data);
+  window.console.debug(json_data);
   
   var loading_win = '<div align="center" style="text-align: center;"> \
       <p>Logging in...</p> \

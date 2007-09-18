@@ -333,6 +333,12 @@ function page_Special_Logout() {
 function page_Special_Register()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  // form field trackers
+  $username = '';
+  $email = '';
+  $realname = '';
+  
   if(getConfig('account_activation') == 'disable' && ( ( $session->user_level >= USER_LEVEL_ADMIN && !isset($_GET['IWannaPlayToo']) ) || $session->user_level < USER_LEVEL_ADMIN || !$session->user_logged_in ))
   {
     $s = ($session->user_level >= USER_LEVEL_ADMIN) ? '<p>Oops...it seems that you <em>are</em> the administrator...hehe...you can also <a href="'.makeUrl($paths->page, 'IWannaPlayToo', true).'">force account registration to work</a>.</p>' : '';
@@ -360,9 +366,38 @@ function page_Special_Register()
       else
       {
         $coppa = ( isset($_POST['coppa']) && $_POST['coppa'] == 'yes' );
+        $s = false;
+        
+        // decrypt password
+        // as with the change pass form, we aren't going to bother checking the confirmation code because if the passwords didn't match
+        // and yet the password got encrypted, that means the user screwed with the code, and if the user screwed with the code and thus
+        // forgot his password, that's his problem.
+        
+        if ( $_POST['use_crypt'] == 'yes' )
+        {
+          $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+          $crypt_key = $session->fetch_public_key($_POST['crypt_key']);
+          if ( !$crypt_key )
+          {
+            $s = 'Couldn\'t look up public encryption key';
+          }
+          else
+          {
+            $data = $_POST['crypt_data'];
+            $bin_key = hexdecode($crypt_key);
+            //die("Decrypting with params: key $crypt_key, data $data");
+            $password = $aes->decrypt($data, $bin_key, ENC_HEX);
+          }
+        }
+        else
+        {
+          $password = $_POST['password'];
+        }
         
         // CAPTCHA code was correct, create the account
-        $s = $session->create_user($_POST['username'], $_POST['password'], $_POST['email'], $_POST['real_name'], $coppa);
+        // ... and check for errors returned from the crypto API
+        if ( !$s )
+          $s = $session->create_user($_POST['username'], $password, $_POST['email'], $_POST['real_name'], $coppa);
       }
     }
     if($s == 'success' && !$coppa)
@@ -387,6 +422,9 @@ function page_Special_Register()
       $str = 'However, in compliance with the Childrens\' Online Privacy Protection Act, you must have your parent or legal guardian activate your account. Please ask them to check their e-mail for further information.';
       die_friendly('Registration successful', '<p>Thank you for registering, your user account has been created. '.$str.'</p>');
     }
+    $username = htmlspecialchars($_POST['username']);
+    $email    = htmlspecialchars($_POST['email']);
+    $realname = htmlspecialchars($_POST['real_name']);
   }
   $template->header();
   echo 'A user account enables you to have greater control over your browsing experience.';
@@ -396,9 +434,13 @@ function page_Special_Register()
     $coppa = ( isset($_GET['coppa']) && $_GET['coppa'] == 'yes' );
     $session->kill_captcha();
     $captchacode = $session->make_captcha();
+    
+    $pubkey = $session->rijndael_genkey();
+    $challenge = $session->dss_rand();
+    
     ?>
       <h3>Create a user account</h3>
-      <form name="regform" action="<?php echo makeUrl($paths->page); ?>" method="post">
+      <form name="regform" action="<?php echo makeUrl($paths->page); ?>" method="post" onsubmit="runEncryption();">
         <div class="tblholder">
           <table border="0" width="100%" cellspacing="1" cellpadding="4">
             <tr><th class="subhead" colspan="3">Please tell us a little bit about yourself.</th></tr>
@@ -412,7 +454,7 @@ function page_Special_Register()
                 <span id="e_username"></span>
               </td>
               <td class="row1" style="width: 50%;">
-                <input type="text" name="username" size="30" onkeyup="namegood = false; validateForm();" onblur="checkUsername();" />
+                <input tabindex="1" type="text" name="username" size="30" value="<?php echo $username; ?>" onkeyup="namegood = false; validateForm();" onblur="checkUsername();" />
               </td>
               <td class="row1" style="max-width: 24px;">
                 <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_username" />
@@ -421,14 +463,17 @@ function page_Special_Register()
             
             <!-- FIELD: Password -->
             <tr>
-              <td class="row3" style="width: 50%;" rowspan="2">
+              <td class="row3" style="width: 50%;" rowspan="<?php echo ( getConfig('pw_strength_enable') == '1' ) ? '3' : '2'; ?>">
                 Password:
                 <span id="e_password"></span>
+                <?php if ( getConfig('pw_strength_enable') == '1' && getConfig('pw_strength_minimum') > -10 ): ?>
+                <small>It needs to score at least <b><?php echo getConfig('pw_strength_minimum'); ?></b> for your registration to be accepted.</small>
+                <?php endif; ?>
               </td>
               <td class="row3" style="width: 50%;">
-                <input type="password" name="password" size="30" onkeyup="validateForm();" />
+                <input tabindex="2" type="password" name="password" size="15" onkeyup="<?php if ( getConfig('pw_strength_enable') == '1' ): ?>password_score_field(this); <?php endif; ?>validateForm();" /><?php if ( getConfig('pw_strength_enable') == '1' ): ?><span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span><?php endif; ?>
               </td>
-              <td rowspan="2" class="row3" style="max-width: 24px;">
+              <td rowspan="<?php echo ( getConfig('pw_strength_enable') == '1' ) ? '3' : '2'; ?>" class="row3" style="max-width: 24px;">
                 <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_password" />
               </td>
             </tr>
@@ -436,9 +481,19 @@ function page_Special_Register()
             <!-- FIELD: Password confirmation -->
             <tr>
               <td class="row3" style="width: 50%;">
-                <input type="password" name="password_confirm" size="30" onkeyup="validateForm();" /> <small>Enter your password again to confirm.</small>
+                <input tabindex="3" type="password" name="password_confirm" size="15" onkeyup="validateForm();" /> <small>Enter your password again to confirm.</small>
               </td>
             </tr>
+            
+            <!-- FIELD: Password strength meter -->
+            
+            <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
+            <tr>
+              <td class="row3" style="width: 50%;">
+                <div id="pwmeter"></div>
+              </td>
+            </tr>
+            <?php endif; ?>
             
             <!-- FIELD: E-mail address -->
             <tr>
@@ -455,7 +510,7 @@ function page_Special_Register()
                 ?>
               </td>
               <td class="row1" style="width: 50%;">
-                <input type="text" name="email" size="30" onkeyup="validateForm();" />
+                <input tabindex="4" type="text" name="email" size="30" value="<?php echo $email; ?>" onkeyup="validateForm();" />
               </td>
               <td class="row1" style="max-width: 24px;">
                 <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_email" />
@@ -469,7 +524,7 @@ function page_Special_Register()
                 <small>Giving your real name is totally optional. If you choose to provide your real name, it will be used to provide attribution for any edits or contributions you may make to this site.</small>
               </td>
               <td class="row3" style="width: 50%;">
-                <input type="text" name="real_name" size="30" /></td><td class="row3" style="max-width: 24px;">
+                <input tabindex="5" type="text" name="real_name" size="30" value="<?php echo $realname; ?>" /></td><td class="row3" style="max-width: 24px;">
               </td>
             </tr>
             
@@ -493,7 +548,7 @@ function page_Special_Register()
             <tr>
               <td class="row1" colspan="2">
                 Code:
-                <input name="captchacode" type="text" size="10" />
+                <input tabindex="6" name="captchacode" type="text" size="10" />
                 <input type="hidden" name="captchahash" value="<?php echo $captchacode; ?>" />
               </td>
             </tr>
@@ -501,7 +556,7 @@ function page_Special_Register()
             <!-- FIELD: submit button -->
             <tr>
               <th class="subhead" colspan="3" style="text-align: center;">
-                <input type="submit" name="submit" value="Create my account" />
+                <input tabindex="7" type="submit" name="submit" value="Create my account" />
               </td>
             </tr>
             
@@ -511,6 +566,79 @@ function page_Special_Register()
           $val = ( $coppa ) ? 'yes' : 'no';
           echo '<input type="hidden" name="coppa" value="' . $val . '" />';
         ?>
+        <input type="hidden" name="challenge_data" value="<?php echo $challenge; ?>" />
+        <input type="hidden" name="use_crypt" value="no" />
+        <input type="hidden" name="crypt_key" value="<?php echo $pubkey; ?>" />
+        <input type="hidden" name="crypt_data" value="" />
+      <script type="text/javascript">
+        // ENCRYPTION CODE
+        disableJSONExts();
+        str = '';
+        for(i=0;i<keySizeInBits/4;i++) str+='0';
+        var key = hexToByteArray(str);
+        var pt = hexToByteArray(str);
+        var ct = rijndaelEncrypt(pt, key, "ECB");
+        var ct = byteArrayToHex(ct);
+        switch(keySizeInBits)
+        {
+          case 128:
+            v = '66e94bd4ef8a2c3b884cfa59ca342b2e';
+            break;
+          case 192:
+            v = 'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7';
+            break;
+          case 256:
+            v = 'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087';
+            break;
+        }
+        var aes_testpassed = ( ct == v && md5_vm_test() );
+        function runEncryption()
+        {
+          var frm = document.forms.regform;
+          if ( frm.password.value.length < 1 )
+            return true;
+          if(aes_testpassed)
+          {
+            frm.use_crypt.value = 'yes';
+            var cryptkey = frm.crypt_key.value;
+            frm.crypt_key.value = hex_md5(cryptkey);
+            cryptkey = hexToByteArray(cryptkey);
+            if(!cryptkey || ( ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ) && cryptkey.length != keySizeInBits / 8 )
+            {
+              frm.submit.disabled = true;
+              len = ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ? '\nLen: '+cryptkey.length : '';
+              alert('The key is messed up\nType: '+typeof(cryptkey)+len);
+            }
+          }
+          pass1 = frm.password.value;
+          pass2 = frm.password_confirm.value;
+          if ( pass1 != pass2 )
+          {
+            alert('The passwords you entered do not match.');
+            return false;
+          }
+          if ( pass1.length < 6 && pass1.length > 0 )
+          {
+            alert('The new password must be 6 characters or greater in length.');
+            return false;
+          }
+          if(aes_testpassed)
+          {
+            pass = frm.password.value;
+            pass = stringToByteArray(pass);
+            cryptstring = rijndaelEncrypt(pass, cryptkey, 'ECB');
+            if(!cryptstring)
+            {
+              return false;
+            }
+            cryptstring = byteArrayToHex(cryptstring);
+            frm.crypt_data.value = cryptstring;
+            frm.password.value = "";
+            frm.password_confirm.value = "";
+          }
+          return true;
+        }
+        </script>
       </form>
       <!-- Don't optimize this script, it fails when compressed -->
       <enano:no-opt>
@@ -525,7 +653,9 @@ function page_Special_Register()
             // Username
             if(!namegood)
             {
-              if(frm.username.value.match(/^([A-z0-9 \!@\-\(\)]+){2,}$/ig))
+              //if(frm.username.value.match(/^([A-z0-9 \!@\-\(\)]+){2,}$/ig))
+              var regex = new RegExp('^([^<>_&\?]+){2,}$', 'ig');
+              if ( frm.username.value.match(regex) )
               {
                 document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
                 document.getElementById('e_username').innerHTML = ''; // '<br /><small><b>Checking availability...</b></small>';
@@ -616,10 +746,13 @@ function page_Special_Register()
           }
           function regenCaptcha()
           {
-            var frm = document.forms.regform;
             document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/"); ?>'+frm.captchahash.value+'/'+Math.floor(Math.random() * 100000);
             return false;
           }
+          <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
+          var frm = document.forms.regform;
+          password_score_field(frm.password);
+          <?php endif; ?>
           validateForm();
           setTimeout('checkUsername();', 1000);
           // ]]>
@@ -898,9 +1031,9 @@ function page_Special_PasswordReset()
     $row = $db->fetchrow();
     $db->free_result();
     
-    if ( ( intval($row['temp_password_time']) + 3600 * 24 ) < time() )
+    if ( ( intval($row['temp_password_time']) + ( 3600 * 24 ) ) < time() )
     {
-      echo '<p>Password has expired</p>';
+      echo '<p>Your temporary password has expired. Please <a href="' . makeUrlNS('Special', 'PasswordReset') . '">request another one</a>.</p>';
       $template->footer();
       return false;
     }
@@ -949,6 +1082,18 @@ function page_Special_PasswordReset()
         $template->footer();
         return false;
       }
+      if ( getConfig('pw_strength_enable') == '1' )
+      {
+        $min_score = intval(getConfig('pw_strength_minimum'));
+        $inp_score = password_score($data);
+        if ( $inp_score < $min_score )
+        {
+          $url = makeUrl($paths->fullpage);
+          echo "<p>ERROR: Your password did not pass the complexity score requirement. You need $min_score points to pass; your password received a score of $inp_score. <a href=\"$url\">Go back</a></p>";
+          $template->footer();
+          return false;
+        }
+      }
       $encpass = $aes->encrypt($data, $session->private_key, ENC_HEX);
       $q = $db->sql_query('UPDATE '.table_prefix.'users SET password=\'' . $encpass . '\',temp_password=\'\',temp_password_time=0 WHERE user_id='.$user_id.';');
       
@@ -969,14 +1114,19 @@ function page_Special_PasswordReset()
     // Password reset form
     $pubkey = $session->rijndael_genkey();
     
+    $evt_get_score = ( getConfig('pw_strength_enable') == '1' ) ? 'onkeyup="password_score_field(this);" ' : '';
+    $pw_meter =      ( getConfig('pw_strength_enable') == '1' ) ? '<tr><td class="row1">Password strength rating:</td><td class="row1"><div id="pwmeter"></div><script type="text/javascript">password_score_field(document.forms.resetform.pass);</script></td></tr>' : '';
+    $pw_blurb =      ( getConfig('pw_strength_enable') == '1' && intval(getConfig('pw_strength_minimum')) > -10 ) ? '<br /><small>Your password needs to have a score of at least <b>'.getConfig('pw_strength_minimum').'</b>.</small>' : '';
+    
     ?>
     <form action="<?php echo makeUrl($paths->fullpage); ?>" method="post" name="resetform" onsubmit="return runEncryption();">
       <br />
       <div class="tblholder">
         <table border="0" style="width: 100%;" cellspacing="1" cellpadding="4">
           <tr><th colspan="2">Reset password</th></tr>
-          <tr><td class="row1">Password:</td><td class="row1"><input name="pass" type="password" /></td></tr>
+          <tr><td class="row1">Password:<?php echo $pw_blurb; ?></td><td class="row1"><input name="pass" type="password" <?php echo $evt_get_score; ?>/></td></tr>
           <tr><td class="row2">Confirm: </td><td class="row2"><input name="pass_confirm" type="password" /></td></tr>
+          <?php echo $pw_meter; ?>
           <tr>
             <td colspan="2" class="row1" style="text-align: center;">
               <input type="hidden" name="use_crypt" value="no" />
