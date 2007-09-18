@@ -19,6 +19,13 @@ class RenderMan {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $k = array_keys($paths->nslist);
+    $proj_alt = 'Project:';
+    if ( substr($string, 0, (strlen($proj_alt))) == $proj_alt )
+    {
+      $ns = 'Project';
+      $pg = substr($string, strlen($proj_alt), strlen($string));
+      return Array($pg, $ns);
+    }
     for($i=0;$i<sizeof($paths->nslist);$i++)
     {
       $ln = strlen($paths->nslist[$k[$i]]);
@@ -426,6 +433,7 @@ class RenderMan {
   
   function parse_internal_links($text)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
     
     // stage 1 - links with alternate text
     preg_match_all('/\[\[([^\[\]<>\{\}\|]+)\|(.+?)\]\]/', $text, $matches);
