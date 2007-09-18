@@ -2833,7 +2833,7 @@ function aggressive_optimize_html($html)
   }
   
   // Which tags to strip - you can change this if needed
-  $strip_tags = Array('pre', 'script', 'style', 'enano:no-opt');
+  $strip_tags = Array('pre', 'script', 'style', 'enano:no-opt', 'textarea');
   $strip_tags = implode('|', $strip_tags);
   
   // Strip out the tags and replace with placeholders
