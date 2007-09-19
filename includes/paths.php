@@ -745,8 +745,13 @@ class pathManager {
     {
       return false;
     }
+    foreach ( $cache as $key => $_unused )
+    {
+      $cache[$key] = $db->escape( $cache[$key] );
+    }
     $cache = "query LIKE '%" . implode ( "%' OR query LIKE '%", $cache ) . "%'";
-    $db->sql_query('DELETE FROM '.table_prefix.'search_cache WHERE '.$cache);
+    $sql = 'DELETE FROM '.table_prefix.'search_cache WHERE '.$cache;
+    $db->sql_query($sql);
     
     $query = $db->sql_query('SELECT word,page_names FROM '.table_prefix.'search_index WHERE '.$keys.';');
     
