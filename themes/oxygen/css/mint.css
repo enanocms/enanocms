@@ -39,7 +39,7 @@ td#mainhead a:hover                { text-decoration: none; color: #000000; bord
 /* Text, headings, and links inside the main div (usually #ajaxEditContainer but used some other places as well) */
 div.contentDiv h2                                                                    { border-bottom: 1px solid #90D0B0; margin-bottom: 0; }
 div.contentDiv h3                                                                    { font-size: 11pt; font-weight: bold; }
-div.contentDiv li                        , div#messageBox li                         { list-style: url(../images/bullet.gif); }
+div.contentDiv ul li                     , div#messageBox ul li                      { list-style: url(../images/mint/bullet.gif); }
 div.contentDiv p                         , div#messageBox p                          { margin-left: 1.0em; }
 div.contentDiv blockquote                , div#messageBox blockquote                 { background-color: #F4F4F4; border: 1px dotted #408060; margin: 1em; padding: 10px; max-height: 250px; overflow: auto; }
 div.contentDiv                           , div#messageBox                            { font-size: 9pt; }
@@ -70,6 +70,24 @@ div.tblholder td.row3             { padding: 4px; background-color: #E8E8E8; }
 div.tblholder th                  { padding: 4px; background-color: #70A080; font-weight: bold; text-align: center; color: #FFFFFF; }
 div.tblholder th.subhead          { padding: 4px; background-color: #90B0A0; font-weight: bold; text-align: center; color: #FFFFFF; }
 div.tblholder table               { background-color: #FFFFFF; width: 100%; }
+
+/* Colored table cells */
+div.tblholder td.row1_red         { padding: 4px; background-color: #F8E0E0; }
+div.tblholder td.row2_red         { padding: 4px; background-color: #FFF0F0; }
+div.tblholder td.row3_red         { padding: 4px; background-color: #FFE8E8; }
+div.tblholder td.row1_green       { padding: 4px; background-color: #E0E0F8; }
+div.tblholder td.row2_green       { padding: 4px; background-color: #F0F0FF; }
+div.tblholder td.row3_green       { padding: 4px; background-color: #E8E8FF; }
+
+div.tblholder th a {
+  color: #FFFFFF !important;
+  text-decoration: underline !important;
+}
+
+div.tblholder th a:hover {
+  color: #FF00FF !important;
+  text-decoration: underline !important;
+}
 
 /* The "page tools" bar below the site logo but above the page content 
 div.pagebar                       { background-color: #B0F0D0; margin-top: 0px; padding: 3px; font-size: 7pt; }
@@ -222,6 +240,7 @@ input#pageheading                         { font-size: 14pt; border-bottom: 1px 
 input[type ^="button"], input[type ^="submit"] {
   background-image: url(../images/buttonbg.gif);
   background-repeat: repeat-x;
+  color: #202020;
 }
 
 /* JWS window theming */

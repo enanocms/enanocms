@@ -39,7 +39,7 @@ td#mainhead a:hover                { text-decoration: none; color: #000000; bord
 /* Text, headings, and links inside the main div (usually #ajaxEditContainer but used some other places as well) */
 div.contentDiv h2                                                                    { border-bottom: 1px solid #90B0D0; margin-bottom: 0; }
 div.contentDiv h3                                                                    { font-size: 11pt; font-weight: bold; }
-div.contentDiv li                        , div#messageBox li                         { list-style: url(../images/bullet.gif); }
+div.contentDiv ul li                     , div#messageBox ul li                      { list-style: url(../images/bleu/bullet.gif); }
 div.contentDiv p                         , div#messageBox p                          { margin-left: 1.0em; }
 div.contentDiv blockquote                , div#messageBox blockquote                 { background-color: #F4F4F4; border: 1px dotted #406080; margin: 1em; padding: 10px; max-height: 250px; overflow: auto; }
 div.contentDiv                           , div#messageBox                            { font-size: 9pt; }
