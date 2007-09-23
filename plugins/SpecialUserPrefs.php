@@ -577,7 +577,7 @@ function page_Special_Preferences()
           </tr>
           <tr>
             <td class="row2" style="width: 50%;"><label for="chk_email_public">E-mail address is public</label><br /><small>If this is checked, your e-mail address will be displayed on your user page. To protect your address from spambots, your e-mail address will be encrypted.</small></td>
-            <td class="row1" style="width: 50%;"><input type="checkbox" id="chk_email_public" name="email_public" value="<?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?>" size="30" /></td>
+            <td class="row1" style="width: 50%;"><input type="checkbox" id="chk_email_public" name="email_public" <?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?> size="30" /></td>
           </tr>
           <tr>
             <th class="subhead" colspan="2">

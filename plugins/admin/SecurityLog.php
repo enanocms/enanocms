@@ -21,10 +21,10 @@ function page_Admin_SecurityLog()
     return;
   }
   
-  if ( defined('ENANO_DEMO_MODE') )
-  {
-    die('Security log is disabled in demo mode.');
-  }
+  // if ( defined('ENANO_DEMO_MODE') && substr($_SERVER['REMOTE_ADDR'], 0, 8) != '192.168.' )
+  // {
+  //   die('Security log is disabled in demo mode.');
+  // }
   
   echo '<h3>System security log</h3>';
   
@@ -79,12 +79,12 @@ function get_security_log($num = false)
     unset($dbname, $dbhost, $dbuser, $dbpasswd);
     unset($dbname, $dbhost, $dbuser, $dbpasswd); // PHP5 Zend bug
   }
-  if ( defined('ENANO_DEMO_MODE') && !isset($_GET[ $hash ]) && substr($_SERVER['REMOTE_ADDR'], 0, 8) != '192.168.' )
-  {
-    $return .= '<tr><td class="row1" colspan="4">Logs are recorded but not displayed for privacy purposes in the demo.</td></tr>';
-  }
-  else
-  {
+  // if ( defined('ENANO_DEMO_MODE') && !isset($_GET[ $hash ]) && substr($_SERVER['REMOTE_ADDR'], 0, 8) != '192.168.' )
+  // {
+  //   $return .= '<tr><td class="row1" colspan="4">Logs are recorded but not displayed for privacy purposes in the demo.</td></tr>';
+  // }
+  // else
+  // {
     if(is_int($num))
     {
       $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC LIMIT '.$num.';';
@@ -99,7 +99,7 @@ function get_security_log($num = false)
       $return .= seclog_format_inner($r);
     }
     $db->free_result();
-  }
+  // }
   $return .= '</table></div>';
   
   return $return;
@@ -115,6 +115,10 @@ function seclog_format_inner($r, $f = false)
   global $db, $session, $paths, $template, $plugins; // Common objects
   $return = '';
   static $cls = 'row2';
+  if ( substr($_SERVER['REMOTE_ADDR'], 0, 8) != '192.168.' && defined('ENANO_DEMO_MODE') )
+  {
+    $r['edit_summary'] = preg_replace('/([0-9])/', 'x', $r['edit_summary']);
+  }
   if ( $r['action'] == 'illegal_page' )
   {
     list($illegal_id, $illegal_ns) = unserialize($r['page_text']);

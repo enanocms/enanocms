@@ -42,6 +42,7 @@ $plugins->attachHook('base_classes_initted', '
 // Admin pages that were too enormous to be in this file were split off into the plugins/admin/ directory in 1.0.1
 require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
 require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
+require(ENANO_ROOT . '/plugins/admin/UserManager.php');
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 
@@ -838,6 +839,7 @@ function page_Admin_Sidebar()
   <?php
 }
 
+/*
 function page_Admin_UserManager() {
   global $db, $session, $paths, $template, $plugins; // Common objects
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
@@ -1105,6 +1107,7 @@ function page_Admin_UserManager() {
     $db->free_result();
   }
 }
+*/
 
 function page_Admin_GroupManager()
 {

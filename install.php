@@ -631,6 +631,12 @@ switch($_GET['mode'])
        <a href="http://www.mysql.com/">MySQL.com</a>. <b>Please note that, like Enano, MySQL is licensed under the GNU GPL.</b>
        If you need to modify MySQL and then distribute your modifications, you must either distribute them under the terms of the GPL
        or purchase a proprietary license.</p>
+    <?php
+    if ( file_exists('/etc/enano-is-virt-appliance') )
+    {
+      echo '<p><b>MySQL login information for this virtual appliance:</b><br /><br />Database hostname: localhost<br />Database login: username "enano", password: "clurichaun" (without quotes)<br />Database name: enano_www1</p>';
+    }
+    ?>
     <form name="dbinfo" action="install.php?mode=website" method="post">
       <table border="0">
         <tr><td colspan="3" style="text-align: center"><h3>Database information</h3></td></tr>
