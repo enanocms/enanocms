@@ -30,11 +30,17 @@ function page_Admin_UserManager()
     #
     
     $errors = array();
+    
+    if ( defined('ENANO_DEMO_MODE') )
+    {
+      $errors[] = 'Users cannot be modified or deleted in demo mode.';
+    }
+    
     $user_id = intval($_POST['user_id']);
-    if ( empty($user_id) )
+    if ( empty($user_id) || $user_id == 1 )
       $errors[] = 'Invalid user ID.';
     
-    if ( isset($_POST['delete_account']) )
+    if ( isset($_POST['delete_account']) && count($errors) < 1 )
     {
       $q = $db->sql_query('DELETE FROM '.table_prefix."users_extra WHERE user_id=$user_id;");
       if ( !$q )
@@ -108,39 +114,7 @@ function page_Admin_UserManager()
         $homepage = '';
       }
       
-      if ( count($errors) > 0 )
-      {
-        echo '<div class="error-box">
-                <b>Your request could not be processed due to the following validation errors:</b>
-                <ul>
-                  <li>' . implode("</li>\n        <li>", $errors) . '</li>
-                </ul>
-              </div>';
-        $form = new Admin_UserManager_SmartForm();
-        $form->user_id = $user_id;
-        $form->username = $username;
-        $form->email = $email;
-        $form->real_name = $real_name;
-        $form->signature = $signature;
-        $form->user_level = $user_level;
-        $form->im = array(
-            'aim' => $imaddr_aim,
-            'yahoo' => $imaddr_yahoo,
-            'msn' => $imaddr_msn,
-            'xmpp' => $imaddr_xmpp
-          );
-        $form->contact = array(
-            'homepage' => $homepage,
-            'location' => $location,
-            'job' => $occupation,
-            'hobbies' => $hobbies
-          );
-        $form->email_public = ( isset($_POST['email_public']) );
-        $form->account_active = ( isset($_POST['account_active']) );
-        echo $form->render();
-        return false;
-      }
-      else
+      if ( count($errors) < 1 )
       {
         $q = $db->sql_query('SELECT u.user_level FROM '.table_prefix.'users AS u WHERE u.user_id = ' . $user_id . ';');
         if ( !$q )
@@ -257,6 +231,39 @@ function page_Admin_UserManager()
       }
     }
     
+    if ( count($errors) > 0 )
+    {
+      echo '<div class="error-box">
+              <b>Your request could not be processed due to the following validation errors:</b>
+              <ul>
+                <li>' . implode("</li>\n        <li>", $errors) . '</li>
+              </ul>
+            </div>';
+      $form = new Admin_UserManager_SmartForm();
+      $form->user_id = $user_id;
+      $form->username = $username;
+      $form->email = $email;
+      $form->real_name = $real_name;
+      $form->signature = $signature;
+      $form->user_level = $user_level;
+      $form->im = array(
+          'aim' => $imaddr_aim,
+          'yahoo' => $imaddr_yahoo,
+          'msn' => $imaddr_msn,
+          'xmpp' => $imaddr_xmpp
+        );
+      $form->contact = array(
+          'homepage' => $homepage,
+          'location' => $location,
+          'job' => $occupation,
+          'hobbies' => $hobbies
+        );
+      $form->email_public = ( isset($_POST['email_public']) );
+      $form->account_active = ( isset($_POST['account_active']) );
+      echo $form->render();
+      return false;
+    }
+    
     #
     # END VALIDATION
     #
@@ -279,7 +286,7 @@ function page_Admin_UserManager()
     $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, x.* FROM '.table_prefix.'users AS u
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL )
-                           WHERE lcase(u.username) = \'' . $db->escape(strtolower($username)) . '\' OR u.username = \'' . $db->escape($username) . '\';');
+                           WHERE ( lcase(u.username) = \'' . $db->escape(strtolower($username)) . '\' OR u.username = \'' . $db->escape($username) . '\' ) AND user_id != 1;');
     if ( !$q )
       $db->_die();
     
