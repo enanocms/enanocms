@@ -67,7 +67,8 @@ class Text_Wiki {
         'Include',
         'Embed',
         'Tighten',
-        'Image'
+        'Image',
+        'Wikilink'
     );
 
     var $parseConf = array();

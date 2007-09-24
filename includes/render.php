@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.1 (Loch Ness)
+ * Version 1.0.2 (Coblynau)
  * Copyright (C) 2006-2007 Dan Fuhry
  * render.php - handles fetching pages and parsing them into HTML
  *
@@ -251,7 +251,7 @@ class RenderMan {
     if ( !$plaintext )
     {
       // Process images
-      $text   = RenderMan::process_image_tags($text, $taglist);
+      $text = RenderMan::process_image_tags($text, $taglist);
       $text = RenderMan::process_imgtags_stage2($text, $taglist);
     }
     
@@ -275,6 +275,7 @@ class RenderMan {
     }
     
     $text = process_tables($text);
+    $text = RenderMan::parse_internal_links($text);
     
     $wiki =& Text_Wiki::singleton('Mediawiki');
     if($plaintext)
