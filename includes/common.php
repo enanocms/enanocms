@@ -268,7 +268,7 @@ if ( !defined('IN_ENANO_INSTALL') )
       
       $text = RenderMan::render($n) . '
       <div class="info-box">
-        If you have an administrative account, you may <a href="'.makeUrlNS('Special', 'Login').'">log in</a> to the site or <a href="'.makeUrlNS('Special', 'Administration').'">use the administration panel</a>.
+        If you have an administrative account, you may <a href="'.makeUrlNS('Special', 'Login').'">log in</a> to the site.
       </div>';
       $paths->wiki_mode = 0;
       die_semicritical('Site disabled', $text);

@@ -12,6 +12,59 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
  
+  // fillusername should be done without the help of the rest of Enano - all we need is the DBAL
+  if ( isset($_GET['_mode']) && $_GET['_mode'] == 'fillusername' )
+  {
+    // setup and load a very basic, specialized instance of the Enano API
+    function dc_here($m)     { return false; }
+    function dc_dump($a, $g) { return false; }
+    function dc_watch($n)    { return false; }
+    function dc_start_timer($u) { return false; }
+    function dc_stop_timer($m) { return false; }
+    // Determine directory (special case for development servers)
+    if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )
+    {
+      $filename = str_replace('/repo/', '/', __FILE__);
+    }
+    else
+    {
+      $filename = __FILE__;
+    }
+    define('ENANO_ROOT', dirname($filename));
+    require(ENANO_ROOT.'/includes/functions.php');
+    require(ENANO_ROOT.'/includes/dbal.php');
+    $db = new mysql();
+    $db->connect();
+    
+    // should be connected now
+    $name = (isset($_GET['name'])) ? $db->escape($_GET['name']) : false;
+    if ( !$name )
+    {
+      die('userlist = new Array(); errorstring=\'Invalid URI\'');
+    }
+    $q = $db->sql_query('SELECT username,user_id FROM '.table_prefix.'users WHERE lcase(username) LIKE lcase(\'%'.$name.'%\');');
+    if ( !$q )
+    {
+      die('userlist = new Array(); errorstring=\'MySQL error selecting username data: '.addslashes(mysql_error()).'\'');
+    }
+    if($db->numrows() < 1)
+    {
+      die('userlist = new Array(); errorstring=\'No usernames found\';');
+    }
+    echo 'var errorstring = false; userlist = new Array();';
+    $i = 0;
+    while($r = $db->fetchrow())
+    {
+      echo "userlist[$i] = '".addslashes($r['username'])."'; ";
+      $i++;
+    }
+    $db->free_result();
+    
+    // all done! :-)
+    $db->close();
+    exit;
+  }
+ 
   require('includes/common.php');
   
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -105,28 +158,6 @@
       echo PageUtils::setpass($paths->cpage['urlname_nons'], $paths->namespace, $_POST['password']);
       break;
     case "fillusername":
-      $name = (isset($_GET['name'])) ? $db->escape($_GET['name']) : false;
-      if ( !$name ) 
-      {
-        die('userlist = new Array(); errorstring=\'Invalid URI\'');
-      }
-      $q = $db->sql_query('SELECT username,user_id FROM '.table_prefix.'users WHERE lcase(username) LIKE lcase(\'%'.$name.'%\');');
-      if ( !$q )
-      {
-        die('userlist = new Array(); errorstring=\'MySQL error selecting username data: '.addslashes(mysql_error()).'\'');
-      }
-      if($db->numrows() < 1)
-      {
-        die('userlist = new Array(); errorstring=\'No usernames found\';');
-      }
-      echo 'var errorstring = false; userlist = new Array();';
-      $i = 0;
-      while($r = $db->fetchrow())
-      {
-        echo "userlist[$i] = '".addslashes($r['username'])."'; ";
-        $i++;
-      }
-      $db->free_result();
       break;
     case "fillpagename":
       $name = (isset($_GET['name'])) ? $_GET['name'] : false;
