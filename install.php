@@ -23,8 +23,9 @@ if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_G
 
 define('IN_ENANO_INSTALL', 'true');
 
-define('ENANO_VERSION', '1.0.1.1');
+define('ENANO_VERSION', '1.0.2');
 // In beta versions, define ENANO_BETA_VERSION here
+define('ENANO_BETA_VERSION', '1');
 
 if(!defined('scriptPath')) {
   $sp = dirname($_SERVER['REQUEST_URI']);
@@ -260,7 +261,7 @@ EOF;
 }
 
 $template = new template_nodb();
-$template->load_theme('oxygen', 'bleu', false);
+$template->load_theme('stpatty', 'shamrock', false);
 
 $modestrings = Array(
               'welcome' => 'Welcome',
@@ -313,10 +314,10 @@ switch($_GET['mode'])
   case 'welcome':
     ?>
     <div style="text-align: center; margin-top: 10px;">
-      <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-blue.png" style="display: block; margin: 0 auto; padding-left: 100px;" />
+      <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-green.png" style="display: block; margin: 0 auto; padding-left: 100px;" />
       <h2>Welcome to Enano</h2>
-      <h3>version 1.0.1.1 &ndash; stable<br />
-      <span style="font-weight: normal;">also affectionately known as "loch ness" <tt>:)</tt></span></h3>
+      <h3>version 1.0.2 &ndash; beta 1<br />
+      <span style="font-weight: normal;">also affectionately known as "coblynau" <tt>:)</tt></span></h3>
       <?php
       if ( file_exists('./_nightly.php') )
       {
@@ -1065,8 +1066,7 @@ switch($_GET['mode'])
       $schema = str_replace('{{TABLE_PREFIX}}', $_POST['table_prefix'],                          $schema);
       $schema = str_replace('{{VERSION}}',      ENANO_VERSION,                                   $schema);
       $schema = str_replace('{{ADMIN_EMBED_PHP}}', $_POST['admin_embed_php'],                    $schema);
-      // Not anymore!! :-D
-      // $schema = str_replace('{{BETA_VERSION}}', ENANO_BETA_VERSION,                              $schema);
+      $schema = str_replace('{{BETA_VERSION}}', ENANO_BETA_VERSION,                              $schema);
       
       if(isset($_POST['wiki_mode']))
       {

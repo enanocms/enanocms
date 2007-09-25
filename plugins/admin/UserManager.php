@@ -286,7 +286,7 @@ function page_Admin_UserManager()
     $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, x.* FROM '.table_prefix.'users AS u
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL )
-                           WHERE ( lcase(u.username) = \'' . $db->escape(strtolower($username)) . '\' OR u.username = \'' . $db->escape($username) . '\' ) AND user_id != 1;');
+                           WHERE ( lcase(u.username) = \'' . $db->escape(strtolower($username)) . '\' OR u.username = \'' . $db->escape($username) . '\' ) AND u.user_id != 1;');
     if ( !$q )
       $db->_die();
     

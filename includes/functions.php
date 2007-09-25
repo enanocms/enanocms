@@ -1207,6 +1207,7 @@ function enano_codename()
       '1.0'    => 'Banshee',
       '1.0.1'  => 'Loch Ness',
       '1.0.1.1'=> 'Loch Ness internal bugfix build',
+      '1.0.2b1'=> 'Coblynau unstable',
       '1.0.2'  => 'Coblynau'
     );
   $version = enano_version();

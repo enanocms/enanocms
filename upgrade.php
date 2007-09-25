@@ -77,7 +77,7 @@ $deps_list = Array(
     '1.0' => Array('1.0.1'),
     '1.0.1' => Array('1.0.1.1')
   );
-$this_version   = '1.0.2';
+$this_version   = '1.0.2b1';
 $func_list = Array(
     '1.0' => Array('u_1_0_1_update_del_votes'),
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text'), // ,
@@ -157,7 +157,7 @@ $paths = new pathManager();
 $session->start();
 
 $template = new template_nodb();
-$template->load_theme('oxygen', 'bleu', false);
+$template->load_theme('stpatty', 'shamrock', false);
 
 $modestrings = Array(
               'login'      => 'Administrative login',
@@ -525,7 +525,7 @@ switch($_GET['mode'])
     ?>
     
     <div style="text-align: center; margin-top: 10px;">
-      <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-blue.png" style="display: block; margin: 0 auto; padding-left: 134px;" />
+      <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-green.png" style="display: block; margin: 0 auto; padding-left: 134px;" />
       <h2>Welcome to the Enano upgrade wizard</h2>
       <?php
       if ( file_exists('./_nightly.php') )

@@ -278,7 +278,7 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('copyright_notice', '{{COPYRIGHT}}'),
   ('wiki_edit_notice_text', '== Why can I edit this page? ==\n\nEveryone can edit almost any page in this website. This concept is called a wiki. It gives everyone the opportunity to make a change for the best. While some spam and vandalism may occur, it is believed that most contributions will be legitimate and helpful.\n\nFor security purposes, a history of all page edits is kept, and administrators are able to restore vandalized or spammed pages with just a few clicks.'),
   ('cache_thumbs', '{{ENABLE_CACHE}}'),
-  ('max_file_size', '256000'),('enano_version', '{{VERSION}}'),( 'allowed_mime_types', 'cbf:len=168;crc=c3dcad3f;data=0[1],1[4],0[3],1[1],0[2],1[1],0[11],1[1],0[7],1[1],0[9],1[1],0[6],1[3],0[10],1[1],0[2],1[2],0[1],1[1],0[1],1[2],0[6],1[3],0[1],1[1],0[2],1[4],0[1],1[2],0[3],1[1],0[4],1[2],0[26],1[5],0[6],1[2],0[2],1[1],0[4],1[1],0[10],1[2],0[1],1[1],0[6]|end' ),
+  ('max_file_size', '256000'),('enano_version', '{{VERSION}}'),('enano_beta_version', '{{BETA_VERSION}}'),( 'allowed_mime_types', 'cbf:len=168;crc=c3dcad3f;data=0[1],1[4],0[3],1[1],0[2],1[1],0[11],1[1],0[7],1[1],0[9],1[1],0[6],1[3],0[10],1[1],0[2],1[2],0[1],1[1],0[1],1[2],0[6],1[3],0[1],1[1],0[2],1[4],0[1],1[2],0[3],1[1],0[4],1[2],0[26],1[5],0[6],1[2],0[2],1[1],0[4],1[1],0[10],1[2],0[1],1[1],0[6]|end' ),
   ('contact_email', '{{ADMIN_EMAIL}}'),
   ('powered_btn', '1');
 
