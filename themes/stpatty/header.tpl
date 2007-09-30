@@ -13,6 +13,11 @@
     <![endif]-->
     <script type="text/javascript">
     // <![CDATA[
+    
+      // Disable transition effects for the ACL editor
+      // (they're real slow in this theme, at least in fx/opera/IE)
+      var aclDisableTransitionFX = true;
+    
       function ajaxRenameInline()
       {
         // This trick is _so_ vBulletin...

@@ -857,7 +857,7 @@ class pathManager {
     
     $page_id = $db->escape(sanitize_page_id($page_id));
     if ( !isset($this->nslist[$namespace]) )
-      die('$paths->get_page_groups(): HACKING ATTEMPT');
+      die('$paths->get_page_groups(): HACKING ATTEMPT: namespace "'. htmlspecialchars($namespace) .'" doesn\'t exist');
     
     $group_list = array();
     

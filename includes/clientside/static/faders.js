@@ -93,18 +93,29 @@ function messagebox(type, title, message)
   var y = getScrollOffset();
   if(document.getElementById('messageBox')) return;
   darken(true);
+  if ( aclDisableTransitionFX )
+  {
+    document.getElementById('specialLayer_darkener').style.zIndex = '5';
+  }
   var master_div = document.createElement('div');
+  master_div.style.zIndex = '6';
   var mydiv = document.createElement('div');
   mydiv.style.width = '400px';
   mydiv.style.height = '200px';
   w = getWidth();
   h = getHeight();
-  //master_div.style.left = (w / 2) - 200+'px';
-  //master_div.style.top = (h / 2) + y - 120+'px';
-  master_div.style.top = '-10000px';
-  master_div.style.position = ( IE ) ? 'absolute' : 'fixed';
-  z = getHighestZ(); // document.getElementById('specialLayer_darkener').style.zIndex;
-  mydiv.style.zIndex = parseInt(z) + 1;
+  if ( aclDisableTransitionFX )
+  {
+    master_div.style.left = ((w / 2) - 200)+'px';
+    master_div.style.top = ((h / 2) + y - 120)+'px';
+    master_div.style.position = 'absolute';
+  }
+  else
+  {
+    master_div.style.top = '-10000px';
+    master_div.style.position = ( IE ) ? 'absolute' : 'fixed';
+  }
+  z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex : getHighestZ();
   mydiv.style.backgroundColor = '#FFFFFF';
   mydiv.style.padding = '10px';
   mydiv.style.marginBottom = '1px';
@@ -115,11 +126,13 @@ function messagebox(type, title, message)
   buttondiv.style.width = '400px';
   w = getWidth();
   h = getHeight();
-  // buttondiv.style.left = (w / 2) - 200+'px';
-  // buttondiv.style.top = (h / 2) + y + 101+'px';
-  // buttondiv.style.position = ( IE ) ? 'absolute' : 'fixed';
-  z = getHighestZ(); // document.getElementById('specialLayer_darkener').style.zIndex;
-  buttondiv.style.zIndex = parseInt(z) + 1;
+  if ( aclDisableTransitionFX )
+  {
+    //buttondiv.style.left = ((w / 2) - 200)+'px';
+    //buttondiv.style.top = ((h / 2) + y + 101)+'px';
+  }
+  //buttondiv.style.position = ( IE ) ? 'absolute' : 'fixed';
+  z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex : getHighestZ();
   buttondiv.style.backgroundColor = '#C0C0C0';
   buttondiv.style.padding = '10px';
   buttondiv.style.textAlign = 'right';
@@ -265,7 +278,8 @@ function messagebox(type, title, message)
   
   body.appendChild(master_div);
   
-  setTimeout('mb_runFlyIn();', 100);
+  if ( !aclDisableTransitionFX )
+    setTimeout('mb_runFlyIn();', 100);
   
   this.onclick = new Array();
   this.onbeforeclick = new Array();
@@ -293,9 +307,19 @@ function messagebox_click(obj, mb)
   
   var mydiv = document.getElementById('messageBox');
   var maindiv = mydiv.parentNode;
-  var to = fly_out_top(maindiv, true, false);
   
-  setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.removeChild(mbdiv.nextSibling); mbdiv.parentNode.removeChild(mbdiv); enlighten(true);", to);
+  if ( aclDisableTransitionFX )
+  {
+    var mbdiv = document.getElementById('messageBox');
+    mbdiv.parentNode.removeChild(mbdiv.nextSibling);
+    mbdiv.parentNode.removeChild(mbdiv);
+    enlighten(true);
+  }
+  else
+  {
+    var to = fly_out_top(maindiv, true, false);
+    setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.removeChild(mbdiv.nextSibling); mbdiv.parentNode.removeChild(mbdiv); enlighten(true);", to);
+  }
   if(typeof mb.onclick[val] == 'function')
   {
     o = mb.onclick[val];

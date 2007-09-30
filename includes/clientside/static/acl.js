@@ -4,6 +4,9 @@ var aclManagerID = 'enano_aclmanager_' + Math.floor(Math.random() * 1000000);
 var aclPermList = false;
 var aclDataCache = false;
 
+// Can be set to true by slow themes (St. Patty)
+var aclDisableTransitionFX = false;
+
 function ajaxOpenACLManager(page_id, namespace)
 {
   if(IE)
@@ -494,7 +497,7 @@ function __aclBuildGroupsHTML(groups)
 
 function __aclBuildWizardWindow()
 {
-  darken();
+  darken(aclDisableTransitionFX);
   box = document.createElement('div');
   box.style.width = '640px'
   box.style.height = '440px';
@@ -570,7 +573,16 @@ function __aclBuildWizardWindow()
   
   body = document.getElementsByTagName('body')[0];
   body.appendChild(box);
-  setTimeout("document.getElementById('"+aclManagerID+"').style.display = 'block'; opacity('"+aclManagerID+"', 0, 100, 500); opacity('"+aclManagerID + '_panel'+"', 0, 100, 500);", 1000);
+  if ( aclDisableTransitionFX )
+  {
+    document.getElementById(aclManagerID).style.display = 'block';
+    changeOpac(100, aclManagerID);
+    changeOpac(100, aclManagerID + '_panel');
+  }
+  else
+  {
+    setTimeout("document.getElementById('"+aclManagerID+"').style.display = 'block'; opacity('"+aclManagerID+"', 0, 100, 500); opacity('"+aclManagerID + '_panel'+"', 0, 100, 500);", 1000);
+  }
 }
 
 function killACLManager()
@@ -578,8 +590,16 @@ function killACLManager()
   el = document.getElementById(aclManagerID);
   if(el)
   {
-    opacity(aclManagerID, 100, 0, 500);
-    setTimeout('var el = document.getElementById(aclManagerID); el.parentNode.removeChild(el); enlighten();', 750);
+    if ( aclDisableTransitionFX )
+    {
+      enlighten(true);
+      el.parentNode.removeChild(el);
+    }
+    else
+    {
+      opacity(aclManagerID, 100, 0, 500);
+      setTimeout('var el = document.getElementById(aclManagerID); el.parentNode.removeChild(el); enlighten();', 750);
+    }
   }
 }
 
