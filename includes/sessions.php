@@ -2117,13 +2117,30 @@ The {$site_name} administration team
       return false;
     }
     
+    // cache of permission objects (to save RAM and SQL queries)
+    static $objcache = array();
+    
+    if ( count($objcache) == 0 )
+    {
+      foreach ( $paths->nslist as $key => $_ )
+      {
+        $objcache[$key] = array();
+      }
+    }
+    
+    if ( isset($objcache[$namespace][$page_id]) )
+    {
+      return $objcache[$namespace][$page_id];
+    }
+    
     //if ( !isset( $paths->pages[$paths->nslist[$namespace] . $page_id] ) )
     //{
     //  // Page does not exist
     //  return false;
     //}
     
-    $object = new Session_ACLPageInfo( $page_id, $namespace, $this->acl_types, $this->acl_descs, $this->acl_deps, $this->acl_base_cache );
+    $objcache[$namespace][$page_id] = new Session_ACLPageInfo( $page_id, $namespace, $this->acl_types, $this->acl_descs, $this->acl_deps, $this->acl_base_cache );
+    $object =& $objcache[$namespace][$page_id];
     
     return $object;
     

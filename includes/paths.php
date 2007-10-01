@@ -855,14 +855,35 @@ class pathManager {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $page_id = $db->escape(sanitize_page_id($page_id));
+    static $cache = array();
+    
+    if ( count($cache) == 0 )
+    {
+      foreach ( $this->nslist as $key => $_ )
+      {
+        $cache[$key] = array();
+      }
+    }
+    
     if ( !isset($this->nslist[$namespace]) )
       die('$paths->get_page_groups(): HACKING ATTEMPT: namespace "'. htmlspecialchars($namespace) .'" doesn\'t exist');
+    
+    $page_id_unescaped = $paths->nslist[$namespace] .
+                         dirtify_page_id($page_id);
+    $page_id_str       = $paths->nslist[$namespace] .
+                         sanitize_page_id($page_id);
+    
+    $page_id = $db->escape(sanitize_page_id($page_id));
+    
+    if ( isset($cache[$namespace][$page_id]) )
+    {
+      return $cache[$namespace][$page_id];
+    }
     
     $group_list = array();
     
     // What linked categories have this page?
-    $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
+    $q = $db->sql_unbuffered_query('SELECT g.pg_id, g.pg_type, g.pg_target FROM '.table_prefix.'page_groups AS g
   LEFT JOIN '.table_prefix.'categories AS c
     ON ( ( c.category_id = g.pg_target AND g.pg_type = ' . PAGE_GRP_CATLINK . ' ) OR c.category_id IS NULL )
   LEFT JOIN '.table_prefix.'page_group_members AS m
@@ -872,47 +893,32 @@ class pathManager {
   WHERE
     ( c.page_id=\'' . $page_id . '\' AND c.namespace=\'' . $namespace . '\' ) OR
     ( t.page_id=\'' . $page_id . '\' AND t.namespace=\'' . $namespace . '\' ) OR
-    ( m.page_id=\'' . $page_id . '\' AND m.namespace=\'' . $namespace . '\' );');
+    ( m.page_id=\'' . $page_id . '\' AND m.namespace=\'' . $namespace . '\' ) OR
+    ( g.pg_type = ' . PAGE_GRP_REGEX . ' );');
     if ( !$q )
       $db->_die();
     
     while ( $row = $db->fetchrow() )
     {
-      $group_list[] = $row['pg_id'];
+      if ( $row['pg_type'] == PAGE_GRP_REGEX )
+      {
+        //echo "&lt;debug&gt; matching page " . htmlspecialchars($page_id_unescaped) . " against regex <tt>" . htmlspecialchars($row['pg_target']) . "</tt>.";
+        if ( @preg_match($row['pg_target'], $page_id_unescaped) || @preg_match($row['pg_target'], $page_id_str) )
+        {
+          //echo "..matched";
+          $group_list[] = $row['pg_id'];
+        }
+        //echo "<br />";
+      }
+      else
+      {
+        $group_list[] = $row['pg_id'];
+      }
     }
     
     $db->free_result();
     
-    /*
-    // Static-page groups
-    $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
-                           LEFT JOIN '.table_prefix.'page_group_members AS m
-                             ON ( g.pg_id = m.pg_id )
-                           WHERE m.page_id=\'' . $page_id . '\' AND m.namespace=\'' . $namespace . '\'
-                           GROUP BY g.pg_id;');
-    
-    if ( !$q )
-      $db->_die();
-    
-    while ( $row = $db->fetchrow() )
-    {
-      $group_list[] = $row['pg_id'];
-    }
-    
-    // Tag groups
-    
-    $q = $db->sql_query('SELECT g.pg_id FROM '.table_prefix.'page_groups AS g
-                           LEFT JOIN '.table_prefix.'tags AS t
-                             ON ( t.tag_name = g.pg_target AND pg_type = ' . PAGE_GRP_TAGGED . ' )
-                           WHERE t.page_id = \'' . $page_id . '\' AND t.namespace = \'' . $namespace . '\';');
-    if ( !$q )
-      $db->_die();
-    
-    while ( $row = $db->fetchrow() )
-    {
-      $group_list[] = $row['pg_id'];
-    }
-    */
+    $cache[$namespace][$page_id] = $group_list;
     
     return $group_list;
     

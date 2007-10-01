@@ -48,7 +48,12 @@ function page_Admin_PageGroups()
             echo '<div class="error-box">Please specify at least one page to place in this group.</div>';
             return;
           }
-          if ( $_POST['group_type'] != PAGE_GRP_TAGGED && $_POST['group_type'] != PAGE_GRP_CATLINK && $_POST['group_type'] != PAGE_GRP_NORMAL )
+          if ( $_POST['group_type'] == PAGE_GRP_REGEX && empty($_POST['regex']) )
+          {
+            echo '<div class="error-box">Please specify a regular expression to match page IDs against.</div>';
+            return;
+          }
+          if ( $_POST['group_type'] != PAGE_GRP_TAGGED && $_POST['group_type'] != PAGE_GRP_CATLINK && $_POST['group_type'] != PAGE_GRP_NORMAL && $_POST['group_type'] != PAGE_GRP_REGEX )
           {
             echo '<div class="error-box">Umm, you sent an invalid group type. I\'d put a real error message here but this will only be shown if you try to hack the system.</div>';
             return;
@@ -103,6 +108,14 @@ function page_Admin_PageGroups()
               if ( !$q )
                 $db->_die();
               break;
+            case PAGE_GRP_REGEX:
+              $name  = $db->escape($_POST['pg_name']);
+              $regex = $db->escape($_POST['regex']);
+              $sql = 'INSERT INTO '.table_prefix.'page_groups(pg_type,pg_name,pg_target) VALUES(' . PAGE_GRP_REGEX . ', \'' . $name . '\', \'' . $regex . '\');';
+              $q = $db->sql_query($sql);
+              if ( !$q )
+                $db->_die();
+              break;
           }
           echo '<div class="info-box">The page group "' . htmlspecialchars($_POST['pg_name']) . '" has been created.</div>';
           break;
@@ -115,6 +128,7 @@ function page_Admin_PageGroups()
           var pg_normal  = <?php echo PAGE_GRP_NORMAL; ?>;
           var pg_tagged  = <?php echo PAGE_GRP_TAGGED; ?>;
           var pg_catlink = <?php echo PAGE_GRP_CATLINK; ?>;
+          var pg_regex   = <?php echo PAGE_GRP_REGEX; ?>;
           var selection = false;
           // Get selection
           for ( var i = 0; i < selector.childNodes.length; i++ )
@@ -135,7 +149,7 @@ function page_Admin_PageGroups()
             return true;
           }
           selection = parseInt(selection);
-          if ( selection != pg_normal && selection != pg_tagged && selection != pg_catlink )
+          if ( selection != pg_normal && selection != pg_tagged && selection != pg_catlink && selection != pg_regex )
           {
             alert('Invalid field value');
             return true;
@@ -156,6 +170,10 @@ function page_Admin_PageGroups()
             document.getElementById('pg_create_title_normal').style.display = 'inline';
             document.getElementById('pg_create_normal_1').style.display = 'block';
             document.getElementById('pg_create_normal_2').style.display = 'block';
+            
+            document.getElementById('pg_create_title_regex').style.display = 'none';
+            document.getElementById('pg_create_regex_1').style.display = 'none';
+            document.getElementById('pg_create_regex_2').style.display = 'none';
           }
           else if ( selection == pg_catlink )
           {
@@ -170,6 +188,10 @@ function page_Admin_PageGroups()
             document.getElementById('pg_create_title_normal').style.display = 'none';
             document.getElementById('pg_create_normal_1').style.display = 'none';
             document.getElementById('pg_create_normal_2').style.display = 'none';
+            
+            document.getElementById('pg_create_title_regex').style.display = 'none';
+            document.getElementById('pg_create_regex_1').style.display = 'none';
+            document.getElementById('pg_create_regex_2').style.display = 'none';
           }
           else if ( selection == pg_tagged )
           {
@@ -184,6 +206,28 @@ function page_Admin_PageGroups()
             document.getElementById('pg_create_title_normal').style.display = 'none';
             document.getElementById('pg_create_normal_1').style.display = 'none';
             document.getElementById('pg_create_normal_2').style.display = 'none';
+            
+            document.getElementById('pg_create_title_regex').style.display = 'none';
+            document.getElementById('pg_create_regex_1').style.display = 'none';
+            document.getElementById('pg_create_regex_2').style.display = 'none';
+          }
+          else if ( selection == pg_regex )
+          {
+            document.getElementById('pg_create_title_catlink').style.display = 'none';
+            document.getElementById('pg_create_catlink_1').style.display = 'none';
+            document.getElementById('pg_create_catlink_2').style.display = 'none';
+            
+            document.getElementById('pg_create_title_tagged').style.display = 'none';
+            document.getElementById('pg_create_tagged_1').style.display = 'none';
+            document.getElementById('pg_create_tagged_2').style.display = 'none';
+            
+            document.getElementById('pg_create_title_normal').style.display = 'none';
+            document.getElementById('pg_create_normal_1').style.display = 'none';
+            document.getElementById('pg_create_normal_2').style.display = 'none';
+            
+            document.getElementById('pg_create_title_regex').style.display = 'inline';
+            document.getElementById('pg_create_regex_1').style.display = 'block';
+            document.getElementById('pg_create_regex_2').style.display = 'block';
           }
         
         }
@@ -198,6 +242,10 @@ function page_Admin_PageGroups()
           document.getElementById('pg_create_title_tagged').style.display = 'none';
           document.getElementById('pg_create_tagged_1').style.display = 'none';
           document.getElementById('pg_create_tagged_2').style.display = 'none';
+          
+          document.getElementById('pg_create_title_regex').style.display = 'none';
+          document.getElementById('pg_create_regex_1').style.display = 'none';
+          document.getElementById('pg_create_regex_2').style.display = 'none';
           
           document.getElementById('pg_create_title_normal').style.display = 'inline';
           document.getElementById('pg_create_normal_1').style.display = 'block';
@@ -292,6 +340,7 @@ function page_Admin_PageGroups()
                 <option value="' . PAGE_GRP_NORMAL  . '" selected="selected">Static group of pages</option>
                 <option value="' . PAGE_GRP_TAGGED  . '">Group of pages with one tag</option>
                 <option value="' . PAGE_GRP_CATLINK . '">Link to category</option>
+                <option value="' . PAGE_GRP_REGEX   . '">Perl-compatible regular expression (advanced)</option>
               </select>
               </td>
             </tr>';
@@ -307,6 +356,9 @@ function page_Admin_PageGroups()
                 </span>
                 <span id="pg_create_title_catlink">
                   Mirror a category
+                </span>
+                <span id="pg_create_title_regex">
+                  Filter through a regular expression
                 </span>
               </th>
             </tr>';
@@ -324,6 +376,14 @@ function page_Admin_PageGroups()
                 <div id="pg_create_tagged_1">
                   Include pages with this tag:
                 </div>
+                <div id="pg_create_regex_1">
+                  Regular expression:<br />
+                  <small>Be sure to include the starting and ending delimiters and any flags you might need.<br />
+                         These pages might help: <a href="http://us.php.net/manual/en/reference.pcre.pattern.modifiers.php">Pattern modifiers</a> &bull;
+                         <a href="http://us.php.net/manual/en/reference.pcre.pattern.syntax.php">Pattern syntax</a><br />
+                         Examples: <tt>/^(Special|Admin):/i</tt> &bull; <tt>/^Image:([0-9]+)$/</tt><br />
+                         Developers, remember that this will be matched against the full page identifier string. This means that <tt>/^About_Enano$/</tt>
+                         will NOT match the page Special:About_Enano.</small>
               </td>';
             
       echo '  <td class="row1">
@@ -340,6 +400,9 @@ function page_Admin_PageGroups()
                 </div>
                 <div id="pg_create_catlink_2">
                   ' . $catlist . '
+                </div>
+                <div id="pg_create_regex_2">
+                  <input type="text" name="regex" size="60" /> 
                 </div>
               </td>
             </tr>';
@@ -911,6 +974,9 @@ function page_Admin_PageGroups()
         case PAGE_GRP_NORMAL:
           $type = 'Static set of pages';
           break;
+        case PAGE_GRP_REGEX:
+          $type = 'Regular expression match';
+          break;
       }
       $target = '';
       if ( $row['pg_type'] == PAGE_GRP_TAGGED )
@@ -920,6 +986,10 @@ function page_Admin_PageGroups()
       else if ( $row['pg_type'] == PAGE_GRP_CATLINK )
       {
         $target = 'Category: ' . htmlspecialchars(get_page_title($paths->nslist['Category'] . sanitize_page_id($row['pg_target'])));
+      }
+      else if ( $row['pg_type'] == PAGE_GRP_REGEX )
+      {
+        $target = 'Expression: <tt>' . htmlspecialchars($row['pg_target']) . '</tt>';
       }
       $btn_edit = '<input type="submit" name="action[edit][' . $row['pg_id'] . ']" value="Edit" />';
       $btn_del = '<input type="submit" name="action[del][' . $row['pg_id'] . ']" value="Delete" />';

@@ -37,6 +37,7 @@ define('GROUP_ID_MOD', 3);
 define('PAGE_GRP_CATLINK', 1);
 define('PAGE_GRP_TAGGED', 2);
 define('PAGE_GRP_NORMAL', 3);
+define('PAGE_GRP_REGEX', 4);
 
 //
 // User types - don't touch these
