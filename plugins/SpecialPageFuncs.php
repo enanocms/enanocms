@@ -151,13 +151,13 @@ function page_Special_CreatePage()
     {
       $db->_die('The page entry could not be inserted.');
     }
-    $q = $db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace,page_text) VALUES(\''.$urlname.'\', \''.$_POST['namespace'].'\', \''.$db->escape('Please edit this page! <nowiki><script type="text/javascript">ajaxEditor();</script></nowiki>').'\');');
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace,page_text) VALUES(\''.$urlname.'\', \''.$_POST['namespace'].'\', \''.'\');');
     if ( !$q )
     {
       $db->_die('The page text entry could not be inserted.');
     }
     
-    header('Location: '.makeUrlNS($_POST['namespace'], sanitize_page_id($p)));
+    header('Location: '.makeUrlNS($_POST['namespace'], sanitize_page_id($p)) . '#do:edit');
     exit;
   }
   $template->header();
