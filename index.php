@@ -141,6 +141,11 @@
           <input type="submit" name="_cancel" value="Cancel" />
         </form>
       ';
+      if ( getConfig('wiki_edit_notice') == '1' )
+      {
+        $notice = getConfig('wiki_edit_notice_text');
+        echo RenderMan::render($notice);
+      }
       $template->footer();
       break;
     case 'viewsource':
