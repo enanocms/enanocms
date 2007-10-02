@@ -460,8 +460,8 @@ class RenderMan {
       list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
       $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
       
-      $url = makeUrl($matches[1][$i], false, true);
-      $inner_text = htmlspecialchars(get_page_title($pid_clean));
+      $url = makeUrl($pid_clean, false, true);
+      $inner_text = ( isPage($pid_clean) ) ? htmlspecialchars(get_page_title($pid_clean)) : htmlspecialchars($matches[1][$i]);
       $quot = '"';
       $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
       
