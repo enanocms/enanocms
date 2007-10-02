@@ -654,59 +654,145 @@ class PageUtils {
   function rollback($id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$session->get_permissions('history_rollback')) return('You are not authorized to perform rollbacks.');
-    if(!preg_match('#^([0-9]+)$#', (string)$id)) return('The value "id" on the query string must be an integer.');
+    if ( !$session->get_permissions('history_rollback') )
+    {
+      return('You are not authorized to perform rollbacks.');
+    }
+    if ( !preg_match('#^([0-9]+)$#', (string)$id) )
+    {
+      return('The value "id" on the query string must be an integer.');
+    }
     $e = $db->sql_query('SELECT log_type,action,date_string,page_id,namespace,page_text,char_tag,author,edit_summary FROM '.table_prefix.'logs WHERE time_id='.$id.';');
-    if(!$e) $db->_die('The rollback data could not be selected.');
+    if ( !$e )
+    {
+      $db->_die('The rollback data could not be selected.');
+    }
     $rb = $db->fetchrow();
     $db->free_result();
-    switch($rb['log_type']) {
+    
+    if ( $rb['log_type'] == 'page' && $rb['action'] != 'delete' )
+    {
+      $pagekey = $paths->nslist[$rb['namespace']] . $rb['page_id'];
+      if ( !isset($paths->pages[$pagekey]) )
+      {
+        return "Page doesn't exist";
+      }
+      $pagedata =& $paths->pages[$pagekey];
+      $protected = false;
+      // Special case: is the page protected? if so, check for even_when_protected permissions
+      if($pagedata['protected'] == 2)
+      {
+        // The page is semi-protected, determine permissions
+        if($session->user_logged_in && $session->reg_time + 60*60*24*4 < time()) 
+        {
+          $protected = false;
+        }
+        else
+        {
+          $protected = true;
+        }
+      }
+      else
+      {
+        $protected = ( $pagedata['protected'] == 1 );
+      }
+      
+      $perms = $session->fetch_page_acl($rb['page_id'], $rb['namespace']);
+      
+      if ( $protected && !$perms->get_permissions('even_when_protected') )
+      {
+        return "Because this page is protected, you need moderator rights to roll back changes.";
+      }
+    }
+    else
+    {
+      $perms =& $session;
+    }
+    
+    switch($rb['log_type'])
+    {
       case "page":
-        switch($rb['action']) {
+        switch($rb['action'])
+        {
           case "edit":
+            if ( !$perms->get_permissions('edit_page') )
+              return "You don't have permission to edit pages, so rolling back edits can't be allowed either.";
             $t = $db->escape($rb['page_text']);
             $e = $db->sql_query('UPDATE '.table_prefix.'page_text SET page_text=\''.$t.'\',char_tag=\''.$rb['char_tag'].'\' WHERE page_id=\''.$rb['page_id'].'\' AND namespace=\''.$rb['namespace'].'\'');
-            if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            else return('The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the state it was in on '.$rb['date_string'].'.');
+            if ( !$e )
+            {
+              return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
+            }
+            else
+            {
+              return 'The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the state it was in on '.$rb['date_string'].'.';
+            }
             break;
           case "rename":
+            if ( !$perms->get_permissions('rename') )
+              return "You don't have permission to rename pages, so rolling back renames can't be allowed either.";
             $t = $db->escape($rb['edit_summary']);
             $e = $db->sql_query('UPDATE '.table_prefix.'pages SET name=\''.$t.'\' WHERE urlname=\''.$rb['page_id'].'\' AND namespace=\''.$rb['namespace'].'\'');
-            if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            else return('The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the name it had ("'.$rb['edit_summary'].'") before '.$rb['date_string'].'.');
+            if ( !$e )
+            {
+              return "An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
+            }
+            else
+            {
+              return 'The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the name it had ("'.$rb['edit_summary'].'") before '.$rb['date_string'].'.';
+            }
             break;
           case "prot":
+            if ( !$perms->get_permissions('protect') )
+              return "You don't have permission to protect pages, so rolling back protection can't be allowed either.";
             $e = $db->sql_query('UPDATE '.table_prefix.'pages SET protected=0 WHERE urlname=\''.$rb['page_id'].'\' AND namespace=\''.$rb['namespace'].'\'');
-            if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            else return('The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at '.$rb['date_string'].'.');
+            if ( !$e )
+              return "An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
+            else
+              return 'The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at '.$rb['date_string'].'.';
             break;
           case "semiprot":
+            if ( !$perms->get_permissions('protect') )
+              return "You don't have permission to protect pages, so rolling back protection can't be allowed either.";
             $e = $db->sql_query('UPDATE '.table_prefix.'pages SET protected=0 WHERE urlname=\''.$rb['page_id'].'\' AND namespace=\''.$rb['namespace'].'\'');
-            if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            else return('The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at '.$rb['date_string'].'.');
+            if ( !$e )
+              return "An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
+            else
+              return 'The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at '.$rb['date_string'].'.';
             break;
           case "unprot":
+            if ( !$perms->get_permissions('protect') )
+              return "You don't have permission to protect pages, so rolling back protection can't be allowed either.";
             $e = $db->sql_query('UPDATE '.table_prefix.'pages SET protected=1 WHERE urlname=\''.$rb['page_id'].'\' AND namespace=\''.$rb['namespace'].'\'');
-            if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            else return('The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been protected according to the log created at '.$rb['date_string'].'.');
+            if ( !$e )
+              return "An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
+            else
+              return 'The page "'.$paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been protected according to the log created at '.$rb['date_string'].'.';
             break;
           case "delete":
-            if(!$session->get_permissions('history_rollback_extra')) return('Administrative privileges are required for page undeletion.');
-            if(isset($paths->pages[$paths->cpage['urlname']])) return('You cannot raise a dead page that is alive.');
+            if ( !$perms->get_permissions('history_rollback_extra') )
+              return 'Administrative privileges are required for page undeletion.';
+            if ( isset($paths->pages[$paths->cpage['urlname']]) )
+              return 'You cannot raise a dead page that is alive.';
             $name = str_replace('_', ' ', $rb['page_id']);
             $e = $db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace) VALUES( \''.$name.'\', \''.$rb['page_id'].'\',\''.$rb['namespace'].'\' )');if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
             $e = $db->sql_query('SELECT page_text,char_tag FROM '.table_prefix.'logs WHERE page_id=\''.$rb['page_id'].'\' AND namespace=\''.$rb['namespace'].'\' AND log_type=\'page\' AND action=\'edit\' ORDER BY time_id DESC;'); if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
             $r = $db->fetchrow();
             $e = $db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace,page_text,char_tag) VALUES(\''.$rb['page_id'].'\',\''.$rb['namespace'].'\',\''.$db->escape($r['page_text']).'\',\''.$r['char_tag'].'\')'); if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            return('The page "'.$name.'" has been undeleted according to the log created at '.$rb['date_string'].'.');
+            return 'The page "'.$name.'" has been undeleted according to the log created at '.$rb['date_string'].'.';
             break;
           case "reupload":
-            if(!$session->get_permissions('history_rollbacks_extra')) return('Administrative privileges are required for file rollbacks.');
+            if ( !$session->get_permissions('history_rollbacks_extra') )
+            {
+              return 'Administrative privileges are required for file rollbacks.';
+            }
             $newtime = time();
             $newdate = date('d M Y h:i a');
-            if(!$db->sql_query('UPDATE '.table_prefix.'logs SET time_id='.$newtime.',date_string=\''.$newdate.'\' WHERE time_id='.$id)) return('Error during query: '.mysql_error());
-            if(!$db->sql_query('UPDATE '.table_prefix.'files SET time_id='.$newtime.' WHERE time_id='.$id)) return('Error during query: '.mysql_error());
-            return('The file has been rolled back to the version uploaded on '.date('d M Y h:i a', (int)$id).'.');
+            if(!$db->sql_query('UPDATE '.table_prefix.'logs SET time_id='.$newtime.',date_string=\''.$newdate.'\' WHERE time_id='.$id))
+              return 'Error during query: '.mysql_error();
+            if(!$db->sql_query('UPDATE '.table_prefix.'files SET time_id='.$newtime.' WHERE time_id='.$id))
+              return 'Error during query: '.mysql_error();
+            return 'The file has been rolled back to the version uploaded on '.date('d M Y h:i a', (int)$id).'.';
             break;
           default:
             return('Rollback of the action "'.$rb['action'].'" is not yet supported.');
