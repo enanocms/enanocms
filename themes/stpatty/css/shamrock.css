@@ -16,6 +16,8 @@ html,body {
 }
 body {
   background-color: #101d14;
+  /* color added in 1.0.2 to fix light text in dark desktop themes */
+  color: #202020;
   background-image: url(../images/bghatching.gif);
   background-repeat: repeat;
   font-family: "Lucida Sans Unicode", sans-serif;
