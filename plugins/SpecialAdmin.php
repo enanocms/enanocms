@@ -2834,9 +2834,8 @@ function page_Special_EditSidebar()
     
     if(isset($_GET['action']) && isset($_GET['id']))
     {
-      if(preg_match('#^([0-9]*)$#', $_GET['id']))
+      if(!preg_match('#^([0-9]*)$#', $_GET['id']))
       {
-      } else {
         echo '<div class="warning-box">Error with action: $_GET["id"] was not an integer, aborting to prevent SQL injection</div>';
       }
       switch($_GET['action'])

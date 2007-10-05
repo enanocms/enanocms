@@ -871,78 +871,232 @@ class template {
     else return '';
   }
   
-  function process_template($file) {
+  /**
+   * Compiles and executes a template based on the current variables and booleans. Loads
+   * the theme and initializes variables if needed. This mostly just calls child functions.
+   * @param string File to process
+   * @return string
+   */
+  
+  function process_template($file)
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!defined('ENANO_TEMPLATE_LOADED'))
     {
       $this->load_theme();
       $this->init_vars();
     }
-    eval($this->compile_template($file));
-    return $tpl_code;
+    
+    $compiled = $this->compile_template($file);
+    return eval($compiled);
   }
   
-  function extract_vars($file) {
+  /**
+   * Loads variables from the specified template file. Returns an associative array containing the variables.
+   * @param string Template file to process (elements.tpl)
+   * @return array
+   */
+  
+  function extract_vars($file)
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$this->theme)
+    
+    // Sometimes this function gets called before the theme is loaded
+    // This is a bad coding practice so this function will always be picky.
+    if ( !$this->theme )
     {
       die('$template->extract_vars(): theme not yet loaded, so we can\'t open template files yet...this is a bug and should be reported.<br /><br />Backtrace, most recent call first:<pre>'.enano_debug_print_backtrace(true).'</pre>');
     }
-    if(!is_file(ENANO_ROOT . '/themes/'.$this->theme.'/'.$file)) die('Cannot find '.$file.' file for style "'.$this->theme.'", exiting');
-    $text = file_get_contents(ENANO_ROOT . '/themes/'.$this->theme.'/'.$file);
-    preg_match_all('#<\!-- VAR ([A-z0-9_-]*) -->(.*?)<\!-- ENDVAR \\1 -->#is', $text, $matches);
-    $tplvars = Array();
-    for($i=0;$i<sizeof($matches[1]);$i++)
+    
+    // Full pathname of template file
+    $tpl_file_fullpath = ENANO_ROOT . '/themes/' . $this->theme . '/' . $file;
+    
+    // Make sure the template even exists
+    if ( !is_file($tpl_file_fullpath) )
     {
-      $tplvars[$matches[1][$i]] = $matches[2][$i];
+      die_semicritical('Cannot find template file',
+                       '<p>The template parser was asked to load the file "' . htmlspecialchars($filename) . '", but that file couldn\'t be found in the directory for
+                           the current theme.</p>
+                        <p>Additional debugging information:<br />
+                           <b>Theme currently in use: </b>' . $this->theme . '<br />
+                           <b>Requested file: </b>' . $file . '
+                           </p>');
     }
+    // Retrieve file contents
+    $text = file_get_contents($tpl_file_fullpath);
+    if ( !$text )
+    {
+      return false;
+    }
+    
+    // Get variables, regular expressions FTW
+    preg_match_all('#<\!-- VAR ([A-z0-9_-]*) -->(.*?)<\!-- ENDVAR \\1 -->#is', $text, $matches);
+    
+    // Initialize return values
+    $tplvars = Array();
+    
+    // Loop through each match, setting $tplvars[ $first_subpattern ] to $second_subpattern
+    for ( $i = 0; $i < sizeof($matches[1]); $i++ )
+    {
+      $tplvars[ $matches[1][$i] ] = $matches[2][$i];
+    }
+    
+    // All done!
     return $tplvars;
   }
-  function compile_template($text) {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!is_file(ENANO_ROOT . '/themes/'.$this->theme.'/'.$text)) die('Cannot find '.$text.' file for style, exiting');
-    $n = $text;
-    $tpl_filename = ENANO_ROOT . '/cache/' . $this->theme . '-' . str_replace('/', '-', $n) . '.php';
-    if(!is_file(ENANO_ROOT . '/themes/'.$this->theme.'/'.$text)) die('Cannot find '.$text.' file for style, exiting');
-    if(file_exists($tpl_filename) && getConfig('cache_thumbs')=='1')
+  
+  /**
+   * Compiles a block of template code.
+   * @param string The text to process
+   * @return string
+   */
+  
+  function compile_tpl_code($text)
+  {
+    // A random seed used to salt tags
+    $seed = md5 ( microtime() . mt_rand() );
+    
+    // Strip out PHP sections
+    preg_match_all('/<\?php(.+?)\?>/is', $text, $php_matches);
+    
+    foreach ( $php_matches[0] as $i => $match )
     {
-      include($tpl_filename);
-      $text = file_get_contents(ENANO_ROOT . '/themes/'.$this->theme.'/'.$text);
-      if(isset($md5) && $md5 == md5($text)) {
+      // Substitute the PHP section with a random tag
+      $tag = "{PHP:$i:$seed}";
+      $text = str_replace_once($match, $tag, $text);
+    }
+    
+    // Escape slashes and single quotes in template code
+    $text = str_replace('\\', '\\\\', $text);
+    $text = str_replace('\'', '\\\'', $text);
+    
+    // Initialize the PHP compiled code
+    $text = 'ob_start(); echo \''.$text.'\'; $tpl_code = ob_get_contents(); ob_end_clean(); return $tpl_code;';
+    
+    ##
+    ## Main rules
+    ##
+    
+    //
+    // Conditionals
+    //
+    
+    // If-else-end
+    $text = preg_replace('/<!-- BEGIN ([A-z0-9_-]+?) -->(.*?)<!-- BEGINELSE \\1 -->(.*?)<!-- END \\1 -->/is', '\'; if ( $this->tpl_bool[\'\\1\'] ) { echo \'\\2\'; } else { echo \'\\3\'; } echo \'', $text);
+    
+    // If-end
+    $text = preg_replace('/<!-- BEGIN ([A-z0-9_-]+?) -->(.*?)<!-- END \\1 -->/is', '\'; if ( $this->tpl_bool[\'\\1\'] ) { echo \'\\2\'; } echo \'', $text);
+    
+    // If not-else-end
+    $text = preg_replace('/<!-- BEGINNOT ([A-z0-9_-]+?) -->(.*?)<!-- BEGINELSE \\1 -->(.*?)<!-- END \\1 -->/is', '\'; if ( !$this->tpl_bool[\'\\1\'] ) { echo \'\\2\'; } else { echo \'\\3\'; } echo \'', $text);
+    
+    // If not-end
+    $text = preg_replace('/<!-- BEGINNOT ([A-z0-9_-]+?) -->(.*?)<!-- END \\1 -->/is', '\'; if ( !$this->tpl_bool[\'\\1\'] ) { echo \'\\2\'; } echo \'', $text);
+    
+    // If set-else-end
+    $text = preg_replace('/<!-- IFSET ([A-z0-9_-]+?) -->(.*?)<!-- BEGINELSE \\1 -->(.*?)<!-- END \\1 -->/is', '\'; if ( isset($this->tpl_strings[\'\\1\']) ) { echo \'\\2\'; } else { echo \'\\3\'; } echo \'', $text);
+    
+    // If set-end
+    $text = preg_replace('/<!-- IFSET ([A-z0-9_-]+?) -->(.*?)<!-- END \\1 -->/is', '\'; if ( isset($this->tpl_strings[\'\\1\']) ) { echo \'\\2\'; } echo \'', $text);
+    
+    // If plugin loaded-else-end
+    $text = preg_replace('/<!-- IFPLUGIN ([A-z0-9_\.-]+?) -->(.*?)<!-- BEGINELSE \\1 -->(.*?)<!-- END \\1 -->/is', '\'; if ( getConfig(\'plugin_\\1\') == \'1\' ) { echo \'\\2\'; } else { echo \'\\3\'; } echo \'', $text);
+    
+    // If plugin loaded-end
+    $text = preg_replace('/<!-- IFPLUGIN ([A-z0-9_\.-]+?) -->(.*?)<!-- END \\1 -->/is', '\'; if ( getConfig(\'plugin_\\1\') == \'1\' ) { echo \'\\2\'; } echo \'', $text);
+    
+    //
+    // Data substitution/variables
+    //
+    
+    // System messages
+    $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $this->tplWikiFormat($pages->sysMsg(\'\\1\')) . \'', $text);
+    
+    // Template variables
+    $text = preg_replace('/\{([A-z0-9_-]+?)\}/is', '\' . $this->tpl_strings[\'\\1\'] . \'', $text);
+    
+    // Reinsert PHP
+    
+    foreach ( $php_matches[1] as $i => $match )
+    {
+      // Substitute the random tag with the "real" PHP code
+      $tag = "{PHP:$i:$seed}";
+      $text = str_replace_once($tag, "'; $match echo '", $text);
+    }
+    
+    return $text;  
+    
+  }
+  
+  /**
+   * Compiles the contents of a given template file, possibly using a cached copy, and returns the compiled code.
+   * @param string Filename of template (header.tpl)
+   * @return string
+   */
+  
+  function compile_template($filename)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Full path to template file
+    $tpl_file_fullpath = ENANO_ROOT . '/themes/' . $this->theme . '/' . $filename;
+    
+    // Make sure the file exists
+    if ( !is_file($tpl_file_fullpath) )
+    {
+      die_semicritical('Cannot find template file',
+                       '<p>The template parser was asked to load the file "' . htmlspecialchars($filename) . '", but that file couldn\'t be found in the directory for
+                           the current theme.</p>
+                        <p>Additional debugging information:<br />
+                           <b>Theme currently in use: </b>' . $this->theme . '<br />
+                           <b>Requested file: </b>' . $file . '
+                           </p>');
+    }
+    
+    // Check for cached copy
+    // This will make filenames in the pattern of theme-file.tpl.php
+    $cache_file = ENANO_ROOT . '/cache/' . $this->theme . '-' . str_replace('/', '-', $filename) . '.php';
+    
+    // Only use cached copy if caching is enabled
+    //   (it is enabled by default I think)
+    if ( file_exists($cache_file) && getConfig('cache_thumbs') == '1' )
+    {
+      // Cache files are auto-generated, but otherwise are normal PHP files
+      include($cache_file);
+      
+      // Fetch content of the ORIGINAL
+      $text = file_get_contents($tpl_file_fullpath);
+      
+      // $md5 will be set by the cached file
+      // This makes sure that a cached copy of the template is used only if its MD5
+      // matches the MD5 of the file that the compiled file was compiled from.
+      if ( isset($md5) && $md5 == md5($text) )
+      {
         return str_replace('\\"', '"', $tpl_text);
       }
     }
-    $text = file_get_contents(ENANO_ROOT . '/themes/'.$this->theme.'/'.$n);
     
+    // We won't use the cached copy here
+    $text = file_get_contents($tpl_file_fullpath);
+    
+    // This will be used later when writing the cached file
     $md5 = md5($text);
     
-    $seed = md5 ( microtime() . mt_rand() );
-    preg_match_all("/<\?php(.*?)\?>/is", $text, $m);
-    //die('<pre>'.htmlspecialchars(print_r($m, true)).'</pre>');
-    for($i = 0; $i < sizeof($m[1]); $i++)
+    // Preprocessing and checks complete - compile the code
+    $text = $this->compile_tpl_code($text);
+    
+    // Perhaps caching is enabled and the admin has changed the template?
+    if ( is_writable( ENANO_ROOT . '/cache/' ) && getConfig('cache_thumbs') == '1' )
     {
-      $text = str_replace("<?php{$m[1][$i]}?>", "{PHPCODE:{$i}:{$seed}}", $text);
-    }
-    //die('<pre>'.htmlspecialchars($text).'</pre>');
-    $text = 'ob_start(); echo \''.str_replace('\'', '\\\'', $text).'\'; $tpl_code = ob_get_contents(); ob_end_clean();';
-    $text = preg_replace('#<!-- BEGIN (.*?) -->#is', '\'; if(isset($this->tpl_bool[\'\\1\']) && $this->tpl_bool[\'\\1\']) { echo \'', $text);
-    $text = preg_replace('#<!-- IFSET (.*?) -->#is', '\'; if(isset($this->tpl_strings[\'\\1\'])) { echo \'', $text);
-    $text = preg_replace('#<!-- IFPLUGIN (.*?) -->#is', '\'; if(getConfig(\'plugin_\\1\')==\'1\') { echo \'', $text);
-    $text = preg_replace('#<!-- SYSMSG (.*?) -->#is', '\'; echo $template->tplWikiFormat($paths->sysMsg(\'\\1\')); echo \'', $text);
-    $text = preg_replace('#<!-- BEGINNOT (.*?) -->#is', '\'; if(!$this->tpl_bool[\'\\1\']) { echo \'', $text);
-    $text = preg_replace('#<!-- BEGINELSE (.*?) -->#is', '\'; } else { echo \'', $text);
-    $text = preg_replace('#<!-- END (.*?) -->#is', '\'; } echo \'', $text);
-    $text = preg_replace('#\{([A-z0-9]*)\}#is', '\'.$this->tpl_strings[\'\\1\'].\'', $text);
-    for($i = 0; $i < sizeof($m[1]); $i++)
-    {
-      $text = str_replace("{PHPCODE:{$i}:{$seed}}", "'; {$m[1][$i]} echo '", $text);
-    }
-    if(is_writable(ENANO_ROOT.'/cache/') && getConfig('cache_thumbs')=='1')
-    {
-      //die($tpl_filename);
-      $h = fopen($tpl_filename, 'w');
-      if(!$h) return $text;
-      $t = addslashes($text);
+      $h = fopen($cache_file, 'w');
+      if ( !$h )
+      {
+        // Couldn't open the file - silently ignore and return
+        return $text;
+      }
+      
+      // Escape the compiled code so it can be eval'ed
+      $text_escaped = addslashes($text);
       $notice = <<<EOF
 
 /*
@@ -951,36 +1105,33 @@ class template {
  */
 
 EOF;
-      fwrite($h, '<?php ' . $notice . ' $md5 = \''.$md5.'\'; $tpl_text = \''.$t.'\'; ?>');
+      // This is really just a normal PHP file that sets a variable or two and exits.
+      // $tpl_text actually will contain the compiled code
+      fwrite($h, '<?php ' . $notice . ' $md5 = \'' . $md5 . '\'; $tpl_text = \'' . $text_escaped . '\'; ?>');
       fclose($h);
     }
+    
     return $text; //('<pre>'.htmlspecialchars($text).'</pre>');
   }
   
-  function compile_template_text($text) {
-    $seed = md5 ( microtime() . mt_rand() );
-    preg_match_all("/<\?php(.*?)\?>/is", $text, $m);
-    //die('<pre>'.htmlspecialchars(print_r($m, true)).'</pre>');
-    for($i = 0; $i < sizeof($m[1]); $i++)
-    {
-      $text = str_replace("<?php{$m[1][$i]}?>", "{PHPCODE:{$i}:{$seed}}", $text);
-    }
-    //die('<pre>'.htmlspecialchars($text).'</pre>');
-    $text = 'ob_start(); echo \''.str_replace('\'', '\\\'', $text).'\'; $tpl_code = ob_get_contents(); ob_end_clean(); return $tpl_code;';
-    $text = preg_replace('#<!-- BEGIN (.*?) -->#is', '\'; if(isset($this->tpl_bool[\'\\1\']) && $this->tpl_bool[\'\\1\']) { echo \'', $text);
-    $text = preg_replace('#<!-- IFSET (.*?) -->#is', '\'; if(isset($this->tpl_strings[\'\\1\'])) { echo \'', $text);
-    $text = preg_replace('#<!-- IFPLUGIN (.*?) -->#is', '\'; if(getConfig(\'plugin_\\1\')==\'1\') { echo \'', $text);
-    $text = preg_replace('#<!-- SYSMSG (.*?) -->#is', '\'; echo $template->tplWikiFormat($paths->sysMsg(\'\\1\')); echo \'', $text);
-    $text = preg_replace('#<!-- BEGINNOT (.*?) -->#is', '\'; if(!$this->tpl_bool[\'\\1\']) { echo \'', $text);
-    $text = preg_replace('#<!-- BEGINELSE (.*?) -->#is', '\'; } else { echo \'', $text);
-    $text = preg_replace('#<!-- END (.*?) -->#is', '\'; } echo \'', $text);
-    $text = preg_replace('#\{([A-z0-9]*)\}#is', '\'.$this->tpl_strings[\'\\1\'].\'', $text);
-    for($i = 0; $i < sizeof($m[1]); $i++)
-    {
-      $text = str_replace("{PHPCODE:{$i}:{$seed}}", "'; {$m[1][$i]} echo '", $text);
-    }
-    return $text; //('<pre>'.htmlspecialchars($text).'</pre>');
+  
+  /**
+   * Compiles (parses) some template code with the current master set of variables and booleans.
+   * @param string Text to process
+   * @return string
+   */
+  
+  function compile_template_text($text)
+  {
+    // this might do something else in the future, possibly cache large templates
+    return $this->compile_tpl_code($text);
   }
+  
+  /**
+   * For convenience - compiles AND parses some template code.
+   * @param string Text to process
+   * @return string
+   */
   
   function parse($text)
   {
@@ -1004,7 +1155,18 @@ EOF;
   // So you can implement custom logic into your sidebar if you wish.
   // "Real" PHP support coming soon :-D
   
-  function tplWikiFormat($message, $filter_links = false, $filename = 'elements.tpl') {
+  /**
+   * Takes a blob of HTML with the specially formatted template-oriented wikitext and formats it. Does not use eval().
+   * This function butchers every coding standard in Enano and should eventually be rewritten. The fact is that the
+   * code _works_ and does a good job of checking for errors and cleanly complaining about them.
+   * @param string Text to process
+   * @param bool Ignored for backwards compatibility
+   * @param string File to get variables for sidebar data from
+   * @return string
+   */
+  
+  function tplWikiFormat($message, $filter_links = false, $filename = 'elements.tpl')
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $filter_links = false;
     $tplvars = $this->extract_vars($filename);
@@ -1029,83 +1191,93 @@ EOF;
     
     // Conditionals
     
-    preg_match_all('#\{if ([A-Za-z0-9_ &\|\!-]*)\}(.*?)\{\/if\}#is', $message, $links);
+    preg_match_all('#\{if ([A-Za-z0-9_ \(\)&\|\!-]*)\}(.*?)\{\/if\}#is', $message, $links);
     
-    for($i=0;$i<sizeof($links[1]);$i++)
+    // Temporary exception from coding standards - using tab length of 4 here for clarity
+    for ( $i = 0; $i < sizeof($links[1]); $i++ )
     {
-      $message = str_replace('{if '.$links[1][$i].'}'.$links[2][$i].'{/if}', '{CONDITIONAL:'.$i.':'.$random_id.'}', $message);
-      
-      // Time for some manual parsing...
-      $chk = false;
-      $current_id = '';
-      $prn_level = 0;
-      // Used to keep track of where we are in the conditional
-      // Object of the game: turn {if this && ( that OR !something_else )} ... {/if} into if( ( isset($this->tpl_bool['that']) && $this->tpl_bool['that'] ) && ...
-      // Method of attack: escape all variables, ignore all else. Non-valid code is filtered out by a regex above.
-      $in_var_now = true;
-      $in_var_last = false;
-      $current_var = '';
-      $current_var_start_pos = 0;
-      $current_var_end_pos   = 0;
-      $j = -1;
-      $links[1][$i] = $links[1][$i] . ' ';
-      $d = strlen($links[1][$i]);
-      while($j < $d)
-      {
-        $j++;
-        $in_var_last = $in_var_now;
+        $condition =& $links[1][$i];
+        $message = str_replace('{if '.$condition.'}'.$links[2][$i].'{/if}', '{CONDITIONAL:'.$i.':'.$random_id.'}', $message);
         
-        $char = substr($links[1][$i], $j, 1);
-        $in_var_now = ( preg_match('#^([A-z0-9_]*){1}$#', $char) ) ? true : false;
-        if(!$in_var_last && $in_var_now)
+        // Time for some manual parsing...
+        $chk = false;
+        $current_id = '';
+        $prn_level = 0;
+        // Used to keep track of where we are in the conditional
+        // Object of the game: turn {if this && ( that OR !something_else )} ... {/if} into if( ( isset($this->tpl_bool['that']) && $this->tpl_bool['that'] ) && ...
+        // Method of attack: escape all variables, ignore all else. Non-valid code is filtered out by a regex above.
+        $in_var_now = true;
+        $in_var_last = false;
+        $current_var = '';
+        $current_var_start_pos = 0;
+        $current_var_end_pos     = 0;
+        $j = -1;
+        $condition = $condition . ' ';
+        $d = strlen($condition);
+        while($j < $d)
         {
-          $current_var_start_pos = $j;
+            $j++;
+            $in_var_last = $in_var_now;
+            
+            $char = substr($condition, $j, 1);
+            $in_var_now = ( preg_match('#^([A-z0-9_]*){1}$#', $char) ) ? true : false;
+            if(!$in_var_last && $in_var_now)
+            {
+                $current_var_start_pos = $j;
+            }
+            if($in_var_last && !$in_var_now)
+            {
+                $current_var_end_pos = $j;
+            }
+            if($in_var_now)
+            {
+                $current_var .= $char;
+                continue;
+            }
+            // OK we are not inside of a variable. That means that we JUST hit the end because the counter ($j) will be advanced to the beginning of the next variable once processing here is complete.
+            if($char != ' ' && $char != '(' && $char != ')' && $char != 'A' && $char != 'N' && $char != 'D' && $char != 'O' && $char != 'R' && $char != '&' && $char != '|' && $char != '!' && $char != '<' && $char != '>' && $char != '0' && $char != '1' && $char != '2' && $char != '3' && $char != '4' && $char != '5' && $char != '6' && $char != '7' && $char != '8' && $char != '9')
+            {
+                // XSS attack! Bail out
+                $errmsg    = '<p><b>Error:</b> Syntax error (possibly XSS attack) caught in template code:</p>';
+                $errmsg .= '<pre>';
+                $errmsg .= '{if '.htmlspecialchars($condition).'}';
+                $errmsg .= "\n    ";
+                for ( $k = 0; $k < $j; $k++ )
+                {
+                    $errmsg .= " ";
+                }
+                // Show position of error
+                $errmsg .= '<span style="color: red;">^</span>';
+                $errmsg .= '</pre>';
+                $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $errmsg, $message);
+                continue 2;
+            }
+            if($current_var != '')
+            {
+                $cd = '( isset($this->tpl_bool[\''.$current_var.'\']) && $this->tpl_bool[\''.$current_var.'\'] )';
+                $cvt = substr($condition, 0, $current_var_start_pos) . $cd . substr($condition, $current_var_end_pos, strlen($condition));
+                $j = $j + strlen($cd) - strlen($current_var);
+                $current_var = '';
+                $condition = $cvt;
+                $d = strlen($condition);
+            }
         }
-        if($in_var_last && !$in_var_now)
+        $condition = substr($condition, 0, strlen($condition)-1);
+        $condition = '$chk = ( '.$condition.' ) ? true : false;';
+        eval($condition);
+        
+        if($chk)
         {
-          $current_var_end_pos = $j;
+            if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], 0, strpos($links[2][$i], '{else}'));
+            else $c = $links[2][$i];
+            $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
         }
-        if($in_var_now)
+        else
         {
-          $current_var .= $char;
-          continue;
+            if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], strpos($links[2][$i], '{else}')+6, strlen($links[2][$i]));
+            else $c = '';
+            $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
         }
-        // OK we are not inside of a variable. That means that we JUST hit the end because the counter ($j) will be advanced to the beginning of the next variable once processing here is complete.
-        if($char != ' ' && $char != '(' && $char != ')' && $char != 'A' && $char != 'N' && $char != 'D' && $char != 'O' && $char != 'R' && $char != '&' && $char != '|' && $char != '!' && $char != '<' && $char != '>' && $char != '0' && $char != '1' && $char != '2' && $char != '3' && $char != '4' && $char != '5' && $char != '6' && $char != '7' && $char != '8' && $char != '9')
-        {
-          // XSS attack! Bail out
-          echo '<p><b>Error:</b> Syntax error (possibly XSS attack) caught in template code:</p>';
-          echo '<pre>';
-          echo '{if '.$links[1][$i].'}';
-          echo "\n    ";
-          for($k=0;$k<$j;$k++) echo " ";
-          echo '<span style="color: red;">^</span>';
-          echo '</pre>';
-          continue 2;
-        }
-        if($current_var != '')
-        {
-          $cd = '( isset($this->tpl_bool[\''.$current_var.'\']) && $this->tpl_bool[\''.$current_var.'\'] )';
-          $cvt = substr($links[1][$i], 0, $current_var_start_pos) . $cd . substr($links[1][$i], $current_var_end_pos, strlen($links[1][$i]));
-          $j = $j + strlen($cd) - strlen($current_var);
-          $current_var = '';
-          $links[1][$i] = $cvt;
-          $d = strlen($links[1][$i]);
-        }
-      }
-      $links[1][$i] = substr($links[1][$i], 0, strlen($links[1][$i])-1);
-      $links[1][$i] = '$chk = ( '.$links[1][$i].' ) ? true : false;';
-      eval($links[1][$i]);
-      
-      if($chk) { // isset($this->tpl_bool[$links[1][$i]]) && $this->tpl_bool[$links[1][$i]]
-        if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], 0, strpos($links[2][$i], '{else}'));
-        else $c = $links[2][$i];
-        $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
-      } else {
-        if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], strpos($links[2][$i], '{else}')+6, strlen($links[2][$i]));
-        else $c = '';
-        $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
-      }
     }
     
     preg_match_all('#\{!if ([A-Za-z_-]*)\}(.*?)\{\/if\}#is', $message, $links);
