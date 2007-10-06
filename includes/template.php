@@ -1345,26 +1345,26 @@ EOF;
     // $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?) ([^\]]+)\\]#', '<a href="\\1://\\2">\\3</a><br style="display: none;" />', $message);
     // $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\]#', '<a href="\\1://\\2">\\1://\\2</a><br style="display: none;" />', $message);
     
-    preg_match_all('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\ ([^\]]+)]#', $message, $ext_link);
+    preg_match_all('/\[((https?|ftp|irc):\/\/([^@\]"\':]+)?((([a-z0-9-]+\.)*)[a-z0-9-]+)(\/[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]*(\?(([a-z0-9_-]+)(=[A-z0-9_%\|~`\!@#\$\^&\*\(\):;\.,\/-\[\]]+)?((&([a-z0-9_-]+)(=[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]+)?)*))?)?)?) ([^\]]+)\]/is', $message, $ext_link);
     
     for ( $i = 0; $i < count($ext_link[0]); $i++ )
     {
       $text_parser->assign_vars(Array(  
-          'HREF'  => "{$ext_link[1][$i]}://{$ext_link[2][$i]}",
+          'HREF'  => $ext_link[1][$i],
           'FLAGS' => '',
-          'TEXT'  => $ext_link[3][$i]
+          'TEXT'  => $ext_link[16][$i]
         ));
       $message = str_replace($ext_link[0][$i], $text_parser->run(), $message);
     }
     
-    preg_match_all('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\]#', $message, $ext_link);
+    preg_match_all('/\[((https?|ftp|irc):\/\/([^@\]"\':]+)?((([a-z0-9-]+\.)*)[a-z0-9-]+)(\/[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]*(\?(([a-z0-9_-]+)(=[A-z0-9_%\|~`\!@#\$\^&\*\(\):;\.,\/-\[\]]+)?((&([a-z0-9_-]+)(=[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]+)?)*))?)?)?)\]/is', $message, $ext_link);
     
     for ( $i = 0; $i < count($ext_link[0]); $i++ )
     {
       $text_parser->assign_vars(Array(  
-          'HREF'  => "{$ext_link[1][$i]}://{$ext_link[2][$i]}",
+          'HREF'  => $ext_link[1][$i],
           'FLAGS' => '',
-          'TEXT'  => htmlspecialchars("{$ext_link[1][$i]}://{$ext_link[2][$i]}")
+          'TEXT'  => htmlspecialchars($ext_link[1][$i])
         ));
       $message = str_replace($ext_link[0][$i], $text_parser->run(), $message);
     }
