@@ -625,8 +625,7 @@ class template {
     
     $this->tpl_bool['stupid_mode'] = false;
     
-    if($paths->page == $paths->nslist['Special'].'Administration') $this->tpl_bool['in_admin'] = true;
-    else $this->tpl_bool['in_admin'] = false;
+    $this->tpl_bool['in_admin'] = ( ( $paths->cpage['urlname_nons'] == 'Administration' && $paths->namespace == 'Special' ) || $paths->namespace == 'Admin' );
     
     $p = ( isset($_GET['printable']) ) ? '/printable' : '';
     

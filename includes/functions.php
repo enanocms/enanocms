@@ -1789,6 +1789,26 @@ function hexdecode($hex)
 
 function sanitize_html($html, $filter_php = true)
 {
+  // Random seed for substitution
+  $rand_seed = md5( sha1(microtime()) . mt_rand() );
+  
+  // Strip out comments that are already escaped
+  preg_match_all('/&lt;!--(.*?)--&gt;/', $html, $comment_match);
+  $i = 0;
+  foreach ( $comment_match[0] as $comment )
+  {
+    $html = str_replace_once($comment, "{HTMLCOMMENT:$i:$rand_seed}", $html);
+    $i++;
+  }
+  
+  // Strip out code sections that will be postprocessed by Text_Wiki
+  preg_match_all(';^<code(\s[^>]*)?>((?:(?R)|.)*?)\n</code>(\s|$);msi', $html, $code_match);
+  $i = 0;
+  foreach ( $code_match[0] as $code )
+  {
+    $html = str_replace_once($code, "{TW_CODE:$i:$rand_seed}", $html);
+    $i++;
+  }
 
   $html = preg_replace('#<([a-z]+)([\s]+)([^>]+?)'.htmlalternatives('javascript:').'(.+?)>(.*?)</\\1>#is', '&lt;\\1\\2\\3javascript:\\59&gt;\\60&lt;/\\1&gt;', $html);
   $html = preg_replace('#<([a-z]+)([\s]+)([^>]+?)'.htmlalternatives('javascript:').'(.+?)>#is', '&lt;\\1\\2\\3javascript:\\59&gt;', $html);
@@ -1900,6 +1920,22 @@ function sanitize_html($html, $filter_php = true)
 
   // Unstrip comments
   $html = preg_replace('/&lt;!--([^>]*?)--&gt;/i', '', $html);
+  
+  // Restore stripped comments
+  $i = 0;
+  foreach ( $comment_match[0] as $comment )
+  {
+    $html = str_replace_once("{HTMLCOMMENT:$i:$rand_seed}", $comment, $html);
+    $i++;
+  }
+  
+  // Restore stripped code
+  $i = 0;
+  foreach ( $code_match[0] as $code )
+  {
+    $html = str_replace_once("{TW_CODE:$i:$rand_seed}", $code, $html);
+    $i++;
+  }
 
   return $html;
 

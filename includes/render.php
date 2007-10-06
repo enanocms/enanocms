@@ -248,6 +248,12 @@ class RenderMan {
       $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
     }
     
+    $code = $plugins->setHook('render_wikiformat_pre');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     if ( !$plaintext )
     {
       // Process images
@@ -290,10 +296,26 @@ class RenderMan {
       $result = $wiki->transform($text, 'Xhtml');
     }
     
-    // if ( !$plaintext )
-    // {
-    //   $result = RenderMan::process_imgtags_stage2($result, $taglist);
-    // }
+    // HTML fixes
+    $result = preg_replace('#<tr>([\s]*?)<\/tr>#is', '', $result);
+    $result = preg_replace('#<p>([\s]*?)<\/p>#is', '', $result);
+    $result = preg_replace('#<br />([\s]*?)<table#is', '<table', $result);
+    $result = str_replace("<pre><code>\n", "<pre><code>", $result);
+    $result = preg_replace("/<p><table([^>]*?)><\/p>/", "<table\\1>", $result);
+    $result = str_replace("<br />\n</td>", "\n</td>", $result);
+    $result = str_replace("<p><tr>", "<tr>", $result);
+    $result = str_replace("<tr><br />", "<tr>", $result);
+    $result = str_replace("</tr><br />", "</tr>", $result);
+    $result = str_replace("</table><br />", "</table>", $result);
+    $result = preg_replace('/<\/table>$/', "</table><br /><br />", $result);
+    $result = str_replace("<p></div></p>", "</div>", $result);
+    $result = str_replace("<p></table></p>", "</table>", $result);
+    
+    $code = $plugins->setHook('render_wikiformat_post');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
     
     // Reinsert <nowiki> sections
     for($i=0;$i<$nw;$i++)
@@ -311,7 +333,8 @@ class RenderMan {
     
   }
   
-  function wikiFormat($message, $filter_links = true, $do_params = false, $plaintext = false) {
+  function wikiFormat($message, $filter_links = true, $do_params = false, $plaintext = false)
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     return RenderMan::next_gen_wiki_format($message, $plaintext, $filter_links, $do_params);
@@ -384,6 +407,8 @@ class RenderMan {
     $result = str_replace("</table></p>", "</table>", $result);
     $result = str_replace("</table><br />", "</table>", $result);
     $result = preg_replace('/<\/table>$/', "</table><br /><br />", $result);
+    $result = str_replace("<p></div></p>", "</div>", $result);
+    $result = str_replace("<p></table></p>", "</table>", $result);
     
     $result = str_replace('<nowiki>',  '&lt;nowiki&gt;',  $result);
     $result = str_replace('</nowiki>', '&lt;/nowiki&gt;', $result);
