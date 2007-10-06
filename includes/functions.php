@@ -1822,6 +1822,8 @@ function sanitize_html($html, $filter_php = true)
   $tag_whitelist = array_keys ( setupAttributeWhitelist() );
   if ( !$filter_php )
     $tag_whitelist[] = '?php';
+  // allow HTML comments
+  $tag_whitelist[] = '!--';
   $len = strlen($html);
   $in_quote = false;
   $quote_char = '';
@@ -1882,7 +1884,11 @@ function sanitize_html($html, $filter_php = true)
       }
       else
       {
+        // If not filtering PHP, don't bother to strip
         if ( $tag_name == '?php' && !$filter_php )
+          continue;
+        // If this is a comment, likewise skip this "tag"
+        if ( $tag_name == '!--' )
           continue;
         $f = fixTagAttributes( $attribs_only, $tag_name );
         $s = ( empty($f) ) ? '' : ' ';
@@ -1911,16 +1917,13 @@ function sanitize_html($html, $filter_php = true)
     }
 
   }
-
+  
   // Vulnerability from ha.ckers.org/xss.html:
   // <script src="http://foo.com/xss.js"
   // <
   // The rule is so specific because everything else will have been filtered by now
   $html = preg_replace('/<(script|iframe)(.+?)src=([^>]*)</i', '&lt;\\1\\2src=\\3&lt;', $html);
 
-  // Unstrip comments
-  $html = preg_replace('/&lt;!--([^>]*?)--&gt;/i', '', $html);
-  
   // Restore stripped comments
   $i = 0;
   foreach ( $comment_match[0] as $comment )
