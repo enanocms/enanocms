@@ -822,6 +822,33 @@ function ajaxAdminPage()
   window.location = loc;
 }
 
+var navto_ns;
+var navto_pg;
+var navto_ul;
+
+function ajaxLoginNavTo(namespace, page_id, min_level)
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
+  navto_pg = page_id;
+  navto_ns = namespace;
+  navto_ul = min_level;
+  if ( auth_level < min_level )
+  {
+    ajaxPromptAdminAuth(function(k) {
+      ENANO_SID = k;
+      auth_level = navto_ul;
+      var loc = makeUrlNS(navto_ns, navto_pg);
+      if ( (ENANO_SID + ' ').length > 1 )
+        window.location = loc;
+    }, min_level);
+    return false;
+  }
+  var loc = makeUrlNS(navto_ns, navto_pg);
+  window.location = loc;
+}
+
 function ajaxAdminUser(username)
 {
   // IE <6 pseudo-compatibility

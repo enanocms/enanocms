@@ -100,7 +100,7 @@ function userprefs_menu_init()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $userprefs_menu_links;
   
-  userprefs_menu_add('Profile/membership', 'Edit e-mail address and password', makeUrlNS('Special', 'Preferences/EmailPassword'));
+  userprefs_menu_add('Profile/membership', 'Edit e-mail address and password', makeUrlNS('Special', 'Preferences/EmailPassword') . '" onclick="ajaxLoginNavTo(\'Special\', \'Preferences/EmailPassword\', '.USER_LEVEL_CHPREF.'); return false;');
   userprefs_menu_add('Profile/membership', 'Edit signature', makeUrlNS('Special', 'Preferences/Signature'));
   userprefs_menu_add('Profile/membership', 'Edit public profile', makeUrlNS('Special', 'Preferences/Profile'));
   userprefs_menu_add('Private messages', 'Inbox', makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'));
@@ -302,11 +302,14 @@ function page_Special_Preferences()
   {
     case 'Home':
       global $email;
-      $user_page = '<a href="' . makeUrlNS('User', str_replace(' ', '_', $session->username)) . '">user page</a> <sup>(<a href="' . makeUrlNS('User', str_replace(' ', '_', $session->username)) . '#do:comments">comments</a>)</sup>';
+      $userpage_id = $paths->nslist['User'] . sanitize_page_id($session->username);
+      $userpage_exists = ( isPage($userpage_id) ) ? '' : ' class="wikilink-nonexistent"';
+      $user_page = '<a href="' . makeUrlNS('User', sanitize_page_id($session->username)) . '"' . $userpage_exists . '>user page</a> <sup>(<a href="' . makeUrlNS('User', str_replace(' ', '_', $session->username)) . '#do:comments">comments</a>)</sup>';
       $site_admin = $email->encryptEmail(getConfig('contact_email'), '', '', 'administrator');
+      $make_one_now = '<a href="' . makeUrlNS('User', sanitize_page_id($session->username)) . '">make one now</a>';
       echo "<h3 style='margin-top: 0;'>$session->username, welcome to your control panel</h3>";
       echo "<p>Here you can make changes to your profile, view statistics on yourself on this site, and set your preferences.</p>
-            <p>If you have not already done so, you are encouraged to make a $user_page and tell the other members of this site a little about yourself.</p>
+            <p>Your $user_page is your free writing space. You can use it to tell the other members of this site a little bit about yourself. If you haven't already made a user page, why not $make_one_now?</p>
             <p>Use the menu at the top to navigate around. If you have any questions, you may contact the $site_admin.";
       break;
     case 'EmailPassword':

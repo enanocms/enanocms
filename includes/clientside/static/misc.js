@@ -499,8 +499,8 @@ function ajaxValidateLogin()
               ajax_auth_error_string = response.error;
               mb_current_obj.updateContent('');
               document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
-              new Spry.Effect.Shake('messageBox', {duration: 1500}).start();
-              new Spry.Effect.Shake('messageBoxButtons', {duration: 1500}).start();
+              var mb_parent = document.getElementById('messageBox').parentNode;
+              new Spry.Effect.Shake(mb_parent, {duration: 1500}).start();
               setTimeout("document.getElementById('messageBox').style.backgroundColor = '#FFF'; ajaxAuthLoginInnerSetup();", 2500);
             }
             else
