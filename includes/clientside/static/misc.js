@@ -337,9 +337,11 @@ function ajaxAuthLoginInnerSetup()
         response = parseJSON(response);
         var level = ajax_auth_level_cache;
         var form_html = '';
+        var shown_error = false;
         if ( ajax_auth_error_string )
         {
-          form_html += '<span style="color: #D84308;">' + ajax_auth_error_string + '</span><br /><br />';
+          shown_error = true;
+          form_html += '<div class="error-box-mini" id="ajax_auth_error">' + ajax_auth_error_string + '</div>';
           ajax_auth_error_string = false;
         }
         else if ( level > USER_LEVEL_MEMBER )
@@ -356,7 +358,7 @@ function ajaxAuthLoginInnerSetup()
             </tr> \
             <tr> \
               <td colspan="2" style="text-align: center;"> \
-                <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title)+'">full login form</a>.<br />';
+                <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title, 'level=' + level)+'">full login form</a>.<br />';
        if ( level <= USER_LEVEL_MEMBER )
        {
          form_html += ' \
@@ -383,6 +385,19 @@ function ajaxAuthLoginInnerSetup()
         }
         $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
         $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        /*
+        ## This causes the background image to disappear under Fx 2
+        if ( shown_error )
+        {
+          // fade to #FFF4F4
+          var fader = new Spry.Effect.Highlight('ajax_auth_error', {duration: 1000, from: '#FFF4F4', to: '#805600', restoreColor: '#805600', finish: function()
+              {
+                var fader = new Spry.Effect.Highlight('ajax_auth_error', {duration: 3000, from: '#805600', to: '#FFF4F4', restoreColor: '#FFF4F4'});
+                fader.start();
+          }});
+          fader.start();
+        }
+        */
       }
     });
 }
