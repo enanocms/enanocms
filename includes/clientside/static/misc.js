@@ -301,6 +301,7 @@ function searchFormSubmit(obj)
 var ajax_auth_prompt_cache = false;
 var ajax_auth_mb_cache = false;
 var ajax_auth_level_cache = false;
+var ajax_auth_error_string = false;
 
 function ajaxPromptAdminAuth(call_on_ok, level)
 {
@@ -336,7 +337,12 @@ function ajaxAuthLoginInnerSetup()
         response = parseJSON(response);
         var level = ajax_auth_level_cache;
         var form_html = '';
-        if ( level > USER_LEVEL_MEMBER )
+        if ( ajax_auth_error_string )
+        {
+          form_html += '<span style="color: #D84308;">' + ajax_auth_error_string + '</span><br /><br />';
+          ajax_auth_error_string = false;
+        }
+        else if ( level > USER_LEVEL_MEMBER )
         {
           form_html += 'Please re-enter your login details, to verify your identity.<br /><br />';
         }
@@ -488,8 +494,20 @@ function ajaxValidateLogin()
             }
             break;
           case 'error':
-            alert(response.error);
-            ajaxAuthLoginInnerSetup();
+            if ( response.error == 'The username and/or password is incorrect.' )
+            {
+              ajax_auth_error_string = response.error;
+              mb_current_obj.updateContent('');
+              document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
+              new Spry.Effect.Shake('messageBox', {duration: 1500}).start();
+              new Spry.Effect.Shake('messageBoxButtons', {duration: 1500}).start();
+              setTimeout("document.getElementById('messageBox').style.backgroundColor = '#FFF'; ajaxAuthLoginInnerSetup();", 2500);
+            }
+            else
+            {
+              alert(response.error);
+              ajaxAuthLoginInnerSetup();
+            }
             break;
           default:
             alert(ajax.responseText);

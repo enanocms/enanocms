@@ -283,6 +283,7 @@ var thefiles = [
   'flyin.js',
   'paginate.js',
   'pwstrength.js',
+  'SpryEffects.js',
   'loader.js'
 ];
 

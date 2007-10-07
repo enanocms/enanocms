@@ -783,7 +783,13 @@ class template {
     dc_here('template: generating and sending the page header');
     if(!defined('ENANO_HEADERS_SENT'))
       define('ENANO_HEADERS_SENT', '');
-    if(!$this->no_headers) echo ( $simple ) ? $this->process_template('simple-header.tpl') : $this->process_template('header.tpl');
+    if ( !$this->no_headers )
+    {
+      $header = ( $simple ) ?
+        $this->process_template('simple-header.tpl') :
+        $this->process_template('header.tpl');
+      echo $header;
+    }
     if ( !$simple && $session->user_logged_in && $session->unread_pms > 0 )
     {
       echo $this->notify_unread_pms();

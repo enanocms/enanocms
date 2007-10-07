@@ -2744,7 +2744,7 @@ function decode_unicode_array($array)
 function sanitize_tag($tag)
 {
   $tag = strtolower($tag);
-  $tag = preg_replace('/[^\w _-]+/', '', $tag);
+  $tag = preg_replace('/[^\w _@\$%\^&-]+/', '', $tag);
   $tag = trim($tag);
   return $tag;
 }
