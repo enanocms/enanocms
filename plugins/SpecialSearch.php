@@ -100,18 +100,21 @@ function page_Special_Search()
   if(!empty($q))
   {
     // See if any pages directly match the title
-          
-    for ( $i = 0; $i < count ( $paths->pages ) / 2; $i++ )
+    
+    if ( strlen($q) >= 4 )
     {
-      $pg =& $paths->pages[$i];
-      $q_lc = strtolower( str_replace(' ', '_', $q) );
-      $q_tl = strtolower( str_replace('_', ' ', $q) );
-      $p_lc = strtolower($pg['urlname']);
-      $p_tl = strtolower($pg['name']);
-      if ( strstr($p_tl, $q_tl) || strstr($p_lc, $q_lc) && $pg['visible'] == 1 )
+      for ( $i = 0; $i < count ( $paths->pages ) / 2; $i++ )
       {
-        echo '<div class="usermessage">Perhaps you were looking for <b><a href="' . makeUrl($pg['urlname'], false, true) . '">' . htmlspecialchars($pg['name']) . '</a></b>?</div>';
-        break;
+        $pg =& $paths->pages[$i];
+        $q_lc = strtolower( str_replace(' ', '_', $q) );
+        $q_tl = strtolower( str_replace('_', ' ', $q) );
+        $p_lc = strtolower($pg['urlname']);
+        $p_tl = strtolower($pg['name']);
+        if ( strstr($p_tl, $q_tl) || strstr($p_lc, $q_lc) && $pg['visible'] == 1 )
+        {
+          echo '<div class="usermessage">Perhaps you were looking for <b><a href="' . makeUrl($pg['urlname'], false, true) . '">' . htmlspecialchars($pg['name']) . '</a></b>?</div>';
+          break;
+        }
       }
     }
           
