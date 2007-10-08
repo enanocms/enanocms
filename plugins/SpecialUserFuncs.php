@@ -128,7 +128,7 @@ function page_Special_Login()
           'lockout_fails' => $fails,
           'lockout_policy' => $policy,
           'lockout_last_time' => $row['timestamp'],
-          'server_time' => time(),
+          'time_rem' => ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ),
           'captcha' => ''
         );
       if ( $policy == 'captcha' )
@@ -214,8 +214,10 @@ function page_Special_Login()
         $attempts = intval($__login_status['lockout_fails']);
         if ( $attempts > $__login_status['lockout_threshold'])
           $attempts = $__login_status['lockout_threshold'];
-        $time_rem = ( $__login_status['lockout_last_time'] % ( $__login_status['lockout_duration'] * 60 ) );
-        $time_rem = $__login_status['lockout_duration'] - round($time_rem / 60);
+        
+        $server_time = time();
+        $time_rem = $__login_status['lockout_duration'] - round( ( $server_time - $__login_status['lockout_last_time'] ) / 60 );
+        
         $s = ( $time_rem == 1 ) ? '' : 's';
         $errstring = "You have used up all {$__login_status['lockout_threshold']} allowed login attempts. Please wait {$time_rem} minute$s before attempting to log in again";
         if ( $__login_status['lockout_policy'] == 'captcha' )

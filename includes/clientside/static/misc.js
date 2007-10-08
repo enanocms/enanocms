@@ -337,8 +337,7 @@ function ajaxAuthErrorToString($data)
       $attempts = parseInt($data['lockout_fails']);
       if ( $attempts > $data['lockout_threshold'])
         $attempts = $data['lockout_threshold'];
-      window.console.debug('server time ', $data.server_time, ', last time ', $data['lockout_last_time'], ', duration ', $data['lockout_duration']);
-      $time_rem = $data.lockout_duration - Math.round( ( $data.server_time - $data.lockout_last_time ) / 60 );
+      $time_rem = $data.time_rem;
       $s = ( $time_rem == 1 ) ? '' : 's';
       $errstring = "You have used up all "+$data['lockout_threshold']+" allowed login attempts. Please wait "+$time_rem+" minute"+$s+" before attempting to log in again";
       if ( $data['lockout_policy'] == 'captcha' )

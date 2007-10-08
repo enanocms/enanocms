@@ -577,7 +577,7 @@ class sessionManager {
         $timestamp_cutoff = time() - $duration;
         $q = $this->sql('SELECT timestamp FROM '.table_prefix.'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
         $fails = $db->numrows();
-        if ( $fails > $threshold )
+        if ( $fails >= $threshold )
         {
           // ooh boy, somebody's in trouble ;-)
           $row = $db->fetchrow();
@@ -589,6 +589,7 @@ class sessionManager {
               'lockout_duration' => ( $duration / 60 ),
               'lockout_fails' => $fails,
               'lockout_policy' => $policy,
+              'time_rem' => ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ),
               'lockout_last_time' => $row['timestamp']
             );
         }
@@ -650,6 +651,7 @@ class sessionManager {
             'lockout_threshold' => $threshold,
             'lockout_duration' => ( $duration / 60 ),
             'lockout_fails' => $fails,
+            'time_rem' => ( $duration / 60 ),
             'lockout_policy' => $policy
           );
       }
@@ -761,6 +763,7 @@ class sessionManager {
             'lockout_threshold' => $threshold,
             'lockout_duration' => ( $duration / 60 ),
             'lockout_fails' => $fails,
+            'time_rem' => ( $duration / 60 ),
             'lockout_policy' => $policy
           );
       }
@@ -825,6 +828,7 @@ class sessionManager {
               'lockout_duration' => ( $duration / 60 ),
               'lockout_fails' => $fails,
               'lockout_policy' => $policy,
+              'time_rem' => $duration - round( ( time() - $row['timestamp'] ) / 60 ),
               'lockout_last_time' => $row['timestamp']
             );
         }
