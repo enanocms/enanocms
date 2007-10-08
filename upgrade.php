@@ -447,7 +447,7 @@ switch($_GET['mode'])
     {
       if(isset($_POST['login']))
       {
-        $session->login_without_crypto($_POST['username'], $_POST['password'], false, $ul_admin);
+        $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, $ul_admin);
         if($session->sid_super)
         {
           header('Location: upgrade.php?mode=welcome&auth='.$session->sid_super);
@@ -464,7 +464,7 @@ switch($_GET['mode'])
         <?php
         if(isset($_POST['login']))
         {
-          echo '<tr><td colspan="2"><p style="color: red;">Login failed. Bad password?</p></td></tr>';
+          echo '<tr><td colspan="2"><p style="color: red;">Login failed: '. $result['error'] . '</p></td></tr>';
         }
         ?>
         <tr>
