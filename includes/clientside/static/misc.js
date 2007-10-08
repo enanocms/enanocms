@@ -302,6 +302,52 @@ var ajax_auth_prompt_cache = false;
 var ajax_auth_mb_cache = false;
 var ajax_auth_level_cache = false;
 var ajax_auth_error_string = false;
+var ajax_auth_show_captcha = false;
+
+function ajaxAuthErrorToString($data)
+{
+  var $errstring = $data.error;
+  // this was literally copied straight from the PHP code.
+  switch($data.error)
+  {
+    case 'key_not_found':
+      $errstring = 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.';
+      break;
+    case 'key_wrong_length':
+      $errstring = 'The encryption key was the wrong length.';
+      break;
+    case 'too_big_for_britches':
+      $errstring = 'You are trying to authenticate at a level that your user account does not permit.';
+      break;
+    case 'invalid_credentials':
+      $errstring = 'You have entered an invalid username or password. Please enter your login details again.';
+      if ( $data.lockout_policy == 'lockout' )
+      {
+        $errstring += ' You have used up '+$data['lockout_fails']+' out of '+$data['lockout_threshold']+' login attempts. After you have used up all '+$data['lockout_threshold']+' login attempts, you will be locked out from logging in for '+$data['lockout_duration']+' minutes.';
+      }
+      else if ( $data.lockout_policy == 'captcha' )
+      {
+        $errstring += ' You have used up '+$data['lockout_fails']+' out of '+$data['lockout_threshold']+' login attempts. After you have used up all '+$data['lockout_threshold']+' login attempts, you will have to enter a visual confirmation code before logging in, effective for '+$data['lockout_duration']+' minutes.';
+      }
+      break;
+    case 'backend_fail':
+      $errstring = 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.';
+      break;
+    case 'locked_out':
+      $attempts = parseInt($data['lockout_fails']);
+      if ( $attempts > $data['lockout_threshold'])
+        $attempts = $data['lockout_threshold'];
+      window.console.debug('server time ', $data.server_time, ', last time ', $data['lockout_last_time'], ', duration ', $data['lockout_duration']);
+      $time_rem = $data.lockout_duration - Math.round( ( $data.server_time - $data.lockout_last_time ) / 60 );
+      $s = ( $time_rem == 1 ) ? '' : 's';
+      $errstring = "You have used up all "+$data['lockout_threshold']+" allowed login attempts. Please wait "+$time_rem+" minute"+$s+" before attempting to log in again";
+      if ( $data['lockout_policy'] == 'captcha' )
+        $errstring += ', or enter the visual confirmation code shown above in the appropriate box';
+      $errstring += '.';
+      break;
+  }
+  return $errstring;
+}
 
 function ajaxPromptAdminAuth(call_on_ok, level)
 {
@@ -320,6 +366,17 @@ function ajaxPromptAdminAuth(call_on_ok, level)
   var title = ( level > USER_LEVEL_MEMBER ) ? 'You are requesting a sensitive operation.' : 'Please enter your username and password to continue.';
   ajax_auth_mb_cache = new messagebox(MB_OKCANCEL|MB_ICONLOCK, title, loading_win);
   ajax_auth_mb_cache.onbeforeclick['OK'] = ajaxValidateLogin;
+  ajax_auth_mb_cache.onbeforeclick['Cancel'] = function()
+  {
+    if ( document.getElementById('autoCaptcha') )
+    {
+      var to = fly_out_top(document.getElementById('autoCaptcha'), false, true);
+      setTimeout(function() {
+          var d = document.getElementById('autoCaptcha');
+          d.parentNode.removeChild(d);
+        }, to);
+    }
+  }
   ajaxAuthLoginInnerSetup();
 }
 
@@ -335,6 +392,20 @@ function ajaxAuthLoginInnerSetup()
           return false;
         }
         response = parseJSON(response);
+        var disable_controls = false;
+        if ( response.locked_out && !ajax_auth_error_string )
+        {
+          response.error = 'locked_out';
+          ajax_auth_error_string = ajaxAuthErrorToString(response);
+          if ( response.lockout_policy == 'captcha' )
+          {
+            ajax_auth_show_captcha = response.captcha;
+          }
+          else
+          {
+            disable_controls = true;
+          }
+        }
         var level = ajax_auth_level_cache;
         var form_html = '';
         var shown_error = false;
@@ -348,14 +419,28 @@ function ajaxAuthLoginInnerSetup()
         {
           form_html += 'Please re-enter your login details, to verify your identity.<br /><br />';
         }
+        if ( ajax_auth_show_captcha )
+         {
+           var captcha_html = ' \
+             <tr> \
+               <td>Code in image:</td> \
+               <td><input type="hidden" id="ajaxlogin_captcha_hash" value="' + ajax_auth_show_captcha + '" /><input type="text" tabindex="3" size="25" id="ajaxlogin_captcha_code" /> \
+             </tr>';
+         }
+         else
+         {
+           var captcha_html = '';
+         }
+         var disableme = ( disable_controls ) ? 'disabled="disabled" ' : '';
         form_html += ' \
           <table border="0" align="center"> \
             <tr> \
-              <td>Username:</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     size="25" /> \
+              <td>Username:</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     ' + disableme + 'size="25" /> \
             </tr> \
             <tr> \
-              <td>Password:</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" size="25" /> \
+              <td>Password:</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" ' + disableme + 'size="25" /> \
             </tr> \
+            ' + captcha_html + ' \
             <tr> \
               <td colspan="2" style="text-align: center;"> \
                 <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title, 'level=' + level)+'">full login form</a>.<br />';
@@ -383,8 +468,21 @@ function ajaxAuthLoginInnerSetup()
         {
           $('ajaxlogin_user').object.focus();
         }
-        $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
-        $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        if ( ajax_auth_show_captcha )
+        {
+          $('ajaxlogin_captcha_code').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
+          $('ajaxlogin_captcha_code').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        }
+        else
+        {
+          $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
+          $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        }
+        if ( disable_controls )
+        {
+          var panel = document.getElementById('messageBoxButtons');
+          panel.firstChild.disabled = true;
+        }
         /*
         ## This causes the background image to disappear under Fx 2
         if ( shown_error )
@@ -398,6 +496,11 @@ function ajaxAuthLoginInnerSetup()
           fader.start();
         }
         */
+        if ( ajax_auth_show_captcha )
+        {
+          ajaxShowCaptcha(ajax_auth_show_captcha);
+          ajax_auth_show_captcha = false;
+        }
       }
     });
 }
@@ -411,6 +514,15 @@ function ajaxValidateLogin()
   username = document.getElementById('ajaxlogin_user').value;
   password = document.getElementById('ajaxlogin_pass').value;
   auth_enabled = false;
+  
+  if ( document.getElementById('autoCaptcha') )
+  {
+    var to = fly_out_top(document.getElementById('autoCaptcha'), false, true);
+    setTimeout(function() {
+        var d = document.getElementById('autoCaptcha');
+        d.parentNode.removeChild(d);
+      }, to);
+  }
   
   disableJSONExts();
   
@@ -467,6 +579,12 @@ function ajaxValidateLogin()
     'level' : ajax_auth_level_cache
   };
   
+  if ( document.getElementById('ajaxlogin_captcha_hash') )
+  {
+    json_data.captcha_hash = document.getElementById('ajaxlogin_captcha_hash').value;
+    json_data.captcha_code = document.getElementById('ajaxlogin_captcha_code').value;
+  }
+  
   json_data = toJSONString(json_data);
   json_data = encodeURIComponent(json_data);
   
@@ -509,18 +627,23 @@ function ajaxValidateLogin()
             }
             break;
           case 'error':
-            if ( response.error == 'The username and/or password is incorrect.' )
+            if ( response.data.error == 'invalid_credentials' || response.data.error == 'locked_out' )
             {
-              ajax_auth_error_string = response.error;
+              ajax_auth_error_string = ajaxAuthErrorToString(response.data);
               mb_current_obj.updateContent('');
               document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
               var mb_parent = document.getElementById('messageBox').parentNode;
               new Spry.Effect.Shake(mb_parent, {duration: 1500}).start();
               setTimeout("document.getElementById('messageBox').style.backgroundColor = '#FFF'; ajaxAuthLoginInnerSetup();", 2500);
+              
+              if ( response.data.lockout_policy == 'captcha' && response.data.error == 'locked_out' )
+              {
+                ajax_auth_show_captcha = response.captcha;
+              }
             }
             else
             {
-              alert(response.error);
+              ajax_auth_error_string = ajaxAuthErrorToString(response.data);
               ajaxAuthLoginInnerSetup();
             }
             break;

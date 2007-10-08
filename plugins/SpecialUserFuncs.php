@@ -104,14 +104,60 @@ function page_Special_Login()
   $pubkey = $session->rijndael_genkey();
   $challenge = $session->dss_rand();
   
+  $locked_out = false;
+  // are we locked out?
+  $threshold = ( $_ = getConfig('lockout_threshold') ) ? intval($_) : 5;
+  $duration  = ( $_ = getConfig('lockout_duration') ) ? intval($_) : 15;
+  // convert to minutes
+  $duration  = $duration * 60;
+  $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
+  if ( $policy != 'disable' )
+  {
+    $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
+    $timestamp_cutoff = time() - $duration;
+    $q = $session->sql('SELECT timestamp FROM '.table_prefix.'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
+    $fails = $db->numrows();
+    if ( $fails >= $threshold )
+    {
+      $row = $db->fetchrow();
+      $locked_out = true;
+      $lockdata = array(
+          'locked_out' => true,
+          'lockout_threshold' => $threshold,
+          'lockout_duration' => ( $duration / 60 ),
+          'lockout_fails' => $fails,
+          'lockout_policy' => $policy,
+          'lockout_last_time' => $row['timestamp'],
+          'server_time' => time(),
+          'captcha' => ''
+        );
+      if ( $policy == 'captcha' )
+      {
+        $lockdata['captcha'] = $session->make_captcha();
+      }
+    }
+    $db->free_result();
+  }
+  
   if ( isset($_GET['act']) && $_GET['act'] == 'getkey' )
   {
     $username = ( $session->user_logged_in ) ? $session->username : false;
     $response = Array(
       'username' => $username,
       'key' => $pubkey,
-      'challenge' => $challenge
+      'challenge' => $challenge,
+      'locked_out' => false
       );
+    
+    if ( $locked_out )
+    {
+      foreach ( $lockdata as $x => $y )
+      {
+        $response[$x] = $y;
+      }
+      unset($x, $y);
+    }
+    
     $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
     $response = $json->encode($response);
     echo $response;
@@ -138,7 +184,46 @@ function page_Special_Login()
   $header = ( $level > USER_LEVEL_MEMBER ) ? 'Please re-enter your login details' : 'Please enter your username and password to log in.';
   if ( isset($_POST['login']) )
   {
-    echo '<p>'.$__login_status.'</p>';
+    $errstring = $__login_status['error'];
+    switch($__login_status['error'])
+    {
+      case 'key_not_found':
+        $errstring = 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.';
+        break;
+      case 'key_wrong_length':
+        $errstring = 'The encryption key was the wrong length.';
+        break;
+      case 'too_big_for_britches':
+        $errstring = 'You are trying to authenticate at a level that your user account does not permit.';
+        break;
+      case 'invalid_credentials':
+        $errstring = 'You have entered an invalid username or password. Please enter your login details again.';
+        if ( $__login_status['lockout_policy'] == 'lockout' )
+        {
+          $errstring .= ' You have used up '.$__login_status['lockout_fails'].' out of '.$__login_status['lockout_threshold'].' login attempts. After you have used up all '.$data['lockout_threshold'].' login attempts, you will be locked out from logging in for '.$__login_status['lockout_duration'].' minutes.';
+        }
+        else if ( $__login_status['lockout_policy'] == 'captcha' )
+        {
+          $errstring .= ' You have used up '.$__login_status['lockout_fails'].' out of '.$__login_status['lockout_threshold'].' login attempts. After you have used up all '.$data['lockout_threshold'].' login attempts, you will have to enter a visual confirmation code before logging in, effective for '.$__login_status['lockout_duration'].' minutes.';
+        }
+        break;
+      case 'backend_fail':
+        $errstring = 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.';
+        break;
+      case 'locked_out':
+        $attempts = intval($__login_status['lockout_fails']);
+        if ( $attempts > $__login_status['lockout_threshold'])
+          $attempts = $__login_status['lockout_threshold'];
+        $time_rem = ( $__login_status['lockout_last_time'] % ( $__login_status['lockout_duration'] * 60 ) );
+        $time_rem = $__login_status['lockout_duration'] - round($time_rem / 60);
+        $s = ( $time_rem == 1 ) ? '' : 's';
+        $errstring = "You have used up all {$__login_status['lockout_threshold']} allowed login attempts. Please wait {$time_rem} minute$s before attempting to log in again";
+        if ( $__login_status['lockout_policy'] == 'captcha' )
+        $errstring .= ', or enter the visual confirmation code shown above in the appropriate box';
+        $errstring .= '.';
+        break;
+    }
+    echo '<div class="error-box-mini">'.$errstring.'</div>';
   }
   if ( $p = $paths->getAllParams() )
   {
@@ -189,7 +274,7 @@ function page_Special_Login()
               ?> />
           </td>
           <?php if ( $level <= USER_LEVEL_MEMBER ) { ?>
-          <td rowspan="2" class="row3">
+          <td rowspan="<?php echo ( ( $locked_out && $lockdata['lockout_policy'] == 'captcha' ) ) ? '4' : '2'; ?>" class="row3">
             <small>Forgot your password? <a href="<?php echo makeUrlNS('Special', 'PasswordReset'); ?>">No problem.</a><br />
             Maybe you need to <a href="<?php echo makeUrlNS('Special', 'Register'); ?>">create an account</a>.</small>
           </td>
@@ -198,6 +283,21 @@ function page_Special_Login()
         <tr>
           <td class="row2">Password:<br /></td><td class="row1"><input name="pass" size="25" type="password" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '2' : '1'; ?>" /></td>
          </tr>
+         <?php
+         if ( $locked_out && $lockdata['lockout_policy'] == 'captcha' )
+         {
+           ?>
+           <tr>
+             <td class="row2" rowspan="2">Code in image:<br /></td><td class="row1"><input type="hidden" name="captcha_hash" value="<?php echo $lockdata['captcha']; ?>" /><input name="captcha_code" size="25" type="text" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '4'; ?>" /></td>
+           </tr>
+           <tr>
+             <td class="row3">
+               <img src="<?php echo makeUrlNS('Special', 'Captcha/' . $lockdata['captcha']) ?>" onclick="this.src=this.src+'/a';" style="cursor: pointer;" />
+             </td>
+           </tr>
+           <?php
+         }
+         ?>
          <?php if ( $level <= USER_LEVEL_MEMBER ) { ?>
          <tr>
            <td class="row3" colspan="3">
@@ -242,12 +342,12 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     $plugins->attachHook('login_password_reset', 'SpecialLogin_SendResponse_PasswordReset($row[\'user_id\'], $row[\'temp_password\']);');
     $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
     $data = $json->decode($_POST['params']);
+    $captcha_hash = ( isset($data['captcha_hash']) ) ? $data['captcha_hash'] : false;
+    $captcha_code = ( isset($data['captcha_code']) ) ? $data['captcha_code'] : false;
     $level = ( isset($data['level']) ) ? intval($data['level']) : USER_LEVEL_MEMBER;
-    $result = $session->login_with_crypto($data['username'], $data['crypt_data'], $data['crypt_key'], $data['challenge'], $level);
+    $result = $session->login_with_crypto($data['username'], $data['crypt_data'], $data['crypt_key'], $data['challenge'], $level, $captcha_hash, $captcha_code);
     $session->start();
-    //echo "$result\n$session->sid_super";
-    //exit;
-    if ( $result == 'success' )
+    if ( $result['success'] )
     {
       $response = Array(
           'result' => 'success',
@@ -256,9 +356,16 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     }
     else
     {
+      $captcha = '';
+      if ( $result['error'] == 'locked_out' && $result['lockout_policy'] == 'captcha' )
+      {
+        $session->kill_captcha();
+        $captcha = $session->make_captcha();
+      }
       $response = Array(
           'result' => 'error',
-          'error' => $result
+          'data' => $result,
+          'captcha' => $captcha
         );
     }
     $response = $json->encode($response);
@@ -267,17 +374,19 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     exit;
   }
   if(isset($_POST['login'])) {
+    $captcha_hash = ( isset($_POST['captcha_hash']) ) ? $_POST['captcha_hash'] : false;
+    $captcha_code = ( isset($_POST['captcha_code']) ) ? $_POST['captcha_code'] : false;
     if($_POST['use_crypt'] == 'yes')
     {
-      $result = $session->login_with_crypto($_POST['username'], $_POST['crypt_data'], $_POST['crypt_key'], $_POST['challenge_data'], intval($_POST['auth_level']));
+      $result = $session->login_with_crypto($_POST['username'], $_POST['crypt_data'], $_POST['crypt_key'], $_POST['challenge_data'], intval($_POST['auth_level']), $captcha_hash, $captcha_code);
     }
     else
     {
-      $result = $session->login_without_crypto($_POST['username'], $_POST['pass'], false, intval($_POST['auth_level']));
+      $result = $session->login_without_crypto($_POST['username'], $_POST['pass'], false, intval($_POST['auth_level']), $captcha_hash, $captcha_code);
     }
     $session->start();
     $paths->init();
-    if($result == 'success')
+    if($result['success'])
     {
       $template->load_theme($session->theme, $session->style);
       if(isset($_POST['return_to']))
