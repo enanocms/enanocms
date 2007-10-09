@@ -2796,7 +2796,7 @@ function aggressive_optimize_html($html)
   $strip_tags = implode('|', $strip_tags);
   
   // Strip out the tags and replace with placeholders
-  preg_match_all("#<($strip_tags)(.*?)>(.*?)</($strip_tags)>#is", $html, $matches);
+  preg_match_all("#<($strip_tags)([ ]+.*?)?>(.*?)</($strip_tags)>#is", $html, $matches);
   $seed = md5(microtime() . mt_rand()); // Random value used for placeholders
   for ($i = 0;$i < sizeof($matches[1]); $i++)
   {
@@ -2804,7 +2804,7 @@ function aggressive_optimize_html($html)
   }
   
   // Optimize (but don't obfuscate) Javascript
-  preg_match_all('/<script(.*?)>(.+?)<\/script>/is', $html, $jscript);
+  preg_match_all('/<script([ ]+.*?)?>(.*?)<\/script>/is', $html, $jscript);
   
   // list of Javascript reserved words - from about.com
   $reserved_words = array('abstract', 'as', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class', 'continue', 'const', 'debugger', 'default', 'delete', 'do',
@@ -2818,6 +2818,8 @@ function aggressive_optimize_html($html)
   for ( $i = 0; $i < count($jscript[0]); $i++ )
   {
     $js =& $jscript[2][$i];
+    
+    // echo('<pre>' . "-----------------------------------------------------------------------------\n" . htmlspecialchars($js) . '</pre>');
     
     // for line optimization, explode it
     $particles = explode("\n", $js);

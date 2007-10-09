@@ -3158,6 +3158,8 @@ function page_Special_EditSidebar()
           $parser = $template->makeParserText($vars['sidebar_section']);
           $c = $template->tplWikiFormat($row['block_content'], false, 'sidebar-editor.tpl');
           $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
+          // fix for the "Administration" link that somehow didn't get rendered properly
+          $c = preg_replace("/(^|\n)([ ]*)<a([ ]+.*)?>(.+)<\/a>(<br(.*)\/>)([\r\n]+|$)/isU", '\\1\\2<li><a\\3>\\4</a></li>\\7', $c);
           break;
         case BLOCK_HTML:
           $parser = $template->makeParserText($vars['sidebar_section_raw']);
