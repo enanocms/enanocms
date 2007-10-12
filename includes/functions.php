@@ -2804,7 +2804,7 @@ function aggressive_optimize_html($html)
   }
   
   // Optimize (but don't obfuscate) Javascript
-  preg_match_all('/<script([ ]+.*?)?>(.*?)<\/script>/is', $html, $jscript);
+  preg_match_all('/<script([ ]+.*?)?>(.*?)(\]\]>)?<\/script>/is', $html, $jscript);
   
   // list of Javascript reserved words - from about.com
   $reserved_words = array('abstract', 'as', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class', 'continue', 'const', 'debugger', 'default', 'delete', 'do',
