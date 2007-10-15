@@ -585,13 +585,12 @@ class sessionManager {
     $this->sql('SELECT password,old_encryption,user_id,user_level,theme,style,temp_password,temp_password_time FROM '.table_prefix.'users WHERE lcase(username)=\''.$db_username_lower.'\' OR username=\'' . $db_username . '\';');
     if($db->numrows() < 1)
     {
-      return "The username and/or password is incorrect.";
       // This wasn't logged in <1.0.2, dunno how it slipped through
       if($level > USER_LEVEL_MEMBER)
         $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
         $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
-        
+      return "The username and/or password is incorrect.";  
     }
     $row = $db->fetchrow();
     
@@ -708,8 +707,15 @@ class sessionManager {
     
     // Retrieve the real password from the database
     $this->sql('SELECT password,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix.'users WHERE lcase(username)=\''.$this->prepare_text(strtolower($username)).'\';');
-    if($db->numrows() < 1)
-      return 'The username and/or password is incorrect.';
+    if ( $db->numrows() < 1 )
+    {
+      // This wasn't logged in <1.0.2, dunno how it slipped through
+      if($level > USER_LEVEL_MEMBER)
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+      else
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+      return "The username and/or password is incorrect.";  
+    }
     $row = $db->fetchrow();
     
     // Check to see if we're logging in using a temporary password
