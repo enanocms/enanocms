@@ -264,6 +264,7 @@ var thefiles = [
   'admin-menu.js',
   'ajax.js',
   'autocomplete.js',
+  'autofill.js',
   'base64.js',
   'dropdown.js',
   'faders.js',

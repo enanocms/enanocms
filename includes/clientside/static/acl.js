@@ -128,7 +128,7 @@ function __aclBuildSelector(groups)
   usrsel = document.createElement('input');
   usrsel.type = 'text';
   usrsel.name = 'username';
-  usrsel.onkeyup = function() { ajaxUserNameComplete(this); };
+  usrsel.onkeyup = function() { new AutofillUsername(this, undefined, true); };
   usrsel.id = 'userfield_' + aclManagerID;
   try {
     usrsel.setAttribute("autocomplete","off");
