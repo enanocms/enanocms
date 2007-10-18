@@ -958,6 +958,7 @@ class template {
   
   function compile_tpl_code($text)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
     // A random seed used to salt tags
     $seed = md5 ( microtime() . mt_rand() );
     
@@ -986,29 +987,88 @@ class template {
     // Conditionals
     //
     
-    // If-else-end
-    $text = preg_replace('/<!-- BEGIN ([A-z0-9_-]+?) -->(.*?)<!-- BEGINELSE \\1 -->(.*?)<!-- END \\1 -->/is', '\'; if ( $this->tpl_bool[\'\\1\'] ) { echo \'\\2\'; } else { echo \'\\3\'; } echo \'', $text);
+    $keywords = array('BEGIN', 'BEGINNOT', 'IFSET', 'IFPLUGIN');
+    $code = $plugins->setHook('template_compile_logic_keyword');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
     
-    // If-end
-    $text = preg_replace('/<!-- BEGIN ([A-z0-9_-]+?) -->(.*?)<!-- END \\1 -->/is', '\'; if ( $this->tpl_bool[\'\\1\'] ) { echo \'\\2\'; } echo \'', $text);
+    $keywords = implode('|', $keywords);
     
-    // If not-else-end
-    $text = preg_replace('/<!-- BEGINNOT ([A-z0-9_-]+?) -->(.*?)<!-- BEGINELSE \\1 -->(.*?)<!-- END \\1 -->/is', '\'; if ( !$this->tpl_bool[\'\\1\'] ) { echo \'\\2\'; } else { echo \'\\3\'; } echo \'', $text);
+    // Matches
+    //          1     2                               3                 4   56                       7     8
+    $regexp = '/(<!-- ('. $keywords .') ([A-z0-9_-]+) -->)(.*)((<!-- BEGINELSE \\3 -->)(.*))?(<!-- END \\3 -->)/isU';
     
-    // If not-end
-    $text = preg_replace('/<!-- BEGINNOT ([A-z0-9_-]+?) -->(.*?)<!-- END \\1 -->/is', '\'; if ( !$this->tpl_bool[\'\\1\'] ) { echo \'\\2\'; } echo \'', $text);
+    /*
+    The way this works is: match all blocks using the standard form with a different keyword in the block each time,
+    and replace them with appropriate PHP logic. Plugin-extensible now. :-)
     
-    // If set-else-end
-    $text = preg_replace('/<!-- IFSET ([A-z0-9_-]+?) -->(.*?)<!-- BEGINELSE \\1 -->(.*?)<!-- END \\1 -->/is', '\'; if ( isset($this->tpl_strings[\'\\1\']) ) { echo \'\\2\'; } else { echo \'\\3\'; } echo \'', $text);
+    The while-loop is to bypass what is apparently a PCRE bug. It's hackish but it works. Properly written plugins should only need
+    to compile templates (using this method) once for each time the template file is changed.
+    */
+    while ( preg_match($regexp, $text) )
+    {
+      preg_match_all($regexp, $text, $matches);
+      for ( $i = 0; $i < count($matches[0]); $i++ )
+      {
+        $start_tag =& $matches[1][$i];
+        $type =& $matches[2][$i];
+        $test =& $matches[3][$i];
+        $particle_true  =& $matches[4][$i];
+        $else_tag =& $matches[6][$i];
+        $particle_else =& $matches[7][$i];
+        $end_tag =& $matches[8][$i];
+        
+        switch($type)
+        {
+          case 'BEGIN':
+            $cond = "isset(\$this->tpl_bool['$test']) && \$this->tpl_bool['$test']";
+            break;
+          case 'BEGINNOT':
+            $cond = "!isset(\$this->tpl_bool['$test']) || ( isset(\$this->tpl_bool['$test']) && !\$this->tpl_bool['$test'] )";
+            break;
+          case 'IFPLUGIN':
+            $cond = "getConfig('plugin_$test') == '1'";
+            break;
+          case 'IFSET':
+            $cond = "isset(\$this->tpl_strings['$test'])";
+            break;
+          default:
+            $code = $plugins->setHook('template_compile_logic_cond');
+            foreach ( $code as $cmd )
+            {
+              eval($cmd);
+            }
+            break;
+        }
+        
+        if ( !isset($cond) || ( isset($cond) && !is_string($cond) ) )
+          continue;
+        
+        $tag_complete = <<<TPLCODE
+        ';
+        /* START OF CONDITION: $type ($test) */
+        if ( $cond )
+        {
+          echo '$particle_true';
+        /* ELSE OF CONDITION: $type ($test) */
+        }
+        else
+        {
+          echo '$particle_else';
+        /* END OF CONDITION: $type ($test) */
+        }
+        echo '
+TPLCODE;
+        
+        $text = str_replace_once($matches[0][$i], $tag_complete, $text);
+        
+      }
+    }
     
-    // If set-end
-    $text = preg_replace('/<!-- IFSET ([A-z0-9_-]+?) -->(.*?)<!-- END \\1 -->/is', '\'; if ( isset($this->tpl_strings[\'\\1\']) ) { echo \'\\2\'; } echo \'', $text);
-    
-    // If plugin loaded-else-end
-    $text = preg_replace('/<!-- IFPLUGIN ([A-z0-9_\.-]+?) -->(.*?)<!-- BEGINELSE \\1 -->(.*?)<!-- END \\1 -->/is', '\'; if ( getConfig(\'plugin_\\1\') == \'1\' ) { echo \'\\2\'; } else { echo \'\\3\'; } echo \'', $text);
-    
-    // If plugin loaded-end
-    $text = preg_replace('/<!-- IFPLUGIN ([A-z0-9_\.-]+?) -->(.*?)<!-- END \\1 -->/is', '\'; if ( getConfig(\'plugin_\\1\') == \'1\' ) { echo \'\\2\'; } echo \'', $text);
+    // For debugging ;-)
+    // die("<pre>&lt;?php\n" . htmlspecialchars($text."\n\n".print_r($matches,true)) . "\n\n?&gt;</pre>");
     
     //
     // Data substitution/variables
@@ -1028,6 +1088,8 @@ class template {
       $tag = "{PHP:$i:$seed}";
       $text = str_replace_once($tag, "'; $match echo '", $text);
     }
+    
+    // echo('<pre>' . htmlspecialchars($text) . '</pre>');
     
     return $text;  
     
