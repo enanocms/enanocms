@@ -123,3 +123,71 @@ function ajaxSaveBlock(oElm, id)
     });
 }
 
+function ajaxRenameSidebarStage1(parent, id)
+{
+  var oldname = parent.firstChild.nodeValue;
+  parent.removeChild(parent.firstChild);
+  parent.ondblclick = function() {};
+  parent._idcache = id;
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.sbedit_id = id;
+  input.oldvalue = oldname;
+  input.onkeyup = function(e)
+  {
+    if ( typeof(e) != 'object' )
+      return false;
+    if ( !e.keyCode )
+      return false;
+    if ( e.keyCode == 13 )
+    {
+      ajaxRenameSidebarStage2(this);
+    }
+    if ( e.keyCode == 27 )
+    {
+      ajaxRenameSidebarCancel(this);
+    }
+  };
+  input.onblur = function()
+  {
+    ajaxRenameSidebarCancel(this);
+  };
+  input.value = oldname;
+  input.style.fontSize = '7pt';
+  parent.appendChild(input);
+  input.focus();
+}
+
+function ajaxRenameSidebarStage2(input)
+{
+  var newname = input.value;
+  var id = input.sbedit_id;
+  var parent = input.parentNode;
+  parent.removeChild(input);
+  parent.appendChild(document.createTextNode(newname));
+  parent.ondblclick = function() { ajaxRenameSidebarStage1(this, this._idcache); return false; };
+  var img = document.createElement('img');
+  img.src = scriptPath + '/images/loading.gif';
+  parent.appendChild(img);
+  newname = ajaxEscape(newname);
+  ajaxPost(makeUrlNS('Special', 'EditSidebar', 'ajax&noheaders&action=rename&id='+id), 'newname=' +newname, function()
+    {
+      if ( ajax.readyState == 4 )
+      {
+        parent.removeChild(img);
+        if ( ajax.responseText != 'GOOD' )
+          new messagebox(MB_OK|MB_ICONSTOP, 'Error renaming block', ajax.responseText);
+      }
+    });
+}
+
+function ajaxRenameSidebarCancel(input)
+{
+  var newname = input.oldvalue;
+  var id = input.sbedit_id;
+  var parent = input.parentNode;
+  parent.removeChild(input);
+  parent.appendChild(document.createTextNode(newname));
+  parent.ondblclick = function() { ajaxRenameSidebarStage1(this, this._idcache); return false; };
+}
+
