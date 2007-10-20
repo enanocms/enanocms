@@ -68,6 +68,9 @@ if(defined('ENANO_DEBUG'))
 if ( file_exists( ENANO_ROOT . '/_nightly.php') )
   require(ENANO_ROOT.'/_nightly.php');
 
+// List of scheduled tasks
+$cron_tasks = array();
+
 // Start including files. LOTS of files. Yeah!
 require_once(ENANO_ROOT.'/includes/constants.php');
 dc_here('Enano CMS '.$version.' (dev) - debug window<br />Powered by debugConsole');

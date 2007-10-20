@@ -3168,6 +3168,20 @@ function password_score($password, &$debug = false)
   return $score;
 }
 
+/**
+ * Registers a task that will be run every X hours. Scheduled tasks should always be scheduled at runtime - they are not stored in the DB.
+ * @param string Function name to call, or array(object, string method)
+ * @param int Interval between runs, in hours. Defaults to 24.
+ */
+
+function register_cron_task($func, $hour_interval = 24)
+{
+  global $cron_tasks;
+  if ( !isset($cron_tasks[$hour_interval]) )
+    $cron_tasks[$hour_interval] = array();
+  $cron_tasks[$hour_interval][] = $func;
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>
