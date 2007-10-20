@@ -4,7 +4,7 @@ Plugin Name: Runt - the Enano administration panel
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:Administration, which is the AJAX frontend to the various Admin pagelets. This plugin cannot be disabled.
 Author: Dan Fuhry
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://enanocms.org/
 */
 
