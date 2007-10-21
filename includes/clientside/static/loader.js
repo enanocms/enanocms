@@ -1,27 +1,8 @@
 // Some final stuff - loader routines, etc.
 
-var __tmpEnanoStartup9843275;
-  
-function enanoStartup(e) {
-  if ( !e )
-  {
-    // Delay initting sliders until images are loaded
-    if ( typeof(window.onload) == 'function' )
-      __tmpEnanoStartup9843275 = window.onload;
-    else
-      __tmpEnanoStartup9843275 = function(){};
-    window.onload = function(e){__tmpEnanoStartup9843275(e);initSliders();};
-  }
-  else
-  {
-    initSliders();
-  }
-}
-
 function mdgInnerLoader(e)
 {
   jws.startup();
-  enanoStartup(e);
   if(window.location.hash == '#comments') ajaxComments();
   window.onkeydown=isKeyPressed;
   window.onkeyup=function(e) { isKeyPressed(e); };
@@ -34,6 +15,7 @@ function mdgInnerLoader(e)
   {
     dbx_set_key();
   }
+  initSliders();
   runOnloadHooks(e);
 }
 if(window.onload) var ld = window.onload;

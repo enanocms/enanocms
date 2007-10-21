@@ -4,13 +4,13 @@ Plugin Name: Private Message frontend
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:PrivateMessages, which is used to manage private message functions. Also handles buddy lists.
 Author: Dan Fuhry
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 2
+ * Version 1.0.2
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License

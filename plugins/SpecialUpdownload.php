@@ -4,13 +4,13 @@ Plugin Name: Upload/download frontend
 Plugin URI: http://enanocms.org/
 Description: Provides the pages Special:UploadFile and Special:DownloadFile. UploadFile is used to upload files to the site, and DownloadFile fetches the file from the database, creates thumbnails if necessary, and sends the file to the user.
 Author: Dan Fuhry
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 2
+ * Version 1.0.2
  * Copyright (C) 2006-2007 Dan Fuhry
  * SpecialUpdownload.php - handles uploading and downloading of user-uploaded files - possibly the most rigorously security-enforcing script in all of Enano, although sessions.php comes in a close second
  *
@@ -59,8 +59,14 @@ function page_Special_UploadFile()
     {
       $file = false;
     }
-    if(!is_array($file)) die_friendly('Upload failed', '<p>The server could not retrieve the array $_FILES[\'data\'].</p>');
-    if($file['size'] == 0 || $file['size'] > (int)getConfig('max_file_size')) die_friendly('Upload failed', '<p>The file you uploaded is either too large or 0 bytes in length.</p>');
+    if ( !is_array($file) )
+    {
+      die_friendly('Upload failed', '<p>The server could not retrieve the array $_FILES[\'data\'].</p>');
+    }
+    if ( $file['size'] == 0 || $file['size'] > (int)getConfig('max_file_size') )
+    {
+      die_friendly('Upload failed', '<p>The file you uploaded is either too large or 0 bytes in length.</p>');
+    }
     /*
     $allowed_mime_types = Array(
         'text/plain',
@@ -88,7 +94,7 @@ function page_Special_UploadFile()
     */
     $types = fetch_allowed_extensions();
     $ext = substr($file['name'], strrpos($file['name'], '.')+1, strlen($file['name']));
-    if(!isset($types[$ext]) || ( isset($types[$ext]) && !$types[$ext] ) )
+    if ( !isset($types[$ext]) || ( isset($types[$ext]) && !$types[$ext] ) )
     {
       die_friendly('Upload failed', '<p>The file type ".'.$ext.'" is not allowed.</p>');
     }
