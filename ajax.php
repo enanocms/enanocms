@@ -116,7 +116,7 @@
       }
       else
       {
-        echo 'Error saving the page: '.$e;
+        echo '<p>Error saving the page: '.$e.'</p>';
       }
       break;
     case "protect":

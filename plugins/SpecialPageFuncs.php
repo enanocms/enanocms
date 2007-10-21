@@ -109,6 +109,17 @@ function page_Special_CreatePage()
       
       exit;
     }
+    if ( substr($urlname, 0, 8) == 'Project:' )
+    {
+      $template->header();
+      
+      echo '<h3>The page could not be created.</h3><p>The page title can\'t start with "Project:" because this prefix is reserved for a parser shortcut.</p>';
+      
+      $template->footer();
+      $db->close();
+      
+      exit;
+    }
     
     $tn = $paths->nslist[$_POST['namespace']] . $urlname;
     if ( isset($paths->pages[$tn]) )
