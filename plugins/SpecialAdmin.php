@@ -3194,7 +3194,10 @@ function page_Special_EditSidebar()
           $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : 'Can\'t find plugin block';
           break;
       }
-      $t = '<span title="Double-click to rename this block" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $template->tplWikiFormat($row['block_name']) . '</span>';
+      $block_name = $template->tplWikiFormat($row['block_name']);
+      if ( empty($block_name) )
+        $block_name = '&lt;Unnamed&gt;';
+      $t = '<span title="Double-click to rename this block" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $block_name . '</span>';
       if($row['item_enabled'] == 0) $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red;">(disabled)</span>';
       else           $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red; display: none;">(disabled)</span>';
       $side = ( $row['sidebar_id'] == SIDEBAR_LEFT ) ? SIDEBAR_RIGHT : SIDEBAR_LEFT;
