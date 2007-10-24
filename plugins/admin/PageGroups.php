@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -602,23 +602,6 @@ function page_Admin_PageGroups()
                   echo '<div class="info-box">The affecting tag was updated.</div>';
               }
             }
-            else if ( $_POST['pg_type'] == PAGE_GRP_REGEX )
-            {
-              $target = $_POST['pg_target'];
-              if ( empty($target) )
-              {
-                echo '<div class="error-box">Please enter an expression to match against..</div>';
-              }
-              else
-              {
-                $target = $db->escape($target);
-                $q = $db->sql_query('UPDATE '.table_prefix.'page_groups SET pg_target=\'' . $target . '\' WHERE pg_id=' . $edit_id . ';');
-                if ( !$q )
-                  $db->_die();
-                else
-                  echo '<div class="info-box">The expression to match against was updated.</div>';
-              }
-            }
             else if ( $_POST['pg_type'] == PAGE_GRP_CATLINK )
             {
               $target = $_POST['pg_target'];
@@ -871,22 +854,6 @@ function page_Admin_PageGroups()
           echo '<tr>
                   <td class="row2">
                     Include pages with this tag:
-                  </td>
-                  <td class="row1">
-                    <input type="text" name="pg_target" value="' . htmlspecialchars($row['pg_target']) . '" size="30" />
-                  </td>
-                </tr>';
-          break;
-        case PAGE_GRP_REGEX:
-          echo '<tr>
-                  <td class="row2">
-                    Regular expression to use:<br />
-                    <small>Be sure to include the starting and ending delimiters and any flags you might need.<br />
-                           These pages might help: <a href="http://us.php.net/manual/en/reference.pcre.pattern.modifiers.php">Pattern modifiers</a> &bull;
-                           <a href="http://us.php.net/manual/en/reference.pcre.pattern.syntax.php">Pattern syntax</a><br />
-                           Examples: <tt>/^(Special|Admin):/i</tt> &bull; <tt>/^Image:([0-9]+)$/</tt><br />
-                           Developers, remember that this will be matched against the full page identifier string. This means that <tt>/^About_Enano$/</tt>
-                           will NOT match the page Special:About_Enano.</small>
                   </td>
                   <td class="row1">
                     <input type="text" name="pg_target" value="' . htmlspecialchars($row['pg_target']) . '" size="30" />

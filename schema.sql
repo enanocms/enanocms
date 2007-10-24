@@ -254,6 +254,16 @@ CREATE TABLE {{TABLE_PREFIX}}tags(
   PRIMARY KEY ( tag_id )
 ) CHARACTER SET `utf8`;
 
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}lockout(
+  id int(12) NOT NULL auto_increment,
+  ipaddr varchar(40) NOT NULL,
+  action ENUM('credential', 'level') NOT NULL DEFAULT 'credential',
+  timestamp int(12) NOT NULL DEFAULT 0,
+  PRIMARY KEY ( id )
+) CHARACTER SET `utf8`;
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),

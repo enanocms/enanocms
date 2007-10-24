@@ -1184,3 +1184,33 @@ function aboutKeepAlive()
   new messagebox(MB_OK|MB_ICONINFORMATION, 'About the keep-alive feature', 'Keep-alive is a new Enano feature that keeps your administrative session from timing out while you are using the administration panel. This feature can be useful if you are editing a large page or doing something in the administration interface that will take longer than 15 minutes.<br /><br />For security reasons, Enano mandates that high-privilege logins last only 15 minutes, with the time being reset each time a page is loaded (or, more specifically, each time the session API is started). The consequence of this is that if you are performing an action in the administration panel that takes more than 15 minutes, your session may be terminated. The keep-alive feature attempts to relieve this by sending a "ping" to the server every 10 minutes.<br /><br />Please note that keep-alive state is determined by a cookie. Thus, if you log out and then back in as a different administrator, keep-alive will use the same setting that was used when you were logged in as the first administrative user. In the same way, if you log into the administration panel under your account from another computer, keep-alive will be set to "off".<br /><br /><b>For more information:</b><br /><a href="http://docs.enanocms.org/Help:Appendix_B" onclick="window.open(this.href); return false;">Overview of Enano'+"'"+'s security model');
 }
 
+function ajaxShowCaptcha(code)
+{
+  var mydiv = document.createElement('div');
+  mydiv.style.backgroundColor = '#FFFFFF';
+  mydiv.style.padding = '10px';
+  mydiv.style.position = 'absolute';
+  mydiv.style.top = '0px';
+  mydiv.id = 'autoCaptcha';
+  var img = document.createElement('img');
+  img.onload = function()
+  {
+    if ( this.loaded )
+      return true;
+    var mydiv = document.getElementById('autoCaptcha');
+    var width = getWidth();
+    var divw = $(mydiv).Width();
+    var left = ( width / 2 ) - ( divw / 2 );
+    mydiv.style.left = left + 'px';
+    fly_in_top(mydiv, false, true);
+    this.loaded = true;
+  };
+  img.src = makeUrlNS('Special', 'Captcha/' + code);
+  img.onclick = function() { this.src = this.src + '/a'; };
+  img.style.cursor = 'pointer';
+  mydiv.appendChild(img);
+  domObjChangeOpac(0, mydiv);
+  var body = document.getElementsByTagName('body')[0];
+  body.appendChild(mydiv);
+}
+
