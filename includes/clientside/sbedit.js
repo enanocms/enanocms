@@ -164,7 +164,7 @@ function ajaxRenameSidebarStage2(input)
   var id = input.sbedit_id;
   var parent = input.parentNode;
   parent.removeChild(input);
-  parent.appendChild(document.createTextNode(newname));
+  parent.appendChild(document.createTextNode(( newname == '' ? '<Unnamed>' : newname )));
   parent.ondblclick = function() { ajaxRenameSidebarStage1(this, this._idcache); return false; };
   var img = document.createElement('img');
   img.src = scriptPath + '/images/loading.gif';

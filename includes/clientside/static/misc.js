@@ -196,7 +196,7 @@ function setAjaxLoading()
 {
   if ( document.getElementById('ajaxloadicon') )
   {
-    document.getElementById('ajaxloadicon').src=scriptPath + '/images/loading.gif';
+    document.getElementById('ajaxloadicon').src=ajax_load_icon;
   }
 }
 

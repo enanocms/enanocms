@@ -112,6 +112,7 @@ var current_ta  = false;
 var startwidth  = false;
 var startheight = false;
 var do_width    = false;
+var ajax_load_icon = scriptPath + '/images/loading.gif';
 
 // You have an NSIS coder in your midst...
 var MB_OK = 1;
