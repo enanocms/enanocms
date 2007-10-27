@@ -264,6 +264,27 @@ CREATE TABLE {{TABLE_PREFIX}}lockout(
   PRIMARY KEY ( id )
 ) CHARACTER SET `utf8`;
 
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}language(
+  lang_id smallint(5) NOT NULL auto_increment,
+  lang_code varchar(16) NOT NULL,
+  lang_name_default varchar(64) NOT NULL,
+  lang_name_native varchar(64) NOT NULL,
+  PRIMARY KEY ( lang_id )
+) CHARACTER SET `utf8`;
+
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}language_strings(
+  string_id bigint(15) NOT NULL auto_increment,
+  lang_id smallint(5) NOT NULL,
+  string_category varchar(32) NOT NULL,
+  string_name varchar(64) NOT NULL,
+  string_content longtext NOT NULL,
+  PRIMARY KEY ( string_id )
+);
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),

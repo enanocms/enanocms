@@ -78,6 +78,7 @@ require_once(ENANO_ROOT.'/includes/paths.php');
 require_once(ENANO_ROOT.'/includes/sessions.php');
 require_once(ENANO_ROOT.'/includes/template.php');
 require_once(ENANO_ROOT.'/includes/plugins.php');
+require_once(ENANO_ROOT.'/includes/lang.php');
 require_once(ENANO_ROOT.'/includes/comment.php');
 require_once(ENANO_ROOT.'/includes/wikiformat.php');
 require_once(ENANO_ROOT.'/includes/diff.php');

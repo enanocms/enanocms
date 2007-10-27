@@ -39,6 +39,9 @@ define('PAGE_GRP_TAGGED', 2);
 define('PAGE_GRP_NORMAL', 3);
 define('PAGE_GRP_REGEX', 4);
 
+// Identifier for the default meta-language
+define('LANG_DEFAULT', 0);
+
 //
 // User types - don't touch these
 //

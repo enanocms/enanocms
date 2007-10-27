@@ -1,0 +1,52 @@
+/*
+ * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
+ * Version 1.1.1
+ * Copyright (C) 2006-2007 Dan Fuhry
+ *
+ * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+ */
+
+// This is the main language file for Enano. Feel free to use it as a base for your own translations.
+// All text in this file before the first left curly brace and all text after the last curly brace will
+// be trimmed. So you can use a limited amount of Javascript in this so that the language can be imported
+// via Javascript as well.
+
+var enano_lang = {
+  categories: [
+    'meta', 'user', 'page', 'comment', 'onpage'
+  ],
+  strings: {
+    meta: {
+      meta: 'Language category strings',
+      user: 'Login, logout, and authentication',
+      page: 'Page creation and control',
+      comment: 'Comment display',
+      onpage: 'On-page controls',
+      plural: 's'
+    },
+    user: {
+      login_message_short: 'Please enter your username and password to log in.',
+      login_message_short_elev: 'Please re-enter your login details',
+      err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',
+      err_key_wrong_length: 'The encryption key was the wrong length.',
+      err_too_big_for_britches: 'You are trying to authenticate at a level that your user account does not permit.',
+      err_invalid_credentials: 'You have entered an invalid username or password. Please enter your login details again.',
+      err_invalid_credentials_lockout: ' You have used up %lockout_fails% out of %lockout_threshold% login attempts. After you have used up all %lockout_threshold% login attempts, you will be locked out from logging in for %lockout_duration% minutes.',
+      err_invalid_credentials_lockout_captcha: ' You have used up %lockout_fails% out of %lockout_threshold% login attempts. After you have used up all %lockout_threshold% login attempts, you will have to enter a visual confirmation code while logging in, effective for %lockout_duration% minutes.',
+      err_backend_fail: 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.',
+      err_locked_out: 'You have used up all %lockout_threshold% allowed login attempts. Please wait %time_rem% minute%plural% before attempting to log in again%captcha_blurb%.',
+      err_locked_out_captcha_blurb: ', or enter the visual confirmation code shown above in the appropriate box'
+    },
+    page: {
+    },
+    adm: {
+    },
+  }
+};
+
+// All done! :-)
+
