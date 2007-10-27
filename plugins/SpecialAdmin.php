@@ -2158,7 +2158,7 @@ function page_Admin_BanControl()
   
   if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']) && $_GET['id'] != '')
   {
-    $e = $db->sql_query('DELETE FROM '.table_prefix.'banlist WHERE ban_id=' . $db->escape($_GET['id']) . '');
+    $e = $db->sql_query('DELETE FROM '.table_prefix.'banlist WHERE ban_id=' . intval($_GET['id']) . '');
     if(!$e) $db->_die('The ban list entry was not deleted.');
   }
   if(isset($_POST['create']) && !defined('ENANO_DEMO_MODE'))
@@ -3026,7 +3026,7 @@ function page_Special_EditSidebar()
             echo '<div class="warning-box" style="margin: 10px 0;">$_GET[\'side\'] contained an SQL injection attempt</div>';
             break;
           }
-          $query = $db->sql_query('UPDATE '.table_prefix.'sidebar SET sidebar_id=' . $db->escape($_GET['side']) . ' WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $query = $db->sql_query('UPDATE '.table_prefix.'sidebar SET sidebar_id=' . intval($_GET['side']) . ' WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$query)
           {
             echo $db->get_error();
@@ -3036,7 +3036,7 @@ function page_Special_EditSidebar()
           echo '<div class="info-box" style="margin: 10px 0;">Item moved.</div>';
           break;
         case 'delete':
-          $query = $db->sql_query('DELETE FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';'); // Already checked for injection attempts ;-)
+          $query = $db->sql_query('DELETE FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';'); // Already checked for injection attempts ;-)
           if(!$query)
           {
             echo $db->get_error();
@@ -3051,7 +3051,7 @@ function page_Special_EditSidebar()
           echo '<div class="error-box" style="margin: 10px 0;">Item deleted.</div>';
           break;
         case 'disenable';
-          $q = $db->sql_query('SELECT item_enabled FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('SELECT item_enabled FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo $db->get_error();
@@ -3061,7 +3061,7 @@ function page_Special_EditSidebar()
           $r = $db->fetchrow();
           $db->free_result();
           $e = ( $r['item_enabled'] == 1 ) ? '0' : '1';
-          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET item_enabled='.$e.' WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET item_enabled='.$e.' WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo $db->get_error();
@@ -3075,7 +3075,7 @@ function page_Special_EditSidebar()
           }
           break;
         case 'getsource':
-          $q = $db->sql_query('SELECT block_content,block_type FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('SELECT block_content,block_type FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo $db->get_error();
@@ -3091,7 +3091,7 @@ function page_Special_EditSidebar()
         case 'save':
           if ( defined('ENANO_DEMO_MODE') )
           {
-            $q = $db->sql_query('SELECT block_type FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+            $q = $db->sql_query('SELECT block_type FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
             if(!$q)
             {
               echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
@@ -3107,13 +3107,13 @@ function page_Special_EditSidebar()
               $_POST['content'] = sanitize_html($_POST['content'], true);
             }
           }
-          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_content=\''.$db->escape(rawurldecode($_POST['content'])).'\' WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_content=\''.$db->escape(rawurldecode($_POST['content'])).'\' WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
             exit;
           }
-          $q = $db->sql_query('SELECT block_type,block_content FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('SELECT block_type,block_content FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';

@@ -1473,7 +1473,7 @@ EOF;
   function username_field($name, $value = false)
   {
     $randomid = md5( time() . microtime() . mt_rand() );
-    $text = '<input name="'.$name.'" onkeyup="ajaxUserNameComplete(this)" autocomplete="off" type="text" size="30" id="userfield_'.$randomid.'"';
+    $text = '<input name="'.$name.'" onkeyup="new AutofillUsername(this);" autocomplete="off" type="text" size="30" id="userfield_'.$randomid.'"';
     if($value) $text .= ' value="'.$value.'"';
     $text .= ' />';
     return $text;
