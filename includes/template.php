@@ -198,37 +198,38 @@ class template {
     switch($paths->namespace) {
       case "Article":
       default:
-        $ns = 'article';
+        $ns = $lang->get('onpage_lbl_page_article');
         break;
       case "Admin":
-        $ns = 'administration page';
+        $ns = $lang->get('onpage_lbl_page_admin');
         break;
       case "System":
-        $ns = 'system message';
+        $ns = $lang->get('onpage_lbl_page_system');
         break;
       case "File":
-        $ns = 'uploaded file';
+        $ns = $lang->get('onpage_lbl_page_file');
         break;
       case "Help":
-        $ns = 'documentation page';
+        $ns = $lang->get('onpage_lbl_page_help');
         break;
       case "User":
-        $ns = 'user page';
+        $ns = $lang->get('onpage_lbl_page_user');
         break;
       case "Special":
-        $ns = 'special page';
+        $ns = $lang->get('onpage_lbl_page_special');
         break;
       case "Template":
-        $ns = 'template';
+        $ns = $lang->get('onpage_lbl_page_template');
         break;
       case "Project":
-        $ns = 'project page';
+        $ns = $lang->get('onpage_lbl_page_project');
         break;
       case "Category":
-        $ns = 'category';
+        $ns = $lang->get('onpage_lbl_page_category');
         break;
     }
     $this->namespace_string = $ns;
+    unset($ns);
     $code = $plugins->setHook('page_type_string_set');
     foreach ( $code as $cmd )
     {
@@ -285,14 +286,25 @@ class template {
       $n = ( $session->get_permissions('mod_comments') ) ? (string)$nc : (string)$na;
       if ( $session->get_permissions('mod_comments') && $nu > 0 )
       {
-        $n .= ' total/'.$nu.' unapp.';
+        $subst = array(
+            'num_comments' => $nc,
+            'num_unapp' => $nu
+          );
+        $btn_text = $lang->get('onpage_btn_discussion_unapp', $subst);
+      }
+      else
+      {
+        $subst = array(
+          'num_comments' => $nc
+        );
+        $btn_text = $lang->get('onpage_btn_discussion', $subst);
       }
       
       $button->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxComments()); return false; }" title="View the comments that other users have posted about this page (alt-c)" accesskey="c"',
           'PARENTFLAGS' => 'id="mdgToolbar_discussion"',
           'HREF' => makeUrl($paths->page, 'do=comments', true),
-          'TEXT' => 'discussion ('.$n.')',
+          'TEXT' => $btn_text,
         ));
       
       $tb .= $button->run();
@@ -304,7 +316,7 @@ class template {
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="Edit the contents of this page (alt-e)" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=edit', true),
-        'TEXT' => 'edit this page'
+        'TEXT' => $lang->get('onpage_btn_edit')
         ));
       $tb .= $button->run();
     // View source button
@@ -315,7 +327,7 @@ class template {
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxViewSource()); return false; }" title="View the source code (wiki markup) that this page uses (alt-e)" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=viewsource', true),
-        'TEXT' => 'view source'
+        'TEXT' => $lang->get('onpage_btn_viewsource')
         ));
       $tb .= $button->run();
     }
@@ -326,7 +338,7 @@ class template {
         'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="View a log of actions taken on this page (alt-h)" accesskey="h"',
         'PARENTFLAGS' => 'id="mdgToolbar_history"',
         'HREF'        => makeUrl($paths->page, 'do=history', true),
-        'TEXT'        => 'history'
+        'TEXT'        => $lang->get('onpage_btn_history')
         ));
       $tb .= $button->run();
     }
@@ -340,7 +352,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="Change the display name of this page (alt-r)" accesskey="r"',
           'HREF'  => makeUrl($paths->page, 'do=rename', true),
-          'TEXT'  => 'rename',
+          'TEXT'  => $lang->get('onpage_btn_rename'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -351,7 +363,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="Vote to have this page deleted (alt-d)" accesskey="d"',
           'HREF'  => makeUrl($paths->page, 'do=delvote', true),
-          'TEXT'  => 'vote to delete this page',
+          'TEXT'  => $lang->get('onpage_btn_votedelete'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -362,7 +374,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="Vote to have this page deleted (alt-y)" accesskey="y"',
           'HREF'  => makeUrl($paths->page, 'do=resetvotes', true),
-          'TEXT'  => 'reset deletion votes',
+          'TEXT'  => $lang->get('onpage_btn_votedelete_reset'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -373,7 +385,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'title="View a version of this page that is suitable for printing"',
           'HREF'  => makeUrl($paths->page, 'printable=yes', true),
-          'TEXT'  => 'view printable version',
+          'TEXT'  => $lang->get('onpage_btn_printable'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -383,7 +395,7 @@ class template {
     {
       
       $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => 'protection:'));
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_protect')));
       $t0 = $label->run();
       
       $ctmp = ''; 
@@ -394,7 +406,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'accesskey="i" onclick="if ( !KILL_SWITCH ) { ajaxProtect(1); return false; }" id="protbtn_1" title="Prevents all non-administrators from editing this page. [alt-i]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=1', true),
-          'TEXT'  => 'on'
+          'TEXT'  => $lang->get('onpage_btn_protect_on')
         ));
       $t1 = $menubtn->run();
       
@@ -406,7 +418,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'accesskey="o" onclick="if ( !KILL_SWITCH ) { ajaxProtect(0); return false; }" id="protbtn_0" title="Allows everyone to edit this page. [alt-o]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=0', true),
-          'TEXT'  => 'off'
+          'TEXT'  => $lang->get('onpage_btn_protect_off')
         ));
       $t2 = $menubtn->run();
       
@@ -418,7 +430,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'accesskey="p" onclick="if ( !KILL_SWITCH ) { ajaxProtect(2); return false; }" id="protbtn_2" title="Allows only users who have been registered for 4 days to edit this page. [alt-p]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=2', true),
-          'TEXT'  => 'semi'
+          'TEXT'  => $lang->get('onpage_btn_protect_semi')
         ));
       $t3 = $menubtn->run();
       
@@ -437,7 +449,7 @@ class template {
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => 'page wiki mode:'));
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_wikimode')));
       $t0 = $label->run();
       
       // on button
@@ -449,7 +461,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(1); return false; }" id="wikibtn_1" title="Forces wiki functions to be allowed on this page."'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=1', true),
-          'TEXT' => 'on'
+          'TEXT' => $lang->get('onpage_btn_wikimode_on')
         ));
       $t1 = $menubtn->run();
       
@@ -462,7 +474,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(0); return false; }" id="wikibtn_0" title="Forces wiki functions to be disabled on this page."'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=0', true),
-          'TEXT' => 'off'
+          'TEXT' => $lang->get('onpage_btn_wikimode_off')
         ));
       $t2 = $menubtn->run();
       
@@ -475,7 +487,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(2); return false; }" id="wikibtn_2" title="Causes this page to use the global wiki mode setting (default)"'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=2', true),
-          'TEXT' => 'global'
+          'TEXT' => $lang->get('onpage_btn_wikimode_global')
         ));
       $t3 = $menubtn->run();
       
@@ -496,7 +508,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxClearLogs()); return false; }" title="Remove all edit and action logs for this page from the database. IRREVERSIBLE! (alt-l)" accesskey="l"',
           'HREF'  => makeUrl($paths->page, 'do=flushlogs', true),
-          'TEXT'  => 'clear page logs',
+          'TEXT'  => $lang->get('onpage_btn_clearlogs'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -504,14 +516,22 @@ class template {
     // Delete page button
     if ( $session->get_permissions('read') && $session->get_permissions('delete_page') && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
-      $s = 'delete this page';
+      $s = $lang->get('onpage_btn_deletepage');
       if ( $paths->cpage['delvotes'] == 1 )
       {
-        $s .= ' (<b>'.$paths->cpage['delvotes'].'</b> vote)';
+        $subst = array(
+          'num_votes' => $paths->cpage['delvotes'],
+          'plural' => ''
+          );
+        $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
       }
       else if ( $paths->cpage['delvotes'] > 1 )
       {
-        $s .= ' (<b>'.$paths->cpage['delvotes'].'</b> votes)';
+        $subst = array(
+          'num_votes' => $paths->cpage['delvotes'],
+          'plural' => $lang->get('meta_plural')
+          );
+        $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
       }
       
       $menubtn->assign_vars(array(
@@ -543,13 +563,13 @@ class template {
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => 'page password:'));
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_password')));
       $t0 = $label->run();
       
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxSetPassword()); return false; }" title="Require a password in order for this page to be viewed"',
           'HREF'  => '#',
-          'TEXT'  => 'set',
+          'TEXT'  => $lang->get('onpage_btn_password_set'),
         ));
       $t = $menubtn->run();
       
@@ -562,7 +582,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { return ajaxOpenACLManager(); }" title="Manage who can do what with this page (alt-m)" accesskey="m"',
           'HREF'  => makeUrl($paths->page, 'do=aclmanager', true),
-          'TEXT'  => 'manage page access',
+          'TEXT'  => $lang->get('onpage_btn_acl'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -573,7 +593,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="Administrative options for this page" accesskey="g"',
           'HREF'  => makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'PageManager', true),
-          'TEXT'  => 'administrative options',
+          'TEXT'  => $lang->get('onpage_btn_admin'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -584,7 +604,7 @@ class template {
         'FLAGS'       => 'id="mdgToolbar_moreoptions" onclick="if ( !KILL_SWITCH ) { return false; }" title="Additional options for working with this page"',
         'PARENTFLAGS' => '',
         'HREF'        => makeUrl($paths->page, 'do=moreoptions', true),
-        'TEXT'        => 'more options'
+        'TEXT'        => $lang->get('onpage_btn_moreoptions')
         ));
       $tb .= $button->run();
     }
@@ -1145,7 +1165,7 @@ TPLCODE;
       // matches the MD5 of the file that the compiled file was compiled from.
       if ( isset($md5) && $md5 == md5($text) )
       {
-        return str_replace('\\"', '"', $tpl_text);
+        return $this->compile_template_text_post(str_replace('\\"', '"', $tpl_text));
       }
     }
     
@@ -1184,7 +1204,7 @@ EOF;
       fclose($h);
     }
     
-    return $text; //('<pre>'.htmlspecialchars($text).'</pre>');
+    return $this->compile_template_text_post($text); //('<pre>'.htmlspecialchars($text).'</pre>');
   }
   
   
@@ -1197,7 +1217,7 @@ EOF;
   function compile_template_text($text)
   {
     // this might do something else in the future, possibly cache large templates
-    return $this->compile_tpl_code($text);
+    return $this->compile_template_text_post($this->compile_tpl_code($text));
   }
   
   /**
@@ -1209,7 +1229,28 @@ EOF;
   function parse($text)
   {
     $text = $this->compile_template_text($text);
+    $text = $this->compile_template_text_post($text);
     return eval($text);
+  }
+  
+  /**
+   * Post-processor for template code. Basically what this does is it localizes {lang:foo} blocks.
+   * @param string Mostly-processed TPL code
+   * @return string
+   */
+  
+  function compile_template_text_post($text)
+  {
+    global $lang;
+    preg_match_all('/\{lang:([a-z0-9]+_[a-z0-9_]+)\}/', $text, $matches);
+    foreach ( $matches[1] as $i => $string_id )
+    {
+      $string = $lang->get($string_id);
+      $string = str_replace('\\', '\\\\', $string);
+      $string = str_replace('\'', '\\\'', $string);
+      $text = str_replace_once($matches[0][$i], $string, $text);
+    }
+    return $text;
   }
   
   // Steps to turn this:

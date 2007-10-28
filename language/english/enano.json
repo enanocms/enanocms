@@ -17,7 +17,7 @@
 
 var enano_lang = {
   categories: [
-    'meta', 'user', 'page', 'comment', 'onpage', 'etc'
+    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc'
   ],
   strings: {
     meta: {
@@ -71,10 +71,86 @@ var enano_lang = {
       logout_confirm_body: 'If you log out, you will no longer be able to access your user preferences, your private messages, or certain areas of this site until you log in again.',
       logout_confirm_title_elev: 'Are you sure you want to de-authenticate?',
       logout_confirm_body_elev: 'If you de-authenticate, you will no longer be able to use the administration panel until you re-authenticate again. You may do so at any time using the Administration button on the sidebar.',
+      
+      keepalive_info_title: 'About the keep-alive feature',
+      keepalive_info_body: 'Keep-alive is a new Enano feature that keeps your administrative session from timing out while you are using the administration panel. This feature can be useful if you are editing a large page or doing something in the administration interface that will take longer than 15 minutes.<br /><br />For security reasons, Enano mandates that high-privilege logins last only 15 minutes, with the time being reset each time a page is loaded (or, more specifically, each time the session API is started). The consequence of this is that if you are performing an action in the administration panel that takes more than 15 minutes, your session may be terminated. The keep-alive feature attempts to relieve this by sending a "ping" to the server every 10 minutes.<br /><br />Please note that keep-alive state is determined by a cookie. Thus, if you log out and then back in as a different administrator, keep-alive will use the same setting that was used when you were logged in as the first administrative user. In the same way, if you log into the administration panel under your account from another computer, keep-alive will be set to "off".<br /><br /><b>For more information:</b><br /><a href="http://docs.enanocms.org/Help:Appendix_B" onclick="window.open(this.href); return false;">Overview of Enano\'s security model</a>',
     },
-    page: {
+    onpage: {
+      lbl_pagetools: 'Page tools',
+      lbl_page_article: 'article',
+      lbl_page_admin: 'administration page',
+      lbl_page_system: 'system message',
+      lbl_page_file: 'uploaded file',
+      lbl_page_help: 'documentation page',
+      lbl_page_user: 'user page',
+      lbl_page_special: 'special page',
+      lbl_page_template: 'template',
+      lbl_page_project: 'project page',
+      lbl_page_category: 'category',
+      
+      btn_discussion: 'discussion (%num_comments%)',
+      btn_discussion_unapp: 'discussion (%num_comments% total, %num_unapp% unapp.)',
+      btn_edit: 'edit this page',
+      btn_viewsource: 'view source',
+      btn_history: 'history',
+      btn_moreoptions: 'more options',
+      
+      btn_rename: 'rename',
+      btn_printable: 'view printable version',
+      btn_votedelete: 'vote to delete this page',
+      btn_votedelete_reset: 'reset deletion votes',
+      lbl_wikimode: 'page wiki mode:',
+      btn_wikimode_on: 'on',
+      btn_wikimode_off: 'off',
+      btn_wikimode_global: 'global',
+      lbl_protect: 'protection:',
+      btn_protect_on: 'on',
+      btn_protect_off: 'off',
+      btn_protect_semi: 'semi',
+      btn_clearlogs: 'clear page logs',
+      btn_deletepage: 'delete this page',
+      btn_deletepage_votes: ' (<b>%num_votes%</b> vote%plural%)',
+      lbl_password: 'page password:',
+      btn_password_set: 'set',
+      btn_acl: 'manage page access',
+      btn_admin: 'administrative options',
     },
     comment: {
+    },
+    adm: {
+      cat_general: 'General',
+      cat_content: 'Content',
+      cat_appearance: 'Appearance',
+      cat_users: 'Users',
+      cat_security: 'Security',
+      cat_plugins: 'Plugin configuration',
+      
+      page_general_config: 'General configuration',
+      page_file_uploads: 'File uploads',
+      page_file_types: 'Allowed file types',
+      page_plugins: 'Manage plugins',
+      page_db_backup: 'Backup database',
+      
+      page_manager: 'Manage pages',
+      page_editor: 'Edit page content',
+      page_pg_groups: 'Manage page groups',
+      
+      page_themes: 'Manage themes',
+      
+      page_users: 'Manage users',
+      page_user_groups: 'Edit user groups',
+      page_coppa: 'COPPA support',
+      page_mass_email: 'Mass e-mail',
+      
+      page_security_log: 'Security log',
+      page_ban_control: 'Ban control',
+      
+      btn_home: 'Administration panel home',
+      btn_logout: 'Log out of admin panel',
+      btn_keepalive_off: 'Turn on keep-alive',
+      btn_keepalive_on: 'Turn off keep-alive',
+      btn_keepalive_about: 'About keep-alive',
+      btn_keepalive_loading: 'Loading keep-alive button...'
     },
     admhome: {
     },

@@ -154,7 +154,7 @@
           <td id="mdg-bl"></td>
           <td class="menu_bg">
           <div class="menu_nojs" id="pagebar_main">
-            <div class="label">Page tools</div>
+            <div class="label">{lang:onpage_lbl_pagetools}</div>
             {TOOLBAR}
             <ul>
               {TOOLBAR_EXTRAS}

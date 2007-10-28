@@ -77,21 +77,21 @@ class pathManager {
     $session->register_acl_type('edit_acl',               AUTH_DISALLOW, 'Edit access control lists', Array('read', 'post_comments', 'edit_comments', 'edit_page', 'view_source', 'mod_comments', 'history_view', 'history_rollback', 'history_rollback_extra', 'protect', 'rename', 'clear_logs', 'vote_delete', 'vote_reset', 'delete_page', 'set_wiki_mode', 'password_set', 'password_reset', 'mod_misc', 'edit_cat', 'even_when_protected', 'upload_files', 'upload_new_version', 'create_page', 'php_in_pages'));
     
     // DO NOT add new admin pages here! Use a plugin to call $paths->addAdminNode();
-    $this->addAdminNode('General', 'General Configuration', 'GeneralConfig');
-    $this->addAdminNode('General', 'File uploads', 'UploadConfig');
-    $this->addAdminNode('General', 'Allowed file types', 'UploadAllowedMimeTypes');
-    $this->addAdminNode('General', 'Manage Plugins', 'PluginManager');
-    $this->addAdminNode('General', 'Backup database', 'DBBackup');
-    $this->addAdminNode('Content', 'Manage Pages', 'PageManager');
-    $this->addAdminNode('Content', 'Edit page content', 'PageEditor');
-    $this->addAdminNode('Content', 'Manage page groups', 'PageGroups');
-    $this->addAdminNode('Appearance', 'Manage themes', 'ThemeManager');
-    $this->addAdminNode('Users', 'Manage users', 'UserManager');
-    $this->addAdminNode('Users', 'Edit groups', 'GroupManager');
-    $this->addAdminNode('Users', 'COPPA support', 'COPPA');
-    $this->addAdminNode('Users', 'Mass e-mail', 'MassEmail');
-    $this->addAdminNode('Security', 'Security log', 'SecurityLog');
-    $this->addAdminNode('Security', 'Ban control', 'BanControl');
+    $this->addAdminNode('adm_cat_general',    'adm_page_general_config', 'GeneralConfig');
+    $this->addAdminNode('adm_cat_general',    'adm_page_file_uploads',   'UploadConfig');
+    $this->addAdminNode('adm_cat_general',    'adm_page_file_types',     'UploadAllowedMimeTypes');
+    $this->addAdminNode('adm_cat_general',    'adm_page_plugins',        'PluginManager');
+    $this->addAdminNode('adm_cat_general',    'adm_page_db_backup',      'DBBackup');
+    $this->addAdminNode('adm_cat_content',    'adm_page_manager',        'PageManager');
+    $this->addAdminNode('adm_cat_content',    'adm_page_editor',         'PageEditor');
+    $this->addAdminNode('adm_cat_content',    'adm_page_pg_groups',      'PageGroups');
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_themes',         'ThemeManager');
+    $this->addAdminNode('adm_cat_users',      'adm_page_users',          'UserManager');
+    $this->addAdminNode('adm_cat_users',      'adm_page_user_groups',    'GroupManager');
+    $this->addAdminNode('adm_cat_users',      'adm_page_coppa',          'COPPA');
+    $this->addAdminNode('adm_cat_users',      'adm_page_mass_email',     'MassEmail');
+    $this->addAdminNode('adm_cat_security',   'adm_page_security_log',   'SecurityLog');
+    $this->addAdminNode('adm_cat_security',   'adm_page_ban_control',    'BanControl');
     
     $code = $plugins->setHook('acl_rule_init');
     foreach ( $code as $cmd )
@@ -493,24 +493,29 @@ class pathManager {
   // Parses a (very carefully formed) array into Javascript code compatible with the Tigra Tree Menu used in the admin menu
   function parseAdminTree() 
   {
+    global $lang;
+    
     $k = array_keys($this->admin_tree);
     $i = 0;
     $ret = '';
-    $ret .= "var TREE_ITEMS = [\n  ['Administration panel home', 'javascript:ajaxPage(\'".$this->nslist['Admin']."Home\');',\n    ";
+    $ret .= "var TREE_ITEMS = [\n  ['" . $lang->get('adm_btn_home') . "', 'javascript:ajaxPage(\'".$this->nslist['Admin']."Home\');',\n    ";
     foreach($k as $key)
     {
       $i++;
-      $ret .= "['".$key."', 'javascript:trees[0].toggle($i)', \n";
+      $name = ( preg_match('/^[a-z0-9_]+$/', $key) ) ? $lang->get($key) : $key;
+      $ret .= "['".$name."', 'javascript:trees[0].toggle($i)', \n";
       foreach($this->admin_tree[$key] as $c)
       {
         $i++;
-        $ret .= "        ['".$c['name']."', 'javascript:ajaxPage(\\'".$this->nslist['Admin'].$c['pageid']."\\');'],\n";
+        $name = ( preg_match('/^[a-z0-9_]+$/', $key) ) ? $lang->get($c['name']) : $c['name'];
+        
+        $ret .= "        ['".$name."', 'javascript:ajaxPage(\\'".$this->nslist['Admin'].$c['pageid']."\\');'],\n";
       }
       $ret .= "      ],\n";
     }
-    $ret .= "    ['Log out of admin panel', 'javascript:ajaxPage(\\'".$this->nslist['Admin']."AdminLogout\\');'],\n";
-    $ret .= "    ['<span id=\\'keepalivestat\\'>Loading keep-alive control...</span>', 'javascript:ajaxToggleKeepalive();', 
-                   ['About keep-alive', 'javascript:aboutKeepAlive();']
+    $ret .= "    ['" . $lang->get('adm_btn_logout') . "', 'javascript:ajaxPage(\\'".$this->nslist['Admin']."AdminLogout\\');'],\n";
+    $ret .= "    ['<span id=\\'keepalivestat\\'>" . $lang->get('adm_btn_keepalive_loading') . "</span>', 'javascript:ajaxToggleKeepalive();', 
+                   ['" . $lang->get('adm_btn_keepalive_about') . "', 'javascript:aboutKeepAlive();']
                  ],\n";
     // I used this while I painstakingly wrote the Runt code that auto-expands certain nodes based on the value of a bitfield stored in a cookie. *shudders*
     // $ret .= "    ['(debug) Clear menu bitfield', 'javascript:createCookie(\\'admin_menu_state\\', \\'1\\', 365);'],\n";
