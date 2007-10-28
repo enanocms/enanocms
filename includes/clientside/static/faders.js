@@ -441,7 +441,7 @@ function changeOpac(opacity, id) {
 
 function mb_logout()
 {
-  var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, 'Are you sure you want to log out?', 'If you log out, you will no longer be able to access your user preferences, your private messages, or certain areas of this site until you log in again.');
+  var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title'), $lang.get('user_logout_confirm_body'));
   mb.onclick['Yes'] = function()
     {
       window.location = makeUrlNS('Special', 'Logout/' + title);

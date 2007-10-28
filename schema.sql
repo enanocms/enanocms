@@ -272,6 +272,7 @@ CREATE TABLE {{TABLE_PREFIX}}language(
   lang_code varchar(16) NOT NULL,
   lang_name_default varchar(64) NOT NULL,
   lang_name_native varchar(64) NOT NULL,
+  last_changed int(12) NOT NULL DEFAULT 0,
   PRIMARY KEY ( lang_id )
 ) CHARACTER SET `utf8`;
 

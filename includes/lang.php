@@ -36,6 +36,13 @@ class Language
    */
   
   var $lang_code;
+
+  /**
+   * Used to track when a language was last changed, to allow browsers to cache language data
+   * @var int
+   */
+  
+  var $lang_timestamp;
   
   /**
    * Will be an object that holds an instance of the class configured with the site's default language. Only instanciated when needed.
@@ -82,7 +89,7 @@ class Language
     }
     
     $lang_default = ( $x = getConfig('default_language') ) ? intval($x) : 'def';
-    $q = $db->sql_query("SELECT lang_id, lang_code, ( lang_id = $lang_default ) AS is_default FROM " . table_prefix . "language WHERE $sql_col OR lang_id = $lang_default ORDER BY is_default DESC LIMIT 1;");
+    $q = $db->sql_query("SELECT lang_id, lang_code, last_changed, ( lang_id = $lang_default ) AS is_default FROM " . table_prefix . "language WHERE $sql_col OR lang_id = $lang_default ORDER BY is_default DESC LIMIT 1;");
     
     if ( !$q )
       $db->_die('lang.php - main select query');
@@ -94,6 +101,7 @@ class Language
     
     $this->lang_id   = intval( $row['lang_id'] );
     $this->lang_code = $row['lang_code'];
+    $this->lang_timestamp = $row['last_changed'];
   }
   
   /**
@@ -301,6 +309,11 @@ $lang_cache = ');
       $db->_die('lang.php - var_export_string() failed');
     
     fwrite($handle, $exported . '; ?>');
+    
+    // Update timestamp in database
+    $q = $db->sql_query('UPDATE ' . table_prefix . 'language SET last_changed = ' . time() . ' WHERE lang_id = ' . $this->lang_id . ';');
+    if ( !$q )
+      $db->_die('lang.php - updating timestamp on language');
     
     // Done =)
     fclose($handle);

@@ -273,15 +273,19 @@ function get_page_title_ns($page_id, $namespace)
  * @param string $timeout Timeout, in seconds, to delay the redirect. Defaults to 3.
  */
 
-function redirect($url, $title = 'Redirecting...', $message = 'Please wait while you are redirected.', $timeout = 3)
+function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_body', $timeout = 3)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
 
   if ( $timeout == 0 )
   {
     header('Location: ' . $url);
     header('HTTP/1.1 307 Temporary Redirect');
   }
+  
+  $title = $lang->get($title);
+  $message = $lang->get($message);
 
   $template->add_header('<meta http-equiv="refresh" content="' . $timeout . '; url=' . str_replace('"', '\\"', $url) . '" />');
   $template->add_header('<script type="text/javascript">
@@ -295,7 +299,12 @@ function redirect($url, $title = 'Redirecting...', $message = 'Please wait while
 
   $template->tpl_strings['PAGE_NAME'] = $title;
   $template->header(true);
-  echo '<p>' . $message . '</p><p>If you are not redirected within ' . ( $timeout + 1 ) . ' seconds, <a href="' . str_replace('"', '\\"', $url) . '">please click here</a>.</p>';
+  echo '<p>' . $message . '</p>';
+  $subst = array(
+      'timeout' => ( $timeout + 1 ),
+      'redirect_url' => str_replace('"', '\\"', $url)
+    );
+  echo '<p>' . $lang->get('etc_redirect_timeout', $subst) . '</p>';
   $template->footer(true);
 
   $db->close();

@@ -17,7 +17,7 @@
 
 var enano_lang = {
   categories: [
-    'meta', 'user', 'page', 'comment', 'onpage'
+    'meta', 'user', 'page', 'comment', 'onpage', 'etc'
   ],
   strings: {
     meta: {
@@ -31,15 +31,6 @@ var enano_lang = {
     user: {
       login_message_short: 'Please enter your username and password to log in.',
       login_message_short_elev: 'Please re-enter your login details',
-      err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',
-      err_key_wrong_length: 'The encryption key was the wrong length.',
-      err_too_big_for_britches: 'You are trying to authenticate at a level that your user account does not permit.',
-      err_invalid_credentials: 'You have entered an invalid username or password. Please enter your login details again.',
-      err_invalid_credentials_lockout: ' You have used up %fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will be locked out from logging in for %config.lockout_duration% minutes.',
-      err_invalid_credentials_lockout_captcha: ' You have used up %lockout_fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will have to enter a visual confirmation code while logging in, effective for %config.lockout_duration% minutes.',
-      err_backend_fail: 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.',
-      err_locked_out: 'You have used up all %config.lockout_threshold% allowed login attempts. Please wait %time_rem% minute%plural% before attempting to log in again%config.captcha_blurb%.',
-      err_locked_out_captcha_blurb: ', or enter the visual confirmation code shown above in the appropriate box',
       login_body: 'Logging in enables you to use your preferences and access member information. If you don\'t have a username and password here, you can <a href="%reg_link%">create an account</a>.',
       login_body_elev: 'You are requesting that a sensitive operation be performed. To continue, please re-enter your password to confirm your identity.',
       login_field_username: 'Username',
@@ -47,15 +38,50 @@ var enano_lang = {
       login_forgotpass_blurb: 'Forgot your password? <a href="%forgotpass_link%">No problem.</a>',
       login_createaccount_blurb: 'Maybe you need to <a href="%reg_link%">create an account</a>.',
       login_field_captcha: 'Code in image',
-      login_nocrypt_title: 'Important note regarding cryptography',
+      login_nocrypt_title: 'Important note regarding cryptography:',
       login_nocrypt_body: 'Some countries do not allow the import or use of cryptographic technology. If you live in one of the countries listed below, you should <a href="%nocrypt_link%">log in without using encryption</a>.',
       login_nocrypt_countrylist: 'This restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.',
+      login_usecrypt_title: 'Encryption is currently turned off.',
+      login_usecrypt_body: 'If you are not in one of the countries listed below, you should <a href="%usecrypt_link%">enable encryption</a> to secure the logon process.',
+      login_usecrypt_countrylist: 'The cryptography restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.',
+      login_success_title: 'Login successful',
+      login_success_body: 'You have successfully logged into the %config.site_name% site as "%username%". Redirecting to %redir_target%...',
+      
+      login_ajax_fetching_key: 'Fetching an encryption key...',
+      login_ajax_prompt_title: 'Please enter your username and password to continue.',
+      login_ajax_prompt_title_elev: 'You are requesting a sensitive operation.',
+      login_ajax_prompt_body_elev: 'Please re-enter your login details, to verify your identity.',
+      login_ajax_link_fullform: 'Trouble logging in? Try the <a href="%link_full_form%">full login form</a>.',
+      login_ajax_link_forgotpass: 'Did you <a href="%forgotpass_link%">forget your password</a>?',
+      login_ajax_loggingin: 'Logging in...',
+      
+      err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',
+      err_key_wrong_length: 'The encryption key was the wrong length.',
+      err_too_big_for_britches: 'You are trying to authenticate at a level that your user account does not permit.',
+      err_invalid_credentials: 'You have entered an invalid username or password. Please enter your login details again.',
+      err_invalid_credentials_lockout: ' You have used up %fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will be locked out from logging in for %config.lockout_duration% minutes.',
+      err_invalid_credentials_lockout_captcha: ' You have used up %lockout_fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will have to enter a visual confirmation code while logging in, effective for %config.lockout_duration% minutes.',
+      err_backend_fail: 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.',
+      err_locked_out: 'You have used up all %config.lockout_threshold% allowed login attempts. Please wait %time_rem% minute%plural% before attempting to log in again%captcha_blurb%.',
+      err_locked_out_captcha_blurb: ', or enter the visual confirmation code shown above in the appropriate box',
+      
+      logout_success_title: 'Logged out',
+      logout_success_body: 'You have been successfully logged out, and all cookies have been cleared. You will now be transferred to the main page.',
+      logout_confirm_title: 'Are you sure you want to log out?',
+      logout_confirm_body: 'If you log out, you will no longer be able to access your user preferences, your private messages, or certain areas of this site until you log in again.',
+      logout_confirm_title_elev: 'Are you sure you want to de-authenticate?',
+      logout_confirm_body_elev: 'If you de-authenticate, you will no longer be able to use the administration panel until you re-authenticate again. You may do so at any time using the Administration button on the sidebar.',
     },
     page: {
     },
     comment: {
     },
     admhome: {
+    },
+    etc: {
+      redirect_title: 'Redirecting...',
+      redirect_body: 'Please wait while you are redirected.',
+      redirect_timeout: 'If you are not redirected within %timeout% seconds, please <a href="%redirect_url%">click here</a>.',
     },
   }
 };

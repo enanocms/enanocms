@@ -90,6 +90,14 @@ $plugins->attachHook('base_classes_initted', '
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
+      
+    $paths->add_page(Array(
+      \'name\'=>\'Language exporter\',
+      \'urlname\'=>\'LangExportJSON\',
+      \'namespace\'=>\'Special\',
+      \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
+      ));
+      
     ');
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
@@ -305,18 +313,26 @@ function page_Special_Login()
            <?php
          }
          ?>
-         <?php if ( $level <= USER_LEVEL_MEMBER ) { ?>
          <tr>
            <td class="row3" colspan="3">
              <?php
-             $returnpage_link = ( $return = $paths->getAllParams() ) ? '/' . $return : '';
-             $nocrypt_link = makeUrlNS('Special', "Login$returnpage_link", "level=$level&use_crypt=0", true);
-             echo '<p><b>' . $lang->get('user_login_nocrypt_title') . ':</b> ' . $lang->get('user_login_nocrypt_body', array('nocrypt_link' => $nocrypt_link)) . '</p>';
-             echo '<p>' . $lang->get('user_login_nocrypt_countrylist') . '</p>';
+             if ( $level <= USER_LEVEL_MEMBER && ( !isset($_GET['use_crypt']) || ( isset($_GET['use_crypt']) && $_GET['use_crypt']!='0' ) ) )
+             {
+               $returnpage_link = ( $return = $paths->getAllParams() ) ? '/' . $return : '';
+               $nocrypt_link = makeUrlNS('Special', "Login$returnpage_link", "level=$level&use_crypt=0", true);
+               echo '<p><b>' . $lang->get('user_login_nocrypt_title') . '</b> ' . $lang->get('user_login_nocrypt_body', array('nocrypt_link' => $nocrypt_link)) . '</p>';
+               echo '<p>' . $lang->get('user_login_nocrypt_countrylist') . '</p>';
+             }
+             else if ( $level <= USER_LEVEL_MEMBER && ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0' ) )
+             {
+               $returnpage_link = ( $return = $paths->getAllParams() ) ? '/' . $return : '';
+               $usecrypt_link = makeUrlNS('Special', "Login$returnpage_link", "level=$level&use_crypt=1", true);
+               echo '<p><b>' . $lang->get('user_login_usecrypt_title') . '</b> ' . $lang->get('user_login_usecrypt_body', array('usecrypt_link' => $usecrypt_link)) . '</p>';
+               echo '<p>' . $lang->get('user_login_usecrypt_countrylist') . '</p>';
+             }
              ?>
            </td>
          </tr>
-         <?php } ?>
          <tr>
            <th colspan="3" style="text-align: center" class="subhead"><input type="submit" name="login" value="Log in" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '2'; ?>" /></th>
          </tr>
@@ -348,6 +364,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $__login_status;
+  global $lang;
   if ( isset($_GET['act']) && $_GET['act'] == 'ajaxlogin' )
   {
     $plugins->attachHook('login_password_reset', 'SpecialLogin_SendResponse_PasswordReset($row[\'user_id\'], $row[\'temp_password\']);');
@@ -403,7 +420,11 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       if(isset($_POST['return_to']))
       {
         $name = ( isset($paths->pages[$_POST['return_to']]['name']) ) ? $paths->pages[$_POST['return_to']]['name'] : $_POST['return_to'];
-        redirect( makeUrl($_POST['return_to'], false, true), 'Login successful', 'You have successfully logged into the '.getConfig('site_name').' site as "'.$session->username.'". Redirecting to ' . $name . '...' );
+        $subst = array(
+            'username' => $session->username,
+            'redir_target' => $name
+          );
+        redirect( makeUrl($_POST['return_to'], false, true), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
       }
       else
       {
@@ -437,13 +458,15 @@ function SpecialLogin_SendResponse_PasswordReset($user_id, $passkey)
 
 function page_Special_Logout() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( !$session->user_logged_in )
     $paths->main_page();
   
   $l = $session->logout();
   if ( $l == 'success' )
   {
-    redirect(makeUrl(getConfig('main_page'), false, true), 'Logged out', 'You have been successfully logged out, and all cookies have been cleared. You will now be transferred to the main page.', 4);
+    
+    redirect(makeUrl(getConfig('main_page'), false, true), $lang->get('user_logout_success_title'), $lang->get('user_logout_success_body'), 4);
   }
   $template->header();
   echo '<h3>An error occurred during the logout process.</h3><p>'.$l.'</p>';
@@ -1629,6 +1652,33 @@ class MemberlistFormatter
   {
     return $this->format_date($time);
   }
+}
+
+function page_Special_LangExportJSON()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  $lang_id = ( $x = $paths->getParam(0) ) ? intval($x) : $lang->lang_id;
+  
+  if ( $lang->lang_id == $lang_id )
+    $lang_local =& $lang;
+  else
+    $lang_local = new Language($lang_id);
+  
+  $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+  
+  $timestamp = date('D, j M Y H:i:s T', $lang_local->lang_timestamp);
+  header("Last-Modified: $timestamp");
+  header("Date: $timestamp");
+  header('Content-type: text/javascript');
+  
+  $lang_local->fetch();
+  echo "if ( typeof(enano_lang) != 'object' )
+  var enano_lang = new Object();
+
+enano_lang[{$lang->lang_id}] = " . $json->encode($lang_local->strings) . ";";
+  
 }
 
 ?>

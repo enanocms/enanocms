@@ -2620,7 +2620,7 @@ function page_Special_Administration()
       }
       if ( t == namespace_list.Admin + 'AdminLogout' )
       {
-        var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, 'Are you sure you want to de-authenticate?', 'If you de-authenticate, you will no longer be able to use the administration panel until you re-authenticate again. You may do so at any time using the Administration button on the sidebar.');
+        var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title_elev'), $lang.get('user_logout_confirm_body_elev'));
         mb.onclick['Yes'] = function() {
           var tigraentry = document.getElementById('i_div0_0').parentNode;
           var tigraobj = $(tigraentry);

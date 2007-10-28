@@ -135,6 +135,7 @@ class template {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $email;
+    global $lang;
     
     dc_here("template: initializing all variables");
     
@@ -632,6 +633,10 @@ class template {
     // Add the e-mail address client code to the header
     $this->add_header($email->jscode());
     
+    // Add language file
+    $lang_uri = makeUrlNS('Special', 'LangExportJSON/' . $lang->lang_id, false, true);
+    $this->add_header("<script type=\"text/javascript\" src=\"$lang_uri\"></script>");
+    
     // Generate the code for the Log out and Change theme sidebar buttons
     // Once again, the new template parsing system can be used here
     
@@ -710,7 +715,8 @@ class template {
             }
           }
       $js_dynamic .= '\';
-      var ENANO_CURRENT_THEME = \''. $session->theme .'\';';
+      var ENANO_CURRENT_THEME = \''. $session->theme .'\';
+      var ENANO_LANG_ID = ' . $lang->lang_id . ';';
       foreach($paths->nslist as $k => $c)
       {
         $js_dynamic .= "namespace_list['{$k}'] = '$c';";

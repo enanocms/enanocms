@@ -277,6 +277,7 @@ var thefiles = [
   'toolbar.js',
   'windows.js',
   'rijndael.js',
+  'l10n.js',
   'template-compiler.js',
   'acl.js',
   'comments.js',

@@ -311,38 +311,49 @@ function ajaxAuthErrorToString($data)
   switch($data.error)
   {
     case 'key_not_found':
-      $errstring = 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.';
+      $errstring = $lang.get('user_err_key_not_found');
       break;
     case 'key_wrong_length':
-      $errstring = 'The encryption key was the wrong length.';
+      $errstring = $lang.get('user_err_key_wrong_length');
       break;
     case 'too_big_for_britches':
-      $errstring = 'You are trying to authenticate at a level that your user account does not permit.';
+      $errstring = $lang.get('user_err_too_big_for_britches');
       break;
     case 'invalid_credentials':
-      $errstring = 'You have entered an invalid username or password. Please enter your login details again.';
+      $errstring = $lang.get('user_err_invalid_credentials');
+      var subst = {
+        lockout_fails: $data.lockout_fails,
+        lockout_threshold: $data.lockout_threshold,
+        lockout_duration: $data.lockout_duration
+      }
       if ( $data.lockout_policy == 'lockout' )
       {
-        $errstring += ' You have used up '+$data['lockout_fails']+' out of '+$data['lockout_threshold']+' login attempts. After you have used up all '+$data['lockout_threshold']+' login attempts, you will be locked out from logging in for '+$data['lockout_duration']+' minutes.';
+        $errstring += $lang.get('user_err_invalid_credentials_lockout', subst);
       }
       else if ( $data.lockout_policy == 'captcha' )
       {
-        $errstring += ' You have used up '+$data['lockout_fails']+' out of '+$data['lockout_threshold']+' login attempts. After you have used up all '+$data['lockout_threshold']+' login attempts, you will have to enter a visual confirmation code before logging in, effective for '+$data['lockout_duration']+' minutes.';
+        $errstring += $lang.get('user_err_invalid_credentials_lockout_captcha', subst);
       }
       break;
     case 'backend_fail':
-      $errstring = 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.';
+      $errstring = $lang.get('user_err_backend_fail');
       break;
     case 'locked_out':
       $attempts = parseInt($data['lockout_fails']);
       if ( $attempts > $data['lockout_threshold'])
         $attempts = $data['lockout_threshold'];
       $time_rem = $data.time_rem;
-      $s = ( $time_rem == 1 ) ? '' : 's';
-      $errstring = "You have used up all "+$data['lockout_threshold']+" allowed login attempts. Please wait "+$time_rem+" minute"+$s+" before attempting to log in again";
-      if ( $data['lockout_policy'] == 'captcha' )
-        $errstring += ', or enter the visual confirmation code shown above in the appropriate box';
-      $errstring += '.';
+      $s = ( $time_rem == 1 ) ? '' : $lang.get('meta_plural');
+      
+      var subst = {
+        lockout_threshold: $data.lockout_threshold,
+        time_rem: $time_rem,
+        plural: $s,
+        captcha_blurb: ( $data.lockout_policy == 'captcha' ? $lang.get('user_err_locked_out_captcha_blurb') : '' )
+      }
+      
+      $errstring = $lang.get('user_err_locked_out', subst);
+      
       break;
   }
   return $errstring;
@@ -358,11 +369,11 @@ function ajaxPromptAdminAuth(call_on_ok, level)
     level = USER_LEVEL_MEMBER;
   ajax_auth_level_cache = level;
   var loading_win = '<div align="center" style="text-align: center;"> \
-      <p>Fetching an encryption key...</p> \
-      <p><small>Not working? Use the <a href="'+makeUrlNS('Special', 'Login/' + title)+'">alternate login form</a>.</p> \
+      <p>' + $lang.get('user_login_ajax_fetching_key') + '</p> \
+      <p><small>' + $lang.get('user_login_ajax_link_fullform', { link_full_form: makeUrlNS('Special', 'Login/' + title) }) + '</p> \
       <p><img alt="Please wait..." src="'+scriptPath+'/images/loading-big.gif" /></p> \
     </div>';
-  var title = ( level > USER_LEVEL_MEMBER ) ? 'You are requesting a sensitive operation.' : 'Please enter your username and password to continue.';
+  var title = ( level > USER_LEVEL_MEMBER ) ? $lang.get('user_login_ajax_prompt_title_elev') : $lang.get('user_login_ajax_prompt_title');
   ajax_auth_mb_cache = new messagebox(MB_OKCANCEL|MB_ICONLOCK, title, loading_win);
   ajax_auth_mb_cache.onbeforeclick['OK'] = ajaxValidateLogin;
   ajax_auth_mb_cache.onbeforeclick['Cancel'] = function()
@@ -416,13 +427,13 @@ function ajaxAuthLoginInnerSetup()
         }
         else if ( level > USER_LEVEL_MEMBER )
         {
-          form_html += 'Please re-enter your login details, to verify your identity.<br /><br />';
+          form_html += $lang.get('user_login_ajax_prompt_body_elev') + '<br /><br />';
         }
         if ( ajax_auth_show_captcha )
          {
            var captcha_html = ' \
              <tr> \
-               <td>Code in image:</td> \
+               <td>' + $lang.get('user_login_field_captcha') + ':</td> \
                <td><input type="hidden" id="ajaxlogin_captcha_hash" value="' + ajax_auth_show_captcha + '" /><input type="text" tabindex="3" size="25" id="ajaxlogin_captcha_code" /> \
              </tr>';
          }
@@ -434,22 +445,22 @@ function ajaxAuthLoginInnerSetup()
         form_html += ' \
           <table border="0" align="center"> \
             <tr> \
-              <td>Username:</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     ' + disableme + 'size="25" /> \
+              <td>' + $lang.get('user_login_field_username') + ':</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     ' + disableme + 'size="25" /> \
             </tr> \
             <tr> \
-              <td>Password:</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" ' + disableme + 'size="25" /> \
+              <td>' + $lang.get('user_login_field_password') + ':</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" ' + disableme + 'size="25" /> \
             </tr> \
             ' + captcha_html + ' \
             <tr> \
               <td colspan="2" style="text-align: center;"> \
-                <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title, 'level=' + level)+'">full login form</a>.<br />';
+                <small>' + $lang.get('user_login_ajax_link_fullform', { link_full_form: makeUrlNS('Special', 'Login/' + title, 'level=' + level) }) + '<br />';
        if ( level <= USER_LEVEL_MEMBER )
        {
          form_html += ' \
-                Did you <a href="'+makeUrlNS('Special', 'PasswordReset')+'">forget your password</a>?<br /> \
-                Maybe you need to <a href="'+makeUrlNS('Special', 'Register')+'">create an account</a>.</small>';
+                ' + $lang.get('user_login_ajax_link_forgotpass', { forgotpass_link: makeUrlNS('Special', 'PasswordReset') }) + '<br /> \
+                ' + $lang.get('user_login_createaccount_blurb', { reg_link: makeUrlNS('Special', 'Register') });
        }
-       form_html += ' \
+       form_html += '</small> \
               </td> \
             </tr> \
           </table> \
@@ -588,7 +599,7 @@ function ajaxValidateLogin()
   json_data = encodeURIComponent(json_data);
   
   var loading_win = '<div align="center" style="text-align: center;"> \
-      <p>Logging in...</p> \
+      <p>' + $lang.get('user_login_ajax_loggingin') + '</p> \
       <p><img alt="Please wait..." src="'+scriptPath+'/images/loading-big.gif" /></p> \
     </div>';
     
