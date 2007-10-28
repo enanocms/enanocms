@@ -74,6 +74,11 @@ var enano_lang = {
       
       keepalive_info_title: 'About the keep-alive feature',
       keepalive_info_body: 'Keep-alive is a new Enano feature that keeps your administrative session from timing out while you are using the administration panel. This feature can be useful if you are editing a large page or doing something in the administration interface that will take longer than 15 minutes.<br /><br />For security reasons, Enano mandates that high-privilege logins last only 15 minutes, with the time being reset each time a page is loaded (or, more specifically, each time the session API is started). The consequence of this is that if you are performing an action in the administration panel that takes more than 15 minutes, your session may be terminated. The keep-alive feature attempts to relieve this by sending a "ping" to the server every 10 minutes.<br /><br />Please note that keep-alive state is determined by a cookie. Thus, if you log out and then back in as a different administrator, keep-alive will use the same setting that was used when you were logged in as the first administrative user. In the same way, if you log into the administration panel under your account from another computer, keep-alive will be set to "off".<br /><br /><b>For more information:</b><br /><a href="http://docs.enanocms.org/Help:Appendix_B" onclick="window.open(this.href); return false;">Overview of Enano\'s security model</a>',
+      
+      type_guest: 'Guest',
+      type_member: 'Member',
+      type_mod: 'Moderator',
+      type_admin: 'Administrator',
     },
     onpage: {
       lbl_pagetools: 'Page tools',
@@ -116,6 +121,43 @@ var enano_lang = {
       btn_admin: 'administrative options',
     },
     comment: {
+      lbl_subject: 'Subject',
+      lbl_mod_options: 'Moderator options:',
+      heading: 'Article comments',
+      btn_send_privmsg: 'Send private message',
+      btn_add_buddy: 'Add to buddy list',
+      btn_edit: 'edit',
+      btn_delete: 'delete',
+      btn_mod_approve: 'Approve',
+      btn_mod_unapprove: 'Unapprove',
+      btn_mod_delete: 'Delete',
+      btn_save: 'save',
+      
+      msg_comment_posted: 'Your comment has been posted. If it does not appear right away, it is probably awaiting approval.',
+      
+      msg_count_zero: 'There are <span id="comment_count_inner">no</span> comments on this %page_type%.',
+      msg_count_one: 'There is <span id="comment_count_inner">1</span> comment on this %page_type%.',
+      msg_count_plural: 'There are <span id="comment_count_inner">%num_comments%</span> comments on this %page_type%.',
+      
+      msg_count_unapp_mod: '<span id="comment_count_unapp_inner">%num_unapp%</span> of those are unapproved.',
+      msg_count_unapp_one: 'However, there is <span id="comment_count_unapp_inner">1</span> additional comment awaiting approval.',
+      msg_count_unapp_plural: 'However, there are <span id="comment_count_unapp_inner">%num_unapp%</span> additional comments awaiting approval.',
+      
+      msg_note_unapp: '(Unapproved)',
+      
+      msg_delete_confirm: 'Do you really want to delete this comment?',
+      
+      postform_title: 'Got something to say?',
+      postform_blurb: 'If you have comments or suggestions on this article, you can shout it out here.',
+      postform_blurb_unapp: 'Before your post will be visible to the public, a moderator will have to approve it.',
+      postform_blurb_link: 'Leave a comment...',
+      postform_field_name: 'Your name/screen name:',
+      postform_field_subject: 'Comment subject:',
+      postform_field_comment: 'Comment:',
+      postform_field_captcha_title: 'Visual confirmation:',
+      postform_field_captcha_blurb: 'Please enter the confirmation code seen in the image on the right into the box. If you cannot read the code, please click on the image to generate a new one. This helps to prevent automated bot posting.',
+      postform_field_captcha_label: 'Confirmation code:',
+      postform_btn_submit: 'Submit comment',
     },
     adm: {
       cat_general: 'General',

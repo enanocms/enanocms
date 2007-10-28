@@ -736,7 +736,8 @@ class template {
           }
       $js_dynamic .= '\';
       var ENANO_CURRENT_THEME = \''. $session->theme .'\';
-      var ENANO_LANG_ID = ' . $lang->lang_id . ';';
+      var ENANO_LANG_ID = ' . $lang->lang_id . ';
+      var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";';
       foreach($paths->nslist as $k => $c)
       {
         $js_dynamic .= "namespace_list['{$k}'] = '$c';";

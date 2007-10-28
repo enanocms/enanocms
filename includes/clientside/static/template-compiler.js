@@ -54,6 +54,7 @@ function __tpCompileTemplate(code)
   code = code.replace(new RegExp(unescape('%0A'), 'g'), '\\n');
   code = "'" + code + "'";
   code = code.replace(/\{([A-z0-9_-]+)\}/ig, "' + this.tpl_strings['$1'] + '");
+  code = code.replace(/\{lang:([a-z0-9_]+)\}/g, "' + $lang.get('$1') + '");
   code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- BEGINELSE \1 --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '$3' ) + '");
   code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '' ) + '");
   return code;
