@@ -35,15 +35,27 @@ var enano_lang = {
       err_key_wrong_length: 'The encryption key was the wrong length.',
       err_too_big_for_britches: 'You are trying to authenticate at a level that your user account does not permit.',
       err_invalid_credentials: 'You have entered an invalid username or password. Please enter your login details again.',
-      err_invalid_credentials_lockout: ' You have used up %lockout_fails% out of %lockout_threshold% login attempts. After you have used up all %lockout_threshold% login attempts, you will be locked out from logging in for %lockout_duration% minutes.',
-      err_invalid_credentials_lockout_captcha: ' You have used up %lockout_fails% out of %lockout_threshold% login attempts. After you have used up all %lockout_threshold% login attempts, you will have to enter a visual confirmation code while logging in, effective for %lockout_duration% minutes.',
+      err_invalid_credentials_lockout: ' You have used up %fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will be locked out from logging in for %config.lockout_duration% minutes.',
+      err_invalid_credentials_lockout_captcha: ' You have used up %lockout_fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will have to enter a visual confirmation code while logging in, effective for %config.lockout_duration% minutes.',
       err_backend_fail: 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.',
-      err_locked_out: 'You have used up all %lockout_threshold% allowed login attempts. Please wait %time_rem% minute%plural% before attempting to log in again%captcha_blurb%.',
-      err_locked_out_captcha_blurb: ', or enter the visual confirmation code shown above in the appropriate box'
+      err_locked_out: 'You have used up all %config.lockout_threshold% allowed login attempts. Please wait %time_rem% minute%plural% before attempting to log in again%config.captcha_blurb%.',
+      err_locked_out_captcha_blurb: ', or enter the visual confirmation code shown above in the appropriate box',
+      login_body: 'Logging in enables you to use your preferences and access member information. If you don\'t have a username and password here, you can <a href="%reg_link%">create an account</a>.',
+      login_body_elev: 'You are requesting that a sensitive operation be performed. To continue, please re-enter your password to confirm your identity.',
+      login_field_username: 'Username',
+      login_field_password: 'Password',
+      login_forgotpass_blurb: 'Forgot your password? <a href="%forgotpass_link%">No problem.</a>',
+      login_createaccount_blurb: 'Maybe you need to <a href="%reg_link%">create an account</a>.',
+      login_field_captcha: 'Code in image',
+      login_nocrypt_title: 'Important note regarding cryptography',
+      login_nocrypt_body: 'Some countries do not allow the import or use of cryptographic technology. If you live in one of the countries listed below, you should <a href="%nocrypt_link%">log in without using encryption</a>.',
+      login_nocrypt_countrylist: 'This restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.',
     },
     page: {
     },
-    adm: {
+    comment: {
+    },
+    admhome: {
     },
   }
 };

@@ -1192,6 +1192,7 @@ function ajaxShowCaptcha(code)
   mydiv.style.position = 'absolute';
   mydiv.style.top = '0px';
   mydiv.id = 'autoCaptcha';
+  mydiv.style.zIndex = String( getHighestZ() + 1 );
   var img = document.createElement('img');
   img.onload = function()
   {

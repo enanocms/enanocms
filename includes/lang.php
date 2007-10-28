@@ -81,7 +81,7 @@ class Language
       $db->_die('lang.php - attempting to pass invalid value to constructor');
     }
     
-    $lang_default = ( $x = getConfig('default_language') ) ? intval($x) : 1;
+    $lang_default = ( $x = getConfig('default_language') ) ? intval($x) : 'def';
     $q = $db->sql_query("SELECT lang_id, lang_code, ( lang_id = $lang_default ) AS is_default FROM " . table_prefix . "language WHERE $sql_col OR lang_id = $lang_default ORDER BY is_default DESC LIMIT 1;");
     
     if ( !$q )
@@ -372,6 +372,8 @@ $lang_cache = ');
     }
     // Found it!
     // Perform substitutions.
+    // if ( is_array($substitutions) )
+    //   die('<pre>' . print_r($substitutions, true) . '</pre>');
     if ( !is_array($substitutions) )
       $substitutions = array();
     return $this->substitute($string, $substitutions);
@@ -395,11 +397,21 @@ $lang_cache = ');
         $string = str_replace($matches[0][$i], $result, $string);
       }
     }
+    preg_match_all('/%config\.([a-z0-9_]+)%/', $string, $matches);
+    if ( count($matches[0]) > 0 )
+    {
+      foreach ( $matches[1] as $i => $string_id )
+      {
+        $result = getConfig($string_id);
+        $string = str_replace($matches[0][$i], $result, $string);
+      }
+    }
     foreach ( $subs as $key => $value )
     {
-      $string = str_replace("%$key%", $value, $string);
+      $subs[$key] = strval($value);
+      $string = str_replace("%{$key}%", "{$subs[$key]}", $string);
     }
-    return $string;
+    return "[L] $string";
   }
   
 } // class Language

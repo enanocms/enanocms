@@ -100,6 +100,7 @@ function page_Special_Login()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $__login_status;
+  global $lang;
   
   $pubkey = $session->rijndael_genkey();
   $challenge = $session->dss_rand();
@@ -181,34 +182,34 @@ function page_Special_Login()
     $paths->main_page();
   $template->header();
   echo '<form action="'.makeUrl($paths->nslist['Special'].'Login').'" method="post" name="loginform" onsubmit="runEncryption();">';
-  $header = ( $level > USER_LEVEL_MEMBER ) ? 'Please re-enter your login details' : 'Please enter your username and password to log in.';
+  $header = ( $level > USER_LEVEL_MEMBER ) ? $lang->get('user_login_message_short_elev') : $lang->get('user_login_message_short');
   if ( isset($_POST['login']) )
   {
     $errstring = $__login_status['error'];
     switch($__login_status['error'])
     {
       case 'key_not_found':
-        $errstring = 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.';
+        $errstring = $lang->get('user_err_key_not_found');
         break;
       case 'key_wrong_length':
-        $errstring = 'The encryption key was the wrong length.';
+        $errstring = $lang->get('user_err_key_wrong_length');
         break;
       case 'too_big_for_britches':
-        $errstring = 'You are trying to authenticate at a level that your user account does not permit.';
+        $errstring = $lang->get('user_err_too_big_for_britches');
         break;
       case 'invalid_credentials':
-        $errstring = 'You have entered an invalid username or password. Please enter your login details again.';
+        $errstring = $lang->get('user_err_invalid_credentials');
         if ( $__login_status['lockout_policy'] == 'lockout' )
         {
-          $errstring .= ' You have used up '.$__login_status['lockout_fails'].' out of '.$__login_status['lockout_threshold'].' login attempts. After you have used up all '.$data['lockout_threshold'].' login attempts, you will be locked out from logging in for '.$__login_status['lockout_duration'].' minutes.';
+          $errstring .= $lang->get('err_invalid_credentials_lockout', array('lockout_fails' => $__login_status['lockout_fails']));
         }
         else if ( $__login_status['lockout_policy'] == 'captcha' )
         {
-          $errstring .= ' You have used up '.$__login_status['lockout_fails'].' out of '.$__login_status['lockout_threshold'].' login attempts. After you have used up all '.$data['lockout_threshold'].' login attempts, you will have to enter a visual confirmation code before logging in, effective for '.$__login_status['lockout_duration'].' minutes.';
+          $errstring .= $lang->get('user_err_invalid_credentials_lockout_captcha', array('lockout_fails' => $__login_status['lockout_fails']));
         }
         break;
       case 'backend_fail':
-        $errstring = 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.';
+        $errstring = $lang->get('user_err_backend_fail');
         break;
       case 'locked_out':
         $attempts = intval($__login_status['lockout_fails']);
@@ -216,13 +217,15 @@ function page_Special_Login()
           $attempts = $__login_status['lockout_threshold'];
         
         $server_time = time();
-        $time_rem = $__login_status['lockout_duration'] - round( ( $server_time - $__login_status['lockout_last_time'] ) / 60 );
+        $time_rem = ( $__login_status['lockout_last_time'] == time() ) ? $__login_status['lockout_duration'] : $__login_status['lockout_duration'] - round( ( $server_time - $__login_status['lockout_last_time'] ) / 60 );
+        if ( $time_rem < 1 )
+          $time_rem = $__login_status['lockout_duration'];
         
-        $s = ( $time_rem == 1 ) ? '' : 's';
-        $errstring = "You have used up all {$__login_status['lockout_threshold']} allowed login attempts. Please wait {$time_rem} minute$s before attempting to log in again";
-        if ( $__login_status['lockout_policy'] == 'captcha' )
-        $errstring .= ', or enter the visual confirmation code shown above in the appropriate box';
-        $errstring .= '.';
+        $s = ( $time_rem == 1 ) ? '' : $lang->get('meta_plural');
+        
+        $captcha_string = ( $__login_status['lockout_policy'] == 'captcha' ) ? $lang->get('err_locked_out_captcha_blurb') : '';
+        $errstring = $lang->get('user_err_locked_out', array('plural' => $s, 'captcha_blurb' => $captcha_string, 'time_rem' => $time_rem));
+        
         break;
     }
     echo '<div class="error-box-mini">'.$errstring.'</div>';
@@ -246,18 +249,18 @@ function page_Special_Login()
             <?php
             if ( $level <= USER_LEVEL_MEMBER )
             {
-              echo '<p>Logging in enables you to use your preferences and access member information. If you don\'t have a username and password here, you can <a href="'.makeUrl($paths->nslist['Special'].'Register').'">create an account</a>.</p>';
+              echo '<p>' . $lang->get('user_login_body', array('reg_link' => makeUrlNS('Special', 'Register'))) . '</p>';
             }
             else
             {
-              echo '<p>You are requesting that a sensitive operation be performed. To continue, please re-enter your password to confirm your identity.</p>';
+              echo '<p>' . $lang->get('user_login_body_elev') . '</p>';
             }
             ?>
           </td>
         </tr>
         <tr>
           <td class="row2">
-            Username:
+            <?php echo $lang->get('user_login_field_username'); ?>:
           </td>
           <td class="row1">
             <input name="username" size="25" type="text" <?php
@@ -277,20 +280,22 @@ function page_Special_Login()
           </td>
           <?php if ( $level <= USER_LEVEL_MEMBER ) { ?>
           <td rowspan="<?php echo ( ( $locked_out && $lockdata['lockout_policy'] == 'captcha' ) ) ? '4' : '2'; ?>" class="row3">
-            <small>Forgot your password? <a href="<?php echo makeUrlNS('Special', 'PasswordReset'); ?>">No problem.</a><br />
-            Maybe you need to <a href="<?php echo makeUrlNS('Special', 'Register'); ?>">create an account</a>.</small>
+            <small><?php echo $lang->get('user_login_forgotpass_blurb', array('forgotpass_link' => makeUrlNS('Special', 'PasswordReset'))); ?><br />
+            <?php echo $lang->get('user_login_createaccount_blurb', array('reg_link' => makeUrlNS('Special', 'Register'))); ?></small>
           </td>
           <?php } ?>
         </tr>
         <tr>
-          <td class="row2">Password:<br /></td><td class="row1"><input name="pass" size="25" type="password" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '2' : '1'; ?>" /></td>
+          <td class="row2">
+            <?php echo $lang->get('user_login_field_password'); ?>:
+          </td><td class="row1"><input name="pass" size="25" type="password" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '2' : '1'; ?>" /></td>
          </tr>
          <?php
          if ( $locked_out && $lockdata['lockout_policy'] == 'captcha' )
          {
            ?>
            <tr>
-             <td class="row2" rowspan="2">Code in image:<br /></td><td class="row1"><input type="hidden" name="captcha_hash" value="<?php echo $lockdata['captcha']; ?>" /><input name="captcha_code" size="25" type="text" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '4'; ?>" /></td>
+             <td class="row2" rowspan="2"><?php echo $lang->get('user_login_field_captcha'); ?>:<br /></td><td class="row1"><input type="hidden" name="captcha_hash" value="<?php echo $lockdata['captcha']; ?>" /><input name="captcha_code" size="25" type="text" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '4'; ?>" /></td>
            </tr>
            <tr>
              <td class="row3">
@@ -303,8 +308,12 @@ function page_Special_Login()
          <?php if ( $level <= USER_LEVEL_MEMBER ) { ?>
          <tr>
            <td class="row3" colspan="3">
-             <p><b>Important note regarding cryptography:</b> Some countries do not allow the import or use of cryptographic technology. If you live in one of the countries listed below, you should <a href="<?php if($p=$paths->getParam(0))$u='/'.$p;else $u='';echo makeUrl($paths->page.$u, 'level='.$level.'&use_crypt=0', true); ?>">log in without using encryption</a>.</p>
-             <p>This restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.</p>
+             <?php
+             $returnpage_link = ( $return = $paths->getAllParams() ) ? '/' . $return : '';
+             $nocrypt_link = makeUrlNS('Special', "Login$returnpage_link", "level=$level&use_crypt=0", true);
+             echo '<p><b>' . $lang->get('user_login_nocrypt_title') . ':</b> ' . $lang->get('user_login_nocrypt_body', array('nocrypt_link' => $nocrypt_link)) . '</p>';
+             echo '<p>' . $lang->get('user_login_nocrypt_countrylist') . '</p>';
+             ?>
            </td>
          </tr>
          <?php } ?>

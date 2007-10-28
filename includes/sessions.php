@@ -362,6 +362,7 @@ class sessionManager {
   function start()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     if($this->started) return;
     $this->started = true;
     $user = false;
@@ -381,6 +382,9 @@ class sessionManager {
         
         if(!$this->compat && $userdata['account_active'] != 1 && $data[1] != 'Special' && $data[1] != 'Admin')
         {
+          $language = intval(getConfig('default_language'));
+          $lang = new Language($language);
+          
           $this->logout();
           $a = getConfig('account_activation');
           switch($a)
@@ -479,6 +483,13 @@ class sessionManager {
           }
         }
         $user = true;
+        
+        // Set language
+        if ( !defined('ENANO_ALLOW_LOAD_NOLANG') )
+        {
+          $lang_id = intval($userdata['user_lang']);
+          $lang = new Language($lang_id);
+        }
         
         if(isset($_REQUEST['auth']) && !$this->sid_super)
         {
@@ -1111,6 +1122,7 @@ class sessionManager {
   function register_guest_session()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     $this->username = $_SERVER['REMOTE_ADDR'];
     $this->user_level = USER_LEVEL_GUEST;
     if($this->compat || defined('IN_ENANO_INSTALL'))
@@ -1124,6 +1136,12 @@ class sessionManager {
       $this->style = ( isset($_GET['style']) && file_exists(ENANO_ROOT.'/themes/'.$this->theme . '/css/'.$_GET['style'].'.css' )) ? $_GET['style'] : substr($template->named_theme_list[$this->theme]['default_style'], 0, strlen($template->named_theme_list[$this->theme]['default_style'])-4);
     }
     $this->user_id = 1;
+    if ( !defined('ENANO_ALLOW_LOAD_NOLANG') )
+    {
+      // This is a VERY special case we are allowing. It lets the installer create languages using the Enano API.
+      $language = intval(getConfig('default_language'));
+      $lang = new Language($language);
+    }
   }
   
   /**
@@ -1151,7 +1169,7 @@ class sessionManager {
     }
     $keyhash = md5($key);
     $salt = $db->escape($keydata[3]);
-    $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,x.* FROM '.table_prefix.'session_keys AS k
+    $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,u.user_lang,x.* FROM '.table_prefix.'session_keys AS k
                                LEFT JOIN '.table_prefix.'users AS u
                                  ON ( u.user_id=k.user_id )
                                LEFT JOIN '.table_prefix.'users_extra AS x

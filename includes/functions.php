@@ -3166,6 +3166,53 @@ function password_score($password, &$debug = false)
   return $score;
 }
 
+/**
+ * Installs a language.
+ * @param string The ISO-639-3 identifier for the language. Maximum of 6 characters, usually 3.
+ * @param string The name of the language in English (Spanish)
+ * @param string The name of the language natively (Español)
+ * @param string The path to the file containing the language's strings. Optional.
+ */
+
+function install_language($lang_code, $lang_name_neutral, $lang_name_local, $lang_file = false)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'language WHERE lang_code = "' . $db->escape($lang_code) . '";');
+  if ( !$q )
+    $db->_die('functions.php - checking for language existence');
+  
+  if ( $db->numrows() > 0 )
+    // Language already exists
+    return false;
+  
+  $q = $db->sql_query('INSERT INTO ' . table_prefix . 'language(lang_code, lang_name_default, lang_name_native) 
+                         VALUES(
+                           "' . $db->escape($lang_code) . '",
+                           "' . $db->escape($lang_name_neutral) . '",
+                           "' . $db->escape($lang_name_native) . '"
+                         );');
+  if ( !$q )
+    $db->_die('functions.php - installing language');
+  
+  $lang_id = $db->insert_id();
+  if ( empty($lang_id) )
+    return false;
+  
+  // Do we also need to install a language file?
+  if ( is_string($lang_file) && file_exists($lang_file) )
+  {
+    $lang = new Language($lang_id);
+    $lang->import($lang_file);
+  }
+  else if ( is_string($lang_file) && !file_exists($lang_file) )
+  {
+    echo '<b>Notice:</b> Can\'t load language file, so the specified language wasn\'t fully installed.<br />';
+    return false;
+  }
+  return true;
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>
