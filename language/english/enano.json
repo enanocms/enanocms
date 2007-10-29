@@ -17,7 +17,7 @@
 
 var enano_lang = {
   categories: [
-    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax',
+    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar',
   ],
   strings: {
     meta: {
@@ -34,6 +34,7 @@ var enano_lang = {
       tags: 'Page tagging interface',
       delvote: 'Page deletion vote interface',
       ajax: 'On-page AJAX applets',
+      sidebar: 'Default sidebar blocks and buttons',
       plural: 's'
     },
     user: {
@@ -87,6 +88,8 @@ var enano_lang = {
       type_member: 'Member',
       type_mod: 'Moderator',
       type_admin: 'Administrator',
+      
+      msg_elev_timed_out: '<b>Your administrative session has timed out.</b> <a href="%login_link%">Log in again</a>',
     },
     onpage: {
       lbl_pagetools: 'Page tools',
@@ -290,6 +293,8 @@ var enano_lang = {
       changestyle_select: '[Select]',
       changestyle_title: 'Change your theme',
       changestyle_pleaseselect_theme: 'Please select a theme from the list.',
+      changestyle_lbl_theme: 'Theme:',
+      changestyle_lbl_style: 'Style:',
       changestyle_success: 'Your theme preference has been changed.\nWould you like to reload the page now to see the changes?',
       killphp_confirm: 'Are you really sure you want to do this? Some pages might not function if this emergency-only feature is activated.',
       killphp_success: 'Embedded PHP in pages has been disabled.',
@@ -307,18 +312,45 @@ var enano_lang = {
       password_disable_success: 'The password for this page has been disabled.',
       
     },
+    sidebar: {
+      title_navigation: 'Navigation',
+      title_tools: 'Tools',
+      title_search: 'Search',
+      title_links: 'Links',
+      
+      btn_home: 'Home',
+      btn_createpage: 'Create a page',
+      btn_uploadfile: 'Upload file',
+      btn_specialpages: 'Special pages',
+      btn_administration: 'Administration',
+      btn_editsidebar: 'Edit the sidebar',
+      btn_search_go: 'Go',
+      
+      btn_userpage: 'User page',
+      btn_mycontribs: 'My contributions',
+      btn_preferences: 'Preferences',
+      btn_privatemessages: 'Private messages',
+      btn_groupcp: 'Group control panel',
+      btn_register: 'Create an account',
+      btn_login: 'Log in',
+      btn_logout: 'Log out',
+      btn_changestyle: 'Change theme',
+    },
     etc: {
       redirect_title: 'Redirecting...',
       redirect_body: 'Please wait while you are redirected.',
       redirect_timeout: 'If you are not redirected within %timeout% seconds, please <a href="%redirect_url%">click here</a>.',
       // Generic "Save Changes" button
       save_changes: 'Save changes',
-      // Generic "Cancel" button
-      cancel: 'Cancel',
       // Generic "Notice:" label
       lbl_notice: 'Notice:',
       // Generic "Access denied"
       access_denied: 'Access to the specified file, resource, or action is denied.',
+      // Message box buttons
+      ok: 'OK',
+      cancel: 'Cancel',
+      yes: 'Yes',
+      no: 'No'
     },
   }
 };

@@ -665,7 +665,7 @@ class template {
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Logout'),
         'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { mb_logout(); return false; }"',
-        'TEXT'=>'Log out',
+        'TEXT'=>$lang->get('sidebar_btn_logout'),
       ));
     
     $logout_link = $parser->run();
@@ -673,7 +673,7 @@ class template {
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Login/' . $paths->page),
         'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxStartLogin(); return false; }"',
-        'TEXT'=>'Log in',
+        'TEXT'=>$lang->get('sidebar_btn_login'),
       ));
     
     $login_link = $parser->run();
@@ -681,7 +681,7 @@ class template {
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'ChangeStyle/'.$paths->page),
         'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxChangeStyle(); return false; }"',
-        'TEXT'=>'Change theme',
+        'TEXT'=>$lang->get('sidebar_btn_changestyle'),
       ));
     
     $theme_link = $parser->run();
@@ -689,7 +689,7 @@ class template {
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Administration'),
         'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxStartAdminLogin()); return false; }"',
-        'TEXT'=>'Administration',
+        'TEXT'=>$lang->get('sidebar_btn_administration'),
       ));
     
     $admin_link = $parser->run();
@@ -799,6 +799,8 @@ class template {
   function header($simple = false) 
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     ob_start();
     
     if(!$this->theme_loaded)
@@ -825,7 +827,7 @@ class template {
     {
       $login_link = makeUrlNS('Special', 'Login/' . $paths->fullpage, 'level=' . $session->user_level, true);
       echo '<div class="usermessage">';
-      echo '<b>Your administrative session has timed out.</b> <a href="' . $login_link . '">Log in again</a>';
+      echo $lang->get('user_msg_elev_timed_out', array( 'login_link' => $login_link ));
       echo '</div>';
     }
     if ( $this->site_disabled && $session->user_level >= USER_LEVEL_ADMIN && ( $paths->page != $paths->nslist['Special'] . 'Administration' ) )
@@ -1283,6 +1285,8 @@ EOF;
   function tplWikiFormat($message, $filter_links = false, $filename = 'elements.tpl')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     $filter_links = false;
     $tplvars = $this->extract_vars($filename);
     if($session->sid_super) $as = htmlspecialchars(urlSeparator).'auth='.$session->sid_super;
@@ -1409,6 +1413,15 @@ EOF;
         else $c = $links[2][$i];
         $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
       }
+    }
+    
+    preg_match_all('/\{lang:([a-z0-9]+_[a-z0-9_]+)\}/', $message, $matches);
+    foreach ( $matches[1] as $i => $string_id )
+    {
+      $string = $lang->get($string_id);
+      $string = str_replace('\\', '\\\\', $string);
+      $string = str_replace('\'', '\\\'', $string);
+      $message = str_replace_once($matches[0][$i], $string, $message);
     }
     
     /*

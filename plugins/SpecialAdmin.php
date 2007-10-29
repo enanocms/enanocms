@@ -3026,7 +3026,7 @@ function page_Special_EditSidebar()
             echo '<div class="warning-box" style="margin: 10px 0;">$_GET[\'side\'] contained an SQL injection attempt</div>';
             break;
           }
-          $query = $db->sql_query('UPDATE '.table_prefix.'sidebar SET sidebar_id=' . intval($_GET['side']) . ' WHERE item_id=' . intval($_GET['id']) . ';');
+          $query = $db->sql_query('UPDATE '.table_prefix.'sidebar SET sidebar_id=' . $db->escape($_GET['side']) . ' WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$query)
           {
             echo $db->get_error();
@@ -3062,6 +3062,21 @@ function page_Special_EditSidebar()
           $db->free_result();
           $e = ( $r['item_enabled'] == 1 ) ? '0' : '1';
           $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET item_enabled='.$e.' WHERE item_id=' . intval($_GET['id']) . ';');
+          if(!$q)
+          {
+            echo $db->get_error();
+            $template->footer();
+            exit;
+          }
+          if(isset($_GET['ajax']))
+          {
+            ob_end_clean();
+            die('GOOD');
+          }
+          break;
+        case 'rename';
+          $newname = $db->escape($_POST['newname']);
+          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_name=\''.$newname.'\' WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo $db->get_error();
@@ -3205,6 +3220,8 @@ function page_Special_EditSidebar()
           $parser = $template->makeParserText($vars['sidebar_section']);
           $c = $template->tplWikiFormat($row['block_content'], false, 'sidebar-editor.tpl');
           $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
+          // fix for the "Administration" link that somehow didn't get rendered properly
+          $c = preg_replace("/(^|\n)([ ]*)<a([ ]+.*)?>(.+)<\/a>(<br(.*)\/>)([\r\n]+|$)/isU", '\\1\\2<li><a\\3>\\4</a></li>\\7', $c);
           break;
         case BLOCK_HTML:
           $parser = $template->makeParserText($vars['sidebar_section_raw']);
@@ -3224,7 +3241,7 @@ function page_Special_EditSidebar()
           $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : 'Can\'t find plugin block';
           break;
       }
-      $block_name = $template->tplWikiFormat($row['block_name']);
+      $block_name = $row['block_name']; // $template->tplWikiFormat($row['block_name']);
       if ( empty($block_name) )
         $block_name = '&lt;Unnamed&gt;';
       $t = '<span title="Double-click to rename this block" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $block_name . '</span>';

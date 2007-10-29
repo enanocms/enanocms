@@ -559,7 +559,7 @@ function ajaxChangeStyle()
   if ( KILL_SWITCH )
     return true;
   var inner_html = '';
-  inner_html += '<p><label>Theme: ';
+  inner_html += '<p><label>' + $lang.get('ajax_changestyle_lbl_theme') + ' ';
   inner_html += '  <select id="chtheme_sel_theme" onchange="ajaxGetStyles(this.value);">';
   inner_html += '    <option value="_blank" selected="selected">' + $lang.get('ajax_changestyle_select') + '</option>';
   inner_html +=      ENANO_THEME_LIST;
@@ -610,7 +610,7 @@ function ajaxGetStyles(id)
         var p_parent = document.createElement('p');
         var label  = document.createElement('label');
         p_parent.id = 'chtheme_sel_style_parent';
-        label.appendChild(document.createTextNode('Style: '));
+        label.appendChild(document.createTextNode($lang.get('ajax_changestyle_lbl_style') + ' '));
         var select = document.createElement('select');
         select.id = 'chtheme_sel_style';
         for ( var i in options )
