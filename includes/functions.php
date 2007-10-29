@@ -639,6 +639,7 @@ function show_category_info()
 function show_category_info()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   
   if ( $paths->namespace == 'Category' )
   {
@@ -754,9 +755,9 @@ function show_category_info()
   {
     echo '<div class="mdg-comment" style="margin: 10px 0 0 0;" id="category_box_wrapper">';
     echo '<div style="float: right;">';
-    echo '(<a href="#" onclick="ajaxCatToTag(); return false;">show page tags</a>)';
+    echo '(<a href="#" onclick="ajaxCatToTag(); return false;">' . $lang->get('tags_catbox_link') . '</a>)';
     echo '</div>';
-    echo '<div id="mdgCatBox">Categories: ';
+    echo '<div id="mdgCatBox">' . $lang->get('catedit_catbox_lbl_categories') . ' ';
     
     $where = '( c.page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND c.namespace=\'' . $db->escape($paths->namespace) . '\' )';
     $prefix = table_prefix;
@@ -786,13 +787,13 @@ EOF;
     }
     else
     {
-      echo '(Uncategorized)';
+      echo $lang->get('catedit_catbox_lbl_uncategorized');
     }
     
     $can_edit = ( $session->get_permissions('edit_cat') && ( !$paths->page_protected || $session->get_permissions('even_when_protected') ) );
     if ( $can_edit )
     {
-      $edit_link = '<a href="' . makeUrl($paths->page, 'do=catedit', true) . '" onclick="ajaxCatEdit(); return false;">edit categorization</a>';
+      $edit_link = '<a href="' . makeUrl($paths->page, 'do=catedit', true) . '" onclick="ajaxCatEdit(); return false;">' . $lang->get('catedit_catbox_link_edit') . '</a>';
       echo ' [ ' . $edit_link . ' ]';
     }
     
@@ -883,23 +884,19 @@ function show_file_info()
 function display_page_headers()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if($session->get_permissions('vote_reset') && $paths->cpage['delvotes'] > 0)
   {
     $delvote_ips = unserialize($paths->cpage['delvote_ips']);
     $hr = htmlspecialchars(implode(', ', $delvote_ips['u']));
-    $is = 'is';
-    $s = '';
-    $s2 = 's';
-    if ( $paths->cpage['delvotes'] > 1)
-    {
-      $is = 'are';
-      $s = 's';
-      $s2 = '';
-    }
+    
+    $string_id = ( $paths->cpage['delvotes'] == 1 ) ? 'delvote_lbl_votes_one' : 'delvote_lbl_votes_plural';
+    $string = $lang->get($string_id, array('num_users' => $paths->cpage['delvotes']));
+    
     echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;" id="mdgDeleteVoteNoticeBox">
-            <b>Notice:</b> There '.$is.' '.$paths->cpage['delvotes'].' user'.$s.' that think'.$s2.' this page should be deleted.<br />
-            <b>Users that voted:</b> ' . $hr . '<br />
-            <a href="'.makeUrl($paths->page, 'do=deletepage').'" onclick="ajaxDeletePage(); return false;">Delete page</a>  |  <a href="'.makeUrl($paths->page, 'do=resetvotes').'" onclick="ajaxResetDelVotes(); return false;">Reset votes</a>
+            <b>' . $lang->get('etc_lbl_notice') . '</b> ' . $string . '<br />
+            <b>' . $lang->get('delvote_lbl_users_that_voted') . '</b> ' . $hr . '<br />
+            <a href="'.makeUrl($paths->page, 'do=deletepage').'" onclick="ajaxDeletePage(); return false;">' . $lang->get('delvote_btn_deletepage') . '</a>  |  <a href="'.makeUrl($paths->page, 'do=resetvotes').'" onclick="ajaxResetDelVotes(); return false;">' . $lang->get('delvote_btn_resetvotes') . '</a>
           </div>';
   }
 }

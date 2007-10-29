@@ -17,7 +17,7 @@
 
 var enano_lang = {
   categories: [
-    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc', 'editor', 'history',
+    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax',
   ],
   strings: {
     meta: {
@@ -26,10 +26,14 @@ var enano_lang = {
       user: 'Login, logout, and authentication',
       page: 'Page creation and control',
       comment: 'Comment display',
-      onpage: 'On-page controls',
+      onpage: 'On-page buttons and controls',
       etc: 'Miscellaneous strings',
       editor: 'Page editor interface',
       history: 'Page history and log viewer',
+      catedit: 'Categorization box and editor',
+      tags: 'Page tagging interface',
+      delvote: 'Page deletion vote interface',
+      ajax: 'On-page AJAX applets',
       plural: 's'
     },
     user: {
@@ -165,6 +169,9 @@ var enano_lang = {
       postform_field_captcha_cantread_js: 'If you can\'t read the code, click on the image to generate a new one.',
       postform_field_captcha_cantread_nojs: 'If you can\'t read the code, please refresh this page to generate a new one.',
       postform_btn_submit: 'Submit comment',
+      
+      on_friend_list: 'On your friend list',
+      on_foe_list: 'On your foe list',
     },
     adm: {
       cat_general: 'General',
@@ -214,6 +221,7 @@ var enano_lang = {
       btn_revert: 'Revert changes',
       btn_cancel: 'Cancel and return to page',
       btn_closeviewer: 'Close viewer',
+      preview_blurb: '<b>Reminder:</b> This is only a preview - your changes to this page have not yet been saved.',
     },
     history: {
       summary_clearlogs: 'Automatic backup created when logs were purged',
@@ -246,12 +254,71 @@ var enano_lang = {
       log_uploadnew: 'Uploaded new file version',
       lbl_comparingrevisions: 'Comparing revisions:',
     },
+    catedit: {
+      title: 'Select which categories this page should be included in.',
+      no_categories: 'There are no categories on this site yet.',
+      catbox_lbl_categories: 'Categories:',
+      catbox_lbl_uncategorized: '(Uncategorized)',
+      catbox_link_edit: 'edit categorization',
+      catbox_link_showcategorization: 'show page categorization',
+    },
+    tags: {
+      catbox_link: 'show page tags',
+      lbl_page_tags: 'Page tags:',
+      lbl_no_tags: 'No tags on this page',
+      btn_add_tag: '(add a tag)',
+      lbl_add_tag: 'Add a tag:',
+      btn_add: '+ Add',
+    },
+    delvote: {
+      lbl_votes_one: 'There is one user that thinks this page should be deleted.',
+      lbl_votes_plural: 'There are %num_users% users that think this page should be deleted.',
+      lbl_users_that_voted: 'Users that voted:',
+      btn_deletepage: 'Delete page',
+      btn_resetvotes: 'Reset votes',
+    },
+    ajax: {
+      // Client-side messages
+      protect_prompt_reason: 'Reason for (un)protecting:',
+      rename_prompt: 'What title should this page be renamed to?\nNote: This does not and will never change the URL of this page, that must be done from the admin panel.',
+      delete_prompt_reason: 'Please enter your reason for deleting this page.',
+      delete_confirm: 'You are about to REVERSIBLY delete this page. Do you REALLY want to do this?\n\n(Comments and categorization data, as well as any attached files, will be permanently lost)',
+      delvote_confirm: 'Are you sure that you want to vote that this page be deleted?',
+      delvote_reset_confirm: 'This will reset the number of votes against this page to zero. Do you really want to do this?',
+      clearlogs_confirm: 'You are about to DESTROY all log entries for this page. As opposed to (example) deleting this page, this action is completely IRREVERSIBLE and should not be used except in dire circumstances. Do you REALLY want to do this?',
+      clearlogs_confirm_nag: 'You\'re ABSOLUTELY sure???',
+      changestyle_select: '[Select]',
+      changestyle_title: 'Change your theme',
+      changestyle_pleaseselect_theme: 'Please select a theme from the list.',
+      changestyle_success: 'Your theme preference has been changed.\nWould you like to reload the page now to see the changes?',
+      killphp_confirm: 'Are you really sure you want to do this? Some pages might not function if this emergency-only feature is activated.',
+      killphp_success: 'Embedded PHP in pages has been disabled.',
+      
+      // Server-side responses
+      rename_too_short: 'The name you entered is too short. Please enter a longer name for this page.',
+      rename_success: 'The page "%page_name_old%" has been renamed to "%page_name_new%". You are encouraged to leave a comment explaining your action.\n\nYou will see the change take effect the next time you reload this page.',
+      clearlogs_success: 'The logs for this page have been cleared. A backup of this page has been added to the logs table so that this page can be restored in case of vandalism or spam later.',
+      delete_need_reason: 'Invalid reason for deletion passed. Please enter a reason for deleting this page.',
+      delete_success: 'This page has been deleted. Note that there is still a log of edits and actions in the database, and anyone with admin rights can raise this page from the dead unless the log is cleared. If the deleted file is an image, there may still be cached thumbnails of it in the cache/ directory, which is inaccessible to users.',
+      delvote_success: 'Your vote to have this page deleted has been cast.\nYou are encouraged to leave a comment explaining the reason for your vote.',
+      delvote_already_voted: 'It appears that you have already voted to have this page deleted.',
+      delvote_reset_success: 'The number of votes for having this page deleted has been reset to zero.',
+      password_success: 'The password for this page has been set.',
+      password_disable_success: 'The password for this page has been disabled.',
+      
+    },
     etc: {
       redirect_title: 'Redirecting...',
       redirect_body: 'Please wait while you are redirected.',
       redirect_timeout: 'If you are not redirected within %timeout% seconds, please <a href="%redirect_url%">click here</a>.',
       // Generic "Save Changes" button
       save_changes: 'Save changes',
+      // Generic "Cancel" button
+      cancel: 'Cancel',
+      // Generic "Notice:" label
+      lbl_notice: 'Notice:',
+      // Generic "Access denied"
+      access_denied: 'Access to the specified file, resource, or action is denied.',
     },
   }
 };

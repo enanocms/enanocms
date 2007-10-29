@@ -219,9 +219,9 @@ var _render_comment = function(this_comment, data)
   tplbool.is_foe = ( this_comment.is_buddy == 1 && this_comment.is_friend == 0 );
   
   if ( tplbool.is_friend )
-    tplvars.USER_LEVEL += '<br /><b>On your friend list</b>';
+    tplvars.USER_LEVEL += '<br /><b>' + $lang.get('comment_on_friend_list') + '</b>';
   else if ( tplbool.is_foe )
-    tplvars.USER_LEVEL += '<br /><b>On your foe list</b>';
+    tplvars.USER_LEVEL += '<br /><b>' + $lang.get('comment_on_foe_list') + '</b>';
   
   parser.assign_vars(tplvars);
   parser.assign_bool(tplbool);

@@ -1364,6 +1364,7 @@ class PageUtils {
   function rename($page_id, $namespace, $name)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $pname = $paths->nslist[$namespace] . $page_id;
     
@@ -1372,7 +1373,7 @@ class PageUtils {
     
     if( empty($name)) 
     {
-      die('Name is too short');
+      return($lang->get('ajax_rename_too_short'));
     }
     if( ( $session->get_permissions('rename') && ( ( $prot && $session->get_permissions('even_when_protected') ) || !$prot ) ) && ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' ))
     {
@@ -1388,12 +1389,16 @@ class PageUtils {
       }
       else
       {
-        return('The page "' . $paths->pages[$pname]['name'] . '" has been renamed to "' . $name . '". You are encouraged to leave a comment explaining your action.' . "\n\n" . 'You will see the change take effect the next time you reload this page.');
+        $subst = array(
+          'page_name_old' => $paths->pages[$pname]['name'],
+          'page_name_new' => $name
+          );
+        return $lang->get('ajax_rename_success', $subst);
       }
     }
     else
     {
-      return('Access is denied.');
+      return($lang->get('etc_access_denied'));
     }
   }
   
@@ -1407,7 +1412,11 @@ class PageUtils {
   function flushlogs($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$session->get_permissions('clear_logs')) die('Administrative privileges are required to flush logs, you loser.');
+    global $lang;
+    if(!$session->get_permissions('clear_logs'))
+    {
+      return $lang->get('etc_access_denied');
+    }
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'logs WHERE page_id=\'' . $db->escape($page_id) . '\' AND namespace=\'' . $db->escape($namespace) . '\';');
     if(!$e) $db->_die('The log entries could not be deleted.');
     
@@ -1422,7 +1431,7 @@ class PageUtils {
       $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.'false'.');';
       if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
     }
-    return('The logs for this page have been cleared. A backup of this page has been added to the logs table so that this page can be restored in case of vandalism or spam later.');
+    return $lang->get('ajax_clearlogs_success');
   }
   
   /**
@@ -1436,11 +1445,12 @@ class PageUtils {
   function deletepage($page_id, $namespace, $reason)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     $perms = $session->fetch_page_acl($page_id, $namespace);
     $x = trim($reason);
     if ( empty($x) )
     {
-      return 'Invalid reason for deletion passed';
+      return $lang->get('ajax_delete_need_reason');
     }
     if(!$perms->get_permissions('delete_page')) return('Administrative privileges are required to delete pages, you loser.');
     $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
@@ -1455,7 +1465,7 @@ class PageUtils {
     if(!$e) $db->_die('The page entry could not be deleted.');
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'files WHERE page_id=\'' . $page_id . '\'');
     if(!$e) $db->_die('The file entry could not be deleted.');
-    return('This page has been deleted. Note that there is still a log of edits and actions in the database, and anyone with admin rights can raise this page from the dead unless the log is cleared. If the deleted file is an image, there may still be cached thumbnails of it in the cache/ directory, which is inaccessible to users.');
+    return $lang->get('ajax_delete_success');
   }
   
   /**
@@ -1468,9 +1478,10 @@ class PageUtils {
   function delvote($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     if ( !$session->get_permissions('vote_delete') )
     {
-      return 'Access denied';
+      return $lang->get('etc_access_denied');
     }
     
     if ( $namespace == 'Admin' || $namespace == 'Special' || $namespace == 'System' )
@@ -1509,7 +1520,7 @@ class PageUtils {
     
     if ( in_array($session->username, $ips['u']) || in_array($_SERVER['REMOTE_ADDR'], $ips['ip']) )
     {
-      return 'It appears that you have already voted to have this page deleted.';
+      return $lang->get('ajax_delvote_already_voted');
     }
     
     $ips['u'][] = $session->username;
@@ -1521,7 +1532,7 @@ class PageUtils {
     $q = 'UPDATE ' . table_prefix.'pages SET delvotes=' . $cv . ',delvote_ips=\'' . $ips . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'';
     $w = $db->sql_query($q);
     
-    return 'Your vote to have this page deleted has been cast.'."\nYou are encouraged to leave a comment explaining the reason for your vote.";
+    return $lang->get('ajax_delvote_success');
   }
   
   /**
@@ -1534,11 +1545,18 @@ class PageUtils {
   function resetdelvotes($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$session->get_permissions('vote_reset')) die('You need moderator rights in order to do this, stinkin\' hacker.');
+    global $lang;
+    if(!$session->get_permissions('vote_reset'))
+    {
+      return $lang->get('etc_access_denied');
+    }
     $q = 'UPDATE ' . table_prefix.'pages SET delvotes=0,delvote_ips=\'' . $db->escape(serialize(array('ip'=>array(),'u'=>array()))) . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'';
     $e = $db->sql_query($q);
     if(!$e) $db->_die('The number of delete votes was not reset.');
-    else return('The number of votes for having this page deleted has been reset to zero.');
+    else
+    {
+      return $lang->get('ajax_delvote_reset_success');
+    }
   }
   
   /**
@@ -1599,6 +1617,8 @@ class PageUtils {
   function catedit_raw($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     ob_start();
     $_ob = '';
     $e = $db->sql_query('SELECT category_id FROM ' . table_prefix.'categories WHERE page_id=\'' . $paths->cpage['urlname_nons'] . '\' AND namespace=\'' . $paths->namespace . '\'');
@@ -1636,11 +1656,11 @@ class PageUtils {
     }
     
     echo 'catlist = new Array();'; // Initialize the client-side category list
-    $_ob .= '<h3>Select which categories this page should be included in.</h3>
+    $_ob .= '<h3>' . $lang->get('catedit_title') . '</h3>
              <form name="mdgCatForm" action="'.makeUrlNS($namespace, $page_id, 'do=catedit').'" method="post">';
     if ( sizeof($cat_info) < 1 )
     {
-      $_ob .= '<p>There are no categories on this site yet.</p>';
+      $_ob .= '<p>' . $lang->get('catedit_no_categories') . '</p>';
     }
     for ( $i = 0; $i < sizeof($cat_info) / 2; $i++ )
     {
@@ -1661,7 +1681,7 @@ class PageUtils {
     
     $disabled = ( sizeof($cat_info) < 1 ) ? 'disabled="disabled"' : '';
       
-    $_ob .= '<div style="border-top: 1px solid #CCC; padding-top: 5px; margin-top: 10px;"><input name="__enanoSaveButton" ' . $disabled . ' style="font-weight: bold;" type="submit" onclick="ajaxCatSave(); return false;" value="Save changes" /> <input name="__enanoCatCancel" type="submit" onclick="ajaxReset(); return false;" value="Cancel" /></div></form>';
+    $_ob .= '<div style="border-top: 1px solid #CCC; padding-top: 5px; margin-top: 10px;"><input name="__enanoSaveButton" ' . $disabled . ' style="font-weight: bold;" type="submit" onclick="ajaxCatSave(); return false;" value="' . $lang->get('etc_save_changes') . '" /> <input name="__enanoCatCancel" type="submit" onclick="ajaxReset(); return false;" value="' . $lang->get('etc_cancel') . '" /></div></form>';
     
     $cont = ob_get_contents();
     ob_end_clean();
@@ -1776,13 +1796,14 @@ class PageUtils {
   function setpass($page_id, $namespace, $pass)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     // Determine permissions
     if($paths->pages[$paths->nslist[$namespace].$page_id]['password'] != '')
       $a = $session->get_permissions('password_reset');
     else
       $a = $session->get_permissions('password_set');
     if(!$a)
-      return 'Access is denied';
+      return $lang->get('etc_access_denied');
     if(!isset($pass)) return('Password was not set on URL');
     $p = $pass;
     if ( !preg_match('#([0-9a-f]){40,40}#', $p) )
@@ -1800,9 +1821,12 @@ class PageUtils {
     // Is the new password blank?
     if ( $p == '' )
     {
-      return('The password for this page has been disabled.');
+      return $lang->get('ajax_password_disable_success');
     }
-    else return('The password for this page has been set.');
+    else
+    {
+      return $lang->get('ajax_password_success');
+    }
   }
   
   /**
@@ -1813,7 +1837,8 @@ class PageUtils {
    
   function genPreview($text)
   {
-    $ret = '<div class="info-box"><b>Reminder:</b> This is only a preview - your changes to this page have not yet been saved.</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 1em 0 1em 1em;">';
+    global $lang;
+    $ret = '<div class="info-box">' . $lang->get('editor_preview_blurb') . '</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 1em 0 1em 1em;">';
     $text = RenderMan::render(RenderMan::preprocess_text($text, false, false));
     ob_start();
     eval('?>' . $text);
@@ -1850,7 +1875,7 @@ class PageUtils {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     if(!$session->get_permissions('history_view'))
-      return 'Access denied';
+      return $lang->get('etc_access_denied');
     if(!preg_match('#^([0-9]+)$#', (string)$id1) ||
        !preg_match('#^([0-9]+)$#', (string)$id2  )) return 'SQL injection attempt';
     // OK we made it through security
@@ -1878,8 +1903,6 @@ class PageUtils {
   
   /**
    * Gets ACL information about the selected page for target type X and target ID Y.
-   * @param string $page_id The page ID
-   * @param string $namespace The namespace
    * @param array $parms What to select. This is an array purely for JSON compatibility. It should be an associative array with keys target_type and target_id.
    * @return array
    */
@@ -1909,7 +1932,7 @@ class PageUtils {
     {
       return Array(
         'mode' => 'error',
-        'error' => 'It seems that (a) the file acledit.tpl is missing from these theme, and (b) the JSON response is working.',
+        'error' => 'It seems that (a) the file acledit.tpl is missing from this theme, and (b) the JSON response is working.',
       );
     }
     $return['template'] = $template->extract_vars('acledit.tpl');

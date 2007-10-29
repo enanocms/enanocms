@@ -129,11 +129,7 @@ function ajaxViewSource()
   ajaxGet(stdAjaxPrefix+'&_mode=getsource', function() {
       if(ajax.readyState == 4) {
         unsetAjaxLoading();
-        if(edit_open) {
-          c=confirm('Do you really want to revert your changes?');
-          if(!c) return;
-        }
-        edit_open = true;
+        edit_open = false;
         selectButtonMajor('article');
         selectButtonMinor('edit');
         if(in_array('ajaxEditArea', grippied_textareas))
@@ -226,7 +222,7 @@ function ajaxProtect(l) {
   if(shift) {
     r = 'NO_REASON';
   } else {
-    r = prompt('Reason for (un)protecting:');
+    r = prompt($lang.get('ajax_protect_prompt_reason'));
     if(!r || r=='') return;
   }
   setAjaxLoading();
@@ -248,7 +244,7 @@ function ajaxRename()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  r = prompt('What title should this page be renamed to?\nNote: This does not and will never change the URL of this page, that must be done from the admin panel.');
+  r = prompt($lang.get('ajax_rename_prompt'));
   if(!r || r=='') return;
   setAjaxLoading();
   ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+escape(r), function() {
@@ -278,12 +274,12 @@ function ajaxDeletePage()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  var reason = prompt('Please enter your reason for deleting this page.');
+  var reason = prompt($lang.get('ajax_delete_prompt_reason'));
   if ( !reason || reason == '' )
   {
     return false;
   }
-  c = confirm('You are about to REVERSIBLY delete this page. Do you REALLY want to do this?\n\n(Comments and categorization data, as well as any attached files, will be permanently lost)');
+  c = confirm($lang.get('ajax_delete_confirm'));
   if(!c)
   {
     return;
@@ -303,7 +299,7 @@ function ajaxDelVote()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm('Are you sure that you want to vote that this page be deleted?');
+  c = confirm($lang.get('ajax_delvote_confirm'));
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=delvote', function() {
@@ -319,7 +315,7 @@ function ajaxResetDelVotes()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm('This will reset the number of votes against this page to zero. Do you really want to do this?');
+  c = confirm($lang.get('ajax_delvote_reset_confirm'));
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=resetdelvotes', function() {
@@ -457,9 +453,9 @@ function ajaxClearLogs()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm('You are about to DESTROY all log entries for this page. As opposed to (example) deleting this page, this action is completely IRREVERSIBLE and should not be used except in dire circumstances. Do you REALLY want to do this?');
+  c = confirm($lang.get('ajax_clearlogs_confirm'));
   if(!c) return;
-  c = confirm('You\'re ABSOLUTELY sure???');
+  c = confirm($lang.get('ajax_clearlogs_confirm_nag'));
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=flushlogs', function() {
@@ -565,11 +561,11 @@ function ajaxChangeStyle()
   var inner_html = '';
   inner_html += '<p><label>Theme: ';
   inner_html += '  <select id="chtheme_sel_theme" onchange="ajaxGetStyles(this.value);">';
-  inner_html += '    <option value="_blank" selected="selected">[Select]</option>';
+  inner_html += '    <option value="_blank" selected="selected">' + $lang.get('ajax_changestyle_select') + '</option>';
   inner_html +=      ENANO_THEME_LIST;
   inner_html += '  </select>';
   inner_html += '</label></p>';
-  var chtheme_mb = new messagebox(MB_OKCANCEL|MB_ICONQUESTION, 'Change your theme', inner_html);
+  var chtheme_mb = new messagebox(MB_OKCANCEL|MB_ICONQUESTION, $lang.get('ajax_changestyle_title'), inner_html);
   chtheme_mb.onbeforeclick['OK'] = ajaxChangeStyleComplete;
 }
 
@@ -643,7 +639,7 @@ function ajaxChangeStyleComplete()
   var style = $('chtheme_sel_style');
   if ( !theme.object || !style.object )
   {
-    alert('Please select a theme from the list.');
+    alert($lang.get('ajax_changestyle_pleaseselect_theme'));
     return true;
   }
   var theme_id = theme.object.value;
@@ -667,7 +663,7 @@ function ajaxChangeStyleComplete()
       {
         if ( ajax.responseText == 'GOOD' )
         {
-          var c = confirm('Your theme preference has been changed.\nWould you like to reload the page now to see the changes?');
+          var c = confirm($lang.get('ajax_changestyle_success'));
           if ( c )
             window.location.reload();
         }
@@ -876,7 +872,7 @@ function ajaxDisableEmbeddedPHP()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  if ( !confirm('Are you really sure you want to do this? Some pages might not function if this emergency-only feature is activated.') )
+  if ( !confirm($lang.get('ajax_killphp_confirm')) )
     return false;
   var $killdiv = $dynano('php_killer');
   if ( !$killdiv.object )
@@ -897,7 +893,7 @@ function ajaxDisableEmbeddedPHP()
           var newdiv = document.createElement('div');
           // newdiv.style = $killdiv.object.style;
           newdiv.className = $killdiv.object.className;
-          newdiv.innerHTML = '<img alt="Success" src="' + scriptPath + '/images/error.png" /><br />Embedded PHP in pages has been disabled.';
+          newdiv.innerHTML = '<img alt="Success" src="' + scriptPath + '/images/error.png" /><br />' + $lang.get('ajax_killphp_success');
           $killdiv.object.parentNode.appendChild(newdiv);
           $killdiv.object.parentNode.removeChild($killdiv.object);
         }
@@ -934,14 +930,14 @@ function ajaxCatToTag()
         if ( !catbox )
           return false;
         var linkbox = catbox.parentNode.firstChild.firstChild.nextSibling;
-        linkbox.firstChild.nodeValue = 'show page categorization';
+        linkbox.firstChild.nodeValue = $lang.get('catedit_catbox_link_showcategorization');
         linkbox.onclick = function() { ajaxTagToCat(); return false; };
         catHTMLBuf = catbox.innerHTML;
         catbox.innerHTML = '';
-        catbox.appendChild(document.createTextNode('Page tags: '));
+        catbox.appendChild(document.createTextNode($lang.get('tags_lbl_page_tags')+' '));
         if ( json.tags.length < 1 )
         {
-          catbox.appendChild(document.createTextNode('No tags on this page'));
+          catbox.appendChild(document.createTextNode($lang.get('tags_lbl_no_tags')));
         }
         for ( var i = 0; i < json.tags.length; i++ )
         {
@@ -965,7 +961,7 @@ function ajaxCatToTag()
           var addlink = document.createElement('a');
           addlink.href = '#';
           addlink.onclick = function() { try { ajaxAddTagStage1(); } catch(e) { }; return false; };
-          addlink.appendChild(document.createTextNode('(add a tag)'));
+          addlink.appendChild(document.createTextNode($lang.get('tags_btn_add_tag')));
           catbox.appendChild(addlink);
         }
       }
@@ -984,7 +980,7 @@ function ajaxAddTagStage1()
   var addlink = document.createElement('a');
   addlink.href = '#';
   addlink.onclick = function() { ajaxAddTagStage2(this.parentNode.firstChild.nextSibling.value, this.parentNode); return false; };
-  addlink.appendChild(document.createTextNode('+ Add'));
+  addlink.appendChild(document.createTextNode($lang.get('tags_btn_add')));
   text.type = 'text';
   text.size = '15';
   text.onkeyup = function(e)
@@ -996,7 +992,7 @@ function ajaxAddTagStage1()
   }
   
   adddiv.style.margin = '5px 0 0 0';
-  adddiv.appendChild(document.createTextNode('Add a tag: '));
+  adddiv.appendChild(document.createTextNode($lang.get('tags_lbl_add_tag')+' '));
   adddiv.appendChild(text);
   adddiv.appendChild(document.createTextNode(' '));
   adddiv.appendChild(addlink);
@@ -1038,7 +1034,7 @@ function ajaxAddTagStage2(tag, nukeme)
           var node = parent.childNodes[1];
           var insertafter = false;
           var nukeafter = false;
-          if ( node.nodeValue == 'No tags on this page' )
+          if ( node.nodeValue == $lang.get('tags_lbl_no_tags') )
           {
             nukeafter = true;
           }
@@ -1079,12 +1075,12 @@ function ajaxDeleteTag(parentobj, tag_id)
   var writeNoTags = false;
   if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == ', ' )
     arrDelete.push(parentobj.previousSibling.previousSibling.previousSibling);
-  else if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == 'Page tags: ' )
+  else if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == $lang.get('tags_lbl_page_tags') + ' ' )
     arrDelete.push(parentobj.nextSibling);
   
-  if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == 'Page tags: ' &&
+  if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == $lang.get('tags_lbl_page_tags') + ' ' &&
        parentobj.nextSibling.nextSibling.firstChild )
-    if ( parentobj.nextSibling.nextSibling.firstChild.nodeValue == '(add a tag)')
+    if ( parentobj.nextSibling.nextSibling.firstChild.nodeValue == $lang.get('tags_btn_add_tag'))
       writeNoTags = true;
     
   ajaxPost(stdAjaxPrefix + '&_mode=deltag', 'tag_id=' + String(tag_id), function()
@@ -1102,7 +1098,7 @@ function ajaxDeleteTag(parentobj, tag_id)
           }
           if ( writeNoTags )
           {
-            var node1 = document.createTextNode('No tags on this page');
+            var node1 = document.createTextNode($lang.get('tags_lbl_no_tags'));
             var node2 = document.createTextNode(' ');
             insertAfter(parent, node1, parent.firstChild);
             insertAfter(parent, node2, node1);
@@ -1125,7 +1121,7 @@ function ajaxTagToCat()
     return false;
   addtag_open = false;
   var linkbox = catbox.parentNode.firstChild.firstChild.nextSibling;
-  linkbox.firstChild.nodeValue = 'show page tags';
+  linkbox.firstChild.nodeValue = $lang.get('tags_catbox_link');
   linkbox.onclick = function() { ajaxCatToTag(); return false; };
   catbox.innerHTML = catHTMLBuf;
   catHTMLBuf = false;
