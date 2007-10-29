@@ -89,11 +89,12 @@
           if(!$q) $db->_die('The comment data could not be selected.');
           $row = $db->fetchrow();
           $db->free_result();
+          $row['subject'] = str_replace('\'', '&#039;', $row['subject']);
           echo '<form action="'.makeUrl($paths->page, 'do=comments&amp;sub=savecomment').'" method="post">';
           echo "<br /><div class='tblholder'><table border='0' width='100%' cellspacing='1' cellpadding='4'>
-                  <tr><td class='row1'>Subject:</td><td class='row1'><input type='text' name='subj' value='{$row['subject']}' /></td></tr>
-                  <tr><td class='row2'>Comment:</td><td class='row2'><textarea rows='10' cols='40' style='width: 98%;' name='text'>{$row['comment_data']}</textarea></td></tr>
-                  <tr><td class='row1' colspan='2' class='row1' style='text-align: center;'><input type='hidden' name='id' value='{$row['comment_id']}' /><input type='submit' value='Save Changes' /></td></tr>
+                  <tr><td class='row1'>" . $lang->get('comment_postform_field_subject') . "</td><td class='row1'><input type='text' name='subj' value='{$row['subject']}' /></td></tr>
+                  <tr><td class='row2'>" . $lang->get('comment_postform_field_comment') . "</td><td class='row2'><textarea rows='10' cols='40' style='width: 98%;' name='text'>{$row['comment_data']}</textarea></td></tr>
+                  <tr><td class='row1' colspan='2' class='row1' style='text-align: center;'><input type='hidden' name='id' value='{$row['comment_id']}' /><input type='submit' value='" . $lang->get('etc_save_changes') . "' /></td></tr>
                 </table></div>";
           echo '</form>';
           break;

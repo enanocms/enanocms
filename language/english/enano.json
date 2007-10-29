@@ -17,15 +17,19 @@
 
 var enano_lang = {
   categories: [
-    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc'
+    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc', 'editor', 'history',
   ],
   strings: {
     meta: {
+      adm: 'Administration panel nav menu',
       meta: 'Language category strings',
       user: 'Login, logout, and authentication',
       page: 'Page creation and control',
       comment: 'Comment display',
       onpage: 'On-page controls',
+      etc: 'Miscellaneous strings',
+      editor: 'Page editor interface',
+      history: 'Page history and log viewer',
       plural: 's'
     },
     user: {
@@ -150,6 +154,7 @@ var enano_lang = {
       postform_title: 'Got something to say?',
       postform_blurb: 'If you have comments or suggestions on this article, you can shout it out here.',
       postform_blurb_unapp: 'Before your post will be visible to the public, a moderator will have to approve it.',
+      postform_blurb_captcha: 'Because you are not logged in, you will need to enter a visual confirmation before your comment will be posted.',
       postform_blurb_link: 'Leave a comment...',
       postform_field_name: 'Your name/screen name:',
       postform_field_subject: 'Comment subject:',
@@ -157,6 +162,8 @@ var enano_lang = {
       postform_field_captcha_title: 'Visual confirmation:',
       postform_field_captcha_blurb: 'Please enter the confirmation code seen in the image on the right into the box. If you cannot read the code, please click on the image to generate a new one. This helps to prevent automated bot posting.',
       postform_field_captcha_label: 'Confirmation code:',
+      postform_field_captcha_cantread_js: 'If you can\'t read the code, click on the image to generate a new one.',
+      postform_field_captcha_cantread_nojs: 'If you can\'t read the code, please refresh this page to generate a new one.',
       postform_btn_submit: 'Submit comment',
     },
     adm: {
@@ -194,12 +201,57 @@ var enano_lang = {
       btn_keepalive_about: 'About keep-alive',
       btn_keepalive_loading: 'Loading keep-alive button...'
     },
-    admhome: {
+    editor: {
+      msg_revert_confirm: 'Do you really want to revert your changes?',
+      msg_discard_confirm: 'Do you really want to discard your changes?',
+      msg_unload: 'If you do, any changes that you have made to this page will be lost.',
+      btn_graphical: 'graphical editor',
+      btn_wikitext: 'wikitext editor',
+      lbl_edit_summary: 'Edit summary:',
+      lbl_minor_edit: 'This is a minor edit',
+      btn_save: 'Save changes',
+      btn_preview: 'Show preview',
+      btn_revert: 'Revert changes',
+      btn_cancel: 'Cancel and return to page',
+      btn_closeviewer: 'Close viewer',
+    },
+    history: {
+      summary_clearlogs: 'Automatic backup created when logs were purged',
+      page_subtitle: 'History of edits and actions',
+      heading_edits: 'Edits:',
+      heading_other: 'Other changes:',
+      no_entries: 'No history entries in this category.',
+      btn_compare: 'Compare selected revisions',
+      col_diff: 'Diff',
+      col_datetime: 'Date/time',
+      col_user: 'User',
+      col_summary: 'Edit summary',
+      col_minor: 'Minor',
+      col_actions: 'Actions',
+      col_action_taken: 'Action taken',
+      col_extra: 'Extra info',
+      extra_reason: 'Reason:',
+      extra_oldtitle: 'Old title:',
+      tip_rdns: 'Click cell background for reverse DNS info',
+      action_view: 'View',
+      action_contrib: 'User contribs',
+      action_restore: 'Restore',
+      action_revert: 'Revert action',
+      log_protect: 'Protected page',
+      log_unprotect: 'Unprotected page',
+      log_semiprotect: 'Semi-protected page',
+      log_rename: 'Renamed page',
+      log_create: 'Created page',
+      log_delete: 'Deleted page',
+      log_uploadnew: 'Uploaded new file version',
+      lbl_comparingrevisions: 'Comparing revisions:',
     },
     etc: {
       redirect_title: 'Redirecting...',
       redirect_body: 'Please wait while you are redirected.',
       redirect_timeout: 'If you are not redirected within %timeout% seconds, please <a href="%redirect_url%">click here</a>.',
+      // Generic "Save Changes" button
+      save_changes: 'Save changes',
     },
   }
 };

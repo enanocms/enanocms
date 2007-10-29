@@ -71,7 +71,7 @@ function ajaxEditor()
       if(ajax.readyState == 4) {
         unsetAjaxLoading();
         if(edit_open) {
-          c=confirm('Do you really want to revert your changes?');
+          c=confirm($lang.get('editor_msg_revert_confirm'));
           if(!c) return;
         }
         edit_open = true;
@@ -82,18 +82,18 @@ function ajaxEditor()
           // Allow the textarea grippifier to re-create the resizer control on the textarea
           grippied_textareas.pop(in_array('ajaxEditArea', grippied_textareas));
         }
-        disableUnload('If you do, any changes that you have made to this page will be lost.');
+        disableUnload($lang.get('editor_msg_unload'));
         var switcher = ( readCookie('enano_editor_mode') == 'tinymce' ) ?
-                        '<a href="#" onclick="setEditorText(); return false;">wikitext editor</a>  |  graphical editor' :
-                        'wikitext editor  |  <a href="#" onclick="setEditorMCE(); return false;">graphical editor</a>' ;
+                        '<a href="#" onclick="setEditorText(); return false;">' + $lang.get('editor_btn_wikitext') + '</a>  |  ' + $lang.get('editor_btn_graphical') :
+                        $lang.get('editor_btn_wikitext') + '  |  <a href="#" onclick="setEditorMCE(); return false;">' + $lang.get('editor_btn_graphical') + '</a>' ;
         document.getElementById('ajaxEditContainer').innerHTML = '\
         <div id="mdgPreviewContainer"></div> \
         <span id="switcher">' + switcher + '</span><br />\
         <form name="mdgAjaxEditor" method="get" action="#" onsubmit="ajaxSavePage(); return false;">\
         <textarea id="ajaxEditArea" rows="20" cols="60" style="display: block; margin: 1em 0 1em 1em; width: 96.5%;">'+ajax.responseText+'</textarea><br />\
-          Edit summary: <input id="ajaxEditSummary" size="40" /><br />\
-          <input id="ajaxEditMinor" name="minor" type="checkbox" /> <label for="ajaxEditMinor">This is a minor edit</label><br />\
-          <a href="#" onclick="void(ajaxSavePage()); return false;">save changes</a>  |  <a href="#" onclick="void(ajaxShowPreview()); return false;">preview changes</a>  |  <a href="#" onclick="void(ajaxEditor()); return false;">revert changes</a>  |  <a href="#" onclick="void(ajaxDiscard()); return false;">discard changes</a>\
+          ' + $lang.get('editor_lbl_edit_summary') + ' <input id="ajaxEditSummary" size="40" /><br />\
+          <input id="ajaxEditMinor" name="minor" type="checkbox" /> <label for="ajaxEditMinor">' + $lang.get('editor_lbl_minor_edit') + '</label><br />\
+          <a href="#" onclick="void(ajaxSavePage()); return false;">' + $lang.get('editor_btn_save') + '</a>  |  <a href="#" onclick="void(ajaxShowPreview()); return false;">' + $lang.get('editor_btn_preview') + '</a>  |  <a href="#" onclick="void(ajaxEditor()); return false;">' + $lang.get('editor_btn_revert') + '</a>  |  <a href="#" onclick="void(ajaxDiscard()); return false;">' + $lang.get('editor_btn_cancel') + '</a>\
           <br />\
           '+editNotice+'\
         </form>';
@@ -110,14 +110,14 @@ function setEditorMCE()
 {
   $('ajaxEditArea').switchToMCE();
   createCookie('enano_editor_mode', 'tinymce', 365);
-  $('switcher').object.innerHTML = '<a href="#" onclick="setEditorText(); return false;">wikitext editor</a>  |  graphical editor';
+  $('switcher').object.innerHTML = '<a href="#" onclick="setEditorText(); return false;">' + $lang.get('editor_btn_wikitext') + '</a>  |  ' + $lang.get('editor_btn_graphical');
 }
 
 function setEditorText()
 {
   $('ajaxEditArea').destroyMCE();
   createCookie('enano_editor_mode', 'text', 365);
-  $('switcher').object.innerHTML = 'wikitext editor  |  <a href="#" onclick="setEditorMCE(); return false;">graphical editor</a>';
+  $('switcher').object.innerHTML = $lang.get('editor_btn_wikitext') + '  |  <a href="#" onclick="setEditorMCE(); return false;">' + $lang.get('editor_btn_graphical') + '</a>';
 }
 
 function ajaxViewSource()
@@ -144,7 +144,7 @@ function ajaxViewSource()
         document.getElementById('ajaxEditContainer').innerHTML = '\
           <form method="get" action="#" onsubmit="ajaxSavePage(); return false;">\
             <textarea readonly="readonly" id="ajaxEditArea" rows="20" cols="60" style="display: block; margin: 1em 0 1em 1em; width: 96.5%;">'+ajax.responseText+'</textarea><br />\
-            <a href="#" onclick="void(ajaxReset()); return false;">close viewer</a>\
+            <a href="#" onclick="void(ajaxReset()); return false;">' + $lang.get('editor_btn_closeviewer') + '</a>\
           </form>';
         initTextareas();
       }
@@ -194,7 +194,7 @@ function ajaxDiscard()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm('Do you really want to discard your changes?');
+  c = confirm($lang.get('editor_msg_discard_confirm'));
   if(!c) return;
   ajaxReset();
 }

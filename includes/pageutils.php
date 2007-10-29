@@ -521,6 +521,7 @@ class PageUtils {
   function histlist($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     if(!$session->get_permissions('history_view'))
       return 'Access denied';
@@ -533,14 +534,17 @@ class PageUtils {
     
     $q = 'SELECT time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' ORDER BY time_id DESC;';
     if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
-    echo 'History of edits and actions<h3>Edits:</h3>';
+    echo $lang->get('history_page_subtitle') . '
+          <h3>' . $lang->get('history_heading_edits') . '</h3>';
     $numrows = $db->numrows();
-    if($numrows < 1) echo 'No history entries in this category.';
+    if ( $numrows < 1 )
+    {
+      echo $lang->get('history_no_entries');
+    }
     else
     {
-      
       echo '<form action="'.makeUrlNS($namespace, $page_id, 'do=diff').'" onsubmit="ajaxHistDiff(); return false;" method="get">
-            <input type="submit" value="Compare selected revisions" />
+            <input type="submit" value="' . $lang->get('history_btn_compare') . '" />
             ' . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars($paths->nslist[$namespace] . $page_id) . '" />' : '' ) . '
             ' . ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : '') . '
             <input type="hidden" name="do" value="diff" />
@@ -548,17 +552,18 @@ class PageUtils {
             <div class="tblholder">
             <table border="0" width="100%" cellspacing="1" cellpadding="4">
             <tr>
-              <th colspan="2">Diff</th>
-              <th>Date/time</th>
-              <th>User</th>
-              <th>Edit summary</th>
-              <th>Minor</th>
-              <th colspan="3">Actions</th>
+              <th colspan="2">' . $lang->get('history_col_diff') . '</th>
+              <th>' . $lang->get('history_col_datetime') . '</th>
+              <th>' . $lang->get('history_col_user') . '</th>
+              <th>' . $lang->get('history_col_summary') . '</th>
+              <th>' . $lang->get('history_col_minor') . '</th>
+              <th colspan="3">' . $lang->get('history_col_actions') . '</th>
             </tr>'."\n"."\n";
       $cls = 'row2';
       $ticker = 0;
       
-      while($r = $db->fetchrow()) {
+      while ( $r = $db->fetchrow() )
+      {
         
         $ticker++;
         
@@ -592,7 +597,7 @@ class PageUtils {
         // User
         if ( $session->get_permissions('mod_misc') && is_valid_ip($r['author']) )
         {
-          $rc = ' style="cursor: pointer;" title="Click cell background for reverse DNS info" onclick="ajaxReverseDNS(this, \'' . $r['author'] . '\');"';
+          $rc = ' style="cursor: pointer;" title="' . $lang->get('history_tip_rdns') . '" onclick="ajaxReverseDNS(this, \'' . $r['author'] . '\');"';
         }
         else
         {
@@ -606,15 +611,19 @@ class PageUtils {
         echo '>' . $r['author'] . '</a></td class="' . $cls . '">'."\n";
         
         // Edit summary
+        if ( $r['edit_summary'] == 'Automatic backup created when logs were purged' )
+        {
+          $r['edit_summary'] = $lang->get('history_summary_clearlogs');
+        }
         echo '<td class="' . $cls . '">' . $r['edit_summary'] . '</td>'."\n";
         
         // Minor edit
         echo '<td class="' . $cls . '" style="text-align: center;">'. (( $r['minor_edit'] ) ? 'M' : '' ) .'</td>'."\n";
         
         // Actions!
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['time_id']) . '" onclick="ajaxHistView(\'' . $r['time_id'] . '\'); return false;">View revision</a></td>'."\n";
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">View user contribs</a></td>'."\n";
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">Revert to this revision</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['time_id']) . '" onclick="ajaxHistView(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_view') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_restore') . '</a></td>'."\n";
         
         echo '</tr>'."\n"."\n";
         
@@ -623,18 +632,33 @@ class PageUtils {
             </div>
             <br />
             <input type="hidden" name="do" value="diff" />
-            <input type="submit" value="Compare selected revisions" />
+            <input type="submit" value="' . $lang->get('history_btn_compare') . '" />
             </form>
             <script type="text/javascript">if ( !KILL_SWITCH ) { buildDiffList(); }</script>';
     }
     $db->free_result();
-    echo '<h3>Other changes:</h3>';
+    echo '<h3>' . $lang->get('history_heading_other') . '</h3>';
     $q = 'SELECT time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->cpage['urlname_nons'] . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
-    if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
-    if($db->numrows() < 1) echo 'No history entries in this category.';
-    else {
+    if ( !$db->sql_query($q) )
+    {
+      $db->_die('The history data for the page "' . htmlspecialchars($paths->cpage['name']) . '" could not be selected.');
+    }
+    if ( $db->numrows() < 1 )
+    {
+      echo $lang->get('history_no_entries');
+    }
+    else
+    {
       
-      echo '<div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th>Date/time</th><th>User</th><th>Minor</th><th>Action taken</th><th>Extra info</th><th colspan="2"></th></tr>';
+      echo '<div class="tblholder">
+              <table border="0" width="100%" cellspacing="1" cellpadding="4"><tr>
+                <th>' . $lang->get('history_col_datetime') . '</th>
+                <th>' . $lang->get('history_col_user') . '</th>
+                <th>' . $lang->get('history_col_minor') . '</th>
+                <th>' . $lang->get('history_col_action_taken') . '</th>
+                <th>' . $lang->get('history_col_extra') . '</th>
+                <th colspan="2"></th>
+              </tr>';
       $cls = 'row2';
       while($r = $db->fetchrow()) {
         
@@ -658,23 +682,18 @@ class PageUtils {
         // Action taken
         echo '<td class="' . $cls . '">';
         // Some of these are sanitized at insert-time. Others follow the newer Enano policy of stripping HTML at runtime.
-        if    ($r['action']=='prot')     echo 'Protected page</td><td class="' . $cls . '">Reason: ' . $r['edit_summary'];
-        elseif($r['action']=='unprot')   echo 'Unprotected page</td><td class="' . $cls . '">Reason: ' . $r['edit_summary'];
-        elseif($r['action']=='semiprot') echo 'Semi-protected page</td><td class="' . $cls . '">Reason: ' . $r['edit_summary'];
-        elseif($r['action']=='rename')   echo 'Renamed page</td><td class="' . $cls . '">Old title: '.htmlspecialchars($r['edit_summary']);
-        elseif($r['action']=='create')   echo 'Created page</td><td class="' . $cls . '">';
-        elseif($r['action']=='delete')   echo 'Deleted page</td><td class="' . $cls . '">Reason: ' . $r['edit_summary'];
-        elseif($r['action']=='reupload') echo 'Uploaded new file version</td><td class="' . $cls . '">Reason: '.htmlspecialchars($r['edit_summary']);
+        if    ($r['action']=='prot')     echo $lang->get('history_log_protect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        elseif($r['action']=='unprot')   echo $lang->get('history_log_unprotect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        elseif($r['action']=='semiprot') echo $lang->get('history_log_semiprotect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        elseif($r['action']=='rename')   echo $lang->get('history_log_rename') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_oldtitle') . ' '.htmlspecialchars($r['edit_summary']);
+        elseif($r['action']=='create')   echo $lang->get('history_log_create') . '</td><td class="' . $cls . '">';
+        elseif($r['action']=='delete')   echo $lang->get('history_log_delete') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        elseif($r['action']=='reupload') echo $lang->get('history_log_uploadnew') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' '.htmlspecialchars($r['edit_summary']);
         echo '</td>';
         
         // Actions!
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">View user contribs</a></td>';
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">Revert action</a></td>';
-        
-        //echo '(<a href="#" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">rollback</a>) <i>' . $r['date_string'] . '</i> ' . $r['author'] . ' (<a href="'.makeUrl($paths->nslist['User'].$r['author']).'">Userpage</a>, <a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">Contrib</a>): ';
-        
-        if($r['minor_edit']) echo '<b> - minor edit</b>';
-        echo '<br />';
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>';
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_revert') . '</a></td>';
         
         echo '</tr>';
       }
@@ -897,6 +916,7 @@ class PageUtils {
   function comments_raw($page_id, $namespace, $action = false, $flags = Array(), $_ob = '')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $pname = $paths->nslist[$namespace] . $page_id;
     
@@ -937,8 +957,8 @@ class PageUtils {
         $q = 'UPDATE ' . table_prefix.'comments SET approved=' . $a . ' WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND ' . $where . ';';
         $e=$db->sql_query($q);
         if(!$e) die('alert(unesape(\''.rawurlencode('Error during query: '.mysql_error().'\n\nQuery:\n' . $q) . '\'));');
-        if($a=='1') $v = 'Unapprove';
-        else $v = 'Approve';
+        if($a=='1') $v = $lang->get('comment_btn_mod_unapprove');
+        else $v = $lang->get('comment_btn_mod_approve');
         echo 'document.getElementById("mdgApproveLink'.intval($_GET['id']).'").innerHTML="' . $v . '";';
         break;
       }
@@ -966,22 +986,32 @@ class PageUtils {
                   WHERE page_id=\'' . $page_id . '\'
                   AND namespace=\'' . $namespace . '\' ORDER BY c.time ASC;');
     if(!$lq) _die('The comment text data could not be selected. '.mysql_error());
-    $_ob .= '<h3>Article Comments</h3>';
+    $_ob .= '<h3>' . $lang->get('comment_heading') . '</h3>';
+    
     $n = ( $session->get_permissions('mod_comments')) ? $db->numrows() : $num_app;
-    if($n==1) $s = 'is ' . $n . ' comment'; else $s = 'are ' . $n . ' comments';
-    if($n < 1)
+    
+    $subst = array(
+        'num_comments' => $n,
+        'page_type' => '&lt;FIXME&gt; whatever'
+      );
+    
+    $_ob .= '<p>';
+    $_ob .= ( $n == 0 ) ? $lang->get('comment_msg_count_zero', $subst) : ( $n == 1 ? $lang->get('comment_msg_count_one', $subst) : $lang->get('comment_msg_count_plural', $subst) );
+    
+    if ( $session->get_permissions('mod_comments') && $num_unapp > 0 )
     {
-      $_ob .= '<p>There are currently no comments on this '.strtolower($namespace).'';
-      if($namespace != 'Article') $_ob .= ' page';
-      $_ob .= '.</p>';
-    } else $_ob .= '<p>There ' . $s . ' on this article.';
-    if($session->get_permissions('mod_comments') && $num_unapp > 0) $_ob .= ' <span style="color: #D84308">' . $num_unapp . ' of those are unapproved.</span>';
-    elseif(!$session->get_permissions('mod_comments') && $num_unapp > 0) { $u = ($num_unapp == 1) ? "is $num_unapp comment" : "are $num_unapp comments"; $_ob .= ' However, there ' . $u . ' awating approval.'; }
+      $_ob .= ' <span style="color: #D84308">' . $lang->get('comment_msg_count_unapp_mod', array( 'num_unapp' => $num_unapp )) . '</span>';
+    }
+    else if ( !$session->get_permissions('mod_comments') && $num_unapp > 0 )
+    {
+      $ls = ( $num_unapp == 1 ) ? 'comment_msg_count_unapp_one' : 'comment_msg_count_unapp_plural';
+      $_ob .= ' <span>' . $lang->get($ls, array( 'num_unapp' => $num_unapp )) . '</span>';
+    }
     $_ob .= '</p>';
     $list = 'list = { ';
     // _die(htmlspecialchars($ttext));
     $i = -1;
-    while($row = $db->fetchrow($lq))
+    while ( $row = $db->fetchrow($lq) )
     {
       $i++;
       $strings = Array();
@@ -995,14 +1025,14 @@ class PageUtils {
         
         // Determine the name, and whether to link to the user page or not
         $name = '';
-        if($row['user_id'] > 0) $name .= '<a href="'.makeUrlNS('User', str_replace(' ', '_', $row['name'])).'">';
+        if($row['user_id'] > 1) $name .= '<a href="'.makeUrlNS('User', str_replace(' ', '_', $row['name'])).'">';
         $name .= $row['name'];
-        if($row['user_id'] > 0) $name .= '</a>';
+        if($row['user_id'] > 1) $name .= '</a>';
         $strings['NAME'] = $name; unset($name);
         
         // Subject
         $s = $row['subject'];
-        if(!$row['approved']) $s .= ' <span style="color: #D84308">(Unapproved)</span>';
+        if(!$row['approved']) $s .= ' <span style="color: #D84308">' . $lang->get('comment_msg_note_unapp') . '</span>';
         $strings['SUBJECT'] = $s;
         
         // Date and time
@@ -1013,16 +1043,17 @@ class PageUtils {
         {
           default:
           case USER_LEVEL_GUEST:
-            $l = 'Guest';
+            $l = $lang->get('user_type_guest');
             break;
           case USER_LEVEL_MEMBER:
-            $l = 'Member';
+          case USER_LEVEL_CHPREF:
+            $l = $lang->get('user_type_member');
             break;
           case USER_LEVEL_MOD:
-            $l = 'Moderator';
+            $l = $lang->get('user_type_mod');
             break;
           case USER_LEVEL_ADMIN:
-            $l = 'Administrator';
+            $l = $lang->get('user_type_admin');
             break;
         }
         $strings['USER_LEVEL'] = $l; unset($l);
@@ -1033,10 +1064,10 @@ class PageUtils {
         if($session->get_permissions('edit_comments'))
         {
           // Edit link
-          $strings['EDIT_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=editcomment&amp;id=' . $row['comment_id']) . '" id="editbtn_' . $i . '">edit</a>';
+          $strings['EDIT_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=editcomment&amp;id=' . $row['comment_id']) . '" id="editbtn_' . $i . '">' . $lang->get('comment_btn_edit') . '</a>';
         
           // Delete link
-          $strings['DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=deletecomment&amp;id=' . $row['comment_id']) . '">delete</a>';
+          $strings['DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=deletecomment&amp;id=' . $row['comment_id']) . '">' . $lang->get('comment_btn_delete') . '</a>';
         }
         else
         {
@@ -1048,19 +1079,19 @@ class PageUtils {
         }
         
         // Send PM link
-        $strings['SEND_PM_LINK'] = ( $session->user_logged_in && $row['user_id'] > 0 ) ? '<a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/To/' . $row['name']) . '">Send private message</a><br />' : '';
+        $strings['SEND_PM_LINK'] = ( $session->user_logged_in && $row['user_id'] > 1 ) ? '<a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/To/' . $row['name']) . '">' . $lang->get('comment_btn_send_privmsg') . '</a><br />' : '';
         
         // Add Buddy link
-        $strings['ADD_BUDDY_LINK'] = ( $session->user_logged_in && $row['user_id'] > 0 ) ? '<a href="'.makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' . $row['name']) . '">Add to buddy list</a>' : '';
+        $strings['ADD_BUDDY_LINK'] = ( $session->user_logged_in && $row['user_id'] > 1 ) ? '<a href="'.makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' . $row['name']) . '">' . $lang->get('comment_btn_add_buddy') . '</a>' : '';
         
         // Mod links
         $applink = '';
         $applink .= '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=approve&amp;id=' . $row['comment_id']) . '" id="mdgApproveLink' . $i . '">';
-        if($row['approved']) $applink .= 'Unapprove';
-        else $applink .= 'Approve';
+        if($row['approved']) $applink .= $lang->get('comment_btn_mod_unapprove');
+        else $applink .= $lang->get('comment_btn_mod_approve');
         $applink .= '</a>';
         $strings['MOD_APPROVE_LINK'] = $applink; unset($applink);
-        $strings['MOD_DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=delete&amp;id=' . $row['comment_id']) . '">Delete</a>';
+        $strings['MOD_DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=delete&amp;id=' . $row['comment_id']) . '">' . $lang->get('comment_btn_mod_delete') . '</a>';
         
         // Signature
         $strings['SIGNATURE'] = '';
@@ -1078,32 +1109,31 @@ class PageUtils {
     }
     if(getConfig('comments_need_login') != '2' || $session->user_logged_in)
     {
-      if(!$session->get_permissions('post_comments'))
+      if($session->get_permissions('post_comments'))
       {
-        $_ob .= '<h3>Got something to say?</h3><p>Access to post comments on this page is denied.</p>';
-      }
-      else
-      {
-        $_ob .= '<h3>Got something to say?</h3>If you have comments or suggestions on this article, you can shout it out here.';
-        if(getConfig('approve_comments')=='1') $_ob .= '  Before your comment will be visible to the public, a moderator will have to approve it.';
-        if(getConfig('comments_need_login') == '1' && !$session->user_logged_in) $_ob .= ' Because you are not logged in, you will need to enter a visual confirmation before your comment will be posted.';
+        $_ob .= '<h3>' . $lang->get('comment_postform_title') . '</h3>';
+        $_ob .= $lang->get('comment_postform_blurb');
+        if(getConfig('approve_comments')=='1') $_ob .= ' ' . $lang->get('comment_postform_blurb_unapp');
+        if(getConfig('comments_need_login') == '1' && !$session->user_logged_in)
+        {
+          $_ob .= ' ' . $lang->get('comment_postform_blurb_captcha');
+        }
         $sn = $session->user_logged_in ? $session->username . '<input name="name" id="mdgScreenName" type="hidden" value="' . $session->username . '" />' : '<input name="name" id="mdgScreenName" type="text" size="35" />';
-        $_ob .= '  <a href="#" id="mdgCommentFormLink" style="display: none;" onclick="document.getElementById(\'mdgCommentForm\').style.display=\'block\';this.style.display=\'none\';return false;">Leave a comment...</a>
+        $_ob .= '  <a href="#" id="mdgCommentFormLink" style="display: none;" onclick="document.getElementById(\'mdgCommentForm\').style.display=\'block\';this.style.display=\'none\';return false;">' . $lang->get('comment_postform_blurb_link') . '</a>
         <div id="mdgCommentForm">
-        <h3>Comment form</h3>
         <form action="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=postcomment').'" method="post" style="margin-left: 1em">
         <table border="0">
-        <tr><td>Your name or screen name:</td><td>' . $sn . '</td></tr>
-        <tr><td>Comment subject:</td><td><input name="subj" id="mdgSubject" type="text" size="35" /></td></tr>';
+        <tr><td>' . $lang->get('comment_postform_field_name') . '</td><td>' . $sn . '</td></tr>
+        <tr><td>' . $lang->get('comment_postform_field_subject') . '</td><td><input name="subj" id="mdgSubject" type="text" size="35" /></td></tr>';
         if(getConfig('comments_need_login') == '1' && !$session->user_logged_in)
         {
           $session->kill_captcha();
           $captcha = $session->make_captcha();
-          $_ob .= '<tr><td>Visual confirmation:<br /><small>Please enter the code you see on the right.</small></td><td><img src="'.makeUrlNS('Special', 'Captcha/' . $captcha) . '" alt="Visual confirmation" style="cursor: pointer;" onclick="this.src = \''.makeUrlNS("Special", "Captcha/".$captcha).'/\'+Math.floor(Math.random() * 100000);" /><input name="captcha_id" id="mdgCaptchaID" type="hidden" value="' . $captcha . '" /><br />Code: <input name="captcha_input" id="mdgCaptchaInput" type="text" size="10" /><br /><small><script type="text/javascript">document.write("If you can\'t read the code, click on the image to generate a new one.");</script><noscript>If you can\'t read the code, please refresh this page to generate a new one.</noscript></small></td></tr>';
+          $_ob .= '<tr><td>' . $lang->get('comment_postform_field_captcha_title') . '<br /><small>' . $lang->get('comment_postform_field_captcha_blurb') . '</small></td><td><img src="'.makeUrlNS('Special', 'Captcha/' . $captcha) . '" alt="Visual confirmation" style="cursor: pointer;" onclick="this.src = \''.makeUrlNS("Special", "Captcha/".$captcha).'/\'+Math.floor(Math.random() * 100000);" /><input name="captcha_id" id="mdgCaptchaID" type="hidden" value="' . $captcha . '" /><br />' . $lang->get('comment_postform_field_captcha_label') . ' <input name="captcha_input" id="mdgCaptchaInput" type="text" size="10" /><br /><small><script type="text/javascript">document.write("' . $lang->get('comment_postform_field_captcha_cantread_js') . '");</script><noscript>' . $lang->get('comment_postform_field_captcha_cantread_nojs') . '</noscript></small></td></tr>';
         }
         $_ob .= '
-        <tr><td valign="top">Comment text:<br />(most HTML will be stripped)</td><td><textarea name="text" id="mdgCommentArea" rows="10" cols="40"></textarea></td></tr>
-        <tr><td colspan="2" style="text-align: center;"><input type="submit" value="Submit Comment" /></td></tr>
+        <tr><td valign="top">' . $lang->get('comment_postform_field_comment') . '</td><td><textarea name="text" id="mdgCommentArea" rows="10" cols="40"></textarea></td></tr>
+        <tr><td colspan="2" style="text-align: center;"><input type="submit" value="' . $lang->get('comment_postform_btn_submit') . '" /></td></tr>
         </table>
         </form>
         </div>';
@@ -1818,6 +1848,7 @@ class PageUtils {
   function pagediff($page_id, $namespace, $id1, $id2)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     if(!$session->get_permissions('history_view'))
       return 'Access denied';
     if(!preg_match('#^([0-9]+)$#', (string)$id1) ||
@@ -1836,7 +1867,7 @@ class PageUtils {
     $time1 = date('F d, Y h:i a', $id1);
     $time2 = date('F d, Y h:i a', $id2);
     $_ob = "
-    <p>Comparing revisions: {$time1} &rarr; {$time2}</p>
+    <p>" . $lang->get('history_lbl_comparingrevisions') . " {$time1} &rarr; {$time2}</p>
     ";
     // Free some memory
     unset($row1, $row2, $q1, $q2);
