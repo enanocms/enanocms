@@ -48,9 +48,12 @@ require(ENANO_ROOT . '/plugins/admin/UserManager.php');
 
 function page_Admin_Home() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -115,9 +118,12 @@ Using the links on the left you can control every aspect of your website\'s look
 
 function page_Admin_GeneralConfig() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -511,9 +517,12 @@ function page_Admin_GeneralConfig() {
 function page_Admin_UploadConfig()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -628,9 +637,12 @@ function page_Admin_UploadConfig()
 
 function page_Admin_PluginManager() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -769,9 +781,12 @@ function page_Admin_PluginManager() {
 function page_Admin_UploadAllowedMimeTypes()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -832,9 +847,12 @@ function page_Admin_UploadAllowedMimeTypes()
 function page_Admin_Sidebar()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -889,9 +907,12 @@ function page_Admin_Sidebar()
 /*
 function page_Admin_UserManager() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1159,9 +1180,12 @@ function page_Admin_UserManager() {
 function page_Admin_GroupManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1518,9 +1542,12 @@ function page_Admin_GroupManager()
 function page_Admin_COPPA()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1591,9 +1618,12 @@ function page_Admin_COPPA()
 function page_Admin_PageManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1787,9 +1817,12 @@ function page_Admin_PageManager()
 function page_Admin_PageEditor()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1887,9 +1920,12 @@ function page_Admin_ThemeManager()
 {
   
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2150,9 +2186,12 @@ function page_Admin_ThemeManager()
 function page_Admin_BanControl()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2262,9 +2301,12 @@ function page_Admin_BanControl()
 function page_Admin_MassEmail()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2478,9 +2520,12 @@ function page_Admin_MassEmail()
 function page_Admin_DBBackup()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2582,9 +2627,12 @@ HEADER;
 function page_Admin_AdminLogout()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2595,6 +2643,7 @@ function page_Admin_AdminLogout()
 function page_Special_Administration()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   
   if($session->auth_level < USER_LEVEL_ADMIN) {
     redirect(makeUrlNS('Special', 'Login/'.$paths->page, 'level='.USER_LEVEL_ADMIN), 'Not authorized', 'You need an authorization level of '.USER_LEVEL_ADMIN.' to use this page, your auth level is: ' . $session->auth_level, 0);
@@ -2757,6 +2806,7 @@ function page_Special_Administration()
 function page_Special_EditSidebar()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   
   if($session->auth_level < USER_LEVEL_ADMIN) 
   {
