@@ -52,8 +52,8 @@ function page_Admin_Home() {
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -122,8 +122,8 @@ function page_Admin_GeneralConfig() {
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -521,8 +521,8 @@ function page_Admin_UploadConfig()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -641,8 +641,8 @@ function page_Admin_PluginManager() {
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -785,8 +785,8 @@ function page_Admin_UploadAllowedMimeTypes()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -851,8 +851,8 @@ function page_Admin_Sidebar()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -911,8 +911,8 @@ function page_Admin_UserManager() {
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1184,8 +1184,8 @@ function page_Admin_GroupManager()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1546,8 +1546,8 @@ function page_Admin_COPPA()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1622,8 +1622,8 @@ function page_Admin_PageManager()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1821,8 +1821,8 @@ function page_Admin_PageEditor()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1924,8 +1924,8 @@ function page_Admin_ThemeManager()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2190,8 +2190,8 @@ function page_Admin_BanControl()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2305,8 +2305,8 @@ function page_Admin_MassEmail()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2524,8 +2524,8 @@ function page_Admin_DBBackup()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2631,8 +2631,8 @@ function page_Admin_AdminLogout()
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('admin_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('admin_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   

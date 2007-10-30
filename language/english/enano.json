@@ -209,7 +209,10 @@ var enano_lang = {
       btn_keepalive_off: 'Turn on keep-alive',
       btn_keepalive_on: 'Turn off keep-alive',
       btn_keepalive_about: 'About keep-alive',
-      btn_keepalive_loading: 'Loading keep-alive button...'
+      btn_keepalive_loading: 'Loading keep-alive button...',
+      
+      err_not_auth_title: 'Error: Not authenticated',
+      err_not_auth_body: 'It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="%login_link%">re-authenticate</a> to continue.',
     },
     editor: {
       msg_revert_confirm: 'Do you really want to revert your changes?',
