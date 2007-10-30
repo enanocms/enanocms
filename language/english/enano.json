@@ -263,6 +263,50 @@ var enano_lang = {
       log_uploadnew: 'Uploaded new file version',
       lbl_comparingrevisions: 'Comparing revisions:',
     },
+    page: {
+      protect_lbl_success_title: 'Page protected',
+      protect_lbl_success_body: 'The protection setting has been applied. <a href="%page_link%">Return to the page</a>.',
+      protect_err_need_reason: 'Error: you must enter a reason for protecting this page.',
+      protect_lbl_reason: 'Reason for protecting the page:',
+      protect_lbl_level: 'Protecion level to be applied:',
+      protect_lbl_level_none: 'No protection',
+      protect_lbl_level_semi: 'Semi-protection',
+      protect_lbl_level_full: 'Full protection',
+      protect_btn_submit: 'Protect page',
+      
+      rename_err_need_name: 'Error: you must enter a new name for this page.',
+      rename_lbl: 'Please enter a new name for this page:',
+      rename_btn_submit: 'Rename page',
+      
+      flushlogs_warning_stern: '<h3>You are about to <span style="color: red;">destroy</span> all logged edits and actions on this page.</h3><p>Unlike deleting or editing this page, this action is <u>not reversible</u>! You should only do this if you are desparate for database space.</p><p>Do you really want to continue?</p>',
+      flushlogs_btn_submit: 'Flush logs',
+      
+      delvote_warning_stern: '<h3>Your vote counts.</h3><p>If you think that this page is not relavent to the content on this site, or if it looks like this page was only created in an attempt to spam the site, you can request that this page be deleted by an administrator.</p><p>After you vote, you should leave a comment explaining the reason for your vote, especially if you are the first person to vote against this page.</p>',
+      
+      delvote_count_zero: 'So far, no one has voted for the deletion of this page.',
+      delvote_count_one: 'So far, one person has voted to delete this page.',
+      delvote_count_plural: 'So far, %delvotes% people have voted to delete this page.',
+      delvote_btn_submit: 'Vote to delete this page',
+      delvote_reset_btn_submit: 'Reset votes',
+      
+      delete_warning_stern: '<h3>You are about to <span style="color: red;">destroy</span> this page.</h3><p>While the deletion of the page itself is completely reversible, it is impossible to recover any comments or category information on this page. If this is a file page, the file along with all older revisions of it will be permanently deleted. Also, any custom information that this page is tagged with, such as a custom name, protection status, or additional settings such as whether to allow comments, will be permanently lost.</p><p>Are you <u>absolutely sure</u> that you want to continue?<br />You will not be asked again.</p>',
+      delete_btn_submit: 'Delete this page',
+      delete_lbl_reason: 'Reason for deleting:',
+      
+      wikimode_success_redirect: 'Wiki mode for this page has been set. Redirecting you to the page...',
+      wikimode_level_on: 'Wiki features will be enabled.',
+      wikimode_level_off: 'Wiki features will be disabled.',
+      wikimode_level_global: 'Wiki features will be synchronized to the global setting.',
+      wikimode_heading: 'You are changing wiki mode for this page.',
+      wikimode_warning: 'If you want to continue, please click the button below.',
+      wikimode_blurb_disable: 'Because this will disable the wiki behavior on this page, several features, most notably the ability for users to vote to have this page deleted, will be disabled as they are not relevant to non-wiki pages. In addition, users will not be able to edit this page unless an ACL rule specifically permits them.',
+      wikimode_blurb_enable: 'Because this will enable the wiki behavior on this page, users will gain the ability to freely edit this page unless an ACL rule specifically denies them. If your site is public and gets good traffic, you should be aware of the possiblity of vandalism, and you need to be ready to revert malicious edits to this page.',
+      wikimode_btn_submit: 'Set wiki mode',
+      
+      detag_err_page_exists: 'The detag action is only valid for pages that have been deleted in the past.',
+      detag_success_title: 'Page detagged',
+      detag_success_body: 'All stale tags have been removed from this page.',
+    },
     catedit: {
       title: 'Select which categories this page should be included in.',
       no_categories: 'There are no categories on this site yet.',
@@ -293,7 +337,7 @@ var enano_lang = {
       delete_prompt_reason: 'Please enter your reason for deleting this page.',
       delete_confirm: 'You are about to REVERSIBLY delete this page. Do you REALLY want to do this?\n\n(Comments and categorization data, as well as any attached files, will be permanently lost)',
       delvote_confirm: 'Are you sure that you want to vote that this page be deleted?',
-      delvote_reset_confirm: 'This will reset the number of votes against this page to zero. Do you really want to do this?',
+      delvote_reset_confirm: 'This action will reset the number of votes against this page to zero. Do you really want to do this?',
       clearlogs_confirm: 'You are about to DESTROY all log entries for this page. As opposed to (example) deleting this page, this action is completely IRREVERSIBLE and should not be used except in dire circumstances. Do you REALLY want to do this?',
       clearlogs_confirm_nag: 'You\'re ABSOLUTELY sure???',
       changestyle_select: '[Select]',
@@ -304,6 +348,7 @@ var enano_lang = {
       changestyle_success: 'Your theme preference has been changed.\nWould you like to reload the page now to see the changes?',
       killphp_confirm: 'Are you really sure you want to do this? Some pages might not function if this emergency-only feature is activated.',
       killphp_success: 'Embedded PHP in pages has been disabled.',
+      lbl_moreoptions_nojs: 'More options for this page',
       
       // Server-side responses
       rename_too_short: 'The name you entered is too short. Please enter a longer name for this page.',
@@ -440,6 +485,9 @@ var enano_lang = {
       lbl_notice: 'Notice:',
       // Generic "Access denied"
       access_denied: 'Access to the specified file, resource, or action is denied.',
+      access_denied_short: 'Access denied',
+      return_to_page: 'Return to the page',
+      invalid_request_short: 'Invalid request',
       // Message box buttons
       ok: 'OK',
       cancel: 'Cancel',
