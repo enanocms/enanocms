@@ -2162,6 +2162,7 @@ class PageUtils {
   function aclmanager($parms)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     ob_start();
     // Convenience
     $formstart = '<form 
@@ -2182,20 +2183,21 @@ class PageUtils {
         echo '<pre>' . htmlspecialchars($response['text']) . '</pre>';
         break;
       case 'stage1':
-        echo '<h3>Manage page access</h3>
-              <p>Please select who should be affected by this access rule.</p>';
+        echo '<h3>' . $lang->get('acl_lbl_welcome_title') . '</h3>
+              <p>' . $lang->get('acl_lbl_welcome_body') . '</p>';
         echo $formstart;
-        echo '<p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_GROUP . '" checked="checked" /> A usergroup</label></p>
+        echo '<p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_GROUP . '" checked="checked" /> ' . $lang->get('acl_radio_usergroup') . '</label></p>
               <p><select name="data[target_id_grp]">';
         foreach ( $response['groups'] as $group )
         {
           echo '<option value="' . $group['id'] . '">' . $group['name'] . '</option>';
         }
+        
         // page group selector
         $groupsel = '';
         if ( count($response['page_groups']) > 0 )
         {
-          $groupsel = '<p><label><input type="radio" name="data[scope]" value="page_group" /> A group of pages</label></p>
+          $groupsel = '<p><label><input type="radio" name="data[scope]" value="page_group" /> ' . $lang->get('acl_radio_scope_pagegroup') . '</label></p>
                        <p><select name="data[pg_id]">';
           foreach ( $response['page_groups'] as $grp )
           {
@@ -2205,24 +2207,24 @@ class PageUtils {
         }
         
         echo '</select></p>
-              <p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_USER . '" /> A specific user</label></p>
+              <p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_USER . '" /> ' . $lang->get('acl_radio_user') . '</label></p>
               <p>' . $template->username_field('data[target_id_user]') . '</p>
-              <p>What should this access rule control?</p>
-              <p><label><input name="data[scope]" value="only_this" type="radio" checked="checked" /> Only this page</p>
+              <p>' . $lang->get('acl_lbl_scope') . '</p>
+              <p><label><input name="data[scope]" value="only_this" type="radio" checked="checked" /> ' . $lang->get('acl_radio_scope_thispage') . '</p>
               ' . $groupsel . '
-              <p><label><input name="data[scope]" value="entire_site" type="radio" /> The entire site</p>
+              <p><label><input name="data[scope]" value="entire_site" type="radio" /> ' . $lang->get('acl_radio_scope_wholesite') . '</p>
               <div style="margin: 0 auto 0 0; text-align: right;">
                 <input name="data[mode]" value="seltarget" type="hidden" />
                 <input type="hidden" name="data[page_id]" value="' . $paths->cpage['urlname_nons'] . '" />
                 <input type="hidden" name="data[namespace]" value="' . $paths->namespace . '" />
-                <input type="submit" value="Next &gt;" />
+                <input type="submit" value="' . htmlspecialchars($lang->get('etc_wizard_next')) . '" />
               </div>';
         echo $formend;
         break;
       case 'success':
         echo '<div class="info-box">
-                <b>Permissions updated</b><br />
-                The permissions for ' . $response['target_name'] . ' on this page have been updated successfully.<br />
+                <b>' . $lang->get('acl_lbl_save_success_title') . '</b><br />
+                ' . $lang->get('acl_lbl_save_success_body', array( 'target_name' => $response['target_name'] )) . '<br />
                 ' . $formstart . '
                 <input type="hidden" name="data[mode]" value="seltarget" />
                 <input type="hidden" name="data[target_type]" value="' . $response['target_type'] . '" />
@@ -2231,14 +2233,14 @@ class PageUtils {
                 <input type="hidden" name="data[scope]" value="' . ( ( $response['page_id'] ) ? 'only_this' : 'entire_site' ) . '" />
                 <input type="hidden" name="data[page_id]" value="' . ( ( $response['page_id'] ) ? $response['page_id'] : 'false' ) . '" />
                 <input type="hidden" name="data[namespace]" value="' . ( ( $response['namespace'] ) ? $response['namespace'] : 'false' ) . '" />
-                <input type="submit" value="Return to ACL editor" /> <input type="submit" name="data[act_go_stage1]" value="Return to user/scope selection" />
+                <input type="submit" value="' . $lang->get('acl_btn_returnto_editor') . '" /> <input type="submit" name="data[act_go_stage1]" value="' . $lang->get('acl_btn_returnto_userscope') . '" />
                 ' . $formend . '
               </div>';
         break;
       case 'delete':
         echo '<div class="info-box">
-                <b>Rule deleted</b><br />
-                The selected access rule has been successfully deleted.<br />
+                <b>' . $lang->get('acl_lbl_delete_success_title') . '</b><br />
+                ' . $lang->get('acl_lbl_delete_success_body', array('target_name' => $response['target_name'])) . '<br />
                 ' . $formstart . '
                 <input type="hidden" name="data[mode]" value="seltarget" />
                 <input type="hidden" name="data[target_type]" value="' . $response['target_type'] . '" />
@@ -2247,22 +2249,27 @@ class PageUtils {
                 <input type="hidden" name="data[scope]" value="' . ( ( $response['page_id'] ) ? 'only_this' : 'entire_site' ) . '" />
                 <input type="hidden" name="data[page_id]" value="' . ( ( $response['page_id'] ) ? $response['page_id'] : 'false' ) . '" />
                 <input type="hidden" name="data[namespace]" value="' . ( ( $response['namespace'] ) ? $response['namespace'] : 'false' ) . '" />
-                <input type="submit" value="Return to ACL editor" /> <input type="submit" name="data[act_go_stage1]" value="Return to user/scope selection" />
+                <input type="submit" value="' . $lang->get('acl_btn_returnto_editor') . '" /> <input type="submit" name="data[act_go_stage1]" value="' . $lang->get('acl_btn_returnto_userscope') . '" />
                 ' . $formend . '
               </div>';
         break;
       case 'seltarget':
         if ( $response['type'] == 'edit' )
         {
-          echo '<h3>Editing permissions</h3>';
+          echo '<h3>' . $lang->get('acl_lbl_editwin_title_edit') . '</h3>';
         }
         else
         {
-          echo '<h3>Create new rule</h3>';
+          echo '<h3>' . $lang->get('acl_lbl_editwin_title_create') . '</h3>';
         }
-        $type  = ( $response['target_type'] == ACL_TYPE_GROUP ) ? 'group' : 'user';
-        $scope = ( $response['page_id'] ) ? ( $response['namespace'] == '__PageGroup' ? 'this group of pages' : 'this page' ) : 'this entire site';
-        echo 'This panel allows you to edit what the ' . $type . ' "' . $response['target_name'] . '" can do on <b>' . $scope . '</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.';
+        $type  = ( $response['target_type'] == ACL_TYPE_GROUP ) ? $lang->get('acl_target_type_group') : $lang->get('acl_target_type_user');
+        $scope = ( $response['page_id'] ) ? ( $response['namespace'] == '__PageGroup' ? $lang->get('acl_scope_type_pagegroup') : $lang->get('acl_scope_type_thispage') ) : $lang->get('acl_scope_type_wholesite');
+        $subs = array(
+            'target_type' => $type,
+            'target' => $response['target_name'],
+            'scope_type' => $scope
+          );
+        echo $lang->get('acl_lbl_editwin_body', $subs);
         echo $formstart;
         $parser = $template->makeParserText( $response['template']['acl_field_begin'] );
         echo $parser->run();
@@ -2296,7 +2303,14 @@ class PageUtils {
               break;
           }
           $vars['FIELD_NAME'] = 'data[perms][' . $acl_type . ']';
-          $vars['FIELD_DESC'] = $response['acl_descs'][$acl_type];
+          if ( preg_match('/^([a-z0-9_]+)$/', $response['acl_descs'][$acl_type]) )
+          {
+            $vars['FIELD_DESC'] = $lang->get($response['acl_descs'][$acl_type]);
+          }
+          else
+          {
+            $vars['FIELD_DESC'] = $response['acl_descs'][$acl_type];
+          }
           $parser->assign_vars($vars);
           echo $parser->run();
         }
@@ -2309,7 +2323,7 @@ class PageUtils {
                 <input type="hidden" name="data[target_type]" value="' . $response['target_type'] . '" />
                 <input type="hidden" name="data[target_id]" value="' . $response['target_id'] . '" />
                 <input type="hidden" name="data[target_name]" value="' . $response['target_name'] . '" />
-                ' . ( ( $response['type'] == 'edit' ) ? '<input type="submit" value="Save changes" />&nbsp;&nbsp;<input type="submit" name="data[act_delete_rule]" value="Delete rule" style="color: #AA0000;" onclick="return confirm(\'Do you really want to delete this ACL rule?\');" />' : '<input type="submit" value="Create rule" />' ) . '
+                ' . ( ( $response['type'] == 'edit' ) ? '<input type="submit" value="' . $lang->get('etc_save_changes') . '" />&nbsp;&nbsp;<input type="submit" name="data[act_delete_rule]" value="' . $lang->get('acl_btn_deleterule') . '" style="color: #AA0000;" onclick="return confirm(\'' . addslashes($lang->get('acl_msg_deleterule_confirm')) . '\');" />' : '<input type="submit" value="' . $lang->get('acl_btn_createrule') . '" />' ) . '
               </div>';
         echo $formend;
         break;

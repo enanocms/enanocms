@@ -388,6 +388,10 @@ var enano_lang = {
       
       btn_success_dismiss: 'dismiss',
       btn_success_close: 'close manager',
+      btn_deleterule: 'Delete rule',
+      btn_createrule: 'Create rule',
+      btn_returnto_editor: 'Return to ACL editor',
+      btn_returnto_userscope: 'Return to user/scope selection',
     },
     perm: {
       read: 'Read page(s)',
