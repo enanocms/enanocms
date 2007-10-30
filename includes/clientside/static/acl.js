@@ -59,7 +59,7 @@ function ajaxACLSwitchToSelector()
       {
         document.getElementById(aclManagerID+'_main').innerHTML = '';
         document.getElementById(aclManagerID + '_back').style.display = 'none';
-        document.getElementById(aclManagerID + '_next').value = 'Next >';
+        document.getElementById(aclManagerID + '_next').value = $lang.get('etc_wizard_next');
         groups = parseJSON(ajax.responseText);
         if ( groups.mode == 'error' )
         {
@@ -104,13 +104,13 @@ function __aclBuildSelector(groups)
   grpb.onclick = function() { seed = this.className; document.getElementById('enACL_grpbox_'+seed).style.display = 'block'; document.getElementById('enACL_usrbox_'+seed).style.display = 'none'; };
   lbl = document.createElement('label');
   lbl.appendChild(grpb);
-  lbl.appendChild(document.createTextNode('A usergroup'));
+  lbl.appendChild(document.createTextNode($lang.get('acl_radio_usergroup')));
   lbl.style.display = 'block';
   span.appendChild(grpsel);
   
   anoninfo = document.createElement('div');
   anoninfo.className = 'info-box-mini';
-  anoninfo.appendChild(document.createTextNode('To edit permissions for guests, select "a specific user", and enter Anonymous as the username.'));
+  anoninfo.appendChild(document.createTextNode($lang.get('acl_msg_guest_howto')));
   span.appendChild(document.createElement('br'));
   span.appendChild(anoninfo);
   
@@ -122,7 +122,7 @@ function __aclBuildSelector(groups)
   usrb.onclick = function() { seed = this.className; document.getElementById('enACL_grpbox_'+seed).style.display = 'none'; document.getElementById('enACL_usrbox_'+seed).style.display = 'block'; };
   lbl2 = document.createElement('label');
   lbl2.appendChild(usrb);
-  lbl2.appendChild(document.createTextNode('A specific user'));
+  lbl2.appendChild(document.createTextNode($lang.get('acl_radio_user')));
   lbl2.style.display = 'block';
   
   usrsel = document.createElement('input');
@@ -167,21 +167,21 @@ function __aclBuildSelector(groups)
     lblPage = document.createElement('label');
       lblPage.style.display = 'block';
       lblPage.appendChild(scopeRadioPage);
-      lblPage.appendChild(document.createTextNode('Only this page'));
+      lblPage.appendChild(document.createTextNode($lang.get('acl_radio_scope_thispage')));
     lblGlobal = document.createElement('label');
       lblGlobal.style.display = 'block';
       lblGlobal.appendChild(scopeRadioGlobal);
-      lblGlobal.appendChild(document.createTextNode('The entire website'));
+      lblGlobal.appendChild(document.createTextNode($lang.get('acl_radio_scope_wholesite')));
     lblGroup = document.createElement('label');
       lblGroup.style.display = 'block';
       lblGroup.appendChild(scopeRadioGroup);
-      lblGroup.appendChild(document.createTextNode('A group of pages'));
+      lblGroup.appendChild(document.createTextNode($lang.get('acl_radio_scope_pagegroup')));
     scopediv1.appendChild(lblPage);
     scopediv2.appendChild(lblGroup);
     scopediv3.appendChild(lblGlobal);
     
     scopedesc = document.createElement('p');
-    scopedesc.appendChild(document.createTextNode('What should this access rule control?'));
+    scopedesc.appendChild(document.createTextNode($lang.get('acl_lbl_scope')));
     
     scopePGrp = document.createElement('select');
     scopePGrp.style.marginLeft = '13px';
@@ -219,10 +219,10 @@ function __aclBuildSelector(groups)
   container.style.paddingTop = '50px';
   
   head = document.createElement('h2');
-  head.appendChild(document.createTextNode('Manage page access'));
+  head.appendChild(document.createTextNode($lang.get('acl_lbl_welcome_title')));
   
   desc = document.createElement('p');
-  desc.appendChild(document.createTextNode('Please select who should be affected by this access rule.'));
+  desc.appendChild(document.createTextNode($lang.get('acl_lbl_welcome_body')));
   
   container.appendChild(head);
   container.appendChild(desc);
@@ -319,11 +319,14 @@ function __aclJSONSubmitAjaxHandler(params)
             
             // Build the ACL edit form
             // try {
-              act_desc = ( data.type == 'new' ) ? 'Create access rule' : 'Editing permissions';
-              target_type_t = ( data.target_type == 1 ) ? 'group' : 'user';
-              target_name_t = data.target_name;
-              var scope_type = ( data.page_id == false && data.namespace == false ) ? 'this entire site' : ( data.namespace == '__PageGroup' ) ? 'this group of pages' : 'this page';
-              html = '<h2>'+act_desc+'</h2><p>This panel allows you to edit what the '+target_type_t+' "<b>'+target_name_t+'</b>" can do on <b>' + scope_type + '</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.</p>';
+            
+              var act_desc = ( data.type == 'new' ) ? $lang.get('acl_lbl_editwin_title_create') : $lang.get('acl_lbl_editwin_title_edit');
+              var target_type_t = ( data.target_type == 1 ) ? $lang.get('acl_target_type_group') : $lang.get('acl_target_type_user');
+              var target_name_t = data.target_name;
+              var scope_type = ( data.page_id == false && data.namespace == false ) ? $lang.get('acl_scope_type_wholesite') : ( data.namespace == '__PageGroup' ) ? $lang.get('acl_scope_type_pagegroup') : $lang.get('acl_scope_type_thispage');
+              
+              html = '<h2>'+act_desc+'</h2>';
+              html += '<p>' + $lang.get('acl_lbl_editwin_body', { target_type: target_type_t, target: target_name_t, scope_type: scope_type }) + '</p>';
               parser = new templateParser(data.template.acl_field_begin);
               html += parser.run();
               
@@ -335,7 +338,14 @@ function __aclJSONSubmitAjaxHandler(params)
                   cls = ( cls == 'row1' ) ? 'row2' : 'row1';
                   p = new templateParser(data.template.acl_field_item);
                   vars = new Object();
-                  vars['FIELD_DESC'] = data.acl_descs[i];
+                  if ( data.acl_descs[i].match(/^([a-z0-9_]+)$/) )
+                  {
+                    vars['FIELD_DESC'] = $lang.get(data.acl_descs[i]);
+                  }
+                  else
+                  {
+                    vars['FIELD_DESC'] = data.acl_descs[i];
+                  }
                   vars['FIELD_DENY_CHECKED'] = '';
                   vars['FIELD_DISALLOW_CHECKED'] = '';
                   vars['FIELD_WIKIMODE_CHECKED'] = '';
@@ -367,7 +377,7 @@ function __aclJSONSubmitAjaxHandler(params)
               html += parser.run();
               
               if(data.type == 'edit')
-                html += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'Do you really want to delete this rule?\')) __aclDeleteRule(); return false;" style="color: red;">Delete this rule</a></p>';
+                html += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'' + $lang.get('acl_msg_deleterule_confirm') + '\')) __aclDeleteRule(); return false;" style="color: red;">' + $lang.get('acl_lbl_deleterule') + '</a></p>';
               
               var main = document.getElementById(aclManagerID + '_main');
               main.innerHTML = html;
@@ -383,7 +393,7 @@ function __aclJSONSubmitAjaxHandler(params)
               aclPermList = array_keys(data.acl_types);
               
               document.getElementById(aclManagerID + '_back').style.display = 'inline';
-              document.getElementById(aclManagerID + '_next').value = 'Save Changes';
+              document.getElementById(aclManagerID + '_next').value = $lang.get('etc_save_changes');
               
             // } catch(e) { alert(e); aclDebug(ajax.responseText); }
             
@@ -393,24 +403,24 @@ function __aclJSONSubmitAjaxHandler(params)
             note.className = 'info-box';
             note.style.marginLeft = '0';
             var b = document.createElement('b');
-            b.appendChild(document.createTextNode('Permissions updated'));
+            b.appendChild(document.createTextNode($lang.get('acl_lbl_save_success_title')));
             note.appendChild(b);
             note.appendChild(document.createElement('br'));
-            note.appendChild(document.createTextNode('The permissions for '+data.target_name+' on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.'));
+            note.appendChild(document.createTextNode($lang.get('acl_lbl_save_success_body', { target_name: data.target_name })));
             note.appendChild(document.createElement('br'));
             var a = document.createElement('a');
             a.href = 'javascript:void(0);';
             a.onclick = function() { this.parentNode.parentNode.removeChild(this.parentNode); return false; };
-            a.appendChild(document.createTextNode('[ dismiss :'));
+            a.appendChild(document.createTextNode('[ ' + $lang.get('acl_btn_success_dismiss') + ' :'));
             note.appendChild(a);
             var a2 = document.createElement('a');
             a2.href = 'javascript:void(0);';
             a2.onclick = function() { killACLManager(); return false; };
-            a2.appendChild(document.createTextNode(': close manager ]'));
+            a2.appendChild(document.createTextNode(': ' + $lang.get('acl_btn_success_close') + ' ]'));
             note.appendChild(a2);
             document.getElementById(aclManagerID + '_main').insertBefore(note, document.getElementById(aclManagerID + '_main').firstChild);
             if(!document.getElementById(aclManagerID+'_deletelnk'))
-              document.getElementById(aclManagerID + '_main').innerHTML += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'Do you really want to delete this rule?\')) __aclDeleteRule(); return false;" style="color: red;">Delete this rule</a></p>';
+              document.getElementById(aclManagerID + '_main').innerHTML += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'' + $lang.get('acl_msg_deleterule_confirm') + '\')) __aclDeleteRule(); return false;" style="color: red;">' + $lang.get('acl_lbl_deleterule') + '</a></p>';
             //fadeInfoBoxes();
             document.getElementById(aclManagerID+'_main').scrollTop = 0;
             
@@ -428,7 +438,7 @@ function __aclJSONSubmitAjaxHandler(params)
               {
                 document.getElementById(aclManagerID+'_main').innerHTML = '';
                 document.getElementById(aclManagerID + '_back').style.display = 'none';
-                document.getElementById(aclManagerID + '_next').value = 'Next >';
+                document.getElementById(aclManagerID + '_next').value = $lang.get('etc_wizard_next');
                 var thispage = strToPageID(title);
                 groups.page_id = thispage[0];
                 groups.namespace = thispage[1];
@@ -441,20 +451,20 @@ function __aclJSONSubmitAjaxHandler(params)
                 note.style.width = '558px';
                 note.id = 'aclSuccessNotice_' + Math.floor(Math.random() * 100000);
                 b = document.createElement('b');
-                b.appendChild(document.createTextNode('Entry deleted'));
+                b.appendChild(document.createTextNode($lang.get('acl_lbl_delete_success_title')));
                 note.appendChild(b);
                 note.appendChild(document.createElement('br'));
-                note.appendChild(document.createTextNode('The access rules for '+aclDataCache.target_name+' on this page have been deleted.'));
+                note.appendChild(document.createTextNode($lang.get('acl_lbl_delete_success_title', { target_name: aclDataCache.target_name })));
                 note.appendChild(document.createElement('br'));
                 a = document.createElement('a');
                 a.href = '#';
                 a.onclick = function() { opacity(this.parentNode.id, 100, 0, 1000); setTimeout('var div = document.getElementById("' + this.parentNode.id + '"); div.parentNode.removeChild(div);', 1100); return false; };
-                a.appendChild(document.createTextNode('[ dismiss :'));
+                a.appendChild(document.createTextNode('[ ' + $lang.get('acl_btn_success_dismiss') + ' :'));
                 note.appendChild(a);
                 a = document.createElement('a');
                 a.href = '#';
                 a.onclick = function() { killACLManager(); return false; };
-                a.appendChild(document.createTextNode(': close manager ]'));
+                a.appendChild(document.createTextNode(': ' + $lang.get('acl_btn_success_close') + ' ]'));
                 note.appendChild(a);
                 document.getElementById(aclManagerID + '_main').insertBefore(note, document.getElementById(aclManagerID + '_main').firstChild);
                 //fadeInfoBoxes();
@@ -542,7 +552,7 @@ function __aclBuildWizardWindow()
   
   back = document.createElement('input');
   back.type = 'button';
-  back.value = '< Back';
+  back.value = $lang.get('etc_wizard_back');
   back.style.fontWeight = 'normal';
   back.onclick = function() { ajaxACLSwitchToSelector(); return false; };
   back.style.display = 'none';
@@ -550,14 +560,14 @@ function __aclBuildWizardWindow()
   
   saver = document.createElement('input');
   saver.type = 'submit';
-  saver.value = 'Next >';
+  saver.value = $lang.get('etc_wizard_next');
   saver.style.fontWeight = 'bold';
   saver.id = aclManagerID + '_next';
   
   closer = document.createElement('input');
   closer.type = 'button';
-  closer.value = 'Cancel Changes';
-  closer.onclick = function() { if(!confirm('Do you really want to close the ACL manager?')) return false; killACLManager(); return false; }
+  closer.value = $lang.get('etc_cancel_changes');
+  closer.onclick = function() { if(!confirm($lang.get('acl_msg_closeacl_confirm'))) return false; killACLManager(); return false; }
   
   spacer1 = document.createTextNode('  ');
   spacer2 = document.createTextNode('  ');
@@ -624,7 +634,7 @@ function __aclSubmitManager(form)
       var target_type = parseInt(getRadioState(thefrm, 'target_type', ['1', '2']));
       if(isNaN(target_type))
       {
-        alert('Please select a target type.');
+        alert($lang.get('acl_err_pleaseselect_targettype'));
         return false;
       }
       target_id = ( target_type == 1 ) ? parseInt(thefrm.group_id.value) : thefrm.username.value;
@@ -666,7 +676,7 @@ function __aclSubmitManager(form)
       }
       if(target_id == '')
       {
-        alert('Please enter a username.');
+        alert($lang.get('acl_err_pleaseselect_username'));
         return false;
       }
       __aclJSONSubmitAjaxHandler(obj);

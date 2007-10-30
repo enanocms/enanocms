@@ -17,7 +17,8 @@
 
 var enano_lang = {
   categories: [
-    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar',
+    'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar', 'acl',
+    'perm',
   ],
   strings: {
     meta: {
@@ -35,6 +36,8 @@ var enano_lang = {
       delvote: 'Page deletion vote interface',
       ajax: 'On-page AJAX applets',
       sidebar: 'Default sidebar blocks and buttons',
+      acl: 'Access control list editor',
+      perm: 'Page actions (for ACLs)',
       plural: 's'
     },
     user: {
@@ -339,12 +342,96 @@ var enano_lang = {
       btn_logout: 'Log out',
       btn_changestyle: 'Change theme',
     },
+    acl: {
+      err_access_denied: 'You are not authorized to view or edit access control lists.',
+      err_missing_template: 'It seems that (a) the file acledit.tpl is missing from this theme, and (b) the JSON response is working.',
+      err_user_not_found: 'The username you entered was not found.',
+      err_bad_group_id: 'The group ID you submitted is not valid.',
+      err_demo: 'Editing access control lists is disabled in the administration demo.',
+      err_zero_list: 'Supplied rule list has a length of zero',
+      err_pleaseselect_targettype: 'Please select a target type.',
+      err_pleaseselect_username: 'Please enter a username.',
+      
+      radio_usergroup: 'A usergroup',
+      radio_user: 'A specific user',
+      radio_scope_thispage: 'Only this page',
+      radio_scope_wholesite: 'The entire website',
+      radio_scope_pagegroup: 'A group of pages',
+      
+      lbl_scope: 'What should this access rule control?',
+      lbl_welcome_title: 'Manage page access',
+      lbl_welcome_body: 'Please select who should be affected by this access rule.',
+      lbl_editwin_title_create: 'Create access rule',
+      lbl_editwin_title_edit: 'Editing permissions',
+      lbl_editwin_body: 'This panel allows you to edit what the %target_type% "<b>%target%</b>" can do on <b>%scope_type%</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.',
+      lbl_deleterule: 'Delete this rule',
+      lbl_save_success_title: 'Permissions updated',
+      lbl_save_success_body: 'The permissions for %target_name% on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.',
+      lbl_delete_success_title: 'Rule deleted',
+      lbl_delete_success_body: 'The access rules for %target_name% on this page have been deleted.',
+      lbl_field_deny: 'Deny',
+      lbl_field_disallow: 'Disallow',
+      lbl_field_wikimode: 'Wiki mode',
+      lbl_field_allow: 'Allow',
+      lbl_help: '<p><b>Permission types:</b></p><ul><li><b>Allow</b> means that the user is allowed to access the item</li><li><b>Wiki mode</b> means the user can access the item if wiki mode is active (per-page wiki mode is taken into account)</li><li><b>Disallow</b> means the user is denied access unless something allows it.</li><li><b>Deny</b> means that the user is denied access to the item. This setting overrides all other permissions.</li></ul>',
+      
+      scope_type_wholesite: 'this entire site',
+      scope_type_thispage: 'this page',
+      scope_type_pagegroup: 'this group of pages',
+      
+      target_type_user: 'user',
+      target_type_group: 'group',
+      
+      msg_guest_howto: 'To edit permissions for guests, select "a specific user", and enter Anonymous as the username.',
+      msg_deleterule_confirm: 'Do you really want to delete this rule?',
+      msg_closeacl_confirm: 'Do you really want to close the ACL manager?',
+      
+      btn_success_dismiss: 'dismiss',
+      btn_success_close: 'close manager',
+    },
+    perm: {
+      read: 'Read page(s)',
+      post_comments: 'Post comments',
+      edit_comments: 'Edit own comments',
+      edit_page: 'Edit page',
+      view_source: 'View source',
+      mod_comments: 'Moderate comments',
+      history_view: 'View history/diffs',
+      history_rollback: 'Rollback history',
+      history_rollback_extra: 'Undelete page(s)',
+      protect: 'Protect page(s)',
+      rename: 'Rename page(s)',
+      clear_logs: 'Clear page logs (dangerous)',
+      vote_delete: 'Vote to delete',
+      vote_reset: 'Reset delete votes',
+      delete_page: 'Delete page(s)',
+      tag_create: 'Tag page(s)',
+      tag_delete_own: 'Remove own page tags',
+      tag_delete_other: 'Remove others\' page tags',
+      set_wiki_mode: 'Set per-page wiki mode',
+      password_set: 'Set password',
+      password_reset: 'Disable/reset password',
+      mod_misc: 'Super moderator (generate SQL backtraces, view IP addresses, and send large numbers of private messages)',
+      edit_cat: 'Edit categorization',
+      even_when_protected: 'Allow editing, renaming, and categorization even when protected',
+      upload_files: 'Upload files',
+      upload_new_version: 'Upload new versions of files',
+      create_page: 'Create pages',
+      php_in_pages: 'Embed PHP code in pages',
+      edit_acl: 'Edit access control lists',
+    },
     etc: {
       redirect_title: 'Redirecting...',
       redirect_body: 'Please wait while you are redirected.',
       redirect_timeout: 'If you are not redirected within %timeout% seconds, please <a href="%redirect_url%">click here</a>.',
       // Generic "Save Changes" button
       save_changes: 'Save changes',
+      // Generic "Cancel changes" button
+      cancel_changes: 'Cancel changes',
+      // Generic wizard buttons
+      wizard_next: 'Next >',
+      wizard_back: '< Back',
+      wizard_previous: '< Previous',
       // Generic "Notice:" label
       lbl_notice: 'Notice:',
       // Generic "Access denied"
@@ -354,7 +441,7 @@ var enano_lang = {
       cancel: 'Cancel',
       yes: 'Yes',
       no: 'No'
-    },
+    }
   }
 };
 

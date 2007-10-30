@@ -1910,11 +1910,13 @@ class PageUtils {
   function acl_editor($parms = Array())
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     if(!$session->get_permissions('edit_acl') && $session->user_level < USER_LEVEL_ADMIN)
     {
       return Array(
         'mode' => 'error',
-        'error' => 'You are not authorized to view or edit access control lists.'
+        'error' => $lang->get('acl_err_access_denied')
         );
     }
     $parms['page_id'] = ( isset($parms['page_id']) ) ? $parms['page_id'] : false;
@@ -1932,7 +1934,7 @@ class PageUtils {
     {
       return Array(
         'mode' => 'error',
-        'error' => 'It seems that (a) the file acledit.tpl is missing from this theme, and (b) the JSON response is working.',
+        'error' => $lang->get('acl_err_missing_template'),
       );
     }
     $return['template'] = $template->extract_vars('acledit.tpl');
@@ -1993,7 +1995,7 @@ class PageUtils {
                 if(!$q)
                   return(Array('mode'=>'error','error'=>mysql_error()));
                 if($db->numrows() < 1)
-                  return Array('mode'=>'error','error'=>'The username you entered was not found.');
+                  return Array('mode'=>'error','error'=>$lang->get('acl_err_user_not_found'));
                 $row = $db->fetchrow();
                 $return['target_name'] = $return['target_id'];
                 $return['target_id'] = intval($row['user_id']);
@@ -2040,7 +2042,7 @@ class PageUtils {
                 if(!$q)
                   return(Array('mode'=>'error','error'=>mysql_error()));
                 if($db->numrows() < 1)
-                  return Array('mode'=>'error','error'=>'The group ID you submitted is not valid.');
+                  return Array('mode'=>'error','error'=>$lang->get('acl_err_bad_group_id'));
                 $row = $db->fetchrow();
                 $return['target_name'] = $row['group_name'];
                 $return['target_id'] = intval($row['group_id']);
@@ -2082,7 +2084,7 @@ class PageUtils {
         case 'save_edit':
           if ( defined('ENANO_DEMO_MODE') )
           {
-            return Array('mode'=>'error','error'=>'Editing access control lists is disabled in the administration demo.');
+            return Array('mode'=>'error','error'=>$lang->get('acl_err_demo'));
           }
           $q = $db->sql_query('DELETE FROM ' . table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
             ' . $page_where_clause_lite . ';');
@@ -2093,7 +2095,7 @@ class PageUtils {
           {
             return array(
                 'mode' => 'error', 
-                'error' => 'Supplied rule list has a length of zero'
+                'error' => $lang->get('acl_err_zero_list')
               );
           }
           $q = ($page_id && $namespace) ? 'INSERT INTO ' . table_prefix.'acl ( target_type, target_id, page_id, namespace, rules )
@@ -2113,7 +2115,7 @@ class PageUtils {
         case 'delete':
           if ( defined('ENANO_DEMO_MODE') )
           {
-            return Array('mode'=>'error','error'=>'Editing access control lists is disabled in the administration demo.');
+            return Array('mode'=>'error','error'=>$lang->get('acl_err_demo'));
           }
           $q = $db->sql_query('DELETE FROM ' . table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
             ' . $page_where_clause_lite . ';');
