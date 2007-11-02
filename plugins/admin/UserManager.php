@@ -52,7 +52,14 @@ function page_Admin_UserManager()
     }
     else
     {
-      if ( $session->user_id != $user_id )
+      if ( $session->user_id == $user_id )
+      {
+        $username = $session->username;
+        $password = false;
+        $email = $session->email;
+        $real_name = $session->real_name;
+      }
+      else
       {
         $username = $_POST['username'];
         if ( !preg_match('#^'.$session->valid_username.'$#', $username) )
