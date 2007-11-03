@@ -428,7 +428,11 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       }
       else
       {
-        redirect( makeUrl(getConfig('main_page'), false, true), 'Login successful', 'You have successfully logged into the '.getConfig('site_name').' site as "'.$session->username.'". Redirecting to the main page...' );
+        $subst = array(
+            'username' => $session->username,
+            'redir_target' => $lang->get('user_login_success_body_mainpage')
+          );
+        redirect( makeUrl(getConfig('main_page'), false, true), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
       }
     }
     else
@@ -469,13 +473,15 @@ function page_Special_Logout() {
     redirect(makeUrl(getConfig('main_page'), false, true), $lang->get('user_logout_success_title'), $lang->get('user_logout_success_body'), 4);
   }
   $template->header();
-  echo '<h3>An error occurred during the logout process.</h3><p>'.$l.'</p>';
+  echo '<h3>' . $lang->get('user_logout_err_title') . '</h3>';
+  echo '<p>' . $l . '</p>';
   $template->footer();
 }
 
 function page_Special_Register()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   
   // form field trackers
   $username = '';
@@ -484,8 +490,8 @@ function page_Special_Register()
   
   if(getConfig('account_activation') == 'disable' && ( ( $session->user_level >= USER_LEVEL_ADMIN && !isset($_GET['IWannaPlayToo']) ) || $session->user_level < USER_LEVEL_ADMIN || !$session->user_logged_in ))
   {
-    $s = ($session->user_level >= USER_LEVEL_ADMIN) ? '<p>Oops...it seems that you <em>are</em> the administrator...hehe...you can also <a href="'.makeUrl($paths->page, 'IWannaPlayToo', true).'">force account registration to work</a>.</p>' : '';
-    die_friendly('Registration disabled', '<p>The administrator has disabled new user registration on this site.</p>' . $s);
+    $s = ($session->user_level >= USER_LEVEL_ADMIN) ? '<p>' . $lang->get('user_reg_err_disabled_body_adminblurb', array( 'reg_link' => makeUrl($paths->page, 'IWannaPlayToo&coppa=no', true) )) . '</p>' : '';
+    die_friendly($lang->get('user_reg_err_disabled_title'), '<p>' . $lang->get('user_reg_err_disabled_body') . '</p>' . $s);
   }
   if ( $session->user_level < USER_LEVEL_ADMIN && $session->user_logged_in )
   {
@@ -498,7 +504,7 @@ function page_Special_Register()
     $captcharesult = $session->get_captcha($_POST['captchahash']);
     if($captcharesult != $_POST['captchacode'])
     {
-      $s = 'The confirmation code you entered was incorrect.';
+      $s = $lang->get('user_reg_err_captcha');
     }
     else
     {
@@ -522,7 +528,7 @@ function page_Special_Register()
           $crypt_key = $session->fetch_public_key($_POST['crypt_key']);
           if ( !$crypt_key )
           {
-            $s = 'Couldn\'t look up public encryption key';
+            $s = $lang->get('user_reg_err_missing_key');
           }
           else
           {
@@ -549,28 +555,28 @@ function page_Special_Register()
       {
         case "none":
         default:
-          $str = 'You may now <a href="'.makeUrlNS('Special', 'Login').'">log in</a> with the username and password that you created.';
+          $str = $lang->get('user_reg_msg_success_activ_none', array('login_link' => makeUrlNS('Special', 'Login', false, true)));
           break;
         case "user":
-          $str = 'Because this site requires account activation, you have been sent an e-mail with further instructions. Please follow the instructions in that e-mail to continue your registration.';
+          $str = $lang->get('user_reg_msg_success_activ_user');
           break;
         case "admin":
-          $str = 'Because this site requires administrative account activation, you cannot use your account at the moment. A notice has been sent to the site administration team that will alert them that your account has been created.';
+          $str = $lang->get('user_reg_msg_success_activ_admin');
           break;
       }
-      die_friendly('Registration successful', '<p>Thank you for registering, your user account has been created. '.$str.'</p>');
+      die_friendly($lang->get('user_reg_msg_success_title'), '<p>' . $lang->get('user_reg_msg_success_body') . ' ' . $str . '</p>');
     }
     else if ( $s == 'success' && $coppa )
     {
-      $str = 'However, in compliance with the Childrens\' Online Privacy Protection Act, you must have your parent or legal guardian activate your account. Please ask them to check their e-mail for further information.';
-      die_friendly('Registration successful', '<p>Thank you for registering, your user account has been created. '.$str.'</p>');
+      $str = $lang->get('user_reg_msg_success_activ_coppa');
+      die_friendly($lang->get('user_reg_msg_success_title'), '<p>' . $lang->get('user_reg_msg_success_body') . ' ' . $str . '</p>');
     }
     $username = htmlspecialchars($_POST['username']);
     $email    = htmlspecialchars($_POST['email']);
     $realname = htmlspecialchars($_POST['real_name']);
   }
   $template->header();
-  echo 'A user account enables you to have greater control over your browsing experience.';
+  echo $lang->get('user_reg_msg_greatercontrol');
   
   if ( getConfig('enable_coppa') != '1' || ( isset($_GET['coppa']) && in_array($_GET['coppa'], array('yes', 'no')) ) )
   {
@@ -582,22 +588,22 @@ function page_Special_Register()
     $challenge = $session->dss_rand();
     
     ?>
-      <h3>Create a user account</h3>
-      <form name="regform" action="<?php echo makeUrl($paths->page); ?>" method="post" onsubmit="runEncryption();">
+      <h3><?php echo $lang->get('user_reg_msg_table_title'); ?></h3>
+      <form name="regform" action="<?php echo makeUrl($paths->page); ?>" method="post" onsubmit="return runEncryption();">
         <div class="tblholder">
           <table border="0" width="100%" cellspacing="1" cellpadding="4">
-            <tr><th class="subhead" colspan="3">Please tell us a little bit about yourself.</th></tr>
+            <tr><th class="subhead" colspan="3"><?php echo $lang->get('user_reg_msg_table_subtitle'); ?></th></tr>
             
             <?php if(isset($_POST['submit'])) echo '<tr><td colspan="3" class="row2" style="color: red;">'.$s.'</td></tr>'; ?>
             
             <!-- FIELD: Username -->
             <tr>
               <td class="row1" style="width: 50%;">
-                Preferred username:
+                <?php echo $lang->get('user_reg_lbl_field_username'); ?>
                 <span id="e_username"></span>
               </td>
               <td class="row1" style="width: 50%;">
-                <input tabindex="1" type="text" name="username" size="30" value="<?php echo $username; ?>" onkeyup="namegood = false; validateForm();" onblur="checkUsername();" />
+                <input tabindex="1" type="text" name="username" size="30" value="<?php echo $username; ?>" onkeyup="namegood = false; validateForm(this);" onblur="checkUsername();" />
               </td>
               <td class="row1" style="max-width: 24px;">
                 <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_username" />
@@ -607,14 +613,14 @@ function page_Special_Register()
             <!-- FIELD: Password -->
             <tr>
               <td class="row3" style="width: 50%;" rowspan="<?php echo ( getConfig('pw_strength_enable') == '1' ) ? '3' : '2'; ?>">
-                Password:
+                <?php echo $lang->get('user_reg_lbl_field_password'); ?>
                 <span id="e_password"></span>
                 <?php if ( getConfig('pw_strength_enable') == '1' && getConfig('pw_strength_minimum') > -10 ): ?>
-                <small>It needs to score at least <b><?php echo getConfig('pw_strength_minimum'); ?></b> for your registration to be accepted.</small>
+                <small><?php echo $lang->get('user_reg_msg_password_score'); ?></small>
                 <?php endif; ?>
               </td>
               <td class="row3" style="width: 50%;">
-                <input tabindex="2" type="password" name="password" size="15" onkeyup="<?php if ( getConfig('pw_strength_enable') == '1' ): ?>password_score_field(this); <?php endif; ?>validateForm();" /><?php if ( getConfig('pw_strength_enable') == '1' ): ?><span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span><?php endif; ?>
+                <input tabindex="2" type="password" name="password" size="15" onkeyup="<?php if ( getConfig('pw_strength_enable') == '1' ): ?>password_score_field(this); <?php endif; ?>validateForm(this);" /><?php if ( getConfig('pw_strength_enable') == '1' ): ?><span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span><?php endif; ?>
               </td>
               <td rowspan="<?php echo ( getConfig('pw_strength_enable') == '1' ) ? '3' : '2'; ?>" class="row3" style="max-width: 24px;">
                 <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_password" />
@@ -624,7 +630,7 @@ function page_Special_Register()
             <!-- FIELD: Password confirmation -->
             <tr>
               <td class="row3" style="width: 50%;">
-                <input tabindex="3" type="password" name="password_confirm" size="15" onkeyup="validateForm();" /> <small>Enter your password again to confirm.</small>
+                <input tabindex="3" type="password" name="password_confirm" size="15" onkeyup="validateForm(this);" /> <small><?php echo $lang->get('user_reg_lbl_field_password_confirm'); ?></small>
               </td>
             </tr>
             
@@ -642,18 +648,24 @@ function page_Special_Register()
             <tr>
               <td class="row1" style="width: 50%;">
                 <?php
-                  if ( $coppa ) echo 'Your parent or guardian\'s e'; 
-                  else echo 'E';
-                ?>-mail address:
+                  if ( $coppa )
+                  {
+                    echo $lang->get('user_reg_lbl_field_email_coppa');
+                  }
+                  else
+                  {
+                    echo $lang->get('user_reg_lbl_field_email');
+                  }
+                ?>
                 <?php
                   if ( ( $x = getConfig('account_activation') ) == 'user' )
                   {
-                    echo '<br /><small>An e-mail with an account activation key will be sent to this address, so please ensure that it is correct.</small>';
+                    echo '<br /><small>' . $lang->get('user_reg_msg_email_activuser') . '</small>';
                   }
                 ?>
               </td>
               <td class="row1" style="width: 50%;">
-                <input tabindex="4" type="text" name="email" size="30" value="<?php echo $email; ?>" onkeyup="validateForm();" />
+                <input tabindex="4" type="text" name="email" size="30" value="<?php echo $email; ?>" onkeyup="validateForm(this);" />
               </td>
               <td class="row1" style="max-width: 24px;">
                 <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_email" />
@@ -663,8 +675,8 @@ function page_Special_Register()
             <!-- FIELD: Real name -->
             <tr>
               <td class="row3" style="width: 50%;">
-                Real name:<br />
-                <small>Giving your real name is totally optional. If you choose to provide your real name, it will be used to provide attribution for any edits or contributions you may make to this site.</small>
+                <?php echo $lang->get('user_reg_lbl_field_realname'); ?><br />
+                <small><?php echo $lang->get('user_reg_msg_realname_optional'); ?></small>
               </td>
               <td class="row3" style="width: 50%;">
                 <input tabindex="5" type="text" name="real_name" size="30" value="<?php echo $realname; ?>" /></td><td class="row3" style="max-width: 24px;">
@@ -674,11 +686,11 @@ function page_Special_Register()
             <!-- FIELD: CAPTCHA image -->
             <tr>
               <td class="row1" style="width: 50%;" rowspan="2">
-                Visual confirmation<br />
+                <?php echo $lang->get('user_reg_lbl_field_captcha'); ?><br />
                 <small>
-                  Please enter the code shown in the image to the right into the text box. This process helps to ensure that this registration is not being performed by an automated bot. If the image to the right is illegible, you can <a href="#" onclick="regenCaptcha(); return false;">generate a new image</a>.<br />
+                  <?php echo $lang->get('user_reg_msg_captcha_pleaseenter', array('regen_flags' => 'href="#" onclick="regenCaptcha(); return false;"')); ?><br />
                   <br />
-                  If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will create an account for you.
+                  <?php echo $lang->get('user_reg_msg_captcha_blind'); ?>
                 </small>
               </td>
               <td colspan="2" class="row1">
@@ -690,7 +702,7 @@ function page_Special_Register()
             <!-- FIELD: CAPTCHA input field -->
             <tr>
               <td class="row1" colspan="2">
-                Code:
+                <?php echo $lang->get('user_reg_lbl_field_captcha_code'); ?>
                 <input tabindex="6" name="captchacode" type="text" size="10" />
                 <input type="hidden" name="captchahash" value="<?php echo $captchacode; ?>" />
               </td>
@@ -740,6 +752,18 @@ function page_Special_Register()
           var frm = document.forms.regform;
           if ( frm.password.value.length < 1 )
             return true;
+          pass1 = frm.password.value;
+          pass2 = frm.password_confirm.value;
+          if ( pass1 != pass2 )
+          {
+            alert($lang.get('user_reg_err_alert_password_nomatch'));
+            return false;
+          }
+          if ( pass1.length < 6 && pass1.length > 0 )
+          {
+            alert($lang.get('user_reg_err_alert_password_tooshort'));
+            return false;
+          }
           if(aes_testpassed)
           {
             frm.use_crypt.value = 'yes';
@@ -752,21 +776,6 @@ function page_Special_Register()
               len = ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ? '\nLen: '+cryptkey.length : '';
               alert('The key is messed up\nType: '+typeof(cryptkey)+len);
             }
-          }
-          pass1 = frm.password.value;
-          pass2 = frm.password_confirm.value;
-          if ( pass1 != pass2 )
-          {
-            alert('The passwords you entered do not match.');
-            return false;
-          }
-          if ( pass1.length < 6 && pass1.length > 0 )
-          {
-            alert('The new password must be 6 characters or greater in length.');
-            return false;
-          }
-          if(aes_testpassed)
-          {
             pass = frm.password.value;
             pass = stringToByteArray(pass);
             cryptstring = rijndaelEncrypt(pass, cryptkey, 'ECB');
@@ -788,24 +797,37 @@ function page_Special_Register()
         <script type="text/javascript">
           // <![CDATA[
           var namegood = false;
-          function validateForm()
+          function validateForm(field)
           {
+            if ( typeof(field) != 'object' )
+            {
+              field = {
+                name: '_nil',
+                value: '_nil',
+              }
+            }
+            // wait until $lang is initted
+            if ( typeof($lang) != 'object' )
+            {
+              setTimeout('validateForm();', 200);
+              return false;
+            }
             var frm = document.forms.regform;
             failed = false;
             
             // Username
-            if(!namegood)
+            if(!namegood && ( field.name == 'username' || field.name == '_nil' ) ) 
             {
               //if(frm.username.value.match(/^([A-z0-9 \!@\-\(\)]+){2,}$/ig))
               var regex = new RegExp('^([^<>_&\?]+){2,}$', 'ig');
               if ( frm.username.value.match(regex) )
               {
                 document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
-                document.getElementById('e_username').innerHTML = ''; // '<br /><small><b>Checking availability...</b></small>';
+                document.getElementById('e_username').innerHTML = '&nbsp;';
               } else {
                 failed = true;
                 document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-                document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
+                document.getElementById('e_username').innerHTML = '<br /><small>' + $lang.get('user_reg_err_username_invalid') + '</small>';
               }
             }
             document.getElementById('b_username').innerHTML = '';
@@ -815,31 +837,34 @@ function page_Special_Register()
             }
             
             // Password
-            if(frm.password.value.match(/^(.+){6,}$/ig) && frm.password_confirm.value.match(/^(.+){6,}$/ig) && frm.password.value == frm.password_confirm.value)
+            if ( field.name == 'password' || field.name == 'password_confirm' || field.name == '_nil' )
             {
-              document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/good.gif';
-              document.getElementById('e_password').innerHTML = '<br /><small>The password you entered is valid.</small>';
-            } else {
-              failed = true;
-              if(frm.password.value.length < 6)
+              if(frm.password.value.match(/^(.+){6,}$/ig) && frm.password_confirm.value.match(/^(.+){6,}$/ig) && frm.password.value == frm.password_confirm.value )
               {
-                document.getElementById('e_password').innerHTML = '<br /><small>Your password must be at least six characters in length.</small>';
+                document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/good.gif';
+                document.getElementById('e_password').innerHTML = '<br /><small>' + $lang.get('user_reg_err_password_good') + '</small>';
+              } else {
+                failed = true;
+                if(frm.password.value.length < 6)
+                {
+                  document.getElementById('e_password').innerHTML = '<br /><small>' + $lang.get('user_reg_msg_password_length') + '</small>';
+                }
+                else if(frm.password.value != frm.password_confirm.value)
+                {
+                  document.getElementById('e_password').innerHTML = '<br /><small>' + $lang.get('user_reg_msg_password_needmatch') + '</small>';
+                }
+                else
+                {
+                  document.getElementById('e_password').innerHTML = '';
+                }
+                document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/bad.gif';
               }
-              else if(frm.password.value != frm.password_confirm.value)
-              {
-                document.getElementById('e_password').innerHTML = '<br /><small>The passwords you entered do not match.</small>';
-              }
-              else
-              {
-                document.getElementById('e_password').innerHTML = '';
-              }
-              document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/bad.gif';
             }
             
             // E-mail address
             
             // workaround for idiot jEdit bug
-            if ( validateEmail(frm.email.value) )
+            if ( validateEmail(frm.email.value) && ( field.name == 'email' || field.name == '_nil' ) )
             {
               document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/good.gif';
             } else {
@@ -859,28 +884,29 @@ function page_Special_Register()
             
             if(!namegood)
             {
-              if(frm.username.value.match(/^([A-z0-9 \.:\!@\#\*]+){2,}$/ig))
+              var r = new RegExp('^([A-z0-9 \.:\!@\#\*]+){2,}$', 'g');
+              if(frm.username.value.match(r))
               {
                 document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
-                document.getElementById('e_username').innerHTML = '';
+                document.getElementById('e_username').innerHTML = '&nbsp;';
               } else {
                 document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-                document.getElementById('e_username').innerHTML = '<br /><small>Your username must be at least two characters in length and may contain only alphanumeric characters (A-Z and 0-9), spaces, and the following characters: :, !, @, #, *.</small>';
+                document.getElementById('e_username').innerHTML = '<br /><small>' + $lang.get('user_reg_err_username_invalid') + '</small>';
                 return false;
               }
             }
             
-            document.getElementById('e_username').innerHTML = '<br /><small><b>Checking availability...</b></small>';
+            document.getElementById('e_username').innerHTML = '<br /><small><b>' + $lang.get('user_reg_msg_username_checking') + '</b></small>';
             ajaxGet('<?php echo scriptPath; ?>/ajax.php?title=null&_mode=checkusername&name='+escape(frm.username.value), function() {
               if(ajax.readyState == 4)
                 if(ajax.responseText == 'good')
                 {
                   document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/good.gif';
-                  document.getElementById('e_username').innerHTML = '<br /><small><b>This username is available.</b></small>';
+                  document.getElementById('e_username').innerHTML = '<br /><small><b>' + $lang.get('user_reg_msg_username_available') + '</b></small>';
                   namegood = true;
                 } else if(ajax.responseText == 'bad') {
                   document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
-                  document.getElementById('e_username').innerHTML = '<br /><small><b>Error: that username is already taken.</b></small>';
+                  document.getElementById('e_username').innerHTML = '<br /><small><b>' + $lang.get('user_reg_msg_username_unavailable') + '</b></small>';
                   namegood = false;
                 } else {
                   document.getElementById('e_username').innerHTML = ajax.responseText;
@@ -919,13 +945,13 @@ function page_Special_Register()
     echo '<table border="0" cellspacing="1" cellpadding="4">';
     echo '<tr>
             <td class="row1">
-              Before you can register, please tell us your age.
+              ' . $lang->get('user_reg_coppa_title') . '
             </td>
           </tr>
           <tr>
             <td class="row3">
-              <a href="' . $link_coppa_no  . '">I was born <b>on or before</b> ' . $yo13_date . ' and am <b>at least</b> 13 years of age</a><br />
-              <a href="' . $link_coppa_yes . '">I was born <b>after</b> ' . $yo13_date . ' and am <b>less than</b> 13 years of age</a>
+              <a href="' . $link_coppa_no  . '">' . $lang->get('user_reg_coppa_link_atleast13', array( 'yo13_date' => $yo13_date )) . '</a><br />
+              <a href="' . $link_coppa_yes . '">' . $lang->get('user_reg_coppa_link_not13', array( 'yo13_date' => $yo13_date )) . '</a>
             </td>
           </tr>';
     echo '</table>';

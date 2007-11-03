@@ -200,6 +200,9 @@ function ajaxReset()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
+  var ns_id = strToPageID(title);
+  if ( ns_id[1] == 'Special' || ns_id[1] == 'Admin' )
+    return false;
   enableUnload();
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=getpage&noheaders', function() {

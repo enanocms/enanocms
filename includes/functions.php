@@ -432,7 +432,9 @@ function ip2hex($ip) {
   $str = '0x';
   foreach($nums as $n)
   {
-    $str .= (string)dechex($n);
+    $byte = (string)dechex($n);
+    if ( strlen($byte) < 2 )
+      $byte = '0' . $byte;
   }
   return $str;
 }

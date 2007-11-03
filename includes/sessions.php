@@ -1324,7 +1324,10 @@ class sessionManager {
     if($level > USER_LEVEL_CHPREF)
     {
       $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
-      if(!$this->user_logged_in || $this->auth_level < USER_LEVEL_MOD) return 'success';
+      if(!$this->user_logged_in || $this->auth_level < USER_LEVEL_MOD)
+      {
+        return 'success';
+      }
       // Destroy elevated privileges
       $keyhash = md5(strrev($this->sid_super));
       $this->sql('DELETE FROM '.table_prefix.'session_keys WHERE session_key=\''.$keyhash.'\' AND user_id=\'' . $this->user_id . '\';');

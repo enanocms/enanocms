@@ -360,7 +360,7 @@ function page_Admin_GeneralConfig() {
         <td class="row1">Account activation:</td><td class="row1">
           <?php
           echo '<label><input'; if(getConfig('account_activation') == 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="disable" /> Disable registration</label><br />';
-          echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> None</label>';
+          echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin' && getConfig('account_activation') != 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> None</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'user') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="user" /> User</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="admin" /> Admin</label>';
           ?>
