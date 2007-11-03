@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -33,35 +33,50 @@
     define('ENANO_ROOT', dirname($filename));
     require(ENANO_ROOT.'/includes/functions.php');
     require(ENANO_ROOT.'/includes/dbal.php');
+    require(ENANO_ROOT.'/includes/json.php');
     $db = new mysql();
     $db->connect();
     
-    // should be connected now
+    // result is sent using JSON
+    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+    $return = Array(
+        'mode' => 'success',
+        'users_real' => Array()
+      );
+    
+    // should be connected to the DB now
     $name = (isset($_GET['name'])) ? $db->escape($_GET['name']) : false;
     if ( !$name )
     {
-      die('userlist = new Array(); errorstring=\'Invalid URI\'');
+      $return = array(
+        'mode' => 'error',
+        'error' => 'Invalid URI'
+      );
+      die( $json->encode($return) );
     }
-    $q = $db->sql_query('SELECT username,user_id FROM '.table_prefix.'users WHERE lcase(username) LIKE lcase(\'%'.$name.'%\');');
+    $allowanon = ( isset($_GET['allowanon']) && $_GET['allowanon'] == '1' ) ? '' : ' AND user_id > 1';
+    $q = $db->sql_query('SELECT username FROM '.table_prefix.'users WHERE lcase(username) LIKE lcase(\'%'.$name.'%\')' . $allowanon . ' ORDER BY username ASC;');
     if ( !$q )
     {
-      die('userlist = new Array(); errorstring=\'MySQL error selecting username data: '.addslashes(mysql_error()).'\'');
+      $return = array(
+        'mode' => 'error',
+        'error' => 'MySQL error selecting username data: '.addslashes(mysql_error())
+      );
+      die( $json->encode($return) );
     }
-    if($db->numrows() < 1)
-    {
-      die('userlist = new Array(); errorstring=\'No usernames found\';');
-    }
-    echo 'var errorstring = false; userlist = new Array();';
     $i = 0;
     while($r = $db->fetchrow())
     {
-      echo "userlist[$i] = '".addslashes($r['username'])."'; ";
+      $return['users_real'][] = $r['username'];
       $i++;
     }
     $db->free_result();
     
     // all done! :-)
     $db->close();
+    
+    echo $json->encode( $return );
+    
     exit;
   }
  
@@ -101,7 +116,7 @@
       }
       else
       {
-        echo 'Error saving the page: '.$e;
+        echo '<p>Error saving the page: '.$e.'</p>';
       }
       break;
     case "protect":

@@ -248,6 +248,12 @@ class RenderMan {
       $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
     }
     
+    $code = $plugins->setHook('render_wikiformat_pre');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     if ( !$plaintext )
     {
       // Process images
@@ -264,7 +270,8 @@ class RenderMan {
       }
     }
     
-    $template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
+    //$template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
+    $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
     $i = 0;
     while ( preg_match($template_regex, $text) )
     {
@@ -290,10 +297,26 @@ class RenderMan {
       $result = $wiki->transform($text, 'Xhtml');
     }
     
-    // if ( !$plaintext )
-    // {
-    //   $result = RenderMan::process_imgtags_stage2($result, $taglist);
-    // }
+    // HTML fixes
+    $result = preg_replace('#<tr>([\s]*?)<\/tr>#is', '', $result);
+    $result = preg_replace('#<p>([\s]*?)<\/p>#is', '', $result);
+    $result = preg_replace('#<br />([\s]*?)<table#is', '<table', $result);
+    $result = str_replace("<pre><code>\n", "<pre><code>", $result);
+    $result = preg_replace("/<p><table([^>]*?)><\/p>/", "<table\\1>", $result);
+    $result = str_replace("<br />\n</td>", "\n</td>", $result);
+    $result = str_replace("<p><tr>", "<tr>", $result);
+    $result = str_replace("<tr><br />", "<tr>", $result);
+    $result = str_replace("</tr><br />", "</tr>", $result);
+    $result = str_replace("</table><br />", "</table>", $result);
+    $result = preg_replace('/<\/table>$/', "</table><br /><br />", $result);
+    $result = str_replace("<p></div></p>", "</div>", $result);
+    $result = str_replace("<p></table></p>", "</table>", $result);
+    
+    $code = $plugins->setHook('render_wikiformat_post');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
     
     // Reinsert <nowiki> sections
     for($i=0;$i<$nw;$i++)
@@ -311,7 +334,8 @@ class RenderMan {
     
   }
   
-  function wikiFormat($message, $filter_links = true, $do_params = false, $plaintext = false) {
+  function wikiFormat($message, $filter_links = true, $do_params = false, $plaintext = false)
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     return RenderMan::next_gen_wiki_format($message, $plaintext, $filter_links, $do_params);
@@ -384,6 +408,8 @@ class RenderMan {
     $result = str_replace("</table></p>", "</table>", $result);
     $result = str_replace("</table><br />", "</table>", $result);
     $result = preg_replace('/<\/table>$/', "</table><br /><br />", $result);
+    $result = str_replace("<p></div></p>", "</div>", $result);
+    $result = str_replace("<p></table></p>", "</table>", $result);
     
     $result = str_replace('<nowiki>',  '&lt;nowiki&gt;',  $result);
     $result = str_replace('</nowiki>', '&lt;/nowiki&gt;', $result);
@@ -460,8 +486,8 @@ class RenderMan {
       list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
       $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
       
-      $url = makeUrl($matches[1][$i], false, true);
-      $inner_text = htmlspecialchars(get_page_title($pid_clean));
+      $url = makeUrl($pid_clean, false, true);
+      $inner_text = ( isPage($pid_clean) ) ? htmlspecialchars(get_page_title($pid_clean)) : htmlspecialchars($matches[1][$i]);
       $quot = '"';
       $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
       
@@ -472,46 +498,6 @@ class RenderMan {
     
     return $text;
   }
-  
-  /* *
-   * Replaces template inclusions with the templates
-   * @param string $message The text to format
-   * @return string
-   * /
-   
-  function old_include_templates($message)
-  {
-    $random_id = md5( time() . mt_rand() );
-    preg_match_all('#\{\{(.+?)\}\}#s', $message, $matchlist);
-    foreach($matchlist[1] as $m)
-    {
-      $mn = $m;
-      // Strip out wikilinks and re-add them after the explosion (because of the "|")
-      preg_match_all('#\[\[(.+?)\]\]#i', $m, $linklist);
-      //echo '<pre>'.print_r($linklist, true).'</pre>';
-      for($i=0;$i<sizeof($linklist[1]);$i++)
-      {
-        $mn = str_replace('[['.$linklist[1][$i].']]', '{WIKILINK:'.$random_id.':'.$i.'}', $mn);
-      }
-      
-      $ar = explode('|', $mn);
-      
-      for($j=0;$j<sizeof($ar);$j++)
-      {
-        for($i=0;$i<sizeof($linklist[1]);$i++)
-        {
-          $ar[$j] = str_replace('{WIKILINK:'.$random_id.':'.$i.'}', '[['.$linklist[1][$i].']]', $ar[$j]);
-        }
-      }
-      
-      $tp = $ar[0];
-      unset($ar[0]);
-      $tp = str_replace(' ', '_', $tp);
-      $message = str_replace('{{'.$m.'}}', RenderMan::getTemplate($tp, $ar), $message);
-    }
-    return $message;
-  }
-  */
   
   /**
    * Parses a partial template tag in wikitext, and return an array with the parameters.
@@ -528,16 +514,26 @@ class RenderMan {
   
   function parse_template_vars($input)
   {
-    $input = explode("\n", trim( $input ));
+    if ( !preg_match('/^(\|[ ]*([A-z0-9_]+)([ ]*)=([ ]*)(.+?))*$/is', trim($input)) )
+    {
+      $using_pipes = false;
+      $input = explode("\n", trim( $input ));
+    }
+    else
+    {
+      $using_pipes = true;
+      $input = substr($input, 1);
+      $input = explode("|", trim( $input ));
+    }
     $parms = Array();
     $current_line = '';
     $current_parm = '';
     foreach ( $input as $num => $line )
     {
-      if ( preg_match('/^([ ]*?)([A-z0-9_]+?)([ ]*?)=([ ]*?)(.+?)$/i', $line, $matches) )
+      if ( preg_match('/^[ ]*([A-z0-9_]+)([ ]*)=([ ]*)(.+?)$/is', $line, $matches) )
       {
-        $parm =& $matches[2];
-        $text =& $matches[5];
+        $parm =& $matches[1];
+        $text =& $matches[4];
         if ( $parm == $current_parm )
         {
           $current_line .= $text;
@@ -570,6 +566,7 @@ class RenderMan {
   
   /**
    * Processes all template tags within a block of wikitext.
+   * Updated in 1.0.2 to also parse template tags in the format of {{Foo |a = b |b = c |c = therefore, a}}
    * @param string The text to process
    * @return string Formatted text
    * @example
@@ -578,16 +575,18 @@ class RenderMan {
      parm1 = Foo
      parm2 = Bar
      }}';
-   $text = include_templates($text);
+   $text = RenderMan::include_templates($text);
    * </code>
    */
   
   function include_templates($text)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
+    // $template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
+    $template_regex = "/\{\{(.+)(((\n|[ ]*\|)[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
     if ( $count = preg_match_all($template_regex, $text, $matches) )
     {
+      //die('<pre>' . print_r($matches, true) . '</pre>');
       for ( $i = 0; $i < $count; $i++ )
       {
         $matches[1][$i] = sanitize_page_id($matches[1][$i]);
@@ -595,10 +594,9 @@ class RenderMan {
         if ( !empty($parmsection) )
         {
           $parms = RenderMan::parse_template_vars($parmsection);
-          foreach ( $parms as $j => $parm )
-          {
-            $parms[$j] = $parm;
-          }
+          if ( !is_array($parms) )
+            // Syntax error
+            $parms = array();
         }
         else
         {
@@ -710,6 +708,7 @@ class RenderMan {
       ':-/'     => 'face-plain.png',
       ':joke:'  => 'face-plain.png',
       ']:-&gt;' => 'face-devil-grin.png',
+      ']:->'    => 'face-devil-grin.png',
       ':kiss:'  => 'face-kiss.png',
       ':-P'     => 'face-tongue-out.png',
       ':P'      => 'face-tongue-out.png',

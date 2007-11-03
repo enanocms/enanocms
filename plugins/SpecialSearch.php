@@ -4,13 +4,13 @@ Plugin Name: Search UI/frontend
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:Search, which is a frontend to the Enano search engine.
 Author: Dan Fuhry
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 2
+ * Version 1.0.2
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -100,18 +100,21 @@ function page_Special_Search()
   if(!empty($q))
   {
     // See if any pages directly match the title
-          
-    for ( $i = 0; $i < count ( $paths->pages ) / 2; $i++ )
+    
+    if ( strlen($q) >= 4 )
     {
-      $pg =& $paths->pages[$i];
-      $q_lc = strtolower( str_replace(' ', '_', $q) );
-      $q_tl = strtolower( str_replace('_', ' ', $q) );
-      $p_lc = strtolower($pg['urlname']);
-      $p_tl = strtolower($pg['name']);
-      if ( strstr($p_tl, $q_tl) || strstr($p_lc, $q_lc) && $pg['visible'] == 1 )
+      for ( $i = 0; $i < count ( $paths->pages ) / 2; $i++ )
       {
-        echo '<div class="usermessage">Perhaps you were looking for <b><a href="' . makeUrl($pg['urlname'], false, true) . '">' . htmlspecialchars($pg['name']) . '</a></b>?</div>';
-        break;
+        $pg =& $paths->pages[$i];
+        $q_lc = strtolower( str_replace(' ', '_', $q) );
+        $q_tl = strtolower( str_replace('_', ' ', $q) );
+        $p_lc = strtolower($pg['urlname']);
+        $p_tl = strtolower($pg['name']);
+        if ( strstr($p_tl, $q_tl) || strstr($p_lc, $q_lc) && $pg['visible'] == 1 )
+        {
+          echo '<div class="usermessage">Perhaps you were looking for <b><a href="' . makeUrl($pg['urlname'], false, true) . '">' . htmlspecialchars($pg['name']) . '</a></b>?</div>';
+          break;
+        }
       }
     }
           

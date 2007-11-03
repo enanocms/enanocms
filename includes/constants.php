@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  * constants.php - important defines used Enano-wide
  *
@@ -37,6 +37,10 @@ define('GROUP_ID_MOD', 3);
 define('PAGE_GRP_CATLINK', 1);
 define('PAGE_GRP_TAGGED', 2);
 define('PAGE_GRP_NORMAL', 3);
+define('PAGE_GRP_REGEX', 4);
+
+// Identifier for the default meta-language
+define('LANG_DEFAULT', 0);
 
 //
 // User types - don't touch these

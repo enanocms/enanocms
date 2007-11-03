@@ -42,7 +42,7 @@ class template {
     $this->plugin_blocks = Array();
     $this->theme_loaded = false;
     
-    $this->fading_button = '<div style="background-image: url('.scriptPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto;">
+    $this->fading_button = '<div style="background-image: url('.scriptPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
                               <a href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
                             </div>';
     
@@ -135,6 +135,7 @@ class template {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $email;
+    global $lang;
     
     dc_here("template: initializing all variables");
     
@@ -197,37 +198,38 @@ class template {
     switch($paths->namespace) {
       case "Article":
       default:
-        $ns = 'article';
+        $ns = $lang->get('onpage_lbl_page_article');
         break;
       case "Admin":
-        $ns = 'administration page';
+        $ns = $lang->get('onpage_lbl_page_admin');
         break;
       case "System":
-        $ns = 'system message';
+        $ns = $lang->get('onpage_lbl_page_system');
         break;
       case "File":
-        $ns = 'uploaded file';
+        $ns = $lang->get('onpage_lbl_page_file');
         break;
       case "Help":
-        $ns = 'documentation page';
+        $ns = $lang->get('onpage_lbl_page_help');
         break;
       case "User":
-        $ns = 'user page';
+        $ns = $lang->get('onpage_lbl_page_user');
         break;
       case "Special":
-        $ns = 'special page';
+        $ns = $lang->get('onpage_lbl_page_special');
         break;
       case "Template":
-        $ns = 'template';
+        $ns = $lang->get('onpage_lbl_page_template');
         break;
       case "Project":
-        $ns = 'project page';
+        $ns = $lang->get('onpage_lbl_page_project');
         break;
       case "Category":
-        $ns = 'category';
+        $ns = $lang->get('onpage_lbl_page_category');
         break;
     }
     $this->namespace_string = $ns;
+    unset($ns);
     $code = $plugins->setHook('page_type_string_set');
     foreach ( $code as $cmd )
     {
@@ -284,14 +286,25 @@ class template {
       $n = ( $session->get_permissions('mod_comments') ) ? (string)$nc : (string)$na;
       if ( $session->get_permissions('mod_comments') && $nu > 0 )
       {
-        $n .= ' total/'.$nu.' unapp.';
+        $subst = array(
+            'num_comments' => $nc,
+            'num_unapp' => $nu
+          );
+        $btn_text = $lang->get('onpage_btn_discussion_unapp', $subst);
+      }
+      else
+      {
+        $subst = array(
+          'num_comments' => $nc
+        );
+        $btn_text = $lang->get('onpage_btn_discussion', $subst);
       }
       
       $button->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxComments()); return false; }" title="View the comments that other users have posted about this page (alt-c)" accesskey="c"',
           'PARENTFLAGS' => 'id="mdgToolbar_discussion"',
           'HREF' => makeUrl($paths->page, 'do=comments', true),
-          'TEXT' => 'discussion ('.$n.')',
+          'TEXT' => $btn_text,
         ));
       
       $tb .= $button->run();
@@ -303,7 +316,7 @@ class template {
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="Edit the contents of this page (alt-e)" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=edit', true),
-        'TEXT' => 'edit this page'
+        'TEXT' => $lang->get('onpage_btn_edit')
         ));
       $tb .= $button->run();
     // View source button
@@ -314,7 +327,7 @@ class template {
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxViewSource()); return false; }" title="View the source code (wiki markup) that this page uses (alt-e)" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=viewsource', true),
-        'TEXT' => 'view source'
+        'TEXT' => $lang->get('onpage_btn_viewsource')
         ));
       $tb .= $button->run();
     }
@@ -325,7 +338,7 @@ class template {
         'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="View a log of actions taken on this page (alt-h)" accesskey="h"',
         'PARENTFLAGS' => 'id="mdgToolbar_history"',
         'HREF'        => makeUrl($paths->page, 'do=history', true),
-        'TEXT'        => 'history'
+        'TEXT'        => $lang->get('onpage_btn_history')
         ));
       $tb .= $button->run();
     }
@@ -339,7 +352,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="Change the display name of this page (alt-r)" accesskey="r"',
           'HREF'  => makeUrl($paths->page, 'do=rename', true),
-          'TEXT'  => 'rename',
+          'TEXT'  => $lang->get('onpage_btn_rename'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -350,7 +363,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="Vote to have this page deleted (alt-d)" accesskey="d"',
           'HREF'  => makeUrl($paths->page, 'do=delvote', true),
-          'TEXT'  => 'vote to delete this page',
+          'TEXT'  => $lang->get('onpage_btn_votedelete'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -361,7 +374,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="Vote to have this page deleted (alt-y)" accesskey="y"',
           'HREF'  => makeUrl($paths->page, 'do=resetvotes', true),
-          'TEXT'  => 'reset deletion votes',
+          'TEXT'  => $lang->get('onpage_btn_votedelete_reset'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -372,7 +385,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'title="View a version of this page that is suitable for printing"',
           'HREF'  => makeUrl($paths->page, 'printable=yes', true),
-          'TEXT'  => 'view printable version',
+          'TEXT'  => $lang->get('onpage_btn_printable'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -382,7 +395,7 @@ class template {
     {
       
       $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => 'protection:'));
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_protect')));
       $t0 = $label->run();
       
       $ctmp = ''; 
@@ -393,7 +406,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'accesskey="i" onclick="if ( !KILL_SWITCH ) { ajaxProtect(1); return false; }" id="protbtn_1" title="Prevents all non-administrators from editing this page. [alt-i]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=1', true),
-          'TEXT'  => 'on'
+          'TEXT'  => $lang->get('onpage_btn_protect_on')
         ));
       $t1 = $menubtn->run();
       
@@ -405,7 +418,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'accesskey="o" onclick="if ( !KILL_SWITCH ) { ajaxProtect(0); return false; }" id="protbtn_0" title="Allows everyone to edit this page. [alt-o]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=0', true),
-          'TEXT'  => 'off'
+          'TEXT'  => $lang->get('onpage_btn_protect_off')
         ));
       $t2 = $menubtn->run();
       
@@ -417,7 +430,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'accesskey="p" onclick="if ( !KILL_SWITCH ) { ajaxProtect(2); return false; }" id="protbtn_2" title="Allows only users who have been registered for 4 days to edit this page. [alt-p]"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=2', true),
-          'TEXT'  => 'semi'
+          'TEXT'  => $lang->get('onpage_btn_protect_semi')
         ));
       $t3 = $menubtn->run();
       
@@ -436,7 +449,7 @@ class template {
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => 'page wiki mode:'));
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_wikimode')));
       $t0 = $label->run();
       
       // on button
@@ -448,7 +461,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(1); return false; }" id="wikibtn_1" title="Forces wiki functions to be allowed on this page."'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=1', true),
-          'TEXT' => 'on'
+          'TEXT' => $lang->get('onpage_btn_wikimode_on')
         ));
       $t1 = $menubtn->run();
       
@@ -461,7 +474,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(0); return false; }" id="wikibtn_0" title="Forces wiki functions to be disabled on this page."'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=0', true),
-          'TEXT' => 'off'
+          'TEXT' => $lang->get('onpage_btn_wikimode_off')
         ));
       $t2 = $menubtn->run();
       
@@ -474,7 +487,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(2); return false; }" id="wikibtn_2" title="Causes this page to use the global wiki mode setting (default)"'. */ $ctmp,
           'HREF' => makeUrl($paths->page, 'do=setwikimode&level=2', true),
-          'TEXT' => 'global'
+          'TEXT' => $lang->get('onpage_btn_wikimode_global')
         ));
       $t3 = $menubtn->run();
       
@@ -495,7 +508,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxClearLogs()); return false; }" title="Remove all edit and action logs for this page from the database. IRREVERSIBLE! (alt-l)" accesskey="l"',
           'HREF'  => makeUrl($paths->page, 'do=flushlogs', true),
-          'TEXT'  => 'clear page logs',
+          'TEXT'  => $lang->get('onpage_btn_clearlogs'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -503,14 +516,22 @@ class template {
     // Delete page button
     if ( $session->get_permissions('read') && $session->get_permissions('delete_page') && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
-      $s = 'delete this page';
+      $s = $lang->get('onpage_btn_deletepage');
       if ( $paths->cpage['delvotes'] == 1 )
       {
-        $s .= ' (<b>'.$paths->cpage['delvotes'].'</b> vote)';
+        $subst = array(
+          'num_votes' => $paths->cpage['delvotes'],
+          'plural' => ''
+          );
+        $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
       }
       else if ( $paths->cpage['delvotes'] > 1 )
       {
-        $s .= ' (<b>'.$paths->cpage['delvotes'].'</b> votes)';
+        $subst = array(
+          'num_votes' => $paths->cpage['delvotes'],
+          'plural' => $lang->get('meta_plural')
+          );
+        $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
       }
       
       $menubtn->assign_vars(array(
@@ -542,13 +563,13 @@ class template {
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => 'page password:'));
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_password')));
       $t0 = $label->run();
       
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxSetPassword()); return false; }" title="Require a password in order for this page to be viewed"',
           'HREF'  => '#',
-          'TEXT'  => 'set',
+          'TEXT'  => $lang->get('onpage_btn_password_set'),
         ));
       $t = $menubtn->run();
       
@@ -561,7 +582,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { return ajaxOpenACLManager(); }" title="Manage who can do what with this page (alt-m)" accesskey="m"',
           'HREF'  => makeUrl($paths->page, 'do=aclmanager', true),
-          'TEXT'  => 'manage page access',
+          'TEXT'  => $lang->get('onpage_btn_acl'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -572,7 +593,7 @@ class template {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="Administrative options for this page" accesskey="g"',
           'HREF'  => makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'PageManager', true),
-          'TEXT'  => 'administrative options',
+          'TEXT'  => $lang->get('onpage_btn_admin'),
         ));
       $this->toolbar_menu .= $menubtn->run();
     }
@@ -583,7 +604,7 @@ class template {
         'FLAGS'       => 'id="mdgToolbar_moreoptions" onclick="if ( !KILL_SWITCH ) { return false; }" title="Additional options for working with this page"',
         'PARENTFLAGS' => '',
         'HREF'        => makeUrl($paths->page, 'do=moreoptions', true),
-        'TEXT'        => 'more options'
+        'TEXT'        => $lang->get('onpage_btn_moreoptions')
         ));
       $tb .= $button->run();
     }
@@ -625,13 +646,16 @@ class template {
     
     $this->tpl_bool['stupid_mode'] = false;
     
-    if($paths->page == $paths->nslist['Special'].'Administration') $this->tpl_bool['in_admin'] = true;
-    else $this->tpl_bool['in_admin'] = false;
+    $this->tpl_bool['in_admin'] = ( ( $paths->cpage['urlname_nons'] == 'Administration' && $paths->namespace == 'Special' ) || $paths->namespace == 'Admin' );
     
     $p = ( isset($_GET['printable']) ) ? '/printable' : '';
     
     // Add the e-mail address client code to the header
     $this->add_header($email->jscode());
+    
+    // Add language file
+    $lang_uri = makeUrlNS('Special', 'LangExportJSON/' . $lang->lang_id, false, true);
+    $this->add_header("<script type=\"text/javascript\" src=\"$lang_uri\"></script>");
     
     // Generate the code for the Log out and Change theme sidebar buttons
     // Once again, the new template parsing system can be used here
@@ -641,7 +665,7 @@ class template {
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Logout'),
         'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { mb_logout(); return false; }"',
-        'TEXT'=>'Log out',
+        'TEXT'=>$lang->get('sidebar_btn_logout'),
       ));
     
     $logout_link = $parser->run();
@@ -649,7 +673,7 @@ class template {
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Login/' . $paths->page),
         'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxStartLogin(); return false; }"',
-        'TEXT'=>'Log in',
+        'TEXT'=>$lang->get('sidebar_btn_login'),
       ));
     
     $login_link = $parser->run();
@@ -657,7 +681,7 @@ class template {
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'ChangeStyle/'.$paths->page),
         'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxChangeStyle(); return false; }"',
-        'TEXT'=>'Change theme',
+        'TEXT'=>$lang->get('sidebar_btn_changestyle'),
       ));
     
     $theme_link = $parser->run();
@@ -665,7 +689,7 @@ class template {
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Administration'),
         'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxStartAdminLogin()); return false; }"',
-        'TEXT'=>'Administration',
+        'TEXT'=>$lang->get('sidebar_btn_administration'),
       ));
     
     $admin_link = $parser->run();
@@ -711,7 +735,9 @@ class template {
             }
           }
       $js_dynamic .= '\';
-      var ENANO_CURRENT_THEME = \''. $session->theme .'\';';
+      var ENANO_CURRENT_THEME = \''. $session->theme .'\';
+      var ENANO_LANG_ID = ' . $lang->lang_id . ';
+      var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";';
       foreach($paths->nslist as $k => $c)
       {
         $js_dynamic .= "namespace_list['{$k}'] = '$c';";
@@ -773,6 +799,8 @@ class template {
   function header($simple = false) 
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     ob_start();
     
     if(!$this->theme_loaded)
@@ -784,7 +812,13 @@ class template {
     dc_here('template: generating and sending the page header');
     if(!defined('ENANO_HEADERS_SENT'))
       define('ENANO_HEADERS_SENT', '');
-    if(!$this->no_headers) echo ( $simple ) ? $this->process_template('simple-header.tpl') : $this->process_template('header.tpl');
+    if ( !$this->no_headers )
+    {
+      $header = ( $simple ) ?
+        $this->process_template('simple-header.tpl') :
+        $this->process_template('header.tpl');
+      echo $header;
+    }
     if ( !$simple && $session->user_logged_in && $session->unread_pms > 0 )
     {
       echo $this->notify_unread_pms();
@@ -793,7 +827,7 @@ class template {
     {
       $login_link = makeUrlNS('Special', 'Login/' . $paths->fullpage, 'level=' . $session->user_level, true);
       echo '<div class="usermessage">';
-      echo '<b>Your administrative session has timed out.</b> <a href="' . $login_link . '">Log in again</a>';
+      echo $lang->get('user_msg_elev_timed_out', array( 'login_link' => $login_link ));
       echo '</div>';
     }
     if ( $this->site_disabled && $session->user_level >= USER_LEVEL_ADMIN && ( $paths->page != $paths->nslist['Special'] . 'Administration' ) )
@@ -871,78 +905,294 @@ class template {
     else return '';
   }
   
-  function process_template($file) {
+  /**
+   * Compiles and executes a template based on the current variables and booleans. Loads
+   * the theme and initializes variables if needed. This mostly just calls child functions.
+   * @param string File to process
+   * @return string
+   */
+  
+  function process_template($file)
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!defined('ENANO_TEMPLATE_LOADED'))
     {
       $this->load_theme();
       $this->init_vars();
     }
-    eval($this->compile_template($file));
-    return $tpl_code;
+    
+    $compiled = $this->compile_template($file);
+    return eval($compiled);
   }
   
-  function extract_vars($file) {
+  /**
+   * Loads variables from the specified template file. Returns an associative array containing the variables.
+   * @param string Template file to process (elements.tpl)
+   * @return array
+   */
+  
+  function extract_vars($file)
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$this->theme)
+    
+    // Sometimes this function gets called before the theme is loaded
+    // This is a bad coding practice so this function will always be picky.
+    if ( !$this->theme )
     {
       die('$template->extract_vars(): theme not yet loaded, so we can\'t open template files yet...this is a bug and should be reported.<br /><br />Backtrace, most recent call first:<pre>'.enano_debug_print_backtrace(true).'</pre>');
     }
-    if(!is_file(ENANO_ROOT . '/themes/'.$this->theme.'/'.$file)) die('Cannot find '.$file.' file for style "'.$this->theme.'", exiting');
-    $text = file_get_contents(ENANO_ROOT . '/themes/'.$this->theme.'/'.$file);
-    preg_match_all('#<\!-- VAR ([A-z0-9_-]*) -->(.*?)<\!-- ENDVAR \\1 -->#is', $text, $matches);
-    $tplvars = Array();
-    for($i=0;$i<sizeof($matches[1]);$i++)
+    
+    // Full pathname of template file
+    $tpl_file_fullpath = ENANO_ROOT . '/themes/' . $this->theme . '/' . $file;
+    
+    // Make sure the template even exists
+    if ( !is_file($tpl_file_fullpath) )
     {
-      $tplvars[$matches[1][$i]] = $matches[2][$i];
+      die_semicritical('Cannot find template file',
+                       '<p>The template parser was asked to load the file "' . htmlspecialchars($filename) . '", but that file couldn\'t be found in the directory for
+                           the current theme.</p>
+                        <p>Additional debugging information:<br />
+                           <b>Theme currently in use: </b>' . $this->theme . '<br />
+                           <b>Requested file: </b>' . $file . '
+                           </p>');
     }
+    // Retrieve file contents
+    $text = file_get_contents($tpl_file_fullpath);
+    if ( !$text )
+    {
+      return false;
+    }
+    
+    // Get variables, regular expressions FTW
+    preg_match_all('#<\!-- VAR ([A-z0-9_-]*) -->(.*?)<\!-- ENDVAR \\1 -->#is', $text, $matches);
+    
+    // Initialize return values
+    $tplvars = Array();
+    
+    // Loop through each match, setting $tplvars[ $first_subpattern ] to $second_subpattern
+    for ( $i = 0; $i < sizeof($matches[1]); $i++ )
+    {
+      $tplvars[ $matches[1][$i] ] = $matches[2][$i];
+    }
+    
+    // All done!
     return $tplvars;
   }
-  function compile_template($text) {
+  
+  /**
+   * Compiles a block of template code.
+   * @param string The text to process
+   * @return string
+   */
+  
+  function compile_tpl_code($text)
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!is_file(ENANO_ROOT . '/themes/'.$this->theme.'/'.$text)) die('Cannot find '.$text.' file for style, exiting');
-    $n = $text;
-    $tpl_filename = ENANO_ROOT . '/cache/' . $this->theme . '-' . str_replace('/', '-', $n) . '.php';
-    if(!is_file(ENANO_ROOT . '/themes/'.$this->theme.'/'.$text)) die('Cannot find '.$text.' file for style, exiting');
-    if(file_exists($tpl_filename) && getConfig('cache_thumbs')=='1')
+    // A random seed used to salt tags
+    $seed = md5 ( microtime() . mt_rand() );
+    
+    // Strip out PHP sections
+    preg_match_all('/<\?php(.+?)\?>/is', $text, $php_matches);
+    
+    foreach ( $php_matches[0] as $i => $match )
     {
-      include($tpl_filename);
-      $text = file_get_contents(ENANO_ROOT . '/themes/'.$this->theme.'/'.$text);
-      if(isset($md5) && $md5 == md5($text)) {
-        return str_replace('\\"', '"', $tpl_text);
+      // Substitute the PHP section with a random tag
+      $tag = "{PHP:$i:$seed}";
+      $text = str_replace_once($match, $tag, $text);
+    }
+    
+    // Escape slashes and single quotes in template code
+    $text = str_replace('\\', '\\\\', $text);
+    $text = str_replace('\'', '\\\'', $text);
+    
+    // Initialize the PHP compiled code
+    $text = 'ob_start(); echo \''.$text.'\'; $tpl_code = ob_get_contents(); ob_end_clean(); return $tpl_code;';
+    
+    ##
+    ## Main rules
+    ##
+    
+    //
+    // Conditionals
+    //
+    
+    $keywords = array('BEGIN', 'BEGINNOT', 'IFSET', 'IFPLUGIN');
+    $code = $plugins->setHook('template_compile_logic_keyword');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
+    $keywords = implode('|', $keywords);
+    
+    // Matches
+    //          1     2                               3                 4   56                       7     8
+    $regexp = '/(<!-- ('. $keywords .') ([A-z0-9_-]+) -->)(.*)((<!-- BEGINELSE \\3 -->)(.*))?(<!-- END \\3 -->)/isU';
+    
+    /*
+    The way this works is: match all blocks using the standard form with a different keyword in the block each time,
+    and replace them with appropriate PHP logic. Plugin-extensible now. :-)
+    
+    The while-loop is to bypass what is apparently a PCRE bug. It's hackish but it works. Properly written plugins should only need
+    to compile templates (using this method) once for each time the template file is changed.
+    */
+    while ( preg_match($regexp, $text) )
+    {
+      preg_match_all($regexp, $text, $matches);
+      for ( $i = 0; $i < count($matches[0]); $i++ )
+      {
+        $start_tag =& $matches[1][$i];
+        $type =& $matches[2][$i];
+        $test =& $matches[3][$i];
+        $particle_true  =& $matches[4][$i];
+        $else_tag =& $matches[6][$i];
+        $particle_else =& $matches[7][$i];
+        $end_tag =& $matches[8][$i];
+        
+        switch($type)
+        {
+          case 'BEGIN':
+            $cond = "isset(\$this->tpl_bool['$test']) && \$this->tpl_bool['$test']";
+            break;
+          case 'BEGINNOT':
+            $cond = "!isset(\$this->tpl_bool['$test']) || ( isset(\$this->tpl_bool['$test']) && !\$this->tpl_bool['$test'] )";
+            break;
+          case 'IFPLUGIN':
+            $cond = "getConfig('plugin_$test') == '1'";
+            break;
+          case 'IFSET':
+            $cond = "isset(\$this->tpl_strings['$test'])";
+            break;
+          default:
+            $code = $plugins->setHook('template_compile_logic_cond');
+            foreach ( $code as $cmd )
+            {
+              eval($cmd);
+            }
+            break;
+        }
+        
+        if ( !isset($cond) || ( isset($cond) && !is_string($cond) ) )
+          continue;
+        
+        $tag_complete = <<<TPLCODE
+        ';
+        /* START OF CONDITION: $type ($test) */
+        if ( $cond )
+        {
+          echo '$particle_true';
+        /* ELSE OF CONDITION: $type ($test) */
+        }
+        else
+        {
+          echo '$particle_else';
+        /* END OF CONDITION: $type ($test) */
+        }
+        echo '
+TPLCODE;
+        
+        $text = str_replace_once($matches[0][$i], $tag_complete, $text);
+        
       }
     }
-    $text = file_get_contents(ENANO_ROOT . '/themes/'.$this->theme.'/'.$n);
     
+    // For debugging ;-)
+    // die("<pre>&lt;?php\n" . htmlspecialchars($text."\n\n".print_r($matches,true)) . "\n\n?&gt;</pre>");
+    
+    //
+    // Data substitution/variables
+    //
+    
+    // System messages
+    $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $this->tplWikiFormat($pages->sysMsg(\'\\1\')) . \'', $text);
+    
+    // Template variables
+    $text = preg_replace('/\{([A-z0-9_-]+?)\}/is', '\' . $this->tpl_strings[\'\\1\'] . \'', $text);
+    
+    // Reinsert PHP
+    
+    foreach ( $php_matches[1] as $i => $match )
+    {
+      // Substitute the random tag with the "real" PHP code
+      $tag = "{PHP:$i:$seed}";
+      $text = str_replace_once($tag, "'; $match echo '", $text);
+    }
+    
+    // echo('<pre>' . htmlspecialchars($text) . '</pre>');
+    
+    return $text;  
+    
+  }
+  
+  /**
+   * Compiles the contents of a given template file, possibly using a cached copy, and returns the compiled code.
+   * @param string Filename of template (header.tpl)
+   * @return string
+   */
+  
+  function compile_template($filename)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Full path to template file
+    $tpl_file_fullpath = ENANO_ROOT . '/themes/' . $this->theme . '/' . $filename;
+    
+    // Make sure the file exists
+    if ( !is_file($tpl_file_fullpath) )
+    {
+      die_semicritical('Cannot find template file',
+                       '<p>The template parser was asked to load the file "' . htmlspecialchars($filename) . '", but that file couldn\'t be found in the directory for
+                           the current theme.</p>
+                        <p>Additional debugging information:<br />
+                           <b>Theme currently in use: </b>' . $this->theme . '<br />
+                           <b>Requested file: </b>' . $file . '
+                           </p>');
+    }
+    
+    // Check for cached copy
+    // This will make filenames in the pattern of theme-file.tpl.php
+    $cache_file = ENANO_ROOT . '/cache/' . $this->theme . '-' . str_replace('/', '-', $filename) . '.php';
+    
+    // Only use cached copy if caching is enabled
+    //   (it is enabled by default I think)
+    if ( file_exists($cache_file) && getConfig('cache_thumbs') == '1' )
+    {
+      // Cache files are auto-generated, but otherwise are normal PHP files
+      include($cache_file);
+      
+      // Fetch content of the ORIGINAL
+      $text = file_get_contents($tpl_file_fullpath);
+      
+      // $md5 will be set by the cached file
+      // This makes sure that a cached copy of the template is used only if its MD5
+      // matches the MD5 of the file that the compiled file was compiled from.
+      if ( isset($md5) && $md5 == md5($text) )
+      {
+        return $this->compile_template_text_post(str_replace('\\"', '"', $tpl_text));
+      }
+    }
+    
+    // We won't use the cached copy here
+    $text = file_get_contents($tpl_file_fullpath);
+    
+    // This will be used later when writing the cached file
     $md5 = md5($text);
     
-    $seed = md5 ( microtime() . mt_rand() );
-    preg_match_all("/<\?php(.*?)\?>/is", $text, $m);
-    //die('<pre>'.htmlspecialchars(print_r($m, true)).'</pre>');
-    for($i = 0; $i < sizeof($m[1]); $i++)
+    // Preprocessing and checks complete - compile the code
+    $text = $this->compile_tpl_code($text);
+    
+    // Perhaps caching is enabled and the admin has changed the template?
+    if ( is_writable( ENANO_ROOT . '/cache/' ) && getConfig('cache_thumbs') == '1' )
     {
-      $text = str_replace("<?php{$m[1][$i]}?>", "{PHPCODE:{$i}:{$seed}}", $text);
-    }
-    //die('<pre>'.htmlspecialchars($text).'</pre>');
-    $text = 'ob_start(); echo \''.str_replace('\'', '\\\'', $text).'\'; $tpl_code = ob_get_contents(); ob_end_clean();';
-    $text = preg_replace('#<!-- BEGIN (.*?) -->#is', '\'; if(isset($this->tpl_bool[\'\\1\']) && $this->tpl_bool[\'\\1\']) { echo \'', $text);
-    $text = preg_replace('#<!-- IFSET (.*?) -->#is', '\'; if(isset($this->tpl_strings[\'\\1\'])) { echo \'', $text);
-    $text = preg_replace('#<!-- IFPLUGIN (.*?) -->#is', '\'; if(getConfig(\'plugin_\\1\')==\'1\') { echo \'', $text);
-    $text = preg_replace('#<!-- SYSMSG (.*?) -->#is', '\'; echo $template->tplWikiFormat($paths->sysMsg(\'\\1\')); echo \'', $text);
-    $text = preg_replace('#<!-- BEGINNOT (.*?) -->#is', '\'; if(!$this->tpl_bool[\'\\1\']) { echo \'', $text);
-    $text = preg_replace('#<!-- BEGINELSE (.*?) -->#is', '\'; } else { echo \'', $text);
-    $text = preg_replace('#<!-- END (.*?) -->#is', '\'; } echo \'', $text);
-    $text = preg_replace('#\{([A-z0-9]*)\}#is', '\'.$this->tpl_strings[\'\\1\'].\'', $text);
-    for($i = 0; $i < sizeof($m[1]); $i++)
-    {
-      $text = str_replace("{PHPCODE:{$i}:{$seed}}", "'; {$m[1][$i]} echo '", $text);
-    }
-    if(is_writable(ENANO_ROOT.'/cache/') && getConfig('cache_thumbs')=='1')
-    {
-      //die($tpl_filename);
-      $h = fopen($tpl_filename, 'w');
-      if(!$h) return $text;
-      $t = addslashes($text);
+      $h = fopen($cache_file, 'w');
+      if ( !$h )
+      {
+        // Couldn't open the file - silently ignore and return
+        return $text;
+      }
+      
+      // Escape the compiled code so it can be eval'ed
+      $text_escaped = addslashes($text);
       $notice = <<<EOF
 
 /*
@@ -951,41 +1201,59 @@ class template {
  */
 
 EOF;
-      fwrite($h, '<?php ' . $notice . ' $md5 = \''.$md5.'\'; $tpl_text = \''.$t.'\'; ?>');
+      // This is really just a normal PHP file that sets a variable or two and exits.
+      // $tpl_text actually will contain the compiled code
+      fwrite($h, '<?php ' . $notice . ' $md5 = \'' . $md5 . '\'; $tpl_text = \'' . $text_escaped . '\'; ?>');
       fclose($h);
     }
-    return $text; //('<pre>'.htmlspecialchars($text).'</pre>');
+    
+    return $this->compile_template_text_post($text); //('<pre>'.htmlspecialchars($text).'</pre>');
   }
   
-  function compile_template_text($text) {
-    $seed = md5 ( microtime() . mt_rand() );
-    preg_match_all("/<\?php(.*?)\?>/is", $text, $m);
-    //die('<pre>'.htmlspecialchars(print_r($m, true)).'</pre>');
-    for($i = 0; $i < sizeof($m[1]); $i++)
-    {
-      $text = str_replace("<?php{$m[1][$i]}?>", "{PHPCODE:{$i}:{$seed}}", $text);
-    }
-    //die('<pre>'.htmlspecialchars($text).'</pre>');
-    $text = 'ob_start(); echo \''.str_replace('\'', '\\\'', $text).'\'; $tpl_code = ob_get_contents(); ob_end_clean(); return $tpl_code;';
-    $text = preg_replace('#<!-- BEGIN (.*?) -->#is', '\'; if(isset($this->tpl_bool[\'\\1\']) && $this->tpl_bool[\'\\1\']) { echo \'', $text);
-    $text = preg_replace('#<!-- IFSET (.*?) -->#is', '\'; if(isset($this->tpl_strings[\'\\1\'])) { echo \'', $text);
-    $text = preg_replace('#<!-- IFPLUGIN (.*?) -->#is', '\'; if(getConfig(\'plugin_\\1\')==\'1\') { echo \'', $text);
-    $text = preg_replace('#<!-- SYSMSG (.*?) -->#is', '\'; echo $template->tplWikiFormat($paths->sysMsg(\'\\1\')); echo \'', $text);
-    $text = preg_replace('#<!-- BEGINNOT (.*?) -->#is', '\'; if(!$this->tpl_bool[\'\\1\']) { echo \'', $text);
-    $text = preg_replace('#<!-- BEGINELSE (.*?) -->#is', '\'; } else { echo \'', $text);
-    $text = preg_replace('#<!-- END (.*?) -->#is', '\'; } echo \'', $text);
-    $text = preg_replace('#\{([A-z0-9]*)\}#is', '\'.$this->tpl_strings[\'\\1\'].\'', $text);
-    for($i = 0; $i < sizeof($m[1]); $i++)
-    {
-      $text = str_replace("{PHPCODE:{$i}:{$seed}}", "'; {$m[1][$i]} echo '", $text);
-    }
-    return $text; //('<pre>'.htmlspecialchars($text).'</pre>');
+  
+  /**
+   * Compiles (parses) some template code with the current master set of variables and booleans.
+   * @param string Text to process
+   * @return string
+   */
+  
+  function compile_template_text($text)
+  {
+    // this might do something else in the future, possibly cache large templates
+    return $this->compile_template_text_post($this->compile_tpl_code($text));
   }
+  
+  /**
+   * For convenience - compiles AND parses some template code.
+   * @param string Text to process
+   * @return string
+   */
   
   function parse($text)
   {
     $text = $this->compile_template_text($text);
+    $text = $this->compile_template_text_post($text);
     return eval($text);
+  }
+  
+  /**
+   * Post-processor for template code. Basically what this does is it localizes {lang:foo} blocks.
+   * @param string Mostly-processed TPL code
+   * @return string
+   */
+  
+  function compile_template_text_post($text)
+  {
+    global $lang;
+    preg_match_all('/\{lang:([a-z0-9]+_[a-z0-9_]+)\}/', $text, $matches);
+    foreach ( $matches[1] as $i => $string_id )
+    {
+      $string = $lang->get($string_id);
+      $string = str_replace('\\', '\\\\', $string);
+      $string = str_replace('\'', '\\\'', $string);
+      $text = str_replace_once($matches[0][$i], $string, $text);
+    }
+    return $text;
   }
   
   // Steps to turn this:
@@ -1004,8 +1272,21 @@ EOF;
   // So you can implement custom logic into your sidebar if you wish.
   // "Real" PHP support coming soon :-D
   
-  function tplWikiFormat($message, $filter_links = false, $filename = 'elements.tpl') {
+  /**
+   * Takes a blob of HTML with the specially formatted template-oriented wikitext and formats it. Does not use eval().
+   * This function butchers every coding standard in Enano and should eventually be rewritten. The fact is that the
+   * code _works_ and does a good job of checking for errors and cleanly complaining about them.
+   * @param string Text to process
+   * @param bool Ignored for backwards compatibility
+   * @param string File to get variables for sidebar data from
+   * @return string
+   */
+  
+  function tplWikiFormat($message, $filter_links = false, $filename = 'elements.tpl')
+  {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     $filter_links = false;
     $tplvars = $this->extract_vars($filename);
     if($session->sid_super) $as = htmlspecialchars(urlSeparator).'auth='.$session->sid_super;
@@ -1029,83 +1310,93 @@ EOF;
     
     // Conditionals
     
-    preg_match_all('#\{if ([A-Za-z0-9_ &\|\!-]*)\}(.*?)\{\/if\}#is', $message, $links);
+    preg_match_all('#\{if ([A-Za-z0-9_ \(\)&\|\!-]*)\}(.*?)\{\/if\}#is', $message, $links);
     
-    for($i=0;$i<sizeof($links[1]);$i++)
+    // Temporary exception from coding standards - using tab length of 4 here for clarity
+    for ( $i = 0; $i < sizeof($links[1]); $i++ )
     {
-      $message = str_replace('{if '.$links[1][$i].'}'.$links[2][$i].'{/if}', '{CONDITIONAL:'.$i.':'.$random_id.'}', $message);
-      
-      // Time for some manual parsing...
-      $chk = false;
-      $current_id = '';
-      $prn_level = 0;
-      // Used to keep track of where we are in the conditional
-      // Object of the game: turn {if this && ( that OR !something_else )} ... {/if} into if( ( isset($this->tpl_bool['that']) && $this->tpl_bool['that'] ) && ...
-      // Method of attack: escape all variables, ignore all else. Non-valid code is filtered out by a regex above.
-      $in_var_now = true;
-      $in_var_last = false;
-      $current_var = '';
-      $current_var_start_pos = 0;
-      $current_var_end_pos   = 0;
-      $j = -1;
-      $links[1][$i] = $links[1][$i] . ' ';
-      $d = strlen($links[1][$i]);
-      while($j < $d)
-      {
-        $j++;
-        $in_var_last = $in_var_now;
+        $condition =& $links[1][$i];
+        $message = str_replace('{if '.$condition.'}'.$links[2][$i].'{/if}', '{CONDITIONAL:'.$i.':'.$random_id.'}', $message);
         
-        $char = substr($links[1][$i], $j, 1);
-        $in_var_now = ( preg_match('#^([A-z0-9_]*){1}$#', $char) ) ? true : false;
-        if(!$in_var_last && $in_var_now)
+        // Time for some manual parsing...
+        $chk = false;
+        $current_id = '';
+        $prn_level = 0;
+        // Used to keep track of where we are in the conditional
+        // Object of the game: turn {if this && ( that OR !something_else )} ... {/if} into if( ( isset($this->tpl_bool['that']) && $this->tpl_bool['that'] ) && ...
+        // Method of attack: escape all variables, ignore all else. Non-valid code is filtered out by a regex above.
+        $in_var_now = true;
+        $in_var_last = false;
+        $current_var = '';
+        $current_var_start_pos = 0;
+        $current_var_end_pos     = 0;
+        $j = -1;
+        $condition = $condition . ' ';
+        $d = strlen($condition);
+        while($j < $d)
         {
-          $current_var_start_pos = $j;
+            $j++;
+            $in_var_last = $in_var_now;
+            
+            $char = substr($condition, $j, 1);
+            $in_var_now = ( preg_match('#^([A-z0-9_]*){1}$#', $char) ) ? true : false;
+            if(!$in_var_last && $in_var_now)
+            {
+                $current_var_start_pos = $j;
+            }
+            if($in_var_last && !$in_var_now)
+            {
+                $current_var_end_pos = $j;
+            }
+            if($in_var_now)
+            {
+                $current_var .= $char;
+                continue;
+            }
+            // OK we are not inside of a variable. That means that we JUST hit the end because the counter ($j) will be advanced to the beginning of the next variable once processing here is complete.
+            if($char != ' ' && $char != '(' && $char != ')' && $char != 'A' && $char != 'N' && $char != 'D' && $char != 'O' && $char != 'R' && $char != '&' && $char != '|' && $char != '!' && $char != '<' && $char != '>' && $char != '0' && $char != '1' && $char != '2' && $char != '3' && $char != '4' && $char != '5' && $char != '6' && $char != '7' && $char != '8' && $char != '9')
+            {
+                // XSS attack! Bail out
+                $errmsg    = '<p><b>Error:</b> Syntax error (possibly XSS attack) caught in template code:</p>';
+                $errmsg .= '<pre>';
+                $errmsg .= '{if '.htmlspecialchars($condition).'}';
+                $errmsg .= "\n    ";
+                for ( $k = 0; $k < $j; $k++ )
+                {
+                    $errmsg .= " ";
+                }
+                // Show position of error
+                $errmsg .= '<span style="color: red;">^</span>';
+                $errmsg .= '</pre>';
+                $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $errmsg, $message);
+                continue 2;
+            }
+            if($current_var != '')
+            {
+                $cd = '( isset($this->tpl_bool[\''.$current_var.'\']) && $this->tpl_bool[\''.$current_var.'\'] )';
+                $cvt = substr($condition, 0, $current_var_start_pos) . $cd . substr($condition, $current_var_end_pos, strlen($condition));
+                $j = $j + strlen($cd) - strlen($current_var);
+                $current_var = '';
+                $condition = $cvt;
+                $d = strlen($condition);
+            }
         }
-        if($in_var_last && !$in_var_now)
+        $condition = substr($condition, 0, strlen($condition)-1);
+        $condition = '$chk = ( '.$condition.' ) ? true : false;';
+        eval($condition);
+        
+        if($chk)
         {
-          $current_var_end_pos = $j;
+            if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], 0, strpos($links[2][$i], '{else}'));
+            else $c = $links[2][$i];
+            $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
         }
-        if($in_var_now)
+        else
         {
-          $current_var .= $char;
-          continue;
+            if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], strpos($links[2][$i], '{else}')+6, strlen($links[2][$i]));
+            else $c = '';
+            $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
         }
-        // OK we are not inside of a variable. That means that we JUST hit the end because the counter ($j) will be advanced to the beginning of the next variable once processing here is complete.
-        if($char != ' ' && $char != '(' && $char != ')' && $char != 'A' && $char != 'N' && $char != 'D' && $char != 'O' && $char != 'R' && $char != '&' && $char != '|' && $char != '!' && $char != '<' && $char != '>' && $char != '0' && $char != '1' && $char != '2' && $char != '3' && $char != '4' && $char != '5' && $char != '6' && $char != '7' && $char != '8' && $char != '9')
-        {
-          // XSS attack! Bail out
-          echo '<p><b>Error:</b> Syntax error (possibly XSS attack) caught in template code:</p>';
-          echo '<pre>';
-          echo '{if '.$links[1][$i].'}';
-          echo "\n    ";
-          for($k=0;$k<$j;$k++) echo " ";
-          echo '<span style="color: red;">^</span>';
-          echo '</pre>';
-          continue 2;
-        }
-        if($current_var != '')
-        {
-          $cd = '( isset($this->tpl_bool[\''.$current_var.'\']) && $this->tpl_bool[\''.$current_var.'\'] )';
-          $cvt = substr($links[1][$i], 0, $current_var_start_pos) . $cd . substr($links[1][$i], $current_var_end_pos, strlen($links[1][$i]));
-          $j = $j + strlen($cd) - strlen($current_var);
-          $current_var = '';
-          $links[1][$i] = $cvt;
-          $d = strlen($links[1][$i]);
-        }
-      }
-      $links[1][$i] = substr($links[1][$i], 0, strlen($links[1][$i])-1);
-      $links[1][$i] = '$chk = ( '.$links[1][$i].' ) ? true : false;';
-      eval($links[1][$i]);
-      
-      if($chk) { // isset($this->tpl_bool[$links[1][$i]]) && $this->tpl_bool[$links[1][$i]]
-        if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], 0, strpos($links[2][$i], '{else}'));
-        else $c = $links[2][$i];
-        $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
-      } else {
-        if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], strpos($links[2][$i], '{else}')+6, strlen($links[2][$i]));
-        else $c = '';
-        $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
-      }
     }
     
     preg_match_all('#\{!if ([A-Za-z_-]*)\}(.*?)\{\/if\}#is', $message, $links);
@@ -1122,6 +1413,15 @@ EOF;
         else $c = $links[2][$i];
         $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
       }
+    }
+    
+    preg_match_all('/\{lang:([a-z0-9]+_[a-z0-9_]+)\}/', $message, $matches);
+    foreach ( $matches[1] as $i => $string_id )
+    {
+      $string = $lang->get($string_id);
+      $string = str_replace('\\', '\\\\', $string);
+      $string = str_replace('\'', '\\\'', $string);
+      $message = str_replace_once($matches[0][$i], $string, $message);
     }
     
     /*
@@ -1174,26 +1474,28 @@ EOF;
     // $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?) ([^\]]+)\\]#', '<a href="\\1://\\2">\\3</a><br style="display: none;" />', $message);
     // $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\]#', '<a href="\\1://\\2">\\1://\\2</a><br style="display: none;" />', $message);
     
-    preg_match_all('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\ ([^\]]+)]#', $message, $ext_link);
+    preg_match_all('/\[((https?|ftp|irc):\/\/([^@\s\]"\':]+)?((([a-z0-9-]+\.)*)[a-z0-9-]+)(\/[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]*(\?(([a-z0-9_-]+)(=[A-z0-9_%\|~`\!@#\$\^&\*\(\):;\.,\/-\[\]]+)?((&([a-z0-9_-]+)(=[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]+)?)*))?)?)?) ([^\]]+)\]/is', $message, $ext_link);
+    
+    // die('<pre>' . htmlspecialchars( print_r($ext_link, true) ) . '</pre>');
     
     for ( $i = 0; $i < count($ext_link[0]); $i++ )
     {
       $text_parser->assign_vars(Array(  
-          'HREF'  => "{$ext_link[1][$i]}://{$ext_link[2][$i]}",
+          'HREF'  => $ext_link[1][$i],
           'FLAGS' => '',
-          'TEXT'  => $ext_link[3][$i]
+          'TEXT'  => $ext_link[16][$i]
         ));
       $message = str_replace($ext_link[0][$i], $text_parser->run(), $message);
     }
     
-    preg_match_all('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\]#', $message, $ext_link);
+    preg_match_all('/\[((https?|ftp|irc):\/\/([^@\s\]"\':]+)?((([a-z0-9-]+\.)*)[a-z0-9-]+)(\/[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]*(\?(([a-z0-9_-]+)(=[A-z0-9_%\|~`\!@#\$\^&\*\(\):;\.,\/-\[\]]+)?((&([a-z0-9_-]+)(=[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]+)?)*))?)?)?)\]/is', $message, $ext_link);
     
     for ( $i = 0; $i < count($ext_link[0]); $i++ )
     {
       $text_parser->assign_vars(Array(  
-          'HREF'  => "{$ext_link[1][$i]}://{$ext_link[2][$i]}",
+          'HREF'  => $ext_link[1][$i],
           'FLAGS' => '',
-          'TEXT'  => htmlspecialchars("{$ext_link[1][$i]}://{$ext_link[2][$i]}")
+          'TEXT'  => htmlspecialchars($ext_link[1][$i])
         ));
       $message = str_replace($ext_link[0][$i], $text_parser->run(), $message);
     }
@@ -1234,7 +1536,7 @@ EOF;
   function username_field($name, $value = false)
   {
     $randomid = md5( time() . microtime() . mt_rand() );
-    $text = '<input name="'.$name.'" onkeyup="ajaxUserNameComplete(this)" autocomplete="off" type="text" size="30" id="userfield_'.$randomid.'"';
+    $text = '<input name="'.$name.'" onkeyup="new AutofillUsername(this);" autocomplete="off" type="text" size="30" id="userfield_'.$randomid.'"';
     if($value) $text .= ' value="'.$value.'"';
     $text .= ' />';
     return $text;
@@ -1434,7 +1736,8 @@ EOF;
     $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN ) ? 'title="You may disable this button in the admin panel under General Configuration."' : '';
     if(getConfig('sflogo_enabled')=='1')
     {
-      $ob[] = '<a style="text-align: center;" href="http://sourceforge.net/" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border-width: 0px;" alt="SourceForge.net Logo" src="http://sflogo.sourceforge.net/sflogo.php?group_id='.getConfig('sflogo_groupid').'&amp;type='.getConfig('sflogo_type').'" /></a>';
+      $sflogo_secure = ( isset($_SERVER['HTTPS']) ) ? 'https' : 'http';
+      $ob[] = '<a style="text-align: center;" href="http://sourceforge.net/" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border-width: 0px;" alt="SourceForge.net Logo" src="' . $sflogo_secure . '://sflogo.sourceforge.net/sflogo.php?group_id='.getConfig('sflogo_groupid').'&amp;type='.getConfig('sflogo_type').'" /></a>';
     }
     if(getConfig('w3c_v32')     =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="Valid HTML 3.2"  src="http://www.w3.org/Icons/valid-html32" /></a>';
     if(getConfig('w3c_v40')     =='1') $ob[] = '<a style="text-align: center;" href="http://validator.w3.org/check?uri=referer" onclick="if ( !KILL_SWITCH ) { window.open(this.href);return false; }"><img style="border: 0px solid #FFFFFF;" alt="Valid HTML 4.0"  src="http://www.w3.org/Icons/valid-html40" /></a>';

@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 (Banshee)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ if(isset($_REQUEST['GLOBALS']))
   exit;
 }
 
-$version = '1.0.1';
+$version = '1.1.1';
 
 function microtime_float()
 {
@@ -56,12 +56,7 @@ if(defined('ENANO_DEBUG') && version_compare(PHP_VERSION, '5.0.0') < 0)
 
 if(defined('ENANO_DEBUG'))
 {
-//  require_once(ENANO_ROOT.'/includes/debugger/debugConsole.php');
-  function dc_here($m)     { return false; }
-  function dc_dump($a, $g) { return false; }
-  function dc_watch($n)    { return false; }
-  function dc_start_timer($u) { return false; }
-  function dc_stop_timer($m) { return false; }
+  require_once(ENANO_ROOT.'/includes/debugger/debugConsole.php');
 } else {
   function dc_here($m)     { return false; }
   function dc_dump($a, $g) { return false; }
@@ -73,6 +68,9 @@ if(defined('ENANO_DEBUG'))
 if ( file_exists( ENANO_ROOT . '/_nightly.php') )
   require(ENANO_ROOT.'/_nightly.php');
 
+// List of scheduled tasks
+$cron_tasks = array();
+
 // Start including files. LOTS of files. Yeah!
 require_once(ENANO_ROOT.'/includes/constants.php');
 dc_here('Enano CMS '.$version.' (dev) - debug window<br />Powered by debugConsole');
@@ -83,6 +81,7 @@ require_once(ENANO_ROOT.'/includes/paths.php');
 require_once(ENANO_ROOT.'/includes/sessions.php');
 require_once(ENANO_ROOT.'/includes/template.php');
 require_once(ENANO_ROOT.'/includes/plugins.php');
+require_once(ENANO_ROOT.'/includes/lang.php');
 require_once(ENANO_ROOT.'/includes/comment.php');
 require_once(ENANO_ROOT.'/includes/wikiformat.php');
 require_once(ENANO_ROOT.'/includes/diff.php');
@@ -108,6 +107,7 @@ global $enano_config; // A global used to cache config information without makin
                       // In addition, $enano_config is used to fetch config information if die_semicritical() is called.
                       
 global $email;
+global $lang;
 
 if(!isset($_SERVER['HTTP_HOST'])) grinding_halt('Cannot get hostname', '<p>Your web browser did not provide the HTTP Host: field. This site requires a modern browser that supports the HTTP 1.1 standard.</p>');
                      
@@ -154,6 +154,65 @@ if(enano_version(false, true) != $version)
   grinding_halt('Version mismatch', '<p>It seems that the Enano release we\'re trying to run ('.$version.') is different from the version specified in your database ('.enano_version().'). Perhaps you need to <a href="'.scriptPath.'/upgrade.php">upgrade</a>?</p>');
 }
 
+//
+// Low level maintenance
+//
+
+// If the search algorithm backend has been changed, empty out the search cache (the two cache formats are incompatible with each other)
+if ( getConfig('last_search_algo') != SEARCH_MODE )
+{
+  if ( !$db->sql_query('DELETE FROM '.table_prefix.'search_cache;') )
+    $db->_die();
+  setConfig('last_search_algo', SEARCH_MODE);
+}
+
+// If the AES key size has been changed, bail out and fast
+if ( !getConfig('aes_key_size') )
+{
+  setConfig('aes_key_size', AES_BITS);
+}
+else if ( $ks = getConfig('aes_key_size') )
+{
+  if ( intval($ks) != AES_BITS )
+  {
+    grinding_halt('AES key size changed', '<p>Enano has detected that the AES key size in constants.php has been changed. This change cannot be performed after installation, otherwise the private key would have to be re-generated and all passwords would have to be re-encrypted.</p><p>Please change the key size back to ' . $ks . ' bits and reload this page.</p>');
+  }
+}
+
+// Same for AES block size
+if ( !getConfig('aes_block_size') )
+{
+  setConfig('aes_block_size', AES_BLOCKSIZE);
+}
+else if ( $ks = getConfig('aes_block_size') )
+{
+  if ( intval($ks) != AES_BLOCKSIZE )
+  {
+    grinding_halt('AES block size changed', '<p>Enano has detected that the AES block size in constants.php has been changed. This change cannot be performed after installation, otherwise all passwords would have to be re-encrypted.</p><p>Please change the block size back to ' . $ks . ' bits and reload this page.</p>');
+  }
+}
+
+// Is there no default language?
+if ( getConfig('lang_default') === false )
+{
+  $q = $db->sql_query('SELECT lang_id FROM '.table_prefix.'language LIMIT 1;');
+  if ( !$q )
+    $db->_die('common.php - setting default language');
+  if ( $db->numrows() < 1 && !defined('ENANO_ALLOW_LOAD_NOLANG') )
+  {
+    grinding_halt('No languages', '<p>There are no languages installed on this site.</p>
+        <p>If you are the website administrator, you may install a language by writing and executing a simple PHP script to install it:</p>
+        <pre>
+&lt;?php
+define("ENANO_ALLOW_LOAD_NOLANG", 1);
+$_GET["title"] = "langinstall";
+require("includes/common.php");
+install_language("eng", "English", "English", ENANO_ROOT . "/language/english/enano.json");</pre>');
+  }
+  $row = $db->fetchrow();
+  setConfig('default_language', $row['lang_id']);
+}
+
 // Our list of tables included in Enano
 $system_table_list = Array(
     table_prefix.'categories',
@@ -176,7 +235,10 @@ $system_table_list = Array(
     table_prefix.'groups',
     table_prefix.'group_members',
     table_prefix.'acl',
-    table_prefix.'search_cache'
+    table_prefix.'search_cache',
+    table_prefix.'page_groups',
+    table_prefix.'page_group_members',
+    table_prefix.'tags'
   );
 
 dc_here('common: initializing base classes');
@@ -232,7 +294,7 @@ if ( !defined('IN_ENANO_INSTALL') )
       
       $text = RenderMan::render($n) . '
       <div class="info-box">
-        If you have an administrative account, you may <a href="'.makeUrlNS('Special', 'Login').'">log in</a> to the site or <a href="'.makeUrlNS('Special', 'Administration').'">use the administration panel</a>.
+        If you have an administrative account, you may <a href="'.makeUrlNS('Special', 'Login').'">log in</a> to the site.
       </div>';
       $paths->wiki_mode = 0;
       die_semicritical('Site disabled', $text);

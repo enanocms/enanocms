@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * upgrade.php - upgrade script
  * Copyright (C) 2006-2007 Dan Fuhry
  *
@@ -61,7 +61,7 @@ else
 // Everything related to versions goes here!
 
 // Valid versions to upgrade from
-$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.1.1');
+$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.1.1', '1.0.2b1', '1.0.2', 'Stable1.0ToUnstable1.1');
 
 // Basically a list of dependencies, which should be resolved automatically
 // If, for example, upgrading from 1.0b1 to 1.0RC1 requires one extra query that would not
@@ -75,9 +75,12 @@ $deps_list = Array(
     '1.0RC2' => Array('1.0RC3'),
     '1.0RC3' => Array('1.0'),
     '1.0' => Array('1.0.1'),
-    '1.0.1' => Array('1.0.1.1')
+    '1.0.1' => Array('1.0.1.1'),
+    '1.0.1.1' => Array('1.0.2b1'),
+    '1.0.2b1' => Array('Stable1.0ToUnstable1.1'),
+    'Stable1.0ToUnstable1.1' => Array('1.1.1')
   );
-$this_version   = '1.0.2b1';
+$this_version   = '1.1.1';
 $func_list = Array(
     '1.0' => Array('u_1_0_1_update_del_votes'),
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text'), // ,
@@ -157,7 +160,7 @@ $paths = new pathManager();
 $session->start();
 
 $template = new template_nodb();
-$template->load_theme('stpatty', 'shamrock', false);
+$template->load_theme('oxygen', 'bleu', false);
 
 $modestrings = Array(
               'login'      => 'Administrative login',
@@ -444,7 +447,7 @@ switch($_GET['mode'])
     {
       if(isset($_POST['login']))
       {
-        $session->login_without_crypto($_POST['username'], $_POST['password'], false, $ul_admin);
+        $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, $ul_admin);
         if($session->sid_super)
         {
           header('Location: upgrade.php?mode=welcome&auth='.$session->sid_super);
@@ -461,7 +464,7 @@ switch($_GET['mode'])
         <?php
         if(isset($_POST['login']))
         {
-          echo '<tr><td colspan="2"><p style="color: red;">Login failed. Bad password?</p></td></tr>';
+          echo '<tr><td colspan="2"><p style="color: red;">Login failed: '. $result['error'] . '</p></td></tr>';
         }
         ?>
         <tr>
@@ -525,7 +528,7 @@ switch($_GET['mode'])
     ?>
     
     <div style="text-align: center; margin-top: 10px;">
-      <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-green.png" style="display: block; margin: 0 auto; padding-left: 134px;" />
+      <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-blue.png" style="display: block; margin: 0 auto; padding-left: 134px;" />
       <h2>Welcome to the Enano upgrade wizard</h2>
       <?php
       if ( file_exists('./_nightly.php') )
@@ -619,10 +622,10 @@ switch($_GET['mode'])
       $schema = file_get_contents('upgrade.sql');
       
       // Strip out and process version blocks
-      preg_match_all('#---BEGIN ([0-9A-z\.\-]*?)---'."\n".'(.*?)'."\n".'---END \\1---#is', $schema, $matches);
+      preg_match_all('#---BEGIN ([0-9A-z\.\-]*?)---'."\n".'((.*?)'."\n)?".'---END \\1---#is', $schema, $matches);
       
       $from_list  =& $matches[1];
-      $query_list =& $matches[2];
+      $query_list =& $matches[3];
       
       foreach($matches[0] as $m)
       {

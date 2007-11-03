@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  * jsres.php - the Enano client-side runtime, a.k.a. AJAX on steroids
  *
@@ -40,7 +40,7 @@ if(defined('ENABLE_COMPRESSION'))
 {
   echo "/*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * [Aggressively compressed] Javascript client code
  * Copyright (C) 2006-2007 Dan Fuhry
  * Enano is Free Software, licensed under the GNU General Public License; see http://enanocms.org/ for details.

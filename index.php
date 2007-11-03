@@ -1,8 +1,8 @@
 <?php
 
-/**
+/*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * @Version 1.0.2 (Coblynau)
+ * Version 1.0.2 (Coblynau)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -15,7 +15,7 @@
 
   // Set up gzip encoding before any output is sent
   
-  $aggressive_optimize_html = true;
+  $aggressive_optimize_html = false;
   
   global $do_gzip;
   $do_gzip = true;
@@ -89,11 +89,12 @@
           if(!$q) $db->_die('The comment data could not be selected.');
           $row = $db->fetchrow();
           $db->free_result();
+          $row['subject'] = str_replace('\'', '&#039;', $row['subject']);
           echo '<form action="'.makeUrl($paths->page, 'do=comments&amp;sub=savecomment').'" method="post">';
           echo "<br /><div class='tblholder'><table border='0' width='100%' cellspacing='1' cellpadding='4'>
-                  <tr><td class='row1'>Subject:</td><td class='row1'><input type='text' name='subj' value='{$row['subject']}' /></td></tr>
-                  <tr><td class='row2'>Comment:</td><td class='row2'><textarea rows='10' cols='40' style='width: 98%;' name='text'>{$row['comment_data']}</textarea></td></tr>
-                  <tr><td class='row1' colspan='2' class='row1' style='text-align: center;'><input type='hidden' name='id' value='{$row['comment_id']}' /><input type='submit' value='Save Changes' /></td></tr>
+                  <tr><td class='row1'>" . $lang->get('comment_postform_field_subject') . "</td><td class='row1'><input type='text' name='subj' value='{$row['subject']}' /></td></tr>
+                  <tr><td class='row2'>" . $lang->get('comment_postform_field_comment') . "</td><td class='row2'><textarea rows='10' cols='40' style='width: 98%;' name='text'>{$row['comment_data']}</textarea></td></tr>
+                  <tr><td class='row1' colspan='2' class='row1' style='text-align: center;'><input type='hidden' name='id' value='{$row['comment_id']}' /><input type='submit' value='" . $lang->get('etc_save_changes') . "' /></td></tr>
                 </table></div>";
           echo '</form>';
           break;
@@ -124,8 +125,12 @@
       {
         $text = $_POST['page_text'];
         echo PageUtils::genPreview($_POST['page_text']);
+        $text = htmlspecialchars($text);
       }
-      else $text = RenderMan::getPage($paths->cpage['urlname_nons'], $paths->namespace, 0, false, false, false, false);
+      else
+      {
+        $text = RenderMan::getPage($paths->cpage['urlname_nons'], $paths->namespace, 0, false, false, false, false);
+      }
       echo '
         <form action="'.makeUrl($paths->page, 'do=edit').'" method="post" enctype="multipart/form-data">
         <br />
@@ -133,14 +138,19 @@
         <br />
         ';
       if($paths->wiki_mode)
-        echo 'Edit summary: <input name="edit_summary" type="text" size="40" /><br /><label><input type="checkbox" name="minor" /> This is a minor edit</label><br />';  
+        echo $lang->get('editor_lbl_edit_summary') . ' <input name="edit_summary" type="text" size="40" /><br /><label><input type="checkbox" name="minor" /> This is a minor edit</label><br />';  
       echo '<br />
-          <input type="submit" name="_save" value="Save changes" style="font-weight: bold;" />
-          <input type="submit" name="_preview" value="Preview changes" />
-          <input type="submit" name="_revert" value="Revert changes" />
-          <input type="submit" name="_cancel" value="Cancel" />
+          <input type="submit" name="_save"    value="' . $lang->get('editor_btn_save') . '" style="font-weight: bold;" />
+          <input type="submit" name="_preview" value="' . $lang->get('editor_btn_preview') . '" />
+          <input type="submit" name="_revert"  value="' . $lang->get('editor_btn_revert') . '" />
+          <input type="submit" name="_cancel"  value="' . $lang->get('editor_btn_cancel') . '" />
         </form>
       ';
+      if ( getConfig('wiki_edit_notice') == '1' )
+      {
+        $notice = getConfig('wiki_edit_notice_text');
+        echo RenderMan::render($notice);
+      }
       $template->footer();
       break;
     case 'viewsource':
@@ -151,7 +161,7 @@
         <br />
         <textarea readonly="readonly" name="page_text" rows="20" cols="60" style="width: 97%;">'.$text.'</textarea>';
       echo '<br />
-          <input type="submit" name="_cancel" value="Close viewer" />
+          <input type="submit" name="_cancel" value="' . $lang->get('editor_btn_closeviewer') . '" />
         </form>
       ';
       $template->footer();
@@ -193,7 +203,7 @@
       break;
     case 'moreoptions':
       $template->header();
-      echo '<div class="menu_nojs" style="width: 150px; padding: 0;"><ul style="display: block;"><li><div class="label">More options for this page</div><div style="clear: both;"></div></li>'.$template->tpl_strings['TOOLBAR_EXTRAS'].'</ul></div>';
+      echo '<div class="menu_nojs" style="width: 150px; padding: 0;"><ul style="display: block;"><li><div class="label">' . $lang->get('ajax_lbl_moreoptions_nojs') . '</div><div style="clear: both;"></div></li>'.$template->toolbar_menu.'</ul></div>';
       $template->footer();
       break;
     case 'protect':
@@ -202,32 +212,33 @@
       {
         if(!preg_match('#^([0-2]*){1}$#', $_POST['level'])) die_friendly('Error protecting page', '<p>Request validation failed</p>');
         PageUtils::protect($paths->cpage['urlname_nons'], $paths->namespace, intval($_POST['level']), $_POST['reason']);
-        die_friendly('Page protected', '<p>The protection setting has been applied. <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>');
+        
+        die_friendly($lang->get('page_protect_lbl_success_title'), '<p>' . $lang->get('page_protect_lbl_success_body', array( 'page_link' => makeUrl($paths->page) )) . '</p>');
       }
       $template->header();
       ?>
       <form action="<?php echo makeUrl($paths->page, 'do=protect'); ?>" method="post">
         <input type="hidden" name="level" value="<?php echo $_REQUEST['level']; ?>" />
-        <?php if(isset($_POST['reason'])) echo '<p style="color: red;">Error: you must enter a reason for protecting this page.</p>'; ?>
-        <p>Reason for protecting the page:</p>
+        <?php if(isset($_POST['reason'])) echo '<p style="color: red;">' . $lang->get('page_protect_err_need_reason') . '</p>'; ?>
+        <p><?php echo $lang->get('page_protect_lbl_reason'); ?></p>
         <p><input type="text" name="reason" size="40" /><br />
-           Protecion level to be applied: <b><?php
+           <?php echo $lang->get('page_protect_lbl_level'); ?> <b><?php
              switch($_REQUEST['level'])
              {
                case '0':
-                 echo 'No protection';
+                 echo $lang->get('page_protect_lbl_level_none');
                  break;
                case '1':
-                 echo 'Full protection';
+                 echo $lang->get('page_protect_lbl_level_full');
                  break;
                case '2':
-                 echo 'Semi-protection';
+                 echo $lang->get('page_protect_lbl_level_semi');
                  break;
                default:
                  echo 'None;</b> Warning: request validation will fail after clicking submit<b>';
              }
            ?></b></p>
-        <p><input type="submit" value="Protect page" style="font-weight: bold;" /></p> 
+        <p><input type="submit" value="<?php echo htmlspecialchars($lang->get('page_protect_btn_submit')) ?>" style="font-weight: bold;" /></p> 
       </form>
       <?php
       $template->footer();
@@ -236,37 +247,37 @@
       if(!empty($_POST['newname']))
       {
         $r = PageUtils::rename($paths->cpage['urlname_nons'], $paths->namespace, $_POST['newname']);
-        die_friendly('Page renamed', '<p>'.nl2br($r).' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>');
+        die_friendly('Page renamed', '<p>'.nl2br($r).' <a href="'.makeUrl($paths->page).'">' . $lang->get('etc_return_to_page') . '</a>.</p>');
       }
       $template->header();
       ?>
       <form action="<?php echo makeUrl($paths->page, 'do=rename'); ?>" method="post">
-        <?php if(isset($_POST['newname'])) echo '<p style="color: red;">Error: you must enter a new name for this page.</p>'; ?>
-        <p>Please enter a new name for this page:</p>
+        <?php if(isset($_POST['newname'])) echo '<p style="color: red;">' . $lang->get('page_rename_err_need_name') . '</p>'; ?>
+        <p><?php echo $lang->get('page_rename_lbl'); ?></p>
         <p><input type="text" name="newname" size="40" /></p>
-        <p><input type="submit" value="Rename page" style="font-weight: bold;" /></p> 
+        <p><input type="submit" value="<?php echo htmlspecialchars($lang->get('page_rename_btn_submit')); ?>" style="font-weight: bold;" /></p> 
       </form>
       <?php
       $template->footer();    
       break;
     case 'flushlogs':
-      if(!$session->get_permissions('clear_logs')) die_friendly('Access denied', '<p>Flushing the logs for a page <u>requires</u> administrative rights.</p>');
+      if(!$session->get_permissions('clear_logs'))
+      {
+        die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
+      }
       if(isset($_POST['_downthejohn']))
       {
         $template->header();
           $result = PageUtils::flushlogs($paths->cpage['urlname_nons'], $paths->namespace);
-          echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
+          echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">' . $lang->get('etc_return_to_page') . '</a>.</p>';
         $template->footer();
         break;
       }
       $template->header();
         ?>
         <form action="<?php echo makeUrl($paths->page, 'do=flushlogs'); ?>" method="post">
-          <h3>You are about to <span style="color: red;">destroy</span> all logged edits and actions on this page.</h3>
-           <p>Unlike deleting or editing this page, this action is <u>not reversible</u>! You should only do this if you are desparate for
-              database space.</p>
-           <p>Do you really want to continue?</p>
-           <p><input type="submit" name="_downthejohn" value="Flush logs" style="color: red; font-weight: bold;" /></p>
+           <?php echo $lang->get('page_flushlogs_warning_stern'); ?>
+           <p><input type="submit" name="_downthejohn" value="<?php echo htmlspecialchars($lang->get('page_flushlogs_btn_submit')); ?>" style="color: red; font-weight: bold;" /></p>
         </form>
         <?php
       $template->footer();
@@ -276,55 +287,66 @@
       {
         $template->header();
         $result = PageUtils::delvote($paths->cpage['urlname_nons'], $paths->namespace);
-        echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
+        echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">' . $lang->get('etc_return_to_page') . '</a>.</p>';
         $template->footer();
         break;
       }
       $template->header();
         ?>
         <form action="<?php echo makeUrl($paths->page, 'do=delvote'); ?>" method="post">
-          <h3>Your vote counts.</h3>
-           <p>If you think that this page is not relavent to the content on this site, or if it looks like this page was only created in
-              an attempt to spam the site, you can request that this page be deleted by an administrator.</p>
-           <p>After you vote, you should leave a comment explaining the reason for your vote, especially if you are the first person to
-              vote against this page.</p>
-           <p>So far, <?php echo ( $paths->cpage['delvotes'] == 1 ) ? $paths->cpage['delvotes'] . ' person has' : $paths->cpage['delvotes'] . ' people have'; ?> voted to delete this page.</p>
-           <p><input type="submit" name="_ballotbox" value="Vote to delete this page" /></p>
+           <?php
+             echo $lang->get('page_delvote_warning_stern');
+             echo '<p>';
+             switch($paths->cpage['delvotes'])
+             {
+               case 0:  echo $lang->get('page_delvote_count_zero'); break;
+               case 1:  echo $lang->get('page_delvote_count_one'); break;
+               default: echo $lang->get('page_delvote_count_plural', array('delvotes' => $paths->cpage['delvotes'])); break;
+             }
+             echo '</p>';
+           ?>
+           <p><input type="submit" name="_ballotbox" value="<?php echo htmlspecialchars($lang->get('page_delvote_btn_submit')); ?>" /></p>
         </form>
         <?php
       $template->footer();
       break;
     case 'resetvotes':
-      if(!$session->get_permissions('vote_reset')) die_friendly('Access denied', '<p>Resetting the deletion votes against this page <u>requires</u> admin rights.</p>');
+      if(!$session->get_permissions('vote_reset'))
+      {
+        die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
+      }
       if(isset($_POST['_youmaylivealittlelonger']))
       {
         $template->header();
           $result = PageUtils::resetdelvotes($paths->cpage['urlname_nons'], $paths->namespace);
-          echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
+          echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">' . $lang->get('etc_return_to_page') . '</a>.</p>';
         $template->footer();
         break;
       }
       $template->header();
         ?>
         <form action="<?php echo makeUrl($paths->page, 'do=resetvotes'); ?>" method="post">
-          <p>This action will reset the number of votes against this page to zero. Are you sure you want to do this?</p>
-          <p><input type="submit" name="_youmaylivealittlelonger" value="Reset votes" /></p>
+          <p><?php echo $lang->get('ajax_delvote_reset_confirm'); ?></p>
+          <p><input type="submit" name="_youmaylivealittlelonger" value="<?php echo htmlspecialchars($lang->get('page_delvote_reset_btn_submit')); ?>" /></p>
         </form>
         <?php
       $template->footer();
       break;
     case 'deletepage':
-      if(!$session->get_permissions('delete_page')) die_friendly('Access denied', '<p>Deleting pages <u>requires</u> admin rights.</p>');
+      if(!$session->get_permissions('delete_page'))
+      {
+        die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
+      }
       if(isset($_POST['_adiossucker']))
       {
         $reason = ( isset($_POST['reason']) ) ? $_POST['reason'] : false;
         if ( empty($reason) )
-          $error = 'Please enter a reason for deleting this page.';
+          $error = $lang->get('ajax_delete_prompt_reason');
         else
         {
           $template->header();
             $result = PageUtils::deletepage($paths->cpage['urlname_nons'], $paths->namespace, $reason);
-            echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
+            echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">' . $lang->get('etc_return_to_page') . '</a>.</p>';
           $template->footer();
           break;
         }
@@ -332,19 +354,19 @@
       $template->header();
         ?>
         <form action="<?php echo makeUrl($paths->page, 'do=deletepage'); ?>" method="post">
-          <h3>You are about to <span style="color: red;">destroy</span> this page.</h3>
-           <p>While the deletion of the page itself is completely reversible, it is impossible to recover any comments or category information on this page. If this is a file page, the file along with all older revisions of it will be permanently deleted. Also, any custom information that this page is tagged with, such as a custom name, protection status, or additional settings such as whether to allow comments, will be permanently lost.</p>
-           <p>Are you <u>absolutely sure</u> that you want to continue?<br />
-              You will not be asked again.</p>
+           <?php echo $lang->get('page_delete_warning_stern'); ?>
            <?php if ( isset($error) ) echo "<p>$error</p>"; ?>
-           <p>Reason for deleting: <input type="text" name="reason" size="50" /></p>
-           <p><input type="submit" name="_adiossucker" value="Delete this page" style="color: red; font-weight: bold;" /></p>
+           <p><?php echo $lang->get('page_delete_lbl_reason'); ?> <input type="text" name="reason" size="50" /></p>
+           <p><input type="submit" name="_adiossucker" value="<?php echo htmlspecialchars($lang->get('page_delete_btn_submit')); ?>" style="color: red; font-weight: bold;" /></p>
         </form>
         <?php
       $template->footer();
       break;
     case 'setwikimode':
-      if(!$session->get_permissions('set_wiki_mode')) die_friendly('Access denied', '<p>Changing the wiki mode setting <u>requires</u> admin rights.</p>');
+      if(!$session->get_permissions('set_wiki_mode'))
+      {
+        die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
+      }
       if ( isset($_POST['finish']) )
       {
         $level = intval($_POST['level']);
@@ -355,7 +377,7 @@
         $q = $db->sql_query('UPDATE '.table_prefix.'pages SET wiki_mode=' . $level . ' WHERE urlname=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND namespace=\'' . $paths->namespace . '\';');
         if ( !$q )
           $db->_die();
-        redirect(makeUrl($paths->page), htmlspecialchars($paths->cpage['name']), 'Wiki mode for this page has been set. Redirecting you to the page...', 2);
+        redirect(makeUrl($paths->page), htmlspecialchars($paths->cpage['name']), $lang->get('page_wikimode_success_redirect'), 2);
       }
       else
       {
@@ -369,17 +391,13 @@
         echo '<form action="' . makeUrl($paths->page, 'do=setwikimode', true) . '" method="post">';
         echo '<input type="hidden" name="finish" value="foo" />';
         echo '<input type="hidden" name="level" value="' . $level . '" />';
-        $level_txt = ( $level == 0 ) ? 'disabled' : ( ( $level == 1 ) ? 'enabled' : 'use the global setting' );
-        $blurb = ( $level == 0 || ( $level == 2 && getConfig('wiki_mode') != '1' ) ) ? 'Because this will disable the wiki behavior on this page, several features, most
-           notably the ability for users to vote to have this page deleted, will be disabled as they are not relevant to non-wiki pages. In addition, users will not be able
-           to edit this page unless an ACL rule specifically permits them.' : 'Because this will enable the wiki behavior on this page, users will gain the ability to
-           freely edit this page unless an ACL rule specifically denies them. If your site is public and gets good traffic, you should be aware of the possiblity of vandalism, and you need to be ready to revert
-           malicious edits to this page.';
+        $level_txt = ( $level == 0 ) ? 'page_wikimode_level_off' : ( ( $level == 1 ) ? 'page_wikimode_level_on' : 'page_wikimode_level_global' );
+        $blurb = ( $level == 0 || ( $level == 2 && getConfig('wiki_mode') != '1' ) ) ? 'page_wikimode_blurb_disable' : 'page_wikimode_blurb_enable';
         ?>
-        <h3>You are changing wiki mode for this page.</h3>
-        <p>Wiki features will be set to <?php echo $level_txt; ?>. <?php echo $blurb; ?></p>
-        <p>If you want to continue, please click the button below.</p>
-        <p><input type="submit" value="Set wiki mode" /></p>
+        <h3><?php echo $lang->get('page_wikimode_heading'); ?></h3>
+        <p><?php echo $lang->get($level_txt) . ' ' . $lang->get($blurb); ?></p>
+        <p><?php echo $lang->get('page_wikimode_warning'); ?></p>
+        <p><input type="submit" value="<?php echo htmlspecialchars($lang->get('page_wikimode_btn_submit')); ?>" /></p>
         <?php
         echo '</form>';
         $template->footer();
@@ -398,16 +416,16 @@
     case 'detag':
       if ( $session->user_level < USER_LEVEL_ADMIN )
       {
-        die_friendly('Access denied', '<p>You need to be an administrator to detag pages.</p>');
+        die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
       }
       if ( $paths->page_exists )
       {
-        die_friendly('Invalid request', '<p>The detag action is only valid for pages that have been deleted in the past.</p>');
+        die_friendly($lang->get('etc_invalid_request_short'), '<p>' . $lang->get('page_detag_err_page_exists') . '</p>');
       }
       $q = $db->sql_query('DELETE FROM '.table_prefix.'tags WHERE page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND namespace=\'' . $paths->namespace . '\';');
       if ( !$q )
         $db->_die('Detag query, index.php:'.__LINE__);
-      die_friendly('Page detagged', '<p>All stale tags have been removed from this page.</p>');
+      die_friendly($lang->get('page_detag_success_title'), '<p>' . $lang->get('page_detag_success_body') . '</p>');
       break;
     case 'aclmanager':
       $data = ( isset($_POST['data']) ) ? $_POST['data'] : Array('mode' => 'listgroups');

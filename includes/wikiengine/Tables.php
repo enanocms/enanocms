@@ -1,8 +1,8 @@
 <?php
 
-/**
+/*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -422,6 +422,7 @@
 	 * @return array
 	 */
 	function setupAttributeWhitelist() {
+    global $db, $session, $paths, $template, $plugins;
 		$common = array( 'id', 'class', 'lang', 'dir', 'title', 'style' );
 		$block = array_merge( $common, array( 'align' ) );
 		$tablealign = array( 'align', 'char', 'charoff', 'valign' );
@@ -570,6 +571,14 @@
       # XHTML stuff
       'acronym'    => $common
 			);
+    
+    // custom tags can be added by plugins
+    $code = $plugins->setHook('html_attribute_whitelist');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
 		return $whitelist;
 	}
   

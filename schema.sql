@@ -1,5 +1,5 @@
 -- Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
--- Version 1.0 (Banshee)
+-- Version 1.0.2 (Coblynau)
 -- Copyright (C) 2006-2007 Dan Fuhry
 
 -- This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -104,6 +104,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   temp_password text,
   temp_password_time int(12) NOT NULL DEFAULT 0,
   user_coppa tinyint(1) NOT NULL DEFAULT 0,
+  user_lang smallint(5) NOT NULL,
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8`;
 
@@ -254,6 +255,38 @@ CREATE TABLE {{TABLE_PREFIX}}tags(
   PRIMARY KEY ( tag_id )
 ) CHARACTER SET `utf8`;
 
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}lockout(
+  id int(12) NOT NULL auto_increment,
+  ipaddr varchar(40) NOT NULL,
+  action ENUM('credential', 'level') NOT NULL DEFAULT 'credential',
+  timestamp int(12) NOT NULL DEFAULT 0,
+  PRIMARY KEY ( id )
+) CHARACTER SET `utf8`;
+
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}language(
+  lang_id smallint(5) NOT NULL auto_increment,
+  lang_code varchar(16) NOT NULL,
+  lang_name_default varchar(64) NOT NULL,
+  lang_name_native varchar(64) NOT NULL,
+  last_changed int(12) NOT NULL DEFAULT 0,
+  PRIMARY KEY ( lang_id )
+) CHARACTER SET `utf8`;
+
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}language_strings(
+  string_id bigint(15) NOT NULL auto_increment,
+  lang_id smallint(5) NOT NULL,
+  string_category varchar(32) NOT NULL,
+  string_name varchar(64) NOT NULL,
+  string_content longtext NOT NULL,
+  PRIMARY KEY ( string_id )
+);
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),
@@ -278,7 +311,7 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('copyright_notice', '{{COPYRIGHT}}'),
   ('wiki_edit_notice_text', '== Why can I edit this page? ==\n\nEveryone can edit almost any page in this website. This concept is called a wiki. It gives everyone the opportunity to make a change for the best. While some spam and vandalism may occur, it is believed that most contributions will be legitimate and helpful.\n\nFor security purposes, a history of all page edits is kept, and administrators are able to restore vandalized or spammed pages with just a few clicks.'),
   ('cache_thumbs', '{{ENABLE_CACHE}}'),
-  ('max_file_size', '256000'),('enano_version', '{{VERSION}}'),('enano_beta_version', '{{BETA_VERSION}}'),( 'allowed_mime_types', 'cbf:len=168;crc=c3dcad3f;data=0[1],1[4],0[3],1[1],0[2],1[1],0[11],1[1],0[7],1[1],0[9],1[1],0[6],1[3],0[10],1[1],0[2],1[2],0[1],1[1],0[1],1[2],0[6],1[3],0[1],1[1],0[2],1[4],0[1],1[2],0[3],1[1],0[4],1[2],0[26],1[5],0[6],1[2],0[2],1[1],0[4],1[1],0[10],1[2],0[1],1[1],0[6]|end' ),
+  ('max_file_size', '256000'),('enano_version', '{{VERSION}}'),( 'allowed_mime_types', 'cbf:len=168;crc=c3dcad3f;data=0[1],1[4],0[3],1[1],0[2],1[1],0[11],1[1],0[7],1[1],0[9],1[1],0[6],1[3],0[10],1[1],0[2],1[2],0[1],1[1],0[1],1[2],0[6],1[3],0[1],1[1],0[2],1[4],0[1],1[2],0[3],1[1],0[4],1[2],0[26],1[5],0[6],1[2],0[2],1[1],0[4],1[1],0[10],1[2],0[1],1[1],0[6]|end' ),
   ('contact_email', '{{ADMIN_EMAIL}}'),
   ('powered_btn', '1');
 

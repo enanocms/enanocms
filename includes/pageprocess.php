@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.1 (Loch Ness)
+ * Version 1.1.1
  * pageprocess.php - intelligent retrieval of pages
  * Copyright (C) 2006-2007 Dan Fuhry
  *
@@ -212,7 +212,7 @@ class PageProcessor
         return false;
       }
     }
-    else if ( $this->namespace == 'User' )
+    else if ( $this->namespace == 'User' && strpos($this->page_id, '/') === false )
     {
       $this->_handle_userpage();
     }
@@ -371,6 +371,8 @@ class PageProcessor
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     $text = $this->fetch_text();
+    $text = preg_replace('/([\s]*)__NOBREADCRUMBS__([\s]*)/', '', $text);
+    $text = preg_replace('/([\s]*)__NOTOC__([\s]*)/', '', $text);
     
     $redir_enabled = false;
     if ( preg_match('/^#redirect \[\[([^\]]+?)\]\]/i', $text, $match ) )
@@ -418,6 +420,7 @@ class PageProcessor
     $template->tpl_strings['PAGE_NAME'] = htmlspecialchars( $this->title );
     
     $this->header();
+    $this->do_breadcrumbs();
     
     if ( $_errormsg )
     {
@@ -631,6 +634,8 @@ class PageProcessor
         ));
     
     $target_username = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $target_username);
+    $target_username = explode('/', $target_username);
+    $target_username = $target_username[0];
     
     if ( ( $page_name == str_replace('_', ' ', $this->page_id) || $page_name == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) ) || !$this->page_exists )
     {
@@ -702,6 +707,13 @@ class PageProcessor
     if ( !empty($userdata['real_name']) )
     {
       echo '<tr><td class="row3">Real name: ' . $userdata['real_name'] . '</td></tr>';
+    }
+    
+    // Administer user button
+    
+    if ( $session->user_level >= USER_LEVEL_ADMIN )
+    {
+      echo '<tr><td class="row1"><a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&user=' . urlencode($target_username), true) . '" onclick="ajaxAdminUser(\'' . addslashes($target_username) . '\'); return false;">Administer user</a></td></tr>';
     }
     
     // Comments
@@ -930,6 +942,7 @@ class PageProcessor
   
   function _handle_redirect($page_id, $namespace)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
     $arr_pid = array($this->page_id, $this->namespace);
     if ( $namespace == 'Special' || $namespace == 'Admin' )
     {
@@ -939,7 +952,7 @@ class PageProcessor
     {
       return 'This page infinitely redirects with another page (or another series of pages), and the infinite redirect was trapped.';
     }
-    $page_id_key = $paths->nslist[ $namespace ] . $page_id;
+    $page_id_key = $paths->nslist[ $namespace ] . sanitize_page_id($page_id);
     if ( !isset($paths->pages[$page_id_key]) )
     {
       return 'This page redirects to another page that doesn\'t exist.';
@@ -963,12 +976,37 @@ class PageProcessor
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
+    // Log it for crying out loud
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
+    
     $ob = '';
-    $template->tpl_strings['PAGE_NAME'] = 'Access denied';
+    //$template->tpl_strings['PAGE_NAME'] = 'Access denied';
+    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars( $this->title );
       
     if ( $this->send_headers )
     {
       $ob .= $template->getHeader();
+    }
+    
+    if ( count($this->redirect_stack) > 0 )
+    {
+      $stack = array_reverse($this->redirect_stack);
+      foreach ( $stack as $oldtarget )
+      {
+        $url = makeUrlNS($oldtarget[1], $oldtarget[0], 'redirect=no', true);
+        $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
+        $page_data = $paths->pages[$page_id_key];
+        $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
+        $a = '<a href="' . $url . '">' . $title . '</a>';
+        
+        $url = makeUrlNS($this->namespace, $this->page_id, 'redirect=no', true);
+        $page_id_key = $paths->nslist[ $this->namespace ] . $this->page_id;
+        $page_data = $paths->pages[$page_id_key];
+        $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$this->namespace] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $this->page_id ) ) );
+        $b = '<a href="' . $url . '">' . $title . '</a>';
+        
+        $ob .= '<small>(Redirected to ' . $b . ' from ' . $a . ')<br /></small>';
+      }
     }
     
     $ob .= '<div class="error-box"><b>Access to this page is denied.</b><br />This may be because you are not logged in or you have not met certain criteria for viewing this page.</div>';
@@ -1044,8 +1082,11 @@ class PageProcessor
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $this->header();
     header('HTTP/1.1 404 Not Found');
+    
+    $this->header();
+    $this->do_breadcrumbs();
+    
     if ( $userpage )
     {
       echo '<h3>There is no page with this title yet.</h3>
@@ -1075,6 +1116,10 @@ class PageProcessor
       {
         $r = $db->fetchrow();
         echo '<p><b>This page was deleted on ' . $r['date_string'] . '.</b> The stated reason was:</p><blockquote>' . $r['edit_summary'] . '</blockquote><p>You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">roll back</a> the deletion.</p>';
+        if ( $session->user_level >= USER_LEVEL_ADMIN )
+        {
+          echo '<p>Additional admin options: <a href="' . makeUrl($paths->page, 'do=detag', true) . '" title="Remove any tags on this page">detag page</a></p>';
+        }
       }
       $db->free_result();
     }
@@ -1082,6 +1127,58 @@ class PageProcessor
             HTTP Error: 404 Not Found
           </p>';
     $this->footer();
+  }
+  
+  /**
+   * Echoes out breadcrumb data, if appropriate.
+   * @access private
+   */
+  
+  function do_breadcrumbs()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    if ( strpos($this->text_cache, '__NOBREADCRUMBS__') !== false )
+      return false;
+    $breadcrumb_data = explode('/', $this->page_id);
+    if ( count($breadcrumb_data) > 1 )
+    {
+      echo '<!-- Start breadcrumbs -->
+            <div class="breadcrumbs">
+              ';
+      foreach ( $breadcrumb_data as $i => $higherpage )
+      {
+        $higherpage = $paths->nslist[$this->namespace] . sanitize_page_id(implode('/', array_slice($breadcrumb_data, 0, ($i+1))));
+        if ( ($i + 1) == count($breadcrumb_data) )
+        {
+          $title = get_page_title($higherpage, false);
+          if ( !$this->page_exists )
+          {
+            $title = explode('/', $title);
+            $title = array_reverse($title);
+            $title = $title[0];
+          }
+          echo htmlspecialchars($title);
+          break;
+        }
+        else if ( isPage($higherpage) )
+        {
+          $title = get_page_title($higherpage, false);
+          echo '<a href="' . makeUrl($higherpage, false, true) . '">' . htmlspecialchars($title) . '</a>';
+        }
+        else
+        {
+          $title = get_page_title($higherpage, false);
+          $title = explode('/', $title);
+          $title = array_reverse($title);
+          $title = $title[0];
+          echo '<a href="' . makeUrl($higherpage, false, true) . '" class="wikilink-nonexistent">' . htmlspecialchars($title) . '</a>';
+        }
+        echo ' &raquo; ';
+      }
+      echo '</div>
+            <!-- End breadcrumbs -->
+            ';
+    }
   }
   
   /**

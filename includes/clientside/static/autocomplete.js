@@ -160,7 +160,24 @@ function ajaxUserNameComplete(o)
         thediv.id = id;
         unObj.onblur = function() { destroyUsernameDropdowns(); }
         
-        eval(ajax.responseText);
+        var response = String(ajax.responseText) + ' ';
+        if ( response.substr(0,1) != '{' )
+        {
+          new messagebox(MB_OK|MB_ICONSTOP, 'Invalid response', 'Invalid or unexpected JSON response from server:<pre>' + ajax.responseText + '</pre>');
+          return false;
+        }
+        
+        response = parseJSON(response);
+        var errorstring = false;
+        if ( response.mode == 'error' )
+        {
+          errorstring = response.error;
+        }
+        else
+        {
+          var userlist = response.users_real;
+        }
+        
         if(errorstring)
         {
           html = '<span style="color: #555; padding: 4px;">'+errorstring+'</span>';

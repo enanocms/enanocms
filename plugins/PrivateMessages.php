@@ -4,13 +4,13 @@ Plugin Name: Private Message frontend
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:PrivateMessages, which is used to manage private message functions. Also handles buddy lists.
 Author: Dan Fuhry
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 2
+ * Version 1.0.2
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -35,12 +35,18 @@ $plugins->attachHook('base_classes_initted', '
 function page_Special_PrivateMessages()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if(!$session->user_logged_in) die_friendly('Access denied', '<p>You need to <a href="'.makeUrlNS('Special', 'Login/'.$paths->page).'">log in</a> to view your private messages.</p>');
+  if ( !$session->user_logged_in )
+  {
+    die_friendly('Access denied', '<p>You need to <a href="'.makeUrlNS('Special', 'Login/'.$paths->page).'">log in</a> to view your private messages.</p>');
+  }
   $argv = Array();
   $argv[] = $paths->getParam(0);
   $argv[] = $paths->getParam(1);
   $argv[] = $paths->getParam(2);
-  if(!$argv[0]) $argv[0] = 'InVaLiD';
+  if ( !$argv[0] )
+  {
+    $argv[0] = 'InVaLiD';
+  }
   switch($argv[0])
   {
     default:
@@ -48,17 +54,29 @@ function page_Special_PrivateMessages()
       break;
     case 'View':
       $id = $argv[1];
-      if(!preg_match('#^([0-9]+)$#', $id)) die_friendly('Message error', '<p>Invalid message ID</p>');
+      if ( !preg_match('#^([0-9]+)$#', $id) )
+      {
+        die_friendly('Message error', '<p>Invalid message ID</p>');
+      }
       $q = $db->sql_query('SELECT p.message_from, p.message_to, p.subject, p.message_text, p.date, p.folder_name, u.signature FROM '.table_prefix.'privmsgs AS p LEFT JOIN '.table_prefix.'users AS u ON (p.message_from=u.username) WHERE message_id='.$id.'');
-      if(!$q) $db->_die('The message data could not be selected.');
+      if ( !$q )
+      {
+        $db->_die('The message data could not be selected.');
+      }
       $r = $db->fetchrow();
       $db->free_result();
-      if( ($r['message_to'] != $session->username && $r['message_from'] != $session->username ) || $r['folder_name']=='drafts' ) die_friendly('Access denied', '<p>You are not authorized to view this message.</p>');
-      if($r['message_to'] == $session->username)
+      if ( ($r['message_to'] != $session->username && $r['message_from'] != $session->username ) || $r['folder_name']=='drafts' )
+      {
+        die_friendly('Access denied', '<p>You are not authorized to view this message.</p>');
+      }
+      if ( $r['message_to'] == $session->username )
       {
         $q = $db->sql_query('UPDATE '.table_prefix.'privmsgs SET message_read=1 WHERE message_id='.$id.'');
         $db->free_result();
-        if(!$q) $db->_die('Could not mark message as read');
+        if ( !$q )
+        {
+          $db->_die('Could not mark message as read');
+        }
       }
       $template->header();
       userprefs_show_menu();
@@ -69,7 +87,7 @@ function page_Special_PrivateMessages()
           <tr><td class="row1">Subject:</td><td class="row1"><?php echo $r['subject']; ?></td></tr>
           <tr><td class="row2">Date:</td><td class="row2"><?php echo date('M j, Y G:i', $r['date']); ?></td></tr>
           <tr><td class="row1">Message:</td><td class="row1"><?php echo RenderMan::render($r['message_text']);
-          if($r['signature'] != '')
+          if ( $r['signature'] != '' )
           {
             echo '<hr style="margin-left: 1em; width: 200px;" />';
             echo RenderMan::render($r['signature']);
@@ -82,33 +100,60 @@ function page_Special_PrivateMessages()
       break;
     case 'Move':
       $id = $argv[1];
-      if(!preg_match('#^([0-9]+)$#', $id)) die_friendly('Message error', '<p>Invalid message ID</p>');
+      if ( !preg_match('#^([0-9]+)$#', $id) )
+      {
+        die_friendly('Message error', '<p>Invalid message ID</p>');
+      }
       $q = $db->sql_query('SELECT message_to FROM '.table_prefix.'privmsgs WHERE message_id='.$id.'');
-      if(!$q) $db->_die('The message data could not be selected.');
+      if ( !$q )
+      {
+        $db->_die('The message data could not be selected.');
+      }
       $r = $db->fetchrow();
       $db->free_result();
-      if($r['message_to'] != $session->username) die_friendly('Access denied', '<p>You are not authorized to alter this message.</p>');
+      if ( $r['message_to'] != $session->username )
+      {
+        die_friendly('Access denied', '<p>You are not authorized to alter this message.</p>');
+      }
       $fname = $argv[2];
-      if(!$fname || ( $fname != 'Inbox' && $fname != 'Outbox' && $fname != 'Sent' && $fname != 'Drafts' && $fname != 'Archive' ) ) die_friendly('Invalid request', '<p>The folder name "'.$fname.'" is invalid.</p>');
+      if ( !$fname || ( $fname != 'Inbox' && $fname != 'Outbox' && $fname != 'Sent' && $fname != 'Drafts' && $fname != 'Archive' ) )
+      {
+        die_friendly('Invalid request', '<p>The folder name "'.$fname.'" is invalid.</p>');
+      }
       $q = $db->sql_query('UPDATE '.table_prefix.'privmsgs SET folder_name=\''.strtolower($fname).'\' WHERE message_id='.$id.';');
       $db->free_result();
-      if(!$q) $db->_die('The message was not successfully moved.');
+      if ( !$q )
+      {
+        $db->_die('The message was not successfully moved.');
+      }
       die_friendly('Message status', '<p>Your message has been moved to the folder "'.$fname.'".</p><p><a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">Return to inbox</a></p>');
       break;
     case 'Delete':
       $id = $argv[1];
-      if(!preg_match('#^([0-9]+)$#', $id)) die_friendly('Message error', '<p>Invalid message ID</p>');
+      if ( !preg_match('#^([0-9]+)$#', $id) )
+      {
+        die_friendly('Message error', '<p>Invalid message ID</p>');
+      }
       $q = $db->sql_query('SELECT message_to FROM '.table_prefix.'privmsgs WHERE message_id='.$id.'');
-      if(!$q) $db->_die('The message data could not be selected.');
+      if ( !$q )
+      {
+        $db->_die('The message data could not be selected.');
+      }
       $r = $db->fetchrow();
-      if($r['message_to'] != $session->username) die_friendly('Access denied', '<p>You are not authorized to delete this message.</p>');
+      if ( $r['message_to'] != $session->username )
+      {
+        die_friendly('Access denied', '<p>You are not authorized to delete this message.</p>');
+      }
       $q = $db->sql_query('DELETE FROM '.table_prefix.'privmsgs WHERE message_id='.$id.';');
-      if(!$q) $db->_die('The message was not successfully deleted.');
+      if ( !$q )
+      {
+        $db->_die('The message was not successfully deleted.');
+      }
       $db->free_result();
       die_friendly('Message status', '<p>The message has been deleted.</p><p><a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">Return to inbox</a></p>');
       break;
     case 'Compose':
-      if($argv[1]=='Send' && isset($_POST['_send']))
+      if ( $argv[1]=='Send' && isset($_POST['_send']) )
       {
         // Check each POST DATA parameter...
         if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == '')) die_friendly('Sending of message failed', '<p>Please enter the username to which you want to send your message.</p>');
@@ -191,10 +236,26 @@ function page_Special_PrivateMessages()
         ?>
         <br />
         <div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
-          <tr><th colspan="2">Compose new private message</th></tr>
-          <tr><td class="row1">To:<br /><small>Separate multiple names with a single comma; you<br />can send this message to up to <b><?php echo (string)MAX_PMS_PER_BATCH; ?></b> users.</small></td><td class="row1"><?php echo $template->username_field('to', (isset($_POST['_savedraft'])) ? $_POST['to'] : $to ); ?></td></tr>
-          <tr><td class="row2">Subject:</td><td class="row2"><input name="subject" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo $_POST['subject']; else echo $subj; ?>" /></td></tr>
-          <tr><td class="row1">Message:</td><td class="row1" style="min-width: 80%;"><textarea rows="20" cols="40" name="message" style="width: 100%;"><?php if(isset($_POST['_savedraft'])) echo $_POST['message']; else echo $text; ?></textarea></td></tr>
+          <tr>
+            <th colspan="2">Compose new private message</th>
+          </tr>
+          <tr>
+            <td class="row1">
+              To:<br />
+              <small>Separate multiple names with a single comma; you<br />
+                     may send this message to up to <b><?php echo (string)MAX_PMS_PER_BATCH; ?></b> users.</small>
+            </td>
+            <td class="row1">
+              <?php echo $template->username_field('to', (isset($_POST['_savedraft'])) ? $_POST['to'] : $to ); ?>
+            </td>
+          </tr>
+          <tr>
+            <td class="row2">
+              Subject:
+            </td>
+            <td class="row2">
+              <input name="subject" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['subject']); else echo $subj; ?>" /></td></tr>
+          <tr><td class="row1">Message:</td><td class="row1" style="min-width: 80%;"><textarea rows="20" cols="40" name="message" style="width: 100%;"><?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['message']); else echo $text; ?></textarea></td></tr>
           <tr><th colspan="2"><input type="submit" name="_send" value="Send message" />  <input type="submit" name="_savedraft" value="Save as draft" /> <input type="submit" name="_inbox" value="Back to Inbox" /></th></tr>
         </table></div>
         <?php
@@ -254,9 +315,9 @@ function page_Special_PrivateMessages()
         <br />
         <div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
           <tr><th colspan="2">Edit draft</th></tr>
-          <tr><td class="row1">To:<br /><small>Separate multiple names with a single comma</small></td><td class="row1"><input name="to" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo $_POST['to']; else echo $r['message_to']; ?>" /></td></tr>
-          <tr><td class="row2">Subject:</td><td class="row2"><input name="subject" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo $_POST['subject']; else echo $r['subject']; ?>" /></td></tr>
-          <tr><td class="row1">Message:</td><td class="row1"><textarea rows="20" cols="40" name="message" style="width: 100%;"><?php if(isset($_POST['_savedraft'])) echo $_POST['message']; else echo $r['message_text']; ?></textarea></td></tr>
+          <tr><td class="row1">To:<br /><small>Separate multiple names with a single comma</small></td><td class="row1"><input name="to" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['to']); else echo $r['message_to']; ?>" /></td></tr>
+          <tr><td class="row2">Subject:</td><td class="row2"><input name="subject" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['subject']); else echo $r['subject']; ?>" /></td></tr>
+          <tr><td class="row1">Message:</td><td class="row1"><textarea rows="20" cols="40" name="message" style="width: 100%;"><?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['message']); else echo $r['message_text']; ?></textarea></td></tr>
           <tr><th colspan="2"><input type="submit" name="_send" value="Send message" />  <input type="submit" name="_savedraft" value="Save as draft" /></th></tr>
         </table></div>
         <?php

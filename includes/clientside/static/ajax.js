@@ -71,7 +71,7 @@ function ajaxEditor()
       if(ajax.readyState == 4) {
         unsetAjaxLoading();
         if(edit_open) {
-          c=confirm('Do you really want to revert your changes?');
+          c=confirm($lang.get('editor_msg_revert_confirm'));
           if(!c) return;
         }
         edit_open = true;
@@ -82,18 +82,18 @@ function ajaxEditor()
           // Allow the textarea grippifier to re-create the resizer control on the textarea
           grippied_textareas.pop(in_array('ajaxEditArea', grippied_textareas));
         }
-        disableUnload('If you do, any changes that you have made to this page will be lost.');
+        disableUnload($lang.get('editor_msg_unload'));
         var switcher = ( readCookie('enano_editor_mode') == 'tinymce' ) ?
-                        '<a href="#" onclick="setEditorText(); return false;">wikitext editor</a>  |  graphical editor' :
-                        'wikitext editor  |  <a href="#" onclick="setEditorMCE(); return false;">graphical editor</a>' ;
+                        '<a href="#" onclick="setEditorText(); return false;">' + $lang.get('editor_btn_wikitext') + '</a>  |  ' + $lang.get('editor_btn_graphical') :
+                        $lang.get('editor_btn_wikitext') + '  |  <a href="#" onclick="setEditorMCE(); return false;">' + $lang.get('editor_btn_graphical') + '</a>' ;
         document.getElementById('ajaxEditContainer').innerHTML = '\
         <div id="mdgPreviewContainer"></div> \
         <span id="switcher">' + switcher + '</span><br />\
         <form name="mdgAjaxEditor" method="get" action="#" onsubmit="ajaxSavePage(); return false;">\
         <textarea id="ajaxEditArea" rows="20" cols="60" style="display: block; margin: 1em 0 1em 1em; width: 96.5%;">'+ajax.responseText+'</textarea><br />\
-          Edit summary: <input id="ajaxEditSummary" size="40" /><br />\
-          <input id="ajaxEditMinor" name="minor" type="checkbox" /> <label for="ajaxEditMinor">This is a minor edit</label><br />\
-          <a href="#" onclick="void(ajaxSavePage()); return false;">save changes</a>  |  <a href="#" onclick="void(ajaxShowPreview()); return false;">preview changes</a>  |  <a href="#" onclick="void(ajaxEditor()); return false;">revert changes</a>  |  <a href="#" onclick="void(ajaxDiscard()); return false;">discard changes</a>\
+          ' + $lang.get('editor_lbl_edit_summary') + ' <input id="ajaxEditSummary" size="40" /><br />\
+          <input id="ajaxEditMinor" name="minor" type="checkbox" /> <label for="ajaxEditMinor">' + $lang.get('editor_lbl_minor_edit') + '</label><br />\
+          <a href="#" onclick="void(ajaxSavePage()); return false;">' + $lang.get('editor_btn_save') + '</a>  |  <a href="#" onclick="void(ajaxShowPreview()); return false;">' + $lang.get('editor_btn_preview') + '</a>  |  <a href="#" onclick="void(ajaxEditor()); return false;">' + $lang.get('editor_btn_revert') + '</a>  |  <a href="#" onclick="void(ajaxDiscard()); return false;">' + $lang.get('editor_btn_cancel') + '</a>\
           <br />\
           '+editNotice+'\
         </form>';
@@ -110,14 +110,14 @@ function setEditorMCE()
 {
   $('ajaxEditArea').switchToMCE();
   createCookie('enano_editor_mode', 'tinymce', 365);
-  $('switcher').object.innerHTML = '<a href="#" onclick="setEditorText(); return false;">wikitext editor</a>  |  graphical editor';
+  $('switcher').object.innerHTML = '<a href="#" onclick="setEditorText(); return false;">' + $lang.get('editor_btn_wikitext') + '</a>  |  ' + $lang.get('editor_btn_graphical');
 }
 
 function setEditorText()
 {
   $('ajaxEditArea').destroyMCE();
   createCookie('enano_editor_mode', 'text', 365);
-  $('switcher').object.innerHTML = 'wikitext editor  |  <a href="#" onclick="setEditorMCE(); return false;">graphical editor</a>';
+  $('switcher').object.innerHTML = $lang.get('editor_btn_wikitext') + '  |  <a href="#" onclick="setEditorMCE(); return false;">' + $lang.get('editor_btn_graphical') + '</a>';
 }
 
 function ajaxViewSource()
@@ -129,11 +129,7 @@ function ajaxViewSource()
   ajaxGet(stdAjaxPrefix+'&_mode=getsource', function() {
       if(ajax.readyState == 4) {
         unsetAjaxLoading();
-        if(edit_open) {
-          c=confirm('Do you really want to revert your changes?');
-          if(!c) return;
-        }
-        edit_open = true;
+        edit_open = false;
         selectButtonMajor('article');
         selectButtonMinor('edit');
         if(in_array('ajaxEditArea', grippied_textareas))
@@ -144,7 +140,7 @@ function ajaxViewSource()
         document.getElementById('ajaxEditContainer').innerHTML = '\
           <form method="get" action="#" onsubmit="ajaxSavePage(); return false;">\
             <textarea readonly="readonly" id="ajaxEditArea" rows="20" cols="60" style="display: block; margin: 1em 0 1em 1em; width: 96.5%;">'+ajax.responseText+'</textarea><br />\
-            <a href="#" onclick="void(ajaxReset()); return false;">close viewer</a>\
+            <a href="#" onclick="void(ajaxReset()); return false;">' + $lang.get('editor_btn_closeviewer') + '</a>\
           </form>';
         initTextareas();
       }
@@ -194,7 +190,7 @@ function ajaxDiscard()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm('Do you really want to discard your changes?');
+  c = confirm($lang.get('editor_msg_discard_confirm'));
   if(!c) return;
   ajaxReset();
 }
@@ -204,6 +200,9 @@ function ajaxReset()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
+  var ns_id = strToPageID(title);
+  if ( ns_id[1] == 'Special' || ns_id[1] == 'Admin' )
+    return false;
   enableUnload();
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=getpage&noheaders', function() {
@@ -226,7 +225,7 @@ function ajaxProtect(l) {
   if(shift) {
     r = 'NO_REASON';
   } else {
-    r = prompt('Reason for (un)protecting:');
+    r = prompt($lang.get('ajax_protect_prompt_reason'));
     if(!r || r=='') return;
   }
   setAjaxLoading();
@@ -248,7 +247,7 @@ function ajaxRename()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  r = prompt('What title should this page be renamed to?\nNote: This does not and will never change the URL of this page, that must be done from the admin panel.');
+  r = prompt($lang.get('ajax_rename_prompt'));
   if(!r || r=='') return;
   setAjaxLoading();
   ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+escape(r), function() {
@@ -278,12 +277,12 @@ function ajaxDeletePage()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  var reason = prompt('Please enter your reason for deleting this page.');
+  var reason = prompt($lang.get('ajax_delete_prompt_reason'));
   if ( !reason || reason == '' )
   {
     return false;
   }
-  c = confirm('You are about to REVERSIBLY delete this page. Do you REALLY want to do this?\n\n(Comments and categorization data, as well as any attached files, will be permanently lost)');
+  c = confirm($lang.get('ajax_delete_confirm'));
   if(!c)
   {
     return;
@@ -303,7 +302,7 @@ function ajaxDelVote()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm('Are you sure that you want to vote that this page be deleted?');
+  c = confirm($lang.get('ajax_delvote_confirm'));
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=delvote', function() {
@@ -319,7 +318,7 @@ function ajaxResetDelVotes()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm('This will reset the number of votes against this page to zero. Do you really want to do this?');
+  c = confirm($lang.get('ajax_delvote_reset_confirm'));
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=resetdelvotes', function() {
@@ -457,9 +456,9 @@ function ajaxClearLogs()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm('You are about to DESTROY all log entries for this page. As opposed to (example) deleting this page, this action is completely IRREVERSIBLE and should not be used except in dire circumstances. Do you REALLY want to do this?');
+  c = confirm($lang.get('ajax_clearlogs_confirm'));
   if(!c) return;
-  c = confirm('You\'re ABSOLUTELY sure???');
+  c = confirm($lang.get('ajax_clearlogs_confirm_nag'));
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=flushlogs', function() {
@@ -563,13 +562,13 @@ function ajaxChangeStyle()
   if ( KILL_SWITCH )
     return true;
   var inner_html = '';
-  inner_html += '<p><label>Theme: ';
+  inner_html += '<p><label>' + $lang.get('ajax_changestyle_lbl_theme') + ' ';
   inner_html += '  <select id="chtheme_sel_theme" onchange="ajaxGetStyles(this.value);">';
-  inner_html += '    <option value="_blank" selected="selected">[Select]</option>';
+  inner_html += '    <option value="_blank" selected="selected">' + $lang.get('ajax_changestyle_select') + '</option>';
   inner_html +=      ENANO_THEME_LIST;
   inner_html += '  </select>';
   inner_html += '</label></p>';
-  var chtheme_mb = new messagebox(MB_OKCANCEL|MB_ICONQUESTION, 'Change your theme', inner_html);
+  var chtheme_mb = new messagebox(MB_OKCANCEL|MB_ICONQUESTION, $lang.get('ajax_changestyle_title'), inner_html);
   chtheme_mb.onbeforeclick['OK'] = ajaxChangeStyleComplete;
 }
 
@@ -614,7 +613,7 @@ function ajaxGetStyles(id)
         var p_parent = document.createElement('p');
         var label  = document.createElement('label');
         p_parent.id = 'chtheme_sel_style_parent';
-        label.appendChild(document.createTextNode('Style: '));
+        label.appendChild(document.createTextNode($lang.get('ajax_changestyle_lbl_style') + ' '));
         var select = document.createElement('select');
         select.id = 'chtheme_sel_style';
         for ( var i in options )
@@ -643,7 +642,7 @@ function ajaxChangeStyleComplete()
   var style = $('chtheme_sel_style');
   if ( !theme.object || !style.object )
   {
-    alert('Please select a theme from the list.');
+    alert($lang.get('ajax_changestyle_pleaseselect_theme'));
     return true;
   }
   var theme_id = theme.object.value;
@@ -667,7 +666,7 @@ function ajaxChangeStyleComplete()
       {
         if ( ajax.responseText == 'GOOD' )
         {
-          var c = confirm('Your theme preference has been changed.\nWould you like to reload the page now to see the changes?');
+          var c = confirm($lang.get('ajax_changestyle_success'));
           if ( c )
             window.location.reload();
         }
@@ -822,6 +821,33 @@ function ajaxAdminPage()
   window.location = loc;
 }
 
+var navto_ns;
+var navto_pg;
+var navto_ul;
+
+function ajaxLoginNavTo(namespace, page_id, min_level)
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
+  navto_pg = page_id;
+  navto_ns = namespace;
+  navto_ul = min_level;
+  if ( auth_level < min_level )
+  {
+    ajaxPromptAdminAuth(function(k) {
+      ENANO_SID = k;
+      auth_level = navto_ul;
+      var loc = makeUrlNS(navto_ns, navto_pg);
+      if ( (ENANO_SID + ' ').length > 1 )
+        window.location = loc;
+    }, min_level);
+    return false;
+  }
+  var loc = makeUrlNS(navto_ns, navto_pg);
+  window.location = loc;
+}
+
 function ajaxAdminUser(username)
 {
   // IE <6 pseudo-compatibility
@@ -849,7 +875,7 @@ function ajaxDisableEmbeddedPHP()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  if ( !confirm('Are you really sure you want to do this? Some pages might not function if this emergency-only feature is activated.') )
+  if ( !confirm($lang.get('ajax_killphp_confirm')) )
     return false;
   var $killdiv = $dynano('php_killer');
   if ( !$killdiv.object )
@@ -870,7 +896,7 @@ function ajaxDisableEmbeddedPHP()
           var newdiv = document.createElement('div');
           // newdiv.style = $killdiv.object.style;
           newdiv.className = $killdiv.object.className;
-          newdiv.innerHTML = '<img alt="Success" src="' + scriptPath + '/images/error.png" /><br />Embedded PHP in pages has been disabled.';
+          newdiv.innerHTML = '<img alt="Success" src="' + scriptPath + '/images/error.png" /><br />' + $lang.get('ajax_killphp_success');
           $killdiv.object.parentNode.appendChild(newdiv);
           $killdiv.object.parentNode.removeChild($killdiv.object);
         }
@@ -907,14 +933,14 @@ function ajaxCatToTag()
         if ( !catbox )
           return false;
         var linkbox = catbox.parentNode.firstChild.firstChild.nextSibling;
-        linkbox.firstChild.nodeValue = 'show page categorization';
+        linkbox.firstChild.nodeValue = $lang.get('catedit_catbox_link_showcategorization');
         linkbox.onclick = function() { ajaxTagToCat(); return false; };
         catHTMLBuf = catbox.innerHTML;
         catbox.innerHTML = '';
-        catbox.appendChild(document.createTextNode('Page tags: '));
+        catbox.appendChild(document.createTextNode($lang.get('tags_lbl_page_tags')+' '));
         if ( json.tags.length < 1 )
         {
-          catbox.appendChild(document.createTextNode('No tags on this page'));
+          catbox.appendChild(document.createTextNode($lang.get('tags_lbl_no_tags')));
         }
         for ( var i = 0; i < json.tags.length; i++ )
         {
@@ -938,7 +964,7 @@ function ajaxCatToTag()
           var addlink = document.createElement('a');
           addlink.href = '#';
           addlink.onclick = function() { try { ajaxAddTagStage1(); } catch(e) { }; return false; };
-          addlink.appendChild(document.createTextNode('(add a tag)'));
+          addlink.appendChild(document.createTextNode($lang.get('tags_btn_add_tag')));
           catbox.appendChild(addlink);
         }
       }
@@ -957,7 +983,7 @@ function ajaxAddTagStage1()
   var addlink = document.createElement('a');
   addlink.href = '#';
   addlink.onclick = function() { ajaxAddTagStage2(this.parentNode.firstChild.nextSibling.value, this.parentNode); return false; };
-  addlink.appendChild(document.createTextNode('+ Add'));
+  addlink.appendChild(document.createTextNode($lang.get('tags_btn_add')));
   text.type = 'text';
   text.size = '15';
   text.onkeyup = function(e)
@@ -969,7 +995,7 @@ function ajaxAddTagStage1()
   }
   
   adddiv.style.margin = '5px 0 0 0';
-  adddiv.appendChild(document.createTextNode('Add a tag: '));
+  adddiv.appendChild(document.createTextNode($lang.get('tags_lbl_add_tag')+' '));
   adddiv.appendChild(text);
   adddiv.appendChild(document.createTextNode(' '));
   adddiv.appendChild(addlink);
@@ -1011,7 +1037,7 @@ function ajaxAddTagStage2(tag, nukeme)
           var node = parent.childNodes[1];
           var insertafter = false;
           var nukeafter = false;
-          if ( node.nodeValue == 'No tags on this page' )
+          if ( node.nodeValue == $lang.get('tags_lbl_no_tags') )
           {
             nukeafter = true;
           }
@@ -1052,12 +1078,12 @@ function ajaxDeleteTag(parentobj, tag_id)
   var writeNoTags = false;
   if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == ', ' )
     arrDelete.push(parentobj.previousSibling.previousSibling.previousSibling);
-  else if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == 'Page tags: ' )
+  else if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == $lang.get('tags_lbl_page_tags') + ' ' )
     arrDelete.push(parentobj.nextSibling);
   
-  if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == 'Page tags: ' &&
+  if ( parentobj.previousSibling.previousSibling.previousSibling.nodeValue == $lang.get('tags_lbl_page_tags') + ' ' &&
        parentobj.nextSibling.nextSibling.firstChild )
-    if ( parentobj.nextSibling.nextSibling.firstChild.nodeValue == '(add a tag)')
+    if ( parentobj.nextSibling.nextSibling.firstChild.nodeValue == $lang.get('tags_btn_add_tag'))
       writeNoTags = true;
     
   ajaxPost(stdAjaxPrefix + '&_mode=deltag', 'tag_id=' + String(tag_id), function()
@@ -1075,7 +1101,7 @@ function ajaxDeleteTag(parentobj, tag_id)
           }
           if ( writeNoTags )
           {
-            var node1 = document.createTextNode('No tags on this page');
+            var node1 = document.createTextNode($lang.get('tags_lbl_no_tags'));
             var node2 = document.createTextNode(' ');
             insertAfter(parent, node1, parent.firstChild);
             insertAfter(parent, node2, node1);
@@ -1098,7 +1124,7 @@ function ajaxTagToCat()
     return false;
   addtag_open = false;
   var linkbox = catbox.parentNode.firstChild.firstChild.nextSibling;
-  linkbox.firstChild.nodeValue = 'show page tags';
+  linkbox.firstChild.nodeValue = $lang.get('tags_catbox_link');
   linkbox.onclick = function() { ajaxCatToTag(); return false; };
   catbox.innerHTML = catHTMLBuf;
   catHTMLBuf = false;
@@ -1121,7 +1147,7 @@ function ajaxToggleKeepalive()
     if ( keepalive_interval )
       clearInterval(keepalive_interval);
     var span = document.getElementById('keepalivestat');
-    span.firstChild.nodeValue = 'Turn on keep-alive';
+    span.firstChild.nodeValue = $lang.get('adm_btn_keepalive_off');
   }
   else
   {
@@ -1129,7 +1155,7 @@ function ajaxToggleKeepalive()
     if ( !keepalive_interval )
       keepalive_interval = setInterval('ajaxPingServer();', 600000);
     var span = document.getElementById('keepalivestat');
-    span.firstChild.nodeValue = 'Turn off keep-alive';
+    span.firstChild.nodeValue = $lang.get('adm_btn_keepalive_on');
     ajaxPingServer();
   }
 }
@@ -1141,20 +1167,50 @@ var keepalive_onload = function()
     if ( !keepalive_interval )
       keepalive_interval = setInterval('ajaxPingServer();', 600000);
     var span = document.getElementById('keepalivestat');
-    span.firstChild.nodeValue = 'Turn off keep-alive';
-    ajaxPingServer();
+    span.firstChild.nodeValue = $lang.get('adm_btn_keepalive_on');
   }
   else
   {
     if ( keepalive_interval )
       clearInterval(keepalive_interval);
     var span = document.getElementById('keepalivestat');
-    span.firstChild.nodeValue = 'Turn on keep-alive';
+    span.firstChild.nodeValue = $lang.get('adm_btn_keepalive_off');
   }
 };
 
 function aboutKeepAlive()
 {
-  new messagebox(MB_OK|MB_ICONINFORMATION, 'About the keep-alive feature', 'Keep-alive is a new Enano feature that keeps your administrative session from timing out while you are using the administration panel. This feature can be useful if you are editing a large page or doing something in the administration interface that will take longer than 15 minutes.<br /><br />For security reasons, Enano mandates that high-privilege logins last only 15 minutes, with the time being reset each time a page is loaded (or, more specifically, each time the session API is started). The consequence of this is that if you are performing an action in the administration panel that takes more than 15 minutes, your session may be terminated. The keep-alive feature attempts to relieve this by sending a "ping" to the server every 10 minutes.<br /><br />Please note that keep-alive state is determined by a cookie. Thus, if you log out and then back in as a different administrator, keep-alive will use the same setting that was used when you were logged in as the first administrative user. In the same way, if you log into the administration panel under your account from another computer, keep-alive will be set to "off".');
+  new messagebox(MB_OK|MB_ICONINFORMATION, $lang.get('user_keepalive_info_title'), $lang.get('user_keepalive_info_body'));
+}
+
+function ajaxShowCaptcha(code)
+{
+  var mydiv = document.createElement('div');
+  mydiv.style.backgroundColor = '#FFFFFF';
+  mydiv.style.padding = '10px';
+  mydiv.style.position = 'absolute';
+  mydiv.style.top = '0px';
+  mydiv.id = 'autoCaptcha';
+  mydiv.style.zIndex = String( getHighestZ() + 1 );
+  var img = document.createElement('img');
+  img.onload = function()
+  {
+    if ( this.loaded )
+      return true;
+    var mydiv = document.getElementById('autoCaptcha');
+    var width = getWidth();
+    var divw = $(mydiv).Width();
+    var left = ( width / 2 ) - ( divw / 2 );
+    mydiv.style.left = left + 'px';
+    fly_in_top(mydiv, false, true);
+    this.loaded = true;
+  };
+  img.src = makeUrlNS('Special', 'Captcha/' + code);
+  img.onclick = function() { this.src = this.src + '/a'; };
+  img.style.cursor = 'pointer';
+  mydiv.appendChild(img);
+  domObjChangeOpac(0, mydiv);
+  var body = document.getElementsByTagName('body')[0];
+  body.appendChild(mydiv);
 }
 

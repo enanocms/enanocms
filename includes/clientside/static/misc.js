@@ -196,7 +196,7 @@ function setAjaxLoading()
 {
   if ( document.getElementById('ajaxloadicon') )
   {
-    document.getElementById('ajaxloadicon').src=scriptPath + '/images/loading.gif';
+    document.getElementById('ajaxloadicon').src=ajax_load_icon;
   }
 }
 
@@ -301,6 +301,63 @@ function searchFormSubmit(obj)
 var ajax_auth_prompt_cache = false;
 var ajax_auth_mb_cache = false;
 var ajax_auth_level_cache = false;
+var ajax_auth_error_string = false;
+var ajax_auth_show_captcha = false;
+
+function ajaxAuthErrorToString($data)
+{
+  var $errstring = $data.error;
+  // this was literally copied straight from the PHP code.
+  switch($data.error)
+  {
+    case 'key_not_found':
+      $errstring = $lang.get('user_err_key_not_found');
+      break;
+    case 'key_wrong_length':
+      $errstring = $lang.get('user_err_key_wrong_length');
+      break;
+    case 'too_big_for_britches':
+      $errstring = $lang.get('user_err_too_big_for_britches');
+      break;
+    case 'invalid_credentials':
+      $errstring = $lang.get('user_err_invalid_credentials');
+      var subst = {
+        lockout_fails: $data.lockout_fails,
+        lockout_threshold: $data.lockout_threshold,
+        lockout_duration: $data.lockout_duration
+      }
+      if ( $data.lockout_policy == 'lockout' )
+      {
+        $errstring += $lang.get('user_err_invalid_credentials_lockout', subst);
+      }
+      else if ( $data.lockout_policy == 'captcha' )
+      {
+        $errstring += $lang.get('user_err_invalid_credentials_lockout_captcha', subst);
+      }
+      break;
+    case 'backend_fail':
+      $errstring = $lang.get('user_err_backend_fail');
+      break;
+    case 'locked_out':
+      $attempts = parseInt($data['lockout_fails']);
+      if ( $attempts > $data['lockout_threshold'])
+        $attempts = $data['lockout_threshold'];
+      $time_rem = $data.time_rem;
+      $s = ( $time_rem == 1 ) ? '' : $lang.get('meta_plural');
+      
+      var subst = {
+        lockout_threshold: $data.lockout_threshold,
+        time_rem: $time_rem,
+        plural: $s,
+        captcha_blurb: ( $data.lockout_policy == 'captcha' ? $lang.get('user_err_locked_out_captcha_blurb') : '' )
+      }
+      
+      $errstring = $lang.get('user_err_locked_out', subst);
+      
+      break;
+  }
+  return $errstring;
+}
 
 function ajaxPromptAdminAuth(call_on_ok, level)
 {
@@ -312,13 +369,24 @@ function ajaxPromptAdminAuth(call_on_ok, level)
     level = USER_LEVEL_MEMBER;
   ajax_auth_level_cache = level;
   var loading_win = '<div align="center" style="text-align: center;"> \
-      <p>Fetching an encryption key...</p> \
-      <p><small>Not working? Use the <a href="'+makeUrlNS('Special', 'Login/' + title)+'">alternate login form</a>.</p> \
+      <p>' + $lang.get('user_login_ajax_fetching_key') + '</p> \
+      <p><small>' + $lang.get('user_login_ajax_link_fullform', { link_full_form: makeUrlNS('Special', 'Login/' + title) }) + '</p> \
       <p><img alt="Please wait..." src="'+scriptPath+'/images/loading-big.gif" /></p> \
     </div>';
-  var title = ( level > USER_LEVEL_MEMBER ) ? 'You are requesting a sensitive operation.' : 'Please enter your username and password to continue.';
+  var title = ( level > USER_LEVEL_MEMBER ) ? $lang.get('user_login_ajax_prompt_title_elev') : $lang.get('user_login_ajax_prompt_title');
   ajax_auth_mb_cache = new messagebox(MB_OKCANCEL|MB_ICONLOCK, title, loading_win);
   ajax_auth_mb_cache.onbeforeclick['OK'] = ajaxValidateLogin;
+  ajax_auth_mb_cache.onbeforeclick['Cancel'] = function()
+  {
+    if ( document.getElementById('autoCaptcha') )
+    {
+      var to = fly_out_top(document.getElementById('autoCaptcha'), false, true);
+      setTimeout(function() {
+          var d = document.getElementById('autoCaptcha');
+          d.parentNode.removeChild(d);
+        }, to);
+    }
+  }
   ajaxAuthLoginInnerSetup();
 }
 
@@ -334,30 +402,65 @@ function ajaxAuthLoginInnerSetup()
           return false;
         }
         response = parseJSON(response);
+        var disable_controls = false;
+        if ( response.locked_out && !ajax_auth_error_string )
+        {
+          response.error = 'locked_out';
+          ajax_auth_error_string = ajaxAuthErrorToString(response);
+          if ( response.lockout_policy == 'captcha' )
+          {
+            ajax_auth_show_captcha = response.captcha;
+          }
+          else
+          {
+            disable_controls = true;
+          }
+        }
         var level = ajax_auth_level_cache;
         var form_html = '';
-        if ( level > USER_LEVEL_MEMBER )
+        var shown_error = false;
+        if ( ajax_auth_error_string )
         {
-          form_html += 'Please re-enter your login details, to verify your identity.<br /><br />';
+          shown_error = true;
+          form_html += '<div class="error-box-mini" id="ajax_auth_error">' + ajax_auth_error_string + '</div>';
+          ajax_auth_error_string = false;
         }
+        else if ( level > USER_LEVEL_MEMBER )
+        {
+          form_html += $lang.get('user_login_ajax_prompt_body_elev') + '<br /><br />';
+        }
+        if ( ajax_auth_show_captcha )
+         {
+           var captcha_html = ' \
+             <tr> \
+               <td>' + $lang.get('user_login_field_captcha') + ':</td> \
+               <td><input type="hidden" id="ajaxlogin_captcha_hash" value="' + ajax_auth_show_captcha + '" /><input type="text" tabindex="3" size="25" id="ajaxlogin_captcha_code" /> \
+             </tr>';
+         }
+         else
+         {
+           var captcha_html = '';
+         }
+         var disableme = ( disable_controls ) ? 'disabled="disabled" ' : '';
         form_html += ' \
           <table border="0" align="center"> \
             <tr> \
-              <td>Username:</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     size="25" /> \
+              <td>' + $lang.get('user_login_field_username') + ':</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     ' + disableme + 'size="25" /> \
             </tr> \
             <tr> \
-              <td>Password:</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" size="25" /> \
+              <td>' + $lang.get('user_login_field_password') + ':</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" ' + disableme + 'size="25" /> \
             </tr> \
+            ' + captcha_html + ' \
             <tr> \
               <td colspan="2" style="text-align: center;"> \
-                <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title)+'">full login form</a>.<br />';
+                <small>' + $lang.get('user_login_ajax_link_fullform', { link_full_form: makeUrlNS('Special', 'Login/' + title, 'level=' + level) }) + '<br />';
        if ( level <= USER_LEVEL_MEMBER )
        {
          form_html += ' \
-                Did you <a href="'+makeUrlNS('Special', 'PasswordReset')+'">forget your password</a>?<br /> \
-                Maybe you need to <a href="'+makeUrlNS('Special', 'Register')+'">create an account</a>.</small>';
+                ' + $lang.get('user_login_ajax_link_forgotpass', { forgotpass_link: makeUrlNS('Special', 'PasswordReset') }) + '<br /> \
+                ' + $lang.get('user_login_createaccount_blurb', { reg_link: makeUrlNS('Special', 'Register') });
        }
-       form_html += ' \
+       form_html += '</small> \
               </td> \
             </tr> \
           </table> \
@@ -375,8 +478,39 @@ function ajaxAuthLoginInnerSetup()
         {
           $('ajaxlogin_user').object.focus();
         }
-        $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
-        $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        if ( ajax_auth_show_captcha )
+        {
+          $('ajaxlogin_captcha_code').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
+          $('ajaxlogin_captcha_code').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        }
+        else
+        {
+          $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
+          $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        }
+        if ( disable_controls )
+        {
+          var panel = document.getElementById('messageBoxButtons');
+          panel.firstChild.disabled = true;
+        }
+        /*
+        ## This causes the background image to disappear under Fx 2
+        if ( shown_error )
+        {
+          // fade to #FFF4F4
+          var fader = new Spry.Effect.Highlight('ajax_auth_error', {duration: 1000, from: '#FFF4F4', to: '#805600', restoreColor: '#805600', finish: function()
+              {
+                var fader = new Spry.Effect.Highlight('ajax_auth_error', {duration: 3000, from: '#805600', to: '#FFF4F4', restoreColor: '#FFF4F4'});
+                fader.start();
+          }});
+          fader.start();
+        }
+        */
+        if ( ajax_auth_show_captcha )
+        {
+          ajaxShowCaptcha(ajax_auth_show_captcha);
+          ajax_auth_show_captcha = false;
+        }
       }
     });
 }
@@ -390,6 +524,15 @@ function ajaxValidateLogin()
   username = document.getElementById('ajaxlogin_user').value;
   password = document.getElementById('ajaxlogin_pass').value;
   auth_enabled = false;
+  
+  if ( document.getElementById('autoCaptcha') )
+  {
+    var to = fly_out_top(document.getElementById('autoCaptcha'), false, true);
+    setTimeout(function() {
+        var d = document.getElementById('autoCaptcha');
+        d.parentNode.removeChild(d);
+      }, to);
+  }
   
   disableJSONExts();
   
@@ -446,11 +589,17 @@ function ajaxValidateLogin()
     'level' : ajax_auth_level_cache
   };
   
+  if ( document.getElementById('ajaxlogin_captcha_hash') )
+  {
+    json_data.captcha_hash = document.getElementById('ajaxlogin_captcha_hash').value;
+    json_data.captcha_code = document.getElementById('ajaxlogin_captcha_code').value;
+  }
+  
   json_data = toJSONString(json_data);
   json_data = encodeURIComponent(json_data);
   
   var loading_win = '<div align="center" style="text-align: center;"> \
-      <p>Logging in...</p> \
+      <p>' + $lang.get('user_login_ajax_loggingin') + '</p> \
       <p><img alt="Please wait..." src="'+scriptPath+'/images/loading-big.gif" /></p> \
     </div>';
     
@@ -488,8 +637,25 @@ function ajaxValidateLogin()
             }
             break;
           case 'error':
-            alert(response.error);
-            ajaxAuthLoginInnerSetup();
+            if ( response.data.error == 'invalid_credentials' || response.data.error == 'locked_out' )
+            {
+              ajax_auth_error_string = ajaxAuthErrorToString(response.data);
+              mb_current_obj.updateContent('');
+              document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
+              var mb_parent = document.getElementById('messageBox').parentNode;
+              new Spry.Effect.Shake(mb_parent, {duration: 1500}).start();
+              setTimeout("document.getElementById('messageBox').style.backgroundColor = '#FFF'; ajaxAuthLoginInnerSetup();", 2500);
+              
+              if ( response.data.lockout_policy == 'captcha' && response.data.error == 'locked_out' )
+              {
+                ajax_auth_show_captcha = response.captcha;
+              }
+            }
+            else
+            {
+              ajax_auth_error_string = ajaxAuthErrorToString(response.data);
+              ajaxAuthLoginInnerSetup();
+            }
             break;
           default:
             alert(ajax.responseText);

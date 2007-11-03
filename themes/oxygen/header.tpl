@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>{PAGE_NAME} &bull; {SITE_NAME}</title>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -11,6 +11,7 @@
     {ADDITIONAL_HEADERS}
     
     <script type="text/javascript">
+    // <![CDATA[
     
       function collapseSidebar(side)
       {
@@ -21,7 +22,7 @@
         {
           elem.style.display = 'block';
           counter.style.display = 'none';
-          elem.parentNode.style.width = '156px';
+          elem.parentNode.style.width = '';
           if ( !KILL_SWITCH )
           {
             createCookie(side+'_sidebar', 'open', 365);
@@ -66,7 +67,7 @@
       
       function ajaxRenameInline()
       {
-        if ( KILL_SWITCH )
+        if ( KILL_SWITCH || IE )
           return false;
         // This trick is _so_ vBulletin...
         elem = document.getElementById('h2PageName');
@@ -89,7 +90,8 @@
         if(!elem1 || !elem2) return;
         value = elem2.value;
         elem2.parentNode.removeChild(elem2); // just destroy the thing
-        elem1.innerHTML = value;
+        elem1.removeChild(elem1.firstChild);
+        elem1.appendChild(document.createTextNode(value));
         elem1.style.display = 'block';
         if(!value || value=='') return;
         ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+escape(value), function() {
@@ -100,10 +102,12 @@
       }
       function ajaxRenameInlineCancel(e)
       {
+        if ( typeof(e) != 'object' && IE )
+          e = window.event;
         elem1 = document.getElementById('h2PageName');
         elem2 = document.getElementById('pageheading');
         if(!elem1 || !elem2) return;
-        if ( e.target )
+        if ( typeof(e) == 'object' && e.target )
         {
           if(e.target == elem2)
             return;
@@ -114,6 +118,7 @@
         elem1.style.display = 'block';
         document.onclick = null;
       }
+    // ]]>
     </script>
     
   </head>
@@ -149,7 +154,7 @@
           <td id="mdg-bl"></td>
           <td class="menu_bg">
           <div class="menu_nojs" id="pagebar_main">
-            <div class="label">Page tools</div>
+            <div class="label">{lang:onpage_lbl_pagetools}</div>
             {TOOLBAR}
             <ul>
               {TOOLBAR_EXTRAS}
@@ -160,7 +165,7 @@
         <tr><td id="mdg-ml"></td><td style="background-color: #FFFFFF;">
           <div class="pad"><div class="contentDiv">
           <div style="float: right;">
-            <image alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
+            <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
           </div>
           <h2 <!-- BEGIN auth_rename --> ondblclick="ajaxRenameInline();" title="Double-click to rename this page" <!-- END auth_rename --> id="h2PageName">{PAGE_NAME}</h2>
             <div id="ajaxEditContainer">

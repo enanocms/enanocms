@@ -112,6 +112,7 @@ var current_ta  = false;
 var startwidth  = false;
 var startheight = false;
 var do_width    = false;
+var ajax_load_icon = scriptPath + '/images/loading.gif';
 
 // You have an NSIS coder in your midst...
 var MB_OK = 1;
@@ -264,6 +265,7 @@ var thefiles = [
   'admin-menu.js',
   'ajax.js',
   'autocomplete.js',
+  'autofill.js',
   'base64.js',
   'dropdown.js',
   'faders.js',
@@ -275,6 +277,7 @@ var thefiles = [
   'toolbar.js',
   'windows.js',
   'rijndael.js',
+  'l10n.js',
   'template-compiler.js',
   'acl.js',
   'comments.js',
@@ -283,6 +286,7 @@ var thefiles = [
   'flyin.js',
   'paginate.js',
   'pwstrength.js',
+  'SpryEffects.js',
   'loader.js'
 ];
 

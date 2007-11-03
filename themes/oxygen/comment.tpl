@@ -20,7 +20,7 @@
         </table>
       </td>
       <td class="row2">
-        <b>Subject:</b> <span id="subject_{ID}">{SUBJECT}</span>
+        <b>{lang:comment_lbl_subject}</b> <span id="subject_{ID}">{SUBJECT}</span>
       </td>
     </tr>
     <tr>
@@ -42,7 +42,7 @@
     <!-- BEGIN auth_mod -->
     <tr>
       <td class="row1">
-        <b>Moderation options:</b> {MOD_APPROVE_LINK} {MOD_DELETE_LINK}
+        <b>{lang:comment_lbl_mod_options}</b> {MOD_APPROVE_LINK} {MOD_DELETE_LINK}
       </td>
     </tr>
     <!-- END auth_mod -->

@@ -6,7 +6,7 @@
  
 /* The basics */
 html,body                          { height: 100%; }
-body                               { margin: 0; padding: 0; background: url(../images/bleu/bg.png); font-family: trebuchet ms, verdana, arial, helvetica, sans-serif; font-size: 9pt; }
+body                               { /* color added in 1.0.2 to fix light text in dark desktop themes */ color: #202020; margin: 0; padding: 0; background: url(../images/bleu/bg.png); font-family: trebuchet ms, verdana, arial, helvetica, sans-serif; font-size: 9pt; }
 .holder                            { border: 1px solid #CCCCCC; padding: 1px; background-color: #FFFFFF; color: #444444 }
 div.pad                            { padding: 10px; }                         
 table#title                        { margin: 0; padding: 0; height: 100px; background-color: #90B0D0; text-align: center; }

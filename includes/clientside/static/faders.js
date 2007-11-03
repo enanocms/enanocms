@@ -93,18 +93,29 @@ function messagebox(type, title, message)
   var y = getScrollOffset();
   if(document.getElementById('messageBox')) return;
   darken(true);
+  if ( aclDisableTransitionFX )
+  {
+    document.getElementById('specialLayer_darkener').style.zIndex = '5';
+  }
   var master_div = document.createElement('div');
+  master_div.style.zIndex = '6';
   var mydiv = document.createElement('div');
   mydiv.style.width = '400px';
   mydiv.style.height = '200px';
   w = getWidth();
   h = getHeight();
-  //master_div.style.left = (w / 2) - 200+'px';
-  //master_div.style.top = (h / 2) + y - 120+'px';
-  master_div.style.top = '-10000px';
-  master_div.style.position = ( IE ) ? 'absolute' : 'fixed';
-  z = getHighestZ(); // document.getElementById('specialLayer_darkener').style.zIndex;
-  mydiv.style.zIndex = parseInt(z) + 1;
+  if ( aclDisableTransitionFX )
+  {
+    master_div.style.left = ((w / 2) - 200)+'px';
+    master_div.style.top = ((h / 2) + y - 120)+'px';
+    master_div.style.position = 'absolute';
+  }
+  else
+  {
+    master_div.style.top = '-10000px';
+    master_div.style.position = ( IE ) ? 'absolute' : 'fixed';
+  }
+  z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex : getHighestZ();
   mydiv.style.backgroundColor = '#FFFFFF';
   mydiv.style.padding = '10px';
   mydiv.style.marginBottom = '1px';
@@ -115,11 +126,13 @@ function messagebox(type, title, message)
   buttondiv.style.width = '400px';
   w = getWidth();
   h = getHeight();
-  // buttondiv.style.left = (w / 2) - 200+'px';
-  // buttondiv.style.top = (h / 2) + y + 101+'px';
-  // buttondiv.style.position = ( IE ) ? 'absolute' : 'fixed';
-  z = getHighestZ(); // document.getElementById('specialLayer_darkener').style.zIndex;
-  buttondiv.style.zIndex = parseInt(z) + 1;
+  if ( aclDisableTransitionFX )
+  {
+    //buttondiv.style.left = ((w / 2) - 200)+'px';
+    //buttondiv.style.top = ((h / 2) + y + 101)+'px';
+  }
+  //buttondiv.style.position = ( IE ) ? 'absolute' : 'fixed';
+  z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex : getHighestZ();
   buttondiv.style.backgroundColor = '#C0C0C0';
   buttondiv.style.padding = '10px';
   buttondiv.style.textAlign = 'right';
@@ -171,7 +184,8 @@ function messagebox(type, title, message)
   {
     btn = document.createElement('input');
     btn.type = 'button';
-    btn.value = 'OK';
+    btn.value = $lang.get('etc_ok');
+    btn._GenericName = 'OK';
     btn.onclick = this.clickHandler;
     btn.style.margin = '0 3px';
     buttondiv.appendChild(btn);
@@ -181,14 +195,16 @@ function messagebox(type, title, message)
   {
     btn = document.createElement('input');
     btn.type = 'button';
-    btn.value = 'OK';
+    btn.value = $lang.get('etc_ok');
+    btn._GenericName = 'OK';
     btn.onclick = this.clickHandler;
     btn.style.margin = '0 3px';
     buttondiv.appendChild(btn);
     
     btn = document.createElement('input');
     btn.type = 'button';
-    btn.value = 'Cancel';
+    btn.value = $lang.get('etc_cancel');
+    btn._GenericName = 'Cancel';
     btn.onclick = this.clickHandler;
     btn.style.margin = '0 3px';
     buttondiv.appendChild(btn);
@@ -198,14 +214,16 @@ function messagebox(type, title, message)
   {
     btn = document.createElement('input');
     btn.type = 'button';
-    btn.value = 'Yes';
+    btn.value = $lang.get('etc_yes');
+    btn._GenericName = 'Yes';
     btn.onclick = this.clickHandler;
     btn.style.margin = '0 3px';
     buttondiv.appendChild(btn);
     
     btn = document.createElement('input');
     btn.type = 'button';
-    btn.value = 'No';
+    btn.value = $lang.get('etc_no');
+    btn._GenericName = 'No';
     btn.onclick = this.clickHandler;
     btn.style.margin = '0 3px';
     buttondiv.appendChild(btn);
@@ -215,21 +233,24 @@ function messagebox(type, title, message)
   {
     btn = document.createElement('input');
     btn.type = 'button';
-    btn.value = 'Yes';
+    btn.value = $lang.get('etc_yes');
+    btn._GenericName = 'Yes';
     btn.onclick = this.clickHandler;
     btn.style.margin = '0 3px';
     buttondiv.appendChild(btn);
     
     btn = document.createElement('input');
     btn.type = 'button';
-    btn.value = 'No';
+    btn.value = $lang.get('etc_no');
+    btn._GenericName = 'No';
     btn.onclick = this.clickHandler;
     btn.style.margin = '0 3px';
     buttondiv.appendChild(btn);
     
     btn = document.createElement('input');
     btn.type = 'button';
-    btn.value = 'Cancel';
+    btn.value = $lang.get('etc_cancel');
+    btn._GenericName = 'Cancel';
     btn.onclick = this.clickHandler;
     btn.style.margin = '0 3px';
     buttondiv.appendChild(btn);
@@ -265,7 +286,8 @@ function messagebox(type, title, message)
   
   body.appendChild(master_div);
   
-  setTimeout('mb_runFlyIn();', 100);
+  if ( !aclDisableTransitionFX )
+    setTimeout('mb_runFlyIn();', 100);
   
   this.onclick = new Array();
   this.onbeforeclick = new Array();
@@ -281,7 +303,7 @@ function mb_runFlyIn()
 
 function messagebox_click(obj, mb)
 {
-  val = obj.value;
+  val = ( typeof ( obj._GenericName ) == 'string' ) ? obj._GenericName : obj.value;
   if(typeof mb.onbeforeclick[val] == 'function')
   {
     var o = mb.onbeforeclick[val];
@@ -293,9 +315,19 @@ function messagebox_click(obj, mb)
   
   var mydiv = document.getElementById('messageBox');
   var maindiv = mydiv.parentNode;
-  var to = fly_out_top(maindiv, true, false);
   
-  setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.removeChild(mbdiv.nextSibling); mbdiv.parentNode.removeChild(mbdiv); enlighten(true);", to);
+  if ( aclDisableTransitionFX )
+  {
+    var mbdiv = document.getElementById('messageBox');
+    mbdiv.parentNode.removeChild(mbdiv.nextSibling);
+    mbdiv.parentNode.removeChild(mbdiv);
+    enlighten(true);
+  }
+  else
+  {
+    var to = fly_out_top(maindiv, true, false);
+    setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.removeChild(mbdiv.nextSibling); mbdiv.parentNode.removeChild(mbdiv); enlighten(true);", to);
+  }
   if(typeof mb.onclick[val] == 'function')
   {
     o = mb.onclick[val];
@@ -417,7 +449,7 @@ function changeOpac(opacity, id) {
 
 function mb_logout()
 {
-  var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, 'Are you sure you want to log out?', 'If you log out, you will no longer be able to access your user preferences, your private messages, or certain areas of this site until you log in again.');
+  var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title'), $lang.get('user_logout_confirm_body'));
   mb.onclick['Yes'] = function()
     {
       window.location = makeUrlNS('Special', 'Logout/' + title);

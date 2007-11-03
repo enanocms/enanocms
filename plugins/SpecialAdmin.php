@@ -4,13 +4,13 @@ Plugin Name: Runt - the Enano administration panel
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:Administration, which is the AJAX frontend to the various Admin pagelets. This plugin cannot be disabled.
 Author: Dan Fuhry
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -48,9 +48,12 @@ require(ENANO_ROOT . '/plugins/admin/UserManager.php');
 
 function page_Admin_Home() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -115,9 +118,12 @@ Using the links on the left you can control every aspect of your website\'s look
 
 function page_Admin_GeneralConfig() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -202,6 +208,16 @@ function page_Admin_GeneralConfig() {
       $strength = strval($strength);
       setConfig('pw_strength_minimum', $strength);
     }
+    
+    // Account lockout policy
+    if ( preg_match('/^[0-9]+$/', $_POST['lockout_threshold']) )
+      setConfig('lockout_threshold', $_POST['lockout_threshold']);
+    
+    if ( preg_match('/^[0-9]+$/', $_POST['lockout_duration']) )
+      setConfig('lockout_duration', $_POST['lockout_duration']);
+    
+    if ( in_array($_POST['lockout_policy'], array('disable', 'captcha', 'lockout')) )
+      setConfig('lockout_policy', $_POST['lockout_policy']);
     
     echo '<div class="info-box">Your changes to the site configuration have been saved.</div><br />';
     
@@ -344,12 +360,49 @@ function page_Admin_GeneralConfig() {
         <td class="row1">Account activation:</td><td class="row1">
           <?php
           echo '<label><input'; if(getConfig('account_activation') == 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="disable" /> Disable registration</label><br />';
-          echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> None</label>';
+          echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin' && getConfig('account_activation') != 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> None</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'user') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="user" /> User</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="admin" /> Admin</label>';
           ?>
         </td>
       </tr>
+      
+    <!-- Account lockout -->
+    
+      <tr><th colspan="2">Account lockouts</th></tr>
+      
+      <tr><td class="row3" colspan="2">Configure Enano to prevent or restrict logins for a specified period of time if a user enters an incorrect password a specific number of times.</td></tr>
+      
+      <tr>
+        <td class="row2">Lockout threshold:<br />
+          <small>How many times can a user enter wrong credentials before a lockout goes into effect?</small>
+        </td>
+        <td class="row2">
+          <input type="text" name="lockout_threshold" value="<?php echo ( $_ = getConfig('lockout_threshold') ) ? $_ : '5' ?>" />
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row1">Lockout duration:<br />
+          <small>This is how long an account lockout should last, in minutes.</small>
+        </td>
+        <td class="row1">
+          <input type="text" name="lockout_duration" value="<?php echo ( $_ = getConfig('lockout_duration') ) ? $_ : '15' ?>" />
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row2">Lockout policy:<br />
+          <small>What should be done when a lockout goes into effect?</small>
+        </td>
+        <td class="row2">
+          <label><input type="radio" name="lockout_policy" value="disable" <?php if ( getConfig('lockout_policy') == 'disable' ) echo 'checked="checked"'; ?> /> Don't do anything</label><br />
+          <label><input type="radio" name="lockout_policy" value="captcha" <?php if ( getConfig('lockout_policy') == 'captcha' ) echo 'checked="checked"'; ?> /> Require visual confirmation</label><br />
+          <label><input type="radio" name="lockout_policy" value="lockout" <?php if ( getConfig('lockout_policy') == 'lockout' || !getConfig('lockout_policy') ) echo 'checked="checked"'; ?> /> Prevent all login attempts</label>
+        </td>
+      </tr>
+      
+    <!-- Password strength -->
       
       <tr><th colspan="2">Password strength</th></tr>
       
@@ -464,9 +517,12 @@ function page_Admin_GeneralConfig() {
 function page_Admin_UploadConfig()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -581,9 +637,12 @@ function page_Admin_UploadConfig()
 
 function page_Admin_PluginManager() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -722,9 +781,12 @@ function page_Admin_PluginManager() {
 function page_Admin_UploadAllowedMimeTypes()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -785,9 +847,12 @@ function page_Admin_UploadAllowedMimeTypes()
 function page_Admin_Sidebar()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -842,9 +907,12 @@ function page_Admin_Sidebar()
 /*
 function page_Admin_UserManager() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1112,9 +1180,12 @@ function page_Admin_UserManager() {
 function page_Admin_GroupManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1471,9 +1542,12 @@ function page_Admin_GroupManager()
 function page_Admin_COPPA()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1544,9 +1618,12 @@ function page_Admin_COPPA()
 function page_Admin_PageManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1740,9 +1817,12 @@ function page_Admin_PageManager()
 function page_Admin_PageEditor()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -1840,9 +1920,12 @@ function page_Admin_ThemeManager()
 {
   
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2103,15 +2186,18 @@ function page_Admin_ThemeManager()
 function page_Admin_BanControl()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
   if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']) && $_GET['id'] != '')
   {
-    $e = $db->sql_query('DELETE FROM '.table_prefix.'banlist WHERE ban_id=' . $db->escape($_GET['id']) . '');
+    $e = $db->sql_query('DELETE FROM '.table_prefix.'banlist WHERE ban_id=' . intval($_GET['id']) . '');
     if(!$e) $db->_die('The ban list entry was not deleted.');
   }
   if(isset($_POST['create']) && !defined('ENANO_DEMO_MODE'))
@@ -2215,9 +2301,12 @@ function page_Admin_BanControl()
 function page_Admin_MassEmail()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2431,9 +2520,12 @@ function page_Admin_MassEmail()
 function page_Admin_DBBackup()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2535,9 +2627,12 @@ HEADER;
 function page_Admin_AdminLogout()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -2548,6 +2643,7 @@ function page_Admin_AdminLogout()
 function page_Special_Administration()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   
   if($session->auth_level < USER_LEVEL_ADMIN) {
     redirect(makeUrlNS('Special', 'Login/'.$paths->page, 'level='.USER_LEVEL_ADMIN), 'Not authorized', 'You need an authorization level of '.USER_LEVEL_ADMIN.' to use this page, your auth level is: ' . $session->auth_level, 0);
@@ -2573,7 +2669,7 @@ function page_Special_Administration()
       }
       if ( t == namespace_list.Admin + 'AdminLogout' )
       {
-        var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, 'Are you sure you want to de-authenticate?', 'If you de-authenticate, you will no longer be able to use the administration panel until you re-authenticate again. You may do so at any time using the Administration button on the sidebar.');
+        var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title_elev'), $lang.get('user_logout_confirm_body_elev'));
         mb.onclick['Yes'] = function() {
           var tigraentry = document.getElementById('i_div0_0').parentNode;
           var tigraobj = $(tigraentry);
@@ -2685,7 +2781,7 @@ function page_Special_Administration()
           } 
           else 
           {
-            echo '<div class="wait-box">Please wait while the administration panel loads. You need to be using a recent browser with AJAX support in order to use Runt.</div>';
+            echo '<script type="text/javascript">document.write(\'<div class="wait-box">Please wait while the administration panel loads. You need to be using a recent browser with AJAX support in order to use Runt.</div>\');</script><noscript><div class="error-box">It looks like Javascript isn\'t enabled in your browser. Please enable Javascript or use a different browser to continue.</div></noscript>';
           }
           ?>
           </div>
@@ -2710,6 +2806,7 @@ function page_Special_Administration()
 function page_Special_EditSidebar()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   
   if($session->auth_level < USER_LEVEL_ADMIN) 
   {
@@ -2834,9 +2931,8 @@ function page_Special_EditSidebar()
     
     if(isset($_GET['action']) && isset($_GET['id']))
     {
-      if(preg_match('#^([0-9]*)$#', $_GET['id']))
+      if(!preg_match('#^([0-9]*)$#', $_GET['id']))
       {
-      } else {
         echo '<div class="warning-box">Error with action: $_GET["id"] was not an integer, aborting to prevent SQL injection</div>';
       }
       switch($_GET['action'])
@@ -2980,7 +3076,7 @@ function page_Special_EditSidebar()
             echo '<div class="warning-box" style="margin: 10px 0;">$_GET[\'side\'] contained an SQL injection attempt</div>';
             break;
           }
-          $query = $db->sql_query('UPDATE '.table_prefix.'sidebar SET sidebar_id=' . $db->escape($_GET['side']) . ' WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $query = $db->sql_query('UPDATE '.table_prefix.'sidebar SET sidebar_id=' . $db->escape($_GET['side']) . ' WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$query)
           {
             echo $db->get_error();
@@ -2990,7 +3086,7 @@ function page_Special_EditSidebar()
           echo '<div class="info-box" style="margin: 10px 0;">Item moved.</div>';
           break;
         case 'delete':
-          $query = $db->sql_query('DELETE FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';'); // Already checked for injection attempts ;-)
+          $query = $db->sql_query('DELETE FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';'); // Already checked for injection attempts ;-)
           if(!$query)
           {
             echo $db->get_error();
@@ -3005,7 +3101,7 @@ function page_Special_EditSidebar()
           echo '<div class="error-box" style="margin: 10px 0;">Item deleted.</div>';
           break;
         case 'disenable';
-          $q = $db->sql_query('SELECT item_enabled FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('SELECT item_enabled FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo $db->get_error();
@@ -3015,7 +3111,22 @@ function page_Special_EditSidebar()
           $r = $db->fetchrow();
           $db->free_result();
           $e = ( $r['item_enabled'] == 1 ) ? '0' : '1';
-          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET item_enabled='.$e.' WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET item_enabled='.$e.' WHERE item_id=' . intval($_GET['id']) . ';');
+          if(!$q)
+          {
+            echo $db->get_error();
+            $template->footer();
+            exit;
+          }
+          if(isset($_GET['ajax']))
+          {
+            ob_end_clean();
+            die('GOOD');
+          }
+          break;
+        case 'rename';
+          $newname = $db->escape($_POST['newname']);
+          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_name=\''.$newname.'\' WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo $db->get_error();
@@ -3029,7 +3140,7 @@ function page_Special_EditSidebar()
           }
           break;
         case 'getsource':
-          $q = $db->sql_query('SELECT block_content,block_type FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('SELECT block_content,block_type FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo $db->get_error();
@@ -3045,7 +3156,7 @@ function page_Special_EditSidebar()
         case 'save':
           if ( defined('ENANO_DEMO_MODE') )
           {
-            $q = $db->sql_query('SELECT block_type FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+            $q = $db->sql_query('SELECT block_type FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
             if(!$q)
             {
               echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
@@ -3061,13 +3172,13 @@ function page_Special_EditSidebar()
               $_POST['content'] = sanitize_html($_POST['content'], true);
             }
           }
-          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_content=\''.$db->escape(rawurldecode($_POST['content'])).'\' WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_content=\''.$db->escape(rawurldecode($_POST['content'])).'\' WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
             exit;
           }
-          $q = $db->sql_query('SELECT block_type,block_content FROM '.table_prefix.'sidebar WHERE item_id=' . $db->escape($_GET['id']) . ';');
+          $q = $db->sql_query('SELECT block_type,block_content FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
           if(!$q)
           {
             echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
@@ -3159,6 +3270,8 @@ function page_Special_EditSidebar()
           $parser = $template->makeParserText($vars['sidebar_section']);
           $c = $template->tplWikiFormat($row['block_content'], false, 'sidebar-editor.tpl');
           $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
+          // fix for the "Administration" link that somehow didn't get rendered properly
+          $c = preg_replace("/(^|\n)([ ]*)<a([ ]+.*)?>(.+)<\/a>(<br(.*)\/>)([\r\n]+|$)/isU", '\\1\\2<li><a\\3>\\4</a></li>\\7', $c);
           break;
         case BLOCK_HTML:
           $parser = $template->makeParserText($vars['sidebar_section_raw']);
@@ -3178,7 +3291,10 @@ function page_Special_EditSidebar()
           $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : 'Can\'t find plugin block';
           break;
       }
-      $t = $template->tplWikiFormat($row['block_name']);
+      $block_name = $row['block_name']; // $template->tplWikiFormat($row['block_name']);
+      if ( empty($block_name) )
+        $block_name = '&lt;Unnamed&gt;';
+      $t = '<span title="Double-click to rename this block" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $block_name . '</span>';
       if($row['item_enabled'] == 0) $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red;">(disabled)</span>';
       else           $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red; display: none;">(disabled)</span>';
       $side = ( $row['sidebar_id'] == SIDEBAR_LEFT ) ? SIDEBAR_RIGHT : SIDEBAR_LEFT;

@@ -4,13 +4,13 @@ Plugin Name: Group control panel
 Plugin URI: http://enanocms.org/
 Description: Provides group moderators and site administrators with the ability to control who is part of their groups. 
 Author: Dan Fuhry
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0 release candidate 2
+ * Version 1.0.2
  * Copyright (C) 2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -50,10 +50,10 @@ function page_Special_Usergroups()
     {
       die_friendly('Error', '<p>Hacking attempt</p>');
     }
-    $q = $db->sql_query('SELECT group_name,group_type FROM '.table_prefix.'groups WHERE group_id=' . $gid . ';');
+    $q = $db->sql_query('SELECT group_name,group_type,system_group FROM '.table_prefix.'groups WHERE group_id=' . $gid . ';');
     if ( !$q )
     {
-      $db->_die();
+      $db->_die('SpecialGroups.php, line ' . __LINE__);
     }
     $row = $db->fetchrow();
     $db->free_result();
@@ -70,7 +70,7 @@ function page_Special_Usergroups()
                            ORDER BY m.is_mod DESC,u.username ASC;');
     if ( !$q )
     {
-      $db->_die();
+      $db->_die('SpecialGroups.php, line ' . __LINE__);
     }
     
     $is_member = false;
@@ -127,11 +127,29 @@ function page_Special_Usergroups()
           {
             die_friendly('ERROR', '<p>Hacking attempt</p>');
           }
-          $q = $db->sql_query('UPDATE '.table_prefix.'groups SET group_type=' . intval($_POST['group_state']) . ' WHERE group_id=' . intval( $_POST['group_id']) . ';');
-          if (!$q)
-            $db->_die();
-          $row['group_type'] = $_POST['group_state'];
-          echo '<div class="info-box" style="margin-left: 0;">The group state was updated.</div>';
+          $q = $db->sql_query('SELECT group_type, system_group FROM '.table_prefix.'groups WHERE group_id=' . intval( $_POST['group_id']) . ';');
+          if ( !$q )
+            $db->_die('SpecialGroups.php, line ' . __LINE__);
+          $error = false;
+          if ( $db->numrows() < 1 )
+          {
+            echo '<div class="error-box" style="margin-left: 0;">The group you selected does not exist.</div>';
+            $error = true;
+          }
+          $r = $db->fetchrow();
+          if ( $r['system_group'] == 1 && ( intval($_POST['group_state']) == GROUP_OPEN || intval($_POST['group_state']) == GROUP_REQUEST ) )
+          {
+            echo '<div class="error-box" style="margin-left: 0;">Because this is a system group, you can\'t make it open or allow membership requests.</div>';
+            $error = true;
+          }
+          if ( !$error )
+          {
+            $q = $db->sql_query('UPDATE '.table_prefix.'groups SET group_type=' . intval($_POST['group_state']) . ' WHERE group_id=' . intval( $_POST['group_id']) . ';');
+            if (!$q)
+              $db->_die('SpecialGroups.php, line ' . __LINE__);
+            $row['group_type'] = $_POST['group_state'];
+            echo '<div class="info-box" style="margin-left: 0;">The group state was updated.</div>';
+          }
           break;
         case 'adduser':
           $username = $_POST['add_username'];
@@ -139,7 +157,7 @@ function page_Special_Usergroups()
           
           $q = $db->sql_query('SELECT user_id FROM '.table_prefix.'users WHERE username=\'' . $db->escape($username) . '\';');
           if (!$q)
-            $db->_die();
+            $db->_die('SpecialGroups.php, line ' . __LINE__);
           if ($db->numrows() < 1)
           {
             echo '<div class="error-box">The username you entered could not be found.</div>';
@@ -152,7 +170,7 @@ function page_Special_Usergroups()
           // Check if the user is already in the group, and if so, only update modship
           $q = $db->sql_query('SELECT member_id,is_mod FROM '.table_prefix.'group_members WHERE user_id=' . $uid . ' AND group_id=' . intval($_POST['group_id']) . ';');
           if ( !$q )
-            $db->_die();
+            $db->_die('SpecialGroups.php, line ' . __LINE__);
           if ( $db->numrows() > 0 )
           {
             $r = $db->fetchrow();
@@ -160,7 +178,7 @@ function page_Special_Usergroups()
             {
               $q = $db->sql_query('UPDATE '.table_prefix.'group_members SET is_mod=' . $mod . ' WHERE member_id=' . $r['member_id'] . ';');
               if ( !$q )
-                $db->_die();
+                $db->_die('SpecialGroups.php, line ' . __LINE__);
               foreach ( $members as $i => $member )
               {
                 if ( $member['member_id'] == $r['member_id'] )
@@ -179,7 +197,7 @@ function page_Special_Usergroups()
           
           $q = $db->sql_query('INSERT INTO '.table_prefix.'group_members(group_id,user_id,is_mod) VALUES(' . intval($_POST['group_id']) . ', ' . $uid . ', ' . $mod . ');');
           if (!$q)
-            $db->_die();
+            $db->_die('SpecialGroups.php, line ' . __LINE__);
           echo '<div class="info-box">The user "' . $username . '" has been added to this usergroup.</div>';
           
           $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,COUNT(c.comment_id)
@@ -195,7 +213,7 @@ function page_Special_Usergroups()
                                  ORDER BY m.is_mod DESC,u.username ASC
                                  LIMIT 1;');
           if ( !$q )
-            $db->_die();
+            $db->_die('SpecialGroups.php, line ' . __LINE__);
           
           $r = $db->fetchrow();
           $members[] = $r;
@@ -209,7 +227,7 @@ function page_Special_Usergroups()
             {
               $q = $db->sql_query('DELETE FROM '.table_prefix.'group_members WHERE member_id=' . $member['member_id'] . ';');
               if (!$q)
-                $db->_die();
+                $db->_die('SpecialGroups.php, line ' . __LINE__);
               unset($members[$i]);
             }
           }
@@ -223,7 +241,7 @@ function page_Special_Usergroups()
               {
                 $q = $db->sql_query('UPDATE '.table_prefix.'group_members SET pending=0 WHERE member_id=' . $member['member_id'] . ';');
                 if (!$q)
-                  $db->_die();
+                  $db->_die('SpecialGroups.php, line ' . __LINE__);
                 $members[] = $member;
                 unset($pending[$i]);
                 continue;
@@ -232,7 +250,7 @@ function page_Special_Usergroups()
               {
                 $q = $db->sql_query('DELETE FROM '.table_prefix.'group_members WHERE member_id=' . $member['member_id'] . ';');
                 if (!$q)
-                  $db->_die();
+                  $db->_die('SpecialGroups.php, line ' . __LINE__);
                 unset($pending[$i]);
               }
             }
@@ -246,7 +264,7 @@ function page_Special_Usergroups()
     {
       $q = $db->sql_query('INSERT INTO '.table_prefix.'group_members(group_id,user_id) VALUES(' . $gid . ', ' . $session->user_id . ');');
       if (!$q)
-        $db->_die();
+        $db->_die('SpecialGroups.php, line ' . __LINE__);
       echo '<div class="info-box">You have been added to this group.</div>';
       
       $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,COUNT(c.comment_id)
@@ -262,7 +280,7 @@ function page_Special_Usergroups()
                              ORDER BY m.is_mod DESC,u.username ASC
                              LIMIT 1;');
       if ( !$q )
-        $db->_die();
+        $db->_die('SpecialGroups.php, line ' . __LINE__);
       
       $r = $db->fetchrow();
       $members[] = $r;
@@ -274,7 +292,7 @@ function page_Special_Usergroups()
     {
       $q = $db->sql_query('INSERT INTO '.table_prefix.'group_members(group_id,user_id,pending) VALUES(' . $gid . ', ' . $session->user_id . ', 1);');
       if (!$q)
-        $db->_die();
+        $db->_die('SpecialGroups.php, line ' . __LINE__);
       echo '<div class="info-box">A request has been sent to the moderator(s) of this group to add you.</div>';
     }
     
@@ -305,7 +323,7 @@ function page_Special_Usergroups()
               </tr>
               <tr>
                 <td class="row2">Group name:</td>
-                <td class="row1">' . $row['group_name'] . '</td>
+                <td class="row1">' . $row['group_name'] . ( $row['system_group'] == 1 ? ' (system group)' : '' ) . '</td>
               </tr>
               <tr>
                 <td class="row2">Membership status:</td>
