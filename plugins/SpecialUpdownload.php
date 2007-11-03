@@ -235,45 +235,73 @@ function page_Special_DownloadFile()
   }
   
   $fname = ENANO_ROOT . '/files/' . $row['file_key'] . '_' . $row['time_id'] . $row['file_extension'];
-  $data = file_get_contents($fname);
-  if(isset($_GET['preview']) && getConfig('enable_imagemagick')=='1' && file_exists(getConfig('imagemagick_path')) && substr($row['mimetype'], 0, 6) == 'image/')
+  
+  if ( isset($_GET['preview']) && substr($row['mimetype'], 0, 6) == 'image/' )
   {
-    $nam = tempnam('/tmp', $filename);
-    $h = @fopen($nam, 'w');
-    if(!$h) die('Error opening '.$nam.' for writing');
-    fwrite($h, $data);
-    fclose($h);
-    /* Make sure the request doesn't contain commandline injection - yow! */
-    if(!isset($_GET['width' ]) || (isset($_GET['width'] ) && !preg_match('#^([0-9]+)$#', $_GET['width']  ))) $width  = '320'; else $width  = $_GET['width' ];
-    if(!isset($_GET['height']) || (isset($_GET['height']) && !preg_match('#^([0-9]+)$#', $_GET['height'] ))) $height = '240'; else $height = $_GET['height'];
-    $cache_filename=ENANO_ROOT.'/cache/'.$filename.'-'.$row['time_id'].'-'.$width.'x'.$height.$row['file_extension'];
-    if(getConfig('cache_thumbs')=='1' && file_exists($cache_filename) && is_writable(ENANO_ROOT.'/cache')) {
-      $data = file_get_contents($cache_filename);
-    } elseif(getConfig('enable_imagemagick')=='1' && file_exists(getConfig('imagemagick_path'))) {
-      // Use ImageMagick to convert the image
-      //unlink($nam);
-      error_reporting(E_ALL);
-      $cmd = ''.getConfig('imagemagick_path').' "'.$nam.'" -resize "'.$width.'x'.$height.'>" "'.$nam.'.scaled'.$row['file_extension'].'"';
-      system($cmd, $stat);
-      if(!file_exists($nam.'.scaled'.$row['file_extension'])) die('Failed to call ImageMagick (return value '.$stat.'), command line was:<br />'.$cmd);
-      $data = file_get_contents($nam.'.scaled'.$row['file_extension']);
-      // Be stingy about it - better to re-generate the image hundreds of times than to fail completely
-      if(getConfig('cache_thumbs')=='1' && !file_exists($cache_filename)) {
-        // Write the generated thumbnail to the cache directory
-        $h = @fopen($cache_filename, 'w');
-        if(!$h) die('Error opening cache file "'.$cache_filename.'" for writing.');
-        fwrite($h, $data);
-        fclose($h);
+    // Determine appropriate width and height
+    $width  = ( isset($_GET['width'])  ) ? intval($_GET['width'] ) : 320;
+    $height = ( isset($_GET['height']) ) ? intval($_GET['height']) : 320;
+    $cache_filename = ENANO_ROOT . "/cache/{$filename}-{$row['time_id']}-{$width}x{$height}{$row['file_extension']}";
+    if ( file_exists($cache_filename) )
+    {
+      $fname = $cache_filename;
+    }
+    else
+    {
+      $allow_scale = false;
+      $orig_fname = $fname;
+      // is caching enabled?
+      if ( getConfig('cache_thumbs') == '1' )
+      {
+        $fname = $cache_filename;
+        if ( is_writeable(dirname($fname)) )
+        {
+          $allow_scale = true;
+        }
+      }
+      else
+      {
+        // Get a temporary file
+        // In this case, the file will not be cached and will be scaled each time it's requested
+        $temp_dir = ( is_dir('/tmp') ) ? '/tmp' : ( isset($_ENV['TEMP']) ) ? $_ENV['TEMP'] : 'SOME RANDOM NAME';
+        // if tempnam() cannot use the specified directory name, it will fall back on the system default
+        $tempname = tempnam($temp_dir, $filename);
+        if ( $tempname && is_writeable($tempname) )
+        {
+          $allow_scale = true;
+        }
+      }
+      if ( $allow_scale )
+      {
+        $result = scale_image($orig_fname, $fname, $width, $height);
+        if ( !$result )
+          $fname = $orig_fname;
+      }
+      else
+      {
+        $fname = $orig_fname;
       }
     }
-    unlink($nam);
   }
-  $len = strlen($data);
+  $handle = @fopen($fname, 'r');
+  if ( !$handle )
+    die('Can\'t open output file for reading');
+  
+  $len = filesize($fname);
   header('Content-type: '.$row['mimetype']);
-  if(isset($_GET['download'])) header('Content-disposition: attachment, filename="'.$filename.'";');
+  if ( isset($_GET['download']) )
+  {
+    header('Content-disposition: attachment, filename="' . $filename . '";');
+  }
   header('Content-length: '.$len);
   header('Last-Modified: '.date('r', $row['time_id']));
-  echo($data);
+  
+  // using this method limits RAM consumption
+  while ( !feof($handle) )
+  {
+    echo fread($handle, 512000);
+  }
+  fclose($handle);
   
   gzip_output();
   
