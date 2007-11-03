@@ -708,6 +708,7 @@ class RenderMan {
       ':-/'     => 'face-plain.png',
       ':joke:'  => 'face-plain.png',
       ']:-&gt;' => 'face-devil-grin.png',
+      ']:->'    => 'face-devil-grin.png',
       ':kiss:'  => 'face-kiss.png',
       ':-P'     => 'face-tongue-out.png',
       ':P'      => 'face-tongue-out.png',

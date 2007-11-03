@@ -2827,6 +2827,8 @@ function aggressive_optimize_html($html)
   {
     $js =& $jscript[2][$i];
     
+    // echo('<pre>' . "-----------------------------------------------------------------------------\n" . htmlspecialchars($js) . '</pre>');
+    
     // for line optimization, explode it
     $particles = explode("\n", $js);
     
