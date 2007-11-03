@@ -104,6 +104,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   temp_password text,
   temp_password_time int(12) NOT NULL DEFAULT 0,
   user_coppa tinyint(1) NOT NULL DEFAULT 0,
+  user_lang smallint(5) NOT NULL,
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8`;
 
@@ -253,6 +254,38 @@ CREATE TABLE {{TABLE_PREFIX}}tags(
   user mediumint(8) NOT NULL DEFAULT 1,
   PRIMARY KEY ( tag_id )
 ) CHARACTER SET `utf8`;
+
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}lockout(
+  id int(12) NOT NULL auto_increment,
+  ipaddr varchar(40) NOT NULL,
+  action ENUM('credential', 'level') NOT NULL DEFAULT 'credential',
+  timestamp int(12) NOT NULL DEFAULT 0,
+  PRIMARY KEY ( id )
+) CHARACTER SET `utf8`;
+
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}language(
+  lang_id smallint(5) NOT NULL auto_increment,
+  lang_code varchar(16) NOT NULL,
+  lang_name_default varchar(64) NOT NULL,
+  lang_name_native varchar(64) NOT NULL,
+  last_changed int(12) NOT NULL DEFAULT 0,
+  PRIMARY KEY ( lang_id )
+) CHARACTER SET `utf8`;
+
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}language_strings(
+  string_id bigint(15) NOT NULL auto_increment,
+  lang_id smallint(5) NOT NULL,
+  string_category varchar(32) NOT NULL,
+  string_name varchar(64) NOT NULL,
+  string_content longtext NOT NULL,
+  PRIMARY KEY ( string_id )
+);
 
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),

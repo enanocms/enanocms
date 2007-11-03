@@ -212,6 +212,8 @@ function page_Special_Preferences()
           
           if ( strlen($newpass) > 0 )
           {
+            if ( defined('ENANO_DEMO_MODE') )
+              $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">You can\'t change your password in demo mode.</div>';
             // Perform checks
             if ( strlen($newpass) < 6 )
               $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">Password must be at least 6 characters. You hacked my script, darn you!</div>';

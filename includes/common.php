@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ if(isset($_REQUEST['GLOBALS']))
   exit;
 }
 
-$version = '1.0.2';
+$version = '1.1.1';
 
 function microtime_float()
 {
@@ -81,6 +81,7 @@ require_once(ENANO_ROOT.'/includes/paths.php');
 require_once(ENANO_ROOT.'/includes/sessions.php');
 require_once(ENANO_ROOT.'/includes/template.php');
 require_once(ENANO_ROOT.'/includes/plugins.php');
+require_once(ENANO_ROOT.'/includes/lang.php');
 require_once(ENANO_ROOT.'/includes/comment.php');
 require_once(ENANO_ROOT.'/includes/wikiformat.php');
 require_once(ENANO_ROOT.'/includes/diff.php');
@@ -106,6 +107,7 @@ global $enano_config; // A global used to cache config information without makin
                       // In addition, $enano_config is used to fetch config information if die_semicritical() is called.
                       
 global $email;
+global $lang;
 
 if(!isset($_SERVER['HTTP_HOST'])) grinding_halt('Cannot get hostname', '<p>Your web browser did not provide the HTTP Host: field. This site requires a modern browser that supports the HTTP 1.1 standard.</p>');
                      
@@ -188,6 +190,27 @@ else if ( $ks = getConfig('aes_block_size') )
   {
     grinding_halt('AES block size changed', '<p>Enano has detected that the AES block size in constants.php has been changed. This change cannot be performed after installation, otherwise all passwords would have to be re-encrypted.</p><p>Please change the block size back to ' . $ks . ' bits and reload this page.</p>');
   }
+}
+
+// Is there no default language?
+if ( getConfig('lang_default') === false )
+{
+  $q = $db->sql_query('SELECT lang_id FROM '.table_prefix.'language LIMIT 1;');
+  if ( !$q )
+    $db->_die('common.php - setting default language');
+  if ( $db->numrows() < 1 && !defined('ENANO_ALLOW_LOAD_NOLANG') )
+  {
+    grinding_halt('No languages', '<p>There are no languages installed on this site.</p>
+        <p>If you are the website administrator, you may install a language by writing and executing a simple PHP script to install it:</p>
+        <pre>
+&lt;?php
+define("ENANO_ALLOW_LOAD_NOLANG", 1);
+$_GET["title"] = "langinstall";
+require("includes/common.php");
+install_language("eng", "English", "English", ENANO_ROOT . "/language/english/enano.json");</pre>');
+  }
+  $row = $db->fetchrow();
+  setConfig('default_language', $row['lang_id']);
 }
 
 // Our list of tables included in Enano

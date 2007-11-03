@@ -48,7 +48,7 @@ function ajaxComments(parms)
           annihiliateComment(response.id);
           break;
         case 'materialize':
-          alert('Your comment has been posted. If it does not appear right away, it is probably awaiting approval.');
+          alert($lang.get('comment_msg_comment_posted'));
           hideCommentForm();
           materializeComment(response);
           break;
@@ -70,36 +70,43 @@ function renderComments(data)
   
   // Header
   
-    html += '<h3>Article Comments</h3>';
+    html += '<h3>' + $lang.get('comment_heading') + '</h3>';
     
-    var ns = ( strToPageID(title)[1]=='Article' ) ? 'article' : ( strToPageID(title)[1].toLowerCase() ) + ' page';
+    var ns = ENANO_PAGE_TYPE;
   
     // Counters
     if ( data.auth_mod_comments )
     {
       var cnt = ( data.auth_mod_comments ) ? data.count_total : data.count_appr;
-      if ( cnt == 0 ) cnt = 'no';
-      var s  = ( cnt == 1 ) ? '' : 's';
-      var is = ( cnt == 1 ) ? 'is' : 'are';
-      html += "<p id=\"comment_status\">There "+is+" " + cnt + " comment"+s+" on this "+ns+".";
+      
+      var subst = {
+        num_comments: cnt,
+        page_type: ns
+      }
+      var count_msg = ( cnt == 0 ) ? $lang.get('comment_msg_count_zero', subst) : ( ( cnt == 1 ) ? $lang.get('comment_msg_count_one', subst) : $lang.get('comment_msg_count_plural', subst) );
+      
+      html += "<p id=\"comment_status\"><span>" + count_msg + '</span>';
       if ( data.count_unappr > 0 )
       {
-        html += ' <span style="color: #D84308">' + data.count_unappr + ' of those are unapproved.</span>';
+        html += ' <span style="color: #D84308" id="comment_status_unapp">' + $lang.get('comment_msg_count_unapp_mod', { num_unapp: data.count_unappr }) + '</span>';
       }
       html += '</p>';
     }
     else
     {
       var cnt = data.count_appr;
-      if ( cnt == 0 ) cnt = 'no';
-      var s  = ( cnt == 1 ) ? '' : 's';
-      var is = ( cnt == 1 ) ? 'is' : 'are';
-      html += "<p id=\"comment_status\">There "+is+" " + cnt + " comment"+s+" on this "+ns+".";
+      
+      var subst = {
+        num_comments: cnt,
+        page_type: ns
+      }
+      var count_msg = ( cnt == 0 ) ? $lang.get('comment_msg_count_zero', subst) : ( ( cnt == 1 ) ? $lang.get('comment_msg_count_one', subst) : $lang.get('comment_msg_count_plural', subst) );
+      
+      html += "<p id=\"comment_status\">" + count_msg;
       if ( data.count_unappr > 0 )
       {
-        var s  = ( data.count_unappr == 1 ) ? '' : 's';
-        var is = ( data.count_unappr == 1 ) ? 'is' : 'are';
-        html += ' However, there '+is+' '+data.count_unappr+' additional comment'+s+' awaiting approval.';
+        var unappr_msg  = ( data.count_unappr == 1 ) ? $lang.get('comment_msg_count_unapp_one') : $lang.get('comment_msg_count_unapp_plural', { num_unapp: data.count_unappr });
+        html += ' ' + unappr_msg;
       }
       html += '</p>';
     }
@@ -118,28 +125,28 @@ function renderComments(data)
     
     // Posting form
   
-    html += '<h3>Got something to say?</h3>';
-    html += '<p>If you have comments or suggestions on this article, you can shout it out here.';
+    html += '<h3>' + $lang.get('comment_postform_title') + '</h3>';
+    html += '<p>' + $lang.get('comment_postform_blurb');
     if ( data.approval_needed )
-      html+=' Before your post will be visible to the public, a moderator will have to approve it.';
-    html += ' <a id="leave_comment_button" href="#" onclick="displayCommentForm(); return false;">Leave a comment...</a></p>';
+      html+=' ' + $lang.get('comment_postform_blurb_unapp');
+    html += ' <a id="leave_comment_button" href="#" onclick="displayCommentForm(); return false;">' + $lang.get('comment_postform_blurb_link') + '</a></p>';
     html += '<div id="comment_form" style="display: none;">';
     html += '  <table border="0">';
-    html += '    <tr><td>Your name/screen name:</td><td>';
+    html += '    <tr><td>' + $lang.get('comment_postform_field_name') + '</td><td>';
     if ( data.user_id > 1 ) html += data.username + '<input id="commentform_name" type="hidden" value="'+data.username+'" size="40" />';
     else html += '<input id="commentform_name" type="text" size="40" />';
     html += '    </td></tr>';
-    html += '    <tr><td>Comment subject:</td><td><input id="commentform_subject" type="text" size="40" /></td></tr>';
-    html += '    <tr><td>Comment:</td><td><textarea id="commentform_message" rows="15" cols="50"></textarea></td></tr>';
+    html += '    <tr><td>' + $lang.get('comment_postform_field_subject') + '</td><td><input id="commentform_subject" type="text" size="40" /></td></tr>';
+    html += '    <tr><td>' + $lang.get('comment_postform_field_comment') + '</td><td><textarea id="commentform_message" rows="15" cols="50"></textarea></td></tr>';
     if ( !data.logged_in && data.guest_posting == '1' )
     {
-      html += '  <tr><td>Visual confirmation:<br /><small>Please enter the confirmation code seen in the image on the right into the box. If you cannot read the code, please click on the image to generate a new one. This helps to prevent automated bot posting.</small></td><td>';
+      html += '  <tr><td>' + $lang.get('comment_postform_field_captcha_title') + '<br /><small>' + $lang.get('comment_postform_field_captcha_blurb') + '</small></td><td>';
       html += '  <img alt="CAPTCHA image" src="'+makeUrlNS('Special', 'Captcha/' + data.captcha)+'" onclick="this.src=\''+makeUrlNS('Special', 'Captcha/' + data.captcha)+'/\'+Math.floor(Math.random()*10000000);" style="cursor: pointer;" /><br />';
-      html += '  Confirmation code: <input type="text" size="8" id="commentform_captcha" />';
+      html += '  ' + $lang.get('comment_postform_field_captcha_label') + ' <input type="text" size="8" id="commentform_captcha" />';
       html += '  <!-- This input is used to track the ID of the CAPTCHA image --> <input type="hidden" id="commentform_captcha_id" value="'+data.captcha+'" />';
       html += '  </td></tr>';
     }
-    html += '    <tr><td colspan="2" style="text-align: center;"><input type="button" onclick="submitComment();" value="Submit comment" /></td></tr>';
+    html += '    <tr><td colspan="2" style="text-align: center;"><input type="button" onclick="submitComment();" value="' + $lang.get('comment_postform_btn_submit') + '" /></td></tr>';
     html += '  </table>';
     html += '</div>';
     
@@ -171,7 +178,7 @@ var _render_comment = function(this_comment, data)
   tplvars.SIGNATURE = this_comment.signature;
   
   if ( this_comment.approved != '1' )
-    tplvars.SUBJECT += ' <span style="color: #D84308">(Unapproved)</span>';
+    tplvars.SUBJECT += ' <span style="color: #D84308">' + $lang.get('comment_msg_note_unapp') + '</span>';
   
   // Name
   tplvars.NAME = this_comment.name;
@@ -179,29 +186,29 @@ var _render_comment = function(this_comment, data)
     tplvars.NAME = '<a href="' + makeUrlNS('User', this_comment.name) + '">' + this_comment.name + '</a>';
   
   // User level
-  tplvars.USER_LEVEL = 'Guest';
-  if ( this_comment.user_level >= data.user_level.member ) tplvars.USER_LEVEL = 'Member';
-  if ( this_comment.user_level >= data.user_level.mod )    tplvars.USER_LEVEL = 'Moderator';
-  if ( this_comment.user_level >= data.user_level.admin )  tplvars.USER_LEVEL = 'Administrator';
-                              
+  tplvars.USER_LEVEL = $lang.get('user_type_guest');
+  if ( this_comment.user_level >= data.user_level.member ) tplvars.USER_LEVEL = $lang.get('user_type_member');
+  if ( this_comment.user_level >= data.user_level.mod ) tplvars.USER_LEVEL = $lang.get('user_type_mod');
+  if ( this_comment.user_level >= data.user_level.admin ) tplvars.USER_LEVEL = $lang.get('user_type_admin');
+  
   // Send PM link
-  tplvars.SEND_PM_LINK=(this_comment.user_id>1 && data.logged_in)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">Send private message</a><br />':'';
+  tplvars.SEND_PM_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br />':'';
   
   // Add buddy link
-  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1 && data.logged_in && this_comment.is_buddy != 1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">Add to buddy list</a><br />':'';
+  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_add_buddy') + '</a><br />':'';
   
   // Edit link
-  tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">edit</a>';
+  tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">' + $lang.get('comment_btn_edit') + '</a>';
   
   // Delete link
-  tplvars.DELETE_LINK='<a href="#delete_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">delete</a>';
+  tplvars.DELETE_LINK='<a href="#delete_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">' + $lang.get('comment_btn_delete') + '</a>';
   
   // Moderation: (Un)approve link
-  var appr = ( this_comment.approved == 1 ) ? 'Unapprove' : 'Approve';
+  var appr = ( this_comment.approved == 1 ) ? $lang.get('comment_btn_mod_unapprove') : $lang.get('comment_btn_mod_approve');
   tplvars.MOD_APPROVE_LINK='<a href="#approve_'+i+'" id="comment_approve_'+i+'" onclick="approveComment(\''+i+'\'); return false;">'+appr+'</a>';
   
   // Moderation: Delete post link
-  tplvars.MOD_DELETE_LINK='<a href="#mod_del_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">Delete</a>';
+  tplvars.MOD_DELETE_LINK='<a href="#mod_del_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">' + $lang.get('comment_btn_mod_delete') + '</a>';
   
   var tplbool = new Object();
   
@@ -212,9 +219,9 @@ var _render_comment = function(this_comment, data)
   tplbool.is_foe = ( this_comment.is_buddy == 1 && this_comment.is_friend == 0 );
   
   if ( tplbool.is_friend )
-    tplvars.USER_LEVEL += '<br /><b>On your friend list</b>';
+    tplvars.USER_LEVEL += '<br /><b>' + $lang.get('comment_on_friend_list') + '</b>';
   else if ( tplbool.is_foe )
-    tplvars.USER_LEVEL += '<br /><b>On your foe list</b>';
+    tplvars.USER_LEVEL += '<br /><b>' + $lang.get('comment_on_foe_list') + '</b>';
   
   parser.assign_vars(tplvars);
   parser.assign_bool(tplbool);
@@ -255,7 +262,7 @@ function editComment(id, link)
   cmt.appendChild(ta);
   
   link.style.fontWeight = 'bold';
-  link.innerHTML = 'save';
+  link.innerHTML = $lang.get('comment_btn_save');
   link.onclick = function() { var id = this.id.substr(this.id.indexOf('_')+1); saveComment(id, this); return false; };
 }
 
@@ -273,7 +280,7 @@ function saveComment(id, link)
     'subj' : subj
   };
   link.style.fontWeight = 'normal';
-  link.innerHTML = 'edit';
+  link.innerHTML = $lang.get('comment_btn_edit');
   link.onclick = function() { var id = this.id.substr(this.id.indexOf('_')+1); editComment(id, this); return false; };
   ajaxComments(req);
 }
@@ -282,7 +289,7 @@ function deleteComment(id)
 {
   if ( !shift )
   {
-    var c = confirm('Do you really want to delete this comment?');
+    var c = confirm($lang.get('comment_msg_delete_confirm'));
     if(!c)
       return false;
   }
@@ -340,36 +347,17 @@ function redrawComment(data)
   }
   if ( data.approved && data.approved != '1' )
   {
-    document.getElementById('subject_' + data.id).innerHTML += ' <span style="color: #D84308">(Unapproved)</span>';
+    document.getElementById('subject_' + data.id).innerHTML += ' <span style="color: #D84308">' + $lang.get('comment_msg_note_unapp') + '</span>';
   }
   if ( data.approved && ( typeof(data.approve_updated) == 'string' && data.approve_updated == 'yes' ) )
   {
-    var appr = ( data.approved == '1' ) ? 'Unapprove' : 'Approve';
+    var appr = ( data.approved == '1' ) ? $lang.get('comment_btn_mod_unapprove') : $lang.get('comment_btn_mod_approve');
     document.getElementById('comment_approve_'+data.id).innerHTML = appr;
     
-    // Update approval status
-    var p = document.getElementById('comment_status');
-    var count = p.firstChild.nodeValue.split(' ')[2];
-    
-    if ( p.firstChild.nextSibling )
-    {
-      var span = p.firstChild.nextSibling;
-      var is = ( data.approved == '1' ) ? -1 : 1;
-      var n_unapp = parseInt(span.firstChild.nodeValue.split(' ')[0]) + is;
-      n_unapp = n_unapp + '';
-    }
+    if ( data.approved == '1' )
+      comment_decrement_unapproval();
     else
-    {
-      var span = document.createElement('span');
-      p.innerHTML += ' ';
-      span.innerHTML = ' ';
-      span.style.color = '#D84308';
-      var n_unapp = '1';
-      p.appendChild(span);
-    }
-    span.innerHTML = n_unapp + ' of those are unapproved.';
-    if ( n_unapp == '0' )
-      p.removeChild(span);
+      comment_increment_unapproval();
   }
   if ( data.text )
   {
@@ -396,41 +384,24 @@ function approveComment(id)
 // Does the actual DOM object removal
 function annihiliateComment(id) // Did I spell that right?
 {
-  // Approved?
-  var p = document.getElementById('comment_status');
-  
+  var approved = true;
   if(document.getElementById('comment_approve_'+id))
   {
     var appr = document.getElementById('comment_approve_'+id).firstChild.nodeValue;
-    if ( p.firstChild.nextSibling && appr == 'Approve' )
+    if ( appr == $lang.get('comment_btn_mod_approve') )
     {
-      var span = p.firstChild.nextSibling;
-      var t = span.firstChild.nodeValue;
-      var n_unapp = ( parseInt(t.split(' ')[0]) ) - 1;
-      if ( n_unapp == 0 )
-        p.removeChild(span);
-      else
-        span.firstChild.nodeValue = n_unapp + t.substr(t.indexOf(' '));
+      approved = false;
     }
   }
   
   var div = document.getElementById('comment_holder_'+id);
   div.parentNode.removeChild(div);
-  var t = p.firstChild.nodeValue.split(' ');
-  t[2] = ( parseInt(t[2]) - 1 ) + '';
-  delete(t.toJSONString);
-  if ( t[2] == '1' )
+  
+  // update approval status
+  if ( document.getElementById('comment_count_unapp_inner') && !approved )
   {
-    t[1] = 'is';
-    t[3] = 'comment';
+    comment_decrement_unapproval();
   }
-  else
-  {
-    t[1] = 'are';
-    t[3] = 'comments';
-  }
-  t = implode(' ', t);
-  p.firstChild.nodeValue = t;
 }
 
 function materializeComment(data)
@@ -465,32 +436,32 @@ function materializeComment(data)
     tplvars.NAME = '<a href="' + makeUrlNS('User', data.name) + '">' + data.name + '</a>';
   
   if ( data.approved != '1' )
-    tplvars.SUBJECT += ' <span style="color: #D84308">(Unapproved)</span>';
+    tplvars.SUBJECT += ' <span style="color: #D84308">' + $lang.get('comment_msg_note_unapp') + '</span>';
   
   // User level
-  tplvars.USER_LEVEL = 'Guest';
-  if ( data.user_level >= data.user_level_list.member ) tplvars.USER_LEVEL = 'Member';
-  if ( data.user_level >= data.user_level_list.mod ) tplvars.USER_LEVEL = 'Moderator';
-  if ( data.user_level >= data.user_level_list.admin ) tplvars.USER_LEVEL = 'Administrator';
+  tplvars.USER_LEVEL = $lang.get('user_type_guest');
+  if ( data.user_level >= data.user_level_list.member ) tplvars.USER_LEVEL = $lang.get('user_type_member');
+  if ( data.user_level >= data.user_level_list.mod ) tplvars.USER_LEVEL = $lang.get('user_type_mod');
+  if ( data.user_level >= data.user_level_list.admin ) tplvars.USER_LEVEL = $lang.get('user_type_admin');
   
   // Send PM link
-  tplvars.SEND_PM_LINK=(data.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( data.name.replace(/ /g, '_') )) +'">Send private message</a><br />':'';
+  tplvars.SEND_PM_LINK=(data.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( data.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br />':'';
   
   // Add buddy link
-  tplvars.ADD_BUDDY_LINK=(data.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( data.name.replace(/ /g, '_') )) +'">Add to buddy list</a><br />':'';
+  tplvars.ADD_BUDDY_LINK=(data.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( data.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_add_buddy') + '</a><br />':'';
   
   // Edit link
-  tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">edit</a>';
+  tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">' + $lang.get('comment_btn_edit') + '</a>';
   
   // Delete link
-  tplvars.DELETE_LINK='<a href="#delete_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">delete</a>';
+  tplvars.DELETE_LINK='<a href="#delete_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">' + $lang.get('comment_btn_delete') + '</a>';
   
   // Moderation: (Un)approve link
-  var appr = ( data.approved == 1 ) ? 'Unapprove' : 'Approve';
+  var appr = ( data.approved == 1 ) ? $lang.get('comment_btn_mod_unapprove') : $lang.get('comment_btn_mod_approve');
   tplvars.MOD_APPROVE_LINK='<a href="#approve_'+i+'" id="comment_approve_'+i+'" onclick="approveComment(\''+i+'\'); return false;">'+appr+'</a>';
   
   // Moderation: Delete post link
-  tplvars.MOD_DELETE_LINK='<a href="#mod_del_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">Delete</a>';
+  tplvars.MOD_DELETE_LINK='<a href="#mod_del_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">' + $lang.get('comment_btn_mod_delete') + '</a>';
   
   var tplbool = new Object();
   
@@ -519,48 +490,78 @@ function materializeComment(data)
   
   document.getElementById('comment_source_'+i).value = data.comment_source;
   
-  var p = document.getElementById('comment_status');
-  var t = p.firstChild.nodeValue.split(' ');
-  var n = ( isNaN(parseInt(t[2])) ) ? 0 : parseInt(t[2]);
-  t[2] = ( n + 1 ) + '';
-  delete(t.toJSONString);
-  if ( t[2] == '1' )
-  {
-    t[1] = 'is';
-    t[3] = 'comment';
+  var cnt = document.getElementById('comment_count_inner').innerHTML;
+  cnt = parseInt(cnt);
+  if ( isNaN(cnt) )
+    cnt = 0;
+  
+  var subst = {
+    num_comments: cnt,
+    page_type: ENANO_PAGE_TYPE
   }
-  else
-  {
-    t[1] = 'are';
-    t[3] = 'comments';
-  }
-  t = implode(' ', t);
-  p.firstChild.nodeValue = t;
+  
+  var count_msg = ( cnt == 0 ) ? $lang.get('comment_msg_count_zero', subst) : ( ( cnt == 1 ) ? $lang.get('comment_msg_count_one', subst) : $lang.get('comment_msg_count_plural', subst) );
+  
+  document.getElementById('comment_status').firstChild.innerHTML = count_msg;
   
   if(document.getElementById('comment_approve_'+i))
   {
-    var appr = document.getElementById('comment_approve_'+i).firstChild.nodeValue;
-    if ( p.firstChild.nextSibling && appr == 'Approve' )
+    var is_unappr = document.getElementById('comment_approve_'+i).firstChild.nodeValue;
+    is_unappr = ( is_unappr == $lang.get('comment_btn_mod_approve') );
+    if ( is_unappr )
     {
-      var span = p.firstChild.nextSibling;
-      var t = span.firstChild.nodeValue;
-      var n_unapp = ( parseInt(t.split(' ')[0]) ) - 1;
-      if ( n_unapp == 0 )
-        p.removeChild(span);
-      else
-        span.firstChild.nodeValue = n_unapp + t.substr(t.indexOf(' '));
-    }
-    else if ( appr == 'Approve' && !p.firstChild.nextSibling )
-    {
-      var span = document.createElement('span');
-      p.innerHTML += ' ';
-      span.innerHTML = '1 of those are unapproved.';
-      span.style.color = '#D84308';
-      var n_unapp = '1';
-      p.appendChild(span);
+      comment_increment_unapproval();
     }
   }
   
+}
+
+function comment_decrement_unapproval()
+{
+  if ( document.getElementById('comment_count_unapp_inner') )
+  {
+    var num_unapp = parseInt(document.getElementById('comment_count_unapp_inner').innerHTML);
+    if ( !isNaN(num_unapp) )
+    {
+      num_unapp = num_unapp - 1;
+      if ( num_unapp == 0 )
+      {
+        var p = document.getElementById('comment_status');
+        p.removeChild(p.childNodes[2]);
+        p.removeChild(p.childNodes[1]);
+      }
+      else
+      {
+        var count_msg = $lang.get('comment_msg_count_unapp_mod', { num_unapp: num_unapp });
+        document.getElementById('comment_count_unapp_inner').parentNode.innerHTML = count_msg;
+      }
+    }
+  }
+}
+
+function comment_increment_unapproval()
+{
+  if ( document.getElementById('comment_count_unapp_inner') )
+  {
+    var num_unapp = parseInt(document.getElementById('comment_count_unapp_inner').innerHTML);
+    if ( isNaN(num_unapp) )
+      num_unapp = 0;
+    num_unapp = num_unapp + 1;
+    var count_msg = $lang.get('comment_msg_count_unapp_mod', { num_unapp: num_unapp });
+    document.getElementById('comment_count_unapp_inner').parentNode.innerHTML = count_msg;
+  }
+  else
+  {
+    var count_msg = $lang.get('comment_msg_count_unapp_mod', { num_unapp: 1 });
+    var status = document.getElementById('comment_status');
+    if ( !status.childNodes[1] )
+      status.appendChild(document.createTextNode(' '));
+    var span = document.createElement('span');
+    span.id = 'comment_status_unapp';
+    span.style.color = '#D84308';
+    span.innerHTML = count_msg;
+    status.appendChild(span);
+  }
 }
 
 function htmlspecialchars(text)

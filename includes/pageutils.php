@@ -1,7 +1,8 @@
 <?php
+
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  * pageutils.php - a class that handles raw page manipulations, used mostly by AJAX requests or their old-fashioned form-based counterparts
  *
@@ -520,6 +521,7 @@ class PageUtils {
   function histlist($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     if(!$session->get_permissions('history_view'))
       return 'Access denied';
@@ -532,14 +534,17 @@ class PageUtils {
     
     $q = 'SELECT time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' ORDER BY time_id DESC;';
     if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
-    echo 'History of edits and actions<h3>Edits:</h3>';
+    echo $lang->get('history_page_subtitle') . '
+          <h3>' . $lang->get('history_heading_edits') . '</h3>';
     $numrows = $db->numrows();
-    if($numrows < 1) echo 'No history entries in this category.';
+    if ( $numrows < 1 )
+    {
+      echo $lang->get('history_no_entries');
+    }
     else
     {
-      
       echo '<form action="'.makeUrlNS($namespace, $page_id, 'do=diff').'" onsubmit="ajaxHistDiff(); return false;" method="get">
-            <input type="submit" value="Compare selected revisions" />
+            <input type="submit" value="' . $lang->get('history_btn_compare') . '" />
             ' . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars($paths->nslist[$namespace] . $page_id) . '" />' : '' ) . '
             ' . ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : '') . '
             <input type="hidden" name="do" value="diff" />
@@ -547,17 +552,18 @@ class PageUtils {
             <div class="tblholder">
             <table border="0" width="100%" cellspacing="1" cellpadding="4">
             <tr>
-              <th colspan="2">Diff</th>
-              <th>Date/time</th>
-              <th>User</th>
-              <th>Edit summary</th>
-              <th>Minor</th>
-              <th colspan="3">Actions</th>
+              <th colspan="2">' . $lang->get('history_col_diff') . '</th>
+              <th>' . $lang->get('history_col_datetime') . '</th>
+              <th>' . $lang->get('history_col_user') . '</th>
+              <th>' . $lang->get('history_col_summary') . '</th>
+              <th>' . $lang->get('history_col_minor') . '</th>
+              <th colspan="3">' . $lang->get('history_col_actions') . '</th>
             </tr>'."\n"."\n";
       $cls = 'row2';
       $ticker = 0;
       
-      while($r = $db->fetchrow()) {
+      while ( $r = $db->fetchrow() )
+      {
         
         $ticker++;
         
@@ -591,7 +597,7 @@ class PageUtils {
         // User
         if ( $session->get_permissions('mod_misc') && is_valid_ip($r['author']) )
         {
-          $rc = ' style="cursor: pointer;" title="Click cell background for reverse DNS info" onclick="ajaxReverseDNS(this, \'' . $r['author'] . '\');"';
+          $rc = ' style="cursor: pointer;" title="' . $lang->get('history_tip_rdns') . '" onclick="ajaxReverseDNS(this, \'' . $r['author'] . '\');"';
         }
         else
         {
@@ -605,15 +611,19 @@ class PageUtils {
         echo '>' . $r['author'] . '</a></td class="' . $cls . '">'."\n";
         
         // Edit summary
+        if ( $r['edit_summary'] == 'Automatic backup created when logs were purged' )
+        {
+          $r['edit_summary'] = $lang->get('history_summary_clearlogs');
+        }
         echo '<td class="' . $cls . '">' . $r['edit_summary'] . '</td>'."\n";
         
         // Minor edit
         echo '<td class="' . $cls . '" style="text-align: center;">'. (( $r['minor_edit'] ) ? 'M' : '' ) .'</td>'."\n";
         
         // Actions!
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['time_id']) . '" onclick="ajaxHistView(\'' . $r['time_id'] . '\'); return false;">View revision</a></td>'."\n";
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">View user contribs</a></td>'."\n";
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">Revert to this revision</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['time_id']) . '" onclick="ajaxHistView(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_view') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_restore') . '</a></td>'."\n";
         
         echo '</tr>'."\n"."\n";
         
@@ -622,18 +632,33 @@ class PageUtils {
             </div>
             <br />
             <input type="hidden" name="do" value="diff" />
-            <input type="submit" value="Compare selected revisions" />
+            <input type="submit" value="' . $lang->get('history_btn_compare') . '" />
             </form>
             <script type="text/javascript">if ( !KILL_SWITCH ) { buildDiffList(); }</script>';
     }
     $db->free_result();
-    echo '<h3>Other changes:</h3>';
+    echo '<h3>' . $lang->get('history_heading_other') . '</h3>';
     $q = 'SELECT time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->cpage['urlname_nons'] . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
-    if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
-    if($db->numrows() < 1) echo 'No history entries in this category.';
-    else {
+    if ( !$db->sql_query($q) )
+    {
+      $db->_die('The history data for the page "' . htmlspecialchars($paths->cpage['name']) . '" could not be selected.');
+    }
+    if ( $db->numrows() < 1 )
+    {
+      echo $lang->get('history_no_entries');
+    }
+    else
+    {
       
-      echo '<div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th>Date/time</th><th>User</th><th>Minor</th><th>Action taken</th><th>Extra info</th><th colspan="2"></th></tr>';
+      echo '<div class="tblholder">
+              <table border="0" width="100%" cellspacing="1" cellpadding="4"><tr>
+                <th>' . $lang->get('history_col_datetime') . '</th>
+                <th>' . $lang->get('history_col_user') . '</th>
+                <th>' . $lang->get('history_col_minor') . '</th>
+                <th>' . $lang->get('history_col_action_taken') . '</th>
+                <th>' . $lang->get('history_col_extra') . '</th>
+                <th colspan="2"></th>
+              </tr>';
       $cls = 'row2';
       while($r = $db->fetchrow()) {
         
@@ -657,23 +682,18 @@ class PageUtils {
         // Action taken
         echo '<td class="' . $cls . '">';
         // Some of these are sanitized at insert-time. Others follow the newer Enano policy of stripping HTML at runtime.
-        if    ($r['action']=='prot')     echo 'Protected page</td><td class="' . $cls . '">Reason: ' . $r['edit_summary'];
-        elseif($r['action']=='unprot')   echo 'Unprotected page</td><td class="' . $cls . '">Reason: ' . $r['edit_summary'];
-        elseif($r['action']=='semiprot') echo 'Semi-protected page</td><td class="' . $cls . '">Reason: ' . $r['edit_summary'];
-        elseif($r['action']=='rename')   echo 'Renamed page</td><td class="' . $cls . '">Old title: '.htmlspecialchars($r['edit_summary']);
-        elseif($r['action']=='create')   echo 'Created page</td><td class="' . $cls . '">';
-        elseif($r['action']=='delete')   echo 'Deleted page</td><td class="' . $cls . '">Reason: ' . $r['edit_summary'];
-        elseif($r['action']=='reupload') echo 'Uploaded new file version</td><td class="' . $cls . '">Reason: '.htmlspecialchars($r['edit_summary']);
+        if    ($r['action']=='prot')     echo $lang->get('history_log_protect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        elseif($r['action']=='unprot')   echo $lang->get('history_log_unprotect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        elseif($r['action']=='semiprot') echo $lang->get('history_log_semiprotect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        elseif($r['action']=='rename')   echo $lang->get('history_log_rename') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_oldtitle') . ' '.htmlspecialchars($r['edit_summary']);
+        elseif($r['action']=='create')   echo $lang->get('history_log_create') . '</td><td class="' . $cls . '">';
+        elseif($r['action']=='delete')   echo $lang->get('history_log_delete') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        elseif($r['action']=='reupload') echo $lang->get('history_log_uploadnew') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' '.htmlspecialchars($r['edit_summary']);
         echo '</td>';
         
         // Actions!
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">View user contribs</a></td>';
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">Revert action</a></td>';
-        
-        //echo '(<a href="#" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">rollback</a>) <i>' . $r['date_string'] . '</i> ' . $r['author'] . ' (<a href="'.makeUrl($paths->nslist['User'].$r['author']).'">Userpage</a>, <a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">Contrib</a>): ';
-        
-        if($r['minor_edit']) echo '<b> - minor edit</b>';
-        echo '<br />';
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>';
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_revert') . '</a></td>';
         
         echo '</tr>';
       }
@@ -896,6 +916,7 @@ class PageUtils {
   function comments_raw($page_id, $namespace, $action = false, $flags = Array(), $_ob = '')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $pname = $paths->nslist[$namespace] . $page_id;
     
@@ -936,8 +957,8 @@ class PageUtils {
         $q = 'UPDATE ' . table_prefix.'comments SET approved=' . $a . ' WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND ' . $where . ';';
         $e=$db->sql_query($q);
         if(!$e) die('alert(unesape(\''.rawurlencode('Error during query: '.mysql_error().'\n\nQuery:\n' . $q) . '\'));');
-        if($a=='1') $v = 'Unapprove';
-        else $v = 'Approve';
+        if($a=='1') $v = $lang->get('comment_btn_mod_unapprove');
+        else $v = $lang->get('comment_btn_mod_approve');
         echo 'document.getElementById("mdgApproveLink'.intval($_GET['id']).'").innerHTML="' . $v . '";';
         break;
       }
@@ -965,22 +986,32 @@ class PageUtils {
                   WHERE page_id=\'' . $page_id . '\'
                   AND namespace=\'' . $namespace . '\' ORDER BY c.time ASC;');
     if(!$lq) _die('The comment text data could not be selected. '.mysql_error());
-    $_ob .= '<h3>Article Comments</h3>';
+    $_ob .= '<h3>' . $lang->get('comment_heading') . '</h3>';
+    
     $n = ( $session->get_permissions('mod_comments')) ? $db->numrows() : $num_app;
-    if($n==1) $s = 'is ' . $n . ' comment'; else $s = 'are ' . $n . ' comments';
-    if($n < 1)
+    
+    $subst = array(
+        'num_comments' => $n,
+        'page_type' => $template->namespace_string
+      );
+    
+    $_ob .= '<p>';
+    $_ob .= ( $n == 0 ) ? $lang->get('comment_msg_count_zero', $subst) : ( $n == 1 ? $lang->get('comment_msg_count_one', $subst) : $lang->get('comment_msg_count_plural', $subst) );
+    
+    if ( $session->get_permissions('mod_comments') && $num_unapp > 0 )
     {
-      $_ob .= '<p>There are currently no comments on this '.strtolower($namespace).'';
-      if($namespace != 'Article') $_ob .= ' page';
-      $_ob .= '.</p>';
-    } else $_ob .= '<p>There ' . $s . ' on this article.';
-    if($session->get_permissions('mod_comments') && $num_unapp > 0) $_ob .= ' <span style="color: #D84308">' . $num_unapp . ' of those are unapproved.</span>';
-    elseif(!$session->get_permissions('mod_comments') && $num_unapp > 0) { $u = ($num_unapp == 1) ? "is $num_unapp comment" : "are $num_unapp comments"; $_ob .= ' However, there ' . $u . ' awating approval.'; }
+      $_ob .= ' <span style="color: #D84308">' . $lang->get('comment_msg_count_unapp_mod', array( 'num_unapp' => $num_unapp )) . '</span>';
+    }
+    else if ( !$session->get_permissions('mod_comments') && $num_unapp > 0 )
+    {
+      $ls = ( $num_unapp == 1 ) ? 'comment_msg_count_unapp_one' : 'comment_msg_count_unapp_plural';
+      $_ob .= ' <span>' . $lang->get($ls, array( 'num_unapp' => $num_unapp )) . '</span>';
+    }
     $_ob .= '</p>';
     $list = 'list = { ';
     // _die(htmlspecialchars($ttext));
     $i = -1;
-    while($row = $db->fetchrow($lq))
+    while ( $row = $db->fetchrow($lq) )
     {
       $i++;
       $strings = Array();
@@ -994,14 +1025,14 @@ class PageUtils {
         
         // Determine the name, and whether to link to the user page or not
         $name = '';
-        if($row['user_id'] > 0) $name .= '<a href="'.makeUrlNS('User', str_replace(' ', '_', $row['name'])).'">';
+        if($row['user_id'] > 1) $name .= '<a href="'.makeUrlNS('User', str_replace(' ', '_', $row['name'])).'">';
         $name .= $row['name'];
-        if($row['user_id'] > 0) $name .= '</a>';
+        if($row['user_id'] > 1) $name .= '</a>';
         $strings['NAME'] = $name; unset($name);
         
         // Subject
         $s = $row['subject'];
-        if(!$row['approved']) $s .= ' <span style="color: #D84308">(Unapproved)</span>';
+        if(!$row['approved']) $s .= ' <span style="color: #D84308">' . $lang->get('comment_msg_note_unapp') . '</span>';
         $strings['SUBJECT'] = $s;
         
         // Date and time
@@ -1012,16 +1043,17 @@ class PageUtils {
         {
           default:
           case USER_LEVEL_GUEST:
-            $l = 'Guest';
+            $l = $lang->get('user_type_guest');
             break;
           case USER_LEVEL_MEMBER:
-            $l = 'Member';
+          case USER_LEVEL_CHPREF:
+            $l = $lang->get('user_type_member');
             break;
           case USER_LEVEL_MOD:
-            $l = 'Moderator';
+            $l = $lang->get('user_type_mod');
             break;
           case USER_LEVEL_ADMIN:
-            $l = 'Administrator';
+            $l = $lang->get('user_type_admin');
             break;
         }
         $strings['USER_LEVEL'] = $l; unset($l);
@@ -1032,10 +1064,10 @@ class PageUtils {
         if($session->get_permissions('edit_comments'))
         {
           // Edit link
-          $strings['EDIT_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=editcomment&amp;id=' . $row['comment_id']) . '" id="editbtn_' . $i . '">edit</a>';
+          $strings['EDIT_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=editcomment&amp;id=' . $row['comment_id']) . '" id="editbtn_' . $i . '">' . $lang->get('comment_btn_edit') . '</a>';
         
           // Delete link
-          $strings['DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=deletecomment&amp;id=' . $row['comment_id']) . '">delete</a>';
+          $strings['DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=deletecomment&amp;id=' . $row['comment_id']) . '">' . $lang->get('comment_btn_delete') . '</a>';
         }
         else
         {
@@ -1047,19 +1079,19 @@ class PageUtils {
         }
         
         // Send PM link
-        $strings['SEND_PM_LINK'] = ( $session->user_logged_in && $row['user_id'] > 0 ) ? '<a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/To/' . $row['name']) . '">Send private message</a><br />' : '';
+        $strings['SEND_PM_LINK'] = ( $session->user_logged_in && $row['user_id'] > 1 ) ? '<a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/To/' . $row['name']) . '">' . $lang->get('comment_btn_send_privmsg') . '</a><br />' : '';
         
         // Add Buddy link
-        $strings['ADD_BUDDY_LINK'] = ( $session->user_logged_in && $row['user_id'] > 0 ) ? '<a href="'.makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' . $row['name']) . '">Add to buddy list</a>' : '';
+        $strings['ADD_BUDDY_LINK'] = ( $session->user_logged_in && $row['user_id'] > 1 ) ? '<a href="'.makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' . $row['name']) . '">' . $lang->get('comment_btn_add_buddy') . '</a>' : '';
         
         // Mod links
         $applink = '';
         $applink .= '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=approve&amp;id=' . $row['comment_id']) . '" id="mdgApproveLink' . $i . '">';
-        if($row['approved']) $applink .= 'Unapprove';
-        else $applink .= 'Approve';
+        if($row['approved']) $applink .= $lang->get('comment_btn_mod_unapprove');
+        else $applink .= $lang->get('comment_btn_mod_approve');
         $applink .= '</a>';
         $strings['MOD_APPROVE_LINK'] = $applink; unset($applink);
-        $strings['MOD_DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=delete&amp;id=' . $row['comment_id']) . '">Delete</a>';
+        $strings['MOD_DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=delete&amp;id=' . $row['comment_id']) . '">' . $lang->get('comment_btn_mod_delete') . '</a>';
         
         // Signature
         $strings['SIGNATURE'] = '';
@@ -1077,32 +1109,31 @@ class PageUtils {
     }
     if(getConfig('comments_need_login') != '2' || $session->user_logged_in)
     {
-      if(!$session->get_permissions('post_comments'))
+      if($session->get_permissions('post_comments'))
       {
-        $_ob .= '<h3>Got something to say?</h3><p>Access to post comments on this page is denied.</p>';
-      }
-      else
-      {
-        $_ob .= '<h3>Got something to say?</h3>If you have comments or suggestions on this article, you can shout it out here.';
-        if(getConfig('approve_comments')=='1') $_ob .= '  Before your comment will be visible to the public, a moderator will have to approve it.';
-        if(getConfig('comments_need_login') == '1' && !$session->user_logged_in) $_ob .= ' Because you are not logged in, you will need to enter a visual confirmation before your comment will be posted.';
+        $_ob .= '<h3>' . $lang->get('comment_postform_title') . '</h3>';
+        $_ob .= $lang->get('comment_postform_blurb');
+        if(getConfig('approve_comments')=='1') $_ob .= ' ' . $lang->get('comment_postform_blurb_unapp');
+        if(getConfig('comments_need_login') == '1' && !$session->user_logged_in)
+        {
+          $_ob .= ' ' . $lang->get('comment_postform_blurb_captcha');
+        }
         $sn = $session->user_logged_in ? $session->username . '<input name="name" id="mdgScreenName" type="hidden" value="' . $session->username . '" />' : '<input name="name" id="mdgScreenName" type="text" size="35" />';
-        $_ob .= '  <a href="#" id="mdgCommentFormLink" style="display: none;" onclick="document.getElementById(\'mdgCommentForm\').style.display=\'block\';this.style.display=\'none\';return false;">Leave a comment...</a>
+        $_ob .= '  <a href="#" id="mdgCommentFormLink" style="display: none;" onclick="document.getElementById(\'mdgCommentForm\').style.display=\'block\';this.style.display=\'none\';return false;">' . $lang->get('comment_postform_blurb_link') . '</a>
         <div id="mdgCommentForm">
-        <h3>Comment form</h3>
         <form action="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=postcomment').'" method="post" style="margin-left: 1em">
         <table border="0">
-        <tr><td>Your name or screen name:</td><td>' . $sn . '</td></tr>
-        <tr><td>Comment subject:</td><td><input name="subj" id="mdgSubject" type="text" size="35" /></td></tr>';
+        <tr><td>' . $lang->get('comment_postform_field_name') . '</td><td>' . $sn . '</td></tr>
+        <tr><td>' . $lang->get('comment_postform_field_subject') . '</td><td><input name="subj" id="mdgSubject" type="text" size="35" /></td></tr>';
         if(getConfig('comments_need_login') == '1' && !$session->user_logged_in)
         {
           $session->kill_captcha();
           $captcha = $session->make_captcha();
-          $_ob .= '<tr><td>Visual confirmation:<br /><small>Please enter the code you see on the right.</small></td><td><img src="'.makeUrlNS('Special', 'Captcha/' . $captcha) . '" alt="Visual confirmation" style="cursor: pointer;" onclick="this.src = \''.makeUrlNS("Special", "Captcha/".$captcha).'/\'+Math.floor(Math.random() * 100000);" /><input name="captcha_id" id="mdgCaptchaID" type="hidden" value="' . $captcha . '" /><br />Code: <input name="captcha_input" id="mdgCaptchaInput" type="text" size="10" /><br /><small><script type="text/javascript">document.write("If you can\'t read the code, click on the image to generate a new one.");</script><noscript>If you can\'t read the code, please refresh this page to generate a new one.</noscript></small></td></tr>';
+          $_ob .= '<tr><td>' . $lang->get('comment_postform_field_captcha_title') . '<br /><small>' . $lang->get('comment_postform_field_captcha_blurb') . '</small></td><td><img src="'.makeUrlNS('Special', 'Captcha/' . $captcha) . '" alt="Visual confirmation" style="cursor: pointer;" onclick="this.src = \''.makeUrlNS("Special", "Captcha/".$captcha).'/\'+Math.floor(Math.random() * 100000);" /><input name="captcha_id" id="mdgCaptchaID" type="hidden" value="' . $captcha . '" /><br />' . $lang->get('comment_postform_field_captcha_label') . ' <input name="captcha_input" id="mdgCaptchaInput" type="text" size="10" /><br /><small><script type="text/javascript">document.write("' . $lang->get('comment_postform_field_captcha_cantread_js') . '");</script><noscript>' . $lang->get('comment_postform_field_captcha_cantread_nojs') . '</noscript></small></td></tr>';
         }
         $_ob .= '
-        <tr><td valign="top">Comment text:<br />(most HTML will be stripped)</td><td><textarea name="text" id="mdgCommentArea" rows="10" cols="40"></textarea></td></tr>
-        <tr><td colspan="2" style="text-align: center;"><input type="submit" value="Submit Comment" /></td></tr>
+        <tr><td valign="top">' . $lang->get('comment_postform_field_comment') . '</td><td><textarea name="text" id="mdgCommentArea" rows="10" cols="40"></textarea></td></tr>
+        <tr><td colspan="2" style="text-align: center;"><input type="submit" value="' . $lang->get('comment_postform_btn_submit') . '" /></td></tr>
         </table>
         </form>
         </div>';
@@ -1333,6 +1364,7 @@ class PageUtils {
   function rename($page_id, $namespace, $name)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $pname = $paths->nslist[$namespace] . $page_id;
     
@@ -1341,7 +1373,7 @@ class PageUtils {
     
     if( empty($name)) 
     {
-      die('Name is too short');
+      return($lang->get('ajax_rename_too_short'));
     }
     if( ( $session->get_permissions('rename') && ( ( $prot && $session->get_permissions('even_when_protected') ) || !$prot ) ) && ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' ))
     {
@@ -1357,12 +1389,16 @@ class PageUtils {
       }
       else
       {
-        return('The page "' . $paths->pages[$pname]['name'] . '" has been renamed to "' . $name . '". You are encouraged to leave a comment explaining your action.' . "\n\n" . 'You will see the change take effect the next time you reload this page.');
+        $subst = array(
+          'page_name_old' => $paths->pages[$pname]['name'],
+          'page_name_new' => $name
+          );
+        return $lang->get('ajax_rename_success', $subst);
       }
     }
     else
     {
-      return('Access is denied.');
+      return($lang->get('etc_access_denied'));
     }
   }
   
@@ -1376,7 +1412,11 @@ class PageUtils {
   function flushlogs($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$session->get_permissions('clear_logs')) die('Administrative privileges are required to flush logs, you loser.');
+    global $lang;
+    if(!$session->get_permissions('clear_logs'))
+    {
+      return $lang->get('etc_access_denied');
+    }
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'logs WHERE page_id=\'' . $db->escape($page_id) . '\' AND namespace=\'' . $db->escape($namespace) . '\';');
     if(!$e) $db->_die('The log entries could not be deleted.');
     
@@ -1391,7 +1431,7 @@ class PageUtils {
       $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.'false'.');';
       if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
     }
-    return('The logs for this page have been cleared. A backup of this page has been added to the logs table so that this page can be restored in case of vandalism or spam later.');
+    return $lang->get('ajax_clearlogs_success');
   }
   
   /**
@@ -1405,11 +1445,12 @@ class PageUtils {
   function deletepage($page_id, $namespace, $reason)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     $perms = $session->fetch_page_acl($page_id, $namespace);
     $x = trim($reason);
     if ( empty($x) )
     {
-      return 'Invalid reason for deletion passed';
+      return $lang->get('ajax_delete_need_reason');
     }
     if(!$perms->get_permissions('delete_page')) return('Administrative privileges are required to delete pages, you loser.');
     $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
@@ -1424,7 +1465,7 @@ class PageUtils {
     if(!$e) $db->_die('The page entry could not be deleted.');
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'files WHERE page_id=\'' . $page_id . '\'');
     if(!$e) $db->_die('The file entry could not be deleted.');
-    return('This page has been deleted. Note that there is still a log of edits and actions in the database, and anyone with admin rights can raise this page from the dead unless the log is cleared. If the deleted file is an image, there may still be cached thumbnails of it in the cache/ directory, which is inaccessible to users.');
+    return $lang->get('ajax_delete_success');
   }
   
   /**
@@ -1437,9 +1478,10 @@ class PageUtils {
   function delvote($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     if ( !$session->get_permissions('vote_delete') )
     {
-      return 'Access denied';
+      return $lang->get('etc_access_denied');
     }
     
     if ( $namespace == 'Admin' || $namespace == 'Special' || $namespace == 'System' )
@@ -1478,7 +1520,7 @@ class PageUtils {
     
     if ( in_array($session->username, $ips['u']) || in_array($_SERVER['REMOTE_ADDR'], $ips['ip']) )
     {
-      return 'It appears that you have already voted to have this page deleted.';
+      return $lang->get('ajax_delvote_already_voted');
     }
     
     $ips['u'][] = $session->username;
@@ -1490,7 +1532,7 @@ class PageUtils {
     $q = 'UPDATE ' . table_prefix.'pages SET delvotes=' . $cv . ',delvote_ips=\'' . $ips . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'';
     $w = $db->sql_query($q);
     
-    return 'Your vote to have this page deleted has been cast.'."\nYou are encouraged to leave a comment explaining the reason for your vote.";
+    return $lang->get('ajax_delvote_success');
   }
   
   /**
@@ -1503,11 +1545,18 @@ class PageUtils {
   function resetdelvotes($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$session->get_permissions('vote_reset')) die('You need moderator rights in order to do this, stinkin\' hacker.');
+    global $lang;
+    if(!$session->get_permissions('vote_reset'))
+    {
+      return $lang->get('etc_access_denied');
+    }
     $q = 'UPDATE ' . table_prefix.'pages SET delvotes=0,delvote_ips=\'' . $db->escape(serialize(array('ip'=>array(),'u'=>array()))) . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'';
     $e = $db->sql_query($q);
     if(!$e) $db->_die('The number of delete votes was not reset.');
-    else return('The number of votes for having this page deleted has been reset to zero.');
+    else
+    {
+      return $lang->get('ajax_delvote_reset_success');
+    }
   }
   
   /**
@@ -1568,6 +1617,8 @@ class PageUtils {
   function catedit_raw($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     ob_start();
     $_ob = '';
     $e = $db->sql_query('SELECT category_id FROM ' . table_prefix.'categories WHERE page_id=\'' . $paths->cpage['urlname_nons'] . '\' AND namespace=\'' . $paths->namespace . '\'');
@@ -1605,11 +1656,11 @@ class PageUtils {
     }
     
     echo 'catlist = new Array();'; // Initialize the client-side category list
-    $_ob .= '<h3>Select which categories this page should be included in.</h3>
+    $_ob .= '<h3>' . $lang->get('catedit_title') . '</h3>
              <form name="mdgCatForm" action="'.makeUrlNS($namespace, $page_id, 'do=catedit').'" method="post">';
     if ( sizeof($cat_info) < 1 )
     {
-      $_ob .= '<p>There are no categories on this site yet.</p>';
+      $_ob .= '<p>' . $lang->get('catedit_no_categories') . '</p>';
     }
     for ( $i = 0; $i < sizeof($cat_info) / 2; $i++ )
     {
@@ -1630,7 +1681,7 @@ class PageUtils {
     
     $disabled = ( sizeof($cat_info) < 1 ) ? 'disabled="disabled"' : '';
       
-    $_ob .= '<div style="border-top: 1px solid #CCC; padding-top: 5px; margin-top: 10px;"><input name="__enanoSaveButton" ' . $disabled . ' style="font-weight: bold;" type="submit" onclick="ajaxCatSave(); return false;" value="Save changes" /> <input name="__enanoCatCancel" type="submit" onclick="ajaxReset(); return false;" value="Cancel" /></div></form>';
+    $_ob .= '<div style="border-top: 1px solid #CCC; padding-top: 5px; margin-top: 10px;"><input name="__enanoSaveButton" ' . $disabled . ' style="font-weight: bold;" type="submit" onclick="ajaxCatSave(); return false;" value="' . $lang->get('etc_save_changes') . '" /> <input name="__enanoCatCancel" type="submit" onclick="ajaxReset(); return false;" value="' . $lang->get('etc_cancel') . '" /></div></form>';
     
     $cont = ob_get_contents();
     ob_end_clean();
@@ -1745,13 +1796,14 @@ class PageUtils {
   function setpass($page_id, $namespace, $pass)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     // Determine permissions
     if($paths->pages[$paths->nslist[$namespace].$page_id]['password'] != '')
       $a = $session->get_permissions('password_reset');
     else
       $a = $session->get_permissions('password_set');
     if(!$a)
-      return 'Access is denied';
+      return $lang->get('etc_access_denied');
     if(!isset($pass)) return('Password was not set on URL');
     $p = $pass;
     if ( !preg_match('#([0-9a-f]){40,40}#', $p) )
@@ -1769,9 +1821,12 @@ class PageUtils {
     // Is the new password blank?
     if ( $p == '' )
     {
-      return('The password for this page has been disabled.');
+      return $lang->get('ajax_password_disable_success');
     }
-    else return('The password for this page has been set.');
+    else
+    {
+      return $lang->get('ajax_password_success');
+    }
   }
   
   /**
@@ -1782,7 +1837,8 @@ class PageUtils {
    
   function genPreview($text)
   {
-    $ret = '<div class="info-box"><b>Reminder:</b> This is only a preview - your changes to this page have not yet been saved.</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 1em 0 1em 1em;">';
+    global $lang;
+    $ret = '<div class="info-box">' . $lang->get('editor_preview_blurb') . '</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 1em 0 1em 1em;">';
     $text = RenderMan::render(RenderMan::preprocess_text($text, false, false));
     ob_start();
     eval('?>' . $text);
@@ -1817,8 +1873,9 @@ class PageUtils {
   function pagediff($page_id, $namespace, $id1, $id2)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     if(!$session->get_permissions('history_view'))
-      return 'Access denied';
+      return $lang->get('etc_access_denied');
     if(!preg_match('#^([0-9]+)$#', (string)$id1) ||
        !preg_match('#^([0-9]+)$#', (string)$id2  )) return 'SQL injection attempt';
     // OK we made it through security
@@ -1835,7 +1892,7 @@ class PageUtils {
     $time1 = date('F d, Y h:i a', $id1);
     $time2 = date('F d, Y h:i a', $id2);
     $_ob = "
-    <p>Comparing revisions: {$time1} &rarr; {$time2}</p>
+    <p>" . $lang->get('history_lbl_comparingrevisions') . " {$time1} &rarr; {$time2}</p>
     ";
     // Free some memory
     unset($row1, $row2, $q1, $q2);
@@ -1846,8 +1903,6 @@ class PageUtils {
   
   /**
    * Gets ACL information about the selected page for target type X and target ID Y.
-   * @param string $page_id The page ID
-   * @param string $namespace The namespace
    * @param array $parms What to select. This is an array purely for JSON compatibility. It should be an associative array with keys target_type and target_id.
    * @return array
    */
@@ -1855,11 +1910,13 @@ class PageUtils {
   function acl_editor($parms = Array())
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     if(!$session->get_permissions('edit_acl') && $session->user_level < USER_LEVEL_ADMIN)
     {
       return Array(
         'mode' => 'error',
-        'error' => 'You are not authorized to view or edit access control lists.'
+        'error' => $lang->get('acl_err_access_denied')
         );
     }
     $parms['page_id'] = ( isset($parms['page_id']) ) ? $parms['page_id'] : false;
@@ -1877,7 +1934,7 @@ class PageUtils {
     {
       return Array(
         'mode' => 'error',
-        'error' => 'It seems that (a) the file acledit.tpl is missing from these theme, and (b) the JSON response is working.',
+        'error' => $lang->get('acl_err_missing_template'),
       );
     }
     $return['template'] = $template->extract_vars('acledit.tpl');
@@ -1938,7 +1995,7 @@ class PageUtils {
                 if(!$q)
                   return(Array('mode'=>'error','error'=>mysql_error()));
                 if($db->numrows() < 1)
-                  return Array('mode'=>'error','error'=>'The username you entered was not found.');
+                  return Array('mode'=>'error','error'=>$lang->get('acl_err_user_not_found'));
                 $row = $db->fetchrow();
                 $return['target_name'] = $return['target_id'];
                 $return['target_id'] = intval($row['user_id']);
@@ -1985,7 +2042,7 @@ class PageUtils {
                 if(!$q)
                   return(Array('mode'=>'error','error'=>mysql_error()));
                 if($db->numrows() < 1)
-                  return Array('mode'=>'error','error'=>'The group ID you submitted is not valid.');
+                  return Array('mode'=>'error','error'=>$lang->get('acl_err_bad_group_id'));
                 $row = $db->fetchrow();
                 $return['target_name'] = $row['group_name'];
                 $return['target_id'] = intval($row['group_id']);
@@ -2027,7 +2084,7 @@ class PageUtils {
         case 'save_edit':
           if ( defined('ENANO_DEMO_MODE') )
           {
-            return Array('mode'=>'error','error'=>'Editing access control lists is disabled in the administration demo.');
+            return Array('mode'=>'error','error'=>$lang->get('acl_err_demo'));
           }
           $q = $db->sql_query('DELETE FROM ' . table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
             ' . $page_where_clause_lite . ';');
@@ -2038,7 +2095,7 @@ class PageUtils {
           {
             return array(
                 'mode' => 'error', 
-                'error' => 'Supplied rule list has a length of zero'
+                'error' => $lang->get('acl_err_zero_list')
               );
           }
           $q = ($page_id && $namespace) ? 'INSERT INTO ' . table_prefix.'acl ( target_type, target_id, page_id, namespace, rules )
@@ -2058,7 +2115,7 @@ class PageUtils {
         case 'delete':
           if ( defined('ENANO_DEMO_MODE') )
           {
-            return Array('mode'=>'error','error'=>'Editing access control lists is disabled in the administration demo.');
+            return Array('mode'=>'error','error'=>$lang->get('acl_err_demo'));
           }
           $q = $db->sql_query('DELETE FROM ' . table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
             ' . $page_where_clause_lite . ';');
@@ -2105,6 +2162,7 @@ class PageUtils {
   function aclmanager($parms)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     ob_start();
     // Convenience
     $formstart = '<form 
@@ -2125,20 +2183,21 @@ class PageUtils {
         echo '<pre>' . htmlspecialchars($response['text']) . '</pre>';
         break;
       case 'stage1':
-        echo '<h3>Manage page access</h3>
-              <p>Please select who should be affected by this access rule.</p>';
+        echo '<h3>' . $lang->get('acl_lbl_welcome_title') . '</h3>
+              <p>' . $lang->get('acl_lbl_welcome_body') . '</p>';
         echo $formstart;
-        echo '<p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_GROUP . '" checked="checked" /> A usergroup</label></p>
+        echo '<p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_GROUP . '" checked="checked" /> ' . $lang->get('acl_radio_usergroup') . '</label></p>
               <p><select name="data[target_id_grp]">';
         foreach ( $response['groups'] as $group )
         {
           echo '<option value="' . $group['id'] . '">' . $group['name'] . '</option>';
         }
+        
         // page group selector
         $groupsel = '';
         if ( count($response['page_groups']) > 0 )
         {
-          $groupsel = '<p><label><input type="radio" name="data[scope]" value="page_group" /> A group of pages</label></p>
+          $groupsel = '<p><label><input type="radio" name="data[scope]" value="page_group" /> ' . $lang->get('acl_radio_scope_pagegroup') . '</label></p>
                        <p><select name="data[pg_id]">';
           foreach ( $response['page_groups'] as $grp )
           {
@@ -2148,24 +2207,24 @@ class PageUtils {
         }
         
         echo '</select></p>
-              <p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_USER . '" /> A specific user</label></p>
+              <p><label><input type="radio" name="data[target_type]" value="' . ACL_TYPE_USER . '" /> ' . $lang->get('acl_radio_user') . '</label></p>
               <p>' . $template->username_field('data[target_id_user]') . '</p>
-              <p>What should this access rule control?</p>
-              <p><label><input name="data[scope]" value="only_this" type="radio" checked="checked" /> Only this page</p>
+              <p>' . $lang->get('acl_lbl_scope') . '</p>
+              <p><label><input name="data[scope]" value="only_this" type="radio" checked="checked" /> ' . $lang->get('acl_radio_scope_thispage') . '</p>
               ' . $groupsel . '
-              <p><label><input name="data[scope]" value="entire_site" type="radio" /> The entire site</p>
+              <p><label><input name="data[scope]" value="entire_site" type="radio" /> ' . $lang->get('acl_radio_scope_wholesite') . '</p>
               <div style="margin: 0 auto 0 0; text-align: right;">
                 <input name="data[mode]" value="seltarget" type="hidden" />
                 <input type="hidden" name="data[page_id]" value="' . $paths->cpage['urlname_nons'] . '" />
                 <input type="hidden" name="data[namespace]" value="' . $paths->namespace . '" />
-                <input type="submit" value="Next &gt;" />
+                <input type="submit" value="' . htmlspecialchars($lang->get('etc_wizard_next')) . '" />
               </div>';
         echo $formend;
         break;
       case 'success':
         echo '<div class="info-box">
-                <b>Permissions updated</b><br />
-                The permissions for ' . $response['target_name'] . ' on this page have been updated successfully.<br />
+                <b>' . $lang->get('acl_lbl_save_success_title') . '</b><br />
+                ' . $lang->get('acl_lbl_save_success_body', array( 'target_name' => $response['target_name'] )) . '<br />
                 ' . $formstart . '
                 <input type="hidden" name="data[mode]" value="seltarget" />
                 <input type="hidden" name="data[target_type]" value="' . $response['target_type'] . '" />
@@ -2174,14 +2233,14 @@ class PageUtils {
                 <input type="hidden" name="data[scope]" value="' . ( ( $response['page_id'] ) ? 'only_this' : 'entire_site' ) . '" />
                 <input type="hidden" name="data[page_id]" value="' . ( ( $response['page_id'] ) ? $response['page_id'] : 'false' ) . '" />
                 <input type="hidden" name="data[namespace]" value="' . ( ( $response['namespace'] ) ? $response['namespace'] : 'false' ) . '" />
-                <input type="submit" value="Return to ACL editor" /> <input type="submit" name="data[act_go_stage1]" value="Return to user/scope selection" />
+                <input type="submit" value="' . $lang->get('acl_btn_returnto_editor') . '" /> <input type="submit" name="data[act_go_stage1]" value="' . $lang->get('acl_btn_returnto_userscope') . '" />
                 ' . $formend . '
               </div>';
         break;
       case 'delete':
         echo '<div class="info-box">
-                <b>Rule deleted</b><br />
-                The selected access rule has been successfully deleted.<br />
+                <b>' . $lang->get('acl_lbl_delete_success_title') . '</b><br />
+                ' . $lang->get('acl_lbl_delete_success_body', array('target_name' => $response['target_name'])) . '<br />
                 ' . $formstart . '
                 <input type="hidden" name="data[mode]" value="seltarget" />
                 <input type="hidden" name="data[target_type]" value="' . $response['target_type'] . '" />
@@ -2190,22 +2249,27 @@ class PageUtils {
                 <input type="hidden" name="data[scope]" value="' . ( ( $response['page_id'] ) ? 'only_this' : 'entire_site' ) . '" />
                 <input type="hidden" name="data[page_id]" value="' . ( ( $response['page_id'] ) ? $response['page_id'] : 'false' ) . '" />
                 <input type="hidden" name="data[namespace]" value="' . ( ( $response['namespace'] ) ? $response['namespace'] : 'false' ) . '" />
-                <input type="submit" value="Return to ACL editor" /> <input type="submit" name="data[act_go_stage1]" value="Return to user/scope selection" />
+                <input type="submit" value="' . $lang->get('acl_btn_returnto_editor') . '" /> <input type="submit" name="data[act_go_stage1]" value="' . $lang->get('acl_btn_returnto_userscope') . '" />
                 ' . $formend . '
               </div>';
         break;
       case 'seltarget':
         if ( $response['type'] == 'edit' )
         {
-          echo '<h3>Editing permissions</h3>';
+          echo '<h3>' . $lang->get('acl_lbl_editwin_title_edit') . '</h3>';
         }
         else
         {
-          echo '<h3>Create new rule</h3>';
+          echo '<h3>' . $lang->get('acl_lbl_editwin_title_create') . '</h3>';
         }
-        $type  = ( $response['target_type'] == ACL_TYPE_GROUP ) ? 'group' : 'user';
-        $scope = ( $response['page_id'] ) ? ( $response['namespace'] == '__PageGroup' ? 'this group of pages' : 'this page' ) : 'this entire site';
-        echo 'This panel allows you to edit what the ' . $type . ' "' . $response['target_name'] . '" can do on <b>' . $scope . '</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.';
+        $type  = ( $response['target_type'] == ACL_TYPE_GROUP ) ? $lang->get('acl_target_type_group') : $lang->get('acl_target_type_user');
+        $scope = ( $response['page_id'] ) ? ( $response['namespace'] == '__PageGroup' ? $lang->get('acl_scope_type_pagegroup') : $lang->get('acl_scope_type_thispage') ) : $lang->get('acl_scope_type_wholesite');
+        $subs = array(
+            'target_type' => $type,
+            'target' => $response['target_name'],
+            'scope_type' => $scope
+          );
+        echo $lang->get('acl_lbl_editwin_body', $subs);
         echo $formstart;
         $parser = $template->makeParserText( $response['template']['acl_field_begin'] );
         echo $parser->run();
@@ -2239,7 +2303,14 @@ class PageUtils {
               break;
           }
           $vars['FIELD_NAME'] = 'data[perms][' . $acl_type . ']';
-          $vars['FIELD_DESC'] = $response['acl_descs'][$acl_type];
+          if ( preg_match('/^([a-z0-9_]+)$/', $response['acl_descs'][$acl_type]) )
+          {
+            $vars['FIELD_DESC'] = $lang->get($response['acl_descs'][$acl_type]);
+          }
+          else
+          {
+            $vars['FIELD_DESC'] = $response['acl_descs'][$acl_type];
+          }
           $parser->assign_vars($vars);
           echo $parser->run();
         }
@@ -2252,7 +2323,7 @@ class PageUtils {
                 <input type="hidden" name="data[target_type]" value="' . $response['target_type'] . '" />
                 <input type="hidden" name="data[target_id]" value="' . $response['target_id'] . '" />
                 <input type="hidden" name="data[target_name]" value="' . $response['target_name'] . '" />
-                ' . ( ( $response['type'] == 'edit' ) ? '<input type="submit" value="Save changes" />&nbsp;&nbsp;<input type="submit" name="data[act_delete_rule]" value="Delete rule" style="color: #AA0000;" onclick="return confirm(\'Do you really want to delete this ACL rule?\');" />' : '<input type="submit" value="Create rule" />' ) . '
+                ' . ( ( $response['type'] == 'edit' ) ? '<input type="submit" value="' . $lang->get('etc_save_changes') . '" />&nbsp;&nbsp;<input type="submit" name="data[act_delete_rule]" value="' . $lang->get('acl_btn_deleterule') . '" style="color: #AA0000;" onclick="return confirm(\'' . addslashes($lang->get('acl_msg_deleterule_confirm')) . '\');" />' : '<input type="submit" value="' . $lang->get('acl_btn_createrule') . '" />' ) . '
               </div>';
         echo $formend;
         break;

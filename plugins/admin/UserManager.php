@@ -52,7 +52,14 @@ function page_Admin_UserManager()
     }
     else
     {
-      if ( $session->user_id != $user_id )
+      if ( $session->user_id == $user_id )
+      {
+        $username = $session->username;
+        $password = false;
+        $email = $session->email;
+        $real_name = $session->real_name;
+      }
+      else
       {
         $username = $_POST['username'];
         if ( !preg_match('#^'.$session->valid_username.'$#', $username) )
@@ -402,18 +409,18 @@ function page_Admin_UserManager()
         {
           $row = $db->fetchrow();
           $db->free_result();
-          if($session->activate_account($_GET['user'], $row['activation_key'])) { echo '<div class="info-box">The user account "'.$_GET['user'].'" has been activated.</div>'; $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid'])); }
-          else echo '<div class="warning-box">The user account "'.$_GET['user'].'" has NOT been activated, possibly because the account is already active.</div>';
+          if($session->activate_account($_GET['user'], $row['activation_key'])) { echo '<div class="info-box">The user account "' . htmlspecialchars($_GET['user']) . '" has been activated.</div>'; $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid'])); }
+          else echo '<div class="warning-box">The user account "' . htmlspecialchars($_GET['user']) . '" has NOT been activated, possibly because the account is already active.</div>';
         } else echo '<div class="error-box">Error activating account: '.mysql_error().'</div>';
         break;
       case "sendemail":
-        if($session->send_activation_mail($_GET['user'])) { echo '<div class="info-box">The user "'.$_GET['user'].'" has been sent an e-mail with an activation link.</div>'; $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid'])); }
-        else echo '<div class="error-box">The user account "'.$_GET['user'].'" has not been activated, probably because of a bad SMTP configuration.</div>';
+        if($session->send_activation_mail($_GET['user'])) { echo '<div class="info-box">The user "' . htmlspecialchars($_GET['user']) . '" has been sent an e-mail with an activation link.</div>'; $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid'])); }
+        else echo '<div class="error-box">The user account "' . htmlspecialchars($_GET['user']) . '" has not been activated, probably because of a bad SMTP configuration.</div>';
         break;
       case "deny":
-        $e = $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\' AND edit_summary=\'' . $db->escape($_GET['user']) . '\';');
+        $e = $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\' AND time_id=\'' . $db->escape($_GET['logid']) . '\';');
         if(!$e) echo '<div class="error-box">Error during row deletion: '.mysql_error().'</div>';
-        else echo '<div class="info-box">All activation requests for the user "'.$_GET['user'].'" have been deleted.</div>';
+        else echo '<div class="info-box">All activation requests for the user "' . htmlspecialchars($_GET['user']) . '" have been deleted.</div>';
         break;
     }
   }
