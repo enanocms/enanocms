@@ -665,7 +665,7 @@ switch($_GET['mode'])
     break;
   case "website":
     if(!isset($_POST['_cont'])) {
-      echo 'No POST data signature found. Please <a href="install.php?mode=license">restart the installation</a>.';
+      echo 'No POST data signature found. Please <a href="install.php?mode=sysreqs">restart the installation</a>.';
       $template->footer();
       exit;
     }
@@ -736,7 +736,7 @@ switch($_GET['mode'])
     break;
   case "login":
     if(!isset($_POST['_cont'])) {
-      echo 'No POST data signature found. Please <a href="install.php?mode=license">restart the installation</a>.';
+      echo 'No POST data signature found. Please <a href="install.php?mode=sysreqs">restart the installation</a>.';
       $template->footer();
       exit;
     }
@@ -766,7 +766,9 @@ switch($_GET['mode'])
       {
         var frm = document.forms.login;
         ret = true;
-        if ( frm.admin_user.value.match(/^([A-z0-9 \-\.]+)$/g) && !frm.admin_user.value.match(/^(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/) && frm.admin_user.value.toLowerCase() != 'anonymous' )
+        var ip_regexp = new RegExp('^(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$', '');
+        var valid_username = new RegExp('^([A-z0-9 \-\.]+)$', '');
+        if ( frm.admin_user.value.match(valid_username) && !frm.admin_user.value.match(ip_regexp) && frm.admin_user.value.toLowerCase() != 'anonymous' )
         {
           document.getElementById('s_user').src = 'images/good.gif';
         }
@@ -784,7 +786,8 @@ switch($_GET['mode'])
           document.getElementById('s_password').src = 'images/bad.gif';
           ret = false;
         }
-        if(frm.admin_email.value.match(/^(?:[\w\d]+\.?)+@(?:(?:[\w\d]\-?)+\.)+\w{2,4}$/))
+        var valid_email = new RegExp('^(?:[\w\d]+\.?)+@(?:(?:[\w\d]\-?)+\.)+\w{2,4}$', '');
+        if(frm.admin_email.value.match(valid_email))
         {
           document.getElementById('s_email').src = 'images/good.gif';
         }
@@ -920,7 +923,7 @@ switch($_GET['mode'])
     break;
   case "confirm":
     if(!isset($_POST['_cont'])) {
-      echo 'No POST data signature found. Please <a href="install.php?mode=license">restart the installation</a>.';
+      echo 'No POST data signature found. Please <a href="install.php?mode=sysreqs">restart the installation</a>.';
       $template->footer();
       exit;
     }
@@ -970,7 +973,7 @@ switch($_GET['mode'])
        !isset($_POST['urlscheme'])
        )
     {
-      echo 'The installer has detected that one or more required form values is not set. Please <a href="install.php?mode=license">restart the installation</a>.';
+      echo 'The installer has detected that one or more required form values is not set. Please <a href="install.php?mode=sysreqs">restart the installation</a>.';
       $template->footer();
       exit;
     }
@@ -988,6 +991,9 @@ switch($_GET['mode'])
         break;
     }
     function err($t) { global $template; echo $t; $template->footer(); exit; }
+    
+    if ( !preg_match('/^[a-z0-9_]*$/', $_POST['table_prefix']) )
+      err('Hacking attempt was detected in table_prefix.');
     
       echo 'Connecting to MySQL...';
       if($_POST['db_root_user'] != '')
@@ -1138,12 +1144,13 @@ $dbhost   = \''.addslashes($_POST['db_host']).'\';
 $dbname   = \''.addslashes($_POST['db_name']).'\';
 $dbuser   = \''.addslashes($_POST['db_user']).'\';
 $dbpasswd = \''.addslashes($_POST['db_pass']).'\';
-if(!defined(\'ENANO_CONSTANTS\')) {
-define(\'ENANO_CONSTANTS\', \'\');
-define(\'table_prefix\', \''.$_POST['table_prefix'].'\');
-define(\'scriptPath\', \''.scriptPath.'\');
-define(\'contentPath\', \''.$cp.'\');
-define(\'ENANO_INSTALLED\', \'true\');
+if ( !defined(\'ENANO_CONSTANTS\') )
+{
+  define(\'ENANO_CONSTANTS\', \'\');
+  define(\'table_prefix\', \''.addslashes($_POST['table_prefix']).'\');
+  define(\'scriptPath\', \''.scriptPath.'\');
+  define(\'contentPath\', \''.$cp.'\');
+  define(\'ENANO_INSTALLED\', \'true\');
 }
 $crypto_key = \''.$privkey.'\';
 ?>';

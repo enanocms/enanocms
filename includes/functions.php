@@ -3182,6 +3182,169 @@ function register_cron_task($func, $hour_interval = 24)
   $cron_tasks[$hour_interval][] = $func;
 }
 
+/**
+ * Scales an image to the specified width and height, and writes the output to the specified
+ * file. Will use ImageMagick if present, but if not will attempt to scale with GD. This will
+ * always scale images proportionally.
+ * @param string Path to image file
+ * @param string Path to output file
+ * @param int Image width, in pixels
+ * @param int Image height, in pixels
+ * @param bool If true, the output file will be deleted if it exists before it is written
+ * @return bool True on success, false on failure
+ */
+
+function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink = false)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  if ( !is_int($width) || !is_int($height) )
+    return false;
+  
+  if ( !file_exists($in_file) )
+    return false;
+  
+  if ( preg_match('/["\'\/\\]/', $in_file) || preg_match('/["\'\/\\]/', $out_file) )
+    die('SECURITY: scale_image(): infile or outfile path is screwy');
+  
+  if ( file_exists($out_file) && !$unlink )
+    return false;
+  else if ( file_exists($out_file) && $unlink )
+    @unlink($out_file);
+  if ( file_exists($out_file) )
+    // couldn't unlink (delete) the output file
+    return false;
+    
+  $file_ext = substr($in_file, ( strrpos($in_file, '.') + 1));
+  switch($file_ext)
+  {
+    case 'png':
+      $func = 'imagecreatefrompng';
+      break;
+    case 'jpg':
+    case 'jpeg':
+      $func = 'imagecreatefromjpeg';
+      break;
+    case 'gif':
+      $func = 'imagecreatefromgif';
+      break;
+    case 'xpm':
+      $func = 'imagecreatefromxpm';
+      break;
+    default:
+      return false;
+  }
+    
+  $magick_path = getConfig('imagemagick_path');
+  $can_use_magick = (
+      getConfig('enable_imagemagick') == '1' &&
+      file_exists($magick_path)              &&
+      is_executable($magick_path)
+    );
+  $can_use_gd = (
+      function_exists('getimagesize')         &&
+      function_exists('imagecreatetruecolor') &&
+      function_exists('imagecopyresampled')   &&
+      function_exists($func)
+    );
+  if ( $can_use_magick )
+  {
+    if ( !preg_match('/^([\/A-z0-9_-]+)$/', $magick_path) )
+    {
+      die('SECURITY: ImageMagick path is screwy');
+    }
+    $cmdline = "$magick_path \"$in_file\" -resize \"{$width}x{$height}>\" \"$out_file\"";
+    system($cmdline, $return);
+    if ( !file_exists($out_file) )
+      return false;
+    return true;
+  }
+  else if ( $can_use_gd )
+  {
+    @list($width_orig, $height_orig) = @getimagesize($in_file);
+    if ( !$width_orig || !$height_orig )
+      return false;
+    // calculate new width and height
+    
+    $ratio = $width_orig / $height_orig;
+    if ( $ratio > 1 )
+    {
+      // orig. width is greater that height
+      $new_width = $width;
+      $new_height = round( $width / $ratio );
+    }
+    else if ( $ratio < 1 )
+    {
+      // orig. height is greater than width
+      $new_width = round( $height / $ratio );
+      $new_height = $height;
+    }
+    else if ( $ratio == 1 )
+    {
+      $new_width = $width;
+      $new_height = $width;
+    }
+    if ( $new_width > $width_orig || $new_height > $height_orig )
+    {
+      // Too big for our britches here; set it to only convert the file
+      $new_width = $width_orig;
+      $new_height = $height_orig;
+    }
+    
+    $newimage = @imagecreatetruecolor($new_width, $new_height);
+    if ( !$newimage )
+      return false;
+    $oldimage = @$func($in_file);
+    if ( !$oldimage )
+      return false;
+    
+    // Perform scaling
+    imagecopyresampled($newimage, $oldimage, 0, 0, 0, 0, $new_width, $new_height, $width_orig, $height_orig);
+    
+    // Get output format
+    $out_ext = substr($out_file, ( strrpos($out_file, '.') + 1));
+    switch($out_ext)
+    {
+      case 'png':
+        $outfunc = 'imagepng';
+        break;
+      case 'jpg':
+      case 'jpeg':
+        $outfunc = 'imagejpeg';
+        break;
+      case 'gif':
+        $outfunc = 'imagegif';
+        break;
+      case 'xpm':
+        $outfunc = 'imagexpm';
+        break;
+      default:
+        imagedestroy($newimage);
+        imagedestroy($oldimage);
+        return false;
+    }
+    
+    // Write output
+    $outfunc($newimage, $out_file);
+    
+    // clean up
+    imagedestroy($newimage);
+    imagedestroy($oldimage);
+    
+    // done!
+    return true;
+  }
+  // Neither scaling method worked; we'll let plugins try to scale it, and then if the file still doesn't exist, die
+  $code = $plugins->setHook('scale_image_failure');
+  foreach ( $code as $cmd )
+  {
+    eval($cmd);
+  }
+  if ( file_exists($out_file) )
+    return true;
+  return false;
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>
