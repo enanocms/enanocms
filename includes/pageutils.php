@@ -992,7 +992,7 @@ class PageUtils {
     
     $subst = array(
         'num_comments' => $n,
-        'page_type' => '&lt;FIXME&gt; whatever'
+        'page_type' => $template->namespace_string
       );
     
     $_ob .= '<p>';
