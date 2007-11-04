@@ -760,40 +760,38 @@ switch($_GET['mode'])
       fwrite($handle, '<?php $cryptkey = \''.$cryptkey.'\'; ?>');
       fclose($handle);
     }
-    ?>
+    // Sorry for the ugly hack, but this f***s up jEdit badly.
+    echo '
     <script type="text/javascript">
       function verify()
       {
         var frm = document.forms.login;
         ret = true;
-        var ip_regexp = new RegExp('^(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$', '');
-        var valid_username = new RegExp('^([A-z0-9 \-\.]+)$', '');
-        if ( frm.admin_user.value.match(valid_username) && !frm.admin_user.value.match(ip_regexp) && frm.admin_user.value.toLowerCase() != 'anonymous' )
+        if ( frm.admin_user.value.match(/^([A-z0-9 \\-\\.]+)$/) && !frm.admin_user.value.match(/^(?:(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])\\.){3}(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])$/) && frm.admin_user.value.toLowerCase() != \'anonymous\' )
         {
-          document.getElementById('s_user').src = 'images/good.gif';
+          document.getElementById(\'s_user\').src = \'images/good.gif\';
         }
         else
         {
-          document.getElementById('s_user').src = 'images/bad.gif';
+          document.getElementById(\'s_user\').src = \'images/bad.gif\';
           ret = false;
         }
         if(frm.admin_pass.value.length >= 6 && frm.admin_pass.value == frm.admin_pass_confirm.value)
         {
-          document.getElementById('s_password').src = 'images/good.gif';
+          document.getElementById(\'s_password\').src = \'images/good.gif\';
         }
         else
         {
-          document.getElementById('s_password').src = 'images/bad.gif';
+          document.getElementById(\'s_password\').src = \'images/bad.gif\';
           ret = false;
         }
-        var valid_email = new RegExp('^(?:[\w\d]+\.?)+@(?:(?:[\w\d]\-?)+\.)+\w{2,4}$', '');
-        if(frm.admin_email.value.match(valid_email))
+        if(frm.admin_email.value.match(/^(?:[\\w\\d]+\\.?)+@(?:(?:[\\w\\d]\\-?)+\\.)+\\w{2,4}$/))
         {
-          document.getElementById('s_email').src = 'images/good.gif';
+          document.getElementById(\'s_email\').src = \'images/good.gif\';
         }
         else
         {
-          document.getElementById('s_email').src = 'images/bad.gif';
+          document.getElementById(\'s_email\').src = \'images/bad.gif\';
           ret = false;
         }
         if(ret) frm._cont.disabled = false;
@@ -807,6 +805,8 @@ switch($_GET['mode'])
         if(!verify()) return false;
       }
     </script>
+    ';
+    ?>
     <form name="login" action="install.php?mode=confirm" method="post" onsubmit="runEncryption();">
       <?php
         $k = array_keys($_POST);
@@ -851,6 +851,7 @@ switch($_GET['mode'])
     </form>
     <script type="text/javascript">
     // <![CDATA[
+      var frm = document.forms.login;
       frm.admin_user.focus();
       function runEncryption()
       {
