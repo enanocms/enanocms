@@ -822,7 +822,7 @@ class PageUtils {
             return 'The page "' . $name . '" has been undeleted according to the log created at ' . $rb['date_string'] . '.';
             break;
           case "reupload":
-            if ( !$session->get_permissions('history_rollbacks_extra') )
+            if ( !$session->get_permissions('history_rollback_extra') )
             {
               return 'Administrative privileges are required for file rollbacks.';
             }

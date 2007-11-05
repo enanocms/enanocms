@@ -1,25 +1,80 @@
 Enano CMS
-Version 1.0.1
+Version 1.0.2
 -----------------------------
 
 Thanks for downloading Enano! If you're looking for an installation guide,
-you can find it at <http://enanocms.org/Help:Installation>.
+you can find it at <http://docs.enanocms.org/Help:2.1>.
 
 COPYRIGHT
+-----------------------------
+
+Enano CMS
+Copyright (C) 2006-2007 Dan Fuhry. All rights except those explicitly granted
+by the included license agreement reserved.
+
+PHILOSOPHY
 -----------------------------
 
 We strongly believe in the idea of Free Software. Enano is released under the
 GNU General Public License; see the file GPL included with this release for
 details.
 
+LICENSING
+-----------------------------
+
+This program is Free Software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to:
+
+  Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor
+  Boston, MA 02110-1301, USA
+
+-----------------------------
+
 Most of the PHP code in Enano was written by Dan Fuhry. Some parts were borrowed
 from other projects that are also released under Free licenses; see the various
 files under the licenses/ directory included with this release for details.
 
+If you are planning to make a commercial fork of Enano, all of the software and
+libraries included with Enano are available under licenses that allow you to do
+so; however, in compliance with the GPL, you must:
+
+a) provide attribution to the Enano team in source code files and on the
+   (renamed) Special:About_Enano page,
+b) remove all instances of the word Enano and the Enano logo from your
+   derivative work, with the exception of the following phrase, which must
+   be shown on the (renamed) Special:About_Enano page:
+
+    "The software used on this website was based on Enano CMS. Copyright
+     (C) 2006-2007 Enano Foundation."
+
+   The words "Enano CMS" must link to the page <http://enanocms.org/>. You may
+   (at your option) also include a notice of non-endorsement by the Enano
+   Foundation, unless you're lucky enough to become an official fork
+   maintainer.
+
+c) Provide the complete source code for your modified version of Enano under
+   the terms of the GNU General Public License, and
+d) Include the complete and unmodified licenses/ directory, which contains
+   licensing information for third-party libraries that Enano uses.
+
+As permitted by the GPL, you may charge for the service of downloading Enano
+from your server; however, you may not prevent others from distributing Enano
+or any modified version.
+
 CHANGES IN THIS RELEASE
 -----------------------------
 
-Please see <http://enanocms.org/Release_notes/1.0.1> for a list of changes in
+Please see <http://enanocms.org/Release_notes/1.0.2> for a list of changes in
 this release.
 
 UPGRADING FROM PREVIOUS RELEASES
@@ -44,15 +99,22 @@ GIVING YOUR SITE A NEW LOOK
 
 You can find more themes for Enano at <http://enanocms.org/Category:Themes>.
 Again, we're still working on packaging up themes and creating pages for them,
-so try to be patient. We have quite a few themes in the works.
+so try to be patient. We have quite a few themes in the works. You can create
+your own themes too; for more information, see Chapter V of the Enano
+Administrator's handbook, at <http://docs.enanocms.org/Help:5>.
 
 GETTING SUPPORT
 -----------------------------
 
+Before contacting support, have a look at the Enano Documentation at
+<http://docs.enanocms.org/>. Most of Enano's features are documented with
+step-by-step guides at this site; if you encounter a problem, then please
+contact the Enano team as instructed below.
+
 Support for Enano is available via the Enano forums at
 <http://forum.enanocms.org>. You can also use our IRC channel
-(irc.freenode.net #enano) or purchase paid support via instant messaging for
-US$20 an hour.
+(irc.freenode.net #enano) or purchase paid one-on-one support via instant
+messaging for US$20 an hour.
 
 Have fun with Enano!
 

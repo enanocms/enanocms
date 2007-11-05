@@ -391,7 +391,7 @@ switch($_GET['mode'])
     run_test('return @ini_get(\'file_uploads\');', 'File upload support', 'It seems that your server does not support uploading files. Enano *requires* this functionality in order to work properly. Please ask your server administrator to set the "file_uploads" option in php.ini to "On".');
     run_test('return is_apache();', 'Apache HTTP Server', 'Apparently your server is running a web server other than Apache. Enano will work nontheless, but there are some known bugs with non-Apache servers, and the "fancy" URLs will not work properly. The "Standard URLs" option will be set on the website configuration page, only change it if you are absolutely certain that your server is running Apache.', true);
     //run_test('return function_exists(\'finfo_file\');', 'Fileinfo PECL extension', 'The MIME magic PHP extension is used to determine the type of a file by looking for a certain "magic" string of characters inside it. This functionality is used by Enano to more effectively prevent malicious file uploads. The MIME magic option will be disabled by default.', true);
-    run_test('return is_writable(ENANO_ROOT.\'/config.php\');', 'Configuration file writable', 'It looks like the configuration file, config.php, is not writable. Enano needs to be able to write to this file in order to install.<br /><br /><b>If you are installing Enano on a SourceForge web site:</b><br />SourceForge mounts the web partitions read-only now, so you will need to use the project shell service to symlink config.php to a file in the /tmp/persistent directory.');
+    run_test('return is_writable(ENANO_ROOT.\'/config.new.php\');', 'Configuration file writable', 'It looks like the configuration file, config.new.php, is not writable. Enano needs to be able to write to this file in order to install.<br /><br /><b>If you are installing Enano on a SourceForge web site:</b><br />SourceForge mounts the web partitions read-only now, so you will need to use the project shell service to symlink config.php to a file in the /tmp/persistent directory.');
     run_test('return file_exists(\'/usr/bin/convert\');', 'ImageMagick support', 'Enano uses ImageMagick to scale images into thumbnails. Because ImageMagick was not found on your server, Enano will use the width= and height= attributes on the &lt;img&gt; tag to scale images. This can cause somewhat of a performance increase, but bandwidth usage will be higher, especially if you use high-resolution images on your site.<br /><br />If you are sure that you have ImageMagick, you can set the location of the "convert" program using the administration panel after installation is complete.', true);
     run_test('return is_writable(ENANO_ROOT.\'/cache/\');', 'Cache directory writable', 'Apparently the cache/ directory is not writable. Enano will still work, but you will not be able to cache thumbnails, meaning the server will need to re-render them each time they are requested. In some cases, this can cause a significant slowdown.', true);
     run_test('return is_writable(ENANO_ROOT.\'/files/\');', 'File uploads directory writable', 'It seems that the directory where uploaded files are stored (' . ENANO_ROOT . '/files) cannot be written by the server. Enano will still function, but file uploads will not function, and will be disabled by default.', true);
@@ -741,7 +741,7 @@ switch($_GET['mode'])
       exit;
     }
     unset($_POST['_cont']);
-    require('config.php');
+    require('config.new.php');
     $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
     if ( isset($crypto_key) )
     {
@@ -750,7 +750,7 @@ switch($_GET['mode'])
     if(!isset($cryptkey) || ( isset($cryptkey) && strlen($cryptkey) != AES_BITS / 4) )
     {
       $cryptkey = $aes->gen_readymade_key();
-      $handle = @fopen(ENANO_ROOT.'/config.php', 'w');
+      $handle = @fopen(ENANO_ROOT.'/config.new.php', 'w');
       if(!$handle)
       {
         echo '<p>ERROR: Cannot open config.php for writing - exiting!</p>';
@@ -1040,10 +1040,10 @@ switch($_GET['mode'])
       
       if ( !empty($_POST['crypt_data']) )
       {
-        require('config.php');
+        require('config.new.php');
         if ( !isset($cryptkey) )
         {
-          echo 'failed!<br />Cannot get the key from config.php';
+          echo 'failed!<br />Cannot get the key from config.new.php';
           break;
         }
         $key = hexdecode($cryptkey);
@@ -1156,7 +1156,7 @@ if ( !defined(\'ENANO_CONSTANTS\') )
 $crypto_key = \''.$privkey.'\';
 ?>';
 
-      $cf_handle = fopen(ENANO_ROOT.'/config.php', 'w');
+      $cf_handle = fopen(ENANO_ROOT.'/config.new.php', 'w');
       if(!$cf_handle) err('Couldn\'t open file config.php for writing');
       fwrite($cf_handle, $config_file);
       fclose($cf_handle);
@@ -1185,9 +1185,17 @@ $crypto_key = \''.$privkey.'\';
       if ( !$q )
         err('Error setting up logs: '.$db->get_error());
       
+      // This is only in RAM; it's meant to correct a race condition encountered by several testers
+      $session->acl_merge(array(
+        'clear_logs' => AUTH_ALLOW
+        ));
+      
       if ( !$session->get_permissions('clear_logs') )
       {
-        echo '<br />Error: session manager won\'t permit flushing logs, these is a bug.';
+        echo '<p><b>The session manager denied the request to flush logs for the main page.</b><br />
+                 While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
+                 properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
+                 to finish the installation, please be aware that you may be unable to log into your site.</p>';
         break;
       }
       
@@ -1196,6 +1204,16 @@ $crypto_key = \''.$privkey.'\';
       // $session->start();
       
       PageUtils::flushlogs('Main_Page', 'Article');
+      
+      echo 'done!<br />Renaming config.new.php and .htaccess.new...';
+      if ( !@rename('./config.new.php', './config.php') )
+        err('failed!<p>Please rename config.new.php manually to config.php. If you selected Tiny URLs, please also rename .htaccess.new to .htaccess.');
+      
+      if ( $_POST['urlscheme'] == 'tiny' )
+      {
+        if ( !@rename('./.htaccess.new', './.htaccess') )
+          err('failed!<p>Please rename .htaccess.new manually to .htaccess.');
+      }
       
       echo 'done!<h3>Installation of Enano is complete.</h3><p>Review any warnings above, and then <a href="install.php?mode=finish">click here to finish the installation</a>.';
       
