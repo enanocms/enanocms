@@ -1161,6 +1161,16 @@ $crypto_key = \''.$privkey.'\';
       fwrite($cf_handle, $config_file);
       fclose($cf_handle);
       
+      echo 'done!<br />Renaming config.new.php and .htaccess.new...';
+      if ( !@rename('./config.new.php', './config.php') )
+        err('failed!<p>Please rename config.new.php manually to config.php. If you selected Tiny URLs, please also rename .htaccess.new to .htaccess.');
+      
+      if ( $_POST['urlscheme'] == 'tiny' )
+      {
+        if ( !@rename('./.htaccess.new', './.htaccess') )
+          err('failed!<p>Please rename .htaccess.new manually to .htaccess.');
+      }
+            
       echo 'done!<br />Starting the Enano API...';
       
       $template_bak = $template;
@@ -1204,16 +1214,6 @@ $crypto_key = \''.$privkey.'\';
       // $session->start();
       
       PageUtils::flushlogs('Main_Page', 'Article');
-      
-      echo 'done!<br />Renaming config.new.php and .htaccess.new...';
-      if ( !@rename('./config.new.php', './config.php') )
-        err('failed!<p>Please rename config.new.php manually to config.php. If you selected Tiny URLs, please also rename .htaccess.new to .htaccess.');
-      
-      if ( $_POST['urlscheme'] == 'tiny' )
-      {
-        if ( !@rename('./.htaccess.new', './.htaccess') )
-          err('failed!<p>Please rename .htaccess.new manually to .htaccess.');
-      }
       
       echo 'done!<h3>Installation of Enano is complete.</h3><p>Review any warnings above, and then <a href="install.php?mode=finish">click here to finish the installation</a>.';
       
