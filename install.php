@@ -179,12 +179,16 @@ function stg_mysql_connect($act_get = false)
   if ( $act_get )
     return $conn;
   
-  $db_user = mysql_real_escape_string($_POST['db_user']);
-  $db_pass = mysql_real_escape_string($_POST['db_pass']);
-  $db_name = mysql_real_escape_string($_POST['db_name']);
+  $db_user =& $_POST['db_user'];
+  $db_pass =& $_POST['db_pass'];
+  $db_name =& $_POST['db_name'];
   
   if ( !preg_match('/^[a-z0-9_]+$/', $db_name) )
-    die("<p>SECURITY: malformed database name</p>");
+  {
+    die('<pre>' . htmlspecialchars(print_r($_POST, true)) . '</pre>');
+    $db_name = htmlspecialchars($db_name);
+    die("<p>SECURITY: malformed database name \"$db_name\"</p>");
+  }
   
   // First, try to connect using the normal credentials
   $conn = @mysql_connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass']);
@@ -199,6 +203,9 @@ function stg_mysql_connect($act_get = false)
         // Couldn't connect using either set of credentials. Bail out.
         return false;
       }
+      unset($db_user, $db_pass);
+      $db_user = mysql_real_escape_string($_POST['db_user']);
+      $db_pass = mysql_real_escape_string($_POST['db_pass']);
       // Create the user account
       $q = @mysql_query("GRANT ALL PRIVILEGES ON test.* TO '{$db_user}'@'localhost' IDENTIFIED BY '$db_pass' WITH GRANT OPTION;", $conn_root);
       if ( !$q )
@@ -248,6 +255,9 @@ function stg_mysql_connect($act_get = false)
         // this really should never fail, so don't give any tolerance to it
         return false;
       }
+      unset($db_user, $db_pass);
+      $db_user = mysql_real_escape_string($_POST['db_user']);
+      $db_pass = mysql_real_escape_string($_POST['db_pass']);
       // we're in with root rights; grant access to the database
       $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'localhost';", $conn_root);
       if ( !$q )

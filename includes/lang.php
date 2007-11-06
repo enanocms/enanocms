@@ -88,7 +88,7 @@ class Language
       $db->_die('lang.php - attempting to pass invalid value to constructor');
     }
     
-    $lang_default = ( $x = getConfig('default_language') ) ? intval($x) : 'def';
+    $lang_default = ( $x = getConfig('default_language') ) ? intval($x) : '\'def\'';
     $q = $db->sql_query("SELECT lang_id, lang_code, last_changed, ( lang_id = $lang_default ) AS is_default FROM " . table_prefix . "language WHERE $sql_col OR lang_id = $lang_default ORDER BY is_default DESC LIMIT 1;");
     
     if ( !$q )
