@@ -145,6 +145,7 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   ob_end_flush();
   close_install_table();
   $post_data = '';
+  $mysql_error = mysql_error();
   foreach ( $_POST as $key => $value )
   {
     $value = htmlspecialchars($value);
@@ -156,6 +157,7 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
           <input type="hidden" name="resume_stack" value="' . htmlspecialchars(implode('|', $resume_stack)) . '" />
           <h3>Enano installation failed.</h3>
            <p>' . $failure_explanation . '</p>
+           ' . ( !empty($mysql_error) ? "<p>The error returned from MySQL was: $mysql_error</p>" : '' ) . '
            <p>When you have corrected the error, click the button below to attempt to continue the installation.</p>
            <p style="text-align: center;"><input type="submit" value="Retry installation" /></p>
         </form>';
@@ -198,24 +200,32 @@ function stg_mysql_connect($act_get = false)
         return false;
       }
       // Create the user account
-      $q = @mysql_query("GRANT ALL PRIVILEGES ON test.* TO '{$db_user}'@'localhost' IDENTIFIED BY '$db_pass' WITH GRANT OPTION;", $conn);
+      $q = @mysql_query("GRANT ALL PRIVILEGES ON test.* TO '{$db_user}'@'localhost' IDENTIFIED BY '$db_pass' WITH GRANT OPTION;", $conn_root);
       if ( !$q )
+      {
         return false;
+      }
       // Revoke privileges from test, we don't need them
-      $q = @mysql_query("REVOKE ALL PRIVILEGES ON test.* FROM '{$db_user}'@'localhost';", $conn);
+      $q = @mysql_query("REVOKE ALL PRIVILEGES ON test.* FROM '{$db_user}'@'localhost';", $conn_root);
       if ( !$q )
+      {
         return false;
+      }
       if ( $_POST['db_host'] != 'localhost' && $_POST['db_host'] != '127.0.0.1' && $_POST['db_host'] != '::1' )
       {
         // If not connecting to a server running on localhost, allow from any host
         // this is safer than trying to detect the hostname of the webserver, but less secure
-        $q = @mysql_query("GRANT ALL PRIVILEGES ON test.* TO '{$db_user}'@'%' IDENTIFIED BY '$db_pass' WITH GRANT OPTION;", $conn);
+        $q = @mysql_query("GRANT ALL PRIVILEGES ON test.* TO '{$db_user}'@'%' IDENTIFIED BY '$db_pass' WITH GRANT OPTION;", $conn_root);
         if ( !$q )
+        {
           return false;
+        }
         // Revoke privileges from test, we don't need them
-        $q = @mysql_query("REVOKE ALL PRIVILEGES ON test.* FROM '{$db_user}'@'%';", $conn);
+        $q = @mysql_query("REVOKE ALL PRIVILEGES ON test.* FROM '{$db_user}'@'%';", $conn_root);
         if ( !$q )
+        {
           return false;
+        }
       }
     }
   }
@@ -232,19 +242,25 @@ function stg_mysql_connect($act_get = false)
         return false;
       }
       // create the database, if it doesn't exist
-      $q = @mysql_query("CREATE DATABASE $db_name;", $conn);
+      $q = @mysql_query("CREATE DATABASE IF NOT EXISTS $db_name;", $conn_root);
       if ( !$q )
+      {
         // this really should never fail, so don't give any tolerance to it
         return false;
+      }
       // we're in with root rights; grant access to the database
-      $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'localhost';", $conn);
+      $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'localhost';", $conn_root);
       if ( !$q )
+      {
         return false;
+      }
       if ( $_POST['db_host'] != 'localhost' && $_POST['db_host'] != '127.0.0.1' && $_POST['db_host'] != '::1' )
       {
-        $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'%';", $conn);
+        $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'%';", $conn_root);
         if ( !$q )
+        {
           return false;
+        }
       }
     }
     else
@@ -252,10 +268,12 @@ function stg_mysql_connect($act_get = false)
       return false;
     }
     // try again
-    $q = @mysql_query("USE '$db_name';", $conn);
+    $q = @mysql_query("USE $db_name;", $conn);
     if ( !$q )
+    {
       // really failed this time; bail out
       return false;
+    }
   }
   // connected and database exists
   return true;
@@ -1504,7 +1522,7 @@ switch($_GET['mode'])
       start_install_table();
       // The stages connect, decrypt, genkey, and parse are preprocessing and don't do any actual data modification.
       // Thus, they need to be run on each retry, e.g. never skipped.
-      run_installer_stage('connect', 'Connect to MySQL', 'stg_mysql_connect', 'MySQL denied our attempt to connect to the database. This is most likely because your login information was incorrect. You will most likely need to <a href="install.php?mode=license">restart the installation</a>.<br /><br />Error message returned by MySQL: ' . mysql_error(), false);
+      run_installer_stage('connect', 'Connect to MySQL', 'stg_mysql_connect', 'MySQL denied our attempt to connect to the database. This is most likely because your login information was incorrect. You will most likely need to <a href="install.php?mode=license">restart the installation</a>.', false);
       if ( isset($_POST['drop_tables']) )
       {
         // Are we supposed to drop any existing tables? If so, do it now
