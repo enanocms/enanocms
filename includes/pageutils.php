@@ -1413,6 +1413,11 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    if ( !is_object($lang) && defined('IN_ENANO_INSTALL') )
+    {
+      // This is a special exception for the Enano installer, which doesn't init languages yet.
+      $lang = new Language('eng');
+    }
     if(!$session->get_permissions('clear_logs'))
     {
       return $lang->get('etc_access_denied');

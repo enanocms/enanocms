@@ -27,6 +27,9 @@ define('IN_ENANO_INSTALL', 'true');
 define('ENANO_VERSION', '1.1.1');
 // In beta versions, define ENANO_BETA_VERSION here
 
+// This is required to make installation work right
+define("ENANO_ALLOW_LOAD_NOLANG", 1);
+
 if(!defined('scriptPath')) {
   $sp = dirname($_SERVER['REQUEST_URI']);
   if($sp == '/' || $sp == '\\') $sp = '';
@@ -119,20 +122,22 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
 function start_install_table()
 {
   echo '<table border="0" cellspacing="0" cellpadding="0">' . "\n";
+  ob_start();
 }
 
 function close_install_table()
 {
   echo '</table>' . "\n\n";
+  ob_end_flush();
 }
 
 function echo_stage_success($stage_id, $stage_name)
 {
   global $neutral_color;
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
-  ob_start();
   echo '<tr><td style="width: 500px; background-color: #' . "{$neutral_color}{$neutral_color}FF{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Done" src="images/good.gif" /></td></tr>' . "\n";
-  ob_end_flush();
+  ob_flush();
+  flush();
 }
 
 function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resume_stack)
@@ -140,9 +145,9 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   global $neutral_color;
   
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
-  ob_start();
   echo '<tr><td style="width: 500px; background-color: #' . "FF{$neutral_color}{$neutral_color}{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Failed" src="images/bad.gif" /></td></tr>' . "\n";
-  ob_end_flush();
+  ob_flush();
+  flush();
   close_install_table();
   $post_data = '';
   $mysql_error = mysql_error();
@@ -572,6 +577,19 @@ function stg_start_api_success()
 function stg_start_api_failure()
 {
   return false;
+}
+
+function stg_import_language()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $lang_file = ENANO_ROOT . "/language/english/enano.json";
+  install_language("eng", "English", "English", $lang_file);
+  
+  $lang = new Language('eng');
+  $lang->import($lang_file);
+  
+  return true;
 }
 
 function stg_init_logs()
@@ -1571,6 +1589,8 @@ switch($_GET['mode'])
       // Now that login cookies are set, initialize the session manager and ACLs
       $session->start();
       $paths->init();
+      
+      run_installer_stage('importlang', 'Import default language', 'stg_import_language', 'Enano couldn\'t import the English language file.');
       
       run_installer_stage('initlogs', 'Initialize logs', 'stg_init_logs', '<b>The session manager denied the request to flush logs for the main page.</b><br />
                            While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
