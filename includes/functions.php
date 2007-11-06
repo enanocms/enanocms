@@ -3019,7 +3019,7 @@ function password_score_len($password)
  * @return int
  */
 
-function password_score($password, &$debug = false)
+function password_score($password, &$debug)
 {
   if ( !is_string($password) )
   {
