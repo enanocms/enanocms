@@ -3206,14 +3206,18 @@ function install_language($lang_code, $lang_name_neutral, $lang_name_local, $lan
     $db->_die('functions.php - installing language');
   
   $lang_id = $db->insert_id();
-  if ( empty($lang_id) )
-    return false;
+  if ( empty($lang_id) || $lang_id == 0 )
+  {
+    $db->_die('functions.php - invalid returned lang_id');
+  }
   
   // Do we also need to install a language file?
   if ( is_string($lang_file) && file_exists($lang_file) )
   {
     $lang = new Language($lang_id);
     $lang->import($lang_file);
+    $lang->fetch(false);
+    $lang->regen_caches();
   }
   else if ( is_string($lang_file) && !file_exists($lang_file) )
   {

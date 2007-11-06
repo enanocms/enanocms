@@ -154,7 +154,8 @@ class Language
       }
       else
       {
-        $db->_die('lang.php - No strings for language ' . $this->lang_code);
+        if ( !defined('ENANO_ALLOW_LOAD_NOLANG') )
+          $db->_die('lang.php - No strings for language ' . $this->lang_code);
       }
     }
   }
@@ -214,6 +215,9 @@ class Language
     
     if ( !file_exists($file) )
       $db->_die('lang.php - can\'t import language file: string file doesn\'t exist');
+    
+    if ( $this->lang_id == 0 )
+      $db->_die('lang.php - BUG: trying to perform import when $lang->lang_id == 0');
     
     $contents = trim(@file_get_contents($file));
     

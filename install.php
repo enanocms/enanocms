@@ -586,9 +586,6 @@ function stg_import_language()
   $lang_file = ENANO_ROOT . "/language/english/enano.json";
   install_language("eng", "English", "English", $lang_file);
   
-  $lang = new Language('eng');
-  $lang->import($lang_file);
-  
   return true;
 }
 
