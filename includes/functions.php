@@ -3177,6 +3177,20 @@ function password_score($password, &$debug)
 }
 
 /**
+ * Registers a task that will be run every X hours. Scheduled tasks should always be scheduled at runtime - they are not stored in the DB.
+ * @param string Function name to call, or array(object, string method)
+ * @param int Interval between runs, in hours. Defaults to 24.
+ */
+
+function register_cron_task($func, $hour_interval = 24)
+{
+  global $cron_tasks;
+  if ( !isset($cron_tasks[$hour_interval]) )
+    $cron_tasks[$hour_interval] = array();
+  $cron_tasks[$hour_interval][] = $func;
+}
+
+/**
  * Installs a language.
  * @param string The ISO-639-3 identifier for the language. Maximum of 6 characters, usually 3.
  * @param string The name of the language in English (Spanish)
@@ -3216,8 +3230,6 @@ function install_language($lang_code, $lang_name_neutral, $lang_name_local, $lan
   {
     $lang = new Language($lang_id);
     $lang->import($lang_file);
-    $lang->fetch(false);
-    $lang->regen_caches();
   }
   else if ( is_string($lang_file) && !file_exists($lang_file) )
   {

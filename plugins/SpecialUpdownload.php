@@ -210,7 +210,7 @@ function page_Special_UploadFile()
     <?php
     $template->footer();
   }
-}                                                                                                                                                          
+}                                                     
 
 function page_Special_DownloadFile()
 {
