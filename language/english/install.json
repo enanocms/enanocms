@@ -24,7 +24,11 @@ var enano_lang_install = {
       enano_copyright: 'Enano and all of its code, graphics, and more code is copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
       sidebar_heading: 'Installation progress',
       btn_article: 'installation page',
+      btn_continue: 'Continue',
       lbl_before_continue: 'Before continuing:',
+      
+      msg_err_verification: 'One or more of the form fields is incorrect. Please correct any information in the form that has an "X" next to it.',
+      
     },
     welcome: {
       modetitle: 'Welcome',
@@ -77,10 +81,53 @@ var enano_lang_install = {
       summary_warn_body: 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, Enano has disabled these features as a precaution to prevent errors and potential security issues.',
       
       summary_fail_title: 'Your server does not meet the requirements for Enano to run.',
-      summary_fail_body: 'As a precaution, Enano will not install until the above requirements have been met. Contact your server administrator or hosting company and convince them to upgrade. Good luck.'
+      summary_fail_body: 'As a precaution, Enano will not install until the above requirements have been met. Contact your server administrator or hosting company and convince them to upgrade. Good luck.',
+      
+      objective_scalebacks: 'Review the list above to ensure that you are satisfied with any of Enano\'s workarounds for your server. If you need a particular feature and that feature is listed as disabled above, you should take the opportunity now to correct the problem.'
     },
     database: {
       modetitle: 'Database information',
+      heading_optionalinfo: 'Optional information',
+      
+      msg_err_mysql_connect: '<b>Error:</b> The database server "%db_host%" couldn\'t be contacted.<br />%mysql_error%',
+      msg_err_mysql_auth: '<b>Error:</b> Access to MySQL under the specified credentials was denied.<br />%mysql_error%',
+      msg_err_mysql_dbperm: '<b>Error:</b> Access to the specified database using those login credentials was denied.<br />%mysql_error%',
+      msg_err_mysql_dbexist: '<b>Error:</b> The specified database does not exist<br />%mysql_error%',
+      msg_err_mysql_version: '<b>Error:</b> Your version of MySQL (%mysql_version%) is older than 4.1.17. Enano will still work, but there is a known bug with the comment system and MySQL 4.1.11 that involves some comments not being displayed, due to an issue with the PHP function mysql_fetch_row().',
+      
+      msg_warn_creating_db: '<b>Warning:</b> The database you specified does not exist. It will be created during installation.',
+      msg_warn_creating_user: '<b>Warning:</b> The specified regular user does not exist or the password is incorrect. The user will be created during installation. If the user already exists, the password will be reset.',
+      msg_warn_mysql_version: 'The MySQL version that your server is running could not be determined.',
+      
+      msg_info_mysql_good: 'Your version of MySQL meets Enano requirements.',
+      
+      blurb_needdb: 'Now we need some information that will allow Enano to contact your database server. Enano uses MySQL as a data storage backend, and we need to have access to a MySQL server in order to continue.',
+      blurb_howtomysql: 'If you do not have access to a MySQL server, and you are using your own server, you can download MySQL for free from <a href="http://www.mysql.com/">MySQL.com</a>. <b>Please note that, like Enano, MySQL is licensed under the GNU GPL.</b> If you need to modify MySQL and then distribute your modifications, you must either distribute them under the terms of the GPL or purchase a proprietary license.',
+      
+      vm_login_info: '<b>MySQL login information for this virtual appliance:</b><br /><br />Database hostname: %host%<br />Database login: username "%user%", password: "%pass%" (without quotes)<br />Database name: %name%',
+      
+      table_title: 'Database information',
+      
+      field_hostname_title: 'Database hostname',
+      field_hostname_body: 'This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost".',
+      field_dbname_title: 'Database name',
+      field_dbname_body: 'The name of the actual database. If you don\'t already have a database, you can create one here, if you have the username and password of a MySQL user with administrative rights.',
+      field_dbauth_title: 'Database login',
+      field_dbauth_body: 'These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.',
+      field_tableprefix_title: 'Table prefix',
+      field_tableprefix_body: 'The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).',
+      field_rootauth_title: 'Database administrative login',
+      field_rootauth_body: 'If the MySQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.',
+      field_mysqlversion_title: 'MySQL version',
+      field_mysqlversion_blurb_willbechecked: 'MySQL version information will be checked when you click "Test Connection".',
+      field_droptables_title: 'Delete existing tables?',
+      field_droptables_body: 'If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.',
+      field_droptables_lbl: 'Drop existing tables',
+      
+      btn_testconnection: 'Test connection',
+      
+      objective_test: 'Check your MySQL connection using the "Test Connection" button.',
+      objective_uncrypt: 'Be aware that your database information will be transmitted unencrypted several times.',
     },
     website: {
       modetitle: 'Website configuration',

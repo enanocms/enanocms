@@ -1925,10 +1925,13 @@ class template_nodb {
     $title = ( is_object($paths) ) ? $paths->page : 'Critical error';
     
     $headers = '<style type="text/css">div.pagenav { border-top: 1px solid #CCC; padding-top: 7px; margin-top: 10px; }</style>';
+    
+    $js_dynamic = '';
     if ( defined('IN_ENANO_INSTALL') )
     {
-      $headers .= '<script type="text/javascript" src="install.php?mode=langjs"></script>';
+      $js_dynamic .= '<script type="text/javascript" src="install.php?mode=langjs"></script>';
     }
+    $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1;</script>';
     
     // The rewritten template engine will process all required vars during the load_template stage instead of (cough) re-processing everything each time around.
     $tpl_strings = Array(
@@ -1954,7 +1957,7 @@ class template_nodb {
       'TEMPLATE_DIR'=>scriptPath.'/themes/'.$this->theme,
       'THEME_ID'=>$this->theme,
       'STYLE_ID'=>$this->style,
-      'JS_DYNAMIC_VARS'=>'<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = \'0\';</script>',
+      'JS_DYNAMIC_VARS'=>$js_dynamic,
       'SIDEBAR_RIGHT'=>'',
       );
     $this->tpl_strings = array_merge($tpl_strings, $this->tpl_strings);

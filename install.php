@@ -1018,26 +1018,29 @@ switch($_GET['mode'])
         echo '</table>';
       }
       ?>
-       <form action="install.php?mode=database" method="post">
-         <table border="0">
-         <tr>
-           <td>
-             <input type="submit" value="Continue" />
-           </td>
-           <td>
-             <p>
-               <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
-               &bull; Review the list above to ensure that you are satisfied with any of Enano's workarounds for your server. If you need a particular feature and that feature is listed as disabled above, you should take the opportunity now to correct the problem.<br />
-               &bull; Have your database host, name, username, and password available
-             </p>
-           </td>
-         </tr>
-         </table>
-       </form>
-     </div>
-     <?php
-    } else {
-      if($failed) {
+      <form action="install.php?mode=database" method="post">
+        <table border="0">
+        <tr>
+          <td>
+            <input type="submit" value="<?php echo $lang->get('meta_btn_continue'); ?>" />
+          </td>
+          <td>
+            <p>
+              <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
+              &bull; <?php echo $lang->get('sysreqs_objective_scalebacks'); ?><br />
+              &bull; <?php echo $lang->get('license_objective_have_db_info'); ?>
+            </p>
+          </td>
+        </tr>
+        </table>
+      </form>
+      </div>
+    <?php
+    }
+    else
+    {
+      if ( $failed )
+      {
         echo '<div class="pagenav"><table border="0" cellspacing="0" cellpadding="0">';
         run_test('return false;', $lang->get('sysreqs_summary_fail_title'), $lang->get('sysreqs_summary_fail_body'));
         echo '</table></div>';
@@ -1088,7 +1091,7 @@ switch($_GET['mode'])
         v = verify();
         if(!v)
         {
-          alert('One or more of the form fields is incorrect. Please correct any information in the form that has an "X" next to it.');
+          alert($lang.get('meta_msg_err_verification'));
           return false;
         }
         var frm = document.forms.dbinfo;
@@ -1111,10 +1114,10 @@ switch($_GET['mode'])
                 document.getElementById('s_db_name').src='images/good.gif';
                 document.getElementById('s_db_auth').src='images/good.gif';
                 document.getElementById('s_db_root').src='images/good.gif';
-                if(t.match(/_creating_db/)) document.getElementById('e_db_name').innerHTML = '<b>Warning:<\/b> The database you specified does not exist. It will be created during installation.';
-                if(t.match(/_creating_user/)) document.getElementById('e_db_auth').innerHTML = '<b>Warning:<\/b> The specified regular user does not exist or the password is incorrect. The user will be created during installation. If the user already exists, the password will be reset.';
+                if(t.match(/_creating_db/)) document.getElementById('e_db_name').innerHTML = $lang.get('database_msg_warn_creating_db');
+                if(t.match(/_creating_user/)) document.getElementById('e_db_auth').innerHTML = $lang.get('database_msg_warn_creating_user');
                 document.getElementById('s_mysql_version').src='images/good.gif';
-                document.getElementById('e_mysql_version').innerHTML = 'Your version of MySQL meets Enano requirements.';
+                document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_info_mysql_good');
               }
               else
               {
@@ -1125,50 +1128,50 @@ switch($_GET['mode'])
                   document.getElementById('s_db_name').src='images/unknown.gif';
                   document.getElementById('s_db_auth').src='images/unknown.gif';
                   document.getElementById('s_db_root').src='images/unknown.gif';
-                  document.getElementById('e_db_host').innerHTML = '<b>Error:<\/b> The database server "'+document.forms.dbinfo.db_host.value+'" couldn\'t be contacted.<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_host').innerHTML = $lang.get('database_msg_err_mysql_connect', { db_host: document.forms.dbinfo.db_host.value, mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'auth':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/unknown.gif';
                   document.getElementById('s_db_auth').src='images/bad.gif';
                   document.getElementById('s_db_root').src='images/unknown.gif';
-                  document.getElementById('e_db_auth').innerHTML = '<b>Error:<\/b> Access to MySQL under the specified credentials was denied.<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_auth').innerHTML = $lang.get('database_msg_err_mysql_auth', { mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'perm':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/bad.gif';
                   document.getElementById('s_db_auth').src='images/good.gif';
                   document.getElementById('s_db_root').src='images/unknown.gif';
-                  document.getElementById('e_db_name').innerHTML = '<b>Error:<\/b> Access to the specified database using those login credentials was denied.<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_name').innerHTML = $lang.get('database_msg_err_mysql_dbperm', { mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'name':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/bad.gif';
                   document.getElementById('s_db_auth').src='images/good.gif';
                   document.getElementById('s_db_root').src='images/unknown.gif';
-                  document.getElementById('e_db_name').innerHTML = '<b>Error:<\/b> The specified database does not exist<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_name').innerHTML = $lang.get('database_msg_err_mysql_dbexist', { mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'root':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/unknown.gif';
                   document.getElementById('s_db_auth').src='images/unknown.gif';
                   document.getElementById('s_db_root').src='images/bad.gif';
-                  document.getElementById('e_db_root').innerHTML = '<b>Error:<\/b> Access to MySQL under the specified credentials was denied.<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_root').innerHTML = $lang.get('database_msg_err_mysql_auth', { mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'vers':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/good.gif';
                   document.getElementById('s_db_auth').src='images/good.gif';
                   document.getElementById('s_db_root').src='images/good.gif';
-                  if(t.match(/_creating_db/)) document.getElementById('e_db_name').innerHTML = '<b>Warning:<\/b> The database you specified does not exist. It will be created during installation.';
-                  if(t.match(/_creating_user/)) document.getElementById('e_db_auth').innerHTML = '<b>Warning:<\/b> The specified regular user does not exist or the password is incorrect. The user will be created during installation. If the user already exists, the password will be reset.';
+                  if(t.match(/_creating_db/)) document.getElementById('e_db_name').innerHTML = $lang.get('database_msg_warn_creating_db');
+                  if(t.match(/_creating_user/)) document.getElementById('e_db_auth').innerHTML = $lang.get('database_msg_warn_creating_user');
                   
-                  document.getElementById('e_mysql_version').innerHTML = '<b>Error:<\/b> Your version of MySQL ('+t+') is older than 4.1.17. Enano will still work, but there is a known bug with the comment system and MySQL 4.1.11 that involves some comments not being displayed, due to an issue with the PHP function mysql_fetch_row().';
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_err_mysql_version', { mysql_version: t });
                   document.getElementById('s_mysql_version').src='images/bad.gif';
                 default:
                   alert(t);
@@ -1241,45 +1244,150 @@ switch($_GET['mode'])
       }
       window.onload = verify;
     </script>
-    <p>Now we need some information that will allow Enano to contact your database server. Enano uses MySQL as a data storage backend,
-       and we need to have access to a MySQL server in order to continue.</p>
-    <p>If you do not have access to a MySQL server, and you are using your own server, you can download MySQL for free from
-       <a href="http://www.mysql.com/">MySQL.com</a>. <b>Please note that, like Enano, MySQL is licensed under the GNU GPL.</b>
-       If you need to modify MySQL and then distribute your modifications, you must either distribute them under the terms of the GPL
-       or purchase a proprietary license.</p>
+    <p><?php echo $lang->get('database_blurb_needdb'); ?></p>
+    <p><?php echo $lang->get('database_blurb_howtomysql'); ?></p>
     <?php
     if ( file_exists('/etc/enano-is-virt-appliance') )
     {
-      echo '<p><b>MySQL login information for this virtual appliance:</b><br /><br />Database hostname: localhost<br />Database login: username "enano", password: "clurichaun" (without quotes)<br />Database name: enano_www1</p>';
+      echo '<p>
+              ' . $lang->get('database_vm_login_info', array( 'host' => 'localhost', 'user' => 'enano', 'pass' => 'clurichaun', 'name' => 'enano_www1' )) . '
+            </p>';
     }
     ?>
     <form name="dbinfo" action="install.php?mode=website" method="post">
       <table border="0">
-        <tr><td colspan="3" style="text-align: center"><h3>Database information</h3></td></tr>
-        <tr><td><b>Database hostname</b><br />This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost".<br /><span style="color: #993300" id="e_db_host"></span></td><td><input onkeyup="verify();" name="db_host" size="30" type="text" /></td><td><img id="s_db_host" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td><b>Database name</b><br />The name of the actual database. If you don't already have a database, you can create one here, if you have the username and password of a MySQL user with administrative rights.<br /><span style="color: #993300" id="e_db_name"></span></td><td><input onkeyup="verify();" name="db_name" size="30" type="text" /></td><td><img id="s_db_name" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td rowspan="2"><b>Database login</b><br />These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.<br /><span style="color: #993300" id="e_db_auth"></span></td><td><input onkeyup="verify();" name="db_user" size="30" type="text" /></td><td rowspan="2"><img id="s_db_auth" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td><input name="db_pass" size="30" type="password" /></td></tr>
-        <tr><td colspan="3" style="text-align: center"><h3>Optional information</h3></td></tr>
-        <tr><td><b>Table prefix</b><br />The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).</td><td><input onkeyup="verify();" name="table_prefix" size="30" type="text" /></td><td><img id="s_table_prefix" alt="Good/bad icon" src="images/good.gif" /></td></tr>
-        <tr><td rowspan="2"><b>Database administrative login</b><br />If the MySQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.<br /><span style="color: #993300" id="e_db_root"></span></td><td><input onkeyup="verify();" name="db_root_user" size="30" type="text" /></td><td rowspan="2"><img id="s_db_root" alt="Good/bad icon" src="images/good.gif" /></td></tr>
-        <tr><td><input onkeyup="verify();" name="db_root_pass" size="30" type="password" /></td></tr>
-        <tr><td><b>MySQL version</b></td><td id="e_mysql_version">MySQL version information will be checked when you click "Test Connection".</td><td><img id="s_mysql_version" alt="Good/bad icon" src="images/unknown.gif" /></td></tr>
-        <tr><td><b>Delete existing tables?</b><br />If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.</td><td><input type="checkbox" name="drop_tables" id="dtcheck" />  <label for="dtcheck">Drop existing tables</label></td></tr>
-        <tr><td colspan="3" style="text-align: center"><input type="button" value="Test connection" onclick="ajaxTestConnection();" /></td></tr>
+        <tr>
+          <td colspan="3" style="text-align: center">
+            <h3><?php echo $lang->get('database_table_title'); ?></h3>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('database_field_hostname_title'); ?></b>
+            <br /><?php echo $lang->get('database_field_hostname_body'); ?>
+            <br /><span style="color: #993300" id="e_db_host"></span>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="db_host" size="30" type="text" />
+          </td>
+          <td>
+            <img id="s_db_host" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('database_field_dbname_title'); ?></b><br />
+            <?php echo $lang->get('database_field_dbname_body'); ?><br />
+            <span style="color: #993300" id="e_db_name"></span>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="db_name" size="30" type="text" />
+          </td>
+          <td>
+            <img id="s_db_name" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td rowspan="2">
+            <b><?php echo $lang->get('database_field_dbauth_title'); ?></b><br />
+            <?php echo $lang->get('database_field_dbauth_body'); ?><br />
+            <span style="color: #993300" id="e_db_auth"></span>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="db_user" size="30" type="text" />
+          </td>
+          <td rowspan="2">
+            <img id="s_db_auth" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input name="db_pass" size="30" type="password" />
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align: center">
+            <h3><?php echo $lang->get('database_heading_optionalinfo'); ?></h3>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('database_field_tableprefix_title'); ?></b><br />
+            <?php echo $lang->get('database_field_tableprefix_body'); ?>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="table_prefix" size="30" type="text" />
+          </td>
+          <td>
+            <img id="s_table_prefix" alt="Good/bad icon" src="images/good.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td rowspan="2">
+            <b><?php echo $lang->get('database_field_rootauth_title'); ?></b><br />
+            <?php echo $lang->get('database_field_rootauth_body'); ?><br />
+            <span style="color: #993300" id="e_db_root"></span>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="db_root_user" size="30" type="text" />
+          </td>
+          <td rowspan="2">
+            <img id="s_db_root" alt="Good/bad icon" src="images/good.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input onkeyup="verify();" name="db_root_pass" size="30" type="password" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('database_field_mysqlversion_title'); ?></b>
+          </td>
+          <td id="e_mysql_version">
+            <?php echo $lang->get('database_field_mysqlversion_blurb_willbechecked'); ?>
+          </td>
+          <td>
+            <img id="s_mysql_version" alt="Good/bad icon" src="images/unknown.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('database_field_droptables_title'); ?></b><br />
+            <?php echo $lang->get('database_field_droptables_body'); ?>
+          </td>
+          <td>
+            <input type="checkbox" name="drop_tables" id="dtcheck" />  <label for="dtcheck"><?php echo $lang->get('database_field_droptables_lbl'); ?></label>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align: center">
+            <input type="button" value="<?php echo $lang->get('database_btn_testconnection'); ?>" onclick="ajaxTestConnection();" />
+          </td>
+        </tr>
       </table>
       <div class="pagenav">
-       <table border="0">
-       <tr>
-       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />&bull; Check your MySQL connection using the "Test Connection" button.<br />&bull; Be aware that your database information will be transmitted unencrypted several times.</p></td>
-       </tr>
-       </table>
-     </div>
+        <table border="0">
+          <tr>
+            <td>
+              <input type="submit" value="<?php echo $lang->get('meta_btn_continue'); ?>" onclick="return verify();" name="_cont" />
+            </td>
+            <td>
+              <p>
+                <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
+                &bull; <?php echo $lang->get('database_objective_test'); ?><br />
+                &bull; <?php echo $lang->get('database_objective_uncrypt'); ?>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </div>
     </form>
     <?php
     break;
   case "website":
-    if(!isset($_POST['_cont'])) {
+    if ( !isset($_POST['_cont']) )
+    {
       echo 'No POST data signature found. Please <a href="install.php?mode=license">restart the installation</a>.';
       $template->footer();
       exit;
