@@ -25,6 +25,7 @@ if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_G
 define('IN_ENANO_INSTALL', 'true');
 
 define('ENANO_VERSION', '1.1.1');
+define('ENANO_CODE_NAME', 'Germination');
 // In beta versions, define ENANO_BETA_VERSION here
 
 // This is required to make installation work right
@@ -65,13 +66,17 @@ require('includes/wikiformat.php');
 require('includes/constants.php');
 require('includes/rijndael.php');
 require('includes/functions.php');
+require('includes/dbal.php');
+require('includes/lang.php');
+require('includes/json.php');
 
 strip_magic_quotes_gpc();
-$neutral_color = 'C';
 
 //
 // INSTALLER LIBRARY
 //
+
+$neutral_color = 'C';
 
 function run_installer_stage($stage_id, $stage_name, $function, $failure_explanation, $allow_skip = true)
 {
@@ -657,22 +662,37 @@ function run_test($code, $desc, $extended_desc, $warn = false)
   if($val)
   {
     if($cv) $color='CCFFCC'; else $color='AAFFAA';
-    echo "<tr><td style='background-color: #$color; width: 500px;'>$desc</td><td style='padding-left: 10px;'><img alt='Test passed' src='images/good.gif' /></td></tr>";
+    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc</td><td style='padding-left: 10px;'><img alt='Test passed' src='images/good.gif' /></td></tr>";
   } elseif(!$val && $warn) {
     if($cv) $color='FFFFCC'; else $color='FFFFAA';
-    echo "<tr><td style='background-color: #$color; width: 500px;'>$desc<br /><b>$extended_desc</b></td><td style='padding-left: 10px;'><img alt='Test passed with warning' src='images/unknown.gif' /></td></tr>";
+    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc<br /><b>$extended_desc</b></td><td style='padding-left: 10px;'><img alt='Test passed with warning' src='images/unknown.gif' /></td></tr>";
     $warned = true;
   } else {
     if($cv) $color='FFCCCC'; else $color='FFAAAA';
-    echo "<tr><td style='background-color: #$color; width: 500px;'>$desc<br /><b>$extended_desc</b></td><td style='padding-left: 10px;'><img alt='Test failed' src='images/bad.gif' /></td></tr>";
+    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc<br /><b>$extended_desc</b></td><td style='padding-left: 10px;'><img alt='Test failed' src='images/bad.gif' /></td></tr>";
     $failed = true;
   }
 }
-function is_apache() { $r = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? true : false; return $r; }
+function is_apache()
+{
+  return strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? true : false;
+}
 
 require_once('includes/template.php');
 
-if(!isset($_GET['mode'])) $_GET['mode'] = 'welcome';
+//
+// Startup localization
+//
+
+// We need $db just for the _die function
+$db = new mysql();
+
+$lang = new Language('eng');
+$lang->load_file('./language/english/install.json');
+
+if ( !isset($_GET['mode']) )
+  $_GET['mode'] = 'welcome';
+
 switch($_GET['mode'])
 {
   case 'mysql_test':
@@ -802,6 +822,20 @@ switch($_GET['mode'])
 EOF;
     exit;
     break;
+  case 'langjs':
+    header('Content-type: text/javascript');
+    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+    $lang_js = $json->encode($lang->strings);
+    // use EEOF here because jEdit misinterprets "typ'eof'"
+    echo <<<EEOF
+if ( typeof(enano_lang) != 'object' )
+  var enano_lang = new Object();
+
+enano_lang[1] = $lang_js;
+
+EEOF;
+    exit;
+    break;
   default:
     break;
 }
@@ -810,15 +844,15 @@ $template = new template_nodb();
 $template->load_theme('stpatty', 'shamrock', false);
 
 $modestrings = Array(
-              'welcome' => 'Welcome',
-              'license' => 'License Agreement',
-              'sysreqs' => 'Server requirements',
-              'database'=> 'Database information',
-              'website' => 'Website configuration',
-              'login'   => 'Administration login',
-              'confirm' => 'Confirm installation',
-              'install' => 'Database installation',
-              'finish'  => 'Installation complete'
+              'welcome' => $lang->get('welcome_modetitle'),
+              'license' => $lang->get('license_modetitle'),
+              'sysreqs' => $lang->get('sysreqs_modetitle'),
+              'database'=> $lang->get('database_modetitle'),
+              'website' => $lang->get('website_modetitle'),
+              'login'   => $lang->get('login_modetitle'),
+              'confirm' => $lang->get('confirm_modetitle'),
+              'install' => $lang->get('install_modetitle'),
+              'finish'  => $lang->get('finish_modetitle')
             );
 
 $sideinfo = '';
@@ -852,6 +886,26 @@ if(isset($_GET['mode']) && $_GET['mode'] == 'css')
   exit;
 }
 
+if ( defined('ENANO_IS_STABLE') )
+  $branch = 'stable';
+else if ( defined('ENANO_IS_UNSTABLE') )
+  $branch = 'unstable';
+else
+{
+  $version = explode('.', ENANO_VERSION);
+  if ( !isset($version[1]) )
+    // unknown branch, really
+    $branch = 'unstable';
+  else
+  {
+    $version[1] = intval($version[1]);
+    if ( $version[1] % 2 == 1 )
+      $branch = 'unstable';
+    else
+      $branch = 'stable';
+  }
+}
+
 $template->header();
 if(!isset($_GET['mode'])) $_GET['mode'] = 'license';
 switch($_GET['mode'])
@@ -861,63 +915,71 @@ switch($_GET['mode'])
     ?>
     <div style="text-align: center; margin-top: 10px;">
       <img alt="[ Enano CMS Project logo ]" src="images/enano-artwork/installer-greeting-green.png" style="display: block; margin: 0 auto; padding-left: 100px;" />
-      <h2>Welcome to Enano</h2>
-      <h3>version 1.1.1 &ndash; unstable</h3>
+      <h2><?php echo $lang->get('welcome_heading'); ?></h2>
+      <h3>
+        <?php
+        $branch_l = $lang->get("welcome_branch_$branch");
+        
+        $v_string = sprintf('%s %s &ndash; %s', $lang->get('welcome_version'), ENANO_VERSION, $branch_l);
+        echo $v_string;
+        ?>
+      </h3>
       <?php
-      if ( file_exists('./_nightly.php') )
-      {
-        echo '<div class="warning-box" style="text-align: left; margin: 10px 0;"><b>You are about to install a NIGHTLY BUILD of Enano.</b><br />Nightly builds are NOT upgradeable and may contain serious flaws, security problems, or extraneous debugging information. Installing this version of Enano on a production site is NOT recommended.</div>';
-      }
+        if ( defined('ENANO_CODE_NAME') )
+        {
+          echo '<p>';
+          echo $lang->get('welcome_aka', array(
+              'codename' => strtolower(ENANO_CODE_NAME)
+            ));
+          echo '</p>';
+        }
       ?>
       <form action="install.php?mode=license" method="post">
-        <input type="submit" value="Start installation" />
+        <input type="submit" value="<?php echo $lang->get('welcome_btn_start'); ?>" />
       </form>
     </div>
     <?php
     break;
   case "license":
     ?>
-    <h3>Welcome to the Enano installer.</h3>
-     <p>Thank you for choosing Enano as your CMS. You've selected the finest in design, the strongest in security, and the latest in Web 2.0 toys. Trust us, you'll like it.</p>
-     <p>To get started, please read and accept the following license agreement. You've probably seen it before.</p>
+    <h3><?php echo $lang->get('license_heading'); ?></h3>
+     <p><?php echo $lang->get('license_blurb_thankyou'); ?></p>
+     <p><?php echo $lang->get('license_blurb_pleaseread'); ?></p>
      <div style="height: 500px; clip: rect(0px,auto,500px,auto); overflow: auto; padding: 10px; border: 1px dashed #456798; margin: 1em;">
-       <h2>GNU General Public License</h2>
-       <h3>Declaration of license usage</h3>
-       <p>Enano is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.</p>
-       <p>This program is distributed in the hope that it will be useful, but <u>without any warranty</u>; without even the implied warranty of <u>merchantability</u> or <u>fitness for a particular purpose</u>. See the GNU General Public License (below) for more details.</p>
-       <p><b>By clicking the button below or otherwise continuing the installation, you indicate your acceptance of this license agreement.</b></p>
-       <h3>Human-readable version</h3>
-       <p>Enano is distributed under certain licensing terms that we believe make it of the greatest possible use to the public. The license we distribute it under, the GNU General Public License, provides certain terms and conditions that, rather than limit your use of Enano, allow you to get the most out of it. If you would like to read the full text, it can be found below. Here is a human-readable version that we think is a little easier to understand.</p>
-       <ul>
-       <li>You may to run Enano for any purpose.</li>
-       <li>You may study how Enano works and adapt it to your needs.</li>
-       <li>You may redistribute copies so you can help your neighbor.</li>
-       <li>You may improve Enano and release your improvements to the public, so that the whole community benefits.</li>
-       </ul>
-       <p>You may exercise the freedoms specified here provided that you comply with the express conditions of this license. The principal conditions are:</p>
-       <ul>
-       <li>You must conspicuously and appropriately publish on each copy distributed an appropriate copyright notice and disclaimer of warranty and keep intact all the notices that refer to this License and to the absence of any warranty; and give any other recipients of Enano a copy of the GNU General Public License along with Enano. Any translation of the GNU General Public License must be accompanied by the GNU General Public License.</li>
-       <li>If you modify your copy or copies of Enano or any portion of it, or develop a program based upon it, you may distribute the resulting work provided you do so under the GNU General Public License. Any translation of the GNU General Public License must be accompanied by the GNU General Public License.</li>
-       <li>If you copy or distribute Enano, you must accompany it with the complete corresponding machine-readable source code or with a written offer, valid for at least three years, to furnish the complete corresponding machine-readable source code.</li>
-       </ul>
-       <p><b>Disclaimer</b>: The above text is not a license. It is simply a handy reference for understanding the Legal Code (the full license) &ndash; it is a human-readable expression of some of its key terms. Think of it as the user-friendly interface to the Legal Code beneath. The above text itself has no legal value, and its contents do not appear in the actual license.<br /><span style="color: #CCC">Text copied from the <a href="http://creativecommons.org/licenses/GPL/2.0/">Creative Commons GPL Deed page</a></span></p>
        <?php
-       if ( defined('ENANO_BETA_VERSION') )
+       if ( !file_exists('./GPL') || !file_exists('./language/english/install/license-deed.html') )
+       {
+         echo 'Cannot find the license files.';
+       }
+       echo file_get_contents('./language/english/install/license-deed.html');
+       if ( defined('ENANO_BETA_VERSION') || $branch == 'unstable' )
        {
          ?>
-         <h3>Notice for prerelease versions</h3>
-         <p>This version of Enano is designed only for testing and evaluation purposes. <b>It is not yet completely stable, and should not be used on production websites.</b> As with any Enano version, Dan Fuhry and the Enano team cannot be responsible for any damage, physical or otherwise, to any property as a result of the use of Enano. While security is a number one priority, sometimes things slip through.</p>
+         <h3><?php echo $lang->get('license_info_unstable_title'); ?></h3>
+         <p><?php echo $lang->get('license_info_unstable_body'); ?></p>
          <?php
        }
        ?>
-       <h3>Lawyer-readable version</h3>
+       <h3><?php echo $lang->get('license_section_gpl_heading'); ?></h3>
+       <?php if ( $lang->lang_code != 'eng' ): ?>
+       <p><i><?php echo $lang->get('license_gpl_blurb_inenglish'); ?></i></p>
+       <?php endif; ?>
        <?php echo wikiFormat(file_get_contents(ENANO_ROOT . '/GPL')); ?>
      </div>
      <div class="pagenav">
        <form action="install.php?mode=sysreqs" method="post">
          <table border="0">
          <tr>
-         <td><input type="submit" value="I agree to the license terms" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Ensure that you agree with the terms of the license<br />&bull; Have your database host, name, username, and password available</p></td>
+           <td>
+             <input type="submit" value="<?php echo $lang->get('license_btn_i_agree'); ?>" />
+           </td>
+           <td>
+             <p>
+               <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
+               &bull; <?php echo $lang->get('license_objective_ensure_agree'); ?><br />
+               &bull; <?php echo $lang->get('license_objective_have_db_info'); ?>
+             </p>
+           </td>
          </tr>
          </table>
        </form>
@@ -927,19 +989,18 @@ switch($_GET['mode'])
   case "sysreqs":
     error_reporting(E_ALL);
     ?>
-    <h3>Checking your server</h3>
-     <p>Enano has several requirements that must be met before it can be installed. If all is good then note any warnings and click Continue below.</p>
+    <h3><?php echo $lang->get('sysreqs_heading'); ?></h3>
+     <p><?php echo $lang->get('sysreqs_blurb'); ?></p>
     <table border="0" cellspacing="0" cellpadding="0">
     <?php
-    run_test('return version_compare(\'4.3.0\', PHP_VERSION, \'<\');', 'PHP Version >=4.3.0', 'It seems that the version of PHP that your server is running is too old to support Enano properly. If this is your server, please upgrade to the most recent version of PHP, remembering to use the --with-mysql configure option if you compile it yourself. If this is not your server, please contact your webhost and ask them if it would be possible to upgrade PHP. If this is not possible, you will need to switch to a different webhost in order to use Enano.');
-    run_test('return function_exists(\'mysql_connect\');', 'MySQL extension for PHP', 'It seems that your PHP installation does not have the MySQL extension enabled. If this is your own server, you may need to just enable the "libmysql.so" extension in php.ini. If you do not have the MySQL extension installed, you will need to either use your distribution\'s package manager to install it, or you will have to compile PHP from source. If you compile PHP from source, please remember to use the "--with-mysql" configure option, and you will have to have the MySQL development files installed (they usually are). If this is not your server, please contact your hosting company and ask them to install the PHP MySQL extension.');
-    run_test('return @ini_get(\'file_uploads\');', 'File upload support', 'It seems that your server does not support uploading files. Enano *requires* this functionality in order to work properly. Please ask your server administrator to set the "file_uploads" option in php.ini to "On".');
-    run_test('return is_apache();', 'Apache HTTP Server', 'Apparently your server is running a web server other than Apache. Enano will work nontheless, but there are some known bugs with non-Apache servers, and the "fancy" URLs will not work properly. The "Standard URLs" option will be set on the website configuration page, only change it if you are absolutely certain that your server is running Apache.', true);
-    //run_test('return function_exists(\'finfo_file\');', 'Fileinfo PECL extension', 'The MIME magic PHP extension is used to determine the type of a file by looking for a certain "magic" string of characters inside it. This functionality is used by Enano to more effectively prevent malicious file uploads. The MIME magic option will be disabled by default.', true);
-    run_test('return is_writable(ENANO_ROOT.\'/config.new.php\');', 'Configuration file writable', 'It looks like the configuration file, config.new.php, is not writable. Enano needs to be able to write to this file in order to install.<br /><br /><b>If you are installing Enano on a SourceForge web site:</b><br />SourceForge mounts the web partitions read-only now, so you will need to use the project shell service to symlink config.php to a file in the /tmp/persistent directory.');
-    run_test('return file_exists(\'/usr/bin/convert\');', 'ImageMagick support', 'Enano uses ImageMagick to scale images into thumbnails. Because ImageMagick was not found on your server, Enano will use the width= and height= attributes on the &lt;img&gt; tag to scale images. This can cause somewhat of a performance increase, but bandwidth usage will be higher, especially if you use high-resolution images on your site.<br /><br />If you are sure that you have ImageMagick, you can set the location of the "convert" program using the administration panel after installation is complete.', true);
-    run_test('return is_writable(ENANO_ROOT.\'/cache/\');', 'Cache directory writable', 'Apparently the cache/ directory is not writable. Enano will still work, but you will not be able to cache thumbnails, meaning the server will need to re-render them each time they are requested. In some cases, this can cause a significant slowdown.', true);
-    run_test('return is_writable(ENANO_ROOT.\'/files/\');', 'File uploads directory writable', 'It seems that the directory where uploaded files are stored (' . ENANO_ROOT . '/files) cannot be written by the server. Enano will still function, but file uploads will not function, and will be disabled by default.', true);
+    run_test('return version_compare(\'4.3.0\', PHP_VERSION, \'<\');', $lang->get('sysreqs_req_php'), $lang->get('sysreqs_req_desc_php') );
+    run_test('return function_exists(\'mysql_connect\');', $lang->get('sysreqs_req_mysql'), $lang->get('sysreqs_req_desc_mysql') );
+    run_test('return @ini_get(\'file_uploads\');', $lang->get('sysreqs_req_uploads'), $lang->get('sysreqs_req_desc_uploads') );
+    run_test('return is_apache();', $lang->get('sysreqs_req_apache'), $lang->get('sysreqs_req_desc_apache'), true);
+    run_test('return is_writable(ENANO_ROOT.\'/config.new.php\');', $lang->get('sysreqs_req_config'), $lang->get('sysreqs_req_desc_config') );
+    run_test('return file_exists(\'/usr/bin/convert\');', $lang->get('sysreqs_req_magick'), $lang->get('sysreqs_req_desc_magick'), true);
+    run_test('return is_writable(ENANO_ROOT.\'/cache/\');', $lang->get('sysreqs_req_cachewriteable'), $lang->get('sysreqs_req_desc_cachewriteable'), true);
+    run_test('return is_writable(ENANO_ROOT.\'/files/\');', $lang->get('sysreqs_req_fileswriteable'), $lang->get('sysreqs_req_desc_fileswriteable'), true);
     echo '</table>';
     if(!$failed)
     {
@@ -949,18 +1010,27 @@ switch($_GET['mode'])
       <?php
       if($warned) {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
-        run_test('return false;', 'Some scalebacks were made due to your server configuration.', 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, certain features or enhancements that are part of Enano have been disabled to prevent further errors. You have seen those "fatal error" notices that spew from PHP, haven\'t you?<br /><br />Fatal error:</b> call to undefined function wannahokaloogie() in file <b>'.__FILE__.'</b> on line <b>'.__LINE__.'', true);
+        run_test('return false;', $lang->get('sysreqs_summary_warn_title'), $lang->get('sysreqs_summary_warn_body'), true);
         echo '</table>';
       } else {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
-        run_test('return true;', '<b>Your server meets all the requirements for running Enano.</b><br />Click the button below to continue the installation.', 'You should never see this text. Congratulations for being an Enano hacker!');
+        run_test('return true;', '<b>' . $lang->get('sysreqs_summary_success_title') . '</b><br />' . $lang->get('sysreqs_summary_success_body'), 'You should never see this text. Congratulations for being an Enano hacker!');
         echo '</table>';
       }
       ?>
        <form action="install.php?mode=database" method="post">
          <table border="0">
          <tr>
-         <td><input type="submit" value="Continue" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Ensure that you are satisfied with any scalebacks that may have been made to accomodate your server configuration<br />&bull; Have your database host, name, username, and password available</p></td>
+           <td>
+             <input type="submit" value="Continue" />
+           </td>
+           <td>
+             <p>
+               <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
+               &bull; Review the list above to ensure that you are satisfied with any of Enano's workarounds for your server. If you need a particular feature and that feature is listed as disabled above, you should take the opportunity now to correct the problem.<br />
+               &bull; Have your database host, name, username, and password available
+             </p>
+           </td>
          </tr>
          </table>
        </form>
@@ -969,7 +1039,7 @@ switch($_GET['mode'])
     } else {
       if($failed) {
         echo '<div class="pagenav"><table border="0" cellspacing="0" cellpadding="0">';
-        run_test('return false;', 'Your server does not meet the requirements for Enano to run.', 'As a precaution, Enano will not install until the above requirements have been met. Contact your server administrator or hosting company and convince them to upgrade. Good luck.');
+        run_test('return false;', $lang->get('sysreqs_summary_fail_title'), $lang->get('sysreqs_summary_fail_body'));
         echo '</table></div>';
       }
     }
@@ -1201,7 +1271,7 @@ switch($_GET['mode'])
       <div class="pagenav">
        <table border="0">
        <tr>
-       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Check your MySQL connection using the "Test Connection" button.<br />&bull; Be aware that your database information will be transmitted unencrypted several times.</p></td>
+       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />&bull; Check your MySQL connection using the "Test Connection" button.<br />&bull; Be aware that your database information will be transmitted unencrypted several times.</p></td>
        </tr>
        </table>
      </div>
@@ -1272,7 +1342,7 @@ switch($_GET['mode'])
       <div class="pagenav">
        <table border="0">
        <tr>
-       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.</p></td>
+       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />&bull; Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.</p></td>
        </tr>
        </table>
      </div>
@@ -1385,7 +1455,7 @@ switch($_GET['mode'])
       <div class="pagenav">
        <table border="0">
        <tr>
-       <td><input type="submit" value="Continue" onclick="return cryptdata();" name="_cont" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.</p></td>
+       <td><input type="submit" value="Continue" onclick="return cryptdata();" name="_cont" /></td><td><p><span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />&bull; Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.</p></td>
        </tr>
        </table>
       </div>
@@ -1498,7 +1568,7 @@ switch($_GET['mode'])
       <div class="pagenav">
         <table border="0">
           <tr>
-            <td><input type="submit" value="Install Enano!" name="_cont" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Pray.</p></td>
+            <td><input type="submit" value="Install Enano!" name="_cont" /></td><td><p><span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />&bull; Pray.</p></td>
           </tr>
         </table>
       </div>

@@ -1,0 +1,104 @@
+/*
+ * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
+ * Version 1.1.1
+ * Copyright (C) 2006-2007 Dan Fuhry
+ *
+ * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+ */
+
+// Enano installer strings
+// Language: ISO-639-3 eng (English)
+
+var enano_lang_install = {
+  categories: [
+    'meta', 'welcome', 'license', 'sysreqs', 'database', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp',
+  ],
+  strings: {
+    meta: {
+      site_name: 'Enano installation',
+      site_desc: 'Install Enano on your server.',
+      enano_copyright: 'Enano and all of its code, graphics, and more code is copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
+      sidebar_heading: 'Installation progress',
+      btn_article: 'installation page',
+      lbl_before_continue: 'Before continuing:',
+    },
+    welcome: {
+      modetitle: 'Welcome',
+      heading: 'Welcome to Enano',
+      version: 'version',
+      branch_stable: 'stable',
+      branch_unstable: 'unstable',
+      aka: 'also affectionately known as "%codename%" <tt>:)</tt>',
+      btn_start: 'Start installation',
+    },
+    license: {
+      modetitle: 'License agreement',
+      heading: 'Welcome to the Enano installer.',
+      blurb_thankyou: 'Thank you for choosing Enano as your CMS. You\'ve selected the finest in design, the strongest in security, and the latest in Web 2.0 toys. Trust us, you\'ll like it.',
+      blurb_pleaseread: 'To get started, please read and accept the following license agreement. You\'ve probably seen it before.',
+      info_unstable_title: 'Notice for prerelease versions',
+      info_unstable_body: 'This version of Enano is designed only for testing and evaluation purposes. <b>It is not yet completely stable, and should not be used on production websites.</b> As with any Enano version, Dan Fuhry and the Enano team cannot be responsible for any damage, physical or otherwise, to any property as a result of the use of Enano. While security is a number one priority, sometimes things slip through.',
+      section_gpl_heading: 'Lawyer-readable version',
+      btn_i_agree: 'I agree to the license terms',
+      objective_ensure_agree: 'Ensure that you agree with the terms of the license',
+      objective_have_db_info: 'Have your database host, name, username, and password available',
+      gpl_blurb_inenglish: 'You may view a copy of the GNU General Public License in English in the file GPL-EN included with this package.',
+    },
+    sysreqs: {
+      modetitle: 'Server requirements',
+      heading: 'Checking your server',
+      blurb: 'Enano has several requirements that must be met before it can be installed. If all is good then note any warnings and click Continue below.',
+      req_php: 'PHP Version >=4.3.0',
+      req_mysql: 'MySQL extension for PHP',
+      req_uploads: 'File upload support',
+      req_apache: 'Apache HTTP Server',
+      req_config: 'Configuration file writable',
+      req_magick: 'ImageMagick support',
+      req_cachewriteable: 'Cache directory writable',
+      req_fileswriteable: 'File uploads directory writable',
+      
+      req_desc_php: 'It seems that the version of PHP that your server is running is too old to support Enano properly. If this is your server, please upgrade to the most recent version of PHP, remembering to use the --with-mysql configure option if you compile it yourself. If this is not your server, please contact your webhost and ask them if it would be possible to upgrade PHP. If this is not possible, you will need to switch to a different webhost in order to use Enano.',
+      req_desc_mysql: 'It seems that your PHP installation does not have the MySQL extension enabled. If this is your own server, you may need to just enable the "libmysql.so" extension in php.ini. If you do not have the MySQL extension installed, you will need to either use your distribution\'s package manager to install it, or you will have to compile PHP from source. If you compile PHP from source, please remember to use the "--with-mysql" configure option, and you will have to have the MySQL development files installed (they usually are). If this is not your server, please contact your hosting company and ask them to install the PHP MySQL extension.',
+      req_desc_uploads: 'It seems that your server does not support uploading files. Enano *requires* this functionality in order to work properly. Please ask your server administrator to set the "file_uploads" option in php.ini to "On".',
+      req_desc_apache: 'Apparently your server is running a web server other than Apache. Enano will work nontheless, but there are some known bugs with non-Apache servers, and the "fancy" URLs will not work properly. The "Standard URLs" option will be set on the website configuration page, only change it if you are absolutely certain that your server is running Apache.',
+      req_desc_config: 'It looks like the configuration file, config.new.php, is not writable. Enano needs to be able to write to this file in order to install.<br /><br /><b>If you are installing Enano on a SourceForge web site:</b><br />SourceForge mounts the web partitions read-only now, so you will need to use the project shell service to symlink config.php to a file in the /tmp/persistent directory.',
+      req_desc_magick: 'Enano uses ImageMagick to scale images into thumbnails. Because ImageMagick was not found on your server, Enano will use the width= and height= attributes on the &lt;img&gt; tag to scale images. This can cause somewhat of a performance increase, but bandwidth usage will be higher, especially if you use high-resolution images on your site.<br /><br />If you are sure that you have ImageMagick, you can set the location of the "convert" program using the administration panel after installation is complete.',
+      req_desc_cachewriteable: 'Apparently the cache/ directory is not writable. Enano will still work, but you will not be able to cache thumbnails, meaning the server will need to re-render them each time they are requested. In some cases, this can cause a significant slowdown.',
+      req_desc_fileswriteable: 'It seems that the directory where uploaded files are stored (%enano_root%/files) cannot be written by the server. Enano will still function, but file uploads will not function, and will be disabled by default.',
+      
+      summary_success_title: 'Your server meets all the requirements for running Enano.',
+      summary_success_body: 'Click the button below to continue the installation.',
+      
+      summary_warn_title: 'Some of the features of Enano have been turned off to accommodate your server.',
+      summary_warn_body: 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, Enano has disabled these features as a precaution to prevent errors and potential security issues.',
+      
+      summary_fail_title: 'Your server does not meet the requirements for Enano to run.',
+      summary_fail_body: 'As a precaution, Enano will not install until the above requirements have been met. Contact your server administrator or hosting company and convince them to upgrade. Good luck.'
+    },
+    database: {
+      modetitle: 'Database information',
+    },
+    website: {
+      modetitle: 'Website configuration',
+    },
+    login: {
+      modetitle: 'Administration login',
+    },
+    confirm: {
+      modetitle: 'Confirm installation',
+    },
+    install: {
+      modetitle: 'Database installation',
+    },
+    finish: {
+      modetitle: 'Installation complete',
+    },
+    pophelp: {
+    }
+  }
+  
+}
