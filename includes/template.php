@@ -1894,13 +1894,14 @@ class template_nodb {
   {
     global $sideinfo;
     global $this_page;
+    global $lang;
     global $db, $session, $paths, $template, $plugins; // Common objects
     $tplvars = $this->extract_vars('elements.tpl');
     $tb = '';
     // Get the "article" button text (depends on namespace)
-    if(defined('IN_ENANO_INSTALL')) $ns = 'installation page';
+    if(defined('IN_ENANO_INSTALL')) $ns = $lang->get('meta_btn_article');
     else $ns = 'system error page';
-    $t = str_replace('{FLAGS}', 'onclick="if ( !KILL_SWITCH ) { return false; }" title="Hey! A button that doesn\'t do anything. Clever..." accesskey="a"', $tplvars['toolbar_button']);
+    $t = str_replace('{FLAGS}', 'onclick="return false;" title="Hey! A button that doesn\'t do anything. Clever..." accesskey="a"', $tplvars['toolbar_button']);
     $t = str_replace('{HREF}', '#', $t);
     $t = str_replace('{TEXT}', $ns, $t);
     $tb .= $t;
@@ -1923,22 +1924,31 @@ class template_nodb {
     
     $title = ( is_object($paths) ) ? $paths->page : 'Critical error';
     
+    $headers = '<style type="text/css">div.pagenav { border-top: 1px solid #CCC; padding-top: 7px; margin-top: 10px; }</style>';
+    
+    $js_dynamic = '';
+    if ( defined('IN_ENANO_INSTALL') )
+    {
+      $js_dynamic .= '<script type="text/javascript" src="install.php?mode=langjs"></script>';
+    }
+    $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1;</script>';
+    
     // The rewritten template engine will process all required vars during the load_template stage instead of (cough) re-processing everything each time around.
     $tpl_strings = Array(
       'PAGE_NAME'=>$this_page,
       'PAGE_URLNAME'=>'Null',
-      'SITE_NAME'=>'Enano Installation',
+      'SITE_NAME'=>$lang->get('meta_site_name'),
       'USERNAME'=>'admin',
-      'SITE_DESC'=>'Install Enano on your server.',
+      'SITE_DESC'=>$lang->get('meta_site_desc'),
       'TOOLBAR'=>$tb,
       'SCRIPTPATH'=>scriptPath,
       'CONTENTPATH'=>contentPath,
       'ADMIN_SID_QUES'=>$asq,
       'ADMIN_SID_AMP'=>$asa,
       'ADMIN_SID_AMP_HTML'=>'',
-      'ADDITIONAL_HEADERS'=>'<style type="text/css">div.pagenav { border-top: 1px solid #CCC; padding-top: 7px; margin-top: 10px; }</style>',
+      'ADDITIONAL_HEADERS'=>$headers,
       'SIDEBAR_EXTRA'=>'',
-      'COPYRIGHT'=>'Enano and all of its code, graphics, and more code is copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
+      'COPYRIGHT'=>$lang->get('meta_enano_copyright'),
       'TOOLBAR_EXTRAS'=>'',
       'REQUEST_URI'=>( isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '' ).$_SERVER['REQUEST_URI'],
       'STYLE_LINK'=>$slink,
@@ -1947,7 +1957,7 @@ class template_nodb {
       'TEMPLATE_DIR'=>scriptPath.'/themes/'.$this->theme,
       'THEME_ID'=>$this->theme,
       'STYLE_ID'=>$this->style,
-      'JS_DYNAMIC_VARS'=>'<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\';</script>',
+      'JS_DYNAMIC_VARS'=>$js_dynamic,
       'SIDEBAR_RIGHT'=>'',
       );
     $this->tpl_strings = array_merge($tpl_strings, $this->tpl_strings);
@@ -1964,7 +1974,7 @@ class template_nodb {
       }
       $p = $this->makeParserText($tplvars['sidebar_section']);
       $p->assign_vars(Array(
-          'TITLE'=>'Installation progress',
+          'TITLE'=>$lang->get('meta_sidebar_heading'),
           'CONTENT'=>$sidebar,
         ));
       $sidebar = $p->run();

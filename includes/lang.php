@@ -71,8 +71,8 @@ class Language
     if ( defined('IN_ENANO_INSTALL') )
     {
       // special case for the Enano installer: it will load its own strings from a JSON file and just use this API for fetching and templatizing them.
-      $this->lang_id   = LANG_DEFAULT;
-      $this->lang_code = 'neutral';
+      $this->lang_id   = 1;
+      $this->lang_code = $lang;
       return true;
     }
     if ( is_string($lang) )
@@ -186,6 +186,77 @@ class Language
   }
   
   /**
+   * Loads a JSON language file and parses the strings into RAM. Will use the cache if possible, but stays far away from the database,
+   * which we assume doesn't exist yet.
+   */
+  
+  function load_file($file)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    if ( !file_exists($file) )
+      $db->_die('lang.php - requested JSON file doesn\'t exist');
+    
+    $contents = trim(@file_get_contents($file));
+    if ( empty($contents) )
+      $db->_die('lang.php - empty language file...');
+    
+    // Trim off all text before and after the starting and ending braces
+    $contents = preg_replace('/^([^{]+)\{/', '{', $contents);
+    $contents = preg_replace('/\}([^}]+)$/', '}', $contents);
+    $contents = trim($contents);
+    
+    if ( empty($contents) )
+      $db->_die('lang.php - no meat to the language file...');
+    
+    $checksum = md5($contents);
+    if ( file_exists("./cache/lang_json_{$checksum}.php") )
+    {
+      $this->load_cache_file("./cache/lang_json_{$checksum}.php");
+    }
+    else
+    {
+      $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
+      $langdata = $json->decode($contents);
+    
+      if ( !is_array($langdata) )
+        $db->_die('lang.php - invalid language file');
+      
+      if ( !isset($langdata['categories']) || !isset($langdata['strings']) )
+        $db->_die('lang.php - language file does not contain the proper items');
+      
+      $this->merge($langdata['strings']);
+      
+      $lang_file = "./cache/lang_json_{$checksum}.php";
+      
+      $handle = @fopen($lang_file, 'w');
+      if ( !$handle )
+        // Couldn't open the file. Silently fail and let the strings come from RAM.
+        return false;
+        
+      // The file's open, that means we should be good.
+      fwrite($handle, '<?php
+// This file was generated automatically by Enano. You should not edit this file because any changes you make
+// to it will not be visible in the ACP and all changes will be lost upon any changes to strings in the admin panel.
+
+$lang_cache = ');
+      
+      $exported = $this->var_export_string($this->strings);
+      if ( empty($exported) )
+        // Ehh, that's not good
+        $db->_die('lang.php - load_file(): var_export_string() failed');
+      
+      fwrite($handle, $exported . '; ?>');
+      
+      // Clean up
+      unset($exported, $langdata);
+      
+      // Done =)
+      fclose($handle);
+    }
+  }
+  
+  /**
    * Merges a standard language assoc array ($arr[cat][stringid]) with the master in RAM.
    * @param array
    */
@@ -195,7 +266,7 @@ class Language
     // This is stupidly simple.
     foreach ( $strings as $cat_id => $contents )
     {
-      if ( !is_array($this->strings[$cat_id]) )
+      if ( !isset($this->strings[$cat_id]) || ( isset($this->strings[$cat_id]) && !is_array($this->strings[$cat_id]) ) )
         $this->strings[$cat_id] = array();
       foreach ( $contents as $string_id => $string )
       {
@@ -364,6 +435,10 @@ $lang_cache = ');
     if ( !$found )
     {
       // Ehh, the string wasn't found. Rerun fetch() and try again.
+      if ( defined('IN_ENANO_INSTALL') )
+      {
+        return $string_id;
+      }
       $this->fetch();
       if ( isset($this->strings[$category]) && isset($this->strings[$category][$string_name]) )
       {
@@ -428,7 +503,7 @@ $lang_cache = ');
       $subs[$key] = strval($value);
       $string = str_replace("%{$key}%", "{$subs[$key]}", $string);
     }
-    return "L $string";
+    return "{$string}*";
   }
   
 } // class Language
