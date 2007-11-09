@@ -21,7 +21,7 @@ var enano_lang_install = {
     meta: {
       site_name: 'Enano installation',
       site_desc: 'Install Enano on your server.',
-      enano_copyright: 'Enano and all of its code, graphics, and more code is copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
+      enano_copyright: 'Enano and its various components, related documentation, and artwork are copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
       sidebar_heading: 'Installation progress',
       btn_article: 'installation page',
       btn_continue: 'Continue',
