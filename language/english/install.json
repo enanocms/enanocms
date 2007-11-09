@@ -131,12 +131,63 @@ var enano_lang_install = {
     },
     website: {
       modetitle: 'Website configuration',
+      header_blurb: 'The next step is to enter some information about your website. You can always change this information later, using the administration panel.',
+      
+      field_name_title: 'Website name',
+      field_name_body: 'The display name of your website. Allowed characters are uppercase and lowercase letters, numerals, and spaces. This must not be blank or "Enano".',
+      field_desc_title: 'Website description',
+      field_desc_body: 'This text will be shown below the name of your website.',
+      field_copyright_title: 'Copyright info',
+      field_copyright_body: 'This should be a one-line legal notice that will appear at the bottom of all your pages.',
+      field_wikimode_title: 'Wiki mode',
+      field_wikimode_body: 'This feature allows people to create and edit pages on your site. Enano keeps a history of all page modifications, and you can protect pages to prevent editing.',
+      field_wikimode_checkbox: 'Yes, make my website a wiki.',
+      field_urlscheme_title: 'URL scheme',
+      field_urlscheme_body: 'Choose how the page URLs will look. Depending on your server configuration, you may need to select the first option. If you don\'t know, select the first option, and you can always change it later.',
+      field_urlscheme_ugly: 'Standard URLs - compatible with any web server (www.example.com/index.php?title=Page_name)',
+      field_urlscheme_short: 'Short URLs - requires Apache with a PHP module (www.example.com/index.php/Page_name)',
+      field_urlscheme_tiny: 'Tiny URLs - requires Apache on Linux/Unix/BSD with PHP module and mod_rewrite enabled (www.example.com/Page_name)',
+      
+      objective_verify: 'Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.',
     },
     login: {
       modetitle: 'Administration login',
+      header_blurb: 'Next, enter your desired username and password. The account you create here will be used to administer your site.',
+      
+      field_username_title: 'Administration username',
+      field_username_body: 'The administration username you will use to log into your site.<br />This cannot be "anonymous" or in the form of an IP address.',
+      field_password_title: 'Administration password:',
+      field_password_confirm: 'Enter it again to confirm:',
+      field_email_title: 'Your e-mail address:',
+      field_allowphp_title: 'Allow administrators to embed PHP code into pages:',
+      field_allowphp_body: 'Do not under any circumstances enable this option without reading these %important_notes%.',
+      field_allowphp_isi: 'important security implications',
+      field_allowphp_disabled: 'Disabled',
+      field_allowphp_enabled: 'Enabled',
+      
+      aes_blurb: 'If your browser supports Javascript, the password you enter here will be encrypted with AES before it is sent to the server.',
+      
+      objective_remember: 'Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.',
     },
     confirm: {
       modetitle: 'Confirm installation',
+      
+      header_blurb_title: 'Enano is ready to install.',
+      header_blurb_body: 'The wizard has finished collecting information and is ready to install the database schema. Please review the information below, and then click the button below to install the database.',
+      
+      lbl_db_host: 'Database hostname:',
+      lbl_db_name: 'Database name:',
+      lbl_db_user: 'Database user:',
+      lbl_db_pass: 'Database password: &lt;hidden&gt;',
+      lbl_sitename: 'Site name:',
+      lbl_sitedesc: 'Site description:',
+      lbl_adminuser: 'Administration username:',
+      lbl_aesbits: 'Cipher strength:',
+      lbl_aes_strength: '%aes_bits%-bit AES',
+      lbl_aes_change: 'Cipher strength is defined in the file constants.php; if you desire to change the cipher strength, you may do so and then restart installation. Unless your site is mission-critical, changing the cipher strength is not necessary.',
+      
+      objective_pray: 'Pray.',
+      btn_install_enano: 'Install Enano!',
     },
     install: {
       modetitle: 'Database installation',
@@ -145,7 +196,19 @@ var enano_lang_install = {
       modetitle: 'Installation complete',
     },
     pophelp: {
+      admin_embed_php_title: 'Allow administrators to embed PHP',
+      admin_embed_php_body: '<p>This option allows you to control whether anything between the standard &lt;?php and ?&gt; tags will be treated as
+                                PHP code by Enano. If this option is enabled, and members of the Administrators group use these tags, Enano will
+                                execute that code when the page is loaded. There are obvious potential security implications here, which should
+                                be carefully considered before enabling this option.</p>
+                             <p>If you are the only administrator of this site, or if you have a high level of trust for those will be administering
+                                the site with you, you should enable this to allow extreme customization of pages.</p>
+                             <p>Leave this option off if you are at all concerned about security – if your account is compromised and PHP embedding
+                                is enabled, an attacker can run arbitrary code on your server! Enabling this will also allow administrators to
+                                embed Javascript and arbitrary HTML and CSS.</p>
+                             <p>If you don\'t have experience coding in PHP, you can safely disable this option. You may change this at any time
+                                using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection.</p>',
+      btn_close_window: 'Close window',
     }
   }
-  
 }

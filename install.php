@@ -772,25 +772,15 @@ switch($_GET['mode'])
     switch($topic)
     {
       case 'admin_embed_php':
-        $title = 'Allow administrators to embed PHP';
-        $content = '<p>This option allows you to control whether anything between the standard &lt;?php and ?&gt; tags will be treated as
-                        PHP code by Enano. If this option is enabled, and members of the Administrators group use these tags, Enano will
-                        execute that code when the page is loaded. There are obvious potential security implications here, which should
-                        be carefully considered before enabling this option.</p>
-                    <p>If you are the only administrator of this site, or if you have a high level of trust for those will be administering
-                       the site with you, you should enable this to allow extreme customization of pages.</p>
-                    <p>Leave this option off if you are at all concerned about security – if your account is compromised and PHP embedding
-                       is enabled, an attacker can run arbitrary code on your server! Enabling this will also allow administrators to
-                       embed Javascript and arbitrary HTML and CSS.</p>
-                    <p>If you don\'t have experience coding in PHP, you can safely disable this option. You may change this at any time
-                       using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection. <!-- , or by
-                       using the "embedded PHP kill switch" in the administration panel. --></p>';
+        $title = $lang->get('pophelp_admin_embed_php_title');
+        $content = $lang->get('pophelp_admin_embed_php_body');
         break;
       default:
         $title = 'Invalid topic';
         $content = 'Invalid help topic.';
         break;
     }
+    $close_window = $lang->get('pophelp_btn_close_window');
     echo <<<EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
@@ -815,7 +805,7 @@ switch($_GET['mode'])
     <h2>{$title}</h2>
     {$content}
     <p style="text-align: right;">
-      <a href="#" onclick="window.close(); return false;">Close window</a>
+      <a href="#" onclick="window.close(); return false;">{$close_window}</a>
     </p>
   </body>
 </html>
@@ -1439,19 +1429,81 @@ switch($_GET['mode'])
           echo '<input type="hidden" name="'.htmlspecialchars($k[$i]).'" value="'.htmlspecialchars($_POST[$k[$i]]).'" />'."\n";
         }
       ?>
-      <p>The next step is to enter some information about your website. You can always change this information later, using the administration panel.</p>
+      <p><?php echo $lang->get('website_header_blurb'); ?></p>
       <table border="0">
-        <tr><td><b>Website name</b><br />The display name of your website. Allowed characters are uppercase and lowercase letters, numerals, and spaces. This must not be blank or "Enano".</td><td><input onkeyup="verify();" name="sitename" type="text" size="30" /></td><td><img id="s_name" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td><b>Website description</b><br />This text will be shown below the name of your website.</td><td><input onkeyup="verify();" name="sitedesc" type="text" size="30" /></td><td><img id="s_desc" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td><b>Copyright info</b><br />This should be a one-line legal notice that will appear at the bottom of all your pages.</td><td><input onkeyup="verify();" name="copyright" type="text" size="30" /></td><td><img id="s_copyright" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td><b>Wiki mode</b><br />This feature allows people to create and edit pages on your site. Enano keeps a history of all page modifications, and you can protect pages to prevent editing.</td><td><input name="wiki_mode" type="checkbox" id="wmcheck" />  <label for="wmcheck">Yes, make my website a wiki.</label></td><td></td></tr>
-        <tr><td><b>URL scheme</b><br />Choose how the page URLs will look. Depending on your server configuration, you may need to select the first option. If you don't know, select the first option, and you can always change it later.</td><td colspan="2"><input type="radio" <?php if(!is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="ugly" id="ugly">  <label for="ugly">Standard URLs - compatible with any web server (www.example.com/index.php?title=Page_name)</label><br /><input type="radio" <?php if(is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="short" id="short">  <label for="short">Short URLs - requires Apache with a PHP module (www.example.com/index.php/Page_name)</label><br /><input type="radio" name="urlscheme" value="tiny" id="petite">  <label for="petite">Tiny URLs - requires Apache on Linux/Unix/BSD with PHP module and mod_rewrite enabled (www.example.com/Page_name)</label></td></tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('website_field_name_title'); ?></b><br />
+            <?php echo $lang->get('website_field_name_body'); ?>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="sitename" type="text" size="30" />
+          </td>
+          <td>
+            <img id="s_name" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('website_field_desc_title'); ?></b><br />
+            <?php echo $lang->get('website_field_desc_body'); ?>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="sitedesc" type="text" size="30" />
+          </td>
+          <td>
+            <img id="s_desc" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('website_field_copyright_title'); ?></b><br />
+            <?php echo $lang->get('website_field_copyright_body'); ?>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="copyright" type="text" size="30" />
+          </td>
+          <td>
+            <img id="s_copyright" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('website_field_wikimode_title'); ?></b><br />
+            <?php echo $lang->get('website_field_wikimode_body'); ?>
+          </td>
+          <td>
+            <input name="wiki_mode" type="checkbox" id="wmcheck" />  <label for="wmcheck"><?php echo $lang->get('website_field_wikimode_checkbox'); ?></label>
+          </td>
+          <td>
+            &nbsp;
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b><?php echo $lang->get('website_field_urlscheme_title'); ?></b><br />
+            <?php echo $lang->get('website_field_urlscheme_body'); ?>
+          </td>
+          <td colspan="2">
+            <input type="radio" <?php if(!is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="ugly" id="ugly"  />  <label for="ugly"><?php echo $lang->get('website_field_urlscheme_ugly'); ?></label><br />
+            <input type="radio" <?php if(is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="short" id="short" />  <label for="short"><?php echo $lang->get('website_field_urlscheme_short'); ?></label><br />
+            <input type="radio" name="urlscheme" value="tiny" id="petite">  <label for="petite"><?php echo $lang->get('website_field_urlscheme_tiny'); ?></label>
+          </td>
+        </tr>
       </table>
       <div class="pagenav">
        <table border="0">
-       <tr>
-       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />&bull; Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.</p></td>
-       </tr>
+         <tr>
+           <td>
+             <input type="submit" value="<?php echo $lang->get('meta_btn_continue'); ?>" onclick="return verify();" name="_cont" />
+           </td>
+           <td>
+             <p>
+               <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
+               &bull; <?php echo $lang->get('website_objective_verify'); ?>
+             </p>
+           </td>
+         </tr>
        </table>
      </div>
     </form>
@@ -1476,7 +1528,7 @@ switch($_GET['mode'])
       $handle = @fopen(ENANO_ROOT.'/config.new.php', 'w');
       if(!$handle)
       {
-        echo '<p>ERROR: Cannot open config.php for writing - exiting!</p>';
+        echo '<p>ERROR: Despite my repeated attempts to verify that the configuration file can be written, I was indeed prevented from opening it for writing. Maybe you\'re still on <del>crack</del> Windows?</p>';
         $template->footer();
         exit;
       }
@@ -1537,40 +1589,69 @@ switch($_GET['mode'])
           echo '<input type="hidden" name="'.htmlspecialchars($k[$i]).'" value="'.htmlspecialchars($_POST[$k[$i]]).'" />'."\n";
         }
       ?>
-      <p>Next, enter your desired username and password. The account you create here will be used to administer your site.</p>
+      <p><?php echo $lang->get('login_header_blurb'); ?></p>
       <table border="0">
-        <tr><td><b>Administration username</b><br /><small>The administration username you will use to log into your site.<br />This cannot be "anonymous" or in the form of an IP address.</small></td><td><input onkeyup="verify();" name="admin_user" type="text" size="30" /></td><td><img id="s_user" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td>Administration password:</td><td><input onkeyup="verify();" name="admin_pass" type="password" size="30" /></td><td rowspan="2"><img id="s_password" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td>Enter it again to confirm:</td><td><input onkeyup="verify();" name="admin_pass_confirm" type="password" size="30" /></td></tr>
-        <tr><td>Your e-mail address:</td><td><input onkeyup="verify();" name="admin_email" type="text" size="30" /></td><td><img id="s_email" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr>
+          <td><b><?php echo $lang->get('login_field_username_title'); ?></b><br /><small><?php echo $lang->get('login_field_username_body'); ?></small></td>
+          <td><input onkeyup="verify();" name="admin_user" type="text" size="30" /></td>
+          <td><img id="s_user" alt="Good/bad icon" src="images/bad.gif" /></td>
+        </tr>
+        <tr>
+          <td><?php echo $lang->get('login_field_password_title'); ?></td>
+          <td><input onkeyup="verify();" name="admin_pass" type="password" size="30" /></td>
+          <td rowspan="2"><img id="s_password" alt="Good/bad icon" src="images/bad.gif" /></td>
+        </tr>
+        <tr>
+          <td><?php echo $lang->get('login_field_password_confirm'); ?></td>
+          <td><input onkeyup="verify();" name="admin_pass_confirm" type="password" size="30" /></td>
+        </tr>
+        <tr>
+          <td><?php echo $lang->get('login_field_email_title'); ?></td>
+          <td><input onkeyup="verify();" name="admin_email" type="text" size="30" /></td>
+          <td><img id="s_email" alt="Good/bad icon" src="images/bad.gif" /></td>
+        </tr>
         <tr>
           <td>
-            Allow administrators to embed PHP code into pages:<br />
-            <small><span style="color: #D84308">Do not under any circumstances enable this option without reading these
-                   <a href="install.php?mode=pophelp&amp;topic=admin_embed_php"
-                      onclick="window.open(this.href, 'pophelpwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes'); return false;"
-                      style="color: #D84308; text-decoration: underline;">important security implications</a>.
-            </span></small>
+            <?php echo $lang->get('login_field_allowphp_title'); ?><br />
+            <small>
+              <span style="color: #D84308">
+                <?php
+                  echo $lang->get('login_field_allowphp_body',
+                    array(
+                      'important_notes' => '<a href="install.php?mode=pophelp&amp;topic=admin_embed_php" onclick="window.open(this.href, \'pophelpwin\', \'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes\'); return false;" style="color: #D84308; text-decoration: underline;">' . $lang->get('login_field_allowphp_isi') . '</a>'
+                      )
+                    );
+                ?>
+              </span>
+            </small>
           </td>
           <td>
-            <label><input type="radio" name="admin_embed_php" value="2" checked="checked" /> Disabled</label>&nbsp;&nbsp;
-            <label><input type="radio" name="admin_embed_php" value="4" /> Enabled</label>
+            <label><input type="radio" name="admin_embed_php" value="2" checked="checked" /> <?php echo $lang->get('login_field_allowphp_disabled'); ?></label>&nbsp;&nbsp;
+            <label><input type="radio" name="admin_embed_php" value="4" /> <?php echo $lang->get('login_field_allowphp_enabled'); ?></label>
           </td>
           <td></td>
         </tr>
-        <tr><td colspan="3">If your browser supports Javascript, the password you enter here will be encrypted with AES before it is sent to the server.</td></tr>
+        <tr><td colspan="3"><?php echo $lang->get('login_aes_blurb'); ?></td></tr>
       </table>
       <div class="pagenav">
        <table border="0">
-       <tr>
-       <td><input type="submit" value="Continue" onclick="return cryptdata();" name="_cont" /></td><td><p><span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />&bull; Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.</p></td>
-       </tr>
+         <tr>
+           <td>
+             <input type="submit" value="<?php echo $lang->get('meta_btn_continue'); ?>" onclick="return cryptdata();" name="_cont" />
+           </td>
+           <td>
+             <p>
+               <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
+               &bull; <?php echo $lang->get('login_objective_remember'); ?>
+             </p>
+           </td>
+         </tr>
        </table>
       </div>
       <div id="cryptdebug"></div>
-     <input type="hidden" name="use_crypt" value="no" />
-     <input type="hidden" name="crypt_key" value="<?php echo $cryptkey; ?>" />
-     <input type="hidden" name="crypt_data" value="" />
+      <input type="hidden" name="use_crypt" value="no" />
+      <input type="hidden" name="crypt_key" value="<?php echo $cryptkey; ?>" />
+      <input type="hidden" name="crypt_data" value="" />
     </form>
     <script type="text/javascript">
     // <![CDATA[
@@ -1660,23 +1741,31 @@ switch($_GET['mode'])
           echo '<input type="hidden" name="'.htmlspecialchars($k[$i]).'" value="'.htmlspecialchars($_POST[$k[$i]]).'" />'."\n";
         }
       ?>
-      <h3>Enano is ready to install.</h3>
-       <p>The wizard has finished collecting information and is ready to install the database schema. Please review the information below,
-          and then click the button below to install the database.</p>
+      <h3><?php echo $lang->get('confirm_header_blurb_title'); ?></h3>
+       <p><?php echo $lang->get('confirm_header_blurb_body'); ?></p>
       <ul>
-        <li>Database hostname: <?php echo $_POST['db_host']; ?></li>
-        <li>Database name: <?php echo $_POST['db_name']; ?></li>
-        <li>Database user: <?php echo $_POST['db_user']; ?></li>
-        <li>Database password: &lt;hidden&gt;</li>
-        <li>Site name: <?php echo $_POST['sitename']; ?></li>
-        <li>Site description: <?php echo $_POST['sitedesc']; ?></li>
-        <li>Administration username: <?php echo $_POST['admin_user']; ?></li>
-        <li>Cipher strength: <?php echo (string)AES_BITS; ?>-bit AES<br /><small>Cipher strength is defined in the file constants.php; if you desire to change the cipher strength, you may do so and then restart installation. Unless your site is mission-critical, changing the cipher strength is not necessary.</small></li>
+        <li><?php echo $lang->get('confirm_lbl_db_host'); ?> <?php echo $_POST['db_host']; ?></li>
+        <li><?php echo $lang->get('confirm_lbl_db_name'); ?> <?php echo $_POST['db_name']; ?></li>
+        <li><?php echo $lang->get('confirm_lbl_db_user'); ?> <?php echo $_POST['db_user']; ?></li>
+        <li><?php echo $lang->get('confirm_lbl_db_pass'); ?></li>
+        <li><?php echo $lang->get('confirm_lbl_sitename'); ?> <?php echo $_POST['sitename']; ?></li>
+        <li><?php echo $lang->get('confirm_lbl_sitedesc'); ?> <?php echo $_POST['sitedesc']; ?></li>
+        <li><?php echo $lang->get('confirm_lbl_adminuser'); ?> <?php echo $_POST['admin_user']; ?></li>
+        <li><?php echo $lang->get('confirm_lbl_aesbits'); ?> <?php echo $lang->get('confirm_lbl_aes_strength', array( 'aes_bits' => AES_BITS )); ?><br /><small><?php echo $lang->get('confirm_lbl_aes_change'); ?></small></li>
       </ul>
       <div class="pagenav">
         <table border="0">
           <tr>
-            <td><input type="submit" value="Install Enano!" name="_cont" /></td><td><p><span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />&bull; Pray.</p></td>
+            <td>
+              <input type="submit" value="<?php echo $lang->get('confirm_btn_install_enano'); ?>" name="_cont" />
+            </td>
+            <td>
+              <p>
+                <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
+                <!-- Like this even needs to be localized. :-P -->
+                &bull; <?php echo $lang->get('confirm_objective_pray'); ?>
+              </p>
+            </td>
           </tr>
         </table>
       </div>
