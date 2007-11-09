@@ -925,7 +925,7 @@ switch($_GET['mode'])
       <?php
       if($warned) {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
-        run_test('return false;', 'Some scalebacks were made due to your server configuration.', 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, certain features or enhancements that are part of Enano have been disabled to prevent further errors. You have seen those "fatal error" notices that spew from PHP, haven\'t you?<br /><br />Fatal error:</b> call to undefined function wannahokaloogie() in file <b>'.__FILE__.'</b> on line <b>'.__LINE__.'', true);
+        run_test('return false;', 'Some of the features of Enano have been turned off to accommodate your server.', 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, certain features or enhancements that are part of Enano have been disabled to prevent further errors. You have seen those "fatal error" notices that spew from PHP, haven\'t you?<br /><br />&nbsp;&nbsp;&nbsp;<tt>Fatal error:</tt></b><tt> call to undefined function wannahockaloogie() in file <b>'.__FILE__.'</b> on line </tt><b><tt>'.__LINE__.'</tt>', true);
         echo '</table>';
       } else {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
@@ -936,7 +936,7 @@ switch($_GET['mode'])
        <form action="install.php?mode=database" method="post">
          <table border="0">
          <tr>
-         <td><input type="submit" value="Continue" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Ensure that you are satisfied with any scalebacks that may have been made to accomodate your server configuration<br />&bull; Have your database host, name, username, and password available</p></td>
+         <td><input type="submit" value="Continue" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Review the list above to ensure that you are satisfied with any of Enano's workarounds for your server. If you need a particular feature and that feature is listed as disabled above, you should take the opportunity now to correct the problem.<br />&bull; Have your database host, name, username, and password available</p></td>
          </tr>
          </table>
        </form>
@@ -1161,26 +1161,137 @@ switch($_GET['mode'])
     ?>
     <form name="dbinfo" action="install.php?mode=website" method="post">
       <table border="0">
-        <tr><td colspan="3" style="text-align: center"><h3>Database information</h3></td></tr>
-        <tr><td><b>Database hostname</b><br />This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost".<br /><span style="color: #993300" id="e_db_host"></span></td><td><input onkeyup="verify();" name="db_host" size="30" type="text" /></td><td><img id="s_db_host" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td><b>Database name</b><br />The name of the actual database. If you don't already have a database, you can create one here, if you have the username and password of a MySQL user with administrative rights.<br /><span style="color: #993300" id="e_db_name"></span></td><td><input onkeyup="verify();" name="db_name" size="30" type="text" /></td><td><img id="s_db_name" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td rowspan="2"><b>Database login</b><br />These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.<br /><span style="color: #993300" id="e_db_auth"></span></td><td><input onkeyup="verify();" name="db_user" size="30" type="text" /></td><td rowspan="2"><img id="s_db_auth" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
-        <tr><td><input name="db_pass" size="30" type="password" /></td></tr>
-        <tr><td colspan="3" style="text-align: center"><h3>Optional information</h3></td></tr>
-        <tr><td><b>Table prefix</b><br />The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).</td><td><input onkeyup="verify();" name="table_prefix" size="30" type="text" /></td><td><img id="s_table_prefix" alt="Good/bad icon" src="images/good.gif" /></td></tr>
-        <tr><td rowspan="2"><b>Database administrative login</b><br />If the MySQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.<br /><span style="color: #993300" id="e_db_root"></span></td><td><input onkeyup="verify();" name="db_root_user" size="30" type="text" /></td><td rowspan="2"><img id="s_db_root" alt="Good/bad icon" src="images/good.gif" /></td></tr>
-        <tr><td><input onkeyup="verify();" name="db_root_pass" size="30" type="password" /></td></tr>
-        <tr><td><b>MySQL version</b></td><td id="e_mysql_version">MySQL version information will be checked when you click "Test Connection".</td><td><img id="s_mysql_version" alt="Good/bad icon" src="images/unknown.gif" /></td></tr>
-        <tr><td><b>Delete existing tables?</b><br />If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.</td><td><input type="checkbox" name="drop_tables" id="dtcheck" />  <label for="dtcheck">Drop existing tables</label></td></tr>
-        <tr><td colspan="3" style="text-align: center"><input type="button" value="Test connection" onclick="ajaxTestConnection();" /></td></tr>
+        <tr>
+          <td colspan="3" style="text-align: center">
+            <h3>Database information</h3>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b>Database hostname</b>
+            <br />This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost".
+            <br /><span style="color: #993300" id="e_db_host"></span>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="db_host" size="30" type="text" />
+          </td>
+          <td>
+            <img id="s_db_host" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b>Database name</b><br />
+            The name of the actual database. If you don't already have a database, you can create one here, if you have the username and password
+            of a MySQL user with administrative rights.<br />
+            <span style="color: #993300" id="e_db_name"></span>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="db_name" size="30" type="text" />
+          </td>
+          <td>
+            <img id="s_db_name" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td rowspan="2">
+            <b>Database login</b><br />
+            These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace"
+            privileges for your database.<br />
+            <span style="color: #993300" id="e_db_auth"></span>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="db_user" size="30" type="text" />
+          </td>
+          <td rowspan="2">
+            <img id="s_db_auth" alt="Good/bad icon" src="images/bad.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input name="db_pass" size="30" type="password" />
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align: center">
+            <h3>Optional information</h3>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b>Table prefix</b><br />
+            The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z),
+            numbers (0-9), and underscores (_).
+          </td>
+          <td>
+            <input onkeyup="verify();" name="table_prefix" size="30" type="text" />
+          </td>
+          <td>
+            <img id="s_table_prefix" alt="Good/bad icon" src="images/good.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td rowspan="2">
+            <b>Database administrative login</b><br />
+            If the MySQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the
+            login information for an administrative user (such as root). Leave these fields blank unless you need to use them.<br />
+            <span style="color: #993300" id="e_db_root"></span>
+          </td>
+          <td>
+            <input onkeyup="verify();" name="db_root_user" size="30" type="text" />
+          </td>
+          <td rowspan="2">
+            <img id="s_db_root" alt="Good/bad icon" src="images/good.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input onkeyup="verify();" name="db_root_pass" size="30" type="password" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b>MySQL version</b>
+          </td>
+          <td id="e_mysql_version">
+            MySQL version information will be checked when you click "Test Connection".
+          </td>
+          <td>
+            <img id="s_mysql_version" alt="Good/bad icon" src="images/unknown.gif" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <b>Delete existing tables?</b><br />
+            If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do
+            NOT use this option unless specifically instructed to.
+          </td>
+          <td>
+            <input type="checkbox" name="drop_tables" id="dtcheck" />  <label for="dtcheck">Drop existing tables</label>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align: center">
+            <input type="button" value="Test connection" onclick="ajaxTestConnection();" />
+          </td>
+        </tr>
       </table>
       <div class="pagenav">
-       <table border="0">
-       <tr>
-       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Check your MySQL connection using the "Test Connection" button.<br />&bull; Be aware that your database information will be transmitted unencrypted several times.</p></td>
-       </tr>
-       </table>
-     </div>
+        <table border="0">
+        <tr>
+          <td>
+            <input type="submit" value="Continue" onclick="return verify();" name="_cont" />
+          </td>
+          <td>
+            <p>
+              <span style="font-weight: bold;">Before continuing:</span><br />
+              &bull; Check your MySQL connection using the "Test Connection" button.<br />
+              &bull; Be aware that your database information will be transmitted unencrypted several times.
+            </p>
+          </td>
+        </tr>
+        </table>
+      </div>
     </form>
     <?php
     break;

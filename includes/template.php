@@ -798,7 +798,7 @@ class template {
     {
       $login_link = makeUrlNS('Special', 'Login/' . $paths->fullpage, 'level=' . $session->user_level, true);
       echo '<div class="usermessage">';
-      echo '<b>Your administrative session has timed out.</b> <a href="' . $login_link . '">Log in again</a>';
+      echo '<b>Your administrative session has timed out.</b> <a href="' . $login_link . '" onclick="ajaxPromptAdminAuth(function(k){ ENANO_SID = k; window.location = append_sid(makeUrl(title)); }, ' . $session->user_level . '); return false;">Log in again</a>';
       echo '</div>';
     }
     if ( $this->site_disabled && $session->user_level >= USER_LEVEL_ADMIN && ( $paths->page != $paths->nslist['Special'] . 'Administration' ) )

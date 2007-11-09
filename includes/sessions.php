@@ -206,8 +206,8 @@ class sessionManager {
   var $acl_deps = Array();
   
   /**
-   * Our tell-all list of permissions.
-   * @access private - or, preferably, protected
+   * Our tell-all list of permissions. Do not even try to change this.
+   * @access private
    * @var array
    */
    
@@ -2596,8 +2596,8 @@ class Session_ACLPageInfo {
   var $acl_deps = Array();
   
   /**
-   * Our tell-all list of permissions.
-   * @access private - or, preferably, protected...too bad this has to be PHP4 compatible
+   * Our tell-all list of permissions. Do not even try to change this.
+   * @access private
    * @var array
    */
    
