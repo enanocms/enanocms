@@ -140,7 +140,7 @@ class mysql {
     $this->query_backtrace = '';
     $this->num_queries = 0;
     dc_here('dbal: we\'re in, selecting database...');
-    $q = $this->sql_query('USE '.$dbname.';');
+    $q = $this->sql_query('USE `'.$dbname.'`;');
     if(!$q) $this->_die('The database could not be selected.');
     dc_here('dbal: connected to MySQL');
     $this->disable_errorhandler();
