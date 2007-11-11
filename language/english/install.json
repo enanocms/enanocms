@@ -191,9 +191,50 @@ var enano_lang_install = {
     },
     install: {
       modetitle: 'Database installation',
+      
+      stg_connect_title: 'Connect to MySQL',
+      stg_connect_body: 'MySQL denied our attempt to connect to the database. This is most likely because your login information was incorrect. You will most likely need to <a href="install.php?mode=license">restart the installation</a>.',
+      stg_drop_title: 'Drop existing Enano tables',
+      stg_decrypt_title: 'Decrypt administration password',
+      stg_decrypt_body: 'The administration password you entered couldn\'t be decrypted. It is possible that your server did not properly store the encryption key in the configuration file. Please check the file permissions on config.new.php. You may have to return to the login stage of the installation, clear your browser cache, and then rerun this installation.',
+      stg_genkey_title: 'Generate %aes_bits%-bit AES private key',
+      stg_genkey_body: 'Enano encountered an internal error while generating the site encryption key. Please contact the Enano team for support.',
+      stg_parse_title: 'Prepare to execute schema file',
+      stg_parse_body: 'Enano encountered an internal error while parsing the SQL file that contains the database structure and initial data. Please contact the Enano team for support.',
+      stg_sql_title: 'Execute installer schema',
+      stg_sql_body: 'The installation failed because an SQL query wasn\'t quite correct. It is possible that you entered malformed data into a form field, or there may be a bug in Enano with your version of MySQL. Please contact the Enano team for support.',
+      stg_writeconfig_title: 'Write configuration files',
+      stg_writeconfig_body: 'Enano was unable to write the configuration file with your site\'s database credentials. This is almost always because your configuration file does not have the correct permissions. On Windows servers, you may see this message even if the check on the System Requirements page passed. Temporarily running IIS as the Administrator user may help.',
+      stg_rename_title: 'Rename configuration files',
+      stg_rename_body: 'Enano couldn\'t rename the configuration files to their correct production names. On some UNIX systems, you need to CHMOD the directory with your Enano files to 777 in order for this stage to succeed.',
+      stg_startapi_title: 'Start the Enano API',
+      stg_startapi_body: 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.',
+      stg_importlang_title: 'Import default language',
+      stg_importlang_body: 'Enano couldn\'t import the English language file.',
+      stg_initlogs_title: 'Initialize logs',
+      stg_initlogs_body: '<b>The session manager denied the request to flush logs for the main page.</b><br />
+                           While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
+                           properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
+                           to finish the installation, please be aware that you may be unable to log into your site.',
+      msg_complete_title: 'Installation of Enano is complete.',
+      msg_complete_body: 'Review any warnings above, and then <a href="%finish_link%">click here to finish the installation</a>.',
     },
     finish: {
       modetitle: 'Installation complete',
+      msg_congratulations: 'Congratulations!',
+      body: '<p>You have finished installing Enano on this server.</p>
+            <h3>Now what?</h3>
+             <p>Click the link below to see the main page for your website. Where to go from here:</p>
+             <ul>
+               <li>The first thing you should do is log into your site using the Log in link on the sidebar.</li>
+               <li>Go into the Administration panel, expand General, and click General Configuration. There you will be able to configure some basic information about your site.</li>
+               <li>Visit the <a href="http://enanocms.org/Category:Plugins" onclick="window.open(this.href); return false;">Enano Plugin Gallery</a> to download and use plugins on your site.</li>
+               <li>Periodically create a backup of your database and filesystem, in case something goes wrong. This should be done at least once a week &ndash; more for wiki-based sites.</li>
+               <li>Hire some moderators, to help you keep rowdy users tame.</li>
+               <li>Tell the <a href="http://enanocms.org/Contact_us">Enano team</a> what you think.</li>
+               <li><b>Spread the word about Enano by adding a link to the Enano homepage on your sidebar!</b> You can enable this option in the General Configuration section of the administration panel.</li>
+             </ul>',
+      link_mainpage: '<a href="%mainpage_link%">Go to your website...</a>',
     },
     pophelp: {
       admin_embed_php_title: 'Allow administrators to embed PHP',

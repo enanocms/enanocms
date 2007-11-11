@@ -1821,29 +1821,29 @@ switch($_GET['mode'])
     
     // $stages = array('connect', 'decrypt', 'genkey', 'parse', 'sql', 'writeconfig', 'renameconfig', 'startapi', 'initlogs');
     
-    if ( !preg_match('/^[a-z0-9_]*$/', $_POST['table_prefix']) )
+    if ( !preg_match('/^[a-z0-9_-]*$/', $_POST['table_prefix']) )
       err('Hacking attempt was detected in table_prefix.');
     
       start_install_table();
       // The stages connect, decrypt, genkey, and parse are preprocessing and don't do any actual data modification.
       // Thus, they need to be run on each retry, e.g. never skipped.
-      run_installer_stage('connect', 'Connect to MySQL', 'stg_mysql_connect', 'MySQL denied our attempt to connect to the database. This is most likely because your login information was incorrect. You will most likely need to <a href="install.php?mode=license">restart the installation</a>.', false);
+      run_installer_stage('connect', $lang->get('install_stg_connect_title'), 'stg_mysql_connect', $lang->get('install_stg_connect_body'), false);
       if ( isset($_POST['drop_tables']) )
       {
         // Are we supposed to drop any existing tables? If so, do it now
-        run_installer_stage('drop', 'Drop existing Enano tables', 'stg_drop_tables', 'This step never returns failure');
+        run_installer_stage('drop', $lang->get('install_stg_drop_title'), 'stg_drop_tables', 'This step never returns failure');
       }
-      run_installer_stage('decrypt', 'Decrypt administration password', 'stg_decrypt_admin_pass', 'The administration password you entered couldn\'t be decrypted. It is possible that your server did not properly store the encryption key in the configuration file. Please check the file permissions on config.new.php. You may have to return to the login stage of the installation, clear your browser cache, and then rerun this installation.', false);
-      run_installer_stage('genkey', 'Generate ' . AES_BITS . '-bit AES private key', 'stg_generate_aes_key', 'Enano encountered an internal error while generating the site encryption key. Please contact the Enano team for support.', false);
-      run_installer_stage('parse', 'Prepare to execute schema file', 'stg_parse_schema', 'Enano encountered an internal error while parsing the SQL file that contains the database structure and initial data. Please contact the Enano team for support.', false);
-      run_installer_stage('sql', 'Execute installer schema', 'stg_install', 'The installation failed because an SQL query wasn\'t quite correct. It is possible that you entered malformed data into a form field, or there may be a bug in Enano with your version of MySQL. Please contact the Enano team for support.', false);
-      run_installer_stage('writeconfig', 'Write configuration files', 'stg_write_config', 'Enano was unable to write the configuration file with your site\'s database credentials. This is almost always because your configuration file does not have the correct permissions. On Windows servers, you may see this message even if the check on the System Requirements page passed. Temporarily running IIS as the Administrator user may help.');
-      run_installer_stage('renameconfig', 'Rename configuration files', 'stg_rename_config', 'Enano couldn\'t rename the configuration files to their correct production names. On some UNIX systems, you need to CHMOD the directory with your Enano files to 777 in order for this stage to succeed.');
+      run_installer_stage('decrypt', $lang->get('install_stg_decrypt_title'), 'stg_decrypt_admin_pass', $lang->get('install_stg_decrypt_body'), false);
+      run_installer_stage('genkey', $lang->get('install_stg_genkey_title', array( 'aes_bits' => AES_BITS )), 'stg_generate_aes_key', $lang->get('install_stg_genkey_body'), false);
+      run_installer_stage('parse', $lang->get('install_stg_parse_title'), 'stg_parse_schema', $lang->get('install_stg_parse_body'), false);
+      run_installer_stage('sql', $lang->get('install_stg_sql_title'), 'stg_install', $lang->get('install_stg_sql_body'), false);
+      run_installer_stage('writeconfig', $lang->get('install_stg_writeconfig_title'), 'stg_write_config', $lang->get('install_stg_writeconfig_body'));
+      run_installer_stage('renameconfig', $lang->get('install_stg_rename_title'), 'stg_rename_config', $lang->get('install_stg_rename_body'));
       
       // Mainstream installation complete - Enano should be usable now
       // The stage of starting the API is special because it has to be called out of function context.
       // To alleviate this, we have two functions, one that returns success and one that returns failure
-      // If the Enano API load is successful, the success function is called to report the action to the user
+      // If the Enano API init is successful, the success function is called to report the action to the user
       // If unsuccessful, the failure report is sent
       
       $template_bak = $template;
@@ -1853,11 +1853,11 @@ switch($_GET['mode'])
       
       if ( is_object($db) && is_object($session) )
       {
-        run_installer_stage('startapi', 'Start the Enano API', 'stg_start_api_success', '...', false);
+        run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_start_api_success', '...', false);
       }
       else
       {
-        run_installer_stage('startapi', 'Start the Enano API', 'stg_start_api_failure', 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.', false);
+        run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_start_api_failure', $lang->get('install_stg_startapi_body'), false);
       }
       
       // We need to be logged in (with admin rights) before logs can be flushed
@@ -1868,37 +1868,24 @@ switch($_GET['mode'])
       $session->start();
       $paths->init();
       
-      run_installer_stage('importlang', 'Import default language', 'stg_import_language', 'Enano couldn\'t import the English language file.');
+      run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_import_language', $lang->get('install_stg_importlang_body'));
       
-      run_installer_stage('initlogs', 'Initialize logs', 'stg_init_logs', '<b>The session manager denied the request to flush logs for the main page.</b><br />
-                           While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
-                           properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
-                           to finish the installation, please be aware that you may be unable to log into your site.');
+      run_installer_stage('initlogs', $lang->get('install_stg_initlogs_title'), 'stg_init_logs', $lang->get('install_stg_initlogs_body'));
       close_install_table();
       
       unset($template);
       $template =& $template_bak;
     
-      echo '<h3>Installation of Enano is complete.</h3><p>Review any warnings above, and then <a href="install.php?mode=finish">click here to finish the installation</a>.';
+      echo '<h3>' . $lang->get('install_msg_complete_title') . '</h3>';
+      echo '<p>' . $lang->get('install_msg_complete_body', array('finish_link' => 'install.php?mode=finish')) . '</p>';
       
       // echo '<script type="text/javascript">window.location="'.scriptPath.'/install.php?mode=finish";</script>';
       
     break;
   case "finish":
-    echo '<h3>Congratulations!</h3>
-           <p>You have finished installing Enano on this server.</p>
-          <h3>Now what?</h3>
-           <p>Click the link below to see the main page for your website. Where to go from here:</p>
-           <ul>
-             <li>The first thing you should do is log into your site using the Log in link on the sidebar.</li>
-             <li>Go into the Administration panel, expand General, and click General Configuration. There you will be able to configure some basic information about your site.</li>
-             <li>Visit the <a href="http://enanocms.org/Category:Plugins" onclick="window.open(this.href); return false;">Enano Plugin Gallery</a> to download and use plugins on your site.</li>
-             <li>Periodically create a backup of your database and filesystem, in case something goes wrong. This should be done at least once a week &ndash; more for wiki-based sites.</li>
-             <li>Hire some moderators, to help you keep rowdy users tame.</li>
-             <li>Tell the <a href="http://enanocms.org/Contact_us">Enano team</a> what you think.</li>
-             <li><b>Spread the word about Enano by adding a link to the Enano homepage on your sidebar!</b> You can enable this option in the General Configuration section of the administration panel.</li>
-           </ul>
-           <p><a href="index.php">Go to your website...</a></p>';
+    echo '<h3>' . $lang->get('finish_msg_congratulations') . '</h3>
+           ' . $lang->get('finish_body') . '
+           <p>' . $lang->get('finish_link_mainpage', array('mainpage_link' => 'index.php')) . '</p>';
     break;
 }
 $template->footer();
