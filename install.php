@@ -126,7 +126,7 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
 
 function start_install_table()
 {
-  echo '<table border="0" cellspacing="0" cellpadding="0">' . "\n";
+  echo '<table border="0" cellspacing="0" cellpadding="0" style="margin-top: 10px;">' . "\n";
   ob_start();
 }
 
@@ -148,6 +148,7 @@ function echo_stage_success($stage_id, $stage_name)
 function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resume_stack)
 {
   global $neutral_color;
+  global $lang;
   
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
   echo '<tr><td style="width: 500px; background-color: #' . "FF{$neutral_color}{$neutral_color}{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Failed" src="images/bad.gif" /></td></tr>' . "\n";
@@ -165,11 +166,11 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   echo '<form action="install.php?mode=install&amp;stage=' . $stage_id . '" method="post">
           ' . $post_data . '
           <input type="hidden" name="resume_stack" value="' . htmlspecialchars(implode('|', $resume_stack)) . '" />
-          <h3>Enano installation failed.</h3>
+          <h3>' . $lang->get('meta_msg_err_stagefailed_title') . '</h3>
            <p>' . $failure_explanation . '</p>
-           ' . ( !empty($mysql_error) ? "<p>The error returned from MySQL was: $mysql_error</p>" : '' ) . '
-           <p>When you have corrected the error, click the button below to attempt to continue the installation.</p>
-           <p style="text-align: center;"><input type="submit" value="Retry installation" /></p>
+           ' . ( !empty($mysql_error) ? "<p>" . $lang->get('meta_msg_err_stagefailed_mysqlerror') . " $mysql_error</p>" : '' ) . '
+           <p>' . $lang->get('meta_msg_err_stagefailed_body') . '</p>
+           <p style="text-align: center;"><input type="submit" value="' . $lang->get('meta_btn_retry_installation') . '" /></p>
         </form>';
   global $template, $template_bak;
   if ( is_object($template_bak) )

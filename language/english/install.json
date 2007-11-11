@@ -29,6 +29,10 @@ var enano_lang_install = {
       
       msg_err_verification: 'One or more of the form fields is incorrect. Please correct any information in the form that has an "X" next to it.',
       
+      msg_err_stagefailed_title: 'Enano installation failed.',
+      msg_err_stagefailed_body: 'When you have corrected the error, click the button below to attempt to continue the installation.',
+      msg_err_stagefailed_mysqlerror: 'The error returned from MySQL was:',
+      btn_retry_installation: 'Retry installation',
     },
     welcome: {
       modetitle: 'Welcome',
