@@ -670,7 +670,7 @@ switch($_GET['mode'])
           die('root'.$e);
       }
       $rsp = 'good';
-      $q = mysql_query('USE '.$dbname, $conn);
+      $q = mysql_query('USE `' . mysql_real_escape_string($dbname) . '`;', $conn);
       if(!$q)
       {
         $e = mysql_error();
@@ -703,7 +703,7 @@ switch($_GET['mode'])
         else
           die('auth'.$e);
       }
-      $q = mysql_query('USE '.$dbname, $conn);
+      $q = mysql_query('USE `' . mysql_real_escape_string($dbname) . '`;', $conn);
       if(!$q)
       {
         $e = mysql_error();
@@ -1154,7 +1154,7 @@ switch($_GET['mode'])
        If you need to modify MySQL and then distribute your modifications, you must either distribute them under the terms of the GPL
        or purchase a proprietary license.</p>
     <?php
-    if ( file_exists('/etc/enano-is-virt-appliance') )
+    if ( @file_exists('/etc/enano-is-virt-appliance') )
     {
       echo '<p><b>MySQL login information for this virtual appliance:</b><br /><br />Database hostname: localhost<br />Database login: username "enano", password: "clurichaun" (without quotes)<br />Database name: enano_www1</p>';
     }
