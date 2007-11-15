@@ -179,15 +179,12 @@ function stg_mysql_connect($act_get = false)
   if ( $act_get )
     return $conn;
   
-  $db_user =& $_POST['db_user'];
-  $db_pass =& $_POST['db_pass'];
-  $db_name =& $_POST['db_name'];
+  $db_user = mysql_real_escape_string($_POST['db_user']);
+  $db_pass = mysql_real_escape_string($_POST['db_pass']);
+  $db_name = mysql_real_escape_string($_POST['db_name']);
   
-  if ( !preg_match('/^[a-z0-9_-]+$/', $db_name) )
-  {
-    $db_name = htmlspecialchars($db_name);
-    die("<p>SECURITY: malformed database name \"$db_name\"</p>");
-  }
+  if ( !preg_match('/^[a-z0-9_]+$/', $db_name) )
+    die("<p>SECURITY: malformed database name</p>");
   
   // First, try to connect using the normal credentials
   $conn = @mysql_connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass']);
@@ -202,9 +199,6 @@ function stg_mysql_connect($act_get = false)
         // Couldn't connect using either set of credentials. Bail out.
         return false;
       }
-      unset($db_user, $db_pass);
-      $db_user = mysql_real_escape_string($_POST['db_user']);
-      $db_pass = mysql_real_escape_string($_POST['db_pass']);
       // Create the user account
       $q = @mysql_query("GRANT ALL PRIVILEGES ON test.* TO '{$db_user}'@'localhost' IDENTIFIED BY '$db_pass' WITH GRANT OPTION;", $conn_root);
       if ( !$q )
@@ -233,16 +227,9 @@ function stg_mysql_connect($act_get = false)
           return false;
         }
       }
-      mysql_close($conn_root);
-      $conn = @mysql_connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass']);
-      if ( !$conn )
-      {
-        // This should honestly never happen.
-        return false;
-      }
     }
   }
-  $q = @mysql_query("USE `$db_name`;", $conn);
+  $q = @mysql_query("USE $db_name;", $conn);
   if ( !$q )
   {
     // access denied to the database; try the whole root schenanegan again
@@ -255,36 +242,25 @@ function stg_mysql_connect($act_get = false)
         return false;
       }
       // create the database, if it doesn't exist
-      $q = @mysql_query("CREATE DATABASE IF NOT EXISTS `$db_name`;", $conn_root);
+      $q = @mysql_query("CREATE DATABASE IF NOT EXISTS $db_name;", $conn_root);
       if ( !$q )
       {
         // this really should never fail, so don't give any tolerance to it
         return false;
       }
-      unset($db_user, $db_pass);
-      $db_user = mysql_real_escape_string($_POST['db_user']);
-      $db_pass = mysql_real_escape_string($_POST['db_pass']);
       // we're in with root rights; grant access to the database
-      $q = @mysql_query("GRANT ALL PRIVILEGES ON `$db_name`.* TO '{$db_user}'@'localhost';", $conn_root);
+      $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'localhost';", $conn_root);
       if ( !$q )
       {
         return false;
       }
       if ( $_POST['db_host'] != 'localhost' && $_POST['db_host'] != '127.0.0.1' && $_POST['db_host'] != '::1' )
       {
-        $q = @mysql_query("GRANT ALL PRIVILEGES ON `$db_name`.* TO '{$db_user}'@'%';", $conn_root);
+        $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'%';", $conn_root);
         if ( !$q )
         {
           return false;
         }
-      }
-      mysql_close($conn_root);
-      // grant tables have hopefully been flushed, kill and reconnect our regular user connection
-      mysql_close($conn);
-      $conn = @mysql_connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass']);
-      if ( !$conn )
-      {
-        return false;
       }
     }
     else
@@ -292,7 +268,7 @@ function stg_mysql_connect($act_get = false)
       return false;
     }
     // try again
-    $q = @mysql_query("USE `$db_name`;", $conn);
+    $q = @mysql_query("USE $db_name;", $conn);
     if ( !$q )
     {
       // really failed this time; bail out
@@ -694,7 +670,7 @@ switch($_GET['mode'])
           die('root'.$e);
       }
       $rsp = 'good';
-      $q = mysql_query('USE '.$dbname, $conn);
+      $q = mysql_query('USE `' . mysql_real_escape_string($dbname) . '`;', $conn);
       if(!$q)
       {
         $e = mysql_error();
@@ -727,7 +703,7 @@ switch($_GET['mode'])
         else
           die('auth'.$e);
       }
-      $q = mysql_query('USE '.$dbname, $conn);
+      $q = mysql_query('USE `' . mysql_real_escape_string($dbname) . '`;', $conn);
       if(!$q)
       {
         $e = mysql_error();
@@ -949,7 +925,7 @@ switch($_GET['mode'])
       <?php
       if($warned) {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
-        run_test('return false;', 'Some of the features of Enano have been turned off to accommodate your server.', 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, certain features or enhancements that are part of Enano have been disabled to prevent further errors. You have seen those "fatal error" notices that spew from PHP, haven\'t you?<br /><br />&nbsp;&nbsp;&nbsp;<tt>Fatal error:</tt></b><tt> call to undefined function wannahockaloogie() in file <b>'.__FILE__.'</b> on line </tt><b><tt>'.__LINE__.'</tt>', true);
+        run_test('return false;', 'Some scalebacks were made due to your server configuration.', 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, certain features or enhancements that are part of Enano have been disabled to prevent further errors. You have seen those "fatal error" notices that spew from PHP, haven\'t you?<br /><br />Fatal error:</b> call to undefined function wannahokaloogie() in file <b>'.__FILE__.'</b> on line <b>'.__LINE__.'', true);
         echo '</table>';
       } else {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
@@ -960,7 +936,7 @@ switch($_GET['mode'])
        <form action="install.php?mode=database" method="post">
          <table border="0">
          <tr>
-         <td><input type="submit" value="Continue" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Review the list above to ensure that you are satisfied with any of Enano's workarounds for your server. If you need a particular feature and that feature is listed as disabled above, you should take the opportunity now to correct the problem.<br />&bull; Have your database host, name, username, and password available</p></td>
+         <td><input type="submit" value="Continue" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Ensure that you are satisfied with any scalebacks that may have been made to accomodate your server configuration<br />&bull; Have your database host, name, username, and password available</p></td>
          </tr>
          </table>
        </form>
@@ -1125,7 +1101,7 @@ switch($_GET['mode'])
           document.getElementById('s_db_host').src='images/bad.gif';
           ret = false;
         }
-        if(frm.db_name.value.match(/^([a-z0-9_-]+)$/g))
+        if(frm.db_name.value.match(/^([a-z0-9_]+)$/g))
         {
           document.getElementById('s_db_name').src='images/unknown.gif';
         }
@@ -1178,144 +1154,33 @@ switch($_GET['mode'])
        If you need to modify MySQL and then distribute your modifications, you must either distribute them under the terms of the GPL
        or purchase a proprietary license.</p>
     <?php
-    if ( file_exists('/etc/enano-is-virt-appliance') )
+    if ( @file_exists('/etc/enano-is-virt-appliance') )
     {
       echo '<p><b>MySQL login information for this virtual appliance:</b><br /><br />Database hostname: localhost<br />Database login: username "enano", password: "clurichaun" (without quotes)<br />Database name: enano_www1</p>';
     }
     ?>
     <form name="dbinfo" action="install.php?mode=website" method="post">
       <table border="0">
-        <tr>
-          <td colspan="3" style="text-align: center">
-            <h3>Database information</h3>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>Database hostname</b>
-            <br />This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost".
-            <br /><span style="color: #993300" id="e_db_host"></span>
-          </td>
-          <td>
-            <input onkeyup="verify();" name="db_host" size="30" type="text" />
-          </td>
-          <td>
-            <img id="s_db_host" alt="Good/bad icon" src="images/bad.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>Database name</b><br />
-            The name of the actual database. If you don't already have a database, you can create one here, if you have the username and password
-            of a MySQL user with administrative rights.<br />
-            <span style="color: #993300" id="e_db_name"></span>
-          </td>
-          <td>
-            <input onkeyup="verify();" name="db_name" size="30" type="text" />
-          </td>
-          <td>
-            <img id="s_db_name" alt="Good/bad icon" src="images/bad.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td rowspan="2">
-            <b>Database login</b><br />
-            These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace"
-            privileges for your database.<br />
-            <span style="color: #993300" id="e_db_auth"></span>
-          </td>
-          <td>
-            <input onkeyup="verify();" name="db_user" size="30" type="text" />
-          </td>
-          <td rowspan="2">
-            <img id="s_db_auth" alt="Good/bad icon" src="images/bad.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input name="db_pass" size="30" type="password" />
-          </td>
-        </tr>
-        <tr>
-          <td colspan="3" style="text-align: center">
-            <h3>Optional information</h3>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>Table prefix</b><br />
-            The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z),
-            numbers (0-9), and underscores (_).
-          </td>
-          <td>
-            <input onkeyup="verify();" name="table_prefix" size="30" type="text" />
-          </td>
-          <td>
-            <img id="s_table_prefix" alt="Good/bad icon" src="images/good.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td rowspan="2">
-            <b>Database administrative login</b><br />
-            If the MySQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the
-            login information for an administrative user (such as root). Leave these fields blank unless you need to use them.<br />
-            <span style="color: #993300" id="e_db_root"></span>
-          </td>
-          <td>
-            <input onkeyup="verify();" name="db_root_user" size="30" type="text" />
-          </td>
-          <td rowspan="2">
-            <img id="s_db_root" alt="Good/bad icon" src="images/good.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input onkeyup="verify();" name="db_root_pass" size="30" type="password" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>MySQL version</b>
-          </td>
-          <td id="e_mysql_version">
-            MySQL version information will be checked when you click "Test Connection".
-          </td>
-          <td>
-            <img id="s_mysql_version" alt="Good/bad icon" src="images/unknown.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>Delete existing tables?</b><br />
-            If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do
-            NOT use this option unless specifically instructed to.
-          </td>
-          <td>
-            <input type="checkbox" name="drop_tables" id="dtcheck" />  <label for="dtcheck">Drop existing tables</label>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="3" style="text-align: center">
-            <input type="button" value="Test connection" onclick="ajaxTestConnection();" />
-          </td>
-        </tr>
+        <tr><td colspan="3" style="text-align: center"><h3>Database information</h3></td></tr>
+        <tr><td><b>Database hostname</b><br />This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost".<br /><span style="color: #993300" id="e_db_host"></span></td><td><input onkeyup="verify();" name="db_host" size="30" type="text" /></td><td><img id="s_db_host" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td><b>Database name</b><br />The name of the actual database. If you don't already have a database, you can create one here, if you have the username and password of a MySQL user with administrative rights.<br /><span style="color: #993300" id="e_db_name"></span></td><td><input onkeyup="verify();" name="db_name" size="30" type="text" /></td><td><img id="s_db_name" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td rowspan="2"><b>Database login</b><br />These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.<br /><span style="color: #993300" id="e_db_auth"></span></td><td><input onkeyup="verify();" name="db_user" size="30" type="text" /></td><td rowspan="2"><img id="s_db_auth" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td><input name="db_pass" size="30" type="password" /></td></tr>
+        <tr><td colspan="3" style="text-align: center"><h3>Optional information</h3></td></tr>
+        <tr><td><b>Table prefix</b><br />The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).</td><td><input onkeyup="verify();" name="table_prefix" size="30" type="text" /></td><td><img id="s_table_prefix" alt="Good/bad icon" src="images/good.gif" /></td></tr>
+        <tr><td rowspan="2"><b>Database administrative login</b><br />If the MySQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.<br /><span style="color: #993300" id="e_db_root"></span></td><td><input onkeyup="verify();" name="db_root_user" size="30" type="text" /></td><td rowspan="2"><img id="s_db_root" alt="Good/bad icon" src="images/good.gif" /></td></tr>
+        <tr><td><input onkeyup="verify();" name="db_root_pass" size="30" type="password" /></td></tr>
+        <tr><td><b>MySQL version</b></td><td id="e_mysql_version">MySQL version information will be checked when you click "Test Connection".</td><td><img id="s_mysql_version" alt="Good/bad icon" src="images/unknown.gif" /></td></tr>
+        <tr><td><b>Delete existing tables?</b><br />If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.</td><td><input type="checkbox" name="drop_tables" id="dtcheck" />  <label for="dtcheck">Drop existing tables</label></td></tr>
+        <tr><td colspan="3" style="text-align: center"><input type="button" value="Test connection" onclick="ajaxTestConnection();" /></td></tr>
       </table>
       <div class="pagenav">
-        <table border="0">
-        <tr>
-          <td>
-            <input type="submit" value="Continue" onclick="return verify();" name="_cont" />
-          </td>
-          <td>
-            <p>
-              <span style="font-weight: bold;">Before continuing:</span><br />
-              &bull; Check your MySQL connection using the "Test Connection" button.<br />
-              &bull; Be aware that your database information will be transmitted unencrypted several times.
-            </p>
-          </td>
-        </tr>
-        </table>
-      </div>
+       <table border="0">
+       <tr>
+       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Check your MySQL connection using the "Test Connection" button.<br />&bull; Be aware that your database information will be transmitted unencrypted several times.</p></td>
+       </tr>
+       </table>
+     </div>
     </form>
     <?php
     break;
@@ -1374,83 +1239,17 @@ switch($_GET['mode'])
       ?>
       <p>The next step is to enter some information about your website. You can always change this information later, using the administration panel.</p>
       <table border="0">
-        <tr>
-          <td>
-            <b>Website name</b><br />
-            The display name of your website. Allowed characters are uppercase and lowercase letters, numerals, and spaces. This must not
-            be blank or "Enano".
-          </td>
-          <td>
-            <input onkeyup="verify();" name="sitename" type="text" size="30" />
-          </td>
-          <td>
-            <img id="s_name" alt="Good/bad icon" src="images/bad.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>Website description</b><br />
-            This text will be shown below the name of your website.
-          </td>
-          <td>
-            <input onkeyup="verify();" name="sitedesc" type="text" size="30" />
-          </td>
-          <td>
-            <img id="s_desc" alt="Good/bad icon" src="images/bad.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>Copyright info</b><br />
-            This should be a one-line legal notice that will appear at the bottom of all your pages.
-          </td>
-          <td>
-            <input onkeyup="verify();" name="copyright" type="text" size="30" />
-          </td>
-          <td>
-            <img id="s_copyright" alt="Good/bad icon" src="images/bad.gif" />
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>Wiki mode</b><br />
-            This feature allows people to create and edit pages on your site. Enano keeps a history of all page modifications, and you can
-            protect pages to prevent editing.
-          </td>
-          <td>
-            <input name="wiki_mode" type="checkbox" id="wmcheck" />  <label for="wmcheck">Yes, make my website a wiki.</label>
-          </td>
-          <td>
-            &nbsp;
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <b>URL scheme</b><br />
-            Choose how the page URLs will look. Depending on your server configuration, you may need to select the first option. If you
-            don't know, select the first option, and you can always change it later.
-          </td>
-          <td colspan="2">
-            <input type="radio" <?php if(!is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="ugly" id="ugly"  />  <label for="ugly">Standard URLs - compatible with any web server (www.example.com/index.php?title=Page_name)</label><br />
-            <input type="radio" <?php if(is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="short" id="short" />  <label for="short">Short URLs - requires Apache with a PHP module (www.example.com/index.php/Page_name)</label><br />
-            <input type="radio" name="urlscheme" value="tiny" id="petite">  <label for="petite">Tiny URLs - requires Apache on Linux/Unix/BSD with PHP module and mod_rewrite enabled (www.example.com/Page_name)</label>
-          </td>
-        </tr>
+        <tr><td><b>Website name</b><br />The display name of your website. Allowed characters are uppercase and lowercase letters, numerals, and spaces. This must not be blank or "Enano".</td><td><input onkeyup="verify();" name="sitename" type="text" size="30" /></td><td><img id="s_name" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td><b>Website description</b><br />This text will be shown below the name of your website.</td><td><input onkeyup="verify();" name="sitedesc" type="text" size="30" /></td><td><img id="s_desc" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td><b>Copyright info</b><br />This should be a one-line legal notice that will appear at the bottom of all your pages.</td><td><input onkeyup="verify();" name="copyright" type="text" size="30" /></td><td><img id="s_copyright" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td><b>Wiki mode</b><br />This feature allows people to create and edit pages on your site. Enano keeps a history of all page modifications, and you can protect pages to prevent editing.</td><td><input name="wiki_mode" type="checkbox" id="wmcheck" />  <label for="wmcheck">Yes, make my website a wiki.</label></td><td></td></tr>
+        <tr><td><b>URL scheme</b><br />Choose how the page URLs will look. Depending on your server configuration, you may need to select the first option. If you don't know, select the first option, and you can always change it later.</td><td colspan="2"><input type="radio" <?php if(!is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="ugly" id="ugly">  <label for="ugly">Standard URLs - compatible with any web server (www.example.com/index.php?title=Page_name)</label><br /><input type="radio" <?php if(is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="short" id="short">  <label for="short">Short URLs - requires Apache with a PHP module (www.example.com/index.php/Page_name)</label><br /><input type="radio" name="urlscheme" value="tiny" id="petite">  <label for="petite">Tiny URLs - requires Apache on Linux/Unix/BSD with PHP module and mod_rewrite enabled (www.example.com/Page_name)</label></td></tr>
       </table>
       <div class="pagenav">
        <table border="0">
-         <tr>
-           <td>
-             <input type="submit" value="Continue" onclick="return verify();" name="_cont" />
-           </td>
-           <td>
-             <p>
-               <span style="font-weight: bold;">Before clicking continue:</span><br />
-               &bull; Verify that your site information is correct. Again, all of the above settings can be changed from the administration
-                      panel.
-             </p>
-           </td>
-         </tr>
+       <tr>
+       <td><input type="submit" value="Continue" onclick="return verify();" name="_cont" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.</p></td>
+       </tr>
        </table>
      </div>
     </form>
@@ -1538,23 +1337,10 @@ switch($_GET['mode'])
       ?>
       <p>Next, enter your desired username and password. The account you create here will be used to administer your site.</p>
       <table border="0">
-        <tr>
-          <td><b>Administration username</b><br /><small>The administration username you will use to log into your site.<br />This cannot be "anonymous" or in the form of an IP address.</small></td><td><input onkeyup="verify();" name="admin_user" type="text" size="30" /></td><td><img id="s_user" alt="Good/bad icon" src="images/bad.gif" /></td>
-        </tr>
-        <tr>
-          <td>Administration password:</td>
-          <td><input onkeyup="verify();" name="admin_pass" type="password" size="30" /></td>
-          <td rowspan="2"><img id="s_password" alt="Good/bad icon" src="images/bad.gif" /></td>
-        </tr>
-        <tr>
-          <td>Enter it again to confirm:</td>
-          <td><input onkeyup="verify();" name="admin_pass_confirm" type="password" size="30" /></td>
-        </tr>
-        <tr>
-          <td>Your e-mail address:</td>
-          <td><input onkeyup="verify();" name="admin_email" type="text" size="30" /></td>
-          <td><img id="s_email" alt="Good/bad icon" src="images/bad.gif" /></td>
-        </tr>
+        <tr><td><b>Administration username</b><br /><small>The administration username you will use to log into your site.<br />This cannot be "anonymous" or in the form of an IP address.</small></td><td><input onkeyup="verify();" name="admin_user" type="text" size="30" /></td><td><img id="s_user" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td>Administration password:</td><td><input onkeyup="verify();" name="admin_pass" type="password" size="30" /></td><td rowspan="2"><img id="s_password" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
+        <tr><td>Enter it again to confirm:</td><td><input onkeyup="verify();" name="admin_pass_confirm" type="password" size="30" /></td></tr>
+        <tr><td>Your e-mail address:</td><td><input onkeyup="verify();" name="admin_email" type="text" size="30" /></td><td><img id="s_email" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
         <tr>
           <td>
             Allow administrators to embed PHP code into pages:<br />
@@ -1574,24 +1360,15 @@ switch($_GET['mode'])
       </table>
       <div class="pagenav">
        <table border="0">
-         <tr>
-           <td>
-             <input type="submit" value="Continue" onclick="return cryptdata();" name="_cont" />
-           </td>
-           <td>
-             <p>
-               <span style="font-weight: bold;">Before clicking continue:</span><br />
-               &bull; Remember the username and password you enter here! You will not be able to administer your site without the
-               information you enter on this page.
-             </p>
-           </td>
-         </tr>
+       <tr>
+       <td><input type="submit" value="Continue" onclick="return cryptdata();" name="_cont" /></td><td><p><span style="font-weight: bold;">Before clicking continue:</span><br />&bull; Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.</p></td>
+       </tr>
        </table>
       </div>
       <div id="cryptdebug"></div>
-      <input type="hidden" name="use_crypt" value="no" />
-      <input type="hidden" name="crypt_key" value="<?php echo $cryptkey; ?>" />
-      <input type="hidden" name="crypt_data" value="" />
+     <input type="hidden" name="use_crypt" value="no" />
+     <input type="hidden" name="crypt_key" value="<?php echo $cryptkey; ?>" />
+     <input type="hidden" name="crypt_data" value="" />
     </form>
     <script type="text/javascript">
     // <![CDATA[
