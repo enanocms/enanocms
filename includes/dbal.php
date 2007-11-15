@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.0.2 (Coblynau)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -140,7 +140,7 @@ class mysql {
     $this->query_backtrace = '';
     $this->num_queries = 0;
     dc_here('dbal: we\'re in, selecting database...');
-    $q = $this->sql_query('USE '.$dbname.';');
+    $q = $this->sql_query('USE `'.$dbname.'`;');
     if(!$q) $this->_die('The database could not be selected.');
     dc_here('dbal: connected to MySQL');
     $this->disable_errorhandler();

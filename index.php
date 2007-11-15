@@ -11,8 +11,11 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  *
+ * @package Enano
+ * @subpackage Frontend
+ *
  */
-
+ 
   // Set up gzip encoding before any output is sent
   
   $aggressive_optimize_html = true;

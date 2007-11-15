@@ -206,8 +206,8 @@ class sessionManager {
   var $acl_deps = Array();
   
   /**
-   * Our tell-all list of permissions.
-   * @access private - or, preferably, protected
+   * Our tell-all list of permissions. Do not even try to change this.
+   * @access private
    * @var array
    */
    
@@ -863,7 +863,7 @@ class sessionManager {
     {
       // Stash it in a cookie
       // For now, make the cookie last forever, we can change this in 1.1.x
-      setcookie( 'sid', $session_key, time()+315360000, scriptPath.'/' );
+      setcookie( 'sid', $session_key, time()+315360000, scriptPath.'/', null, ( isset($_SERVER['HTTPS']) ) );
       $_COOKIE['sid'] = $session_key;
     }
     // $keyhash is stored in the database, this is for compatibility with the older DB structure
@@ -2596,8 +2596,8 @@ class Session_ACLPageInfo {
   var $acl_deps = Array();
   
   /**
-   * Our tell-all list of permissions.
-   * @access private - or, preferably, protected...too bad this has to be PHP4 compatible
+   * Our tell-all list of permissions. Do not even try to change this.
+   * @access private
    * @var array
    */
    

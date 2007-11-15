@@ -2,7 +2,7 @@
 
 /**
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.0.2 (Coblynau)
  * Copyright (C) 2006-2007 Dan Fuhry
  * paths.php - The part of Enano that actually manages content. Everything related to page handling and namespaces is in here.
  *
@@ -54,7 +54,7 @@ class pathManager {
     $session->register_acl_type('mod_comments',           AUTH_DISALLOW, 'Moderate comments',                                                                                        Array('edit_comments'),                                   'Article|User|Project|Template|File|Help|System|Category');
     $session->register_acl_type('history_view',           AUTH_WIKIMODE, 'View history/diffs',                                                                                       Array('read'),                                            'Article|User|Project|Template|File|Help|System|Category');
     $session->register_acl_type('history_rollback',       AUTH_DISALLOW, 'Rollback history',                                                                                         Array('history_view'),                                    'Article|User|Project|Template|File|Help|System|Category');
-    $session->register_acl_type('history_rollback_extra', AUTH_DISALLOW, 'Undelete page(s)',                                                                                         Array('history_rollback'),                                'Article|User|Project|Template|File|Help|System|Category');
+    $session->register_acl_type('history_rollback_extra', AUTH_DISALLOW, 'Undelete page(s)',                                                                                         Array('history_rollback'),                                'Article|User|Project|Template|File|Help|System|Category|Special');
     $session->register_acl_type('protect',                AUTH_DISALLOW, 'Protect page(s)',                                                                                          Array('read'),                                            'Article|User|Project|Template|File|Help|System|Category');
     $session->register_acl_type('rename',                 AUTH_WIKIMODE, 'Rename page(s)',                                                                                           Array('read'),                                            'Article|User|Project|Template|File|Help|System|Category');
     $session->register_acl_type('clear_logs',             AUTH_DISALLOW, 'Clear page logs (dangerous)',                                                                              Array('read', 'protect', 'even_when_protected'),          'Article|User|Project|Template|File|Help|System|Category');

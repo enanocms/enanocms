@@ -344,7 +344,7 @@ function page_Admin_GeneralConfig() {
         <td class="row1">Account activation:</td><td class="row1">
           <?php
           echo '<label><input'; if(getConfig('account_activation') == 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="disable" /> Disable registration</label><br />';
-          echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> None</label>';
+          echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin' && getConfig('account_activation') != 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> None</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'user') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="user" /> User</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="admin" /> Admin</label>';
           ?>
@@ -3194,7 +3194,10 @@ function page_Special_EditSidebar()
           $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : 'Can\'t find plugin block';
           break;
       }
-      $t = '<span title="Double-click to rename this block" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $template->tplWikiFormat($row['block_name']) . '</span>';
+      $block_name = $template->tplWikiFormat($row['block_name']);
+      if ( empty($block_name) )
+        $block_name = '&lt;Unnamed&gt;';
+      $t = '<span title="Double-click to rename this block" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $block_name . '</span>';
       if($row['item_enabled'] == 0) $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red;">(disabled)</span>';
       else           $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red; display: none;">(disabled)</span>';
       $side = ( $row['sidebar_id'] == SIDEBAR_LEFT ) ? SIDEBAR_RIGHT : SIDEBAR_LEFT;
