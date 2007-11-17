@@ -1125,7 +1125,7 @@ switch($_GET['mode'])
           document.getElementById('s_db_host').src='images/bad.gif';
           ret = false;
         }
-        if(frm.db_name.value.match(/^([a-z0-9_]+)$/g))
+        if(frm.db_name.value.match(/^([a-z0-9_-]+)$/g))
         {
           document.getElementById('s_db_name').src='images/unknown.gif';
         }
