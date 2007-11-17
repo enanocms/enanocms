@@ -283,7 +283,7 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('powered_btn', '1');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
-  ('Main_Page', 'Article', '=== Enano has been successfully installed! ===\n\nYou have finished installing Enano on this server. Congratulations!', '');
+  ('Main_Page', 'Article', '=== Enano has been successfully installed and is working. ===\n\nIf you can see this message, it means that you\'ve finished the Enano setup process and are ready to start building your website. Congratulations!\n\nTo edit this front page, click the Log In button to the left, enter the credentials you provided during the installation, and click the Edit This Page button that appears on the blue toolbar just above this text. You can also [http://docs.enanocms.org/Help:2.4 learn more] about editing pages.\n\nTo create more pages, use the Create a Page button to the left. If you enabled wiki mode, you don\'t have to log in first, however your IP address will be shown in the page history.\n\nVisit the [http://docs.enanocms.org/Help:Contents Enano documentation project website] to learn more about administering your site effectively and keeping things secure.', '');
 
 INSERT INTO {{TABLE_PREFIX}}pages(page_order, name, urlname, namespace, special, visible, comments_on, protected, delvotes, delvote_ips) VALUES
   (NULL, 'Main Page', 'Main_Page', 'Article', 0, 1, 1, 1, 0, '');
