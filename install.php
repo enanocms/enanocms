@@ -179,12 +179,15 @@ function stg_mysql_connect($act_get = false)
   if ( $act_get )
     return $conn;
   
-  $db_user = mysql_real_escape_string($_POST['db_user']);
-  $db_pass = mysql_real_escape_string($_POST['db_pass']);
-  $db_name = mysql_real_escape_string($_POST['db_name']);
+  $db_user =& $_POST['db_user'];
+  $db_pass =& $_POST['db_pass'];
+  $db_name =& $_POST['db_name'];
   
-  if ( !preg_match('/^[a-z0-9_]+$/', $db_name) )
-    die("<p>SECURITY: malformed database name</p>");
+  if ( !preg_match('/^[a-z0-9_-]+$/', $db_name) )
+  {
+    $db_name = htmlspecialchars($db_name);
+    die("<p>SECURITY: malformed database name \"$db_name\"</p>");
+  }
   
   // First, try to connect using the normal credentials
   $conn = @mysql_connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass']);
@@ -199,6 +202,9 @@ function stg_mysql_connect($act_get = false)
         // Couldn't connect using either set of credentials. Bail out.
         return false;
       }
+      unset($db_user, $db_pass);
+      $db_user = mysql_real_escape_string($_POST['db_user']);
+      $db_pass = mysql_real_escape_string($_POST['db_pass']);
       // Create the user account
       $q = @mysql_query("GRANT ALL PRIVILEGES ON test.* TO '{$db_user}'@'localhost' IDENTIFIED BY '$db_pass' WITH GRANT OPTION;", $conn_root);
       if ( !$q )
@@ -227,9 +233,16 @@ function stg_mysql_connect($act_get = false)
           return false;
         }
       }
+      mysql_close($conn_root);
+      $conn = @mysql_connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass']);
+      if ( !$conn )
+      {
+        // This should honestly never happen.
+        return false;
+      }
     }
   }
-  $q = @mysql_query("USE $db_name;", $conn);
+  $q = @mysql_query("USE `$db_name`;", $conn);
   if ( !$q )
   {
     // access denied to the database; try the whole root schenanegan again
@@ -242,25 +255,36 @@ function stg_mysql_connect($act_get = false)
         return false;
       }
       // create the database, if it doesn't exist
-      $q = @mysql_query("CREATE DATABASE IF NOT EXISTS $db_name;", $conn_root);
+      $q = @mysql_query("CREATE DATABASE IF NOT EXISTS `$db_name`;", $conn_root);
       if ( !$q )
       {
         // this really should never fail, so don't give any tolerance to it
         return false;
       }
+      unset($db_user, $db_pass);
+      $db_user = mysql_real_escape_string($_POST['db_user']);
+      $db_pass = mysql_real_escape_string($_POST['db_pass']);
       // we're in with root rights; grant access to the database
-      $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'localhost';", $conn_root);
+      $q = @mysql_query("GRANT ALL PRIVILEGES ON `$db_name`.* TO '{$db_user}'@'localhost';", $conn_root);
       if ( !$q )
       {
         return false;
       }
       if ( $_POST['db_host'] != 'localhost' && $_POST['db_host'] != '127.0.0.1' && $_POST['db_host'] != '::1' )
       {
-        $q = @mysql_query("GRANT ALL PRIVILEGES ON $db_name.* TO '{$db_user}'@'%';", $conn_root);
+        $q = @mysql_query("GRANT ALL PRIVILEGES ON `$db_name`.* TO '{$db_user}'@'%';", $conn_root);
         if ( !$q )
         {
           return false;
         }
+      }
+      mysql_close($conn_root);
+      // grant tables have hopefully been flushed, kill and reconnect our regular user connection
+      mysql_close($conn);
+      $conn = @mysql_connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass']);
+      if ( !$conn )
+      {
+        return false;
       }
     }
     else
@@ -268,7 +292,7 @@ function stg_mysql_connect($act_get = false)
       return false;
     }
     // try again
-    $q = @mysql_query("USE $db_name;", $conn);
+    $q = @mysql_query("USE `$db_name`;", $conn);
     if ( !$q )
     {
       // really failed this time; bail out
