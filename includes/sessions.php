@@ -260,7 +260,16 @@ class sessionManager {
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    include(ENANO_ROOT.'/config.php');
+    
+    if ( defined('IN_ENANO_INSTALL') )
+    {
+      @include(ENANO_ROOT.'/config.new.php');
+    }
+    else
+    {
+      @include(ENANO_ROOT.'/config.php');
+    }
+    
     unset($dbhost, $dbname, $dbuser, $dbpasswd);
     if(isset($crypto_key))
     {

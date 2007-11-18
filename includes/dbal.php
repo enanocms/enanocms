@@ -121,13 +121,25 @@ class mysql {
     return $internal_text;
   }
   
-  function connect() {
+  function connect()
+  {
     $this->enable_errorhandler();
+    
     dc_here('dbal: trying to connect....');
-    @include(ENANO_ROOT.'/config.php');
-    if(isset($crypto_key))
+    
+    if ( defined('IN_ENANO_INSTALL') )
+    {
+      @include(ENANO_ROOT.'/config.new.php');
+    }
+    else
+    {
+      @include(ENANO_ROOT.'/config.php');
+    }
+      
+    if ( isset($crypto_key) )
       unset($crypto_key); // Get this sucker out of memory fast
-    if(!defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
+    
+    if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
     {
       dc_here('dbal: oops, looks like Enano isn\'t set up. Constants ENANO_INSTALLED, MIDGET_INSTALLED, and IN_ENANO_INSTALL are all undefined.');
       header('Location: install.php'); 
@@ -136,46 +148,74 @@ class mysql {
     $this->_conn = @mysql_connect($dbhost, $dbuser, $dbpasswd);
     unset($dbuser);
     unset($dbpasswd); // Security
-    if(!$this->_conn) { dc_here('dbal: uhoh!<br />'.mysql_error()); grinding_halt('Enano is having a problem', '<p>Error: couldn\'t connect to MySQL.<br />'.mysql_error().'</p>'); }
+    
+    if ( !$this->_conn )
+    {
+      dc_here('dbal: uhoh!<br />'.mysql_error());
+      grinding_halt('Enano is having a problem', '<p>Error: couldn\'t connect to MySQL.<br />'.mysql_error().'</p>');
+    }
+    
+    // Reset some variables
     $this->query_backtrace = '';
     $this->num_queries = 0;
+    
     dc_here('dbal: we\'re in, selecting database...');
     $q = $this->sql_query('USE `'.$dbname.'`;');
-    if(!$q) $this->_die('The database could not be selected.');
+    
+    if ( !$q )
+      $this->_die('The database could not be selected.');
+    
+    // We're in!
     dc_here('dbal: connected to MySQL');
+    
     $this->disable_errorhandler();
+    return true;
   }
   
-  function sql_query($q) {
+  function sql_query($q)
+  {
     $this->enable_errorhandler();
     $this->num_queries++;
-    $this->query_backtrace .= $q."\n";
+    $this->query_backtrace .= $q . "\n";
     $this->latest_query = $q;
     dc_here('dbal: making SQL query:<br /><tt>'.$q.'</tt>');
-    if(!$this->_conn) $this->_die('A database connection has not yet been established.');
-    if(!$this->check_query($q))
+    // First make sure we have a connection
+    if ( !$this->_conn )
+    {
+      $this->_die('A database connection has not yet been established.');
+    }
+    // Does this query look malicious?
+    if ( !$this->check_query($q) )
     {
       $this->report_query($q);
       grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
     }
+    
     $r = mysql_query($q, $this->_conn);
     $this->latest_result = $r;
     $this->disable_errorhandler();
     return $r;
   }
   
-  function sql_unbuffered_query($q) {
+  function sql_unbuffered_query($q)
+  {
     $this->enable_errorhandler();
     $this->num_queries++;
     $this->query_backtrace .= '(UNBUFFERED) ' . $q."\n";
     $this->latest_query = $q;
     dc_here('dbal: making SQL query:<br /><tt>'.$q.'</tt>');
-    if(!$this->_conn) $this->_die('A database connection has not yet been established.');
-    if(!$this->check_query($q))
+    // First make sure we have a connection
+    if ( !$this->_conn )
+    {
+      $this->_die('A database connection has not yet been established.');
+    }
+    // Does this query look malicious?
+    if ( !$this->check_query($q) )
     {
       $this->report_query($q);
       grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
     }
+    
     $r = mysql_unbuffered_query($q, $this->_conn);
     $this->latest_result = $r;
     $this->disable_errorhandler();

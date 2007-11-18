@@ -1557,7 +1557,6 @@ switch($_GET['mode'])
       run_installer_stage('parse', 'Prepare to execute schema file', 'stg_parse_schema', 'Enano encountered an internal error while parsing the SQL file that contains the database structure and initial data. Please contact the Enano team for support.', false);
       run_installer_stage('sql', 'Execute installer schema', 'stg_install', 'The installation failed because an SQL query wasn\'t quite correct. It is possible that you entered malformed data into a form field, or there may be a bug in Enano with your version of MySQL. Please contact the Enano team for support.', false);
       run_installer_stage('writeconfig', 'Write configuration files', 'stg_write_config', 'Enano was unable to write the configuration file with your site\'s database credentials. This is almost always because your configuration file does not have the correct permissions. On Windows servers, you may see this message even if the check on the System Requirements page passed. Temporarily running IIS as the Administrator user may help.');
-      run_installer_stage('renameconfig', 'Rename configuration files', 'stg_rename_config', 'Enano couldn\'t rename the configuration files to their correct production names. On some UNIX systems, you need to CHMOD the directory with your Enano files to 777 in order for this stage to succeed.');
       
       // Mainstream installation complete - Enano should be usable now
       // The stage of starting the API is special because it has to be called out of function context.
@@ -1591,6 +1590,10 @@ switch($_GET['mode'])
                            While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
                            properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
                            to finish the installation, please be aware that you may be unable to log into your site.');
+
+      // Final step is to rename the config file      
+      run_installer_stage('renameconfig', 'Rename configuration files', 'stg_rename_config', 'Enano couldn\'t rename the configuration files to their correct production names. Please perform the following rename operations and then <a href="install.php?mode=finish">finish the installation</a>.<ul><li>Rename config.new.php to config.php</li><li>Rename .htaccess.new to .htaccess (only if you selected Tiny URLs)</li></ul>');
+      
       close_install_table();
       
       unset($template);
