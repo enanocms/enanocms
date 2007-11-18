@@ -502,6 +502,7 @@ function page_Special_Register()
     $_GET['coppa'] = ( isset($_POST['coppa']) ) ? $_POST['coppa'] : 'x';
     
     $captcharesult = $session->get_captcha($_POST['captchahash']);
+    $session->kill_captcha();
     if($captcharesult != $_POST['captchacode'])
     {
       $s = $lang->get('user_reg_err_captcha');
@@ -884,8 +885,10 @@ function page_Special_Register()
             
             if(!namegood)
             {
-              var r = new RegExp('^([A-z0-9 \.:\!@\#\*]+){2,}$', 'g');
-              if(frm.username.value.match(r))
+              <?php
+              // sorry for this ugly hack but jedit gets f***ed otherwise
+              echo 'if(frm.username.value.match(/^([A-z0-9 \.:\!@\#\*]+){2,}$/ig))';
+              ?>
               {
                 document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
                 document.getElementById('e_username').innerHTML = '&nbsp;';
@@ -1152,19 +1155,44 @@ function page_Special_ActivateAccount()
 function page_Special_Captcha()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if($paths->getParam(0) == 'make')
+  if ( $paths->getParam(0) == 'make' )
   {
     $session->kill_captcha();
     echo $session->make_captcha();
     return;
   }
+  
   $hash = $paths->getParam(0);
-  if(!$hash || !preg_match('#^([0-9a-f]*){32,32}$#i', $hash)) $paths->main_page();
-  $code = $session->get_captcha($hash);
-  if(!$code) die('Invalid hash or IP address incorrect.');
-  require(ENANO_ROOT.'/includes/captcha.php');
+  if ( !$hash || !preg_match('#^([0-9a-f]*){32,32}$#i', $hash) )
+  {
+    $paths->main_page();
+  }
+  
+  // Determine code length
+  $ip = ip2hex($_SERVER['REMOTE_ADDR']);
+  if ( !$ip )
+    die('(very desperate) Hacking attempt');
+  $q = $db->sql_query('SELECT CHAR_LENGTH(salt) AS len FROM ' . table_prefix . 'session_keys WHERE session_key = \'' . $db->escape($hash) . '\' AND source_ip = \'' . $db->escape($ip) . '\';');
+  if ( !$q )
+    $db->_die('SpecialUserFuncs selecting CAPTCHA code');
+  if ( $db->numrows() < 1 )
+    die('Invalid hash or hacking attempt by IP');
+  
+  // Generate code
+  $row = $db->fetchrow();
+  $db->free_result();
+  $len = intval($row['len']);
+  if ( $len < 4 )
+    $len = 7;
+  $code = $session->generate_captcha_code($len);
+  
+  // Update database with new code
+  $q = $db->sql_query('UPDATE ' . table_prefix . 'session_keys SET salt = \'' . $code . '\' WHERE session_key = \'' . $db->escape($hash) . '\' AND source_ip = \'' . $db->escape($ip) . '\';');
+  if ( !$q )
+    $db->_die('SpecialUserFuncs generating new CAPTCHA confirmation code');
+  
+  require ( ENANO_ROOT.'/includes/captcha.php' );
   $captcha = new captcha($code);
-  //header('Content-disposition: attachment; filename=autocaptcha.png');
   $captcha->make_image();
   exit;
 }

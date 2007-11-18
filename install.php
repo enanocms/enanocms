@@ -730,7 +730,7 @@ switch($_GET['mode'])
           die('root'.$e);
       }
       $rsp = 'good';
-      $q = mysql_query('USE '.$dbname, $conn);
+      $q = mysql_query('USE `' . mysql_real_escape_string($dbname) . '`;', $conn);
       if(!$q)
       {
         $e = mysql_error();
@@ -763,7 +763,7 @@ switch($_GET['mode'])
         else
           die('auth'.$e);
       }
-      $q = mysql_query('USE '.$dbname, $conn);
+      $q = mysql_query('USE `' . mysql_real_escape_string($dbname) . '`;', $conn);
       if(!$q)
       {
         $e = mysql_error();

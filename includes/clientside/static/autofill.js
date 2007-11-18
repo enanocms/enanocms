@@ -1,5 +1,6 @@
 /**
- * Javascript auto-completion for form fields.
+ * Javascript auto-completion for form fields. This supercedes the code in autocomplete.js for MOZILLA ONLY. It doesn't seem to work real
+ * well with other browsers yet.
  */
  
 var af_current = false;
@@ -245,8 +246,12 @@ function AutofillUsername(parent, event, allowanon)
           form._af_acting = false;
           return true;
         }
+        else
+        {
+          form._af_acting = true;
+          return true;
+        }
       }
-      form._af_acting = true;
     }
   }
   
@@ -255,8 +260,9 @@ function AutofillUsername(parent, event, allowanon)
     var key = this.event.keyCode;
     if ( key == this.KEY_ENTER && !this.repeat )
     {
+      submitAuthorized = true;
       var form = findParentForm($(this.field_id).object);
-        form._af_acting = false;
+      form._af_acting = false;
       return true;
     }
     switch(key)
@@ -420,6 +426,7 @@ function AutofillUsername(parent, event, allowanon)
         setTimeout('var body = document.getElementsByTagName("body")[0]; var div = document.getElementById("'+div.id+'"); if ( div ) body.removeChild(div);', 20);
       delete(this.boxes[i]);
     }
+    this.boxes = new Array();
     this.box_id = false;
     this.state = false;
   }
@@ -432,6 +439,7 @@ function AutofillUsername(parent, event, allowanon)
     else if ( this.state )
       ta.value = this.state;
     this.destroy();
+    findParentForm($(this.field_id.object))._af_acting = false;
   }
   
   this.sleep = function()

@@ -1,5 +1,6 @@
 /*
  * Auto-completing page/username fields
+ * NOTE: A more efficient version of the username field is used for Mozilla browsers. The updated code is in autofill.js.
  */
 
 // The ultimate Javascript app: AJAX auto-completion, which responds to up/down arrow keys, the enter key, and the escape key

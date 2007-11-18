@@ -1060,7 +1060,7 @@ class sessionManager {
     {
       // Stash it in a cookie
       // For now, make the cookie last forever, we can change this in 1.1.x
-      setcookie( 'sid', $session_key, time()+315360000, scriptPath.'/', null, ( isset($_SERVER['HTTPS']) ) );
+      setcookie( 'sid', $session_key, time()+315360000, scriptPath.'/', null, ( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ) );
       $_COOKIE['sid'] = $session_key;
     }
     // $keyhash is stored in the database, this is for compatibility with the older DB structure
@@ -2632,12 +2632,27 @@ The {$site_name} administration team
   
   function make_captcha($len = 7)
   {
-    $chars = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9');
-    $s = '';
-    for($i=0;$i<$len;$i++) $s .= $chars[mt_rand(0, count($chars)-1)];
+    $code = $this->generate_captcha_code($len);
     $hash = md5(microtime() . mt_rand());
     $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key,salt,auth_level,source_ip,user_id) VALUES(\''.$hash.'\', \''.$s.'\', -1, \''.ip2hex($_SERVER['REMOTE_ADDR']).'\', -2);');
     return $hash;
+  }
+  
+  /**
+   * Generates the actual confirmation code text.
+   * @param int String length
+   * @return string
+   */
+  
+  function generate_captcha_code($len = 7)
+  {
+    $chars = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+    $s = '';
+    for ( $i = 0; $i < $len; $i++ )
+    {
+      $s .= $chars[mt_rand(0, count($chars)-1)];
+    }
+    return $s;
   }
   
   /**
@@ -2650,18 +2665,24 @@ The {$site_name} administration team
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $s = $this->sql('SELECT salt FROM '.table_prefix.'session_keys WHERE session_key=\''.$db->escape($hash).'\' AND source_ip=\''.ip2hex($_SERVER['REMOTE_ADDR']).'\';');
-    if($db->numrows() < 1) return false;
+    if ( $db->numrows() < 1 )
+    {
+      return false;
+    }
     $r = $db->fetchrow();
+    $db->free_result();
+    $this->sql('DELETE FROM ' . table_prefix . 'session_keys WHERE salt=\'' . $db->escape($r['salt']) . '\';');
     return $r['salt'];
   }
   
   /**
-   * Deletes all CAPTCHA codes cached in the DB for this user.
+   * (AS OF 1.0.2: Deprecated. Captcha codes are now killed on first fetch for security.) Deletes all CAPTCHA codes cached in the DB for this user.
    */
   
   function kill_captcha()
   {
-    $this->sql('DELETE FROM '.table_prefix.'session_keys WHERE user_id=-2 AND source_ip=\''.ip2hex($_SERVER['REMOTE_ADDR']).'\';');
+    // $this->sql('DELETE FROM '.table_prefix.'session_keys WHERE user_id=-2 AND source_ip=\''.ip2hex($_SERVER['REMOTE_ADDR']).'\';');
+    return true;
   }
   
   /**

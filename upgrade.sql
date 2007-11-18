@@ -63,6 +63,8 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name,config_value) VALUES('powered_btn
 ---BEGIN 1.0RC1---
 -- Not too many DB changes in this release - that's a good sign ;-)
 ALTER TABLE {{TABLE_PREFIX}}search_index MODIFY COLUMN word varbinary(64) NOT NULL;
+-- This is to correct an issue encountered upgrading a stock Win2k3 + IIS setup
+ALTER TABLE {{TABLE_PREFIX}}page_text ENGINE = MYISAM;
 CREATE FULLTEXT INDEX {{TABLE_PREFIX}}page_search_idx ON {{TABLE_PREFIX}}page_text(page_id,namespace,page_text);
 UPDATE {{TABLE_PREFIX}}users SET user_level=3 WHERE user_level=2;
 UPDATE {{TABLE_PREFIX}}sidebar SET block_content='[[$NS_USER$$USERNAME$|User page]]\n[[$NS_SPECIAL$Contributions/$USERNAME$|My Contributions]]\n{if user_logged_in}\n[[$NS_SPECIAL$Preferences|Preferences]]\n[[$NS_SPECIAL$PrivateMessages|Private messages]]\n[[$NS_SPECIAL$Usergroups|Group control panel]]\n$THEME_LINK$\n{/if}\n{if user_logged_in}\n$LOGOUT_LINK$\n{else}\n[[$NS_SPECIAL$Register|Create an account]]\n$LOGIN_LINK$\n[[$NS_SPECIAL$Login/$NS_SPECIAL$PrivateMessages|Private messages]]\n{/if}',block_name='$USERNAME$' WHERE ( block_name='$USERNAME' OR block_name='$USERNAME$' ) AND item_id=3;

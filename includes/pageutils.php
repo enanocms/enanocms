@@ -344,9 +344,34 @@ class PageUtils {
       $paths->page_exists = true;
     }
     
-    $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
-    $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
-    if(($prot || !$wiki) && $session->user_level < USER_LEVEL_ADMIN ) return('You are not authorized to edit this page.');
+    // Check page protection
+    
+    $is_protected = false;
+    $page_data =& $paths->pages[$pname];
+    // Is the protection semi?
+    if ( $page_data['protected'] == 2 )
+    {
+      $is_protected = true;
+      // Page is semi-protected. Has the user been here for at least 4 days?
+      // 345600 seconds = 4 days
+      if ( $session->user_logged_in && ( $session->reg_time + 345600 ) <= time() )
+        $is_protected = false;
+    }
+    // Is the protection full?
+    else if ( $page_data['protected'] == 1 )
+    {
+      $is_protected = true;
+    }
+    
+    // If it's protected and we DON'T have even_when_protected rights, bail out
+    if ( $is_protected && !$session->get_permissions('even_when_protected') )
+    {
+      return 'You don\'t have the necessary permissions to edit this page.';
+    }
+    
+    // We're skipping the wiki mode check here because by default edit_page pemissions are AUTH_WIKIMODE.
+    // The exception here is the user's own userpage, which is overridden at the time of account creation.
+    // At that point it's set to AUTH_ALLOW, but obviously only for the user's own userpage.
     
     // Strip potentially harmful tags and PHP from the message, dependent upon permissions settings
     $message = RenderMan::preprocess_text($message, false, false);
