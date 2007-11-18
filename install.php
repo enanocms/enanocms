@@ -97,7 +97,7 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
   }
   if ( !$resumed && $allow_skip )
   {
-    echo_stage_success($stage_id, "[dbg: skipped] $stage_name");
+    echo_stage_success($stage_id, $stage_name);
     return false;
   }
   if ( !function_exists($function) )
