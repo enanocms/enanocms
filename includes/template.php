@@ -246,7 +246,7 @@ class template {
     $parser = $this->makeParserText($btn_selected);
     
     $parser->assign_vars(array(
-        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxReset()); return false; }" title="View the page contents, all of the page contents, and nothing but the page contents (alt-a)" accesskey="a"',
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxReset()); return false; }" title="' . $lang->get('onpage_tip_article') . '" accesskey="a"',
         'PARENTFLAGS' => 'id="mdgToolbar_article"',
         'HREF' => makeUrl($paths->page, null, true),
         'TEXT' => $this->namespace_string
@@ -301,7 +301,7 @@ class template {
       }
       
       $button->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxComments()); return false; }" title="View the comments that other users have posted about this page (alt-c)" accesskey="c"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxComments()); return false; }" title="' . $lang->get('onpage_tip_comments') . '" accesskey="c"',
           'PARENTFLAGS' => 'id="mdgToolbar_discussion"',
           'HREF' => makeUrl($paths->page, 'do=comments', true),
           'TEXT' => $btn_text,
@@ -313,7 +313,7 @@ class template {
     if($session->get_permissions('read') && ($paths->namespace != 'Special' && $paths->namespace != 'Admin') && ( $session->get_permissions('edit_page') && ( ( $paths->page_protected && $session->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
     {
       $button->assign_vars(array(
-        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="Edit the contents of this page (alt-e)" accesskey="e"',
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_edit') . '" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=edit', true),
         'TEXT' => $lang->get('onpage_btn_edit')
@@ -324,7 +324,7 @@ class template {
     else if($session->get_permissions('view_source') && ( !$session->get_permissions('edit_page') || !$session->get_permissions('even_when_protected') && $paths->page_protected ) && $paths->namespace != 'Special' && $paths->namespace != 'Admin') 
     {
       $button->assign_vars(array(
-        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxViewSource()); return false; }" title="View the source code (wiki markup) that this page uses (alt-e)" accesskey="e"',
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxViewSource()); return false; }" title="' . $lang->get('onpage_tip_viewsource') . '" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=viewsource', true),
         'TEXT' => $lang->get('onpage_btn_viewsource')
@@ -335,7 +335,7 @@ class template {
     if ( $session->get_permissions('read') /* && $paths->wiki_mode */ && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' && $session->get_permissions('history_view') )
     {
       $button->assign_vars(array(
-        'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="View a log of actions taken on this page (alt-h)" accesskey="h"',
+        'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="' . $lang->get('onpage_tip_history') . '" accesskey="h"',
         'PARENTFLAGS' => 'id="mdgToolbar_history"',
         'HREF'        => makeUrl($paths->page, 'do=history', true),
         'TEXT'        => $lang->get('onpage_btn_history')
@@ -350,7 +350,7 @@ class template {
     if ( $session->get_permissions('read') && $paths->page_exists && ( $session->get_permissions('rename') && ( $paths->page_protected && $session->get_permissions('even_when_protected') || !$paths->page_protected ) ) && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="Change the display name of this page (alt-r)" accesskey="r"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="' . $lang->get('onpage_tip_rename') . '" accesskey="r"',
           'HREF'  => makeUrl($paths->page, 'do=rename', true),
           'TEXT'  => $lang->get('onpage_btn_rename'),
         ));
@@ -361,7 +361,7 @@ class template {
     if ( $paths->wiki_mode && $session->get_permissions('vote_delete') && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin')
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="Vote to have this page deleted (alt-d)" accesskey="d"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="' . $lang->get('onpage_tip_delvote') . '" accesskey="d"',
           'HREF'  => makeUrl($paths->page, 'do=delvote', true),
           'TEXT'  => $lang->get('onpage_btn_votedelete'),
         ));
@@ -372,7 +372,7 @@ class template {
     if ( $session->get_permissions('read') && $paths->wiki_mode && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' && $session->get_permissions('vote_reset') && $paths->cpage['delvotes'] > 0)
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="Vote to have this page deleted (alt-y)" accesskey="y"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="' . $lang->get('onpage_tip_resetvotes') . '" accesskey="y"',
           'HREF'  => makeUrl($paths->page, 'do=resetvotes', true),
           'TEXT'  => $lang->get('onpage_btn_votedelete_reset'),
         ));
@@ -383,7 +383,7 @@ class template {
     if ( $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'title="View a version of this page that is suitable for printing"',
+          'FLAGS' => 'title="' . $lang->get('onpage_tip_printable') . '"',
           'HREF'  => makeUrl($paths->page, 'printable=yes', true),
           'TEXT'  => $lang->get('onpage_btn_printable'),
         ));
@@ -404,7 +404,7 @@ class template {
         $ctmp=' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="i" onclick="if ( !KILL_SWITCH ) { ajaxProtect(1); return false; }" id="protbtn_1" title="Prevents all non-administrators from editing this page. [alt-i]"'.$ctmp,
+          'FLAGS' => 'accesskey="i" onclick="if ( !KILL_SWITCH ) { ajaxProtect(1); return false; }" id="protbtn_1" title="' . $lang->get('onpage_tip_protect_on') . '"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=1', true),
           'TEXT'  => $lang->get('onpage_btn_protect_on')
         ));
@@ -416,7 +416,7 @@ class template {
         $ctmp=' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="o" onclick="if ( !KILL_SWITCH ) { ajaxProtect(0); return false; }" id="protbtn_0" title="Allows everyone to edit this page. [alt-o]"'.$ctmp,
+          'FLAGS' => 'accesskey="o" onclick="if ( !KILL_SWITCH ) { ajaxProtect(0); return false; }" id="protbtn_0" title="' . $lang->get('onpage_tip_protect_off') . '"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=0', true),
           'TEXT'  => $lang->get('onpage_btn_protect_off')
         ));
@@ -428,7 +428,7 @@ class template {
         $ctmp = ' style="text-decoration: underline;"';
       }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="p" onclick="if ( !KILL_SWITCH ) { ajaxProtect(2); return false; }" id="protbtn_2" title="Allows only users who have been registered for 4 days to edit this page. [alt-p]"'.$ctmp,
+          'FLAGS' => 'accesskey="p" onclick="if ( !KILL_SWITCH ) { ajaxProtect(2); return false; }" id="protbtn_2" title="' . $lang->get('onpage_tip_protect_semi') . '"'.$ctmp,
           'HREF'  => makeUrl($paths->page, 'do=protect&level=2', true),
           'TEXT'  => $lang->get('onpage_btn_protect_semi')
         ));
@@ -506,7 +506,7 @@ class template {
     if ( $session->get_permissions('read') && $session->get_permissions('clear_logs') && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxClearLogs()); return false; }" title="Remove all edit and action logs for this page from the database. IRREVERSIBLE! (alt-l)" accesskey="l"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxClearLogs()); return false; }" title="' . $lang->get('onpage_tip_flushlogs') . '" accesskey="l"',
           'HREF'  => makeUrl($paths->page, 'do=flushlogs', true),
           'TEXT'  => $lang->get('onpage_btn_clearlogs'),
         ));
@@ -567,7 +567,7 @@ class template {
       $t0 = $label->run();
       
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxSetPassword()); return false; }" title="Require a password in order for this page to be viewed"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxSetPassword()); return false; }" title="' . $lang->get('onpage_tip_password') . '"',
           'HREF'  => '#',
           'TEXT'  => $lang->get('onpage_btn_password_set'),
         ));
@@ -580,7 +580,7 @@ class template {
     if($session->get_permissions('edit_acl') || $session->user_level >= USER_LEVEL_ADMIN)
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { return ajaxOpenACLManager(); }" title="Manage who can do what with this page (alt-m)" accesskey="m"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { return ajaxOpenACLManager(); }" title="' . $lang->get('onpage_tip_aclmanager') . '" accesskey="m"',
           'HREF'  => makeUrl($paths->page, 'do=aclmanager', true),
           'TEXT'  => $lang->get('onpage_btn_acl'),
         ));

@@ -188,6 +188,23 @@ var enano_lang = {
       btn_password_set: 'set',
       btn_acl: 'manage page access',
       btn_admin: 'administrative options',
+      
+      tip_article: 'View the page contents, all of the page contents, and nothing but the page contents (alt-a)',
+      tip_comments: 'View the comments that other users have posted about this page (alt-c)',
+      tip_edit: 'Edit the contents of this page (alt-e)',
+      tip_viewsource: 'View the source code (wiki markup) that this page uses (alt-e)',
+      tip_history: 'View a log of actions taken on this page (alt-h)',
+      tip_rename: 'Change the display name of this page (alt-r)',
+      tip_delvote: 'Vote to have this page deleted (alt-d)',
+      tip_resetvotes: 'Clear the list of votes for deletion against this page (alt-y)',
+      tip_printable: 'View a version of this page that is suitable for printing',
+      tip_protect_on: 'Prevents all non-administrators from editing this page. [alt-i]',
+      tip_protect_off: 'Allows everyone to edit this page. [alt-o]',
+      tip_protect_semi: 'Allows only users who have been registered for 4 days to edit this page. [alt-p]',
+      tip_flushlogs: 'Remove all edit and action logs for this page from the database. IRREVERSIBLE! (alt-l)',
+      tip_password: 'Require a password in order for this page to be viewed',
+      tip_aclmanager: 'Manage who can do what with this page (alt-m)',
+      
     },
     comment: {
       lbl_subject: 'Subject',
