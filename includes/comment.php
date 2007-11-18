@@ -270,6 +270,7 @@ class Comments
           $real_code = $session->get_captcha($data['captcha_id']);
           if ( $real_code != $data['captcha_code'] )
             $errors[] = 'The confirmation code you entered was incorrect.';
+          $session->kill_captcha();
         }
         
         if ( count($errors) > 0 )
