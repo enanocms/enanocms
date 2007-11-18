@@ -655,7 +655,7 @@ function page_Special_Register()
             if(!namegood)
             {
               //if(frm.username.value.match(/^([A-z0-9 \!@\-\(\)]+){2,}$/ig))
-              var regex = new RegExp('^([^<>_&\?]+){2,}$', 'ig');
+              var regex = new RegExp('^([^<>&\?]+){2,}$', 'ig');
               if ( frm.username.value.match(regex) )
               {
                 document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
@@ -717,10 +717,8 @@ function page_Special_Register()
             
             if(!namegood)
             {
-              <?php
-              // sorry for this ugly hack but jedit gets f***ed otherwise
-              echo 'if(frm.username.value.match(/^([A-z0-9 \.:\!@\#\*]+){2,}$/ig))';
-              ?>
+              var regex = new RegExp('^([^<>&\?]+){2,}$', 'ig');
+              if ( frm.username.value.match(regex) )
               {
                 document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
                 document.getElementById('e_username').innerHTML = '';

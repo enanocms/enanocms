@@ -151,7 +151,7 @@ class sessionManager {
    */
    
   //var $valid_username = '([A-Za-z0-9 \!\@\(\)-]+)';
-  var $valid_username = '([^<>_&\?\'"%\n\r\t\a\/]+)';
+  var $valid_username = '([^<>&\?\'"%\n\r\t\a\/]+)';
    
   /**
    * What we're allowed to do as far as permissions go. This changes based on the value of the "auth" URI param.
@@ -559,7 +559,7 @@ class sessionManager {
    * @return string 'success' on success, or error string on failure
    */
    
-  function login_with_crypto($username, $aes_data, $aes_key, $challenge, $level = USER_LEVEL_MEMBER)
+  function login_with_crypto($username, $aes_data, $aes_key_id, $challenge, $level = USER_LEVEL_MEMBER)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -570,9 +570,9 @@ class sessionManager {
     
     // Fetch our decryption key
     
-    $aes_key = $this->fetch_public_key($aes_key);
+    $aes_key = $this->fetch_public_key($aes_key_id);
     if(!$aes_key)
-      return 'Couldn\'t look up public key "'.$aes_key.'" for decryption';
+      return 'Couldn\'t look up public key "'.htmlspecialchars($aes_key_id).'" for decryption';
     
     // Convert the key to a binary string
     $bin_key = hexdecode($aes_key);
@@ -587,6 +587,7 @@ class sessionManager {
     $success = false;
     
     // Escaped username
+    $username = str_replace('_', ' ', $username);
     $db_username_lower = $this->prepare_text(strtolower($username));
     $db_username       = $this->prepare_text($username);
     
@@ -701,6 +702,10 @@ class sessionManager {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     $pass_hashed = ( $already_md5ed ) ? $password : md5($password);
+    
+    // Replace underscores with spaces in username
+    // (Added in 1.0.2)
+    $username = str_replace('_', ' ', $username);
     
     // Perhaps we're upgrading Enano?
     if($this->compat)
@@ -837,7 +842,7 @@ class sessionManager {
   
   /**
    * Registers a session key in the database. This function *ASSUMES* that the username and password have already been validated!
-   * Basically the session key is a base64-encoded cookie (encrypted with the site's private key) that says "u=[username];p=[sha1 of password]"
+   * Basically the session key is a hex-encoded cookie (encrypted with the site's private key) that says "u=[username];p=[sha1 of password];s=[unique key id]"
    * @param int $user_id
    * @param string $username
    * @param string $password
@@ -896,7 +901,7 @@ class sessionManager {
   }
   
   /**
-   * Identical to register_session in nature, but uses the old login/table structure. DO NOT use this.
+   * Identical to register_session in nature, but uses the old login/table structure. DO NOT use this except in the upgrade script under very controlled circumstances.
    * @see sessionManager::register_session()
    * @access private
    */
@@ -1338,59 +1343,79 @@ class sessionManager {
   function check_banlist()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if($this->compat)
-      $q = $this->sql('SELECT ban_id,ban_type,ban_value,is_regex FROM '.table_prefix.'banlist ORDER BY ban_type;');
-    else
-      $q = $this->sql('SELECT ban_id,ban_type,ban_value,is_regex,reason FROM '.table_prefix.'banlist ORDER BY ban_type;');
-    if(!$q) $db->_die('The banlist data could not be selected.');
-    $banned = false;
-    while($row = $db->fetchrow())
+    $col_reason = ( $this->compat ) ? '"No reason entered (session manager is in compatibility mode)" AS reason' : 'reason';
+    $is_banned = false;
+    if ( $this->user_logged_in )
     {
-      if($this->compat)
-        $row['reason'] = 'None available - session manager is in compatibility mode';
-      switch($row['ban_type'])
+      // check by IP, email, and username
+      $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE \n"
+            . "    ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR \n"
+            . "    ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' REGEXP ban_value ) OR \n"
+            . "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '{$this->username}' ) OR \n"
+            . "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '{$this->username}' REGEXP ban_value ) OR \n"
+            . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '{$this->email}' ) OR \n"
+            . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '{$this->email}' REGEXP ban_value ) \n"
+            . "  ORDER BY ban_type ASC;";
+      $q = $this->sql($sql);
+      if ( $db->numrows() > 0 )
       {
-      case BAN_IP:
-        if(intval($row['is_regex'])==1) {
-          if(preg_match('#'.$row['ban_value'].'#i', $_SERVER['REMOTE_ADDR']))
+        while ( list($reason, $ban_value, $ban_type, $is_regex) = $db->fetchrow_num() )
+        {
+          if ( $ban_type == BAN_IP && $row['is_regex'] != 1 )
           {
+            // check range
+            $regexp = parse_ip_range_regex($ban_value);
+            if ( !$regexp )
+            {
+              continue;
+            }
+            if ( preg_match("/$regexp/", $_SERVER['REMOTE_ADDR']) )
+            {
+              $banned = true;
+            }
+          }
+          else
+          {
+            // User is banned
             $banned = true;
-            $reason = $row['reason'];
           }
         }
-        else {
-          if($row['ban_value']==$_SERVER['REMOTE_ADDR']) { $banned = true; $reason = $row['reason']; }
-        }
-        break;
-      case BAN_USER:
-        if(intval($row['is_regex'])==1) {
-          if(preg_match('#'.$row['ban_value'].'#i', $this->username))
-          {
-            $banned = true;
-            $reason = $row['reason'];
-          }
-        }
-        else {
-          if($row['ban_value']==$this->username) { $banned = true; $reason = $row['reason']; }
-        }
-        break;
-      case BAN_EMAIL:
-        if(intval($row['is_regex'])==1) {
-          if(preg_match('#'.$row['ban_value'].'#i', $this->email))
-          {
-            $banned = true;
-            $reason = $row['reason'];
-          }
-        }
-        else {
-          if($row['ban_value']==$this->email) { $banned = true; $reason = $row['reason']; }
-        }
-        break;
-      default:
-        die('Ban error: rule "'.$row['ban_value'].'" has an invalid type ('.$row['ban_type'].')');
       }
+      $db->free_result();
     }
-    if($banned && $paths->get_pageid_from_url() != $paths->nslist['Special'].'CSS')
+    else
+    {
+      // check by IP only
+      $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE
+                ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR
+                ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' REGEXP ban_value )
+              ORDER BY ban_type ASC;";
+      $q = $this->sql($sql);
+      if ( $db->numrows() > 0 )
+      {
+        while ( list($reason, $ban_value, $ban_type, $is_regex) = $db->fetchrow_num() )
+        {
+          if ( $ban_type == BAN_IP && $row['is_regex'] != 1 )
+          {
+            // check range
+            $regexp = parse_ip_range_regex($ban_value);
+            if ( !$regexp )
+              continue;
+            if ( preg_match("/$regexp/", $_SERVER['REMOTE_ADDR']) )
+            {
+              $banned = true;
+            }
+          }
+          else
+          {
+            // User is banned
+            $banned = true;
+          }
+        }
+      }
+      $db->free_result();
+    }
+    if ( $banned && $paths->get_pageid_from_url() != $paths->nslist['Special'].'CSS' )
     {
       // This guy is banned - kill the session, kill the database connection, bail out, and be pretty about it
       die_semicritical('Ban notice', '<div class="error-box">You have been banned from this website. Please contact the site administrator for more information.<br /><br />Reason:<br />'.$reason.'</div>');
@@ -1402,11 +1427,11 @@ class sessionManager {
   
   /**
    * Registers a user. This does not perform any type of login.
-   * @param string $username
-   * @param string $password This should be unencrypted.
-   * @param string $email
-   * @param string $real_name Optional, defaults to ''.
-   * @param bool   $coppa     Optional. If true, the account is not activated initially and an admin activation request is sent. The caller is responsible for sending the address info and notice.
+   * @param string New user's username
+   * @param string This should be unencrypted.
+   * @param string E-mail address.
+   * @param string Optional, defaults to ''.
+   * @param bool Optional. If true, the account is not activated initially and an admin activation request is sent. The caller is responsible for sending the address info and notice.
    */
    
   function create_user($username, $password, $email, $real_name = '', $coppa = false)
@@ -1417,6 +1442,7 @@ class sessionManager {
     $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
     
     if(!preg_match('#^'.$this->valid_username.'$#', $username)) return 'The username you chose contains invalid characters.';
+    $username = str_replace('_', ' ', $username);
     $user_orig = $username;
     $username = $this->prepare_text($username);
     $email = $this->prepare_text($email);

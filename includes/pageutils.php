@@ -23,6 +23,7 @@ class PageUtils {
   function checkusername($name)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    $name = str_replace('_', ' ', $name);
     $q = $db->sql_query('SELECT username FROM ' . table_prefix.'users WHERE username=\'' . $db->escape(rawurldecode($name)) . '\'');
     if ( !$q )
     {

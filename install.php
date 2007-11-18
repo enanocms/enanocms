@@ -119,20 +119,21 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
 function start_install_table()
 {
   echo '<table border="0" cellspacing="0" cellpadding="0">' . "\n";
+  ob_start();
 }
 
 function close_install_table()
 {
   echo '</table>' . "\n\n";
+  ob_end_flush();
 }
 
 function echo_stage_success($stage_id, $stage_name)
 {
   global $neutral_color;
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
-  ob_start();
   echo '<tr><td style="width: 500px; background-color: #' . "{$neutral_color}{$neutral_color}FF{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Done" src="images/good.gif" /></td></tr>' . "\n";
-  ob_end_flush();
+  ob_flush();
 }
 
 function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resume_stack)
@@ -140,9 +141,8 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   global $neutral_color;
   
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
-  ob_start();
   echo '<tr><td style="width: 500px; background-color: #' . "FF{$neutral_color}{$neutral_color}{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Failed" src="images/bad.gif" /></td></tr>' . "\n";
-  ob_end_flush();
+  ob_flush();
   close_install_table();
   $post_data = '';
   $mysql_error = mysql_error();
@@ -378,11 +378,15 @@ function stg_parse_schema($act_get = false)
   
   $cacheonoff = is_writable(ENANO_ROOT.'/cache/') ? '1' : '0';
   
+  $admin_user = $_POST['admin_user'];
+  $admin_user = str_replace('_', ' ', $admin_user);
+  $admin_user = mysql_real_escape_string($admin_user);
+  
   $schema = file_get_contents('schema.sql');
   $schema = str_replace('{{SITE_NAME}}',    mysql_real_escape_string($_POST['sitename']   ), $schema);
   $schema = str_replace('{{SITE_DESC}}',    mysql_real_escape_string($_POST['sitedesc']   ), $schema);
   $schema = str_replace('{{COPYRIGHT}}',    mysql_real_escape_string($_POST['copyright']  ), $schema);
-  $schema = str_replace('{{ADMIN_USER}}',   mysql_real_escape_string($_POST['admin_user'] ), $schema);
+  $schema = str_replace('{{ADMIN_USER}}',   $admin_user                                    , $schema);
   $schema = str_replace('{{ADMIN_PASS}}',   mysql_real_escape_string($admin_pass          ), $schema);
   $schema = str_replace('{{ADMIN_EMAIL}}',  mysql_real_escape_string($_POST['admin_email']), $schema);
   $schema = str_replace('{{ENABLE_CACHE}}', mysql_real_escape_string($cacheonoff          ), $schema);
@@ -452,6 +456,7 @@ function stg_install($_unused, $already_run)
     $key = $aes->hextostring($key);
     $admin_pass = $aes->encrypt($admin_pass, $key, ENC_HEX);
     $admin_user = mysql_real_escape_string($_POST['admin_user']);
+    $admin_user = str_replace('_', ' ', $admin_user);
     
     $q = @mysql_query("UPDATE {$_POST['table_prefix']}users SET password='$admin_pass' WHERE username='$admin_user';");
     if ( !$q )
@@ -1547,7 +1552,7 @@ switch($_GET['mode'])
       start_install_table();
       
       // Are we just trying to auto-rename the config files? If so, skip everything else
-      if ( $_GET['stage'] != 'renameconfig' )
+      if ( !isset($_GET['stage']) || ( isset($_GET['stage']) && $_GET['stage'] != 'renameconfig' ) )
       {
       
         // The stages connect, decrypt, genkey, and parse are preprocessing and don't do any actual data modification.
@@ -1593,18 +1598,29 @@ switch($_GET['mode'])
         $paths->init();
         
         run_installer_stage('initlogs', 'Initialize logs', 'stg_init_logs', '<b>The session manager denied the request to flush logs for the main page.</b><br />
-                             While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
+                             While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a> after renaming your configuration files, you should be aware that some servers cannot
                              properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
                              to finish the installation, please be aware that you may be unable to log into your site.');
+        
+        /*
+         * HACKERS:
+         * If you're making a custom distribution of Enano, put all your custom plugin-related code here.
+         * You have access to the full Enano API as well as being logged in with complete admin rights.
+         * Don't do anything horrendously fancy here, unless you add a new stage (or more than one) and
+         * have the progress printed out properly.
+         */
         
       } // check for stage == renameconfig
       else
       {
-        // If we did skip that step, set $template_bak to $template to imitate the loading of the Enano API
+        // If we did skip the main installer routine, set $template_bak to make the reversal later work properly
         $template_bak = $template;
       }
 
-      // Final step is to rename the config file      
+      // Final step is to rename the config file
+      // In early revisions of 1.0.2, this step was performed prior to the initialization of the Enano API. It was decided to move
+      // this stage to the end because it will fail more often than any other stage, thus making alternate routes imperative. If this
+      // stage fails, then no big deal, we'll just have the user rename the files manually and then let them see the pretty success message.
       run_installer_stage('renameconfig', 'Rename configuration files', 'stg_rename_config', 'Enano couldn\'t rename the configuration files to their correct production names. Please CHMOD the folder where your Enano files are to 777 and click the retry button below, <b><u>or</u></b> perform the following rename operations and then <a href="install.php?mode=finish">finish the installation</a>.<ul><li>Rename config.new.php to config.php</li><li>Rename .htaccess.new to .htaccess (only if you selected Tiny URLs)</li></ul>');
       
       close_install_table();
