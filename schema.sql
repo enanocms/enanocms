@@ -52,8 +52,9 @@ CREATE TABLE {{TABLE_PREFIX}}page_text(
   page_id varchar(63),
   namespace varchar(16) NOT NULL default 'Article',
   page_text text,
-  char_tag varchar(63)
-) CHARACTER SET `utf8`;
+  char_tag varchar(63),
+  FULLTEXT KEY {{TABLE_PREFIX}}page_search_idx (page_id, namespace, page_text)
+) ENGINE = MYISAM CHARACTER SET `utf8`;
 
 CREATE TABLE {{TABLE_PREFIX}}pages(
   page_order int(8),
