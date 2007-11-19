@@ -2228,17 +2228,14 @@ function page_Admin_BanControl()
         }
         if ( $type == BAN_IP )
         {
-          // parse a range of addresses
-          $range = parse_ip_range($entry);
-          if ( !$range )
+          if ( !isset($_POST['regex']) )
           {
-            $error = true;
-            echo '<div class="error-box">Malformed IP address expression.</div>';
-            break;
+            // as of 1.0.2 parsing is done at runtime
+            $entries[] = $entry;
           }
-          foreach ($range as $ip)
+          else
           {
-            $entries[] = $ip;
+            $entries[] = $entry;
           }
         }
         else
@@ -2290,7 +2287,7 @@ function page_Admin_BanControl()
   ?>
   Type: <select name="type"><option value="<?php echo BAN_IP; ?>">IP address</option><option value="<?php echo BAN_USER; ?>">Username</option><option value="<?php echo BAN_EMAIL; ?>">E-mail address</option></select><br />
   Rule: <input type="text" name="value" size="30" /><br />
-  <small>You can ban multiple IP addresses, users, or e-mail addresses by separating entries with a single comma (User1,User2). Do not put a space after the comma. For IP addresses, you may specify ranges like 172|192.168.4-30|90-167.1-90, which will turn into 172 and 192 . 168 . 4-30 and 90-167 . 1 - 90, which matches 18,899 IP addresses. Don't specify large ranges (like the example one here) at once or you risk temporarily (~60sec) overloading the server.</small><br />
+  <small>You can ban multiple IP addresses, users, or e-mail addresses by separating entries with a single comma (User1,User2). Do not put a space after the comma. For IP addresses, you may specify ranges like 172|192.168.4-30|90-167.1-90, which will turn into 172 and 192 . 168 . 4-30 and 90-167 . 1 - 90, which matches 18,899 IP addresses.</small><br />
   Reason to show to the banned user: <textarea name="reason" rows="7" cols="40"></textarea><br />
   <input type="checkbox" name="regex" id="regex" />  <label for="regex">This rule is a regular expression</label> (advanced users only)<br />
   <input type="submit" style="font-weight: bold;" name="create" value="Create new ban rule" />

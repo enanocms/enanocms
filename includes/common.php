@@ -273,6 +273,12 @@ if ( !defined('IN_ENANO_INSTALL') )
     @call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
   }
   
+  // One quick security check...
+  if ( !is_valid_ip($_SERVER['REMOTE_ADDR']) )
+  {
+    die('SECURITY: spoofed IP address');
+  }
+  
   $session->start();
   $paths->init();
   

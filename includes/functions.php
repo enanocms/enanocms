@@ -2735,7 +2735,7 @@ function decode_unicode_array($array)
     {
       $array[$i] = decode_unicode_url($val);
     }
-    else
+    else if ( is_array($val) )
     {
       $array[$i] = decode_unicode_array($val);
     }
@@ -2997,6 +2997,72 @@ function parse_ip_range($range)
           $ips[] = "$oc1.$oc2.$oc3.$oc4";
         
   return $ips;
+}
+
+/**
+ * Parses a valid IP address range into a regular expression.
+ * @param string IP range string
+ * @return string
+ */
+
+function parse_ip_range_regex($range)
+{
+  // Regular expression to test the range string for validity
+  $regex = '/^(([0-9]+(-[0-9]+)?)(\|([0-9]+(-[0-9]+)?))*)\.'
+           . '(([0-9]+(-[0-9]+)?)(\|([0-9]+(-[0-9]+)?))*)\.'
+           . '(([0-9]+(-[0-9]+)?)(\|([0-9]+(-[0-9]+)?))*)\.'
+           . '(([0-9]+(-[0-9]+)?)(\|([0-9]+(-[0-9]+)?))*)$/';
+  if ( !preg_match($regex, $range) )
+  {
+    return false;
+  }
+  $octets = array(0 => array(), 1 => array(), 2 => array(), 3 => array());
+  list($octets[0], $octets[1], $octets[2], $octets[3]) = explode('.', $range);
+  $return = '^';
+  foreach ( $octets as $octet )
+  {
+    // alternatives array
+    $alts = array();
+    if ( strpos($octet, '|') )
+    {
+      $particles = explode('|', $octet);
+    }
+    else
+    {
+      $particles = array($octet);
+    }
+    foreach ( $particles as $atom )
+    {
+      // each $atom will be either
+      if ( strval(intval($atom)) == $atom )
+      {
+        $alts[] = $atom;
+        continue;
+      }
+      else
+      {
+        // it's a range - parse it out
+        $alt2 = int_range($atom);
+        if ( !$alt2 )
+          return false;
+        foreach ( $alt2 as $neutrino )
+          $alts[] = $neutrino;
+      }
+    }
+    $alts = array_unique($alts);
+    $alts = '|' . implode('|', $alts) . '|';
+    // we can further optimize/compress this by weaseling our way into using some character ranges
+    for ( $i = 1; $i <= 25; $i++ )
+    {
+      $alts = str_replace("|{$i}0|{$i}1|{$i}2|{$i}3|{$i}4|{$i}5|{$i}6|{$i}7|{$i}8|{$i}9|", "|{$i}[0-9]|", $alts);
+    }
+    $alts = str_replace("|1|2|3|4|5|6|7|8|9|", "|[1-9]|", $alts);
+    $alts = '(' . substr($alts, 1, -1) . ')';
+    $return .= $alts . '\.';
+  }
+  $return = substr($return, 0, -2);
+  $return .= '$';
+  return $return;
 }
 
 function password_score_len($password)

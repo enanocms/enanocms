@@ -105,7 +105,7 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
   }
   if ( !$resumed && $allow_skip )
   {
-    echo_stage_success($stage_id, "[dbg: skipped] $stage_name");
+    echo_stage_success($stage_id, $stage_name);
     return false;
   }
   if ( !function_exists($function) )
@@ -142,7 +142,6 @@ function echo_stage_success($stage_id, $stage_name)
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
   echo '<tr><td style="width: 500px; background-color: #' . "{$neutral_color}{$neutral_color}FF{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Done" src="images/good.gif" /></td></tr>' . "\n";
   ob_flush();
-  flush();
 }
 
 function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resume_stack)
@@ -153,12 +152,12 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
   echo '<tr><td style="width: 500px; background-color: #' . "FF{$neutral_color}{$neutral_color}{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Failed" src="images/bad.gif" /></td></tr>' . "\n";
   ob_flush();
-  flush();
   close_install_table();
   $post_data = '';
   $mysql_error = mysql_error();
   foreach ( $_POST as $key => $value )
   {
+    // FIXME: These should really also be sanitized for double quotes
     $value = htmlspecialchars($value);
     $key = htmlspecialchars($key);
     $post_data .= "          <input type=\"hidden\" name=\"$key\" value=\"$value\" />\n";
@@ -388,11 +387,15 @@ function stg_parse_schema($act_get = false)
   
   $cacheonoff = is_writable(ENANO_ROOT.'/cache/') ? '1' : '0';
   
+  $admin_user = $_POST['admin_user'];
+  $admin_user = str_replace('_', ' ', $admin_user);
+  $admin_user = mysql_real_escape_string($admin_user);
+  
   $schema = file_get_contents('schema.sql');
   $schema = str_replace('{{SITE_NAME}}',    mysql_real_escape_string($_POST['sitename']   ), $schema);
   $schema = str_replace('{{SITE_DESC}}',    mysql_real_escape_string($_POST['sitedesc']   ), $schema);
   $schema = str_replace('{{COPYRIGHT}}',    mysql_real_escape_string($_POST['copyright']  ), $schema);
-  $schema = str_replace('{{ADMIN_USER}}',   mysql_real_escape_string($_POST['admin_user'] ), $schema);
+  $schema = str_replace('{{ADMIN_USER}}',   $admin_user                                    , $schema);
   $schema = str_replace('{{ADMIN_PASS}}',   mysql_real_escape_string($admin_pass          ), $schema);
   $schema = str_replace('{{ADMIN_EMAIL}}',  mysql_real_escape_string($_POST['admin_email']), $schema);
   $schema = str_replace('{{ENABLE_CACHE}}', mysql_real_escape_string($cacheonoff          ), $schema);
@@ -462,6 +465,7 @@ function stg_install($_unused, $already_run)
     $key = $aes->hextostring($key);
     $admin_pass = $aes->encrypt($admin_pass, $key, ENC_HEX);
     $admin_user = mysql_real_escape_string($_POST['admin_user']);
+    $admin_user = str_replace('_', ' ', $admin_user);
     
     $q = @mysql_query("UPDATE {$_POST['table_prefix']}users SET password='$admin_pass' WHERE username='$admin_user';");
     if ( !$q )
@@ -1826,52 +1830,77 @@ switch($_GET['mode'])
       err('Hacking attempt was detected in table_prefix.');
     
       start_install_table();
-      // The stages connect, decrypt, genkey, and parse are preprocessing and don't do any actual data modification.
-      // Thus, they need to be run on each retry, e.g. never skipped.
-      run_installer_stage('connect', $lang->get('install_stg_connect_title'), 'stg_mysql_connect', $lang->get('install_stg_connect_body'), false);
-      if ( isset($_POST['drop_tables']) )
+      
+      // Are we just trying to auto-rename the config files? If so, skip everything else
+      if ( !isset($_GET['stage']) || ( isset($_GET['stage']) && $_GET['stage'] != 'renameconfig' ) )
       {
-        // Are we supposed to drop any existing tables? If so, do it now
-        run_installer_stage('drop', $lang->get('install_stg_drop_title'), 'stg_drop_tables', 'This step never returns failure');
-      }
-      run_installer_stage('decrypt', $lang->get('install_stg_decrypt_title'), 'stg_decrypt_admin_pass', $lang->get('install_stg_decrypt_body'), false);
-      run_installer_stage('genkey', $lang->get('install_stg_genkey_title', array( 'aes_bits' => AES_BITS )), 'stg_generate_aes_key', $lang->get('install_stg_genkey_body'), false);
-      run_installer_stage('parse', $lang->get('install_stg_parse_title'), 'stg_parse_schema', $lang->get('install_stg_parse_body'), false);
-      run_installer_stage('sql', $lang->get('install_stg_sql_title'), 'stg_install', $lang->get('install_stg_sql_body'), false);
-      run_installer_stage('writeconfig', $lang->get('install_stg_writeconfig_title'), 'stg_write_config', $lang->get('install_stg_writeconfig_body'));
-      run_installer_stage('renameconfig', $lang->get('install_stg_rename_title'), 'stg_rename_config', $lang->get('install_stg_rename_body'));
       
-      // Mainstream installation complete - Enano should be usable now
-      // The stage of starting the API is special because it has to be called out of function context.
-      // To alleviate this, we have two functions, one that returns success and one that returns failure
-      // If the Enano API init is successful, the success function is called to report the action to the user
-      // If unsuccessful, the failure report is sent
-      
-      $template_bak = $template;
-      
-      $_GET['title'] = 'Main_Page';
-      require('includes/common.php');
-      
-      if ( is_object($db) && is_object($session) )
-      {
-        run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_start_api_success', '...', false);
-      }
+        // The stages connect, decrypt, genkey, and parse are preprocessing and don't do any actual data modification.
+        // Thus, they need to be run on each retry, e.g. never skipped.
+        run_installer_stage('connect', $lang->get('install_stg_connect_title'), 'stg_mysql_connect', $lang->get('install_stg_connect_body'), false);
+        if ( isset($_POST['drop_tables']) )
+        {
+          // Are we supposed to drop any existing tables? If so, do it now
+          run_installer_stage('drop', $lang->get('install_stg_drop_title'), 'stg_drop_tables', 'This step never returns failure');
+        }
+        run_installer_stage('decrypt', $lang->get('install_stg_decrypt_title'), 'stg_decrypt_admin_pass', $lang->get('install_stg_decrypt_body'), false);
+        run_installer_stage('genkey', $lang->get('install_stg_genkey_title', array( 'aes_bits' => AES_BITS )), 'stg_generate_aes_key', $lang->get('install_stg_genkey_body'), false);
+        run_installer_stage('parse', $lang->get('install_stg_parse_title'), 'stg_parse_schema', $lang->get('install_stg_parse_body'), false);
+        run_installer_stage('sql', $lang->get('install_stg_sql_title'), 'stg_install', $lang->get('install_stg_sql_body'), false);
+        run_installer_stage('writeconfig', $lang->get('install_stg_writeconfig_title'), 'stg_write_config', $lang->get('install_stg_writeconfig_body'));
+        
+        // Mainstream installation complete - Enano should be usable now
+        // The stage of starting the API is special because it has to be called out of function context.
+        // To alleviate this, we have two functions, one that returns success and one that returns failure
+        // If the Enano API load is successful, the success function is called to report the action to the user
+        // If unsuccessful, the failure report is sent
+        
+        $template_bak = $template;
+        
+        $_GET['title'] = 'Main_Page';
+        require('includes/common.php');
+        
+        if ( is_object($db) && is_object($session) )
+        {
+          run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_start_api_success', '...', false);
+        }
+        else
+        {
+          run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_start_api_failure', $lang->get('install_stg_startapi_body'), false);
+        }
+        
+        // We need to be logged in (with admin rights) before logs can be flushed
+        $admin_password = stg_decrypt_admin_pass(true);
+        $session->login_without_crypto($_POST['admin_user'], $admin_password, false);
+        
+        // Now that login cookies are set, initialize the session manager and ACLs
+        $session->start();
+        $paths->init();
+        
+        run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_import_language', $lang->get('install_stg_importlang_body'));
+        run_installer_stage('initlogs', $lang->get('install_stg_initlogs_title'), 'stg_init_logs', $lang->get('install_stg_initlogs_body'));
+        
+        /*
+         * HACKERS:
+         * If you're making a custom distribution of Enano, put all your custom plugin-related code here.
+         * You have access to the full Enano API as well as being logged in with complete admin rights.
+         * Don't do anything horrendously fancy here, unless you add a new stage (or more than one) and
+         * have the progress printed out properly.
+         */
+        
+      } // check for stage == renameconfig
       else
       {
-        run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_start_api_failure', $lang->get('install_stg_startapi_body'), false);
+        // If we did skip the main installer routine, set $template_bak to make the reversal later work properly
+        $template_bak = $template;
       }
+
+      // Final step is to rename the config file
+      // In early revisions of 1.0.2, this step was performed prior to the initialization of the Enano API. It was decided to move
+      // this stage to the end because it will fail more often than any other stage, thus making alternate routes imperative. If this
+      // stage fails, then no big deal, we'll just have the user rename the files manually and then let them see the pretty success message.
+      run_installer_stage('renameconfig', $lang->get('install_stg_rename_title'), 'stg_rename_config', $lang->get('install_stg_rename_body'));
       
-      // We need to be logged in (with admin rights) before logs can be flushed
-      $admin_password = stg_decrypt_admin_pass(true);
-      $session->login_without_crypto($_POST['admin_user'], $admin_password, false);
-      
-      // Now that login cookies are set, initialize the session manager and ACLs
-      $session->start();
-      $paths->init();
-      
-      run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_import_language', $lang->get('install_stg_importlang_body'));
-      
-      run_installer_stage('initlogs', $lang->get('install_stg_initlogs_title'), 'stg_init_logs', $lang->get('install_stg_initlogs_body'));
       close_install_table();
       
       unset($template);
