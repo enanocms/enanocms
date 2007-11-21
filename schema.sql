@@ -184,7 +184,7 @@ CREATE TABLE {{TABLE_PREFIX}}hits(
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}search_index(
-  word varbinary(64) NOT NULL,
+  word varchar(64) NOT NULL,
   page_names text,
   PRIMARY KEY ( word ) 
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;

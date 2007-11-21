@@ -236,6 +236,11 @@ LONGSTRING;
               <li>Did your search trigger any warnings? Sometimes a search can be cancelled if there aren\'t any terms in a search query that are 4 characters or greater in length.</li>
             </ul>';
     }
+    $code = $plugins->setHook('search_results');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
   }
   else
   {
