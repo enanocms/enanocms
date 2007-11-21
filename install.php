@@ -310,7 +310,7 @@ function stg_drop_tables()
   if ( !$conn )
     return false;
   // Our list of tables included in Enano
-  $tables = Array( 'categories', 'comments', 'config', 'logs', 'page_text', 'session_keys', 'pages', 'users', 'users_extra', 'themes', 'buddies', 'banlist', 'files', 'privmsgs', 'sidebar', 'hits', 'search_index', 'groups', 'group_members', 'acl', 'search_cache', 'tags', 'page_groups', 'page_group_members' );
+  $tables = Array( 'categories', 'comments', 'config', 'logs', 'page_text', 'session_keys', 'pages', 'users', 'users_extra', 'themes', 'buddies', 'banlist', 'files', 'privmsgs', 'sidebar', 'hits', 'search_index', 'groups', 'group_members', 'acl', 'tags', 'page_groups', 'page_group_members' );
   
   // Drop each table individually; if it fails, it probably means we're trying to drop a
   // table that didn't exist in the Enano version we're deleting the database for.
@@ -561,6 +561,14 @@ function _stg_rename_config_revert()
   fwrite($handle, $contents);
   fclose($handle);
   return true;
+}
+
+function stg_build_index()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects;
+  if ( $paths->rebuild_search_index() )
+    return true;
+  return false;
 }
 
 function stg_rename_config()
@@ -1601,6 +1609,8 @@ switch($_GET['mode'])
                              While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a> after renaming your configuration files, you should be aware that some servers cannot
                              properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
                              to finish the installation, please be aware that you may be unable to log into your site.');
+        
+        run_installer_stage('buildindex', 'Initialize search index', 'stg_build_index', 'Something went wrong while the page manager was attempting to build a search index.');
         
         /*
          * HACKERS:

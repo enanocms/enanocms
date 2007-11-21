@@ -822,7 +822,7 @@ class template {
       if(isset($_GET['sqldbg']) && $session->get_permissions('mod_misc'))
       {
         echo '<h3>Query list as requested on URI</h3><pre style="margin-left: 1em">';
-        echo $db->sql_backtrace();
+        echo htmlspecialchars($db->sql_backtrace());
         echo '</pre>';
       }
       
@@ -1803,7 +1803,7 @@ class template_nodb {
     $this->sidebar_extra = '';
     $this->sidebar_widgets = '';
     $this->toolbar_menu = '';
-    $this->additional_headers = '';
+    $this->additional_headers = '<style type="text/css">div.pagenav { border-top: 1px solid #CCC; padding-top: 7px; margin-top: 10px; }</style>';
     
     $this->theme_list = Array(Array(
       'theme_id'=>'oxygen',
@@ -1828,6 +1828,10 @@ class template_nodb {
     $this->tpl_strings['SCRIPTPATH'] = scriptPath;
     if ( $auto_init )
       $this->init_vars();
+  }
+  function add_header($html)
+  {
+    $this->additional_headers .= "\n<!-- ----------------------------------------------------------- -->\n\n    " . $html;
   }
   function init_vars()
   {
@@ -1875,7 +1879,7 @@ class template_nodb {
       'ADMIN_SID_QUES'=>$asq,
       'ADMIN_SID_AMP'=>$asa,
       'ADMIN_SID_AMP_HTML'=>'',
-      'ADDITIONAL_HEADERS'=>'<style type="text/css">div.pagenav { border-top: 1px solid #CCC; padding-top: 7px; margin-top: 10px; }</style>',
+      'ADDITIONAL_HEADERS'=>$this->additional_headers,
       'SIDEBAR_EXTRA'=>'',
       'COPYRIGHT'=>'Enano and all of its code, graphics, and more code is copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
       'TOOLBAR_EXTRAS'=>'',
@@ -1923,11 +1927,15 @@ class template_nodb {
     $this->tpl_bool['right_sidebar'] = $this->tpl_bool['sidebar_right']; // backward compatibility
     $this->tpl_bool['stupid_mode'] = true;
   }
-  function header() 
+  function header($simple = false) 
   {
-    if(!$this->no_headers) echo $this->process_template('header.tpl');
+    $filename = ( $simple ) ? 'simple-header.tpl' : 'header.tpl';
+    if ( !$this->no_headers )
+    {
+      echo $this->process_template($filename);
+    }
   }
-  function footer()
+  function footer($simple = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!$this->no_headers) {
@@ -1940,7 +1948,8 @@ class template_nodb {
       else $nq = $db->num_queries;
       if($nq == 0) $nq = 'N/A';
       $dbg = 'Time: '.$f.'s  |  Queries: '.$nq;
-      $t = $this->process_template('footer.tpl');
+      $filename = ( $simple ) ? 'simple-footer.tpl' : 'footer.tpl';
+      $t = $this->process_template($filename);
       $t = str_replace('[[Stats]]', $dbg, $t);
       if ( is_object($db) )
       {

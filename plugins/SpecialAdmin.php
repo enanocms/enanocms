@@ -2479,12 +2479,12 @@ HEADER;
     foreach($tables as $t)
     {
       // THE FOLLOWING COMMENT DOES NOT APPLY AS OF 1.0.
-      // Sorry folks - this script CAN'T backup enano_files, enano_search_index, and enano_search_cache due to the sheer size of the tables.
+      // Sorry folks - this script CAN'T backup enano_files and enano_search_index due to the sheer size of the tables.
       // If encryption is enabled the log data will be excluded too.
       echo export_table(
         $t,
         isset($_POST['do_struct']),
-        ( isset($_POST['do_data']) /* && $t != table_prefix.'files' && $t != table_prefix.'search_index' && $t != table_prefix.'search_cache' && ( !defined('SQL_BACKUP_CRYPT') || ( defined('SQL_BACKUP_CRYPT') && $t != table_prefix.'logs' ) ) */ ),
+        ( isset($_POST['do_data']) ),
         false
         ) . "\n";
     }
