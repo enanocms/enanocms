@@ -734,11 +734,18 @@ switch($_GET['mode'])
       // OK, do the loop, baby!!!
       foreach($schema as $q)
       {
-        $r = $db->sql_query($q);
-        if(!$r)
+        if ( substr($q, 0, 1) == '@' )
         {
-          echo $db->get_error();
-          break 2;
+          // if the first character is @, don't fail on error
+          $db->sql_query(substr($q, 1));
+        }
+        else
+        {
+          if ( !$db->sql_query($q) )
+          {
+            echo $db->get_error();
+            break 2;
+          }
         }
       }
       

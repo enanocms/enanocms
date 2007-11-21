@@ -52,7 +52,12 @@ function page_Special_SearchRebuild()
 function page_Special_Search()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if(!$q = $paths->getParam(0)) $q = ( isset($_GET['q']) ) ? $_GET['q'] : false;
+  global $aggressive_optimize_html;
+  $aggressive_optimize_html = false;
+  
+  if ( !$q = $paths->getParam(0) )
+    $q = ( isset($_GET['q']) ) ? $_GET['q'] : '';
+  
   if(isset($_GET['words_any']))
   {
     $q = '';
@@ -85,184 +90,162 @@ function page_Special_Search()
   }
   $q = trim($q);
   
-  if ( !empty($q) && !isset($_GET['search']) )
-  {
-    list($pid, $ns) = RenderMan::strToPageID($q);
-    $pid = sanitize_page_id($pid);
-    $key = $paths->nslist[$ns] . $pid;
-    if ( isPage($key) )
-    {
-      redirect(makeUrl($key), 'Results', 'found page', 0);
-    }
-  }
-  
   $template->header();
-  if(!empty($q))
+  
+  $qin = ( isset($q) ) ? str_replace('"', '\"', htmlspecialchars($q)) : '';
+  $search_form = '<form action="' . makeUrlNS('Special', 'Search') . '">
+  <input type="text" tabindex="1" name="q" size="50" value="' . $qin . '" />&nbsp;<input tabindex="2" type="submit" value="Search" />
+  ' . ( $session->auth_level > USER_LEVEL_MEMBER ? '<input type="hidden" name="auth" value="' . $session->sid_super . '" />' : '' ) . '
+  </form>';
+  
+  if ( !empty($q) )
   {
-    // See if any pages directly match the title
+    $search_start = microtime_float();
     
-    if ( strlen($q) >= 4 )
+    $results = perform_search($q, $warn, ( isset($_GET['match_case']) ));
+    $warn = array_unique($warn);
+    
+    if ( file_exists( ENANO_ROOT . '/themes/' . $template->theme . '/search-result.tpl' ) )
     {
-      for ( $i = 0; $i < count ( $paths->pages ) / 2; $i++ )
-      {
-        $pg =& $paths->pages[$i];
-        $q_lc = strtolower( str_replace(' ', '_', $q) );
-        $q_tl = strtolower( str_replace('_', ' ', $q) );
-        $p_lc = strtolower($pg['urlname']);
-        $p_tl = strtolower($pg['name']);
-        if ( strstr($p_tl, $q_tl) || strstr($p_lc, $q_lc) && $pg['visible'] == 1 )
-        {
-          echo '<div class="usermessage">Perhaps you were looking for <b><a href="' . makeUrl($pg['urlname'], false, true) . '">' . htmlspecialchars($pg['name']) . '</a></b>?</div>';
-          break;
-        }
-      }
+      $parser = $template->makeParser('search-result.tpl');
     }
-          
-    switch(SEARCH_MODE)
+    else
     {
+      $tpl_code = <<<LONGSTRING
       
-      case "FULLTEXT":
-        if ( isset($_GET['offset']) )
-        {
-          $offset = intval($_GET['offset']);
-        }
-        else
-        {
-          $offset = 0;
-        }
-        $sql = $db->sql_query('SELECT search_id FROM '.table_prefix.'search_cache WHERE query=\''.$db->escape($q).'\';');
-        if(!$sql)
-        {
-          $db->_die('Error scanning search query cache');
-        }
-        if($db->numrows() > 0)
-        {
-          $row = $db->fetchrow();
-          $db->free_result();
-          search_fetch_fulltext_results(intval($row['search_id']), $offset);
-        }
-        else
-        {
-          // Perform search
-          
-          $search = new MySQL_Fulltext_Search();
-          
-          // Parse the query
-          $parse = new Searcher();
-          $query = $parse->parseQuery($q);
-          unset($parse);
-          
-          // Send query to MySQL
-          $sql = $search->search($q);
-          $results = Array();
-          if ( $row = $db->fetchrow($sql) )
-          {
-            do {
-              $results[] = $row;
-            } while ( $row = $db->fetchrow($sql) );
-          }
-          else
-          {
-            // echo '<div class="warning-box">No pages that matched your search criteria could be found.</div>';
-          }
-          $texts = Array();
-          foreach ( $results as $result )
-          {
-            $texts[] = render_fulltext_result($result, $query);
-          }
-          
-          // Store the result in the search cache...if someone makes the same query later we can skip searching and rendering
-          // This cache is cleared when an affected page is saved.
-          
-          $results = serialize($texts);
-          
-          $sql = $db->sql_query('INSERT INTO '.table_prefix.'search_cache(search_time,query,results) VALUES('.time().', \''.$db->escape($q).'\', \''.$db->escape($results).'\');');
-          if($sql)
-          {
-            search_render_fulltext_results(unserialize($results), $offset, $q);
-          }
-          else
-          {
-            $db->_die('Error inserting search into cache');
-          }
-          
-        }
-        break;
-
-      case "BUILTIN":
-        $titles = $paths->makeTitleSearcher(isset($_GET['match_case']));
-        if ( isset($_GET['offset']) )
-        {
-          $offset = intval($_GET['offset']);
-        }
-        else
-        {
-          $offset = 0;
-        }
-        $sql = $db->sql_query('SELECT search_id FROM '.table_prefix.'search_cache WHERE query=\''.$db->escape($q).'\';');
-        if(!$sql)
-        {
-          $db->_die('Error scanning search query cache');
-        }
-        if($db->numrows() > 0)
-        {
-          $row = $db->fetchrow();
-          $db->free_result();
-          search_show_results(intval($row['search_id']), $offset);
-        }
-        else
-        {
-          $titles->search($q, $paths->get_page_titles());
-          $search = $paths->makeSearcher(isset($_GET['match_case']));
-          $texts = $paths->fetch_page_search_resource();
-          $search->searchMySQL($q, $texts);
-          
-          $results = Array();
-          $results['text'] = $search->results;
-          $results['page'] = $titles->results;
-          $results['warn'] = $search->warnings;
-          
-          $results = serialize($results);
-          
-          $sql = $db->sql_query('INSERT INTO '.table_prefix.'search_cache(search_time,query,results) VALUES('.time().', \''.$db->escape($q).'\', \''.$db->escape($results).'\');');
-          if($sql)
-          {
-            search_render_results(unserialize($results), $offset, $q);
-          }
-          else
-          {
-            $db->_die('Error inserting search into cache');
-          }
-        }
-        break;
+      <!-- Start search result -->
+      
+      <div class="search-result">
+        <p>
+         <h3><a href="{RESULT_URL}"><span class="search-result-annotation">{PAGE_NOTE}</span>{PAGE_TITLE}</a></h3>
+          {PAGE_TEXT}
+          <span class="search-result-url">{PAGE_URL}</span> - 
+          <!-- BEGINNOT special_page --><span class="search-result-info">{PAGE_LENGTH} {PAGE_LENGTH_UNIT}</span> -<!-- END special_page --> 
+          <span class="search-result-info">Relevance: {RELEVANCE_SCORE}%</span>
+        </p>
+      </div>
+      
+      <!-- Finish search result -->
+      
+LONGSTRING;
+      $parser = $template->makeParserText($tpl_code);
     }
-    $code = $plugins->setHook('search_results'); // , Array('query'=>$q));
-    foreach ( $code as $cmd )
+    foreach ( $results as $i => $_ )
     {
-      eval($cmd);
+      $result =& $results[$i];
+      $result['page_text'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="highlight">', '</span>'), $result['page_text']);
+      if ( !empty($result['page_text']) )
+        $result['page_text'] .= '<br />';
+      $result['page_name'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="highlight">', '</span>'), $result['page_name']);
+      if ( $result['page_length'] >= 1048576 )
+      {
+        $result['page_length'] = round($result['page_length'] / 1048576, 1);
+        $length_unit = 'MB';
+      }
+      else if ( $result['page_length'] >= 1024 )
+      {
+        $result['page_length'] = round($result['page_length'] / 1024, 1);
+        $length_unit = 'KB';
+      }
+      else
+      {
+        $length_unit = 'bytes';
+      }
+      $url = makeUrlComplete($result['namespace'], $result['page_id']);
+      $url = preg_replace('/\?.+$/', '', $url);
+      $parser->assign_vars(array(
+         'PAGE_TITLE' => $result['page_name'],
+         'PAGE_TEXT' => $result['page_text'],
+         'PAGE_LENGTH' => $result['page_length'],
+         'RELEVANCE_SCORE' => $result['score'],
+         'RESULT_URL' => makeUrlNS($result['namespace'], $result['page_id'], false, true),
+         'PAGE_LENGTH_UNIT' => $length_unit,
+         'PAGE_URL' => $url,
+         'PAGE_NOTE' => ( isset($result['page_note']) ? $result['page_note'] . ' ' : '' )
+        ));
+      $has_content = ( $result['namespace'] == 'Special' );
+      
+      $code = $plugins->setHook('search_global_results');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      
+      $parser->assign_bool(array(
+          'special_page' => $has_content
+        ));
+      $result = $parser->run();
     }
-    ?>
-    <form action="<?php echo makeUrl($paths->page); ?>" method="get">
-      <p>
-        <?php if ( $session->sid_super ): ?>
-          <input type="hidden" name="auth" value="<?php echo $session->sid_super; ?>" />
-        <?php endif; ?>
-        <?php if ( urlSeparator == '&' ): ?>
-          <input type="hidden" name="title" value="<?php echo $paths->nslist['Special'] . 'Search'; ?>" />
-        <?php endif; ?>
-        <input type="text" name="q" size="40" value="<?php echo htmlspecialchars( $q ); ?>" /> <input type="submit" value="Go" style="font-weight: bold;" /> <input name="search" type="submit" value="Search" />  <small><a href="<?php echo makeUrlNS('Special', 'Search'); ?>">Advanced Search</a></small>
-      </p>
-    </form>
-    <?php
+    unset($result);
+    
+    $per_page = 10;
+    $start = ( isset($_GET['start']) ? intval($_GET['start']) : 0 );
+    $start_string = $start + 1;
+    $per_string = $start_string + $per_page - 1;
+    $num_results = count($results);
+    if ( $per_string > $num_results )
+      $per_string = $num_results;
+    
+    $search_time = microtime_float() - $search_start;
+    $search_time = round($search_time, 3);
+    
+    $q_trim = ( strlen($q) > 30 ) ? substr($q, 0, 27) . '...' : $q;
+    $q_trim = htmlspecialchars($q_trim);
+    
+    $result_string = ( count($results) > 0 ) ? "Results <b>$start_string</b> - <b>$per_string</b> of about <b>$num_results</b> for <b>" . $q_trim . "</b> in {$search_time}s." : 'No results.';
+    
+    echo '<div class="search-hibar">
+            <div style="float: right;">
+              ' . $result_string . '
+            </div>
+            <b>Site search</b>
+          </div>
+          <div class="search-lobar">
+            ' . $search_form . '
+          </div>';
+          
+    if ( count($warn) > 0 )
+    {
+      echo '<div class="warning-box" style="margin: 10px 0 0 0;">';
+      echo '<b>Some problems were encountered during your search.</b><br />
+            There was a problem with your search query, and as a result there may be a reduced number of search results.';
+      echo '<ul><li>' . implode('</li><li>', $warn) . '</li></ul>';
+      echo '</div>';
+    }
+  
+    if ( count($results) > 0 )
+    {
+      $html = paginate_array(
+          $results,
+          count($results),
+          makeUrlNS('Special', 'Search', 'q=' . str_replace('%', '%%', htmlspecialchars(urlencode($q))) . '&start=%s'),
+          $start,
+          $per_page
+        );
+      echo $html;
+    }
+    else
+    {
+      // No results for the search
+      echo '<h3 style="font-weight: normal;">Your search for <b>"' . htmlspecialchars($q) . '"</b> didn\'t turn up any results.</h3>';
+      echo '<p>There are a few things you can try:</p>';
+      echo '<ul>
+              <li>Were you looking for a specific Special page? Special pages are not searchable. You may want to see a <a href="' . makeUrlNS('Special', 'SpecialPages') . '">list of special pages</a>.</li>
+              <li>If you have the appropriate permissions, you can <a href="' . makeUrl($q) . '#do:edit">start the ' . htmlspecialchars($q) . ' page</a>.</li>
+              <li>Try using fewer keywords. You can get broader results if you remove quotes from your search query.</li>
+              <li>Did your search trigger any warnings? Sometimes a search can be cancelled if there aren\'t any terms in a search query that are 4 characters or greater in length.</li>
+            </ul>';
+    }
   }
   else
   {
-  ?>
-    <br />
+    ?>
     <form action="<?php echo makeUrl($paths->page); ?>" method="get">
       <?php if ( urlSeparator == '&' ): ?>
         <input type="hidden" name="title" value="<?php echo $paths->nslist['Special'] . 'Search'; ?>" />
-      <?php endif; ?>
+      <?php 
+      echo ( $session->auth_level > USER_LEVEL_MEMBER ? '<input type="hidden" name="auth" value="' . $session->sid_super . '" />' : '' );
+      endif; ?>
       <div class="tblholder">
         <table border="0" style="width: 100%;" cellspacing="1" cellpadding="4">
           <tr><th colspan="2">Advanced Search</th></tr>
@@ -298,255 +281,10 @@ function page_Special_Search()
         </table>
       </div>
     </form>
-  <?php
+    <?php
   }
+  
   $template->footer();
-}
-
-function search_show_results($search_id, $start = 0)
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  $q = $db->sql_query('SELECT query,results,search_time FROM '.table_prefix.'search_cache WHERE search_id='.intval($search_id).';');
-  if(!$q)
-    return $db->get_error('Error selecting cached search results');
-  $row = $db->fetchrow();
-  $db->free_result();
-  $results = unserialize($row['results']);
-  search_render_results($results, $start, $row['query']);
-}
-
-function search_render_results($results, $start = 0, $q = '')
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  $nr1 = sizeof($results['page']);
-  $nr2 = sizeof($results['text']);
-  $nr  = ( $nr1 > $nr2 ) ? $nr1 : $nr2;
-  $results['page'] = array_slice($results['page'], $start, SEARCH_RESULTS_PER_PAGE);
-  $results['text'] = array_slice($results['text'], $start, SEARCH_RESULTS_PER_PAGE);
-  
-  // Pagination
-  $pagination = '';
-  if ( $nr1 > SEARCH_RESULTS_PER_PAGE || $nr2 > SEARCH_RESULTS_PER_PAGE )
-  {
-    $pagination .= '<div class="tblholder" style="padding: 0; display: table; margin: 0 0 0 auto; float: right;">
-          <table border="0" style="width: 100%;" cellspacing="1" cellpadding="4">
-          <tr>
-          <th>Page:</th>';
-    $num_pages = ceil($nr / SEARCH_RESULTS_PER_PAGE);
-    $j = 0;
-    for ( $i = 1; $i <= $num_pages; $i++ ) 
-    {
-      if ($j == $start)
-        $pagination .= '<td class="row1"><b>' . $i . '</b></td>';
-      else
-        $pagination .= '<td class="row1"><a href="' . makeUrlNS('Special', 'Search', 'q=' . urlencode($q) . '&offset=' . $j, true) . '">' . $i . '</a></td>';
-      $j = $j + SEARCH_RESULTS_PER_PAGE;
-    }
-    $pagination .= '</tr></table></div>';
-  }
-  
-  echo $pagination;
-  
-  if ( $nr1 >= $start )
-  {
-    echo '<h3>Page title matches</h3>';
-    if(count($results['page']) < 1)
-    {
-      echo '<div class="error-box">No pages with a title that matched your search criteria could be found.</div>';
-    }
-    else
-    {
-      echo '<p>';
-      foreach($results['page'] as $page => $text)
-      {
-        echo '<a href="'.makeUrl($page).'">'.$paths->pages[$page]['name'].'</a><br />';
-      }
-      echo '</p>';
-    }
-  }
-  if ( $nr2 >= $start )
-  {
-    echo '<h3>Page text matches</h3>';
-    if(count($results['text']) < 1)
-    {
-      echo '<div class="error-box">No page text that matched your search criteria could be found.</div>';
-    }
-    else
-    {
-      foreach($results['text'] as $kpage => $text)
-      {
-        preg_match('#^ns=('.implode('|', array_keys($paths->nslist)).');pid=(.*?)$#i', $kpage, $matches);
-        $page = $paths->nslist[$matches[1]] . $matches[2];
-        echo '<p><span style="font-size: larger;"><a href="'.makeUrl($page).'">'.$paths->pages[$page]['name'].'</a></span><br />'.$text.'</p>';
-      }
-    }
-  }
-  if(count($results['warn']) > 0)
-    echo '<div class="warning-box"><b>Your search may not include all results.</b><br />The following errors were encountered during the search:<br /><ul><li>'.implode('</li><li>', $results['warn']).'</li></ul></div>';
-  echo $pagination;
-}
-
-function render_fulltext_result($result, $query)
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  preg_match('#^ns=('.implode('|', array_keys($paths->nslist)).');pid=(.*?)$#i', $result['page_identifier'], $matches);
-  $page = $paths->nslist[$matches[1]] . $matches[2];
-  //$score = round($result['score'] * 100, 1);
-  $score = number_format($result['score'], 2);
-  $char_length = $result['length'];
-  $result_template = <<<TPLCODE
-  <div class="search-result">
-    <h3><a href="{HREF}">{TITLE}</a></h3>
-    <p>{TEXT}</p>
-    <p>
-      <span class="search-result-info">{NAMESPACE} - Relevance score: {SCORE} ({LENGTH} bytes)</span>
-    </p>
-  </div>
-TPLCODE;
-  $parser = $template->makeParserText($result_template);
-  
-  $pt =& $result['page_text'];
-  $space_chars = Array("\t", "\n", "\r", " ");
-  
-  $words = array_merge($query['any'], $query['req']);
-  $pt = htmlspecialchars($pt);
-  $words2 = array();
-  
-  for ( $i = 0; $i < sizeof($words); $i++)
-  {
-    if(!empty($words[$i]))
-      $words2[] = preg_quote($words[$i]);
-  }
-  
-  $regex = '/(' . implode('|', $words2) . ')/i';
-  $pt = preg_replace($regex, '<span class="search-term">\\1</span>', $pt);
-  
-  $title = preg_replace($regex, '<span class="title-search-term">\\1</span>', htmlspecialchars($paths->pages[$page]['name']));
-  
-  $cut_off = false;
-  
-  foreach ( $words as $word )
-  {
-    // Boldface searched words
-    $ptlen = strlen($pt);
-    for ( $i = 0; $i < $ptlen; $i++ )
-    {
-      $len = strlen($word);
-      if ( strtolower(substr($pt, $i, $len)) == strtolower($word) )
-      {
-        $chunk1 = substr($pt, 0, $i);
-        $chunk2 = substr($pt, $i, $len);
-        $chunk3 = substr($pt, ( $i + $len ));
-        $pt = $chunk1 . $chunk2 . $chunk3;
-        $ptlen = strlen($pt);
-        // Cut off text to 150 chars or so
-        if ( !$cut_off )
-        {
-          $cut_off = true;
-          if ( $i - 75 > 0 )
-          {
-            // Navigate backwards until a space character is found
-            $chunk = substr($pt, 0, ( $i - 75 ));
-            $final_chunk = $chunk;
-            for ( $j = strlen($chunk); $j > 0; $j = $j - 1 )
-            {
-              if ( in_array($chunk{$j}, $space_chars) )
-              {
-                $final_chunk = substr($chunk, $j + 1);
-                break;
-              }
-            }
-            $mid_chunk = substr($pt, ( $i - 75 ), 75);
-            
-            $clipped = '...' . $final_chunk . $mid_chunk . $chunk2;
-            
-            $chunk = substr($pt, ( $i + strlen($chunk2) + 75 ));
-            $final_chunk = $chunk;
-            for ( $j = 0; $j < strlen($chunk); $j++ )
-            {
-              if ( in_array($chunk{$j}, $space_chars) )
-              {
-                $final_chunk = substr($chunk, 0, $j);
-                break;
-              }
-            }
-            
-            $end_chunk = substr($pt, ( $i + strlen($chunk2) ), 75 );
-            
-            $clipped .= $end_chunk . $final_chunk . '...';
-            
-            $pt = $clipped;
-          }
-          else if ( strlen($pt) > 200 )
-          {
-            $mid_chunk = substr($pt, ( $i - 75 ), 75);
-            
-            $clipped = $chunk1 . $chunk2;
-            
-            $chunk = substr($pt, ( $i + strlen($chunk2) + 75 ));
-            $final_chunk = $chunk;
-            for ( $j = 0; $j < strlen($chunk); $j++ )
-            {
-              if ( in_array($chunk{$j}, $space_chars) )
-              {
-                $final_chunk = substr($chunk, 0, $j);
-                break;
-              }
-            }
-            
-            $end_chunk = substr($pt, ( $i + strlen($chunk2) ), 75 );
-            
-            $clipped .= $end_chunk . $final_chunk . '...';
-            
-            $pt = $clipped;
-            
-          }
-          break 2;
-        }
-      }
-    }
-    $cut_off = false;
-  }
-  
-  $parser->assign_vars(Array(
-      'TITLE' => $title,
-      'TEXT' => $pt,
-      'NAMESPACE' => $matches[1],
-      'SCORE' => $score,
-      'LENGTH' => $char_length,
-      'HREF' => makeUrl($page)
-    ));
-  
-  return $parser->run();
-  
-}
-
-function search_fetch_fulltext_results($search_id, $offset = 0)
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  $q = $db->sql_query('SELECT query,results,search_time FROM '.table_prefix.'search_cache WHERE search_id='.intval($search_id).';');
-  if(!$q)
-    return $db->get_error('Error selecting cached search results');
-  $row = $db->fetchrow();
-  $db->free_result();
-  $results = unserialize($row['results']);
-  search_render_fulltext_results($results, $offset, $row['query']);
-}
-
-function search_render_fulltext_results($results, $offset = 0, $query)
-{
-  $num_results = sizeof($results);
-  $slice = array_slice($results, $offset, SEARCH_RESULTS_PER_PAGE);
-  
-  if ( $num_results < 1 )
-  {
-    echo '<div class="warning-box" style="margin-left: 0;">No page text that matched your search criteria could be found.</div>';
-    return null;
-  }
-  
-  $html = paginate_array($results, sizeof($results), makeUrlNS('Special', 'Search', 'q=' . urlencode($query) . '&offset=%s'), $offset, 10);
-  echo $html . '<br />';
-  
 }
 
 ?>
