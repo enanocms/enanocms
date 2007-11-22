@@ -142,7 +142,21 @@ class mysql {
     if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
     {
       dc_here('dbal: oops, looks like Enano isn\'t set up. Constants ENANO_INSTALLED, MIDGET_INSTALLED, and IN_ENANO_INSTALL are all undefined.');
-      header('Location: install.php'); 
+      // scriptPath isn't set yet - we need to autodetect it to avoid infinite redirects
+      if ( !defined('scriptPath') )
+      {
+        if ( isset($_SERVER['PATH_INFO']) && !preg_match('/index\.php$/', $_SERVER['PATH_INFO']) )
+        {
+          $_SERVER['REQUEST_URI'] = preg_replace(';' . preg_quote($_SERVER['PATH_INFO']) . '$;', '', $_SERVER['REQUEST_URI']);
+        }
+        $sp = dirname($_SERVER['REQUEST_URI']);
+        if($sp == '/' || $sp == '\\') $sp = '';
+        define('scriptPath', $sp);
+        define('contentPath', "$sp/index.php?title=");
+      }
+      $loc = scriptPath . '/install.php';
+      // header("Location: $loc");
+      redirect($loc, 'Enano not installed', 'We can\'t seem to find an Enano installation (valid config file). You will be transferred to the installation wizard momentarily...', 3);
       exit;
     }
     $this->_conn = @mysql_connect($dbhost, $dbuser, $dbpasswd);

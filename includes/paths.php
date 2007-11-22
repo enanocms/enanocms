@@ -663,14 +663,14 @@ class pathManager {
   }
   
   /**
-   * Fetches a MySQL search query to use for Searcher::searchMySQL()
+   * Generates an SQL query to grab all of the text
    */
    
   function fetch_page_search_resource()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     // sha1('') returns "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-    $texts = 'SELECT t.page_text,CONCAT(\'ns=\',t.namespace,\';pid=\',t.page_id) FROM '.table_prefix.'page_text AS t
+    $texts = 'SELECT t.page_text, CONCAT(\'ns=\',t.namespace,\';pid=\',t.page_id) AS page_idstring, t.page_id, t.namespace FROM '.table_prefix.'page_text AS t
                            LEFT JOIN '.table_prefix.'pages AS p
                              ON ( t.page_id=p.urlname AND t.namespace=p.namespace )
                            WHERE p.namespace=t.namespace
@@ -690,9 +690,25 @@ class pathManager {
     $texts = Array();
     $textq = $db->sql_unbuffered_query($this->fetch_page_search_resource());
     if(!$textq) $db->_die('');
-    while($row = $db->fetchrow_num())
+    while($row = $db->fetchrow())
     {
-      $texts[(string)$row[1]] = $row[0];
+      if ( isset($this->nslist[$row['namespace']]) )
+      {
+        $idstring = $this->nslist[$row['namespace']] . sanitize_page_id($row['page_id']);
+        if ( isset($this->pages[$idstring]) )
+        {
+          $page = $this->pages[$idstring];
+        }
+        else
+        {
+          $page = array('name' => dirtify_page_id($row['page_id']));
+        }
+      }
+      else
+      {
+        $page = array('name' => dirtify_page_id($row['page_id']));
+      }
+      $texts[(string)$row['page_idstring']] = $row['page_text'] . ' ' . $page['name'];
     }
     $search->buildIndex($texts);
     // echo '<pre>'.print_r($search->index, true).'</pre>';
@@ -730,10 +746,17 @@ class pathManager {
     {
       return $db->get_error();
     }
+    if ( $db->numrows() < 1 )
+      return 'E: No rows';
+    $idstring = $this->nslist[$namespace] . sanitize_page_id($page_id);
+    if ( !isset($this->pages[$idstring]) )
+    {
+      return 'E: Can\'t find page metadata';
+    }
     $row = $db->fetchrow();
     $db->free_result();
     $search = new Searcher();
-    $search->buildIndex(Array("ns={$namespace};pid={$page_id}"=>$row['page_text']));
+    $search->buildIndex(Array("ns={$namespace};pid={$page_id}"=>$row['page_text'] . ' ' . $this->pages[$idstring]['name']));
     $new_index = $search->index;
     
     $keys = array_keys($search->index);
@@ -743,20 +766,6 @@ class pathManager {
       $c = hexencode($c, '', '');
     }
     $keys = "word=0x" . implode ( " OR word=0x", $keys ) . "";
-    
-    // Zap the cache
-    $cache = array_keys($search->index);
-    if ( count($cache) < 1 )
-    {
-      return false;
-    }
-    foreach ( $cache as $key => $_unused )
-    {
-      $cache[$key] = $db->escape( $cache[$key] );
-    }
-    $cache = "query LIKE '%" . implode ( "%' OR query LIKE '%", $cache ) . "%'";
-    $sql = 'DELETE FROM '.table_prefix.'search_cache WHERE '.$cache;
-    $db->sql_query($sql);
     
     $query = $db->sql_query('SELECT word,page_names FROM '.table_prefix.'search_index WHERE '.$keys.';');
     

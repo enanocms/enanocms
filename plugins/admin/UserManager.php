@@ -677,7 +677,7 @@ class Admin_UserManager_SmartForm
                         </tr>
                         <tr>
                           <td>New password:</td>
-                          <td><input type="password" name="new_password" value="" <!-- BEGIN password_meter -->onkeyup="password_score_field(this);" <!-- END password_meter -->/><span class="password-checker" style="font-weight: bold; color: #AA0000"> Weak (score: -10)</span>
+                          <td><input type="password" name="new_password" value="" <!-- BEGIN password_meter -->onkeyup="password_score_field(this);" /><span class="password-checker" style="font-weight: bold; color: #AA0000"> Weak (score: -10)</span><!-- BEGINELSE password_meter --> /><!-- END password_meter -->
                             <!-- BEGIN password_meter -->
                               <div id="pwmeter" style="margin: 4px 0; height: 8px;"></div>
                             <!-- END password_meter -->

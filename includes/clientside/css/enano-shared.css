@@ -175,11 +175,19 @@ div.titlebar table, div.titlebar td { margin: 0; padding: 0; }
 div.jswindow div.content          { padding: 10px; margin: 0; background-color: #FFFFFF; }
 
 /* Search results */
+div.search-result, div.search-hibar, div.search-lobar {
+  font-family: arial, helvetica, sans-serif;
+  font-size: 8pt;
+}
 div.search-result h3   { font-size: 14pt; margin: 10px 0 0 0; }
 div.search-result h3 a { color: blue !important; font-weight: normal; padding-bottom: 0; }
-div.search-result p    { margin: 10px 0 0 0 !important; font-family: arial, helvetica, sans-serif; font-size: 10pt; }
-div.search-result span.search-result-info { color: green; }
+div.search-result p    { margin: 10px 0 0 0 !important; font-family: arial, helvetica, sans-serif; font-size: small; }
+div.search-result span.search-result-info { color: #7777CC; }
+div.search-result span.search-result-url  { color: green; }
 div.search-result span.search-term, div.search-result span.title-search-term { background-color: #FFFFC0; font-weight: bold; }
+div.search-result span.search-result-annotation { font-size: 8pt; }
+div.search-hibar       { border-top: 1px solid #3366CC; margin-top: 10px; color: #000; background-color: #D5DFF3; padding: 3px; vertical-align: middle; }
+div.search-lobar       { background-color: #E5EFFF; margin: 0; padding: 5px; }
 
 /*
  * Search box

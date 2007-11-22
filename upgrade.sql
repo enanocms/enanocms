@@ -18,6 +18,13 @@ ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_lang smallint(5) NOT NULL;
 ---BEGIN 1.0.2b1---
 -- This is really optional, but could reduce confusion if regex page groups get truncated for no apparent reason.
 ALTER TABLE {{TABLE_PREFIX}}page_groups MODIFY COLUMN pg_target text DEFAULT NULL;
+-- I have no idea how or why, but the f'ing index didn't get created for who-knows-how-many releases.
+-- We'll attempt to create it here, but don't die if it fails
+@ALTER TABLE {{TABLE_PREFIX}}page_text ENGINE = MYISAM COLLATE = utf8_bin;
+@CREATE FULLTEXT INDEX {{TABLE_PREFIX}}page_search_idx ON {{TABLE_PREFIX}}page_text(page_id, namespace, page_text);
+ALTER TABLE {{TABLE_PREFIX}}search_index COLLATE = utf8_bin, MODIFY COLUMN word varchar(64) NOT NULL;
+-- The search cache is no longer needed because of the new unified search engine
+@DROP TABLE {{TABLE_PREFIX}}search_cache;
 ---END 1.0.2b1---
 ---BEGIN 1.0.1.1---
 ---END 1.0.1.1---
@@ -27,6 +34,7 @@ ALTER TABLE {{TABLE_PREFIX}}page_groups MODIFY COLUMN pg_target text DEFAULT NUL
 -- Fix for obnoxious $_GET issue
 UPDATE {{TABLE_PREFIX}}sidebar SET block_type=1,block_content='<div class="slideblock2" style="padding: 0px;"><form action="$CONTENTPATH$$NS_SPECIAL$Search" method="get" style="padding: 0; margin: 0;"><p><input type="hidden" name="title" value="$NS_SPECIAL$Search" />$INPUT_AUTH$<input name="q" alt="Search box" type="text" size="10" style="width: 70%" /> <input type="submit" value="Go" style="width: 20%" /></p></form></div>' WHERE block_name='Search' AND item_id=4;
 -- Added on advice from Neal
+-- Remember that 1 = AUTH_DENY.
 INSERT INTO {{TABLE_PREFIX}}acl(target_type,target_id,page_id,namespace,rules) VALUES(2,1,'Memberlist','Special','read=1;mod_misc=1;upload_files=1;upload_new_version=1;create_page=1;edit_acl=1;');
 -- Bugfix for MySQL 5.0.45, see http://forum.enanocms.org/viewtopic.php?f=5&t=8
 ALTER TABLE {{TABLE_PREFIX}}pages MODIFY COLUMN delvote_ips text DEFAULT NULL;

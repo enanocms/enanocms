@@ -14,7 +14,7 @@
  */
  
 @include('config.php');
-if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_GET['mode']) && ($_GET['mode']!='finish' && $_GET['mode']!='css')) || !isset($_GET['mode'])))
+if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_GET['mode']) && ($_GET['mode']!='finish' && $_GET['mode']!='css') && $_GET['mode']!='showlicense') || !isset($_GET['mode'])))
 {
   $_GET['title'] = 'Enano:Installation_locked';
   require('includes/common.php');
@@ -319,7 +319,7 @@ function stg_drop_tables()
   if ( !$conn )
     return false;
   // Our list of tables included in Enano
-  $tables = Array( 'categories', 'comments', 'config', 'logs', 'page_text', 'session_keys', 'pages', 'users', 'users_extra', 'themes', 'buddies', 'banlist', 'files', 'privmsgs', 'sidebar', 'hits', 'search_index', 'groups', 'group_members', 'acl', 'search_cache', 'tags', 'page_groups', 'page_group_members' );
+  $tables = Array( 'categories', 'comments', 'config', 'logs', 'page_text', 'session_keys', 'pages', 'users', 'users_extra', 'themes', 'buddies', 'banlist', 'files', 'privmsgs', 'sidebar', 'hits', 'search_index', 'groups', 'group_members', 'acl', 'tags', 'page_groups', 'page_group_members' );
   
   // Drop each table individually; if it fails, it probably means we're trying to drop a
   // table that didn't exist in the Enano version we're deleting the database for.
@@ -572,6 +572,14 @@ function _stg_rename_config_revert()
   return true;
 }
 
+function stg_build_index()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects;
+  if ( $paths->rebuild_search_index() )
+    return true;
+  return false;
+}
+
 function stg_rename_config()
 {
   if ( !@rename('./config.new.php', './config.php') )
@@ -692,26 +700,50 @@ function run_test($code, $desc, $extended_desc, $warn = false)
     $failed = true;
   }
 }
-function is_apache()
+function is_apache() { $r = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? true : false; return $r; }
+
+function show_license($fb = false)
 {
-  return strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? true : false;
+  ?>
+  <div style="height: 500px; clip: rect(0px,auto,500px,auto); overflow: auto; padding: 10px; border: 1px dashed #456798; margin: 1em;">
+  <?php
+    if ( !file_exists('./GPL') || !file_exists('./language/english/install/license-deed.html') )
+    {
+      echo 'Cannot find the license files.';
+    }
+    echo file_get_contents('./language/english/install/license-deed.html');
+    if ( defined('ENANO_BETA_VERSION') || $branch == 'unstable' )
+    {
+      ?>
+      <h3><?php echo $lang->get('license_info_unstable_title'); ?></h3>
+      <p><?php echo $lang->get('license_info_unstable_body'); ?></p>
+      <?php
+    }
+    ?>
+    <h3><?php echo $lang->get('license_section_gpl_heading'); ?></h3>
+    <?php if ( $lang->lang_code != 'eng' ): ?>
+    <p><i><?php echo $lang->get('license_gpl_blurb_inenglish'); ?></i></p>
+    <?php endif; ?>
+    <?php echo wikiFormat(file_get_contents(ENANO_ROOT . '/GPL')); ?>
+   <?php
+   global $template;
+   if ( $fb )
+   {
+     echo '<p style="text-align: center;">Because I could never find the Create a Page button in PHP-Nuke.</p>';
+     echo '<p>' . str_replace('http://enanocms.org/', 'http://www.2robots.com/2003/10/15/web-portals-suck/', $template->fading_button) . '</p>';
+     echo '<p style="text-align: center;">It\'s not a portal, my friends.</p>';
+   }
+   ?>
+ </div>
+ <?php
 }
 
 require_once('includes/template.php');
 
-//
-// Startup localization
-//
-
-// We need $db just for the _die function
-$db = new mysql();
-
-$lang = new Language('eng');
-$lang->load_file('./language/english/install.json');
-
-if ( !isset($_GET['mode']) )
+if(!isset($_GET['mode']))
+{
   $_GET['mode'] = 'welcome';
-
+}
 switch($_GET['mode'])
 {
   case 'mysql_test':
@@ -862,11 +894,14 @@ $modestrings = Array(
               'confirm' => $lang->get('confirm_modetitle'),
               'install' => $lang->get('install_modetitle'),
               'finish'  => $lang->get('finish_modetitle')
+              '_hiddenstages' => '...', // all stages below this line are hidden
+              'showlicense' => $lang->get('license_modetitle')
             );
 
 $sideinfo = '';
 $vars = $template->extract_vars('elements.tpl');
 $p = $template->makeParserText($vars['sidebar_button']);
+$hidden = false;
 foreach ( $modestrings as $id => $str )
 {
   if ( $_GET['mode'] == $id )
@@ -878,12 +913,17 @@ foreach ( $modestrings as $id => $str )
   {
     $flags = '';
   }
-  $p->assign_vars(Array(
-      'HREF' => '#',
-      'FLAGS' => $flags . ' onclick="return false;"',
-      'TEXT' => $str
-    ));
-  $sideinfo .= $p->run();
+  if ( $id == '_hiddenstages' )
+    $hidden = true;
+  if ( !$hidden )
+  {
+    $p->assign_vars(Array(
+        'HREF' => '#',
+        'FLAGS' => $flags . ' onclick="return false;"',
+        'TEXT' => $str
+      ));
+    $sideinfo .= $p->run();
+  }
 }
 
 $template->init_vars();
@@ -915,8 +955,6 @@ else
   }
 }
 
-$template->header();
-if(!isset($_GET['mode'])) $_GET['mode'] = 'license';
 switch($_GET['mode'])
 { 
   default:
@@ -954,27 +992,7 @@ switch($_GET['mode'])
     <h3><?php echo $lang->get('license_heading'); ?></h3>
      <p><?php echo $lang->get('license_blurb_thankyou'); ?></p>
      <p><?php echo $lang->get('license_blurb_pleaseread'); ?></p>
-     <div style="height: 500px; clip: rect(0px,auto,500px,auto); overflow: auto; padding: 10px; border: 1px dashed #456798; margin: 1em;">
-       <?php
-       if ( !file_exists('./GPL') || !file_exists('./language/english/install/license-deed.html') )
-       {
-         echo 'Cannot find the license files.';
-       }
-       echo file_get_contents('./language/english/install/license-deed.html');
-       if ( defined('ENANO_BETA_VERSION') || $branch == 'unstable' )
-       {
-         ?>
-         <h3><?php echo $lang->get('license_info_unstable_title'); ?></h3>
-         <p><?php echo $lang->get('license_info_unstable_body'); ?></p>
-         <?php
-       }
-       ?>
-       <h3><?php echo $lang->get('license_section_gpl_heading'); ?></h3>
-       <?php if ( $lang->lang_code != 'eng' ): ?>
-       <p><i><?php echo $lang->get('license_gpl_blurb_inenglish'); ?></i></p>
-       <?php endif; ?>
-       <?php echo wikiFormat(file_get_contents(ENANO_ROOT . '/GPL')); ?>
-     </div>
+     <?php show_license(); ?>
      <div class="pagenav">
        <form action="install.php?mode=sysreqs" method="post">
          <table border="0">
@@ -1880,6 +1898,8 @@ switch($_GET['mode'])
         run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_import_language', $lang->get('install_stg_importlang_body'));
         run_installer_stage('initlogs', $lang->get('install_stg_initlogs_title'), 'stg_init_logs', $lang->get('install_stg_initlogs_body'));
         
+        run_installer_stage('buildindex', 'Initialize search index', 'stg_build_index', 'Something went wrong while the page manager was attempting to build a search index.');
+        
         /*
          * HACKERS:
          * If you're making a custom distribution of Enano, put all your custom plugin-related code here.
@@ -1916,6 +1936,10 @@ switch($_GET['mode'])
     echo '<h3>' . $lang->get('finish_msg_congratulations') . '</h3>
            ' . $lang->get('finish_body') . '
            <p>' . $lang->get('finish_link_mainpage', array('mainpage_link' => 'index.php')) . '</p>';
+    break;
+  // this stage is never shown during the installation, but is provided for legal purposes
+  case "showlicense":
+    show_license(true);
     break;
 }
 $template->footer();

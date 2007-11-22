@@ -284,8 +284,15 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
     header('HTTP/1.1 307 Temporary Redirect');
   }
   
-  $title = $lang->get($title);
-  $message = $lang->get($message);
+  if ( !is_object($template) )
+  {
+    $template = new template_nodb();
+    $template->load_theme('oxygen', 'bleu', false);
+    $template->tpl_strings['SITE_NAME'] = 'Enano';
+    $template->tpl_strings['SITE_DESC'] = 'This site is experiencing a critical error and cannot load.';
+    $template->tpl_strings['COPYRIGHT'] = 'Powered by Enano CMS - &copy; 2007 Dan Fuhry. This program is Free Software; see the <a href="' . scriptPath . '/install.php?mode=license">GPL file</a> included with this package for details.';
+    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($title);
+  }
 
   $template->add_header('<meta http-equiv="refresh" content="' . $timeout . '; url=' . str_replace('"', '\\"', $url) . '" />');
   $template->add_header('<script type="text/javascript">
@@ -296,6 +303,9 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
       setTimeout(\'__r();\', ' . $timeout . '000);
     </script>
     ');
+  
+  if ( get_class($template) == 'template_nodb' )
+    $template->init_vars();
 
   $template->tpl_strings['PAGE_NAME'] = $title;
   $template->header(true);
@@ -2325,6 +2335,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
   $blk = $template->makeParserText($block);
   $inner = '';
   $cls = 'row2';
+  $total = $num_pages * $perpage - $perpage;
   if ( $start > 0 )
   {
     $url = sprintf($result_url, abs($start - $perpage));
@@ -2407,8 +2418,6 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       $inner .= $blk->run();
     }
 
-    $total = $num_pages * $perpage - $perpage;
-
     if ( $this_page < $num_pages )
     {
       // $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
@@ -2431,7 +2440,8 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
 
   if ( $start < $total )
   {
-    $url = sprintf($result_url, abs($start + $perpage));
+    $link_offset = abs($start + $perpage);
+    $url = htmlspecialchars(sprintf($result_url, strval($link_offset)));
     $link = "<a href=".'"'."$url".'"'." style='text-decoration: none;'>Next &raquo;</a>";
     $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
     $blk->assign_vars(array(
@@ -2445,7 +2455,9 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
 
   $paginator = "\n$begin$inner$end\n";
   if ( $total > 1 )
+  {
     $out .= $paginator;
+  }
 
   $cls = 'row2';
 

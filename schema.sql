@@ -14,7 +14,7 @@ CREATE TABLE {{TABLE_PREFIX}}categories(
   page_id varchar(64),
   namespace varchar(64),
   category_id varchar(64)
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}comments(
   comment_id int(12) NOT NULL auto_increment,
@@ -27,12 +27,12 @@ CREATE TABLE {{TABLE_PREFIX}}comments(
   user_id mediumint(8) NOT NULL DEFAULT -1,
   time int(12) NOT NULL DEFAULT 0,
   PRIMARY KEY ( comment_id )
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}config(
   config_name varchar(63),
   config_value text
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}logs(
   log_type varchar(16),
@@ -46,7 +46,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   author varchar(63),
   edit_summary text,
   minor_edit tinyint(1)
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(
   page_id varchar(63),
@@ -69,7 +69,7 @@ CREATE TABLE {{TABLE_PREFIX}}pages(
   delvotes int(10) NOT NULL default 0,
   password varchar(40) NOT NULL DEFAULT '',
   delvote_ips text DEFAULT NULL
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}session_keys(
   session_key varchar(32),
@@ -78,7 +78,7 @@ CREATE TABLE {{TABLE_PREFIX}}session_keys(
   auth_level tinyint(1) NOT NULL default '0',
   source_ip varchar(10) default '0x7f000001',
   time bigint(15) default '0'
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}themes(
   theme_id varchar(63),
@@ -86,7 +86,7 @@ CREATE TABLE {{TABLE_PREFIX}}themes(
   theme_order smallint(5) NOT NULL default '1',
   default_style varchar(63) NOT NULL DEFAULT '',
   enabled tinyint(1) NOT NULL default '1'
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}users(
   user_id mediumint(8) NOT NULL auto_increment,
@@ -107,7 +107,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_coppa tinyint(1) NOT NULL DEFAULT 0,
   user_lang smallint(5) NOT NULL,
   PRIMARY KEY  (user_id)
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}users_extra(
   user_id mediumint(8) NOT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE {{TABLE_PREFIX}}users_extra(
   user_hobbies text,
   email_public tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY ( user_id ) 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}banlist(
   ban_id mediumint(8) NOT NULL auto_increment,
@@ -130,7 +130,7 @@ CREATE TABLE {{TABLE_PREFIX}}banlist(
   is_regex tinyint(1) DEFAULT 0,
   reason text,
   PRIMARY KEY ( ban_id ) 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}files(
   file_id int(12) NOT NULL auto_increment,
@@ -142,7 +142,7 @@ CREATE TABLE {{TABLE_PREFIX}}files(
   file_extension varchar(8) default NULL,
   file_key varchar(32) NOT NULL,
   PRIMARY KEY (file_id) 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}buddies(
   buddy_id int(15) NOT NULL auto_increment,
@@ -150,7 +150,7 @@ CREATE TABLE {{TABLE_PREFIX}}buddies(
   buddy_user_id mediumint(8),
   is_friend tinyint(1) NOT NULL default '1',
   PRIMARY KEY  (buddy_id) 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}privmsgs(
   message_id int(15) NOT NULL auto_increment,
@@ -162,7 +162,7 @@ CREATE TABLE {{TABLE_PREFIX}}privmsgs(
   folder_name varchar(63),
   message_read tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY  (message_id) 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}sidebar(
   item_id smallint(3) NOT NULL auto_increment,
@@ -173,7 +173,7 @@ CREATE TABLE {{TABLE_PREFIX}}sidebar(
   block_type tinyint(1) NOT NULL DEFAULT 0,
   block_content text,
   PRIMARY KEY ( item_id )
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}hits(
   hit_id bigint(20) NOT NULL auto_increment,
@@ -182,13 +182,13 @@ CREATE TABLE {{TABLE_PREFIX}}hits(
   page_id varchar(63),
   namespace varchar(63),
   PRIMARY KEY ( hit_id ) 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}search_index(
-  word varbinary(64) NOT NULL,
+  word varchar(64) NOT NULL,
   page_names text,
   PRIMARY KEY ( word ) 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}groups(
   group_id mediumint(5) UNSIGNED NOT NULL auto_increment,
@@ -196,7 +196,7 @@ CREATE TABLE {{TABLE_PREFIX}}groups(
   group_type tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY ( group_id ),
   system_group tinyint(1) NOT NULL DEFAULT 0 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}group_members(
   member_id int(12) UNSIGNED NOT NULL auto_increment,
@@ -205,7 +205,7 @@ CREATE TABLE {{TABLE_PREFIX}}group_members(
   is_mod tinyint(1) NOT NULL DEFAULT 0,
   pending tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY ( member_id ) 
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}acl(
   rule_id int(12) UNSIGNED NOT NULL auto_increment,
@@ -215,15 +215,7 @@ CREATE TABLE {{TABLE_PREFIX}}acl(
   namespace varchar(24),
   rules text,
   PRIMARY KEY ( rule_id ) 
-) CHARACTER SET `utf8`;
-
-CREATE TABLE {{TABLE_PREFIX}}search_cache(
-  search_id int(15) NOT NULL auto_increment,
-  search_time int(11) NOT NULL,
-  query text,
-  results longblob,
-  PRIMARY KEY ( search_id )
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 -- Added in 1.0.1
 
@@ -233,7 +225,7 @@ CREATE TABLE {{TABLE_PREFIX}}page_groups(
   pg_name varchar(255) NOT NULL DEFAULT '',
   pg_target varchar(255) DEFAULT NULL,
   PRIMARY KEY ( pg_id )
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 -- Added in 1.0.1
 
@@ -243,7 +235,7 @@ CREATE TABLE {{TABLE_PREFIX}}page_group_members(
   page_id varchar(63) NOT NULL,
   namespace varchar(63) NOT NULL DEFAULT 'Article',
   PRIMARY KEY ( pg_member_id )
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 -- Added in 1.0.1
 
@@ -254,7 +246,7 @@ CREATE TABLE {{TABLE_PREFIX}}tags(
   namespace varchar(255) NOT NULL,
   user mediumint(8) NOT NULL DEFAULT 1,
   PRIMARY KEY ( tag_id )
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 -- Added in 1.1.1
 

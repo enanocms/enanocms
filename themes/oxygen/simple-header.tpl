@@ -3,31 +3,31 @@
   <head>
     <title>{PAGE_NAME} &bull; {SITE_NAME}</title>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="{SCRIPTPATH}/themes/{THEME_ID}/css-simple/{STYLE_ID}.css" type="text/css" id="mdgCss" />
+    <link rel="stylesheet" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" type="text/css" id="mdgCss" />
     {JS_DYNAMIC_VARS}
     <!-- This script automatically loads the other 15 JS files -->
     <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/static/enano-lib-basic.js"></script>
     {ADDITIONAL_HEADERS}
   </head>
   <body>
-    <table border="0" style="width: 100%; height: 100%;">
+    <table class="simple-layout" border="0" style="width: 100%; height: 100%;">
     <tr>
     <td style="width: 10%;"></td>
     <td valign="middle">
       <table id="enano-main" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
         <tr>
-          <td id="head-up-left"></td>
-          <td id="head-up"></td>
-          <td id="head-up-right"></td>
+          <td id="mdg-tl"></td>
+          <td id="mdg-top"></td>
+          <td id="mdg-tr"></td>
         </tr>
         <tr>
-          <td id="head-left"></td>
-          <td id="head-main">
+          <td id="mdg-l"></td>
+          <td id="mainhead">
             <h1>{PAGE_NAME}</h1>
           </td>
-          <td id="head-right"></td>
+          <td id="mdg-r"></td>
         </tr>
         <tr>
-          <td id="main-left"></td>
-          <td id="main-main">
-            <div id="ajaxEditContainer">
+          <td id="mdg-ml"></td>
+          <td style="background-color: #FFF;">
+            <div id="ajaxEditContainer" class="contentDiv">

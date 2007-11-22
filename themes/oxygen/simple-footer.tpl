@@ -1,19 +1,21 @@
 
             </div>
           </td>
-          <td id="main-right"></td>
+          <td id="mdg-mr"></td>
         </tr>
         <tr>
-          <td id="foot-left"></td>
-          <td id="foot-main">
-            {COPYRIGHT}
+          <td id="mdg-btl"></td>
+          <td>
+            <div id="credits">
+              {COPYRIGHT}
+            </div>
           </td>
-          <td id="foot-right"></td>
+          <td id="mdg-btr"></td>
         </tr>
         <tr>
-          <td id="foot-btm-left"></td>
-          <td id="foot-btm"></td>
-          <td id="foot-btm-right"></td>
+          <td id="mdg-btcl"></td>
+          <td id="mdg-btm"></td>
+          <td id="mdg-btcr"></td>
         </tr>
       </table>
     </td>
