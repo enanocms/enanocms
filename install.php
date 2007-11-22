@@ -14,7 +14,7 @@
  */
  
 @include('config.php');
-if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_GET['mode']) && ($_GET['mode']!='finish' && $_GET['mode']!='css')) || !isset($_GET['mode'])))
+if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_GET['mode']) && ($_GET['mode']!='finish' && $_GET['mode']!='css') && $_GET['mode']!='showlicense') || !isset($_GET['mode'])))
 {
   $_GET['title'] = 'Enano:Installation_locked';
   require('includes/common.php');
@@ -683,6 +683,60 @@ function run_test($code, $desc, $extended_desc, $warn = false)
 }
 function is_apache() { $r = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? true : false; return $r; }
 
+function show_license($fb = false)
+{
+  ?>
+  <div style="height: 500px; clip: rect(0px,auto,500px,auto); overflow: auto; padding: 10px; border: 1px dashed #456798; margin: 1em;">
+   <h2>GNU General Public License</h2>
+   
+   <h3>Declaration of license usage</h3>
+   <p>Enano is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.</p>
+   <p>This program is distributed in the hope that it will be useful, but <u>without any warranty</u>; without even the implied warranty of <u>merchantability</u> or <u>fitness for a particular purpose</u>. See the GNU General Public License (below) for more details.</p>
+   <p><b>By clicking the button below or otherwise continuing the installation, you indicate your acceptance of this license agreement.</b></p>
+   
+   <h3>Human-readable version</h3>
+   <p>Enano is distributed under certain licensing terms that we believe make it of the greatest possible use to the public. The license we distribute it under, the GNU General Public License, provides certain terms and conditions that, rather than limit your use of Enano, allow you to get the most out of it. If you would like to read the full text, it can be found below. Here is a human-readable version that we think is a little easier to understand.</p>
+   
+   <ul>
+     <li>You may to run Enano for any purpose.</li>
+     <li>You may study how Enano works and adapt it to your needs.</li>
+     <li>You may redistribute copies so you can help your neighbor.</li>
+     <li>You may improve Enano and release your improvements to the public, so that the whole community benefits.</li>
+   </ul>
+   
+   <p>You may exercise the freedoms specified here provided that you comply with the express conditions of this license. The principal conditions are:</p>
+   
+   <ul>
+     <li>You must conspicuously and appropriately publish on each copy distributed an appropriate copyright notice and disclaimer of warranty and keep intact all the notices that refer to this License and to the absence of any warranty; and give any other recipients of Enano a copy of the GNU General Public License along with Enano. Any translation of the GNU General Public License must be accompanied by the GNU General Public License.</li>
+     <li>If you modify your copy or copies of Enano or any portion of it, or develop a program based upon it, you may distribute the resulting work provided you do so under the GNU General Public License. Any translation of the GNU General Public License must be accompanied by the GNU General Public License.</li>
+     <li>If you copy or distribute Enano, you must accompany it with the complete corresponding machine-readable source code or with a written offer, valid for at least three years, to furnish the complete corresponding machine-readable source code.</li>
+   </ul>
+   
+   <p><b>Disclaimer</b>: The above text is not a license. It is simply a handy reference for understanding the Legal Code (the full license) &ndash; it is a human-readable expression of some of its key terms. Think of it as the user-friendly interface to the Legal Code beneath. The above text itself has no legal value, and its contents do not appear in the actual license.<br /><span style="color: #CCC">Text copied from the <a href="http://creativecommons.org/licenses/GPL/2.0/">Creative Commons GPL Deed page</a></span></p>
+   <?php
+   if ( defined('ENANO_BETA_VERSION') )
+   {
+     ?>
+     <h3>Notice for prerelease versions</h3>
+     <p>This version of Enano is designed only for testing and evaluation purposes. <b>It is not yet completely stable, and should not be used on production websites.</b> As with any Enano version, Dan Fuhry and the Enano team cannot be responsible for any damage, physical or otherwise, to any property as a result of the use of Enano. While security is a number one priority, sometimes things slip through.</p>
+     <?php
+   }
+   ?>
+   <h3>Lawyer-readable version</h3>
+   <?php echo wikiFormat(file_get_contents(ENANO_ROOT . '/GPL')); ?>
+   <?php
+   global $template;
+   if ( $fb )
+   {
+     echo '<p style="text-align: center;">Because I could never find the Create a Page button in PHP-Nuke.</p>';
+     echo '<p>' . str_replace('http://enanocms.org/', 'http://www.2robots.com/2003/10/15/web-portals-suck/', $template->fading_button) . '</p>';
+     echo '<p style="text-align: center;">It\'s not a portal, my friends.</p>';
+   }
+   ?>
+ </div>
+ <?php
+}
+
 require_once('includes/template.php');
 
 if(!isset($_GET['mode'])) $_GET['mode'] = 'welcome';
@@ -831,12 +885,15 @@ $modestrings = Array(
               'login'   => 'Administration login',
               'confirm' => 'Confirm installation',
               'install' => 'Database installation',
-              'finish'  => 'Installation complete'
+              'finish'  => 'Installation complete',
+              '_hiddenstages' => '...', // all stages below this line are hidden
+              'showlicense' => 'License Agreement'
             );
 
 $sideinfo = '';
 $vars = $template->extract_vars('elements.tpl');
 $p = $template->makeParserText($vars['sidebar_button']);
+$hidden = false;
 foreach ( $modestrings as $id => $str )
 {
   if ( $_GET['mode'] == $id )
@@ -848,12 +905,17 @@ foreach ( $modestrings as $id => $str )
   {
     $flags = '';
   }
-  $p->assign_vars(Array(
-      'HREF' => '#',
-      'FLAGS' => $flags . ' onclick="return false;"',
-      'TEXT' => $str
-    ));
-  $sideinfo .= $p->run();
+  if ( $id == '_hiddenstages' )
+    $hidden = true;
+  if ( !$hidden )
+  {
+    $p->assign_vars(Array(
+        'HREF' => '#',
+        'FLAGS' => $flags . ' onclick="return false;"',
+        'TEXT' => $str
+      ));
+    $sideinfo .= $p->run();
+  }
 }
 
 $template->init_vars();
@@ -866,7 +928,10 @@ if(isset($_GET['mode']) && $_GET['mode'] == 'css')
 }
 
 $template->header();
-if(!isset($_GET['mode'])) $_GET['mode'] = 'license';
+if ( !isset($_GET['mode']) )
+{
+  $_GET['mode'] = 'welcome';
+}
 switch($_GET['mode'])
 { 
   default:
@@ -894,39 +959,7 @@ switch($_GET['mode'])
     <h3>Welcome to the Enano installer.</h3>
      <p>Thank you for choosing Enano as your CMS. You've selected the finest in design, the strongest in security, and the latest in Web 2.0 toys. Trust us, you'll like it.</p>
      <p>To get started, please read and accept the following license agreement. You've probably seen it before.</p>
-     <div style="height: 500px; clip: rect(0px,auto,500px,auto); overflow: auto; padding: 10px; border: 1px dashed #456798; margin: 1em;">
-       <h2>GNU General Public License</h2>
-       <h3>Declaration of license usage</h3>
-       <p>Enano is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.</p>
-       <p>This program is distributed in the hope that it will be useful, but <u>without any warranty</u>; without even the implied warranty of <u>merchantability</u> or <u>fitness for a particular purpose</u>. See the GNU General Public License (below) for more details.</p>
-       <p><b>By clicking the button below or otherwise continuing the installation, you indicate your acceptance of this license agreement.</b></p>
-       <h3>Human-readable version</h3>
-       <p>Enano is distributed under certain licensing terms that we believe make it of the greatest possible use to the public. The license we distribute it under, the GNU General Public License, provides certain terms and conditions that, rather than limit your use of Enano, allow you to get the most out of it. If you would like to read the full text, it can be found below. Here is a human-readable version that we think is a little easier to understand.</p>
-       <ul>
-       <li>You may to run Enano for any purpose.</li>
-       <li>You may study how Enano works and adapt it to your needs.</li>
-       <li>You may redistribute copies so you can help your neighbor.</li>
-       <li>You may improve Enano and release your improvements to the public, so that the whole community benefits.</li>
-       </ul>
-       <p>You may exercise the freedoms specified here provided that you comply with the express conditions of this license. The principal conditions are:</p>
-       <ul>
-       <li>You must conspicuously and appropriately publish on each copy distributed an appropriate copyright notice and disclaimer of warranty and keep intact all the notices that refer to this License and to the absence of any warranty; and give any other recipients of Enano a copy of the GNU General Public License along with Enano. Any translation of the GNU General Public License must be accompanied by the GNU General Public License.</li>
-       <li>If you modify your copy or copies of Enano or any portion of it, or develop a program based upon it, you may distribute the resulting work provided you do so under the GNU General Public License. Any translation of the GNU General Public License must be accompanied by the GNU General Public License.</li>
-       <li>If you copy or distribute Enano, you must accompany it with the complete corresponding machine-readable source code or with a written offer, valid for at least three years, to furnish the complete corresponding machine-readable source code.</li>
-       </ul>
-       <p><b>Disclaimer</b>: The above text is not a license. It is simply a handy reference for understanding the Legal Code (the full license) &ndash; it is a human-readable expression of some of its key terms. Think of it as the user-friendly interface to the Legal Code beneath. The above text itself has no legal value, and its contents do not appear in the actual license.<br /><span style="color: #CCC">Text copied from the <a href="http://creativecommons.org/licenses/GPL/2.0/">Creative Commons GPL Deed page</a></span></p>
-       <?php
-       if ( defined('ENANO_BETA_VERSION') )
-       {
-         ?>
-         <h3>Notice for prerelease versions</h3>
-         <p>This version of Enano is designed only for testing and evaluation purposes. <b>It is not yet completely stable, and should not be used on production websites.</b> As with any Enano version, Dan Fuhry and the Enano team cannot be responsible for any damage, physical or otherwise, to any property as a result of the use of Enano. While security is a number one priority, sometimes things slip through.</p>
-         <?php
-       }
-       ?>
-       <h3>Lawyer-readable version</h3>
-       <?php echo wikiFormat(file_get_contents(ENANO_ROOT . '/GPL')); ?>
-     </div>
+     <?php show_license(); ?>
      <div class="pagenav">
        <form action="install.php?mode=sysreqs" method="post">
          <table border="0">
@@ -1658,6 +1691,10 @@ switch($_GET['mode'])
              <li><b>Spread the word about Enano by adding a link to the Enano homepage on your sidebar!</b> You can enable this option in the General Configuration section of the administration panel.</li>
            </ul>
            <p><a href="index.php">Go to your website...</a></p>';
+    break;
+  // this stage is never shown during the installation, but is provided for legal purposes
+  case "showlicense":
+    show_license(true);
     break;
 }
 $template->footer();

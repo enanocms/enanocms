@@ -1795,7 +1795,7 @@ class templateIndividual extends template {
  */
 
 class template_nodb {
-  var $tpl_strings, $tpl_bool, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list;
+  var $fading_button, $tpl_strings, $tpl_bool, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list;
   function __construct() {
     
     $this->tpl_bool    = Array();
@@ -1804,6 +1804,10 @@ class template_nodb {
     $this->sidebar_widgets = '';
     $this->toolbar_menu = '';
     $this->additional_headers = '<style type="text/css">div.pagenav { border-top: 1px solid #CCC; padding-top: 7px; margin-top: 10px; }</style>';
+    
+    $this->fading_button = '<div style="background-image: url('.scriptPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
+                              <a href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
+                            </div>';
     
     $this->theme_list = Array(Array(
       'theme_id'=>'oxygen',

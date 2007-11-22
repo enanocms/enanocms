@@ -289,7 +289,7 @@ function redirect($url, $title = 'Redirecting...', $message = 'Please wait while
     $template->load_theme('oxygen', 'bleu', false);
     $template->tpl_strings['SITE_NAME'] = 'Enano';
     $template->tpl_strings['SITE_DESC'] = 'This site is experiencing a critical error and cannot load.';
-    $template->tpl_strings['COPYRIGHT'] = '&copy; ' . date('Y');
+    $template->tpl_strings['COPYRIGHT'] = 'Powered by Enano CMS - &copy; 2007 Dan Fuhry. This program is Free Software; see the <a href="' . scriptPath . '/install.php?mode=license">GPL file</a> included with this package for details.';
     $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($title);
   }
 

@@ -145,7 +145,7 @@ class mysql {
       // scriptPath isn't set yet - we need to autodetect it to avoid infinite redirects
       if ( !defined('scriptPath') )
       {
-        if ( isset($_SERVER['PATH_INFO']) )
+        if ( isset($_SERVER['PATH_INFO']) && !preg_match('/index\.php$/', $_SERVER['PATH_INFO']) )
         {
           $_SERVER['REQUEST_URI'] = preg_replace(';' . preg_quote($_SERVER['PATH_INFO']) . '$;', '', $_SERVER['REQUEST_URI']);
         }
