@@ -1359,7 +1359,7 @@ switch($_GET['mode'])
       {
         var frm = document.forms.login;
         ret = true;
-        if ( frm.admin_user.value.match(/^([A-z0-9 \\-\\.]+)$/) && !frm.admin_user.value.match(/^(?:(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])\\.){3}(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])$/) && frm.admin_user.value.toLowerCase() != \'anonymous\' )
+        if ( frm.admin_user.value.match(/^([^<>&\?\'"%\n\r\t\a\/]+)$/) && !frm.admin_user.value.match(/^(?:(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])\\.){3}(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])$/) && frm.admin_user.value.toLowerCase() != \'anonymous\' )
         {
           document.getElementById(\'s_user\').src = \'images/good.gif\';
         }
