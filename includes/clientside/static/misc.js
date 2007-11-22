@@ -325,6 +325,10 @@ function ajaxPromptAdminAuth(call_on_ok, level)
 
 function ajaxAuthLoginInnerSetup()
 {
+  // let's hope this gets the image cached
+  var _ = new Image(32, 32); 
+  _.src = scriptPath + "/images/good.gif";
+  
   ajaxGet(makeUrlNS('Special', 'Login', 'act=getkey'), function() {
       if ( ajax.readyState == 4 )
       {
@@ -491,6 +495,11 @@ function ajaxValidateLogin()
         switch(response.result)
         {
           case 'success':
+            var success_win = '<div align="center" style="text-align: center;"> \
+                  <p>Success.</p> \
+                  <p><img alt=" " src="'+scriptPath+'/images/good.gif" /></p> \
+                </div>';
+            ajax_auth_mb_cache.updateContent(success_win);
             if ( typeof(ajax_auth_prompt_cache) == 'function' )
             {
               ajax_auth_prompt_cache(response.key);
