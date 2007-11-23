@@ -49,7 +49,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(
-  page_id varchar(63),
+  page_id varchar(255),
   namespace varchar(16) NOT NULL default 'Article',
   page_text text,
   char_tag varchar(63),
@@ -58,8 +58,8 @@ CREATE TABLE {{TABLE_PREFIX}}page_text(
 
 CREATE TABLE {{TABLE_PREFIX}}pages(
   page_order int(8),
-  name varchar(127),
-  urlname varchar(63),
+  name varchar(255),
+  urlname varchar(255),
   namespace varchar(16) NOT NULL default 'Article',
   special tinyint(1) default '0',
   visible tinyint(1) default '1',

@@ -54,7 +54,7 @@
   switch($_GET['do'])
   {
     default:
-      die_friendly('Invalid action', '<p>The action "'.$_GET['do'].'" is not defined. Return to <a href="'.makeUrl($paths->page).'">viewing this page\'s text</a>.</p>');
+      die_friendly('Invalid action', '<p>The action "'.htmlspecialchars($_GET['do']).'" is not defined. Return to <a href="'.makeUrl($paths->page).'">viewing this page\'s text</a>.</p>');
       break;
     case 'view':
       // echo PageUtils::getpage($paths->page, true, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
@@ -117,10 +117,18 @@
       $template->footer();
       break;
     case 'edit':
-      if(isset($_POST['_cancel'])) { header('Location: '.makeUrl($paths->page)); echo '<html><head><title>Redirecting...</title></head><body>If you haven\'t been redirected yet, <a href="'.makeUrl($paths->page).'">click here</a>.'; break; }
-      if(isset($_POST['_save'])) {
+      if(isset($_POST['_cancel']))
+      {
+        redirect(makeUrl($paths->page), '', '', 0);
+        break;
+      }
+      if(isset($_POST['_save']))
+      {
         $e = PageUtils::savepage($paths->cpage['urlname_nons'], $paths->namespace, $_POST['page_text'], $_POST['edit_summary'], isset($_POST['minor']));
-        header('Location: '.makeUrl($paths->page)); echo '<html><head><title>Redirecting...</title></head><body>If you haven\'t been redirected yet, <a href="'.makeUrl($paths->page).'">click here</a>.'; break;
+        if ( $e == 'good' )
+        {
+          redirect(makeUrl($paths->page), 'Changes saved', 'Your changes to this page have been saved. Redirecting...', 3);
+        }
       }
       $template->header();
       if(isset($_POST['_preview']))

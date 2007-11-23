@@ -623,8 +623,8 @@ class PageUtils {
         {
           $rc = '';
         }
-        echo '<td class="' . $cls . '"' . $rc . '><a href="'.makeUrlNS('User', $r['author']).'" ';
-        if ( !isPage($paths->nslist['User'] . $r['author']) )
+        echo '<td class="' . $cls . '"' . $rc . '><a href="'.makeUrlNS('User', sanitize_page_id($r['author'])).'" ';
+        if ( !isPage($paths->nslist['User'] . sanitize_page_id($r['author'])) )
         {
           echo 'class="wikilink-nonexistent"';
         }
@@ -672,8 +672,8 @@ class PageUtils {
         echo '<td class="' . $cls . '">' . $r['date_string'] . '</td class="' . $cls . '">';
         
         // User
-        echo '<td class="' . $cls . '"><a href="'.makeUrlNS('User', $r['author']).'" ';
-        if(!isPage($paths->nslist['User'] . $r['author'])) echo 'class="wikilink-nonexistent"';
+        echo '<td class="' . $cls . '"><a href="'.makeUrlNS('User', sanitize_page_id($r['author'])).'" ';
+        if(!isPage($paths->nslist['User'] . sanitize_page_id($r['author']))) echo 'class="wikilink-nonexistent"';
         echo '>' . $r['author'] . '</a></td class="' . $cls . '">';
         
         
@@ -1020,7 +1020,7 @@ class PageUtils {
         
         // Determine the name, and whether to link to the user page or not
         $name = '';
-        if($row['user_id'] > 0) $name .= '<a href="'.makeUrlNS('User', str_replace(' ', '_', $row['name'])).'">';
+        if($row['user_id'] > 0) $name .= '<a href="'.makeUrlNS('User', sanitize_page_id(' ', '_', $row['name'])).'">';
         $name .= $row['name'];
         if($row['user_id'] > 0) $name .= '</a>';
         $strings['NAME'] = $name; unset($name);

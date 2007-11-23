@@ -14,6 +14,9 @@ ALTER TABLE {{TABLE_PREFIX}}page_groups MODIFY COLUMN pg_target text DEFAULT NUL
 ALTER TABLE {{TABLE_PREFIX}}search_index COLLATE = utf8_bin, MODIFY COLUMN word varchar(64) NOT NULL;
 -- The search cache is no longer needed because of the new unified search engine
 @DROP TABLE {{TABLE_PREFIX}}search_cache;
+-- Yes, it appears we need pages with names this long after all
+ALTER TABLE {{TABLE_PREFIX}}pages MODIFY COLUMN urlname varchar(255), MODIFY COLUMN name varchar(255);
+ALTER TABLE {{TABLE_PREFIX}}page_text MODIFY COLUMN page_id varchar(255);
 ---END 1.0.2b1---
 ---BEGIN 1.0.1.1---
 ---END 1.0.1.1---
