@@ -1899,6 +1899,7 @@ class template_nodb
       'STYLE_ID'=>$this->style,
       'JS_DYNAMIC_VARS'=>'<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\';</script>',
       'SIDEBAR_RIGHT'=>'',
+      'REPORT_URI' => ''
       );
     $this->tpl_strings = array_merge($tpl_strings, $this->tpl_strings);
     
