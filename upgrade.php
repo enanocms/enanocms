@@ -13,7 +13,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-define('IN_ENANO_INSTALL', 'true');   
+define('IN_ENANO_INSTALL', 'true');
+define('IN_ENANO_UPGRADE', 'true');
 
 if(!defined('scriptPath')) {
   $sp = dirname($_SERVER['REQUEST_URI']);
@@ -27,8 +28,16 @@ if(!defined('contentPath')) {
   define('contentPath', $sp);
 }
 
-global $_starttime, $this_page, $sideinfo;
-$_starttime = microtime(true);
+global $this_page, $sideinfo;
+
+function microtime_float()
+{
+  list($usec, $sec) = explode(" ", microtime());
+  return ((float)$usec + (float)$sec);
+}
+
+global $_starttime;
+$_starttime = microtime_float();
 
 // Determine directory (special case for development servers)
 if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )

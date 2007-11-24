@@ -21,6 +21,11 @@
     function dc_watch($n)    { return false; }
     function dc_start_timer($u) { return false; }
     function dc_stop_timer($m) { return false; }
+    function microtime_float()
+    {
+      list($usec, $sec) = explode(" ", microtime());
+      return ((float)$usec + (float)$sec);
+    }
     // Determine directory (special case for development servers)
     if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )
     {

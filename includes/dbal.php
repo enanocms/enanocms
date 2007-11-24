@@ -126,7 +126,7 @@ class mysql {
     
     dc_here('dbal: trying to connect....');
     
-    if ( defined('IN_ENANO_INSTALL') )
+    if ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') )
     {
       @include(ENANO_ROOT.'/config.new.php');
     }
