@@ -92,7 +92,8 @@ $func_list = Array(
     '1.0' => Array('u_1_0_1_update_del_votes'),
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text'), // ,
     // '1.0RC2' => Array('u_1_0_populate_userpage_comments')
-    '1.0RC3' => Array('u_1_0_RC3_make_users_extra')
+    '1.0RC3' => Array('u_1_0_RC3_make_users_extra'),
+    '1.0.2b1' => Array('u_1_0_2_nuke_template_cache')
   );
 
 if(!isset($_GET['mode'])) 
@@ -438,6 +439,22 @@ function u_1_0_RC3_make_users_extra()
   
   if ( !$db->sql_query($sql) )
     $db->_die();
+}
+
+function u_1_0_2_nuke_template_cache()
+{
+  $dir = @opendir(ENANO_ROOT . '/cache');
+  if ( !$dir )
+  {
+    return false;
+  }
+  while ( ($fname = @readdir($dir)) )
+  {
+    if ( preg_match('/\.tpl\.php$/', $fname) )
+    {
+      unlink( ENANO_ROOT . '/cache/' . $fname );
+    }
+  }
 }
 
 switch($_GET['mode'])
