@@ -148,6 +148,11 @@ class mysql {
         {
           $_SERVER['REQUEST_URI'] = preg_replace(';' . preg_quote($_SERVER['PATH_INFO']) . '$;', '', $_SERVER['REQUEST_URI']);
         }
+        if ( !preg_match('/\.php$/', $_SERVER['REQUEST_URI']) )
+        {
+          // user requested http://foo/enano as opposed to http://foo/enano/index.php
+          $_SERVER['REQUEST_URI'] .= '/index.php';
+        }
         $sp = dirname($_SERVER['REQUEST_URI']);
         if($sp == '/' || $sp == '\\') $sp = '';
         define('scriptPath', $sp);
