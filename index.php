@@ -429,6 +429,17 @@
       $data = ( isset($_POST['data']) ) ? $_POST['data'] : Array('mode' => 'listgroups');
       PageUtils::aclmanager($data);
       break;
+    case 'sql_report':
+      $rev_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
+      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $rev_id );
+      $page->send_headers = true;
+      $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
+      $page->password = $pagepass;
+      $page->send(true);
+      ob_end_clean();
+      ob_start();
+      $db->sql_report();
+      break;
   }
   
   //
@@ -438,7 +449,7 @@
   {
     // Load up the HTML
     $html = ob_get_contents();
-    ob_end_clean();
+    @ob_end_clean();
     
     $html = aggressive_optimize_html($html);
     

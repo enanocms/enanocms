@@ -166,13 +166,16 @@ class PageProcessor
         $this->send_headers = false;
         $strict_no_headers = true;
       }
-      if ( $paths->pages[$pathskey]['password'] != '' && $paths->pages[$pathskey]['password'] != sha1('') )
+      if ( isset($paths->pages[$pathskey]['password']) )
       {
-        $password =& $paths->pages[$pathskey]['password'];
-        if ( $this->password != $password )
+        if ( $paths->pages[$pathskey]['password'] != '' && $paths->pages[$pathskey]['password'] != sha1('') )
         {
-          $this->err_wrong_password();
-          return false;
+          $password =& $paths->pages[$pathskey]['password'];
+          if ( $this->password != $password )
+          {
+            $this->err_wrong_password();
+            return false;
+          }
         }
       }
     }

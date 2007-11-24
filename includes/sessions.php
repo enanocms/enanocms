@@ -150,7 +150,6 @@ class sessionManager {
    * @var string
    */
    
-  //var $valid_username = '([A-Za-z0-9 \!\@\(\)-]+)';
   var $valid_username = '([^<>&\?\'"%\n\r\t\a\/]+)';
    
   /**
@@ -282,7 +281,7 @@ class sessionManager {
       {
         // Generate and stash a private key
         // This should only happen during an automated silent gradual migration to the new encryption platform.
-        $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+        $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
         $this->private_key = $aes->gen_readymade_key();
         
         $config = file_get_contents(ENANO_ROOT.'/config.php');
@@ -500,7 +499,10 @@ class sessionManager {
           else
           {
             $key = strrev($_REQUEST['auth']);
-            $super = $this->validate_session($key);
+            if ( !empty($key) && ( strlen($key) / 2 ) % 4 == 0 )
+            {
+              $super = $this->validate_session($key);
+            }
           }
           if(is_array($super))
           {
@@ -518,13 +520,13 @@ class sessionManager {
     if(!$this->compat)
     {
       // init groups
-      $q = $this->sql('SELECT g.group_name,g.group_id,m.is_mod FROM '.table_prefix.'groups AS g
-          LEFT JOIN '.table_prefix.'group_members AS m
-            ON g.group_id=m.group_id
-          WHERE ( m.user_id='.$this->user_id.' 
-            OR g.group_name=\'Everyone\')
-            ' . ( enano_version() == '1.0RC1' ? '' : 'AND ( m.pending != 1 OR m.pending IS NULL )' ) . '
-          ORDER BY group_id ASC;'); // Make sure "Everyone" comes first so the permissions can be overridden
+      $q = $this->sql('SELECT g.group_name,g.group_id,m.is_mod FROM '.table_prefix.'groups AS g' . "\n"
+        . '  LEFT JOIN '.table_prefix.'group_members AS m' . "\n"
+        . '    ON g.group_id=m.group_id' . "\n"
+        . '  WHERE ( m.user_id='.$this->user_id.'' . "\n" 
+        . '    OR g.group_name=\'Everyone\')' . "\n"
+        . '    ' . ( enano_version() == '1.0RC1' ? '' : 'AND ( m.pending != 1 OR m.pending IS NULL )' ) . '' . "\n"
+        . '  ORDER BY group_id ASC;'); // Make sure "Everyone" comes first so the permissions can be overridden
       if($row = $db->fetchrow())
       {
         do {
@@ -566,7 +568,7 @@ class sessionManager {
     $privcache = $this->private_key;
     
     // Instanciate the Rijndael encryption object
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     
     // Fetch our decryption key
     
@@ -714,7 +716,7 @@ class sessionManager {
     }
     
     // Instanciate the Rijndael encryption object
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     
     // Initialize our success switch
     $success = false;
@@ -862,7 +864,7 @@ class sessionManager {
     $session_key = "u=$username;p=$passha1;s=$salt";
     
     // Encrypt the key
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $session_key = $aes->encrypt($session_key, $this->private_key, ENC_HEX);
     
     // If we're registering an elevated-privilege key, it needs to be on GET
@@ -968,7 +970,8 @@ class sessionManager {
     
     if ( !$decrypted_key )
     {
-      die_semicritical('AES encryption error', '<p>Something went wrong during the AES decryption process.</p><pre>'.print_r($decrypted_key, true).'</pre>');
+      // die_semicritical('AES encryption error', '<p>Something went wrong during the AES decryption process.</p><pre>'.print_r($decrypted_key, true).'</pre>');
+      return false;
     }
     
     $n = preg_match('/^u='.$this->valid_username.';p=([A-Fa-f0-9]+?);s=([A-Fa-f0-9]+?)$/', $decrypted_key, $keydata);
@@ -979,16 +982,19 @@ class sessionManager {
     }
     $keyhash = md5($key);
     $salt = $db->escape($keydata[3]);
-    $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,x.* FROM '.table_prefix.'session_keys AS k
-                               LEFT JOIN '.table_prefix.'users AS u
-                                 ON ( u.user_id=k.user_id )
-                               LEFT JOIN '.table_prefix.'users_extra AS x
-                                 ON ( u.user_id=x.user_id OR x.user_id IS NULL )
-                               LEFT JOIN '.table_prefix.'privmsgs AS p
-                                 ON ( p.message_to=u.username AND p.message_read=0 )
-                               WHERE k.session_key=\''.$keyhash.'\'
-                                 AND k.salt=\''.$salt.'\'
-                               GROUP BY u.user_id;');
+    // using a normal call to $db->sql_query to avoid failing on errors here
+    $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,' . "\n"
+                             . '    u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,' . "\n"
+                             . '    x.* FROM '.table_prefix.'session_keys AS k' . "\n"
+                             . '  LEFT JOIN '.table_prefix.'users AS u' . "\n"
+                             . '    ON ( u.user_id=k.user_id )' . "\n"
+                             . '  LEFT JOIN '.table_prefix.'users_extra AS x' . "\n"
+                             . '    ON ( u.user_id=x.user_id OR x.user_id IS NULL )' . "\n"
+                             . '  LEFT JOIN '.table_prefix.'privmsgs AS p' . "\n"
+                             . '    ON ( p.message_to=u.username AND p.message_read=0 )' . "\n"
+                             . '  WHERE k.session_key=\''.$keyhash.'\'' . "\n"
+                             . '    AND k.salt=\''.$salt.'\'' . "\n"
+                             . '  GROUP BY u.user_id;');
     if ( !$query )
     {
       $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms FROM '.table_prefix.'session_keys AS k
@@ -1133,7 +1139,7 @@ class sessionManager {
     $oid = $this->user_id;
     if($level > USER_LEVEL_CHPREF)
     {
-      $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+      $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
       if(!$this->user_logged_in || $this->auth_level < USER_LEVEL_MOD) return 'success';
       // Destroy elevated privileges
       $keyhash = md5(strrev($this->sid_super));
@@ -1209,7 +1215,7 @@ class sessionManager {
    
   function rijndael_genkey()
   {
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $key = $aes->gen_readymade_key();
     $keys = getConfig('login_key_cache');
     if(is_string($keys))
@@ -1227,7 +1233,7 @@ class sessionManager {
    
   function dss_rand()
   {
-    $aes = new AESCrypt();
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $random = $aes->randkey(128);
     unset($aes);
     return md5(microtime() . $random);
@@ -1344,7 +1350,7 @@ class sessionManager {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $col_reason = ( $this->compat ) ? '"No reason entered (session manager is in compatibility mode)" AS reason' : 'reason';
-    $is_banned = false;
+    $banned = false;
     if ( $this->user_logged_in )
     {
       // check by IP, email, and username
@@ -1439,7 +1445,7 @@ class sessionManager {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Initialize AES
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     
     if(!preg_match('#^'.$this->valid_username.'$#', $username)) return 'The username you chose contains invalid characters.';
     $username = str_replace('_', ' ', $username);
@@ -1795,7 +1801,7 @@ The {$site_name} administration team
    
   function register_temp_password($user_id, $password)
   {
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $temp_pass = $aes->encrypt($password, $this->private_key, ENC_HEX);
     $this->sql('UPDATE '.table_prefix.'users SET temp_password=\'' . $temp_pass . '\',temp_password_time='.time().' WHERE user_id='.intval($user_id).';');
   }
@@ -1906,7 +1912,7 @@ The {$site_name} administration team
     if(intval($user_id) < 1) $errors[] = 'SQL injection attempt';
     
     // Instanciate the AES encryption class
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     
     // If all of our input vars are false, then we've effectively done our job so get out of here
     if($username === false && $password === false && $email === false && $realname === false && $signature === false && $user_level === false)
@@ -2200,7 +2206,9 @@ The {$site_name} administration team
     $this->acl_defaults_used = $this->perms;
     
     // Fetch sitewide defaults from the permissions table
-    $bs = 'SELECT rules FROM '.table_prefix.'acl WHERE page_id IS NULL AND namespace IS NULL AND ( ';
+    $bs = 'SELECT rules, target_type, target_id FROM '.table_prefix.'acl' . "\n"
+             . '  WHERE page_id IS NULL AND namespace IS NULL AND' . "\n"
+             . '  ( ';
     
     $q = Array();
     $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id='.$this->user_id.' )';
@@ -2211,7 +2219,7 @@ The {$site_name} administration team
         $q[] = '( target_type='.ACL_TYPE_GROUP.' AND target_id='.intval($g_id).' )';
       }
     }
-    $bs .= implode(' OR ', $q) . ' ) ORDER BY target_type ASC, target_id ASC;';
+    $bs .= implode(" OR \n    ", $q) . " ) \n  ORDER BY target_type ASC, target_id ASC;";
     $q = $this->sql($bs);
     if ( $row = $db->fetchrow() )
     {
@@ -2255,7 +2263,7 @@ The {$site_name} administration team
     }
     // The reason we're using an ORDER BY statement here is because ACL_TYPE_GROUP is less than ACL_TYPE_USER, causing the user's individual
     // permissions to override group permissions.
-    $bs .= implode(' OR ', $q) . ' ) AND (' . $pg_info . ' ( page_id=\''.$db->escape($paths->cpage['urlname_nons']).'\' AND namespace=\''.$db->escape($paths->namespace).'\' ) )     
+    $bs .= implode(" OR\n    ", $q) . " )\n  AND (" . $pg_info . ' ( page_id=\''.$db->escape($paths->cpage['urlname_nons']).'\' AND namespace=\''.$db->escape($paths->namespace).'\' ) )     
       ORDER BY target_type ASC, page_id ASC, namespace ASC;';
     $q = $this->sql($bs);
     if ( $row = $db->fetchrow() )
@@ -2697,7 +2705,8 @@ class Session_ACLPageInfo {
     }
     
     // Build a query to grab ACL info
-    $bs = 'SELECT rules FROM '.table_prefix.'acl WHERE ( ';
+    $bs = 'SELECT rules FROM '.table_prefix.'acl WHERE ' . "\n"
+          . '  ( ';
     $q = Array();
     $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id='.$session->user_id.' )';
     if(count($session->groups) > 0)
@@ -2709,7 +2718,7 @@ class Session_ACLPageInfo {
     }
     // The reason we're using an ORDER BY statement here is because ACL_TYPE_GROUP is less than ACL_TYPE_USER, causing the user's individual
     // permissions to override group permissions.
-    $bs .= implode(' OR ', $q) . ' ) AND (' . $pg_info . ' page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\' )     
+    $bs .= implode(" OR\n    ", $q) . ' ) AND (' . $pg_info . ' page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\' )     
       ORDER BY target_type ASC, page_id ASC, namespace ASC;';
     $q = $session->sql($bs);
     if ( $row = $db->fetchrow() )

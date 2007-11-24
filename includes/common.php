@@ -54,16 +54,18 @@ if(defined('ENANO_DEBUG') && version_compare(PHP_VERSION, '5.0.0') < 0)
   die(__FILE__.':'.__LINE__.': The debugConsole requires PHP 5.x.x or greater. Please comment out the ENANO_DEBUG constant in your index.php.');
 }
 
+/*
 if(defined('ENANO_DEBUG'))
 {
   require_once(ENANO_ROOT.'/includes/debugger/debugConsole.php');
 } else {
+*/
   function dc_here($m)     { return false; }
   function dc_dump($a, $g) { return false; }
   function dc_watch($n)    { return false; }
   function dc_start_timer($u) { return false; }
   function dc_stop_timer($m) { return false; }
-}
+//}
 
 if ( file_exists( ENANO_ROOT . '/_nightly.php') )
   require(ENANO_ROOT.'/_nightly.php');

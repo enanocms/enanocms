@@ -329,7 +329,7 @@ function stg_decrypt_admin_pass($act_get = false)
   if ( $act_get )
     return $decrypted_pass;
   
-  $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+  $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
   
   if ( !empty($_POST['crypt_data']) )
   {
@@ -359,7 +359,7 @@ function stg_generate_aes_key($act_get = false)
   if ( $act_get )
     return $key;
   
-  $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+  $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
   $key = $aes->gen_readymade_key();
   return true;
 }
@@ -372,7 +372,7 @@ function stg_parse_schema($act_get = false)
   
   $admin_pass = stg_decrypt_admin_pass(true);
   $key = stg_generate_aes_key(true);
-  $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+  $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
   $key = $aes->hextostring($key);
   $admin_pass = $aes->encrypt($admin_pass, $key, ENC_HEX);
   
@@ -452,7 +452,7 @@ function stg_install($_unused, $already_run)
   {
     $admin_pass = stg_decrypt_admin_pass(true);
     $key = stg_generate_aes_key(true);
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $key = $aes->hextostring($key);
     $admin_pass = $aes->encrypt($admin_pass, $key, ENC_HEX);
     $admin_user = mysql_real_escape_string($_POST['admin_user']);
@@ -1334,7 +1334,7 @@ switch($_GET['mode'])
     }
     unset($_POST['_cont']);
     require('config.new.php');
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     if ( isset($crypto_key) )
     {
       $cryptkey = $crypto_key;

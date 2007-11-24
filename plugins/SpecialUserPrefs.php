@@ -25,7 +25,7 @@ $userprefs_menu_links = Array();
 function userprefs_menu_add($section, $text, $link)
 {
   global $userprefs_menu;
-  if ( is_array($userprefs_menu[$section]) )
+  if ( isset($userprefs_menu[$section]) && is_array($userprefs_menu[$section]) )
   {
     $userprefs_menu[$section][] = Array(
       'text' => $text,
@@ -133,7 +133,7 @@ function page_Special_Preferences()
   $uid = intval($session->user_id);
   
   // Instanciate the AES encryptor
-  $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+  $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
   
   // Basic user info
   $q = $db->sql_query('SELECT username, password, email, real_name, signature, theme, style FROM '.table_prefix.'users WHERE user_id='.$uid.';');

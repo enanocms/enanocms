@@ -118,7 +118,8 @@ class pathManager {
       eval($cmd);
     }
     
-    $e = $db->sql_query('SELECT name,urlname,namespace,special,visible,comments_on,protected,delvotes,delvote_ips,wiki_mode,password FROM '.table_prefix.'pages ORDER BY name;');
+    $e = $db->sql_query('SELECT name,urlname,namespace,special,visible,comments_on,protected,delvotes,' . "\n"
+                        . '  delvote_ips,wiki_mode,password FROM '.table_prefix.'pages ORDER BY name;');
     if( !$e )
     {
       $db->_die('The error seems to have occured while selecting the page information. File: includes/paths.php; line: '.__LINE__);

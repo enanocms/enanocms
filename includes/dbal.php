@@ -27,18 +27,21 @@ function db_error_handler($errno, $errstr, $errfile = false, $errline = false, $
     case E_WARNING: case E_USER_WARNING: case E_CORE_WARNING: case E_COMPILE_WARNING: $errtype = 'Warning'; break;
   }
   $debug = debug_backtrace();
-  $debug = $debug[2]['file'] . ', line ' . $debug[2]['line'];
+  if ( !isset($debug[0]['file']) )
+    return false;
+  $debug = $debug[0]['file'] . ', line ' . $debug[0]['line'];
   echo "<b>$errtype:</b> $errstr<br />Error source:<pre>$debug</pre>";
 }
  
 class mysql {
-  var $num_queries, $query_backtrace, $latest_result, $latest_query, $_conn, $sql_stack_fields, $sql_stack_values;
+  var $num_queries, $query_backtrace, $query_times, $query_sources, $latest_result, $latest_query, $_conn, $sql_stack_fields, $sql_stack_values, $debug;
   var $row = array();
 	var $rowset = array();
   var $errhandler;
   
   function enable_errorhandler()
   {
+    // echo "DBAL: enabling error handler<br />";
     if ( function_exists('debug_backtrace') )
     {
       $this->errhandler = set_error_handler('db_error_handler');
@@ -47,6 +50,7 @@ class mysql {
   
   function disable_errorhandler()
   {
+    // echo "DBAL: disabling error handler<br />";
     if ( $this->errhandler )
     {
       set_error_handler($this->errhandler);
@@ -57,14 +61,9 @@ class mysql {
     }
   }
   
-  function sql_backtrace() {
-    $qb = explode("\n", $this->query_backtrace);
-    $bt = '';
-    //for($i=sizeof($qb)-1;$i>=0;$i--) {
-    for($i=0;$i<sizeof($qb);$i++) {
-      $bt .= $qb[$i]."\n";
-    }
-    return $bt;
+  function sql_backtrace()
+  {
+    return implode("\n-------------------------------------------------------------------\n", $this->query_backtrace);
   }
   
   function ensure_connection()
@@ -170,8 +169,12 @@ class mysql {
     }
     
     // Reset some variables
-    $this->query_backtrace = '';
+    $this->query_backtrace = array();
+    $this->query_times = array();
+    $this->query_sources = array();
     $this->num_queries = 0;
+    
+    $this->debug = ( defined('ENANO_DEBUG') );
     
     dc_here('dbal: we\'re in, selecting database...');
     $q = $this->sql_query('USE `'.$dbname.'`;');
@@ -189,8 +192,27 @@ class mysql {
   function sql_query($q)
   {
     $this->enable_errorhandler();
+    
+    if ( $this->debug && function_exists('debug_backtrace') )
+    {
+      $backtrace = @debug_backtrace();
+      if ( is_array($backtrace) )
+      {
+        $bt = $backtrace[0];
+        if ( isset($backtrace[1]['class']) )
+        {
+          if ( $backtrace[1]['class'] == 'sessionManager' )
+          {
+            $bt = $backtrace[1];
+          }
+        }
+        $this->query_sources[$q] = substr($bt['file'], strlen(ENANO_ROOT) + 1) . ', line ' . $bt['line'];
+      }
+      unset($backtrace);
+    }
+    
     $this->num_queries++;
-    $this->query_backtrace .= $q . "\n";
+    $this->query_backtrace[] = $q;
     $this->latest_query = $q;
     dc_here('dbal: making SQL query:<br /><tt>'.$q.'</tt>');
     // First make sure we have a connection
@@ -205,7 +227,9 @@ class mysql {
       grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
     }
     
+    $time_start = microtime_float();
     $r = mysql_query($q, $this->_conn);
+    $this->query_times[$q] = microtime_float() - $time_start;
     $this->latest_result = $r;
     $this->disable_errorhandler();
     return $r;
@@ -214,8 +238,9 @@ class mysql {
   function sql_unbuffered_query($q)
   {
     $this->enable_errorhandler();
+    
     $this->num_queries++;
-    $this->query_backtrace .= '(UNBUFFERED) ' . $q."\n";
+    $this->query_backtrace[] = '(UNBUFFERED) ' . $q;
     $this->latest_query = $q;
     dc_here('dbal: making SQL query:<br /><tt>'.$q.'</tt>');
     // First make sure we have a connection
@@ -230,7 +255,9 @@ class mysql {
       grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
     }
     
+    $time_start = microtime_float();
     $r = mysql_unbuffered_query($q, $this->_conn);
+    $this->query_times[$q] = microtime_float() - $time_start;
     $this->latest_result = $r;
     $this->disable_errorhandler();
     return $r;
@@ -681,6 +708,70 @@ class mysql {
 			return false;
 		}
 	}
+  /**
+   * Generates and outputs a report of all the SQL queries made during execution. Should only be called after everything's over with.
+   */
+  
+  function sql_report()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    if ( !$session->get_permissions('mod_misc') )
+    {
+      die_friendly('Access denied', '<p>You are not authorized to generate a SQL backtrace.</p>');
+    }
+    // Create copies of variables that may be changed after header is called
+    $backtrace = $this->query_backtrace;
+    $times = $this->query_times;
+    $template->header();
+    echo '<h3>SQL query log and timetable</h3>';
+    echo '<div class="tblholder">
+            <table border="0" cellspacing="1" cellpadding="4">';
+    $i = 0;
+    foreach ( $backtrace as $query )
+    {
+      $i++;
+      $unbuffered = false;
+      if ( substr($query, 0, 13) == '(UNBUFFERED) ' )
+      {
+        $query = substr($query, 13);
+        $unbuffered = true;
+      }
+      if ( $i == 1 )
+      {
+        echo '<tr>
+                <th colspan="2">SQL backtrace for a normal page load of ' . htmlspecialchars($paths->cpage['urlname']) . '</th>
+              </tr>';
+      }
+      else
+      {
+        echo '<tr>
+                <th class="subhead" colspan="2">&nbsp;</th>
+              </tr>';
+      }
+      echo '<tr>
+              <td class="row2">Query:</td>
+              <td class="row1"><pre>' . htmlspecialchars($query) . '</pre></td>
+            </tr>
+            <tr>
+              <td class="row2">Time:</td>
+              <td class="row1">' . number_format($this->query_times[$query], 6) . ' seconds</td>
+            </tr>
+            <tr>
+              <td class="row2">Unbuffered:</td>
+              <td class="row1">' . ( $unbuffered ? 'Yes' : 'No' ) . '</td>
+            </tr>';
+      if ( isset($this->query_sources[$query]) )
+      {
+        echo '<tr>
+                <td class="row2">Called from:</td>
+                <td class="row1">' . $this->query_sources[$query] . '</td>
+              </tr>';
+      }
+    }
+    echo '  </table>
+          </div>';
+    $template->footer();
+  }
 }
 
 ?>

@@ -376,7 +376,7 @@ function page_Special_Register()
         
         if ( $_POST['use_crypt'] == 'yes' )
         {
-          $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+          $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
           $crypt_key = $session->fetch_public_key($_POST['crypt_key']);
           if ( !$crypt_key )
           {
@@ -1067,7 +1067,7 @@ function page_Special_PasswordReset()
     
     if ( isset($_POST['do_stage2']) )
     {
-      $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+      $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
       if($_POST['use_crypt'] == 'yes')
       {
         $crypt_key = $session->fetch_public_key($_POST['crypt_key']);
