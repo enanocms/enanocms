@@ -42,7 +42,8 @@ function page_Special_SearchRebuild()
   global $db, $session, $paths, $template, $plugins; // Common objects
   if(!$session->get_permissions('mod_misc')) die_friendly('Unauthorized', '<p>You need to be an administrator to rebuild the search index</p>');
   $template->header();
-  if($paths->rebuild_search_index())
+  @set_time_limit(0);
+  if($paths->rebuild_search_index(true))
     echo '<p>Index rebuilt!</p>';
   else
     echo '<p>Index was not rebuilt due to an error.';
@@ -94,7 +95,7 @@ function page_Special_Search()
   
   $qin = ( isset($q) ) ? str_replace('"', '\"', htmlspecialchars($q)) : '';
   $search_form = '<form action="' . makeUrlNS('Special', 'Search') . '">
-  <input type="text" tabindex="1" name="q" size="50" value="' . $qin . '" />&nbsp;<input tabindex="2" type="submit" value="Search" />
+  <input type="text" tabindex="1" name="q" size="50" value="' . $qin . '" />&nbsp;<input tabindex="2" type="submit" value="Search" />&nbsp;<a href="' . makeUrlNS('Special', 'Search') . '">Advanced search</a>
   ' . ( $session->auth_level > USER_LEVEL_MEMBER ? '<input type="hidden" name="auth" value="' . $session->sid_super . '" />' : '' ) . '
   </form>';
   
@@ -133,10 +134,10 @@ LONGSTRING;
     foreach ( $results as $i => $_ )
     {
       $result =& $results[$i];
-      $result['page_text'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="highlight">', '</span>'), $result['page_text']);
+      $result['page_text'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="search-term">', '</span>'), $result['page_text']);
       if ( !empty($result['page_text']) )
         $result['page_text'] .= '<br />';
-      $result['page_name'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="highlight">', '</span>'), $result['page_name']);
+      $result['page_name'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="title-search-term">', '</span>'), $result['page_name']);
       if ( $result['page_length'] >= 1048576 )
       {
         $result['page_length'] = round($result['page_length'] / 1048576, 1);

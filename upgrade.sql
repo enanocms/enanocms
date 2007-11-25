@@ -10,13 +10,13 @@ ALTER TABLE {{TABLE_PREFIX}}page_groups MODIFY COLUMN pg_target text DEFAULT NUL
 -- I have no idea how or why, but the f'ing index didn't get created for who-knows-how-many releases.
 -- We'll attempt to create it here, but don't die if it fails
 @ALTER TABLE {{TABLE_PREFIX}}page_text ENGINE = MYISAM, COLLATE = utf8_bin, CHARSET = utf8;
-@CREATE FULLTEXT INDEX {{TABLE_PREFIX}}page_search_idx ON {{TABLE_PREFIX}}page_text(page_id, namespace, page_text);
 ALTER TABLE {{TABLE_PREFIX}}search_index CHARSET = utf8, COLLATE = utf8_bin, MODIFY COLUMN word varchar(64) NOT NULL;
 -- The search cache is no longer needed because of the new unified search engine
 @DROP TABLE {{TABLE_PREFIX}}search_cache;
 -- Yes, it appears we need pages with names this long after all
 ALTER TABLE {{TABLE_PREFIX}}pages MODIFY COLUMN urlname varchar(255), MODIFY COLUMN name varchar(255);
-ALTER TABLE {{TABLE_PREFIX}}page_text MODIFY COLUMN page_id varchar(255);
+ALTER TABLE {{TABLE_PREFIX}}page_text MODIFY COLUMN page_id varchar(255), MODIFY COLUMN namespace varchar(63), MODIFY COLUMN page_text longtext;
+@CREATE FULLTEXT INDEX {{TABLE_PREFIX}}page_search_idx ON {{TABLE_PREFIX}}page_text(page_id, namespace, page_text);
 ---END 1.0.2b1---
 ---BEGIN 1.0.1.1---
 ---END 1.0.1.1---

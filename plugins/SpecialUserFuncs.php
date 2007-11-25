@@ -198,11 +198,17 @@ function page_Special_Login()
         <tr>
           <td class="row2">Password:<br /></td><td class="row1"><input name="pass" size="25" type="password" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '2' : '1'; ?>" /></td>
          </tr>
-         <?php if ( $level <= USER_LEVEL_MEMBER ) { ?>
+         <?php if ( $level <= USER_LEVEL_MEMBER && ( !isset($_GET['use_crypt']) || ( isset($_GET['use_crypt']) && $_GET['use_crypt'] != '0' ) ) ) { ?>
          <tr>
            <td class="row3" colspan="3">
              <p><b>Important note regarding cryptography:</b> Some countries do not allow the import or use of cryptographic technology. If you live in one of the countries listed below, you should <a href="<?php if($p=$paths->getParam(0))$u='/'.$p;else $u='';echo makeUrl($paths->page.$u, 'level='.$level.'&use_crypt=0', true); ?>">log in without using encryption</a>.</p>
              <p>This restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.</p>
+           </td>
+         </tr>
+         <?php } else if ( isset($_GET['use_crypt']) && $_GET['use_crypt'] == '0' && $level <= USER_LEVEL_MEMBER ) { ?>
+         <tr>
+           <td class="row3" colspan="3">
+             <p><b>Encrypted logon has been disabled.</b> Unless you live in a country where encryption technology is illegal, you should <a href="<?php if($p=$paths->getParam(0))$u='/'.$p;else $u='';echo makeUrl($paths->page.$u, 'level='.$level.'&use_crypt=1', true); ?>">use encryption when you log on</a> to help protect against password sniffing.</p>
            </td>
          </tr>
          <?php } ?>

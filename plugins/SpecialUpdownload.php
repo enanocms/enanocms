@@ -218,12 +218,25 @@ function page_Special_DownloadFile()
   global $do_gzip;
   $filename = rawurldecode($paths->getParam(0));
   $timeid = $paths->getParam(1);
-  if($timeid && preg_match('#^([0-9]+)$#', (string)$timeid)) $tid = ' AND time_id='.$timeid;
-  else $tid = '';
+  if ( $timeid && preg_match('#^([0-9]+)$#', (string)$timeid) )
+  {
+    $tid = ' AND time_id='.$timeid;
+  }
+  else
+  {
+    $tid = '';
+  }
   $filename = $db->escape($filename);
   $q = $db->sql_query('SELECT page_id,size,mimetype,time_id,file_extension,file_key FROM '.table_prefix.'files WHERE filename=\''.$filename.'\''.$tid.' ORDER BY time_id DESC;');
-  if(!$q) $db->_die('The file data could not be selected.');
-  if($db->numrows() < 1) { header('HTTP/1.1 404 Not Found'); die_friendly('File not found', '<p>The file "'.$filename.'" cannot be found.</p>'); }
+  if ( !$q )
+  {
+    $db->_die('The file data could not be selected.');
+  }
+  if ( $db->numrows() < 1 )
+  {
+    header('HTTP/1.1 404 Not Found');
+    die_friendly('File not found', '<p>The file "'.$filename.'" cannot be found.</p>');
+  }
   $row = $db->fetchrow();
   $db->free_result();
   

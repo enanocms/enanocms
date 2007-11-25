@@ -573,8 +573,16 @@ class sessionManager {
     // Fetch our decryption key
     
     $aes_key = $this->fetch_public_key($aes_key_id);
-    if(!$aes_key)
+    if ( !$aes_key )
+    {
+      // It could be that our key cache is full. If it seems larger than 65KB, clear it
+      if ( strlen(getConfig('login_key_cache')) > 65000 )
+      {
+        setConfig('login_key_cache', '');
+        return 'It seems that the list of encryption keys used for login information has reached its maximum length, thus preventing new keys from being inserted. The list has been automatically cleared. Please try logging in again; if you are still unable to log in, please contact the site administration.';
+      }
       return 'Couldn\'t look up public key "'.htmlspecialchars($aes_key_id).'" for decryption';
+    }
     
     // Convert the key to a binary string
     $bin_key = hexdecode($aes_key);

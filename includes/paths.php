@@ -677,17 +677,30 @@ class pathManager {
   
   /**
    * Rebuilds the search index
+   * @param bool If true, prints out status messages
    */
    
-  function rebuild_search_index()
+  function rebuild_search_index($verbose = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $search = new Searcher();
+    if ( $verbose )
+    {
+      echo '<p>';
+    }
     $texts = Array();
     $textq = $db->sql_unbuffered_query($this->fetch_page_search_resource());
     if(!$textq) $db->_die('');
     while($row = $db->fetchrow())
     {
+      if ( $verbose )
+      {
+        ob_start();
+        echo "Indexing page " . $this->nslist[$row['namespace']] . sanitize_page_id($row['page_id']) . "<br />";
+        ob_flush();
+        while (@ob_end_flush());
+        flush();
+      }
       if ( isset($this->nslist[$row['namespace']]) )
       {
         $idstring = $this->nslist[$row['namespace']] . sanitize_page_id($row['page_id']);
@@ -706,7 +719,19 @@ class pathManager {
       }
       $texts[(string)$row['page_idstring']] = $row['page_text'] . ' ' . $page['name'];
     }
+    if ( $verbose )
+    {
+      ob_start();
+      echo "Calculating word list...";
+      ob_flush();
+      while (@ob_end_flush());
+      flush();
+    }
     $search->buildIndex($texts);
+    if ( $verbose )
+    {
+      echo '</p>';
+    }
     // echo '<pre>'.print_r($search->index, true).'</pre>';
     // return;
     $q = $db->sql_query('DELETE FROM '.table_prefix.'search_index');
