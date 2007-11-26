@@ -634,6 +634,6 @@ function insertAfter(parent, baby, bigsister)
 
 function validateEmail(email)
 {
-  return ( email.match(/^(?:[\w\d]+\.?)+@((?:(?:[\w\d]\-?)+\.)+\w{2,4}|localhost)$/) ) ? true : false;
+  return ( email.match(/^(?:[\w\d_-]+\.?)+@((?:(?:[\w\d_-]\-?)+\.)+\w{2,4}|localhost)$/) ) ? true : false;
 }
 
