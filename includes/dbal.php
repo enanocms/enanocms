@@ -773,6 +773,15 @@ class mysql {
               </tr>';
       }
     }
+    if ( function_exists('array_sum') )
+    {
+      $query_time_total = array_sum($this->query_times);
+      echo '<tr>
+              <th class="subhead" colspan="2">
+                Total time taken for SQL queries: ' . round( $query_time_total, 6 ) . ' seconds
+              </th>
+            </tr>';
+    }
     echo '  </table>
           </div>';
     $template->footer();
