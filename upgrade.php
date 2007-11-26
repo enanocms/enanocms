@@ -93,7 +93,7 @@ $func_list = Array(
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text'), // ,
     // '1.0RC2' => Array('u_1_0_populate_userpage_comments')
     '1.0RC3' => Array('u_1_0_RC3_make_users_extra'),
-    '1.0.2b1' => Array('u_1_0_2_nuke_template_cache')
+    '1.0.2b1' => Array('u_1_0_2_nuke_template_cache', 'u_1_0_2_rebuild_search_index')
   );
 
 if(!isset($_GET['mode'])) 
@@ -455,6 +455,13 @@ function u_1_0_2_nuke_template_cache()
       unlink( ENANO_ROOT . '/cache/' . $fname );
     }
   }
+}
+
+function u_1_0_2_rebuild_search_index()
+{
+  global $paths;
+  @set_time_limit(0);
+  $paths->rebuild_search_index();
 }
 
 switch($_GET['mode'])
