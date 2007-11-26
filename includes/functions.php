@@ -2797,7 +2797,7 @@ function gzip_output()
 /**
  * Aggressively and hopefully non-destructively optimizes a blob of HTML.
  * @param string HTML to process
- * @return string much snaller HTML
+ * @return string much smaller HTML
  */
 
 function aggressive_optimize_html($html)
