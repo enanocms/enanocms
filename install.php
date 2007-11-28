@@ -833,6 +833,25 @@ switch($_GET['mode'])
                        using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection. <!-- , or by
                        using the "embedded PHP kill switch" in the administration panel. --></p>';
         break;
+      case 'url_schemes':
+        $title = 'URL schemes';
+        $content = '<p>The URL scheme allows you to decide how the URLs to your Enano pages will look.</p>
+                    <p>The first option (Standard URLs) works on any web server. You should select it if your server doesn\'t run Apache, or
+                       if you are at all unsure of your server\'s configuration. With this scheme, URLs at your site will look like <tt>
+                       http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.</p>
+                    <p>The second option, Small URLs, will be selected by default if Enano detects Apache. Small URLs are more friendly towards
+                       search engines, but they don\'t work on very many non-Apache servers, or if PHP is set up through CGI on your server. Many
+                       free and low-cost web hosts will configure PHP through CGI in order to keep your user account as the owner of any files that
+                       Enano generates. With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.
+                       </p>
+                    <p>The last option, Tiny URLs, is the most friendly URL scheme for search engines, because your URLs won\'t have any special characters
+                       at all in them. However, this only works if your webhost has configured Apache with support for mod_rewrite. Most of the time if your
+                       host supports this you will see a listing for it in their feature matrix. None of the popular Linux distributions (such as Ubuntu,
+                       Debian, Red Hat Enterprise Linux&trade;, Fedora, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
+                       home-brew server, you should consult your distribution\'s documentation for enabling mod_rewrite before selecting this option.
+                       With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
+                       </p>';
+        break;
       default:
         $title = 'Invalid topic';
         $content = 'Invalid help topic.';
@@ -1315,7 +1334,7 @@ switch($_GET['mode'])
         <tr><td><b>Website description</b><br />This text will be shown below the name of your website.</td><td><input onkeyup="verify();" name="sitedesc" type="text" size="30" /></td><td><img id="s_desc" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
         <tr><td><b>Copyright info</b><br />This should be a one-line legal notice that will appear at the bottom of all your pages.</td><td><input onkeyup="verify();" name="copyright" type="text" size="30" /></td><td><img id="s_copyright" alt="Good/bad icon" src="images/bad.gif" /></td></tr>
         <tr><td><b>Wiki mode</b><br />This feature allows people to create and edit pages on your site. Enano keeps a history of all page modifications, and you can protect pages to prevent editing.</td><td><input name="wiki_mode" type="checkbox" id="wmcheck" />  <label for="wmcheck">Yes, make my website a wiki.</label></td><td></td></tr>
-        <tr><td><b>URL scheme</b><br />Choose how the page URLs will look. Depending on your server configuration, you may need to select the first option. If you don't know, select the first option, and you can always change it later.</td><td colspan="2"><input type="radio" <?php if(!is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="ugly" id="ugly">  <label for="ugly">Standard URLs - compatible with any web server (www.example.com/index.php?title=Page_name)</label><br /><input type="radio" <?php if(is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="short" id="short">  <label for="short">Short URLs - requires Apache with a PHP module (www.example.com/index.php/Page_name)</label><br /><input type="radio" name="urlscheme" value="tiny" id="petite">  <label for="petite">Tiny URLs - requires Apache on Linux/Unix/BSD with PHP module and mod_rewrite enabled (www.example.com/Page_name)</label></td></tr>
+        <tr><td><b>URL scheme</b><br />Choose how the page URLs will look. Depending on your server configuration, you may need to select the first option. If you don't know, select the first option, and you can always change it later.</td><td colspan="2"><input type="radio" <?php if(!is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="ugly" id="ugly">  <label for="ugly">Standard URLs - compatible with any web server (www.example.com/index.php?title=Page_name)</label><br /><input type="radio" <?php if(is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="short" id="short">  <label for="short">Short URLs - requires Apache with a PHP module (www.example.com/index.php/Page_name)</label><br /><input type="radio" name="urlscheme" value="tiny" id="petite">  <label for="petite">Tiny URLs - requires Apache on Linux/Unix/BSD with PHP module and mod_rewrite enabled (www.example.com/Page_name)</label><br /><small><a href="install.php?mode=pophelp&amp;topic=url_schemes" onclick="window.open(this.href, 'pophelpwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes'); return false;">Which URL scheme should I choose?</a></small></td></tr>
       </table>
       <div class="pagenav">
        <table border="0">
