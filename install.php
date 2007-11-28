@@ -979,6 +979,7 @@ switch($_GET['mode'])
     <table border="0" cellspacing="0" cellpadding="0">
     <?php
     run_test('return version_compare(\'4.3.0\', PHP_VERSION, \'<\');', 'PHP Version >=4.3.0', 'It seems that the version of PHP that your server is running is too old to support Enano properly. If this is your server, please upgrade to the most recent version of PHP, remembering to use the --with-mysql configure option if you compile it yourself. If this is not your server, please contact your webhost and ask them if it would be possible to upgrade PHP. If this is not possible, you will need to switch to a different webhost in order to use Enano.');
+    run_test('return version_compare(\'5.2.0\', PHP_VERSION, \'<\');', 'PHP 5.2.0 or later', 'Your server does not have support for PHP 5.2.0. While you may continue installing Enano, please be warned that as of December 31, 2007, all support for Enano on PHP 4 servers is discontinued. If you have at least PHP 5.0.0, support will still be available, but there are many security problems in PHP versions under 5.2.0 that Enano cannot effectively prevent.', true);
     run_test('return function_exists(\'mysql_connect\');', 'MySQL extension for PHP', 'It seems that your PHP installation does not have the MySQL extension enabled. If this is your own server, you may need to just enable the "libmysql.so" extension in php.ini. If you do not have the MySQL extension installed, you will need to either use your distribution\'s package manager to install it, or you will have to compile PHP from source. If you compile PHP from source, please remember to use the "--with-mysql" configure option, and you will have to have the MySQL development files installed (they usually are). If this is not your server, please contact your hosting company and ask them to install the PHP MySQL extension.');
     run_test('return @ini_get(\'file_uploads\');', 'File upload support', 'It seems that your server does not support uploading files. Enano *requires* this functionality in order to work properly. Please ask your server administrator to set the "file_uploads" option in php.ini to "On".');
     run_test('return is_apache();', 'Apache HTTP Server', 'Apparently your server is running a web server other than Apache. Enano will work nontheless, but there are some known bugs with non-Apache servers, and the "fancy" URLs will not work properly. The "Standard URLs" option will be set on the website configuration page, only change it if you are absolutely certain that your server is running Apache.', true);
@@ -996,7 +997,7 @@ switch($_GET['mode'])
       <?php
       if($warned) {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
-        run_test('return false;', 'Some scalebacks were made due to your server configuration.', 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, certain features or enhancements that are part of Enano have been disabled to prevent further errors. You have seen those "fatal error" notices that spew from PHP, haven\'t you?<br /><br />Fatal error:</b> call to undefined function wannahokaloogie() in file <b>'.__FILE__.'</b> on line <b>'.__LINE__.'', true);
+        run_test('return false;', 'Some of the features of Enano have been turned off to accommodate your server.', 'Enano has detected that some of the features or configuration settings on your server are not optimal for the best behavior and/or performance for Enano. As a result, Enano has disabled these features as a precaution to prevent errors and potential security issues.', true);
         echo '</table>';
       } else {
         echo '<table border="0" cellspacing="0" cellpadding="0">';
@@ -1377,7 +1378,7 @@ switch($_GET['mode'])
           document.getElementById(\'s_password\').src = \'images/bad.gif\';
           ret = false;
         }
-        if(frm.admin_email.value.match(/^(?:[\\w\\d]+\\.?)+@(?:(?:[\\w\\d]\\-?)+\\.)+\\w{2,4}$/))
+        if(frm.admin_email.value.match(/^(?:[\\w\\d_-]+\\.?)+@(?:(?:[\\w\\d-]\\-?)+\\.)+\\w{2,4}$/))
         {
           document.getElementById(\'s_email\').src = \'images/good.gif\';
         }
