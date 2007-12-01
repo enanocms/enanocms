@@ -119,6 +119,7 @@ require(ENANO_ROOT.'/includes/sessions.php');
 require(ENANO_ROOT.'/includes/plugins.php');
 require(ENANO_ROOT.'/includes/rijndael.php');
 require(ENANO_ROOT.'/includes/render.php');
+require(ENANO_ROOT.'/includes/search.php');
 $db = new mysql();
 $db->connect();
 
