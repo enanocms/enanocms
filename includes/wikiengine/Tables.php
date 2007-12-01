@@ -277,6 +277,13 @@
 	 * @return HTML-encoded text fragment
 	 */
 	function encodeAttribute( $text ) {
+    
+    // In Enano 1.0.3, added this cheapo hack to keep ampersands
+    // from being double-sanitized. Thanks to markybob from #deluge.
+    $encValue = strtr( $text, array(
+      '&amp;' => '&'
+    ) );
+    
 		$encValue = htmlspecialchars( $text );
 		
 		// Whitespace is normalized during attribute decoding,
