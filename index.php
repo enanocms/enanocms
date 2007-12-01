@@ -50,7 +50,10 @@
   
   global $db, $session, $paths, $template, $plugins; // Common objects
   
-  if(!isset($_GET['do'])) $_GET['do'] = 'view';
+  if ( !isset($_GET['do']) )
+  {
+    $_GET['do'] = 'view';
+  }
   switch($_GET['do'])
   {
     default:
