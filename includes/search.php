@@ -19,7 +19,7 @@
  * @param array $arr2
  * @return array
  */
- 
+
 function enano_safe_array_merge($arr1, $arr2)
 {
   $arr3 = $arr1;
@@ -34,7 +34,7 @@ function enano_safe_array_merge($arr1, $arr2)
  * In Enano versions prior to 1.0.2, this class provided a search function that was keyword-based and allowed boolean searches. It was
  * cut from Coblynau and replaced with perform_search(), later in this file, because of speed issues. Now mostly deprecated. The only
  * thing remaining is the buildIndex function, which is still used by the path manager and the new search framework.
- * 
+ *
  * @package Enano
  * @subpackage Page management frontend
  * @license GNU General Public License <http://enanocms.org/Special:GNU_General_Public_License>
@@ -42,17 +42,17 @@ function enano_safe_array_merge($arr1, $arr2)
 
 class Searcher
 {
-  
+
   var $results;
   var $index;
   var $warnings;
   var $match_case = false;
-  
+
   function buildIndex($texts)
   {
     $this->index = Array();
     $stopwords = get_stopwords();
-    
+
     foreach($texts as $i => $l)
     {
       $seed = md5(microtime(true) . mt_rand());
@@ -119,15 +119,15 @@ function perform_search($query, &$warnings, $case_sensitive = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $warnings = array();
-  
+
   $query = parse_search_query($query, $warnings);
-  
+
   // Segregate search terms containing spaces
   $query_phrase = array(
     'any' => array(),
     'req' => array()
     );
-  
+
   foreach ( $query['any'] as $i => $_ )
   {
     $term =& $query['any'][$i];
@@ -141,7 +141,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
   }
   unset($term);
   $query['any'] = array_values($query['any']);
-  
+
   foreach ( $query['req'] as $i => $_ )
   {
     $term =& $query['req'][$i];
@@ -154,12 +154,13 @@ function perform_search($query, &$warnings, $case_sensitive = false)
   }
   unset($term);
   $query['req'] = array_values($query['req']);
-  
+
   $results = array();
   $scores = array();
-  
+  $ns_list = '(' . implode('|', array_keys($paths->nslist)) . ')';
+
   // FIXME: Update to use FULLTEXT algo when available.
-  
+
   // Build an SQL query to load from the index table
   if ( count($query['any']) < 1 && count($query['req']) < 1 && count($query_phrase['any']) < 1 && count($query_phrase['req']) < 1 )
   {
@@ -167,14 +168,14 @@ function perform_search($query, &$warnings, $case_sensitive = false)
     $warnings[] = 'You need to have at least one keyword in your search query. Searching only for pages not containing a term is not allowed.';
     return array();
   }
-  
+
   //
   // STAGE 1
   // Get all possible result pages from the search index. Tally which pages have the most words, and later sort them by boolean relevance
   //
-  
+
   // Skip this if no indexable words are included
-  
+
   if ( count($query['any']) > 0 || count($query['req']) > 0 )
   {
     $where_any = array();
@@ -192,18 +193,18 @@ function perform_search($query, &$warnings, $case_sensitive = false)
         $term = strtolower($term);
       $where_any[] = $term;
     }
-    
+
     $col_word = ( $case_sensitive ) ? 'word' : 'lcase(word)';
     $where_any = ( count($where_any) > 0 ) ? '( ' . $col_word . ' = \'' . implode('\' OR ' . $col_word . ' = \'', $where_any) . '\' )' : '';
-    
+
     // generate query
     // using a GROUP BY here ensures that the same word with a different case isn't counted as 2 words - it's all melted back
     // into one later in the processing stages
-    $group_by = ( $case_sensitive ) ? '' : ' GROUP BY lcase(word);';
-    $sql = "SELECT word, page_names FROM " . table_prefix . "search_index WHERE {$where_any}{$group_by}";
+    // $group_by = ( $case_sensitive ) ? '' : ' GROUP BY lcase(word);';
+    $sql = "SELECT word, page_names FROM " . table_prefix . "search_index WHERE {$where_any}";
     if ( !($q = $db->sql_unbuffered_query($sql)) )
       $db->_die('Error is in perform_search(), includes/search.php, query 1');
-    
+
     $word_tracking = array();
     if ( $row = $db->fetchrow() )
     {
@@ -211,11 +212,10 @@ function perform_search($query, &$warnings, $case_sensitive = false)
       {
         // get page list
         $pages =& $row['page_names'];
-        $ns_list = '(' . implode('|', array_keys($paths->nslist)) . ')';
         if ( strpos($pages, ',') )
         {
           // the term occurs in more than one page
-          
+
           // Find page IDs that contain commas
           // This should never happen because commas are escaped by sanitize_page_id(). Nevertheless for compatibility with older
           // databases, and to alleviate the concerns of hackers, we'll accommodate for page IDs with commas here by checking for
@@ -235,62 +235,104 @@ function perform_search($query, &$warnings, $case_sensitive = false)
             $prev = $i;
           }
           unset($match);
-          
+
           // Iterate through each of the results, assigning scores based on how many times the page has shown up.
           // This works because this phase of the search is strongly word-based not page-based. If a page shows up
           // multiple times while fetching the result rows from the search_index table, it simply means that page
           // contains more than one of the terms the user searched for.
-          
+
           foreach ( $matches as $match )
           {
-            if ( isset($scores[$match]) )
+            $word_cs = (( $case_sensitive ) ? $row['word'] : strtolower($row['word']));
+            if ( isset($word_tracking[$match]) && in_array($word_cs, $word_tracking[$match]) )
             {
-              $scores[$match]++;
-            }
-            else
-            {
-              $scores[$match] = 1;
+              continue;
             }
             if ( isset($word_tracking[$match]) )
             {
-              $word_tracking[$match][] = $row['word'];
+              if ( isset($word_tracking[$match]) )
+              {
+                $word_tracking[$match][] = ($word_cs);
+              }
             }
             else
             {
-              $word_tracking[$match] = array($row['word']);
+              $word_tracking[$match] = array($word_cs);
+            }
+            $inc = 1;
+
+            // Is this search term present in the page's title? If so, give extra points
+            preg_match("/^ns=$ns_list;pid=(.+)$/", $match, $piecesparts);
+            $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
+            if ( isset($paths->pages[$pathskey]) )
+            {
+              $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
+              if ( $test_func($paths->pages[$pathskey]['name'], $row['word']) || $test_func($paths->pages[$pathskey]['urlname_nons'], $row['word']) )
+              {
+                $inc = 1.5;
+              }
+            }
+            if ( isset($scores[$match]) )
+            {
+              $scores[$match] = $scores[$match] + $inc;
+            }
+            else
+            {
+              $scores[$match] = $inc;
             }
           }
         }
         else
         {
           // the term only occurs in one page
-          if ( isset($scores[$pages]) )
+          $word_cs = (( $case_sensitive ) ? $row['word'] : strtolower($row['word']));
+          if ( isset($word_tracking[$pages]) && in_array($word_cs, $word_tracking[$pages]) )
           {
-            $scores[$pages]++;
-          }
-          else
-          {
-            $scores[$pages] = 1;
+            continue;
           }
           if ( isset($word_tracking[$pages]) )
           {
-            $word_tracking[$pages][] = $row['word'];
+            if ( isset($word_tracking[$pages]) )
+            {
+              $word_tracking[$pages][] = ($word_cs);
+            }
           }
           else
           {
-            $word_tracking[$pages] = array($row['word']);
+            $word_tracking[$pages] = array($word_cs);
+          }
+          $inc = 1;
+
+          // Is this search term present in the page's title? If so, give extra points
+          preg_match("/^ns=$ns_list;pid=(.+)$/", $pages, $piecesparts);
+          $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
+          if ( isset($paths->pages[$pathskey]) )
+          {
+            $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
+            if ( $test_func($paths->pages[$pathskey]['name'], $row['word']) || $test_func($paths->pages[$pathskey]['urlname_nons'], $row['word']) )
+            {
+              $inc = 1.5;
+            }
+          }
+          if ( isset($scores[$pages]) )
+          {
+            $scores[$pages] = $scores[$pages] + $inc;
+          }
+          else
+          {
+            $scores[$pages] = $inc;
           }
         }
       }
       while ( $row = $db->fetchrow() );
     }
     $db->free_result();
-  
+
     //
     // STAGE 2: FIRST ELIMINATION ROUND
     // Iterate through the list of required terms. If a given page is not found to have the required term, eliminate it
     //
-    
+
     foreach ( $query['req'] as $term )
     {
       foreach ( $word_tracking as $i => $page )
@@ -302,85 +344,108 @@ function perform_search($query, &$warnings, $case_sensitive = false)
       }
     }
   }
-  
+
   //
   // STAGE 3: PHRASE SEARCHING
   // Use LIKE to find pages with specified phrases. We can do a super-picky single query without another elimination round because
   // at this stage we can search the full page_text column instead of relying on a word list.
   //
-  
+
   // We can skip this stage if none of these special terms apply
-  
+
   $text_col = ( $case_sensitive ) ? 'page_text' : 'lcase(page_text)';
-  
+  $name_col = ( $case_sensitive ) ? 'name' : 'lcase(name)';
+  $text_col_join = ( $case_sensitive ) ? 't.page_text' : 'lcase(t.page_text)';
+  $name_col_join = ( $case_sensitive ) ? 'p.name' : 'lcase(p.name)';
+
   if ( count($query_phrase['any']) > 0 || count($query_phrase['req']) > 0 )
   {
-  
+
     $where_any = array();
     foreach ( $query_phrase['any'] as $term )
     {
       $term = escape_string_like($term);
       if ( !$case_sensitive )
         $term = strtolower($term);
-      $where_any[] = $term;
+      $where_any[] = "( $text_col LIKE '%$term%' OR $name_col LIKE '%$term%' )";
     }
-    
-    $where_any = ( count($where_any) > 0 ) ? "( $text_col LIKE '%" . implode("%' OR $text_col LIKE '%", $where_any) . "%' )" : '';
-    
-    // Also do required columns, but use AND to ensure that all required terms are included
+
+    $where_any = ( count($where_any) > 0 ) ? implode(" OR\n  ", $where_any) : '';
+
+    // Also do required terms, but use AND to ensure that all required terms are included
     $where_req = array();
     foreach ( $query_phrase['req'] as $term )
     {
       $term = escape_string_like($term);
       if ( !$case_sensitive )
         $term = strtolower($term);
-      $where_req[] = $term;
+      $where_req[] = "( $text_col LIKE '%$term%' OR $name_col LIKE '%$term%' )";
     }
     $and_clause = ( $where_any != '' ) ? 'AND ' : '';
-    $where_req = ( count($where_req) > 0 ) ? "{$and_clause}$text_col LIKE '%" . implode("%' AND $text_col LIKE '%", $where_req) . "%'" : '';
-    
-    $sql = 'SELECT CONCAT("ns=",namespace,";pid=",page_id) AS id FROM ' . table_prefix . "page_text WHERE $where_any $where_req;";
+    $where_req = ( count($where_req) > 0 ) ? "{$and_clause}" . implode(" AND\n  ", $where_req) : '';
+
+    $sql = 'SELECT CONCAT("ns=",t.namespace,";pid=",t.page_id) AS id, p.name FROM ' . table_prefix . "page_text AS t\n"
+            . "  LEFT JOIN " . table_prefix . "pages AS p\n"
+            . "    ON ( p.urlname = t.page_id AND p.namespace = t.namespace )\n"
+            . "  WHERE\n  $where_any\n  $where_req;";
     if ( !($q = $db->sql_unbuffered_query($sql)) )
       $db->_die('Error is in perform_search(), includes/search.php, query 2. Parsed query dump follows:<pre>(indexable) ' . htmlspecialchars(print_r($query, true)) . '(non-indexable) ' . htmlspecialchars(print_r($query_phrase, true)) . '</pre>');
-    
+
     if ( $row = $db->fetchrow() )
     {
       do
       {
         $id =& $row['id'];
+        $inc = 1;
+
+        // Is this search term present in the page's title? If so, give extra points
+        preg_match("/^ns=$ns_list;pid=(.+)$/", $id, $piecesparts);
+        $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
+        if ( isset($paths->pages[$pathskey]) )
+        {
+          $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
+          foreach ( array_merge($query_phrase['any'], $query_phrase['req']) as $term )
+          {
+            if ( $test_func($paths->pages[$pathskey]['name'], $term) || $test_func($paths->pages[$pathskey]['urlname_nons'], $term) )
+            {
+              $inc = 1.5;
+              break;
+            }
+          }
+        }
         if ( isset($scores[$id]) )
         {
-          $scores[$id]++;
+          $scores[$id] = $scores[$id] + $inc;
         }
         else
         {
-          $scores[$id] = 1;
+          $scores[$id] = $inc;
         }
       }
       while ( $row = $db->fetchrow() );
     }
     $db->free_result();
   }
-  
+
   //
   // STAGE 4 - SELECT PAGE TEXT AND ELIMINATE NOTS
   // At this point, we have a complete list of all the possible pages. Now we want to obtain the page text, and within the same query
   // eliminate any terms that shouldn't be in there.
   //
-  
+
   // Generate master word list for the highlighter
   $word_list = array_values(array_merge($query['any'], $query['req'], $query_phrase['any'], $query_phrase['req']));
-  
+
   $text_where = array();
   foreach ( $scores as $page_id => $_ )
   {
     $text_where[] = $db->escape($page_id);
   }
   $text_where = '( CONCAT("ns=",t.namespace,";pid=",t.page_id) = \'' . implode('\' OR CONCAT("ns=",t.namespace,";pid=",t.page_id) = \'', $text_where) . '\' )';
-  
+
   if ( count($query['not']) > 0 )
     $text_where .= ' AND';
-  
+
   $where_not = array();
   foreach ( $query['not'] as $term )
   {
@@ -390,14 +455,14 @@ function perform_search($query, &$warnings, $case_sensitive = false)
     $where_not[] = $term;
   }
   $where_not = ( count($where_not) > 0 ) ? "$text_col NOT LIKE '%" . implode("%' AND $text_col NOT LIKE '%", $where_not) . "%'" : '';
-  
+
   $sql = 'SELECT CONCAT("ns=",t.namespace,";pid=",t.page_id) AS id, t.page_id, t.namespace, CHAR_LENGTH(t.page_text) AS page_length, t.page_text, p.name AS page_name FROM ' . table_prefix . "page_text AS t
             LEFT JOIN " . table_prefix . "pages AS p
               ON ( p.urlname = t.page_id AND p.namespace = t.namespace )
             WHERE $text_where $where_not;";
   if ( !($q = $db->sql_unbuffered_query($sql)) )
     $db->_die('Error is in perform_search(), includes/search.php, query 3');
-  
+
   $page_data = array();
   if ( $row = $db->fetchrow() )
   {
@@ -405,7 +470,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
     {
       $row['page_text'] = htmlspecialchars($row['page_text']);
       $row['page_name'] = htmlspecialchars($row['page_name']);
-      
+
       // Highlight results (this is wonderfully automated)
       $row['page_text'] = highlight_and_clip_search_result($row['page_text'], $word_list, $case_sensitive);
       if ( strlen($row['page_text']) > 250 && !preg_match('/^\.\.\.(.+)\.\.\.$/', $row['page_text']) )
@@ -413,7 +478,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
         $row['page_text'] = substr($row['page_text'], 0, 150) . '...';
       }
       $row['page_name'] = highlight_search_result($row['page_name'], $word_list, $case_sensitive);
-      
+
       $page_data[$row['id']] = $row;
     }
     while ( $row = $db->fetchrow() );
@@ -424,27 +489,29 @@ function perform_search($query, &$warnings, $case_sensitive = false)
   // STAGE 5 - SPECIAL PAGE TITLE SEARCH
   // Iterate through $paths->pages and check the titles for search terms. Score accordingly.
   //
-  
-  foreach ( $paths->pages as $page )
+
+  foreach ( $paths->pages as $id => $page )
   {
     if ( $page['namespace'] != 'Special' )
       continue;
+    if ( !is_int($id) )
+      continue;
     $idstring = 'ns=' . $page['namespace'] . ';pid=' . $page['urlname_nons'];
-    $any = array_merge($query['any'], $query_phrase['any']);
+    $any = array_values(array_unique(array_merge($query['any'], $query_phrase['any'])));
     foreach ( $any as $term )
     {
       if ( $case_sensitive )
       {
         if ( strstr($page['name'], $term) || strstr($page['urlname_nons'], $term) )
         {
-          ( isset($scores[$idstring]) ) ? $scores[$idstring]++ : $scores[$idstring] = 1;
+          ( isset($scores[$idstring]) ) ? $scores[$idstring] = $scores[$idstring] + 1.5 : $scores[$idstring] = 1.5;
         }
       }
       else
       {
-        if ( strstr(strtolower($page['name']), strtolower($term)) || strstr(strtolower($page['urlname_nons']), strtolower($term)) )
+        if ( stristr($page['name'], $term) || stristr($page['urlname_nons'], $term) )
         {
-          ( isset($scores[$idstring]) ) ? $scores[$idstring]++ : $scores[$idstring] = 1;
+          ( isset($scores[$idstring]) ) ? $scores[$idstring] = $scores[$idstring] + 1.5 : $scores[$idstring] = 1.5;
         }
       }
     }
@@ -466,7 +533,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
   // STAGE 6 - SECOND ELIMINATION ROUND
   // Iterate through the list of required terms. If a given page is not found to have the required term, eliminate it
   //
-  
+
   $required = array_merge($query['req'], $query_phrase['req']);
   foreach ( $required as $term )
   {
@@ -478,54 +545,54 @@ function perform_search($query, &$warnings, $case_sensitive = false)
       }
     }
   }
-  
+
   // At this point, all of our normal results are in. However, we can also allow plugins to hook into the system and score their own
   // pages and add text, etc. as necessary.
   // Plugins are COMPLETELY responsible for using the search terms and handling Boolean logic properly
-  
+
   $code = $plugins->setHook('search_global_inner');
   foreach ( $code as $cmd )
   {
     eval($cmd);
   }
-  
+
   // a marvelous debugging aid :-)
   // die('<pre>' . htmlspecialchars(print_r($page_data, true)) . '</pre>');
-  
+
   //
   // STAGE 7 - HIGHLIGHT, TRIM, AND SCORE RESULTS
   // We now have the complete results of the search. We need to trim text down to show only portions of the page containing search
   // terms, highlight any search terms within the page, and sort the final results array in descending order of score.
   //
-  
+
   // Sort scores array
   arsort($scores);
-  
+
   // Divisor for calculating relevance scores
-  $divisor = count($query['any']) + count($query_phrase['any']) + count($query['req']) + count($query_phrase['not']);
-  
+  $divisor = ( count($query['any']) + count($query_phrase['any']) + count($query['req']) + count($query_phrase['not']) ) * 1.5;
+
   foreach ( $scores as $page_id => $score )
   {
     if ( !isset($page_data[$page_id]) )
       // It's possible that $scores contains a score for a page that was later eliminated because it contained a disallowed term
       continue;
-      
+
     // Make a copy of the datum, then delete the original (it frees up a LOT of RAM)
     $datum = $page_data[$page_id];
     unset($page_data[$page_id]);
-    
+
     // This is an internal value used for sorting - it's no longer needed.
     unset($datum['id']);
-    
+
     // Calculate score
-    if ( $score > $divisor )
-      $score = $divisor;
+    // if ( $score > $divisor )
+    //   $score = $divisor;
     $datum['score'] = round($score / $divisor, 2) * 100;
-    
+
     // Store it in our until-now-unused results array
     $results[] = $datum;
   }
-  
+
   // Our work here is done. :-D
   return $results;
 }
@@ -558,7 +625,7 @@ function parse_search_query($query, &$warnings)
     $chr = $query{$i};
     $prev = ( $i > 0 ) ? $query{ $i - 1 } : '';
     $next = ( ( $i + 1 ) < strlen($query) ) ? $query{ $i + 1 } : '';
-    
+
     if ( ( $chr == ' ' && !$in_quote ) || ( $i + 1 == strlen ( $query ) ) )
     {
       $len = ( $next == '' ) ? $i + 1 : $i - $start_term;
@@ -566,36 +633,36 @@ function parse_search_query($query, &$warnings)
       $terms[] = $word;
       $start_term = $i + 1;
     }
-    
+
     elseif ( $chr == '"' && $in_quote && $prev != '\\' )
     {
       $word = substr ( $query, $start_term, $i - $start_term + 1 );
       $start_pos = ( $next == ' ' ) ? $i + 2 : $i + 1;
       $in_quote = false;
     }
-    
+
     elseif ( $chr == '"' && !$in_quote )
     {
       $in_quote = true;
       $start_pos = $i;
     }
-    
+
   }
-  
+
   $ticker = 0;
-  
+
   foreach ( $terms as $element => $__unused )
   {
     $atom =& $terms[$element];
-    
+
     $ticker++;
-    
+
     if ( $ticker == 20 )
     {
       $warnings[] = 'Some of your search terms were excluded because searches are limited to 20 terms to prevent excessive server load.';
       break;
     }
-    
+
     if ( substr ( $atom, 0, 2 ) == '+"' && substr ( $atom, ( strlen ( $atom ) - 1 ), 1 ) == '"' )
     {
       $word = substr ( $atom, 2, ( strlen( $atom ) - 3 ) );
@@ -732,11 +799,11 @@ function highlight_search_result($pt, $words, $case_sensitive = false)
     if(!empty($words[$i]))
       $words2[] = preg_quote($words[$i]);
   }
-  
+
   $flag = ( $case_sensitive ) ? '' : 'i';
   $regex = '/(' . implode('|', $words2) . ')/' . $flag;
   $pt = preg_replace($regex, '<highlight>\\1</highlight>', $pt);
-  
+
   return $pt;
 }
 
@@ -752,11 +819,11 @@ function highlight_search_result($pt, $words, $case_sensitive = false)
 function highlight_and_clip_search_result($pt, $words, $case_sensitive = false)
 {
   $cut_off = false;
-  
+
   $space_chars = Array("\t", "\n", "\r", " ");
-  
+
   $pt = highlight_search_result($pt, $words, $case_sensitive);
-  
+
   foreach ( $words as $word )
   {
     // Boldface searched words
@@ -789,9 +856,9 @@ function highlight_and_clip_search_result($pt, $words, $case_sensitive = false)
               }
             }
             $mid_chunk = substr($pt, ( $i - 75 ), 75);
-            
+
             $clipped = '...' . $final_chunk . $mid_chunk . $chunk2;
-            
+
             $chunk = substr($pt, ( $i + strlen($chunk2) + 75 ));
             $final_chunk = $chunk;
             for ( $j = 0; $j < strlen($chunk); $j++ )
@@ -802,19 +869,19 @@ function highlight_and_clip_search_result($pt, $words, $case_sensitive = false)
                 break;
               }
             }
-            
+
             $end_chunk = substr($pt, ( $i + strlen($chunk2) ), 75 );
-            
+
             $clipped .= $end_chunk . $final_chunk . '...';
-            
+
             $pt = $clipped;
           }
           else if ( strlen($pt) > 200 )
           {
             $mid_chunk = substr($pt, ( $i - 75 ), 75);
-            
+
             $clipped = $chunk1 . $chunk2;
-            
+
             $chunk = substr($pt, ( $i + strlen($chunk2) + 75 ));
             $final_chunk = $chunk;
             for ( $j = 0; $j < strlen($chunk); $j++ )
@@ -825,13 +892,13 @@ function highlight_and_clip_search_result($pt, $words, $case_sensitive = false)
                 break;
               }
             }
-            
+
             $end_chunk = substr($pt, ( $i + strlen($chunk2) ), 75 );
-            
+
             $clipped .= $end_chunk . $final_chunk . '...';
-            
+
             $pt = $clipped;
-            
+
           }
           break 2;
         }
@@ -853,7 +920,7 @@ function get_stopwords()
   static $stopwords;
   if ( is_array($stopwords) )
     return $stopwords;
-  
+
   $stopwords = array('a\'s', 'able', 'after', 'afterwards', 'again',
                      'against', 'ain\'t', 'all', 'almost', 'alone', 'along', 'already', 'also', 'although', 'always',
                      'am', 'among', 'amongst', 'an', 'and', 'another', 'any', 'anybody', 'anyhow', 'anyone', 'anything', 'anyway',
@@ -889,18 +956,17 @@ function get_stopwords()
                      'shouldn\'t', 'since', 'six', 'so', 'some', 'somebody', 'somehow', 'someone', 'something', 'sometime', 'sometimes',
                      'somewhat', 'somewhere', 'soon', 'sorry', 'specified', 'specify', 'specifying', 'still', 'sub', 'such', 'sup',
                      'sure', 't\'s', 'take', 'taken', 'tell', 'tends', 'th', 'than', 'thank', 'thanks', 'thanx', 'that', 'that\'s',
-                     'thats', 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'thence', 'there', 'there\'s', 'thereafter',
+                     'thats', 'the', 'their', 'theirs', 'them', 'then', 'thence', 'there', 'there\'s', 'thereafter',
                      'thereby', 'therefore', 'therein', 'theres', 'thereupon', 'these', 'they', 'they\'d', 'they\'ll', 'they\'re',
                      'they\'ve', 'think', 'third', 'this', 'thorough', 'thoroughly', 'those', 'though', 'three', 'through', 'throughout',
                      'thru', 'thus', 'to', 'together', 'too', 'took', 'toward', 'towards', 'tried', 'tries', 'truly', 'try', 'trying',
-                     'twice', 'two', 'un', 'under', 'unfortunately', 'unless', 'unlikely', 'until', 'unto', 'up', 'upon', 'us', 'use',
-                     'used', 'useful', 'uses', 'using', 'usually', 'value', 'various', 'very', 'via', 'viz', 'vs', 'want', 'wants',
+                     'twice', 'two', 'un', 'under', 'unfortunately', 'unless', 'unlikely', 'until', 'unto', 'upon', 'use',
+                     'used', 'useful', 'uses', 'using', 'usually', 'value', 'various', 'very',
                      'was', 'wasn\'t', 'way', 'we', 'we\'d', 'we\'ll', 'we\'re', 'we\'ve', 'welcome', 'well', 'went', 'were', 'weren\'t',
                      'what', 'what\'s', 'whatever', 'when', 'whence', 'whenever', 'where', 'where\'s', 'whereafter', 'whereas',
-                     'whereby', 'wherein', 'whereupon', 'wherever', 'whether', 'which', 'while', 'whither', 'who', 'who\'s', 'whoever',
-                     'whole', 'whom', 'whose', 'why', 'will', 'willing', 'wish', 'with', 'within', 'without', 'won\'t', 'wonder',
-                     'would', 'would', 'wouldn\'t', 'yes', 'yet', 'you', 'you\'d', 'you\'ll', 'you\'re', 'you\'ve', 'your', 'yours',
-                     'yourself', 'yourselves', 'zero');
+                     'which', 'while', 'who', 'who\'s', 'whole', 'whom', 'whose', 'why', 'will', 'willing', 'wish', 'with', 'within',
+                     'without', 'won\'t', 'wonder', 'would', 'would', 'wouldn\'t', 'yes', 'yet', 'you', 'you\'d', 'you\'ll', 'you\'re',
+                     'you\'ve', 'your', 'yours', 'zero');
   return $stopwords;
 }
 

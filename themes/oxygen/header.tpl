@@ -94,7 +94,7 @@
         elem1.appendChild(document.createTextNode(value));
         elem1.style.display = 'block';
         if(!value || value=='') return;
-        ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+escape(value), function() {
+        ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+ajaxEscape(value), function() {
           if(ajax.readyState == 4) {
             alert(ajax.responseText);
           }

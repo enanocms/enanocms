@@ -16,10 +16,13 @@ define ('ENC_HEX', 201);
 define ('ENC_BASE64', 202);
 define ('ENC_BINARY', 203);
 
+$_aes_objcache = array();
+
 class AESCrypt {
   
   var $debug = false;
   var $mcrypt = false;
+  var $decrypt_cache = array();
 
   // Rijndael parameters --  Valid values are 128, 192, or 256
   
@@ -126,6 +129,18 @@ class AESCrypt {
     $this->Nb = $this->blockSizeInBits / 32;
     $this->Nr = $this->roundsArray[$this->Nk][$this->Nb];
     $this->debug = $debug;
+  }
+  
+  function singleton($key_size, $block_size)
+  {
+    global $_aes_objcache;
+    if ( isset($_aes_objcache["$key_size,$block_size"]) )
+    {
+      return $_aes_objcache["$key_size,$block_size"];
+    }
+    
+    $_aes_objcache["$key_size,$block_size"] = new AESCrypt($key_size, $block_size);
+    return $_aes_objcache["$key_size,$block_size"];
   }
   
   // Error handler
@@ -804,6 +819,14 @@ class AESCrypt {
   {
     if ( $text == '' )
       return '';
+    $text_orig = $text;
+    if ( isset($this->decrypt_cache[$key]) && is_array($this->decrypt_cache[$key]) )
+    {
+      if ( isset($this->decrypt_cache[$key][$text]) )
+      {
+        return $this->decrypt_cache[$key][$text];
+      }
+    }
     switch($input_encoding)
     {
       case ENC_BINARY:
@@ -838,6 +861,11 @@ class AESCrypt {
       }
       $dypt = $this->byteArrayToString($dypt);
     }
+    if ( !isset($this->decrypt_cache[$key]) )
+      $this->decrypt_cache[$key] = array();
+    
+    $this->decrypt_cache[$key][$text_orig] = $dypt;
+    
     return $dypt;
   }
   

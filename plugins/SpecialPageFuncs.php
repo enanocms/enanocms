@@ -172,6 +172,7 @@ function page_Special_CreatePage()
     exit;
   }
   $template->header();
+  /*
   if ( !$session->get_permissions('create_page') )
   {
     echo 'Wiki mode is disabled, only admins can create pages.';
@@ -181,6 +182,7 @@ function page_Special_CreatePage()
     
     exit;
   }
+  */
   echo RenderMan::render('Using the form below you can create a page.');
   ?>
   <form action="" method="post">

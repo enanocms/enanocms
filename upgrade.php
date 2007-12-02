@@ -13,7 +13,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-define('IN_ENANO_INSTALL', 'true');   
+define('IN_ENANO_INSTALL', 'true');
+define('IN_ENANO_UPGRADE', 'true');
 
 if(!defined('scriptPath')) {
   $sp = dirname($_SERVER['REQUEST_URI']);
@@ -27,8 +28,16 @@ if(!defined('contentPath')) {
   define('contentPath', $sp);
 }
 
-global $_starttime, $this_page, $sideinfo;
-$_starttime = microtime(true);
+global $this_page, $sideinfo;
+
+function microtime_float()
+{
+  list($usec, $sec) = explode(" ", microtime());
+  return ((float)$usec + (float)$sec);
+}
+
+global $_starttime;
+$_starttime = microtime_float();
 
 // Determine directory (special case for development servers)
 if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )
@@ -85,7 +94,8 @@ $func_list = Array(
     '1.0' => Array('u_1_0_1_update_del_votes'),
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text'), // ,
     // '1.0RC2' => Array('u_1_0_populate_userpage_comments')
-    '1.0RC3' => Array('u_1_0_RC3_make_users_extra')
+    '1.0RC3' => Array('u_1_0_RC3_make_users_extra'),
+    '1.0.2b1' => Array('u_1_0_2_nuke_template_cache', 'u_1_0_2_rebuild_search_index')
   );
 
 if(!isset($_GET['mode'])) 
@@ -431,6 +441,29 @@ function u_1_0_RC3_make_users_extra()
   
   if ( !$db->sql_query($sql) )
     $db->_die();
+}
+
+function u_1_0_2_nuke_template_cache()
+{
+  $dir = @opendir(ENANO_ROOT . '/cache');
+  if ( !$dir )
+  {
+    return false;
+  }
+  while ( ($fname = @readdir($dir)) )
+  {
+    if ( preg_match('/\.tpl\.php$/', $fname) )
+    {
+      unlink( ENANO_ROOT . '/cache/' . $fname );
+    }
+  }
+}
+
+function u_1_0_2_rebuild_search_index()
+{
+  global $paths;
+  @set_time_limit(0);
+  $paths->rebuild_search_index();
 }
 
 switch($_GET['mode'])

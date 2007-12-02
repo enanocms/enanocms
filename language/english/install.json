@@ -61,6 +61,7 @@ var enano_lang_install = {
       heading: 'Checking your server',
       blurb: 'Enano has several requirements that must be met before it can be installed. If all is good then note any warnings and click Continue below.',
       req_php: 'PHP Version >=4.3.0',
+      req_php5: 'PHP 5.2.0 or later',
       req_mysql: 'MySQL extension for PHP',
       req_uploads: 'File upload support',
       req_apache: 'Apache HTTP Server',
@@ -70,6 +71,7 @@ var enano_lang_install = {
       req_fileswriteable: 'File uploads directory writable',
       
       req_desc_php: 'It seems that the version of PHP that your server is running is too old to support Enano properly. If this is your server, please upgrade to the most recent version of PHP, remembering to use the --with-mysql configure option if you compile it yourself. If this is not your server, please contact your webhost and ask them if it would be possible to upgrade PHP. If this is not possible, you will need to switch to a different webhost in order to use Enano.',
+      req_desc_php5: 'Your server does not have support for PHP 5.2.0. While you may continue installing Enano, please be warned that as of December 31, 2007, all support for Enano on PHP 4 servers is discontinued. If you have at least PHP 5.0.0, support will still be available, but there are many security problems in PHP versions under 5.2.0 that Enano cannot effectively prevent.',
       req_desc_mysql: 'It seems that your PHP installation does not have the MySQL extension enabled. If this is your own server, you may need to just enable the "libmysql.so" extension in php.ini. If you do not have the MySQL extension installed, you will need to either use your distribution\'s package manager to install it, or you will have to compile PHP from source. If you compile PHP from source, please remember to use the "--with-mysql" configure option, and you will have to have the MySQL development files installed (they usually are). If this is not your server, please contact your hosting company and ask them to install the PHP MySQL extension.',
       req_desc_uploads: 'It seems that your server does not support uploading files. Enano *requires* this functionality in order to work properly. Please ask your server administrator to set the "file_uploads" option in php.ini to "On".',
       req_desc_apache: 'Apparently your server is running a web server other than Apache. Enano will work nontheless, but there are some known bugs with non-Apache servers, and the "fancy" URLs will not work properly. The "Standard URLs" option will be set on the website configuration page, only change it if you are absolutely certain that your server is running Apache.',
@@ -151,6 +153,7 @@ var enano_lang_install = {
       field_urlscheme_ugly: 'Standard URLs - compatible with any web server (www.example.com/index.php?title=Page_name)',
       field_urlscheme_short: 'Short URLs - requires Apache with a PHP module (www.example.com/index.php/Page_name)',
       field_urlscheme_tiny: 'Tiny URLs - requires Apache on Linux/Unix/BSD with PHP module and mod_rewrite enabled (www.example.com/Page_name)',
+      field_urlscheme_helplink: 'Which URL scheme should I choose?',
       
       objective_verify: 'Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.',
     },
@@ -253,6 +256,23 @@ var enano_lang_install = {
                                 embed Javascript and arbitrary HTML and CSS.</p>
                              <p>If you don\'t have experience coding in PHP, you can safely disable this option. You may change this at any time
                                 using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection.</p>',
+      url_scheme_title: 'URL schemes',
+      url_scheme_body: '<p>The URL scheme allows you to decide how the URLs to your Enano pages will look.</p>
+                        <p>The first option (Standard URLs) works on any web server. You should select it if your server doesn\'t run Apache, or
+                           if you are at all unsure of your server\'s configuration. With this scheme, URLs at your site will look like <tt>
+                           http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.</p>
+                        <p>The second option, Small URLs, will be selected by default if Enano detects Apache. Small URLs are more friendly towards
+                           search engines, but they don\'t work on very many non-Apache servers, or if PHP is set up through CGI on your server. Many
+                           free and low-cost web hosts will configure PHP through CGI in order to keep your user account as the owner of any files that
+                           Enano generates. With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.
+                           </p>
+                        <p>The last option, Tiny URLs, is the most friendly URL scheme for search engines, because your URLs won\'t have any special characters
+                           at all in them. However, this only works if your webhost has configured Apache with support for mod_rewrite. Most of the time if your
+                           host supports this you will see a listing for it in their feature matrix. None of the popular Linux distributions (such as Ubuntu,
+                           Debian, Red Hat Enterprise Linux&trade;, Fedora, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
+                           home-brew server, you should consult your distribution\'s documentation for enabling mod_rewrite before selecting this option.
+                           With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
+                           </p>',
       btn_close_window: 'Close window',
     }
   }

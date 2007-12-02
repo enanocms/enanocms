@@ -338,7 +338,7 @@ function stg_decrypt_admin_pass($act_get = false)
   if ( $act_get )
     return $decrypted_pass;
   
-  $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+  $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
   
   if ( !empty($_POST['crypt_data']) )
   {
@@ -368,7 +368,7 @@ function stg_generate_aes_key($act_get = false)
   if ( $act_get )
     return $key;
   
-  $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+  $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
   $key = $aes->gen_readymade_key();
   return true;
 }
@@ -381,7 +381,7 @@ function stg_parse_schema($act_get = false)
   
   $admin_pass = stg_decrypt_admin_pass(true);
   $key = stg_generate_aes_key(true);
-  $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+  $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
   $key = $aes->hextostring($key);
   $admin_pass = $aes->encrypt($admin_pass, $key, ENC_HEX);
   
@@ -461,7 +461,7 @@ function stg_install($_unused, $already_run)
   {
     $admin_pass = stg_decrypt_admin_pass(true);
     $key = stg_generate_aes_key(true);
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $key = $aes->hextostring($key);
     $admin_pass = $aes->encrypt($admin_pass, $key, ENC_HEX);
     $admin_user = mysql_real_escape_string($_POST['admin_user']);
@@ -826,6 +826,10 @@ switch($_GET['mode'])
         $title = $lang->get('pophelp_admin_embed_php_title');
         $content = $lang->get('pophelp_admin_embed_php_body');
         break;
+      case 'url_schemes':
+        $title = $lang->get('pophelp_url_schemes_title');
+        $content = $lang->get('pophelp_url_schemes_body');
+        break;
       default:
         $title = 'Invalid topic';
         $content = 'Invalid help topic.';
@@ -1021,6 +1025,7 @@ switch($_GET['mode'])
     <table border="0" cellspacing="0" cellpadding="0">
     <?php
     run_test('return version_compare(\'4.3.0\', PHP_VERSION, \'<\');', $lang->get('sysreqs_req_php'), $lang->get('sysreqs_req_desc_php') );
+    run_test('return version_compare(\'5.2.0\', PHP_VERSION, \'<\');', $lang->get('sysreqs_req_php5'), $lang->get('sysreqs_req_desc_php5'), true);
     run_test('return function_exists(\'mysql_connect\');', $lang->get('sysreqs_req_mysql'), $lang->get('sysreqs_req_desc_mysql') );
     run_test('return @ini_get(\'file_uploads\');', $lang->get('sysreqs_req_uploads'), $lang->get('sysreqs_req_desc_uploads') );
     run_test('return is_apache();', $lang->get('sysreqs_req_apache'), $lang->get('sysreqs_req_desc_apache'), true);
@@ -1524,7 +1529,8 @@ switch($_GET['mode'])
           <td colspan="2">
             <input type="radio" <?php if(!is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="ugly" id="ugly"  />  <label for="ugly"><?php echo $lang->get('website_field_urlscheme_ugly'); ?></label><br />
             <input type="radio" <?php if(is_apache()) echo 'checked="checked" '; ?>name="urlscheme" value="short" id="short" />  <label for="short"><?php echo $lang->get('website_field_urlscheme_short'); ?></label><br />
-            <input type="radio" name="urlscheme" value="tiny" id="petite">  <label for="petite"><?php echo $lang->get('website_field_urlscheme_tiny'); ?></label>
+            <input type="radio" name="urlscheme" value="tiny" id="petite">  <label for="petite"><?php echo $lang->get('website_field_urlscheme_tiny'); ?></label><br />
+            <small><a href="install.php?mode=pophelp&amp;topic=url_schemes" onclick="window.open(this.href, 'pophelpwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes'); return false;"><?php echo $lang->get('website_field_urlscheme_helplink'); ?></a></small>
           </td>
         </tr>
       </table>
@@ -1554,7 +1560,7 @@ switch($_GET['mode'])
     }
     unset($_POST['_cont']);
     require('config.new.php');
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     if ( isset($crypto_key) )
     {
       $cryptkey = $crypto_key;
@@ -1579,7 +1585,7 @@ switch($_GET['mode'])
       {
         var frm = document.forms.login;
         ret = true;
-        if ( frm.admin_user.value.match(/^([A-z0-9 \\-\\.]+)$/) && !frm.admin_user.value.match(/^(?:(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])\\.){3}(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])$/) && frm.admin_user.value.toLowerCase() != \'anonymous\' )
+        if ( frm.admin_user.value.match(/^([^<>&\?\'"%\/]+)$/) && !frm.admin_user.value.match(/^(?:(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])\\.){3}(?:\\d{1,2}|1\\d\\d|2[0-4]\\d|25[0-5])$/) && frm.admin_user.value.toLowerCase() != \'anonymous\' )
         {
           document.getElementById(\'s_user\').src = \'images/good.gif\';
         }
@@ -1597,7 +1603,7 @@ switch($_GET['mode'])
           document.getElementById(\'s_password\').src = \'images/bad.gif\';
           ret = false;
         }
-        if(frm.admin_email.value.match(/^(?:[\\w\\d]+\\.?)+@(?:(?:[\\w\\d]\\-?)+\\.)+\\w{2,4}$/))
+        if(frm.admin_email.value.match(/^(?:[\\w\\d_-]+\\.?)+@(?:(?:[\\w\\d-]\\-?)+\\.)+\\w{2,4}$/))
         {
           document.getElementById(\'s_email\').src = \'images/good.gif\';
         }

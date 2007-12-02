@@ -296,6 +296,22 @@ $mime_types = Array (
   'xwd'     => 'image/x-xwindowdump',
   'xyz'     => 'chemical/x-xyz',
   'zip'     => 'application/zip',
+  'odt' => 'application/vnd.oasis.opendocument.text',
+  'ott' => 'application/vnd.oasis.opendocument.text-template',
+  'odg' => 'application/vnd.oasis.opendocument.graphics',
+  'otg' => 'application/vnd.oasis.opendocument.graphics-template',
+  'odp' => 'application/vnd.oasis.opendocument.presentation',
+  'otp' => 'application/vnd.oasis.opendocument.presentation-template',
+  'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+  'ots' => 'application/vnd.oasis.opendocument.spreadsheet-template',
+  'odc' => 'application/vnd.oasis.opendocument.chart',
+  'otc' => 'application/vnd.oasis.opendocument.chart-template',
+  'odi' => 'application/vnd.oasis.opendocument.image',
+  'oti' => 'application/vnd.oasis.opendocument.image-template',
+  'odf' => 'application/vnd.oasis.opendocument.formula',
+  'otf' => 'application/vnd.oasis.opendocument.formula-template',
+  'odm' => 'application/vnd.oasis.opendocument.text-master',
+  'oth' => 'application/vnd.oasis.opendocument.text-web'
 );
 
 $mimetype_extlist = Array(
@@ -418,6 +434,22 @@ $mimetype_extlist = Array(
   'x-conference/x-cooltalk'=>'ice',
   // Added for Enano
   'image/xcf' => 'xcf xcfbz2 xcf.bz2',
+  'application/vnd.oasis.opendocument.text' => 'odt',
+  'application/vnd.oasis.opendocument.text-template' => 'ott',
+  'application/vnd.oasis.opendocument.graphics' => 'odg',
+  'application/vnd.oasis.opendocument.graphics-template' => 'otg',
+  'application/vnd.oasis.opendocument.presentation' => 'odp',
+  'application/vnd.oasis.opendocument.presentation-template' => 'otp',
+  'application/vnd.oasis.opendocument.spreadsheet' => 'ods',
+  'application/vnd.oasis.opendocument.spreadsheet-template' => 'ots',
+  'application/vnd.oasis.opendocument.chart' => 'odc',
+  'application/vnd.oasis.opendocument.chart-template' => 'otc',
+  'application/vnd.oasis.opendocument.image' => 'odi',
+  'application/vnd.oasis.opendocument.image-template' => 'oti',
+  'application/vnd.oasis.opendocument.formula' => 'odf',
+  'application/vnd.oasis.opendocument.formula-template' => 'otf',
+  'application/vnd.oasis.opendocument.text-master' => 'odm',
+  'application/vnd.oasis.opendocument.text-web' => 'oth'
 );
 
 $k = array_keys($mime_types);

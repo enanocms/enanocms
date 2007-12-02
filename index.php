@@ -54,7 +54,7 @@
   switch($_GET['do'])
   {
     default:
-      die_friendly('Invalid action', '<p>The action "'.$_GET['do'].'" is not defined. Return to <a href="'.makeUrl($paths->page).'">viewing this page\'s text</a>.</p>');
+      die_friendly('Invalid action', '<p>The action "'.htmlspecialchars($_GET['do']).'" is not defined. Return to <a href="'.makeUrl($paths->page).'">viewing this page\'s text</a>.</p>');
       break;
     case 'view':
       // echo PageUtils::getpage($paths->page, true, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
@@ -118,10 +118,18 @@
       $template->footer();
       break;
     case 'edit':
-      if(isset($_POST['_cancel'])) { header('Location: '.makeUrl($paths->page)); echo '<html><head><title>Redirecting...</title></head><body>If you haven\'t been redirected yet, <a href="'.makeUrl($paths->page).'">click here</a>.'; break; }
-      if(isset($_POST['_save'])) {
+      if(isset($_POST['_cancel']))
+      {
+        redirect(makeUrl($paths->page), '', '', 0);
+        break;
+      }
+      if(isset($_POST['_save']))
+      {
         $e = PageUtils::savepage($paths->cpage['urlname_nons'], $paths->namespace, $_POST['page_text'], $_POST['edit_summary'], isset($_POST['minor']));
-        header('Location: '.makeUrl($paths->page)); echo '<html><head><title>Redirecting...</title></head><body>If you haven\'t been redirected yet, <a href="'.makeUrl($paths->page).'">click here</a>.'; break;
+        if ( $e == 'good' )
+        {
+          redirect(makeUrl($paths->page), $lang->get('editor_msg_save_success_title'), $lang->get('editor_msg_save_success_body'), 3);
+        }
       }
       $template->header();
       if(isset($_POST['_preview']))
@@ -250,7 +258,7 @@
       if(!empty($_POST['newname']))
       {
         $r = PageUtils::rename($paths->cpage['urlname_nons'], $paths->namespace, $_POST['newname']);
-        die_friendly('Page renamed', '<p>'.nl2br($r).' <a href="'.makeUrl($paths->page).'">' . $lang->get('etc_return_to_page') . '</a>.</p>');
+        die_friendly($lang->get('page_rename_success_title'), '<p>'.nl2br($r).' <a href="'.makeUrl($paths->page).'">' . $lang->get('etc_return_to_page') . '</a>.</p>');
       }
       $template->header();
       ?>
@@ -434,6 +442,17 @@
       $data = ( isset($_POST['data']) ) ? $_POST['data'] : Array('mode' => 'listgroups');
       PageUtils::aclmanager($data);
       break;
+    case 'sql_report':
+      $rev_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
+      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $rev_id );
+      $page->send_headers = true;
+      $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
+      $page->password = $pagepass;
+      $page->send(true);
+      ob_end_clean();
+      ob_start();
+      $db->sql_report();
+      break;
   }
   
   //
@@ -443,7 +462,7 @@
   {
     // Load up the HTML
     $html = ob_get_contents();
-    ob_end_clean();
+    @ob_end_clean();
     
     $html = aggressive_optimize_html($html);
     

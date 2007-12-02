@@ -775,7 +775,8 @@ class template {
       'STYLE_ID'=>$this->style,
       'JS_DYNAMIC_VARS'=>$js_dynamic,
       'UNREAD_PMS'=>$session->unread_pms,
-      'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', '', true)
+      'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', '', true),
+      'REPORT_URI' => makeUrl($paths->page, 'do=sql_report', true)
       );
     
     foreach ( $paths->nslist as $ns_id => $ns_prefix )
@@ -1076,7 +1077,7 @@ class template {
           continue;
         
         $tag_complete = <<<TPLCODE
-        ';
+';
         /* START OF CONDITION: $type ($test) */
         if ( $cond )
         {
@@ -1666,7 +1667,8 @@ EOF;
     if ( !$this->fetch_block('Links') )
       $this->initLinksWidget();
     
-    $q = $db->sql_query('SELECT item_id,sidebar_id,block_name,block_type,block_content FROM '.table_prefix.'sidebar WHERE item_enabled=1 ORDER BY sidebar_id ASC, item_order ASC;');
+    $q = $db->sql_query('SELECT item_id,sidebar_id,block_name,block_type,block_content FROM '.table_prefix.'sidebar' . "\n"
+                           . '  WHERE item_enabled=1 ORDER BY sidebar_id ASC, item_order ASC;');
     if(!$q) $db->_die('The sidebar text data could not be selected.');
     
     $vars = $this->extract_vars('elements.tpl');
@@ -1855,7 +1857,8 @@ class templateIndividual extends template {
  * "critical error" messages. ** REQUIRES ** the Oxygen theme.
  */
 
-class template_nodb {
+class template_nodb
+{
   var $fading_button, $tpl_strings, $tpl_bool, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list;
   function __construct() {
     
@@ -1967,6 +1970,7 @@ class template_nodb {
       'STYLE_ID'=>$this->style,
       'JS_DYNAMIC_VARS'=>$js_dynamic,
       'SIDEBAR_RIGHT'=>'',
+      'REPORT_URI' => ''
       );
     $this->tpl_strings = array_merge($tpl_strings, $this->tpl_strings);
     

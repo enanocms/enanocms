@@ -55,7 +55,7 @@ b) remove all instances of the word Enano and the Enano logo from your
    be shown on the (renamed) Special:About_Enano page:
 
     "The software used on this website was based on Enano CMS. Copyright
-     (C) 2006-2007 Enano Foundation."
+     (C) 2006-2007 Dan Fuhry."
 
    The words "Enano CMS" must link to the page <http://enanocms.org/>. You may
    (at your option) also include a notice of non-endorsement by the Enano
@@ -82,9 +82,8 @@ UPGRADING FROM PREVIOUS RELEASES
 
 This tarball includes an upgrade script that can migrate any previous version
 of Enano to this one. Before you upload the contents of this tarball to your
-server, be sure to delete the config.php and .htaccess files included with this
-tarball, and back up these two files from your server. (.htaccess only needs to
-be backed up if you're using the Tiny URLs option and/or you have Apache.)
+server, you might want to delete the files config.new.php and .htaccess.new,
+neither of which are needed if you are performing an upgrade.
 
 EXPANDING YOUR SITE'S CAPABILITIES
 -----------------------------

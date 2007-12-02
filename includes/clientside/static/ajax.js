@@ -233,7 +233,7 @@ function ajaxProtect(l) {
   document.getElementById('protbtn_1').style.textDecoration = 'none';
   document.getElementById('protbtn_2').style.textDecoration = 'none';
   document.getElementById('protbtn_'+l).style.textDecoration = 'underline';
-  ajaxPost(stdAjaxPrefix+'&_mode=protect', 'reason='+escape(r)+'&level='+l, function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=protect', 'reason='+ajaxEscape(r)+'&level='+l, function() {
     if(ajax.readyState == 4) {
       unsetAjaxLoading();
       if(ajax.responseText != 'good')
@@ -250,7 +250,7 @@ function ajaxRename()
   r = prompt($lang.get('ajax_rename_prompt'));
   if(!r || r=='') return;
   setAjaxLoading();
-  ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+escape(r), function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+ajaxEscape(r), function() {
     if(ajax.readyState == 4) {
       unsetAjaxLoading();
       alert(ajax.responseText);
@@ -288,7 +288,7 @@ function ajaxDeletePage()
     return;
   }
   setAjaxLoading();
-  ajaxPost(stdAjaxPrefix+'&_mode=deletepage', 'reason=' + escape(reason), function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=deletepage', 'reason=' + ajaxEscape(reason), function() {
     if(ajax.readyState == 4) {
       unsetAjaxLoading();
       alert(ajax.responseText);
@@ -660,7 +660,7 @@ function ajaxChangeStyleComplete()
     return true;
   }
   
-  ajaxPost(stdAjaxPrefix + '&_mode=change_theme', 'theme_id=' + escape(theme_id) + '&style_id=' + escape(style_id), function()
+  ajaxPost(stdAjaxPrefix + '&_mode=change_theme', 'theme_id=' + ajaxEscape(theme_id) + '&style_id=' + ajaxEscape(style_id), function()
     {
       if ( ajax.readyState == 4 )
       {

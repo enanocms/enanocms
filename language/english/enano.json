@@ -66,6 +66,7 @@ var enano_lang = {
       login_success_title: 'Login successful',
       login_success_body: 'You have successfully logged into the %config.site_name% site as "%username%". Redirecting to %redir_target%...',
       login_success_body_mainpage: 'the main page',
+      login_success_short: 'Success.',
       
       login_ajax_fetching_key: 'Fetching an encryption key...',
       login_ajax_prompt_title: 'Please enter your username and password to continue.',
@@ -76,6 +77,7 @@ var enano_lang = {
       login_ajax_loggingin: 'Logging in...',
       
       err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',
+      err_key_not_found_cleared: 'It seems that the list of encryption keys used for login information has reached its maximum length, thus preventing new keys from being inserted. The list has been automatically cleared. Please try logging in again; if you are still unable to log in, please contact the site administration.',
       err_key_wrong_length: 'The encryption key was the wrong length.',
       err_too_big_for_britches: 'You are trying to authenticate at a level that your user account does not permit.',
       err_invalid_credentials: 'You have entered an invalid username or password. Please enter your login details again.',
@@ -303,6 +305,8 @@ var enano_lang = {
       btn_cancel: 'Cancel and return to page',
       btn_closeviewer: 'Close viewer',
       preview_blurb: '<b>Reminder:</b> This is only a preview - your changes to this page have not yet been saved.',
+      msg_save_success_title: 'Changes saved',
+      msg_save_success_body: 'Your changes to this page have been saved. Redirecting...',
     },
     history: {
       summary_clearlogs: 'Automatic backup created when logs were purged',
@@ -349,6 +353,7 @@ var enano_lang = {
       rename_err_need_name: 'Error: you must enter a new name for this page.',
       rename_lbl: 'Please enter a new name for this page:',
       rename_btn_submit: 'Rename page',
+      rename_success_title: 'Page renamed',
       
       flushlogs_warning_stern: '<h3>You are about to <span style="color: red;">destroy</span> all logged edits and actions on this page.</h3><p>Unlike deleting or editing this page, this action is <u>not reversible</u>! You should only do this if you are desparate for database space.</p><p>Do you really want to continue?</p>',
       flushlogs_btn_submit: 'Flush logs',

@@ -68,7 +68,7 @@ function page_Admin_UserManager()
         $password = false;
         if ( $_POST['changing_pw'] == 'yes' )
         {
-          $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+          $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
           $key_hex_md5 = $_POST['crypt_key'];
           $key_hex = $session->fetch_public_key($key_hex_md5);
           if ( $key_hex )
@@ -348,7 +348,7 @@ function page_Admin_UserManager()
     else
     {
       // Get the current session information so the user doesn't get logged out
-      $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE);
+      $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
       $sk = md5(strrev($session->sid_super));
       $qb = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.$sk.'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_ADMIN);
       if ( !$qb )
@@ -544,18 +544,9 @@ class Admin_UserManager_SmartForm
    * Constructor.
    */
   
-  function __construct()
-  {
-    $this->uuid = md5( mt_rand() . microtime() );
-  }
-  
-  /**
-   * PHP4 constructor.
-   */
-  
   function Admin_UserManager_SmartForm()
   {
-    $this->__construct();
+    $this->uuid = md5( mt_rand() . microtime() );
   }
   
   /**

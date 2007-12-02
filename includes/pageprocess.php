@@ -166,13 +166,16 @@ class PageProcessor
         $this->send_headers = false;
         $strict_no_headers = true;
       }
-      if ( $paths->pages[$pathskey]['password'] != '' && $paths->pages[$pathskey]['password'] != sha1('') )
+      if ( isset($paths->pages[$pathskey]['password']) )
       {
-        $password =& $paths->pages[$pathskey]['password'];
-        if ( $this->password != $password )
+        if ( $paths->pages[$pathskey]['password'] != '' && $paths->pages[$pathskey]['password'] != sha1('') )
         {
-          $this->err_wrong_password();
-          return false;
+          $password =& $paths->pages[$pathskey]['password'];
+          if ( $this->password != $password )
+          {
+            $this->err_wrong_password();
+            return false;
+          }
         }
       }
     }
@@ -617,6 +620,7 @@ class PageProcessor
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $email;
     
+    $page_urlname = dirtify_page_id($this->page_id);
     if ( $this->page_id == $paths->cpage['urlname_nons'] && $this->namespace == $paths->namespace )
     {
       $page_name = ( isset($paths->cpage['name']) ) ? $paths->cpage['name'] : $this->page_id;
@@ -626,7 +630,7 @@ class PageProcessor
       $page_name = ( isset($paths->pages[$this->page_id]) ) ? $paths->pages[$this->page_id]['name'] : $this->page_id;
     }
     
-    $target_username = strtr($page_name, 
+    $target_username = strtr($page_urlname, 
       Array(
         '_' => ' ',
         '<' => '&lt;',

@@ -49,7 +49,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(
-  page_id varchar(63),
+  page_id varchar(255),
   namespace varchar(16) NOT NULL default 'Article',
   page_text text,
   char_tag varchar(63),
@@ -58,8 +58,8 @@ CREATE TABLE {{TABLE_PREFIX}}page_text(
 
 CREATE TABLE {{TABLE_PREFIX}}pages(
   page_order int(8),
-  name varchar(127),
-  urlname varchar(63),
+  name varchar(255),
+  urlname varchar(255),
   namespace varchar(16) NOT NULL default 'Article',
   special tinyint(1) default '0',
   visible tinyint(1) default '1',
@@ -304,7 +304,7 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('copyright_notice', '{{COPYRIGHT}}'),
   ('wiki_edit_notice_text', '== Why can I edit this page? ==\n\nEveryone can edit almost any page in this website. This concept is called a wiki. It gives everyone the opportunity to make a change for the best. While some spam and vandalism may occur, it is believed that most contributions will be legitimate and helpful.\n\nFor security purposes, a history of all page edits is kept, and administrators are able to restore vandalized or spammed pages with just a few clicks.'),
   ('cache_thumbs', '{{ENABLE_CACHE}}'),
-  ('max_file_size', '256000'),('enano_version', '{{VERSION}}'),( 'allowed_mime_types', 'cbf:len=168;crc=c3dcad3f;data=0[1],1[4],0[3],1[1],0[2],1[1],0[11],1[1],0[7],1[1],0[9],1[1],0[6],1[3],0[10],1[1],0[2],1[2],0[1],1[1],0[1],1[2],0[6],1[3],0[1],1[1],0[2],1[4],0[1],1[2],0[3],1[1],0[4],1[2],0[26],1[5],0[6],1[2],0[2],1[1],0[4],1[1],0[10],1[2],0[1],1[1],0[6]|end' ),
+  ('max_file_size', '256000'),('enano_version', '{{VERSION}}'),( 'allowed_mime_types', 'cbf:len=185;crc=55fb6f14;data=0[1],1[4],0[3],1[1],0[22],1[1],0[16],1[3],0[16],1[1],0[1],1[2],0[6],1[1],0[1],1[1],0[4],1[2],0[3],1[1],0[48],1[2],0[2],1[1],0[4],1[1],0[37]|end' ),
   ('contact_email', '{{ADMIN_EMAIL}}'),
   ('powered_btn', '1');
 

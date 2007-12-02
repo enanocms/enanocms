@@ -35,7 +35,7 @@ class TagCloud
    * @param array Optional. An initial list of words, just a plain old array.
    */
   
-  function __construct($words)
+  function __construct($words = array())
   {
     if ( count($words) > 0 )
     {

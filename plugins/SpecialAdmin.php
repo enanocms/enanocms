@@ -818,6 +818,7 @@ function page_Admin_UploadAllowedMimeTypes()
     $t = -1;
     $cl = 'row1';
     echo "\n".'    <div class="tblholder">'."\n".'      <table cellspacing="1" cellpadding="2" style="margin: 0; padding: 0;" border="0">'."\n".'        <tr>'."\n        ";
+    ksort($mime_types);
     foreach($mime_types as $e => $m)
     {
       $c++;
