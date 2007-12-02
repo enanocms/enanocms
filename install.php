@@ -893,7 +893,7 @@ $modestrings = Array(
               'login'   => $lang->get('login_modetitle'),
               'confirm' => $lang->get('confirm_modetitle'),
               'install' => $lang->get('install_modetitle'),
-              'finish'  => $lang->get('finish_modetitle')
+              'finish'  => $lang->get('finish_modetitle'),
               '_hiddenstages' => '...', // all stages below this line are hidden
               'showlicense' => $lang->get('license_modetitle')
             );
