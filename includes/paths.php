@@ -38,6 +38,7 @@ class pathManager {
       'System'  =>'Enano:',
       'Template'=>'Template:',
       'Category'=>'Category:',
+      'Anonymous'=>'PhysicalRedirect:',
       'Project' =>sanitize_page_id(getConfig('site_name')).':',
       );
     
@@ -148,7 +149,7 @@ class pathManager {
       
     }
     $db->free_result();
-    if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') )
+    if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') || defined('IN_ENANO_INSTALL') || defined('IN_ENANO_UPGRADE') )
     {
       if( isset($_GET['title']) )
       {
@@ -258,28 +259,31 @@ class pathManager {
       {
         $title =& $GLOBALS['title'];
       }
-      else if ( isset($_SERVER['REQUEST_URI']) )
-      {
-        $title = basename($_SERVER['REQUEST_URI']);
-      }
       else
       {
-        $title = 'Untitled page';
+        $title = basename($_SERVER['SCRIPT_NAME']);
       }
-      $this->page = $this->nslist['Special'] . 'AnonymousPage';
-      $this->fullpage = $this->nslist['Special'] . 'AnonymousPage';
+      $base_uri = str_replace( scriptPath . '/', '', $_SERVER['SCRIPT_NAME'] );
+      $this->page = $this->nslist['Anonymous'] . sanitize_page_id($base_uri);
+      $this->fullpage = $this->nslist['Anonymous'] . sanitize_page_id($base_uri);
+      $this->namespace = 'Anonymous';
       $this->cpage = array(
           'name' => $title,
-          'urlname' => 'AnonymousPage',
-          'namespace' => 'Special',
-          'special' => 0,
+          'urlname' => sanitize_page_id($base_uri),
+          'namespace' => 'Anonymous',
+          'special' => 1,
           'visible' => 1,
-          'comments_on' => 0,
+          'comments_on' => 1,
           'protected' => 1,
           'delvotes' => 0,
           'delvote_ips' => ''
         );
       $this->anonymous_page = true;
+      $code = $plugins->setHook('paths_anonymous_page');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
     }
     
     $this->page = sanitize_page_id($this->page);

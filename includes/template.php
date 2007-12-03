@@ -220,6 +220,9 @@ class template {
       case "Category":
         $ns = 'category';
         break;
+      case "Anonymous":
+        $ns = 'external page';
+        break;
     }
     $this->namespace_string = $ns;
     $code = $plugins->setHook('page_type_string_set');
@@ -237,7 +240,7 @@ class template {
     $btn_selected = ( isset($tplvars['toolbar_button_selected'])) ? $tplvars['toolbar_button_selected'] : $tplvars['toolbar_button'];
     $parser = $this->makeParserText($btn_selected);
     
-    if ( !$paths->anonymous_page )
+    if ( true || !$paths->anonymous_page )
     {
       $parser->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxReset()); return false; }" title="View the page contents, all of the page contents, and nothing but the page contents (alt-a)" accesskey="a"',
