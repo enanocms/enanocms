@@ -124,8 +124,6 @@ class mysql {
   {
     $this->enable_errorhandler();
     
-    dc_here('dbal: trying to connect....');
-    
     if ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') )
     {
       @include(ENANO_ROOT.'/config.new.php');
@@ -140,7 +138,6 @@ class mysql {
     
     if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
     {
-      dc_here('dbal: oops, looks like Enano isn\'t set up. Constants ENANO_INSTALLED, MIDGET_INSTALLED, and IN_ENANO_INSTALL are all undefined.');
       // scriptPath isn't set yet - we need to autodetect it to avoid infinite redirects
       if ( !defined('scriptPath') )
       {
@@ -169,7 +166,6 @@ class mysql {
     
     if ( !$this->_conn )
     {
-      dc_here('dbal: uhoh!<br />'.mysql_error());
       grinding_halt('Enano is having a problem', '<p>Error: couldn\'t connect to MySQL.<br />'.mysql_error().'</p>');
     }
     
@@ -181,15 +177,12 @@ class mysql {
     
     $this->debug = ( defined('ENANO_DEBUG') );
     
-    dc_here('dbal: we\'re in, selecting database...');
     $q = $this->sql_query('USE `'.$dbname.'`;');
     
     if ( !$q )
       $this->_die('The database could not be selected.');
     
     // We're in!
-    dc_here('dbal: connected to MySQL');
-    
     $this->disable_errorhandler();
     return true;
   }
@@ -219,7 +212,6 @@ class mysql {
     $this->num_queries++;
     $this->query_backtrace[] = $q;
     $this->latest_query = $q;
-    dc_here('dbal: making SQL query:<br /><tt>'.$q.'</tt>');
     // First make sure we have a connection
     if ( !$this->_conn )
     {
@@ -247,7 +239,6 @@ class mysql {
     $this->num_queries++;
     $this->query_backtrace[] = '(UNBUFFERED) ' . $q;
     $this->latest_query = $q;
-    dc_here('dbal: making SQL query:<br /><tt>'.$q.'</tt>');
     // First make sure we have a connection
     if ( !$this->_conn )
     {
@@ -454,7 +445,6 @@ class mysql {
   }
   
   function close() {
-    dc_here('dbal: closing MySQL connection');
     mysql_close($this->_conn);
     unset($this->_conn);
   }

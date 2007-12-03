@@ -33,7 +33,6 @@ class template {
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    dc_here('template: initializing all class variables');
     $this->tpl_bool    = Array();
     $this->tpl_strings = Array();
     $this->sidebar_extra = '';
@@ -136,8 +135,6 @@ class template {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $email;
     
-    dc_here("template: initializing all variables");
-    
     if(!$this->theme || !$this->style)
     {
       $this->load_theme();
@@ -145,15 +142,12 @@ class template {
     
     if(defined('ENANO_TEMPLATE_LOADED'))
     {
-      dc_here('template: access denied to call template::init_vars(), bailing out');
       die_semicritical('Illegal call', '<p>$template->load_theme was called multiple times, this is not supposed to happen. Exiting with fatal error.</p>');
     }
     
     define('ENANO_TEMPLATE_LOADED', '');
     
     $tplvars = $this->extract_vars('elements.tpl');
-    
-    dc_here('template: setting all template vars');
     
     if(isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE'))
     {
@@ -243,14 +237,17 @@ class template {
     $btn_selected = ( isset($tplvars['toolbar_button_selected'])) ? $tplvars['toolbar_button_selected'] : $tplvars['toolbar_button'];
     $parser = $this->makeParserText($btn_selected);
     
-    $parser->assign_vars(array(
-        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxReset()); return false; }" title="View the page contents, all of the page contents, and nothing but the page contents (alt-a)" accesskey="a"',
-        'PARENTFLAGS' => 'id="mdgToolbar_article"',
-        'HREF' => makeUrl($paths->page, null, true),
-        'TEXT' => $this->namespace_string
-      ));
-    
-    $tb .= $parser->run();
+    if ( !$paths->anonymous_page )
+    {
+      $parser->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxReset()); return false; }" title="View the page contents, all of the page contents, and nothing but the page contents (alt-a)" accesskey="a"',
+          'PARENTFLAGS' => 'id="mdgToolbar_article"',
+          'HREF' => makeUrl($paths->page, null, true),
+          'TEXT' => $this->namespace_string
+        ));
+      
+      $tb .= $parser->run();
+    }
     
     $button = $this->makeParserText($tplvars['toolbar_button']);
     
@@ -556,7 +553,7 @@ class template {
     }
     
     // Manage ACLs button
-    if($session->get_permissions('edit_acl') || $session->user_level >= USER_LEVEL_ADMIN)
+    if ( !$paths->anonymous_page && ( $session->get_permissions('edit_acl') || $session->user_level >= USER_LEVEL_ADMIN ) )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { return ajaxOpenACLManager(); }" title="Manage who can do what with this page (alt-m)" accesskey="m"',
@@ -781,7 +778,6 @@ class template {
     }
     
     $headers_sent = true;
-    dc_here('template: generating and sending the page header');
     if(!defined('ENANO_HEADERS_SENT'))
       define('ENANO_HEADERS_SENT', '');
     if ( !$this->no_headers )
@@ -813,7 +809,6 @@ class template {
   function footer($simple = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    dc_here('template: generating and sending the page footer');
     if(!$this->no_headers) {
       
       if(!defined('ENANO_HEADERS_SENT'))
@@ -844,7 +839,6 @@ class template {
   function getHeader()
   {
     $headers_sent = true;
-    dc_here('template: generating and sending the page header');
     if(!defined('ENANO_HEADERS_SENT'))
       define('ENANO_HEADERS_SENT', '');
     if(!$this->no_headers) return $this->process_template('header.tpl');
@@ -852,7 +846,6 @@ class template {
   function getFooter()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    dc_here('template: generating and sending the page footer');
     if(!$this->no_headers) {
       global $_starttime;
       $t = '';

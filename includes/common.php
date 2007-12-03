@@ -11,8 +11,17 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
+ 
+/**
+ * The main loader script that initializes everything about Enano in the proper order. Prepare to get
+ * redirected if you don't have $_GET['title'] or $_SERVER['PATH_INFO'] set up.
+ * @package Enano
+ * @subpackage Core
+ * @copyright See header block
+ */
 
-if(isset($_REQUEST['GLOBALS']))
+// Make sure we don't have an attempt to inject globals (register_globals on)
+if ( isset($_REQUEST['GLOBALS']) )
 {
   ?>
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html><head><title>Hacking Attempt</title><meta http-equiv="Content-type" content="text/html; charset=utf-8" /></head><style type="text/css">body{background-color:#000;color:#CCC;font-family:trebuchet ms,sans-serif;font-size:9pt;}a{color:#FFF;}</style><body><p>Hacking attempt using <a href="http://www.hardened-php.net/index.76.html">PHP $GLOBALS overwrite vulnerability</a> detected, reported to admin</p><p>You're worse than this guy! Unless you are this guy...</p><p id="billp"><img alt=" " src="about:blank" id="billi" /></p><script type="text/javascript">// <![CDATA[
@@ -23,7 +32,18 @@ if(isset($_REQUEST['GLOBALS']))
   exit;
 }
 
+// Our version number
+// This needs to match the version number in the database. This number should
+// be the expected output of enano_version(), which will always be in the
+// format of 1.0.2, 1.0.2a1, 1.0.2b1, 1.0.2RC1
+// You'll want to change this for custom distributions.
 $version = '1.0.2';
+
+/**
+ * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it
+ * from very early on in the script to measure the starting time of Enano.
+ * @return float
+ */
 
 function microtime_float()
 {
@@ -31,52 +51,54 @@ function microtime_float()
   return ((float)$usec + (float)$sec);
 }
 
+// Determine starting time
 global $_starttime;
 $_starttime = microtime_float();
 
+// Verbose error reporting
 error_reporting(E_ALL);
 
-// Determine directory (special case for development servers)
+//
+// Determine the location of Enano as an absolute path.
+//
+
+// We need to see if this is a specially marked Enano development server. You can create an Enano
+// development server by cloning the Mercurial repository into a directory named repo, and then
+// using symlinks to reference the original files so as to segregate unique files from non-unique
+// and distribution-standard ones. Enano will pivot its root directory accordingly if the file
+// .enanodev is found in the Enano root (not /repo/).
 if ( strpos(__FILE__, '/repo/') && ( file_exists('.enanodev') || file_exists('../.enanodev') ) )
 {
+  // We have a development directory. Remove /repo/ from the picture.
   $filename = str_replace('/repo/', '/', __FILE__);
 }
 else
 {
+  // Standard Enano installation
   $filename = __FILE__;
 }
 
-if(!defined('ENANO_ROOT')) // ENANO_ROOT is sometimes defined by plugins like AjIM that need the constant before the Enano API is initialized
+// ENANO_ROOT is sometimes defined by plugins like AjIM that need the constant before the Enano API is initialized
+if ( !defined('ENANO_ROOT') )
   define('ENANO_ROOT', dirname(dirname($filename)));
 
-if(defined('ENANO_DEBUG') && version_compare(PHP_VERSION, '5.0.0') < 0)
+// Debugging features are PHP5-specifid
+if ( defined('ENANO_DEBUG') && version_compare(PHP_VERSION, '5.0.0') < 0 )
 {
   die(__FILE__.':'.__LINE__.': The debugConsole requires PHP 5.x.x or greater. Please comment out the ENANO_DEBUG constant in your index.php.');
 }
 
-/*
-if(defined('ENANO_DEBUG'))
-{
-  require_once(ENANO_ROOT.'/includes/debugger/debugConsole.php');
-} else {
-*/
-  function dc_here($m)     { return false; }
-  function dc_dump($a, $g) { return false; }
-  function dc_watch($n)    { return false; }
-  function dc_start_timer($u) { return false; }
-  function dc_stop_timer($m) { return false; }
-//}
+// We deprecated debugConsole in 1.0.2 because it was never used and there were a lot of unneeded debugging points in the code.
 
+// _nightly.php is used to tag non-Mercurial-generated nightly builds
 if ( file_exists( ENANO_ROOT . '/_nightly.php') )
   require(ENANO_ROOT.'/_nightly.php');
 
-// List of scheduled tasks
+// List of scheduled tasks (don't change this manually, use register_cron_task())
 $cron_tasks = array();
 
 // Start including files. LOTS of files. Yeah!
 require_once(ENANO_ROOT.'/includes/constants.php');
-dc_here('Enano CMS '.$version.' (dev) - debug window<br />Powered by debugConsole');
-dc_here('common: including files');
 require_once(ENANO_ROOT.'/includes/functions.php');
 require_once(ENANO_ROOT.'/includes/dbal.php');
 require_once(ENANO_ROOT.'/includes/paths.php');
@@ -100,27 +122,47 @@ require_once(ENANO_ROOT.'/includes/tagcloud.php');
 
 strip_magic_quotes_gpc();
 
-// Enano has five parts: the database abstraction layer (DBAL), the session manager, the path/URL manager, the template engine, and the plugin manager.
-// Each part has its own class and a global var; nearly all Enano functions are handled by one of these five components.
+// Enano has five main components: the database abstraction layer (DBAL), the session manager,
+// the path/URL manager, the template engine, and the plugin manager.
+// Each part has its own class and a global object; nearly all Enano functions are handled by one of these five components.
+// All of these classes are singletons and are designed to carry as much data as possible within the object
+// to make data access and function calling easy.
 
 global $db, $session, $paths, $template, $plugins; // Common objects
 global $enano_config; // A global used to cache config information without making loads of queries ;-)
                       // In addition, $enano_config is used to fetch config information if die_semicritical() is called.
-                      
+
+// Jim Tucek's e-mail encryption code                      
 global $email;
 
-if(!isset($_SERVER['HTTP_HOST'])) grinding_halt('Cannot get hostname', '<p>Your web browser did not provide the HTTP Host: field. This site requires a modern browser that supports the HTTP 1.1 standard.</p>');
-                     
-$db = new mysql();
-dc_here('common: calling $db->connect();');
-$db->connect(); // Redirects to install.php if an installation is not detected
+// Because Enano sends out complete URLs in several occasions, we need to know what hostname the user is requesting the page from.
+// In future versions we may include a fallback "safety" host to use, but that's too much to worry about now
+if ( !isset($_SERVER['HTTP_HOST']) )
+  grinding_halt('Cannot get hostname', '<p>Your web browser did not provide the HTTP Host: field. This site requires a modern browser that supports the HTTP 1.1 standard.</p>');
 
-if(strstr(contentPath, '?')) $sep = '&';
-else $sep = '?';
+//
+// END BACKGROUND AND ENVIRONMENT CHECKS
+//
+
+//
+// MAIN API INITIALIZATION
+//
+
+// The first thing we need to do is start the database connection. At this point, for all we know, Enano might not
+// even be installed. If this connection attempt fails and it's because of a missing or corrupt config file, the
+// user will be redirected (intelligently) to install.php.
+$db = new mysql();
+$db->connect();
+
+// The URL separator is the character appended to contentPath + url_title type strings.
+// If the contentPath has a ? in it, this should be an ampersand; else, it should be a
+// question mark.
+$sep = ( strstr(contentPath, '?') ) ? '&' : '?';
 define('urlSeparator', $sep);
 unset($sep); // save 10 bytes of memory...
 
-// See if any diagnostic actions have been requested
+// Sometimes there are critical failures triggered by initialization functions in the Enano API that are recurring
+// and cannot be fixed except for manual intervention. This is where that code should go.
 if ( isset($_GET['do']) && $_GET['do'] == 'diag' && isset($_GET['sub']) )
 {
   switch($_GET['sub'])
@@ -135,12 +177,15 @@ if ( isset($_GET['do']) && $_GET['do'] == 'diag' && isset($_GET['sub']) )
 }
 
 // Select and fetch the site configuration
-dc_here('common: selecting global config data');
 $e = $db->sql_query('SELECT config_name, config_value FROM '.table_prefix.'config;');
-if(!$e) $db->_die('Some critical configuration information could not be selected.');
-else define('ENANO_CONFIG_FETCHED', ''); // Used in die_semicritical to figure out whether to call getConfig() or not
+if ( !$e )
+{
+  $db->_die('Some critical configuration information could not be selected.');
+}
+// Used in die_semicritical to figure out whether to call getConfig() or not
+define('ENANO_CONFIG_FETCHED', '');
 
-dc_here('common: fetching $enano_config');
+// Initialize and fetch the site configuration array, which is used to cache the config
 $enano_config = Array();
 while($r = $db->fetchrow())
 {
@@ -149,7 +194,8 @@ while($r = $db->fetchrow())
 
 $db->free_result();
 
-if(enano_version(false, true) != $version)
+// Now that we have the config, check the Enano version.
+if ( enano_version(false, true) != $version )
 {
   grinding_halt('Version mismatch', '<p>It seems that the Enano release we\'re trying to run ('.$version.') is different from the version specified in your database ('.enano_version().'). Perhaps you need to <a href="'.scriptPath.'/upgrade.php">upgrade</a>?</p>');
 }
@@ -211,32 +257,49 @@ $system_table_list = Array(
     table_prefix.'tags'
   );
 
-dc_here('common: initializing base classes');
+// Load plugin manager
 $plugins = new pluginLoader();
 
-// So where does the majority of Enano get executed? How about the next nine lines of code :)
-dc_here('common: ok, we\'re set up, starting mainstream execution');
+//
+// Mainstream API boot-up
+//
 
+// Obtain list of plugins
 $plugins->loadAll();
-dc_here('common: loading plugins');
-  global $plugins;
-  foreach($plugins->load_list as $f) { include_once $f; } // Can't be in object context when this is done
 
+global $plugins;
+
+// Load plugins from common because we can't give plugins full abilities in object context
+foreach ( $plugins->load_list as $f )
+{
+  include_once $f;
+}
+
+// Three fifths of the Enano API gets the breath of life right here.
 $session = new sessionManager();
 $paths = new pathManager();
 $template = new template();
 $email = new EmailEncryptor();
 
+// We've got the five main objects - flick on the switch so if a problem occurs, we can have a "friendly" UI
 define('ENANO_BASE_CLASSES_INITIALIZED', '');
 
+// From here on out, none of this functionality is needed during the installer stage.
+// Once $paths->init() is called, we could be redirected to the main page, so we don't want
+// that if the installer's running. Don't just go and define IN_ENANO_INSTALL from your
+// script though, because that will make the DBAL look in the wrong place for the config file.
 if ( !defined('IN_ENANO_INSTALL') )
 {
+  // And here you have it, the de facto way to place a hook. Plugins can place hooks and hook
+  // into other plugins. You just never know.
   $code = $plugins->setHook('base_classes_initted');
   foreach ( $code as $cmd )
   {
     eval($cmd);
   }
-    
+  
+  // For special and administration pages, sometimes there is a "preloader" function that must be run
+  // before the session manager and/or path manager get the init signal. Call it here.  
   $p = RenderMan::strToPageId($paths->get_pageid_from_url());
   if( ( $p[1] == 'Admin' || $p[1] == 'Special' ) && function_exists('page_'.$p[1].'_'.$p[0].'_preloader'))
   {
@@ -248,10 +311,12 @@ if ( !defined('IN_ENANO_INSTALL') )
   {
     die('SECURITY: spoofed IP address');
   }
-  
+
+  // All checks passed! Start the main components up.  
   $session->start();
   $paths->init();
   
+  // We're ready for whatever life throws us now.
   define('ENANO_MAINSTREAM', '');
   
   // If the site is disabled, bail out, unless we're trying to log in or administer the site
@@ -276,18 +341,26 @@ if ( !defined('IN_ENANO_INSTALL') )
       die_semicritical('Site disabled', $text);
     }
   }
-  else if(getConfig('site_disabled') == '1' && $session->user_level >= USER_LEVEL_ADMIN)
+  else if ( getConfig('site_disabled') == '1' && $session->user_level >= USER_LEVEL_ADMIN )
   {
+    // If the site is disabled but the user has admin rights, allow browsing
+    // and stuff, but display the orange box notifying the admin.
     $template->site_disabled = true;
   }
   
+  // A better name for this hook would be common_post. At this point
+  // all of Enano is fully initialized and running and you're ready
+  // to do whatever you want.
   $code = $plugins->setHook('session_started');
   foreach ( $code as $cmd )
   {
     eval($cmd);
   }
   
-  if(isset($_GET['noheaders'])) $template->no_headers = true;
+  if ( isset($_GET['noheaders']) )
+    $template->no_headers = true;
 }
+
+// That's the end. Enano should be loaded now :-)
 
 ?>

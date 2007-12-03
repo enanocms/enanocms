@@ -477,8 +477,6 @@ function die_semicritical($t, $p)
   if ( ob_get_status() )
     ob_end_clean();
 
-  dc_here('functions: <span style="color: red">calling die_semicritical</span>');
-
   $tpl = new template_nodb();
   $tpl->load_theme('oxygen', 'bleu');
   $tpl->tpl_strings['SITE_NAME'] = getConfig('site_name');
@@ -505,7 +503,6 @@ function die_friendly($t, $p)
   if ( ob_get_status() )
     ob_end_clean();
 
-  dc_here('functions: <span style="color: red">calling die_friendly</span>');
   $paths->cpage['name'] = $t;
   $template->tpl_strings['PAGE_NAME'] = $t;
   $template->header();
@@ -535,7 +532,6 @@ function grinding_halt($t, $p)
   if ( ob_get_status() )
     ob_end_clean();
 
-  dc_here('functions: <span style="color: red">calling grinding_halt</span>');
   $tpl = new template_nodb();
   $tpl->load_theme('oxygen', 'bleu');
   $tpl->tpl_strings['SITE_NAME'] = 'Critical error';

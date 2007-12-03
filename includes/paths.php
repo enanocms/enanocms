@@ -18,15 +18,13 @@
  */
  
 class pathManager {
-  var $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache;
+  var $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $anonymous_page;
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     $GLOBALS['paths'] =& $this;
     $this->pages = Array();
-    
-    dc_here('paths: setting up namespaces, admin nodes');
     
     // DEFINE NAMESPACES HERE
     // The key names should NOT EVER be changed, or Enano will be very broken
@@ -110,8 +108,6 @@ class pathManager {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    dc_here('paths: selecting master page data');
-    
     $code = $plugins->setHook('paths_init_before');
     foreach ( $code as $cmd )
     {
@@ -152,115 +148,145 @@ class pathManager {
       
     }
     $db->free_result();
-    dc_here('paths: determining page ID');
-    if( isset($_GET['title']) )
+    if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') )
     {
-      if ( $_GET['title'] == '' && getConfig('main_page') != '' )
+      if( isset($_GET['title']) )
       {
-        $this->main_page();
+        if ( $_GET['title'] == '' && getConfig('main_page') != '' )
+        {
+          $this->main_page();
+        }
+        if(strstr($_GET['title'], ' '))
+        {
+          $loc = urldecode(rawurldecode($_SERVER['REQUEST_URI']));
+          $loc = str_replace(' ', '_', $loc);
+          $loc = str_replace('+', '_', $loc);
+          $loc = str_replace('%20', '_', $loc);
+          redirect($loc, 'Redirecting...', 'Space detected in the URL, please wait whilst you are redirected', 0);
+          exit;
+        }
+        $url_namespace_special = substr($_GET['title'], 0, strlen($this->nslist['Special']) );
+        $url_namespace_template = substr($_GET['title'], 0, strlen($this->nslist['Template']) );
+        if($url_namespace_special == $this->nslist['Special'] || $url_namespace_template == $this->nslist['Template'] )
+        {
+          $ex = explode('/', $_GET['title']);
+          $this->page = $ex[0];
+        }
+        else
+        {
+          $this->page = $_GET['title'];
+        }
+        $this->fullpage = $_GET['title'];
       }
-      if(strstr($_GET['title'], ' '))
+      elseif( isset($_SERVER['PATH_INFO']) )
       {
-        $loc = urldecode(rawurldecode($_SERVER['REQUEST_URI']));
-        $loc = str_replace(' ', '_', $loc);
-        $loc = str_replace('+', '_', $loc);
-        $loc = str_replace('%20', '_', $loc);
-        redirect($loc, 'Redirecting...', 'Space detected in the URL, please wait whilst you are redirected', 0);
-        exit;
-      }
-      $url_namespace_special = substr($_GET['title'], 0, strlen($this->nslist['Special']) );
-      $url_namespace_template = substr($_GET['title'], 0, strlen($this->nslist['Template']) );
-      if($url_namespace_special == $this->nslist['Special'] || $url_namespace_template == $this->nslist['Template'] )
-      {
-        $ex = explode('/', $_GET['title']);
-        $this->page = $ex[0];
+        $pi = explode('/', $_SERVER['PATH_INFO']);
+        
+        if( !isset($pi[1]) || (isset($pi[1]) && $pi[1] == '' && getConfig('main_page') != '') )
+        {
+          $this->main_page();
+        }
+        if( strstr($pi[1], ' ') )
+        {
+          $loc = str_replace(' ', '_', urldecode(rawurldecode($_SERVER['REQUEST_URI'])));
+          $loc = str_replace('+', '_', $loc);
+          $loc = str_replace('%20', '_', $loc);
+          redirect($loc, 'Redirecting...', 'Please wait whilst you are redirected', 3);
+          exit;
+        }
+        unset($pi[0]);
+        if( substr($pi[1], 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] || substr($pi[1], 0, strlen($this->nslist['Template'])) == $this->nslist['Template'] )
+        {
+          $pi2 = $pi[1];
+        }
+        else
+        {
+          $pi2 = implode('/', $pi);
+        }
+        $this->page = $pi2;
+        $this->fullpage = implode('/', $pi);
       }
       else
       {
-        $this->page = $_GET['title'];
+        $k = array_keys($_GET);
+        foreach($k as $c)
+        {
+          if(substr($c, 0, 1) == '/')
+          {
+            $this->page = substr($c, 1, strlen($c));
+            
+            // Bugfix for apache somehow passing dots as underscores
+            global $mime_types;
+            
+            $exts = array_keys($mime_types);
+            $exts = '(' . implode('|', $exts) . ')';
+            
+            if ( preg_match( '#_'.$exts.'#i', $this->page ) )
+            {
+              $this->page = preg_replace( '#_'.$exts.'#i', '.\\1', $this->page );
+            }
+            
+            $this->fullpage = $this->page;
+            
+            if(substr($this->page, 0, strlen($this->nslist['Special']))==$this->nslist['Special'] || substr($this->page, 0, strlen($this->nslist['Template']))==$this->nslist['Template'])
+            {
+              $ex = explode('/', $this->page);
+              $this->page = $ex[0];
+            }
+            if(strstr($this->page, ' '))
+            {
+              $loc = str_replace(' ', '_', urldecode(rawurldecode($_SERVER['REQUEST_URI'])));
+              $loc = str_replace('+', '_', $loc);
+              $loc = str_replace('%20', '_', $loc);
+              redirect($loc, 'Redirecting...', 'Space in the URL detected, please wait whilst you are redirected', 0);
+              exit;
+            }
+            break;
+          }
+        }
+        if(!$this->page && !($this->page == '' && getConfig('main_page') == ''))
+        {
+          $this->main_page();
+        }
       }
-      $this->fullpage = $_GET['title'];
-    }
-    elseif( isset($_SERVER['PATH_INFO']) )
-    {
-      $pi = explode('/', $_SERVER['PATH_INFO']);
-      
-      if( !isset($pi[1]) || (isset($pi[1]) && $pi[1] == '' && getConfig('main_page') != '') )
-      {
-        $this->main_page();
-      }
-      if( strstr($pi[1], ' ') )
-      {
-        $loc = str_replace(' ', '_', urldecode(rawurldecode($_SERVER['REQUEST_URI'])));
-        $loc = str_replace('+', '_', $loc);
-        $loc = str_replace('%20', '_', $loc);
-        redirect($loc, 'Redirecting...', 'Please wait whilst you are redirected', 3);
-        exit;
-      }
-      unset($pi[0]);
-      if( substr($pi[1], 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] || substr($pi[1], 0, strlen($this->nslist['Template'])) == $this->nslist['Template'] )
-      {
-        $pi2 = $pi[1];
-      }
-      else
-      {
-        $pi2 = implode('/', $pi);
-      }
-      $this->page = $pi2;
-      $this->fullpage = implode('/', $pi);
     }
     else
     {
-      $k = array_keys($_GET);
-      foreach($k as $c)
+      // Starting up Enano with the API from a page that wants to do its own thing. Generate
+      // metadata for an anonymous page and avoid redirection at all costs.
+      if ( isset($GLOBALS['title']) )
       {
-        if(substr($c, 0, 1) == '/')
-        {
-          $this->page = substr($c, 1, strlen($c));
-          
-          // Bugfix for apache somehow passing dots as underscores
-          global $mime_types;
-          
-          $exts = array_keys($mime_types);
-          $exts = '(' . implode('|', $exts) . ')';
-          
-          if ( preg_match( '#_'.$exts.'#i', $this->page ) )
-          {
-            $this->page = preg_replace( '#_'.$exts.'#i', '.\\1', $this->page );
-          }
-          
-          $this->fullpage = $this->page;
-          
-          if(substr($this->page, 0, strlen($this->nslist['Special']))==$this->nslist['Special'] || substr($this->page, 0, strlen($this->nslist['Template']))==$this->nslist['Template'])
-          {
-            $ex = explode('/', $this->page);
-            $this->page = $ex[0];
-          }
-          if(strstr($this->page, ' '))
-          {
-            $loc = str_replace(' ', '_', urldecode(rawurldecode($_SERVER['REQUEST_URI'])));
-            $loc = str_replace('+', '_', $loc);
-            $loc = str_replace('%20', '_', $loc);
-            redirect($loc, 'Redirecting...', 'Space in the URL detected, please wait whilst you are redirected', 0);
-            exit;
-          }
-          break;
-        }
+        $title =& $GLOBALS['title'];
       }
-      if(!$this->page && !($this->page == '' && getConfig('main_page') == ''))
+      else if ( isset($_SERVER['REQUEST_URI']) )
       {
-        $this->main_page();
+        $title = basename($_SERVER['REQUEST_URI']);
       }
+      else
+      {
+        $title = 'Untitled page';
+      }
+      $this->page = $this->nslist['Special'] . 'AnonymousPage';
+      $this->fullpage = $this->nslist['Special'] . 'AnonymousPage';
+      $this->cpage = array(
+          'name' => $title,
+          'urlname' => 'AnonymousPage',
+          'namespace' => 'Special',
+          'special' => 0,
+          'visible' => 1,
+          'comments_on' => 0,
+          'protected' => 1,
+          'delvotes' => 0,
+          'delvote_ips' => ''
+        );
+      $this->anonymous_page = true;
     }
     
     $this->page = sanitize_page_id($this->page);
     $this->fullpage = sanitize_page_id($this->fullpage);
     
-    dc_here('paths: setting $paths->cpage');
-    
     if(isset($this->pages[$this->page]))
     {
-      dc_here('paths: page existence verified, our page ID is: '.$this->page);
       $this->page_exists = true;
       $this->cpage = $this->pages[$this->page];
       $this->namespace = $this->cpage['namespace'];
@@ -304,7 +330,6 @@ class pathManager {
     }
     else
     {
-      dc_here('paths: page doesn\'t exist, creating new page in memory<br />our page ID is: '.$this->page);
       $this->page_exists = false;
       $page_name = dirtify_page_id($this->page);
       $page_name = str_replace('_', ' ', $page_name);
@@ -315,18 +340,21 @@ class pathManager {
         redirect($pid_cleaned, 'Sanitizer message', 'page id sanitized', 0);
       }
       
-      $this->cpage = Array(
-        'name'=>$page_name,
-        'urlname'=>$this->page,
-        'namespace'=>'Article',
-        'special'=>0,
-        'visible'=>0,
-        'comments_on'=>1,
-        'protected'=>0,
-        'delvotes'=>0,
-        'delvote_ips'=>'',
-        'wiki_mode'=>2,
-        );
+      if ( !is_array($this->cpage) )
+      {
+        $this->cpage = Array(
+          'name'=>$page_name,
+          'urlname'=>$this->page,
+          'namespace'=>'Article',
+          'special'=>0,
+          'visible'=>0,
+          'comments_on'=>1,
+          'protected'=>0,
+          'delvotes'=>0,
+          'delvote_ips'=>'',
+          'wiki_mode'=>2,
+          );
+      }
       // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
       $k = array_keys($this->nslist);
       for($i=0;$i<sizeof($this->nslist);$i++)
@@ -348,7 +376,7 @@ class pathManager {
       {
         $this->cpage['protected'] = 1;
       }
-      if($this->namespace == 'Special')
+      if($this->namespace == 'Special' && !$this->anonymous_page)
       {
         // Can't load nonexistent pages
         if( is_string(getConfig('main_page')) )
@@ -384,7 +412,6 @@ class pathManager {
   
   function add_page($flags)
   {
-    //dc_dump($flags, 'paths: page added by plugin:');
     $flags['urlname_nons'] = $flags['urlname'];
     $flags['urlname'] = $this->nslist[$flags['namespace']] . $flags['urlname']; // Applies the User:/File:/etc prefixes to the URL names
     $pages_len = sizeof($this->pages)/2;
@@ -409,7 +436,6 @@ class pathManager {
   function sysmsg($n)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    dc_here('paths: system message requested: '.$n);
     $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\''.$db->escape($n).'\' AND namespace=\'System\'');
     if( !$q )
     {

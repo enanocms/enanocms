@@ -1639,7 +1639,6 @@ Thank you for registering on '.getConfig('site_name').'. Your account creation i
     $message .= "$prot://".$_SERVER['HTTP_HOST'].$p.$aklink;
       $message .= "\n\nSincerely yours, \n$admin_user and the ".$_SERVER['HTTP_HOST']." administration team";
     error_reporting(E_ALL);
-    dc_dump($r, 'session: about to send activation e-mail to '.$r['email']);
     if(getConfig('smtp_enabled') == '1')
     {
       $result = smtp_send_email($r['email'], getConfig('site_name').' website account activation', preg_replace("#(?<!\r)\n#s", "\n", $message), getConfig('contact_email'));
@@ -1714,7 +1713,6 @@ Date (YYYY-MM-DD): ______ / _____ / _____
     
     error_reporting(E_ALL);
     
-    dc_dump($r, 'session: about to send COPPA e-mail to '.$r['email']);
     if(getConfig('smtp_enabled') == '1')
     {
       $result = smtp_send_email($r['email'], getConfig('site_name').' website account activation', preg_replace("#(?<!\r)\n#s", "\n", $message), getConfig('contact_email'));
