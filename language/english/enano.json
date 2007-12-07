@@ -204,6 +204,9 @@ var enano_lang = {
       tip_protect_off: 'Allows everyone to edit this page. [alt-o]',
       tip_protect_semi: 'Allows only users who have been registered for 4 days to edit this page. [alt-p]',
       tip_flushlogs: 'Remove all edit and action logs for this page from the database. IRREVERSIBLE! (alt-l)',
+      tip_deletepage: 'Delete this page. This is always reversible unless the logs are cleared. (alt-k)',
+      tip_adminoptions: 'Administrative options for this page',
+      tip_moreoptions: 'Additional options for working with this page',
       tip_password: 'Require a password in order for this page to be viewed',
       tip_aclmanager: 'Manage who can do what with this page (alt-m)',
       
@@ -383,6 +386,26 @@ var enano_lang = {
       detag_err_page_exists: 'The detag action is only valid for pages that have been deleted in the past.',
       detag_success_title: 'Page detagged',
       detag_success_body: 'All stale tags have been removed from this page.',
+      
+      err_custompage_function_missing_title: 'Page backend not found',
+      err_custompage_function_missing_body: 'The administration page you are looking for was properly registered using the page API, but the backend function (<tt>%function_name%</tt>) was not found. If this is a plugin page, then this is almost certainly a bug with the plugin.',
+      err_redirects_exceeded: 'The maximum number of internal redirects has been exceeded.',
+      err_redirect_to_nonexistent: 'This page redirects to another page that doesn\'t exist.',
+      err_redirect_infinite_loop: 'This page infinitely redirects with another page (or another series of pages), and the infinite redirect was trapped.',
+      err_redirect_to_special: 'This page redirects to a Special or Administration page, which is not allowed.',
+      err_access_denied_title: 'You don\'t have permission to view this page.',
+      err_access_denied_body: '<p>Your user account doesn\'t have the necessary permission to view this page. There are a number of possible reasons for this:</p>
+                               <ul>
+                                 <li>You aren\'t logged in. Some pages are restricted to logged-in users.</li>
+                                 <li>The page you\'re trying to view is protected so that only members of a specific usergroup are allowed to read it.</li>
+                               </ul>
+                               <p>If you would like to inquire further about this message, you may contact the %site_administration%.</p>',
+      err_access_denied_siteadmin: 'site administrator',
+      msg_this_is_a_redirector: '<b>This page is a <i>redirector</i>.</b><br />
+                    This means that this page will not show its own content by default. Instead it will display the contents of the page it redirects to.<br /><br />
+                    To create a redirect page, make the <i>first characters</i> in the page content <tt>#redirect [[Page_ID]]</tt>. For more information, see the
+                    Enano <a href="http://enanocms.org/Help:Wiki_formatting" onclick="window.open(this.href); return false;">Wiki formatting guide</a>.<br /><br />
+                    This page redirects to %redirect_target%.'
     },
     catedit: {
       title: 'Select which categories this page should be included in.',

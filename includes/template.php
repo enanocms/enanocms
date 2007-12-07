@@ -535,7 +535,7 @@ class template {
       }
       
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDeletePage()); return false; }" title="Delete this page. This is always reversible unless the logs are cleared. (alt-k)" accesskey="k"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDeletePage()); return false; }" title="' . $lang->get('onpage_tip_deletepage') . '" accesskey="k"',
           'HREF'  => makeUrl($paths->page, 'do=deletepage', true),
           'TEXT'  => $s,
         ));
@@ -591,7 +591,7 @@ class template {
     if ( $session->user_level >= USER_LEVEL_ADMIN && $paths->page_exists && $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="Administrative options for this page" accesskey="g"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="' . $lang->get('onpage_tip_adminoptions') . '" accesskey="g"',
           'HREF'  => makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'PageManager', true),
           'TEXT'  => $lang->get('onpage_btn_admin'),
         ));
@@ -601,7 +601,7 @@ class template {
     if ( strlen($this->toolbar_menu) > 0 )
     {
       $button->assign_vars(array(
-        'FLAGS'       => 'id="mdgToolbar_moreoptions" onclick="if ( !KILL_SWITCH ) { return false; }" title="Additional options for working with this page"',
+        'FLAGS'       => 'id="mdgToolbar_moreoptions" onclick="if ( !KILL_SWITCH ) { return false; }" title="' . $lang->get('onpage_tip_moreoptions') . '"',
         'PARENTFLAGS' => '',
         'HREF'        => makeUrl($paths->page, 'do=moreoptions', true),
         'TEXT'        => $lang->get('onpage_btn_moreoptions')

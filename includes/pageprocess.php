@@ -152,6 +152,8 @@ class PageProcessor
   function send( $do_stats = false )
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     if ( !$this->perms->get_permissions('read') )
     {
       $this->err_access_denied();
@@ -187,7 +189,7 @@ class PageProcessor
     {
       if ( !$this->page_exists )
       {
-        redirect( makeUrl(getConfig('main_page')), 'Can\'t find special page', 'The special or administration page you requested does not exist. You will now be transferred to the main page.', 2 );
+        die_semicritical('Exception in PageProcessor', '<p>Special page not existent but exception not previously caught by path manager.</p>');
       }
       $func_name = "page_{$this->namespace}_{$this->page_id}";
       if ( function_exists($func_name) )
@@ -196,9 +198,8 @@ class PageProcessor
       }
       else
       {
-        $title = 'Page backend not found';
-        $message = "The administration page you are looking for was properly registered using the page API, but the backend function
-                    (<tt>$fname</tt>) was not found. If this is a plugin page, then this is almost certainly a bug with the plugin.";
+        $title = $lang->get('page_err_custompage_function_missing_title');
+        $message = $lang->get('page_err_custompage_function_missing_body', array( 'function_name' => $fname ));
                     
         if ( $this->send_headers )
         {
@@ -291,7 +292,7 @@ class PageProcessor
           $page_id_data = RenderMan::strToPageID($page_to);
           if ( count($this->redirect_stack) >= 3 )
           {
-            $this->render( (!$strict_no_headers), '<div class="usermessage"><b>The maximum number of internal redirects has been exceeded.</b></div>' );
+            $this->render( (!$strict_no_headers), '<div class="usermessage"><b>' . $lang->get('page_err_redirects_exceeded') . '</b></div>' );
           }
           else
           {
@@ -381,6 +382,7 @@ class PageProcessor
   function render($incl_inner_headers = true, $_errormsg = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $text = $this->fetch_text();
     $text = preg_replace('/([\s]*)__NOBREADCRUMBS__([\s]*)/', '', $text);
@@ -414,11 +416,7 @@ class PageProcessor
                     <img alt="Cute wet-floor icon" src="'.scriptPath.'/images/redirector.png" />
                   </td>
                   <td valign="top" style="padding-left: 10px;">
-                    <b>This page is a <i>redirector</i>.</b><br />
-                    This means that this page will not show its own content by default. Instead it will display the contents of the page it redirects to.<br /><br />
-                    To create a redirect page, make the <i>first characters</i> in the page content <tt>#redirect [[Page_ID]]</tt>. For more information, see the
-                    Enano <a href="http://enanocms.org/Help:Wiki_formatting" onclick="window.open(this.href); return false;">Wiki formatting guide</a>.<br /><br />
-                    This page redirects to ' . $a . '.
+                    ' . $lang->get('page_msg_this_is_a_redirector', array( 'redirect_target' => $a )) . '
                   </td>
                 </tr>
               </table>
@@ -956,19 +954,29 @@ class PageProcessor
   function _handle_redirect($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     $arr_pid = array($this->page_id, $this->namespace);
     if ( $namespace == 'Special' || $namespace == 'Admin' )
     {
-      return 'This page redirects to a Special or Administration page, which is not allowed.';
+      return $lang->get('page_err_redirect_to_special');
     }
-    if ( in_array($this->redirect_stack, $arr_pid) )
+    $looped = false;
+    foreach ( $this->redirect_stack as $page )
     {
-      return 'This page infinitely redirects with another page (or another series of pages), and the infinite redirect was trapped.';
+      if ( $page[0] == $arr_pid[0] && $page[1] == $arr_pid[1] )
+      {
+        $looped = true;
+        break;
+      }
+    }
+    if ( $looped )
+    {
+      return $lang->get('page_err_redirect_infinite_loop');
     }
     $page_id_key = $paths->nslist[ $namespace ] . sanitize_page_id($page_id);
     if ( !isset($paths->pages[$page_id_key]) )
     {
-      return 'This page redirects to another page that doesn\'t exist.';
+      return $lang->get('page_err_redirect_to_nonexistent');
     }
     $this->redirect_stack[] = $arr_pid;
     
@@ -988,6 +996,8 @@ class PageProcessor
   function err_access_denied()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    global $email;
     
     // Log it for crying out loud
     $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
@@ -1022,7 +1032,10 @@ class PageProcessor
       }
     }
     
-    $ob .= '<div class="error-box"><b>Access to this page is denied.</b><br />This may be because you are not logged in or you have not met certain criteria for viewing this page.</div>';
+    $email_link = $email->encryptEmail(getConfig('contact_email'), '', '', $lang->get('page_err_access_denied_siteadmin'));
+    
+    $ob .= "<h3>" . $lang->get('page_err_access_denied_title') . "</h3>";
+    $ob .= "<p>" . $lang->get('page_err_access_denied_body', array('site_administration' => $email_link)) . "</p>";
     
     if ( $this->send_headers )
     {
