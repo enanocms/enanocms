@@ -232,7 +232,16 @@ class PageProcessor
       echo $text;
       
       $this->footer();
-      
+    }
+    else if ( $this->namespace == 'Anonymous' )
+    {
+      $uri = scriptPath . '/' . $this->page_id;
+      if ( !$this->send_headers )
+      {
+        $sep = ( strstr($uri, '?') ) ? '&' : '?';
+        $uri .= "{$sep}noheaders";
+      }
+      redirect( $uri, '', '', 0 );
     }
     else if ( !$this->page_exists )
     {

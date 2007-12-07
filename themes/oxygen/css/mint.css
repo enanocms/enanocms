@@ -26,7 +26,7 @@ td.recttoptop:hover                { width: 100%;  height: 12px; background-imag
 div.rectbot                        { width: 140px; height: 12px; margin: 0; padding: 0; }  
 td.rectbottop                      { width: 100%;  height: 12px; background-image: url(../images/mint/border-btm.gif); background-repeat: repeat-x;  margin: 0; padding: 0; }
 div.slideblock, .dbx-content       { overflow: hidden; background-color: #DDD; }
-div.slideblock2                    { overflow: hidden; background-color: #DDD; margin: 0px 1px 0px 1px; }
+div.slideblock2                    { overflow: hidden; background-color: #DDD; margin: 0px 1px 0px 1px; border-bottom: 1px solid #FFF; }
 .dbx-handle                        { cursor: move !important; }
 
 /* The credits thingy at the bottom */

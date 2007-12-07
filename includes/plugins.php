@@ -19,8 +19,6 @@ class pluginLoader {
   var $system_plugins = Array('SpecialUserFuncs.php','SpecialUserPrefs.php','SpecialPageFuncs.php','SpecialAdmin.php','SpecialCSS.php','SpecialUpdownload.php','SpecialSearch.php','PrivateMessages.php','SpecialGroups.php');
   function loadAll() 
   {
-    dc_here('plugins: building file list');
-    
     $dir = ENANO_ROOT.'/plugins/';
     
     $this->load_list = Array();
@@ -67,7 +65,6 @@ class pluginLoader {
     //die('<pre>'.htmlspecialchars(print_r($plugins, true)).'</pre>');
   }
   function setHook($name, $opts = Array()) {
-    dc_dump($name, 'plugins: hook added: ');
     /*
     $r = Array();
     if(isset($this->hook_list[$name])) {
@@ -89,7 +86,6 @@ class pluginLoader {
     }
   }
   function attachHook($name, $code) {
-    dc_dump($code, 'plugins: hook attached: '.$name.'<br />code:');
     if(!isset($this->hook_list[$name]))
     {
       $this->hook_list[$name] = Array();

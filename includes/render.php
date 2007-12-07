@@ -41,7 +41,6 @@ class RenderMan {
   function getPage($page_id, $namespace, $wiki = 1, $smilies = true, $filter_links = true, $redir = true, $render = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    dc_here('render: page requested<br />ID/namespace: '."$page_id, $namespace<br />Wiki mode: $wiki<br />Smilies: ".(string)$smilies."<br />Allow redirects: ".(string)$redir);
     
     $perms =& $session;
     
@@ -81,7 +80,6 @@ class RenderMan {
     
     if ( preg_match("#^\#redirect \[\[([^\]\r\n\a\t]+?)\]\]#", $message, $m) && $redir && ( !isset($_GET['redirect']) || ( isset($_GET['redirect']) && $_GET['redirect'] != 'no' ) ) )
     {
-      dc_here('render: looks like a redirect page to me...');
       $old = $paths->cpage;
       $a = RenderMan::strToPageID($m[1]);
       $a[0] = str_replace(' ', '_', $a[0]);
@@ -90,8 +88,6 @@ class RenderMan {
       $paths->page = $pageid;
       $paths->cpage = $paths->pages[$pageid];
       //die('<pre>'.print_r($paths->cpage,true).'</pre>');
-      
-      dc_here('render: wreckin\' $template, and reloading the theme vars to match the new page<br />This might get messy!');
       
       unset($template);
       unset($GLOBALS['template']);
@@ -108,21 +104,17 @@ class RenderMan {
     }
     else if(preg_match('#^\#redirect \[\[(.+?)\]\]#', $message, $m) && isset($_GET['redirect']) && $_GET['redirect'] == 'no')
     {
-      dc_here('render: looks like a redirect page to me...');
-      dc_here('render: skipping redirect as requested on URI');
       preg_match('#^\#redirect \[\[(.+)\]\]#', $message, $m);
       $m[1] = str_replace(' ', '_', $m[1]);
       $message = preg_replace('#\#redirect \[\[(.+)\]\]#', '<nowiki><div class="mdg-infobox"><table border="0" width="100%" cellspacing="0" cellpadding="0"><tr><td valign="top"><img alt="Cute wet-floor icon" src="'.scriptPath.'/images/redirector.png" /></td><td valign="top" style="padding-left: 10px;"><b>This page is a <i>redirector</i>.</b><br />This means that this page will not show its own content by default. Instead it will display the contents of the page it redirects to.<br /><br />To create a redirect page, make the <i>first characters</i> in the page content <tt>#redirect [[Page_ID]]</tt>. For more information, see the Enano <a href="http://enanocms.org/Help:Wiki_formatting">Wiki formatting guide</a>.<br /><br />This page redirects to <a href="'.makeUrl($m[1]).'">'.$paths->pages[$m[1]]['name'].'</a>.</td></tr></table></div><br /><hr style="margin-left: 1em; width: 200px;" /></nowiki>', $message);
     }
     $session->disallow_password_grab();
-    dc_here('render: alright, got the text, formatting...');
     return ($render) ? RenderMan::render($message, $wiki, $smilies, $filter_links) : $message;
   }
   
   function getTemplate($id, $parms)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    dc_here('render: template requested: '.$id);
     if(!isset($paths->pages[$paths->nslist['Template'].$id])) 
     {
       return '[['.$paths->nslist['Template'].$id.']]';
@@ -161,7 +153,6 @@ class RenderMan {
   function fetch_template_text($id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    dc_here('render: template raw data requested: '.$id);
     if(!isset($paths->pages[$paths->nslist['Template'].$id])) 
     {
       return '[['.$paths->nslist['Template'].$id.']]';

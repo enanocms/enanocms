@@ -16,6 +16,8 @@
  *
  */
  
+  define('ENANO_INTERFACE_INDEX', '');
+ 
   // Set up gzip encoding before any output is sent
   
   $aggressive_optimize_html = false;

@@ -12,6 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
  
+  define('ENANO_INTERFACE_AJAX', '');
+ 
   // fillusername should be done without the help of the rest of Enano - all we need is the DBAL
   if ( isset($_GET['_mode']) && $_GET['_mode'] == 'fillusername' )
   {
