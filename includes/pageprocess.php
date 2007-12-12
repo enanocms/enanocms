@@ -807,7 +807,13 @@ class PageProcessor
     
     echo '</div>';
     echo '</td></tr>';
-            
+    
+    $code = $plugins->setHook('userpage_sidebar_left');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     echo '  </table>
           </div>';
     
@@ -921,6 +927,12 @@ class PageProcessor
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
       echo '<tr><td class="'.$class.'">' . htmlspecialchars($target_username) . ' hasn\'t posted any real-life contact information.</td></tr>';
+    }
+    
+    $code = $plugins->setHook('userpage_sidebar_right');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
     }
     
     echo '  </table>

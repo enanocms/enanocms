@@ -353,42 +353,75 @@ function ajaxAuthLoginInnerSetup()
           form_html += 'Please re-enter your login details, to verify your identity.<br /><br />';
         }
         form_html += ' \
-          <table border="0" align="center"> \
-            <tr> \
-              <td>Username:</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     size="25" /> \
-            </tr> \
-            <tr> \
-              <td>Password:</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" size="25" /> \
-            </tr> \
-            <tr> \
-              <td colspan="2" style="text-align: center;"> \
-                <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title, 'level=' + level)+'">full login form</a>.<br />';
+          <form action="#" onsubmit="ajaxValidateLogin(); return false;" name="ajax_login_form"> \
+            <table border="0" align="center"> \
+              <tr> \
+                <td>Username:</td><td><input name="username" tabindex="1" id="ajaxlogin_user" type="text"     size="25" /> \
+              </tr> \
+              <tr> \
+                <td>Password:</td><td><input name="password" tabindex="2" id="ajaxlogin_pass" type="password" size="25" /> \
+              </tr> \
+              <tr> \
+                <td colspan="2" style="text-align: center;"> \
+                  <br /><small>Trouble logging in? Try the <a href="'+makeUrlNS('Special', 'Login/' + title, 'level=' + level)+'">full login form</a>.<br />';
        if ( level <= USER_LEVEL_MEMBER )
        {
          form_html += ' \
-                Did you <a href="'+makeUrlNS('Special', 'PasswordReset')+'">forget your password</a>?<br /> \
-                Maybe you need to <a href="'+makeUrlNS('Special', 'Register')+'">create an account</a>.</small>';
+                  Did you <a href="'+makeUrlNS('Special', 'PasswordReset')+'">forget your password</a>?<br /> \
+                  Maybe you need to <a href="'+makeUrlNS('Special', 'Register')+'">create an account</a>.</small>';
        }
        form_html += ' \
-              </td> \
-            </tr> \
-          </table> \
-          <input type="hidden" id="ajaxlogin_crypt_key"       value="' + response.key + '" /> \
-          <input type="hidden" id="ajaxlogin_crypt_challenge" value="' + response.challenge + '" /> \
-        </form>';
+                </td> \
+              </tr> \
+            </table> \
+            <input type="hidden" id="ajaxlogin_crypt_key"       value="' + response.key + '" /> \
+            <input type="hidden" id="ajaxlogin_crypt_challenge" value="' + response.challenge + '" /> \
+          </form>';
         ajax_auth_mb_cache.updateContent(form_html);
         $('messageBox').object.nextSibling.firstChild.tabindex = '3';
         if ( typeof(response.username) == 'string' )
         {
           $('ajaxlogin_user').object.value = response.username;
-          $('ajaxlogin_pass').object.focus();
+          if ( IE )
+          {
+            setTimeout("document.forms['ajax_login_form'].password.focus();", 200);
+          }
+          else
+          {
+            $('ajaxlogin_pass').object.focus();
+          }
         }
         else
         {
-          $('ajaxlogin_user').object.focus();
+          if ( IE )
+          {
+            setTimeout("document.forms['ajax_login_form'].username.focus();", 200);
+          }
+          else
+          {
+            $('ajaxlogin_user').object.focus();
+          }
         }
         $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
-        $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
+        $('ajaxlogin_pass').object.onkeypress = function(e)
+        {
+          // Trigger a form submit when the password field is focused and the user presses enter
+          
+          // IE doesn't give us an event object when it should - check window.event. If that
+          // still fails, give up.
+          if ( !e )
+          {
+            e = window.event;
+          }
+          if ( !e && IE )
+          {
+            return true;
+          }
+          if ( e.keyCode == 13 )
+          {
+            ajaxValidateLogin();
+          }
+        };
         /*
         ## This causes the background image to disappear under Fx 2
         if ( shown_error )

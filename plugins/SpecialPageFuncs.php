@@ -109,6 +109,11 @@ function page_Special_CreatePage()
       
       exit;
     }
+    $code = $plugins->setHook('page_create_request');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
     if ( substr($urlname, 0, 8) == 'Project:' )
     {
       $template->header();

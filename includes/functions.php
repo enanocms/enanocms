@@ -2223,7 +2223,6 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
 function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10, $header = '', $footer = '')
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  $parser = $template->makeParserText($tpl_text);
   $num_pages = ceil ( $num_results / $perpage );
   $out = '';
   $i = 0;
@@ -2668,7 +2667,8 @@ function decode_unicode_array($array)
 function sanitize_tag($tag)
 {
   $tag = strtolower($tag);
-  $tag = preg_replace('/[^\w _@\$%\^&-]+/', '', $tag);
+  $tag = preg_replace('/[^\w @\$%\^&-]+/', '', $tag);
+  $tag = str_replace('_', ' ', $tag);
   $tag = trim($tag);
   return $tag;
 }

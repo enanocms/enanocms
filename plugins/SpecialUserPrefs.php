@@ -599,7 +599,7 @@ function page_Special_Preferences()
       $code = $plugins->setHook('userprefs_body');
       foreach ( $code as $cmd )
       {
-        if ( eval($code) )
+        if ( eval($cmd) )
           $good = true;
       }
       if ( !$good )
