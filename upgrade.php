@@ -70,7 +70,7 @@ else
 // Everything related to versions goes here!
 
 // Valid versions to upgrade from
-$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.1.1', '1.0.2b1');
+$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.1.1', '1.0.2b1', '1.0.2');
 
 // Basically a list of dependencies, which should be resolved automatically
 // If, for example, upgrading from 1.0b1 to 1.0RC1 requires one extra query that would not
@@ -87,7 +87,7 @@ $deps_list = Array(
     '1.0.1' => Array('1.0.1.1'),
     '1.0.1.1' => Array('1.0.2b1')
   );
-$this_version   = '1.0.2';
+$this_version   = '1.0.3';
 $func_list = Array(
     '1.0' => Array('u_1_0_1_update_del_votes'),
     '1.0b4' => Array('u_1_0_RC1_update_user_ids', 'u_1_0_RC1_add_admins_to_group', 'u_1_0_RC1_alter_files_table', 'u_1_0_RC1_destroy_session_cookie', 'u_1_0_RC1_set_contact_email', 'u_1_0_RC1_update_page_text'), // ,

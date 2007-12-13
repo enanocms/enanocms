@@ -4,13 +4,13 @@ Plugin Name: Special page-related pages
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:CreatePage, which can be used to create new pages. Also adds the About Enano and GNU General Public License pages.
 Author: Dan Fuhry
-Version: 1.0.2
+Version: 1.0.3
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2
+ * Version 1.0.3
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License

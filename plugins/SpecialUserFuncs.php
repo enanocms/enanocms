@@ -4,13 +4,13 @@ Plugin Name: Special user/login-related pages
 Plugin URI: http://enanocms.org/
 Description: Provides the pages Special:Login, Special:Logout, Special:Register, and Special:Preferences.
 Author: Dan Fuhry
-Version: 1.0.2
+Version: 1.0.3
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2
+ * Version 1.0.3
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License

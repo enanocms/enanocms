@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.0.3 (Dyrad)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -37,7 +37,7 @@ if ( isset($_REQUEST['GLOBALS']) )
 // be the expected output of enano_version(), which will always be in the
 // format of 1.0.2, 1.0.2a1, 1.0.2b1, 1.0.2RC1
 // You'll want to change this for custom distributions.
-$version = '1.0.2';
+$version = '1.0.3';
 
 /**
  * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it

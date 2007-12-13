@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.0.3 (Dyrad)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -1129,7 +1129,8 @@ function enano_codename()
       '1.0.1'  => 'Loch Ness',
       '1.0.1.1'=> 'Loch Ness internal bugfix build',
       '1.0.2b1'=> 'Coblynau unstable',
-      '1.0.2'  => 'Coblynau'
+      '1.0.2'  => 'Coblynau',
+      '1.0.3'  => 'Dyrad'
     );
   $version = enano_version();
   if ( isset($names[$version]) )

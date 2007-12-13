@@ -4,13 +4,13 @@ Plugin Name: Group control panel
 Plugin URI: http://enanocms.org/
 Description: Provides group moderators and site administrators with the ability to control who is part of their groups. 
 Author: Dan Fuhry
-Version: 1.0.2
+Version: 1.0.3
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2
+ * Version 1.0.3
  * Copyright (C) 2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
