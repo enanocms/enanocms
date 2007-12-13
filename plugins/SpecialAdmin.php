@@ -1796,7 +1796,7 @@ function page_Admin_PageEditor()
       $id = md5( microtime() . mt_rand() );
       
       $minor = isset($_POST['minor']) ? 'true' : 'false';
-      $q='INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $db->escape($_POST['page_id']) . '\', \'' . $db->escape($_POST['namespace']) . '\', \''.$data.'\', \''.$id.'\', \''.$session->username.'\', \''.$db->escape(htmlspecialchars($_POST['summary'])).'\', '.$minor.');';
+      $q='INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $db->escape($_POST['page_id']) . '\', \'' . $db->escape($_POST['namespace']) . '\', \''.$db->escape($data).'\', \''.$id.'\', \''.$session->username.'\', \''.$db->escape(htmlspecialchars($_POST['summary'])).'\', '.$minor.');';
       if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
       
       $query = 'UPDATE '.table_prefix.'page_text SET page_text=\''.$db->escape($data).'\',char_tag=\''.$id.'\' WHERE page_id=\'' . $db->escape($_POST['page_id']) . '\' AND namespace=\'' . $db->escape($_POST['namespace']) . '\';';
@@ -1809,12 +1809,12 @@ function page_Admin_PageEditor()
     ?>
     <p>
     <textarea name="content" rows="20" cols="60" style="width: 100%;"><?php echo htmlspecialchars($content); ?></textarea><br />
-    Edit summary: <input name="summary" value="<?php if(isset($_POST['summary'])) echo $_POST['summary']; ?>" size="40" /><br />
+    Edit summary: <input name="summary" value="<?php if(isset($_POST['summary'])) echo htmlspecialchars($_POST['summary']); ?>" size="40" /><br />
     <label><input type="checkbox" name="minor" <?php if(isset($_POST['minor'])) echo 'checked="checked" '; ?>/>  This is a minor edit</label>
     </p>
     <p>
-    <input type="hidden" name="page_id" value="<?php echo $_POST['page_id']; ?>" />
-    <input type="hidden" name="namespace" value="<?php echo $_POST['namespace']; ?>" />
+    <input type="hidden" name="page_id" value="<?php echo htmlspecialchars($_POST['page_id']); ?>" />
+    <input type="hidden" name="namespace" value="<?php echo htmlspecialchars($_POST['namespace']); ?>" />
     <input type="submit" name="save" value="Save changes" style="font-weight: bold;" />&nbsp;&nbsp;<input type="submit" name="preview" value="Show preview" />&nbsp;&nbsp;<input type="submit" name="revert" value="Revert changes" onclick="return confirm('Do you really want to revert your changes?');" />&nbsp;&nbsp;<input type="submit" name="cancel" value="Cancel" onclick="return confirm('Do you really want to cancel your changes?');" />
     </p>
     <?php
