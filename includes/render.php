@@ -889,7 +889,7 @@ class RenderMan {
         {
           $side = ( $clear == '|left' ) ? 'left' : 'right';
           $opposite = ( $clear == '|left' ) ? 'right' : 'left';
-          $clear_text .= "float: $side; margin-$opposite: 20px;";
+          $clear_text .= "float: $side; margin-$opposite: 20px; width: {$r_width}px;";
           $complete_tag .= 'style="' . $clear_text . '" ';
         }
         $complete_tag .= '>';

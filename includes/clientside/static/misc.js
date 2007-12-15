@@ -335,7 +335,8 @@ function ajaxAuthLoginInnerSetup()
         var response = String(ajax.responseText);
         if ( response.substr(0,1) != '{' )
         {
-          alert('Invalid JSON response from server: ' + response);
+          handle_invalid_json(response);
+          ajax_auth_mb_cache.destroy();
           return false;
         }
         response = parseJSON(response);

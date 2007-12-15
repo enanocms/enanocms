@@ -20,10 +20,10 @@
  
   // Set up gzip encoding before any output is sent
   
-  $aggressive_optimize_html = true;
+  $aggressive_optimize_html = false;
   
   global $do_gzip;
-  $do_gzip = true;
+  $do_gzip = false;
   
   if(isset($_SERVER['PATH_INFO'])) $v = $_SERVER['PATH_INFO'];
   elseif(isset($_GET['title'])) $v = $_GET['title'];

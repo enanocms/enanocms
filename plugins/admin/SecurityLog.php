@@ -62,7 +62,7 @@ function get_security_log($num = false)
   global $db, $session, $paths, $template, $plugins; // Common objects
   if ( $session->auth_level < USER_LEVEL_ADMIN )
   {
-    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","seclog_unauth",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'seclog_unauth\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
     if ( !$q )
       $db->_die();
     die('Security log: unauthorized attempt to fetch. Call has been logged and reported to the administrators.');

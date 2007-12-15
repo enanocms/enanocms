@@ -113,7 +113,7 @@ class Comments
                                  ON ( ( b.user_id=' . $session->user_id.' AND b.buddy_user_id=c.user_id ) OR b.user_id IS NULL)
                                WHERE page_id=\'' . $this->page_id . '\'
                                  AND namespace=\'' . $this->namespace . '\'
-                               GROUP BY c.comment_id
+                               GROUP BY c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,u.user_level,u.user_id,u.signature,b.buddy_id,b.is_friend
                                ORDER BY c.time ASC;');
         $count_appr = 0;
         $count_total = 0;

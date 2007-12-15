@@ -602,7 +602,7 @@ class sessionManager {
     $db_username       = $this->prepare_text($username);
     
     // Select the user data from the table, and decrypt that so we can verify the password
-    $this->sql('SELECT password,old_encryption,user_id,user_level,theme,style,temp_password,temp_password_time FROM '.table_prefix.'users WHERE lcase(username)=\''.$db_username_lower.'\' OR username=\'' . $db_username . '\';');
+    $this->sql('SELECT password,old_encryption,user_id,user_level,theme,style,temp_password,temp_password_time FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username)=\''.$db_username_lower.'\' OR username=\'' . $db_username . '\';');
     if($db->numrows() < 1)
     {
       // This wasn't logged in <1.0.2, dunno how it slipped through
@@ -730,7 +730,7 @@ class sessionManager {
     $success = false;
     
     // Retrieve the real password from the database
-    $this->sql('SELECT password,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix.'users WHERE lcase(username)=\''.$this->prepare_text(strtolower($username)).'\';');
+    $this->sql('SELECT password,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username)=\''.$this->prepare_text(strtolower($username)).'\';');
     if ( $db->numrows() < 1 )
     {
       // This wasn't logged in <1.0.2, dunno how it slipped through
@@ -1002,7 +1002,8 @@ class sessionManager {
                              . '    ON ( p.message_to=u.username AND p.message_read=0 )' . "\n"
                              . '  WHERE k.session_key=\''.$keyhash.'\'' . "\n"
                              . '    AND k.salt=\''.$salt.'\'' . "\n"
-                             . '  GROUP BY u.user_id;');
+                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
+    
     if ( !$query )
     {
       $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms FROM '.table_prefix.'session_keys AS k
@@ -1012,7 +1013,7 @@ class sessionManager {
                                ON ( p.message_to=u.username AND p.message_read=0 )
                              WHERE k.session_key=\''.$keyhash.'\'
                                AND k.salt=\''.$salt.'\'
-                             GROUP BY u.user_id;');
+                             GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level;');
     }
     if($db->numrows() < 1)
     {
@@ -1362,14 +1363,28 @@ class sessionManager {
     if ( $this->user_logged_in )
     {
       // check by IP, email, and username
-      $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE \n"
-            . "    ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR \n"
-            . "    ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' REGEXP ban_value ) OR \n"
-            . "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '{$this->username}' ) OR \n"
-            . "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '{$this->username}' REGEXP ban_value ) OR \n"
-            . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '{$this->email}' ) OR \n"
-            . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '{$this->email}' REGEXP ban_value ) \n"
-            . "  ORDER BY ban_type ASC;";
+      if ( ENANO_DBLAYER == 'MYSQL' )
+      {
+        $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE \n"
+              . "    ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR \n"
+              . "    ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' REGEXP ban_value ) OR \n"
+              . "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '{$this->username}' ) OR \n"
+              . "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '{$this->username}' REGEXP ban_value ) OR \n"
+              . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '{$this->email}' ) OR \n"
+              . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '{$this->email}' REGEXP ban_value ) \n"
+              . "  ORDER BY ban_type ASC;";
+      }
+      else if ( ENANO_DBLAYER == 'PGSQL' )
+      {
+        $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE \n"
+              . "    ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR \n"
+              . "    ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' LIKE ban_value ) OR \n"
+              . "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '{$this->username}' ) OR \n"
+              . "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '{$this->username}' LIKE ban_value ) OR \n"
+              . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '{$this->email}' ) OR \n"
+              . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '{$this->email}' LIKE ban_value ) \n"
+              . "  ORDER BY ban_type ASC;";
+      }
       $q = $this->sql($sql);
       if ( $db->numrows() > 0 )
       {
@@ -1400,10 +1415,20 @@ class sessionManager {
     else
     {
       // check by IP only
-      $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE
-                ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR
-                ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' REGEXP ban_value )
-              ORDER BY ban_type ASC;";
+      if ( ENANO_DBLAYER == 'MYSQL' )
+      {
+        $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE
+                  ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR
+                  ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' REGEXP ban_value )
+                ORDER BY ban_type ASC;";
+      }
+      else if ( ENANO_DBLAYER == 'PGSQL' )
+      {
+        $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE
+                  ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR
+                  ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' LIKE ban_value )
+                ORDER BY ban_type ASC;";
+      }
       $q = $this->sql($sql);
       if ( $db->numrows() > 0 )
       {
@@ -1463,7 +1488,7 @@ class sessionManager {
     $real_name = $this->prepare_text($real_name);
     
     $nameclause = ( $real_name != '' ) ? ' OR real_name=\''.$real_name.'\'' : '';
-    $q = $this->sql('SELECT * FROM '.table_prefix.'users WHERE lcase(username)=\''.strtolower($username).'\' OR email=\''.$email.'\''.$nameclause.';');
+    $q = $this->sql('SELECT * FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username)=\''.strtolower($username).'\' OR email=\''.$email.'\''.$nameclause.';');
     if($db->numrows() > 0)
     {
       $r = 'The ';
@@ -1748,7 +1773,7 @@ Date (YYYY-MM-DD): ______ / _____ / _____
     }
     elseif(is_string($user))
     {
-      $q = $this->sql('SELECT user_id,username,email FROM '.table_prefix.'users WHERE lcase(username)=lcase(\''.$db->escape($user).'\');');
+      $q = $this->sql('SELECT user_id,username,email FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username)=' . ENANO_SQLFUNC_LOWERCASE . '(\''.$db->escape($user).'\');');
     }
     else
     {
@@ -2476,7 +2501,7 @@ The {$site_name} administration team
   {
     $code = $this->generate_captcha_code($len);
     $hash = md5(microtime() . mt_rand());
-    $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key,salt,auth_level,source_ip,user_id) VALUES(\''.$hash.'\', \''.$s.'\', -1, \''.ip2hex($_SERVER['REMOTE_ADDR']).'\', -2);');
+    $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key,salt,auth_level,source_ip,user_id) VALUES(\''.$hash.'\', \'\', -1, \''.ip2hex($_SERVER['REMOTE_ADDR']).'\', -2);');
     return $hash;
   }
   
@@ -2711,7 +2736,7 @@ class Session_ACLPageInfo {
     }
     
     // Build a query to grab ACL info
-    $bs = 'SELECT rules FROM '.table_prefix.'acl WHERE ' . "\n"
+    $bs = 'SELECT rules,target_type,target_id FROM '.table_prefix.'acl WHERE ' . "\n"
           . '  ( ';
     $q = Array();
     $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id='.$session->user_id.' )';

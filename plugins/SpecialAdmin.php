@@ -474,28 +474,28 @@ function page_Admin_UploadConfig()
   {
     if(isset($_POST['enable_uploads']) && getConfig('enable_uploads') != '1')
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","upload_enable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'upload_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
       if ( !$q )
         $db->_die();
       setConfig('enable_uploads', '1');
     }
     else if ( !isset($_POST['enable_uploads']) && getConfig('enable_uploads') == '1' )
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","upload_disable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'upload_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
       if ( !$q )
         $db->_die();
       setConfig('enable_uploads', '0');
     }
     if(isset($_POST['enable_imagemagick']) && getConfig('enable_imagemagick') != '1')
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","magick_enable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'magick_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
       if ( !$q )
         $db->_die();
       setConfig('enable_imagemagick', '1');
     }
     else if ( !isset($_POST['enable_imagemagick']) && getConfig('enable_imagemagick') == '1' )
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","magick_disable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'magick_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
       if ( !$q )
         $db->_die();
       setConfig('enable_imagemagick', '0');
@@ -510,14 +510,14 @@ function page_Admin_UploadConfig()
     }
     if(isset($_POST['file_history']) && getConfig('file_history') != '1' )
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","filehist_enable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'filehist_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
       if ( !$q )
         $db->_die();
       setConfig('file_history', '1');
     }
     else if ( !isset($_POST['file_history']) && getConfig('file_history') == '1' )
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES("security","filehist_disable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'filehist_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
       if ( !$q )
         $db->_die();
       setConfig('file_history', '0');
@@ -526,7 +526,7 @@ function page_Admin_UploadConfig()
     {
       $old = getConfig('imagemagick_path');
       $oldnew = "{$old}||{$_POST['imagemagick_path']}";
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","magick_path",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($oldnew) . '");');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'magick_path\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\',\'' . $db->escape($oldnew) . '\');');
       if ( !$q )
         $db->_die();
       setConfig('imagemagick_path', $_POST['imagemagick_path']);
@@ -592,7 +592,7 @@ function page_Admin_PluginManager() {
     switch($_GET['action'])
     {
       case "enable":
-        $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","plugin_enable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
+        $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'plugin_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',"' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
         if ( !$q )
           $db->_die();
         setConfig('plugin_'.$_GET['plugin'], '1');
@@ -605,7 +605,7 @@ function page_Admin_PluginManager() {
         }
         if ( !in_array($_GET['plugin'], $plugins->system_plugins) )
         {
-          $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","plugin_disable",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
+          $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'plugin_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',"' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
           if ( !$q )
             $db->_die();
           setConfig('plugin_'.$_GET['plugin'], '0');
@@ -839,276 +839,6 @@ function page_Admin_Sidebar()
 {/slider}</pre>
   <?php
 }
-
-/*
-function page_Admin_UserManager() {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
-    return;
-  }
-  
-  if ( isset($_GET['src']) && $_GET['src'] == 'get' && !empty($_GET['user']) )
-  {
-    $_POST['go'] = true;
-    $_POST['username'] = $_GET['user'];
-  }
-  
-  if(isset($_POST['go']))
-  {
-    // We need the user ID before we can do anything
-    $q = $db->sql_query('SELECT user_id,username,email,real_name,style,user_level,account_active FROM '.table_prefix.'users WHERE username=\'' . $db->escape($_POST['username']) . '\'');
-    if ( !$q )
-    {
-      die('Error selecting user ID: '.mysql_error());
-    }
-    if ( $db->numrows() < 1 )
-    {
-      echo('User does not exist, please enter another username.');
-      return;
-    }
-    $r = $db->fetchrow();
-    $db->free_result();
-    if(isset($_POST['save']))
-    {
-      $_POST['level'] = intval($_POST['level']);
-      
-      $new_level = $_POST['level'];
-      $old_level = intval($r['user_level']);
-      
-      if ( defined('ENANO_DEMO_MODE') )
-      {
-        echo '<div class="error-box">You cannot delete or modify user accounts in demo mode - they are cleaned up once every two hours.</div>';
-        $re = Array('permission denied');
-      }
-      else
-      {
-        $re = $session->update_user((int)$r['user_id'], $_POST['new_username'], false, $_POST['new_pass'], $_POST['email'], $_POST['real_name'], false, $_POST['level']);
-      }
-      
-      if($re == 'success')
-      {
-        
-        if ( $new_level != $old_level )
-        {
-          $user_id = intval($r['user_id']);
-          // We need to update group memberships
-          if ( $old_level == USER_LEVEL_ADMIN ) 
-          {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","u_from_admin",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_POST['new_username']) . '");');
-            if ( !$q )
-              $db->_die();
-            $session->remove_user_from_group($user_id, GROUP_ID_ADMIN);
-          }
-          else if ( $old_level == USER_LEVEL_MOD ) 
-          {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","u_from_mod",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_POST['new_username']) . '");');
-            if ( !$q )
-              $db->_die();
-            $session->remove_user_from_group($user_id, GROUP_ID_MOD);
-          }
-          
-          if ( $new_level == USER_LEVEL_ADMIN )
-          {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","u_to_admin",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_POST['new_username']) . '");');
-            if ( !$q )
-              $db->_die();
-            $session->add_user_to_group($user_id, GROUP_ID_ADMIN, false);
-          }
-          else if ( $new_level == USER_LEVEL_MOD )
-          {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES("security","u_to_mod",UNIX_TIMESTAMP(),"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($_POST['new_username']) . '");');
-            if ( !$q )
-              $db->_die();
-            $session->add_user_to_group($user_id, GROUP_ID_MOD, false);
-          }
-        }
-        
-        // update account activation
-        if ( isset($_POST['account_active']) )
-        {
-          // activate account
-          $q = $db->sql_query('UPDATE '.table_prefix.'users SET account_active=1 WHERE user_id=' . intval($r['user_id']) . ';');
-          if ( !$q )
-            $db->_die();
-        }
-        else
-        {
-          // deactivate account and throw away the old key
-          $actkey = sha1 ( microtime() . mt_rand() );
-          $q = $db->sql_query('UPDATE '.table_prefix.'users SET account_active=0,activation_key=\'' . $actkey . '\' WHERE user_id=' . intval($r['user_id']) . ';');
-          if ( !$q )
-            $db->_die();
-        }
-        
-        echo('<div class="info-box">Your changes have been saved.</div>');
-      }
-      else
-      {
-        echo('<div class="error-box">Error saving changes: '.implode('<br />', $re).'</div>');
-      }
-      $q = $db->sql_query('SELECT user_id,username,email,real_name,style,user_level,account_active FROM '.table_prefix.'users WHERE username=\''.$db->escape($_POST['username']).'\'');
-      if ( !$q )
-      {
-        die('Error selecting user ID: '.mysql_error());
-      }
-      if($db->numrows($q) < 1)
-      {
-        die('User does not exist, please enter another username.');
-      }
-      $r = mysql_fetch_object($q);
-      $db->free_result();
-    }
-    elseif(isset($_POST['deleteme']) && isset($_POST['delete_conf']))
-    {
-      if ( defined('ENANO_DEMO_MODE') )
-      {
-        echo '<div class="error-box">You cannot delete or modify user accounts in demo mode - they are cleaned up once every two hours.</div>';
-      }
-      else
-      {
-        $q = $db->sql_query('DELETE FROM users WHERE user_id='.$r['user_id'].';');
-        if($q)
-        {
-          echo '<div class="error-box">The user account "'.$r['username'].'" was deleted.</div>';
-        }
-        else
-        {
-          echo '<div class="error-box">The user account "'.$r['username'].'" could not be deleted due to a database error.<br /><br />'.$db->get_error().'</div>';
-        }
-      }
-    }
-    else
-    {
-      $disabled = ( $r['user_id'] == $session->user_id ) ? ' disabled="disabled" ' : '';
-      $evt_get_score = ( getConfig('pw_strength_enable') == '1' ) ? 'onkeyup="password_score_field(this);" style="margin-right: 7px;" ' : '';
-      $meter         = ( getConfig('pw_strength_enable') == '1' ) ? '<tr><td></td><td><div id="pwmeter"></div><p><small>Password complexity requirements are not enforced here.</small></p></td></tr>' : '';
-      echo('
-      <h3>Edit User Info</h3>
-      <form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">
-        <table border="0" style="margin-left: 0.2in;">   
-          <tr><td>Username:</td><td><input type="text" name="new_username" value="'.$r['username'].'" /></td></tr>
-          <tr><td>New Password:</td><td><input ' . $disabled . ' type="password" name="new_pass" '.$evt_get_score.'/></td></tr>
-          '.$meter.'
-          <tr><td>E-mail:</td><td><input ' . $disabled . ' type="text" name="email" value="'.$r['email'].'" /></td></tr>
-          <tr><td>Real Name:</td><td><input ' . $disabled . ' type="text" name="real_name" value="'.$r['real_name'].'" /></td></tr>
-          ' . ( ( !empty($disabled) ) ? '<tr><td colspan="2"><small>To change your e-mail address, password, or real name, please use the user control panel.</small></td></tr>' : '' ) . '
-          <tr><td>User level:</td><td><select name="level"><option '); if($r['user_level']==USER_LEVEL_CHPREF) echo('SELECTED'); echo(' value="'.USER_LEVEL_CHPREF.'">Regular User</option><option '); if($r['user_level']==USER_LEVEL_MOD) echo('SELECTED'); echo(' value="'.USER_LEVEL_MOD.'">Moderator</option><option '); if($r['user_level']==USER_LEVEL_ADMIN) echo('SELECTED'); echo(' value="'.USER_LEVEL_ADMIN.'">Administrator</option></select></td></tr>
-          <tr><td></td><td><label><input type="checkbox" name="account_active"' . ( $r['account_active'] == '1' ? ' checked="checked"' : '' ) . ' /> Account is active</label><br /><small>If this is unchecked, the activation key will be reset, meaning that any activation e-mails sent will be invalidated.</small></td></tr>
-          <tr><td>Delete user:</td><td><input type="hidden" name="go" /><input type="hidden" name="username" value="'.$r['username'].'" /><input onclick="return confirm(\'This is your last warning.\n\nAre you sure you want to delete this user account? Even if you delete this user account, the username will be shown in page edit history, comments, and other areas of the site.\n\nDeleting a user account CANNOT BE UNDONE and should only be done in extreme circumstances.\n\nIf the user has violated the site policy, deleting the account will not prevent him from using the site, for that you need to add a new ban rule.\n\nContinue deleting this user account?\')" type="submit" name="deleteme" value="Delete this user" style="color: red;" /> <label><input type="checkbox" name="delete_conf" /> I\'m absolutely sure</label>
-          <tr><td align="center" colspan="2">
-          <input type="submit" name="save" value="Save Changes" /></td></tr>
-        </table>
-      </form>
-      ');
-    }
-  }
-  else if(isset($_POST['clearsessions'])) 
-  {
-    if ( defined('ENANO_DEMO_MODE') )
-    {
-      echo '<div class="error-box">Sorry Charlie, no can do. You might mess up other people logged into the demo site.</div>';
-    }
-    else
-    {
-      // Get the current session information so the user doesn't get logged out
-      $aes = new AESCrypt();
-      $sk = md5(strrev($session->sid_super));
-      $qb = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.$sk.'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_ADMIN);
-      if ( !$qb )
-      {
-        die('Error selecting session key info block B: '.$db->get_error());
-      }
-      if ( $db->numrows($qb) < 1 )
-      {
-        die('Error: cannot read admin session info block B, aborting table clear process');
-      }
-      $qa = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.md5($session->sid).'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_MEMBER);
-      if ( !$qa )
-      {
-        die('Error selecting session key info block A: '.$db->get_error());
-      }
-      if ( $db->numrows($qa) < 1 )
-      {
-        die('Error: cannot read user session info block A, aborting table clear process');
-      }
-      $ra = mysql_fetch_object($qa);
-      $rb = mysql_fetch_object($qb);
-      $db->free_result($qa);
-      $db->free_result($qb);
-      
-      $db->sql_query('DELETE FROM '.table_prefix.'session_keys;');
-      $db->sql_query('INSERT INTO '.table_prefix.'session_keys( session_key,salt,user_id,auth_level,source_ip,time ) VALUES( \''.$ra->session_key.'\', \''.$ra->salt.'\', \''.$session->user_id.'\', \''.$ra->auth_level.'\', \''.$ra->source_ip.'\', '.$ra->time.' ),( \''.$rb->session_key.'\', \''.$rb->salt.'\', \''.$session->user_id.'\', \''.$rb->auth_level.'\', \''.$rb->source_ip.'\', '.$rb->time.' )');
-      
-      echo('
-        <div class="info-box">The session key table has been cleared. Your database should be a little bit smaller now.</div>
-      ');
-    }
-  }   
-  echo('
-  <h3>User Management</h3>
-  <form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;">
-    <p>Username: '.$template->username_field('username').' <input type="submit" name="go" value="Go" /></p>
-    <h3>Clear session keys table</h3>
-     <p>It\'s a good idea to clean out your session keys table every once in a while, since this helps to reduce database size. During this process you will be logged off and (hopefully) logged back on automatically. The side effects of this include all users except you being logged off.</p>
-     <p><input type="submit" name="clearsessions" value="Clear session keys table" /></p>
-  </form>
-  ');
-  if(isset($_GET['action']) && isset($_GET['user']))
-  {
-    switch($_GET['action'])
-    {
-      case "activate":
-        $e = $db->sql_query('SELECT activation_key FROM '.table_prefix.'users WHERE username=\'' . $db->escape($_GET['user']) . '\'');
-        if($e)
-        {
-          $row = $db->fetchrow();
-          $db->free_result();
-          if($session->activate_account($_GET['user'], $row['activation_key'])) { echo '<div class="info-box">The user account "'.$_GET['user'].'" has been activated.</div>'; $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid'])); }
-          else echo '<div class="warning-box">The user account "'.$_GET['user'].'" has NOT been activated, possibly because the account is already active.</div>';
-        } else echo '<div class="error-box">Error activating account: '.mysql_error().'</div>';
-        break;
-      case "sendemail":
-        if($session->send_activation_mail($_GET['user'])) { echo '<div class="info-box">The user "'.$_GET['user'].'" has been sent an e-mail with an activation link.</div>'; $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid'])); }
-        else echo '<div class="error-box">The user account "'.$_GET['user'].'" has not been activated, probably because of a bad SMTP configuration.</div>';
-        break;
-      case "deny":
-        $e = $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\' AND edit_summary=\'' . $db->escape($_GET['user']) . '\';');
-        if(!$e) echo '<div class="error-box">Error during row deletion: '.mysql_error().'</div>';
-        else echo '<div class="info-box">All activation requests for the user "'.$_GET['user'].'" have been deleted.</div>';
-        break;
-    }
-  }
-  $q = $db->sql_query('SELECT l.log_type, l.action, l.time_id, l.date_string, l.author, l.edit_summary, u.user_coppa FROM '.table_prefix.'logs AS l
-                         LEFT JOIN '.table_prefix.'users AS u
-                           ON ( u.username = l.edit_summary OR u.username IS NULL )
-                         WHERE log_type=\'admin\' AND action=\'activ_req\' ORDER BY time_id DESC;');
-  if($q)
-  {
-    if($db->numrows() > 0)
-    {
-      $n = $db->numrows();
-      if($n == 1) $s = $n . ' user is';
-      else $s = $n . ' users are';
-      echo '<h3>'.$s . ' awaiting account activation</h3>';
-      echo '<div class="tblholder">
-            <table border="0" cellspacing="1" cellpadding="4" width="100%">
-            <tr><th>Date of request</th><th>Requested by</th><th>Requested for</th><th>COPPA user</th><th colspan="3">Actions</th></tr>';
-      $cls = 'row2';
-      while($row = $db->fetchrow())
-      {
-        if($cls == 'row2') $cls = 'row1';
-        else $cls = 'row2';
-        $coppa = ( $row['user_coppa'] == '1' ) ? '<b>Yes</b>' : 'No';
-        echo '<tr><td class="'.$cls.'">'.date('F d, Y h:i a', $row['time_id']).'</td><td class="'.$cls.'">'.$row['author'].'</td><td class="'.$cls.'">'.$row['edit_summary'].'</td><td style="text-align: center;" class="' . $cls . '">' . $coppa . '</td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=activate&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Activate now</a></td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=sendemail&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Send activation e-mail</a></td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=deny&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Deny request</a></td></tr>';
-      }
-      echo '</table>';
-    }
-    $db->free_result();
-  }
-}
-*/
 
 function page_Admin_GroupManager()
 {

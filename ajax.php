@@ -18,11 +18,6 @@
   if ( isset($_GET['_mode']) && $_GET['_mode'] == 'fillusername' )
   {
     // setup and load a very basic, specialized instance of the Enano API
-    function dc_here($m)     { return false; }
-    function dc_dump($a, $g) { return false; }
-    function dc_watch($n)    { return false; }
-    function dc_start_timer($u) { return false; }
-    function dc_stop_timer($m) { return false; }
     function microtime_float()
     {
       list($usec, $sec) = explode(" ", microtime());
@@ -41,7 +36,14 @@
     require(ENANO_ROOT.'/includes/functions.php');
     require(ENANO_ROOT.'/includes/dbal.php');
     require(ENANO_ROOT.'/includes/json.php');
-    $db = new mysql();
+    
+    require(ENANO_ROOT . '/config.php');
+    unset($dbuser, $dbpasswd);
+    if ( !isset($dbdriver) )
+      $dbdriver = 'mysql';
+    
+    $db = new $dbdriver();
+    
     $db->connect();
     
     // result is sent using JSON
@@ -62,14 +64,10 @@
       die( $json->encode($return) );
     }
     $allowanon = ( isset($_GET['allowanon']) && $_GET['allowanon'] == '1' ) ? '' : ' AND user_id > 1';
-    $q = $db->sql_query('SELECT username FROM '.table_prefix.'users WHERE lcase(username) LIKE lcase(\'%'.$name.'%\')' . $allowanon . ' ORDER BY username ASC;');
+    $q = $db->sql_query('SELECT username FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username) LIKE ' . ENANO_SQLFUNC_LOWERCASE . '(\'%'.$name.'%\')' . $allowanon . ' ORDER BY username ASC;');
     if ( !$q )
     {
-      $return = array(
-        'mode' => 'error',
-        'error' => 'MySQL error selecting username data: '.addslashes(mysql_error())
-      );
-      die( $json->encode($return) );
+      $db->die_json();
     }
     $i = 0;
     while($r = $db->fetchrow())
@@ -277,7 +275,7 @@
       $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
       
       $ret = array('tags' => array(), 'user_level' => $session->user_level, 'can_add' => $session->get_permissions('tag_create'));
-      $q = $db->sql_query('SELECT t.tag_id, t.tag_name, pg.pg_target IS NOT NULL AS used_in_acl, t.user FROM '.table_prefix.'tags AS t
+      $q = $db->sql_query('SELECT t.tag_id, t.tag_name, pg.pg_target IS NOT NULL AS used_in_acl, t.user_id FROM '.table_prefix.'tags AS t
         LEFT JOIN '.table_prefix.'page_groups AS pg
           ON ( ( pg.pg_type = ' . PAGE_GRP_TAGGED . ' AND pg.pg_target=t.tag_name ) OR ( pg.pg_type IS NULL AND pg.pg_target IS NULL ) )
         WHERE t.page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND t.namespace=\'' . $db->escape($paths->namespace) . '\';');
@@ -288,11 +286,11 @@
       {
         $can_del = true;
         
-        $perm = ( $row['user'] != $session->user_id ) ?
+        $perm = ( $row['user_id'] != $session->user_id ) ?
                 'tag_delete_other' :
                 'tag_delete_own';
         
-        if ( $row['user'] == 1 && !$session->user_logged_in )
+        if ( $row['user_id'] == 1 && !$session->user_logged_in )
           // anonymous user trying to delete tag (hardcode blacklisted)
           $can_del = false;
           
@@ -364,7 +362,7 @@
       $db->free_result();
       
       // we're good
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'tags(tag_name,page_id,namespace,user) VALUES(\'' . $tag . '\', \'' . $db->escape($paths->cpage['urlname_nons']) . '\', \'' . $db->escape($paths->namespace) . '\', ' . $session->user_id . ');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'tags(tag_name,page_id,namespace,user_id) VALUES(\'' . $tag . '\', \'' . $db->escape($paths->cpage['urlname_nons']) . '\', \'' . $db->escape($paths->namespace) . '\', ' . $session->user_id . ');');
       if ( !$q )
         $db->_die();
       
@@ -380,7 +378,7 @@
       if ( empty($tag_id) )
         die('Invalid tag ID');
       
-      $q = $db->sql_query('SELECT t.tag_id, t.user, t.page_id, t.namespace, pg.pg_target IS NOT NULL AS used_in_acl FROM '.table_prefix.'tags AS t
+      $q = $db->sql_query('SELECT t.tag_id, t.user_id, t.page_id, t.namespace, pg.pg_target IS NOT NULL AS used_in_acl FROM '.table_prefix.'tags AS t
   LEFT JOIN '.table_prefix.'page_groups AS pg
     ON ( pg.pg_id IS NULL OR ( pg.pg_target = t.tag_name AND pg.pg_type = ' . PAGE_GRP_TAGGED . ' ) )
   WHERE t.tag_id=' . $tag_id . ';');
@@ -399,11 +397,11 @@
       else
         $perms = $session->fetch_page_acl($row['page_id'], $row['namespace']);
         
-      $perm = ( $row['user'] != $session->user_id ) ?
+      $perm = ( $row['user_id'] != $session->user_id ) ?
                 'tag_delete_other' :
                 'tag_delete_own';
       
-      if ( $row['user'] == 1 && !$session->user_logged_in )
+      if ( $row['user_id'] == 1 && !$session->user_logged_in )
         // anonymous user trying to delete tag (hardcode blacklisted)
         die('You are not authorized to delete this tag.');
         

@@ -1072,7 +1072,7 @@ TPLCODE;
     //
     
     // System messages
-    $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $this->tplWikiFormat($pages->sysMsg(\'\\1\')) . \'', $text);
+    $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $this->tplWikiFormat($paths->sysMsg(\'\\1\')) . \'', $text);
     
     // Template variables
     $text = preg_replace('/\{([A-z0-9_-]+?)\}/is', '\' . $this->tpl_strings[\'\\1\'] . \'', $text);

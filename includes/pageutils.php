@@ -378,11 +378,11 @@ class PageUtils {
     
     $msg = $db->escape($message);
     
-    $minor = $minor ? 'true' : 'false';
-    $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $paths->cpage['urlname_nons'] . '\', \'' . $paths->namespace . '\', \'' . $msg . '\', \'' . $uid . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($summary)) . '\', ' . $minor . ');';
+    $minor = $minor ? ENANO_SQL_BOOLEAN_TRUE : ENANO_SQL_BOOLEAN_FALSE;
+    $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $paths->cpage['urlname_nons'] . '\', \'' . $paths->namespace . '\', ' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\', \'' . $uid . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($summary)) . '\', ' . $minor . ');';
     if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
     
-    $q = 'UPDATE ' . table_prefix.'page_text SET page_text=\'' . $msg . '\',char_tag=\'' . $uid . '\' WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';';
+    $q = 'UPDATE ' . table_prefix.'page_text SET page_text=' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\',char_tag=\'' . $uid . '\' WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';';
     $e = $db->sql_query($q);
     if(!$e) $db->_die('Enano was unable to save the page contents. Your changes have been lost <tt>:\'(</tt>.');
       
@@ -443,7 +443,7 @@ class PageUtils {
     if ( !$name )
       $name = str_replace('_', ' ', $page_id);
     $regex = '#^([A-z0-9 _\-\.\/\!\@\(\)]*)$#is';
-    if(!preg_match($regex, $page))
+    if(!preg_match($regex, $name))
     {
       //echo '<b>Notice:</b> PageUtils::createPage: Name contains invalid characters<br />';
       return 'Name contains invalid characters';
@@ -1414,7 +1414,8 @@ class PageUtils {
       if(!$e) $db->_die('The current page text could not be selected; as a result, creating the backup of the page failed. Please make a backup copy of the page by clicking Edit this page and then clicking Save Changes.');
       $row = $db->fetchrow();
       $db->free_result();
-      $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.'false'.');';
+      $minor_edit = ( ENANO_DBLAYER == 'MYSQL' ) ? 'false' : '0';
+      $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.$minor_edit.');';
       if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
     }
     return('The logs for this page have been cleared. A backup of this page has been added to the logs table so that this page can be restored in case of vandalism or spam later.');

@@ -194,7 +194,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
       $where_any[] = $term;
     }
 
-    $col_word = ( $case_sensitive ) ? 'word' : 'lcase(word)';
+    $col_word = ( $case_sensitive ) ? 'word' : ENANO_SQLFUNC_LOWERCASE . '(word)';
     $where_any = ( count($where_any) > 0 ) ? '( ' . $col_word . ' = \'' . implode('\' OR ' . $col_word . ' = \'', $where_any) . '\' )' : '';
 
     // generate query
@@ -353,10 +353,14 @@ function perform_search($query, &$warnings, $case_sensitive = false)
 
   // We can skip this stage if none of these special terms apply
 
-  $text_col = ( $case_sensitive ) ? 'page_text' : 'lcase(page_text)';
-  $name_col = ( $case_sensitive ) ? 'name' : 'lcase(name)';
-  $text_col_join = ( $case_sensitive ) ? 't.page_text' : 'lcase(t.page_text)';
-  $name_col_join = ( $case_sensitive ) ? 'p.name' : 'lcase(p.name)';
+  $text_col = ( $case_sensitive ) ? 'page_text' : ENANO_SQLFUNC_LOWERCASE . '(page_text)';
+  $name_col = ( $case_sensitive ) ? 'name' : ENANO_SQLFUNC_LOWERCASE . '(name)';
+  $text_col_join = ( $case_sensitive ) ? 't.page_text' : ENANO_SQLFUNC_LOWERCASE . '(t.page_text)';
+  $name_col_join = ( $case_sensitive ) ? 'p.name' : ENANO_SQLFUNC_LOWERCASE . '(p.name)';
+    
+  $concat_column = ( ENANO_DBLAYER == 'MYSQL' ) ?
+    'CONCAT(\'ns=\',t.namespace,\';pid=\',t.page_id)' :
+    "'ns=' || t.namespace || ';pid=' || t.page_id";
 
   if ( count($query_phrase['any']) > 0 || count($query_phrase['req']) > 0 )
   {
@@ -384,7 +388,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
     $and_clause = ( $where_any != '' ) ? 'AND ' : '';
     $where_req = ( count($where_req) > 0 ) ? "{$and_clause}" . implode(" AND\n  ", $where_req) : '';
 
-    $sql = 'SELECT CONCAT("ns=",t.namespace,";pid=",t.page_id) AS id, p.name FROM ' . table_prefix . "page_text AS t\n"
+    $sql = 'SELECT ' . $concat_column . ' AS id, p.name FROM ' . table_prefix . "page_text AS t\n"
             . "  LEFT JOIN " . table_prefix . "pages AS p\n"
             . "    ON ( p.urlname = t.page_id AND p.namespace = t.namespace )\n"
             . "  WHERE\n  $where_any\n  $where_req;";
@@ -441,7 +445,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
   {
     $text_where[] = $db->escape($page_id);
   }
-  $text_where = '( CONCAT("ns=",t.namespace,";pid=",t.page_id) = \'' . implode('\' OR CONCAT("ns=",t.namespace,";pid=",t.page_id) = \'', $text_where) . '\' )';
+  $text_where = '( ' . $concat_column . ' = \'' . implode('\' OR ' . $concat_column . ' = \'', $text_where) . '\' )';
 
   if ( count($query['not']) > 0 )
     $text_where .= ' AND';
@@ -456,7 +460,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
   }
   $where_not = ( count($where_not) > 0 ) ? "$text_col NOT LIKE '%" . implode("%' AND $text_col NOT LIKE '%", $where_not) . "%'" : '';
 
-  $sql = 'SELECT CONCAT("ns=",t.namespace,";pid=",t.page_id) AS id, t.page_id, t.namespace, CHAR_LENGTH(t.page_text) AS page_length, t.page_text, p.name AS page_name FROM ' . table_prefix . "page_text AS t
+  $sql = 'SELECT ' . $concat_column . ' AS id, t.page_id, t.namespace, CHAR_LENGTH(t.page_text) AS page_length, t.page_text, p.name AS page_name FROM ' . table_prefix . "page_text AS t
             LEFT JOIN " . table_prefix . "pages AS p
               ON ( p.urlname = t.page_id AND p.namespace = t.namespace )
             WHERE $text_where $where_not;";
@@ -569,7 +573,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
   arsort($scores);
 
   // Divisor for calculating relevance scores
-  $divisor = ( count($query['any']) + count($query_phrase['any']) + count($query['req']) + count($query_phrase['not']) ) * 1.5;
+  $divisor = ( count($query['any']) + count($query_phrase['any']) + count($query['req']) + count($query['not']) ) * 1.5;
 
   foreach ( $scores as $page_id => $score )
   {
@@ -847,7 +851,7 @@ function highlight_and_clip_search_result($pt, $words, $case_sensitive = false)
             // Navigate backwards until a space character is found
             $chunk = substr($pt, 0, ( $i - 75 ));
             $final_chunk = $chunk;
-            for ( $j = strlen($chunk); $j > 0; $j = $j - 1 )
+            for ( $j = strlen($chunk) - 1; $j > 0; $j = $j - 1 )
             {
               if ( in_array($chunk{$j}, $space_chars) )
               {

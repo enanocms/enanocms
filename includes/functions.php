@@ -260,7 +260,14 @@ function get_page_title_ns($page_id, $namespace)
   global $db, $session, $paths, $template, $plugins; // Common objects
 
   $page_id_key = $paths->nslist[ $namespace ] . $page_id;
-  $page_data = $paths->pages[$page_id_key];
+  if ( isset($paths->pages[$page_id_key]) )
+  {
+    $page_data = $paths->pages[$page_id_key];
+  }
+  else
+  {
+    $page_data = array();
+  }
   $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$namespace] . str_replace('_', ' ', dirtify_page_id( $page_id ) );
   return $title;
 }
