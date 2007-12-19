@@ -342,7 +342,7 @@ class pathManager {
       $pid_cleaned = sanitize_page_id($this->page);
       if ( $pid_cleaned != $this->page )
       {
-        redirect($pid_cleaned, 'Sanitizer message', 'page id sanitized', 0);
+        redirect(makeUrl($pid_cleaned), 'Sanitizer message', 'page id sanitized', 0);
       }
       
       if ( !is_array($this->cpage) )
@@ -376,6 +376,7 @@ class pathManager {
         }
       }
       $this->namespace = $this->cpage['namespace'];
+      $this->page_id =& $this->cpage['urlname_nons'];
       
       if($this->namespace=='System') 
       {
@@ -1009,5 +1010,5 @@ class pathManager {
   }
   
 }
-  
+
 ?>

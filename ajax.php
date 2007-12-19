@@ -104,6 +104,10 @@
       {
         echo $src;
       }
+      else if ( $src !== false )
+      {
+        echo '';
+      }
       else
       {
         echo 'err_access_denied';

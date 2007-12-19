@@ -330,6 +330,10 @@ class PageProcessor
     {
       return false;
     }
+    if ( !$this->page_exists )
+    {
+      return '';
+    }
     return $this->fetch_text();
   }
   

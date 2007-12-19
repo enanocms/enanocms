@@ -2418,6 +2418,20 @@ function enano_fputs($socket, $data)
 
 function sanitize_page_id($page_id)
 {
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  if ( isset($paths->nslist['User']) )
+  {
+    if ( preg_match('/^' . preg_quote($paths->nslist['User']) . '/', $page_id) )
+    {
+      $ip = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $page_id);
+      if ( is_valid_ip($ip) )
+      {
+        return $page_id;
+      }
+    }
+  }
+  
   // Remove character escapes
   $page_id = dirtify_page_id($page_id);
 
@@ -2448,7 +2462,7 @@ function sanitize_page_id($page_id)
     else
       $page_id_cleaned .= $pid_dirty[$id];
   }
-
+  
   // global $mime_types;
 
   // $exts = array_keys($mime_types);
@@ -2472,17 +2486,9 @@ function dirtify_page_id($page_id)
   $page_id = str_replace(' ', '_', $page_id);
 
   // Exception for userpages for IP addresses
-  if ( isset($paths->nslist['User']) )
+  if ( is_valid_ip($page_id) )
   {
-    if ( preg_match('/^' . preg_quote($paths->nslist['User']) . '/', $page_id) )
-    {
-      $ip = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $page_id);
-      if ( is_valid_ip($ip) )
-      {
-        die('valid IP');
-        return $page_id;
-      }
-    }
+    return $page_id;
   }
 
   preg_match_all('/\.[A-Fa-f0-9][A-Fa-f0-9]/', $page_id, $matches);
@@ -2495,7 +2501,7 @@ function dirtify_page_id($page_id)
     $char = chr($char);
     $page_id = str_replace($matches[0][$id], $char, $page_id);
   }
-
+  
   return $page_id;
 }
 
