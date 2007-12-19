@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.3 (Dyrad)
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -740,198 +740,310 @@ class GraphMaker {
 // Graph Generator for PHP
 // Originally located at http://szewo.com/php/graph, but link was broken, so this file was retrieved from:
 // http://web.archive.org/web/20030130065944/szewo.com/php/graph/graph.class.php3.txt
-// License unknown
+// License unknown, however sources on the web have shown this to be either GPL or public domain.
 
 class GraphMaker_compat {
- var $_values;
- var $_ShowLabels;
- var $_ShowCounts;
- var $_ShowCountsMode;
+  var $_values;
+  var $_ShowLabels;
+  var $_ShowCounts;
+  var $_ShowCountsMode;
 
- var $_BarWidth;
- var $_GraphWidth;
- var $_BarImg;
- var $_BarBorderWidth;
- var $_BarBorderColor;
- var $_RowSortMode;
- var $_TDClassHead;
- var $_TDClassLabel;
- var $_TDClassCount;
- var $_GraphTitle;
+  var $_BarWidth;
+  var $_GraphWidth;
+  var $_BarImg;
+  var $_BarBorderWidth;
+  var $_BarBorderColor;
+  var $_BarBackgroundColor;
+  var $_RowSortMode;
+  var $_TDClassHead;
+  var $_TDClassLabel;
+  var $_TDClassCount;
+  var $_GraphTitle;
 
- function __construct() {
-  $this->_values = array();
-  $this->_ShowLabels = true;
-  $this->_BarWidth = 16;
-  $this->_GraphWidth = 360;
-  $this->_BarImg = "NULL";
-  $this->_BarBorderWidth = 0;
-  $this->_BarBorderColor = "red";
-  $this->_ShowCountsMode = 2;
-  $this->_RowSortMode = 1;
-  $this->_TDClassHead = "grphh";
-  $this->_TDClassLabel = "grph";
-  $this->_TDClassCount = "grphc";
-  $this->_GraphTitle="Graph title";
- }
- 
- function GraphMaker_compat() {
-  $this->__construct();
- }
+  function __construct() {
+    $this->_values = array();
+    $this->_ShowLabels = true;
+    $this->_BarWidth = 32;
+    $this->_GraphWidth = 360;
+    $this->_BarImg = scriptPath . "/images/graphbit.png";
+    $this->_BarBorderWidth = 0;
+    $this->_BarBorderColor = "red";
+    $this->_ShowCountsMode = 2;
+    $this->_RowSortMode = 1;
+    $this->_TDClassHead = "graph-title";
+    $this->_TDClassLabel = "graph-label";
+    $this->_TDClassCount = "graph-count";
+    $this->_GraphTitle="Graph title";
+    $this->_BarBackgroundColor = "#456798";
+  }
 
- function SetBarBorderWidth($width) {
-  $this->_BarBorderWidth = $width;
- }
- function SetBorderColor($color) {
-  $this->_BarBorderColor = $color;
- }
+  function GraphMaker_compat() {
+    $this->__construct();
+  }
+
+  function SetBarBorderWidth($width) {
+    $this->_BarBorderWidth = $width;
+  }
+  function SetBorderColor($color) {
+    $this->_BarBorderColor = $color;
+  }
+  
+  function SetBarBackgroundColor($color)
+  {
+    $this->_BarBackgroundColor = $color;
+  }
 
 //  mode = 1 labels asc, 2 label desc
- function SetSortMode($mode) {
-  switch ($mode) {
-   case 1:
-    asort($this->_values);
-    break;
-   case 2:
-    arsort($this->_values);
-    break;
-   default:
-    break;
-   }
+  function SetSortMode($mode) {
+    switch ($mode) {
+      case 1:
+        asort($this->_values);
+        break;
+      case 2:
+        arsort($this->_values);
+        break;
+      default:
+        break;
+      }
 
- }
-
- function AddValue($labelName, $theValue) {
-  array_push($this->_values, array("label" => $labelName, "value" => $theValue));
-
- }
- function SetBarWidth($width) {
-  $this->_BarWidth = $width;
- }
- function SetBarImg($img) {
-  $this->_BarImg = $img;
- }
- function SetShowLabels($lables) {
-  $this->_ShowLabels = $labels;
- }
- function SetGraphWidth($width) {
-  $this->_GraphWidth = $width;
- }
- function SetGraphTitle($title) {
-  $this->_GraphTitle = $title;
- }
- //mode = percentage or counts
- function SetShowCountsMode($mode) {
-  $this->_ShowCountsMode = $mode;
- }
- //mode = none(0) label(1) or count(2)
- function SetRowSortMode($sortmode) {
-  $this->_RowSortMode = $sortmode;
- }
-
- function SetTDClassHead($class) {
-  $this->_TDClassHead = $class;
- }
- function SetTDClassLabel($class) {
-  $this->_TDClassLabel = $class;
- }
- function SetTDClassCount($class) {
-  $this->_TDClassCount = $class;
- }
- function GetMaxVal() {
-  $maxval = 0;
-  foreach($this->_values as $value) if($maxval<$value["value"]) $maxval = $value["value"];
-  return $maxval;
- }
- function BarGraphVert() {
-  $maxval = $this->GetMaxVal();
-  foreach($this->_values as $value) $sumval += $value["value"];
-  $this->SetSortMode($this->_RowSortMode);
-  echo "<table>";
-  if (strlen($this->_GraphTitle)>0)  echo "<tr><td colspan=".count($this->_values)." class=\"".$this->_TDClassHead."\">".$this->_GraphTitle."</td></tr>";
-   echo "<tr>";
-   foreach($this->_values as $value) {
-    echo "<td valign=bottom align=center>";
-    $height = $this->_BarWidth;
-    $width=ceil($value["value"]*$this->_GraphWidth/$maxval);
-    echo "<div ";
-    echo "  style=\"background-color: #666666; border: ".$this->_BarBorderWidth."px solid ".$this->_BarBorderColor."\"";
-    echo ">";
-    echo "</td>";
-   }
-   echo "</tr>";
-   if ($this->_ShowCountsMode>0) {
-   	echo "<tr>";
-    foreach($this->_values as $value) {
-     switch ($this->_ShowCountsMode) {
-     case 1:
-      $count = round(100*$value["value"]/$sumval)."%";
-      break;
-     case 2:
-      $count = $value["value"];
-      break;  /* Exit the switch and the while. */
-     default:
-      break;
-     }
-     echo "<td align=center class=".$this->_TDClassCount.">$count</td>";
-   	}
-	echo "</tr>";
-   }
-
-   if ($this->_ShowLabels) {
-    echo "<tr>";
-    foreach($this->_values as $value) {
-     echo "<td align=center class=".$this->_TDClassLabel;
-	 echo ">".$value["label"]."</td>";
-	}
-	echo "</tr>";
-   }	
-
-  echo "</table>";
- }
-
-
-
- function BarGraphHoriz() {
-  $maxval = $this->GetMaxVal();
-  foreach($this->_values as $value) $sumval += $value["value"];
-  $this->SetSortMode($this->_RowSortMode);
-  echo "<table border=0>";
-  if (strlen($this->_GraphTitle)>0)  {
-    echo "<tr><td ";
-   if ($this->_ShowCountsMode>0) echo " colspan=2";
-    echo " class=\"".$this->_TDClassHead."\">".$this->_GraphTitle."</TD></TR>";
   }
-  foreach($this->_values as $value) {
-   if ($this->_ShowLabels) {
-    echo "<tr>";
-    echo "<td class=".$this->_TDClassLabel;
-    if ($this->_ShowCountsMode>0) echo " colspan=2";
-	echo ">".$value["label"]."</TD></TR>";
-   }	
-   echo "<tr>";
-   if ($this->_ShowCountsMode>0) {
-    switch ($this->_ShowCountsMode) {
-    case 1:
-     $count = round(100*$value["value"]/$sumval)."%";
-     break;
-    case 2:
-     $count = $value["value"];
-     break;  /* Exit the switch and the while. */
-    default:
-     break;
+
+  function AddValue($labelName, $theValue) {
+    array_push($this->_values, array("label" => $labelName, "value" => $theValue));
+  }
+
+  function SetBarData($data)
+  {
+      foreach ( $data as $name => $value )
+      {
+          $this->AddValue($name, $value);
+      }
+  }
+  function DrawGraph()
+  {
+      $this->BarGraphVert();
+  }
+  function SetBarWidth($width)
+  {
+    $this->_BarWidth = $width;
+  }
+  function SetBarImg($img)
+  {
+    $this->_BarImg = $img;
+  }
+  function SetShowLabels($lables)
+  {
+    $this->_ShowLabels = $labels;
+  }
+  function SetGraphWidth($width)
+  {
+    $this->_GraphWidth = $width;
+  }
+  function SetGraphTitle($title)
+  {
+    $this->_GraphTitle = $title;
+  }
+  //mode = percentage or counts
+  function SetShowCountsMode($mode)
+  {
+    $this->_ShowCountsMode = $mode;
+  }
+  //mode = none(0) label(1) or count(2)
+  function SetRowSortMode($sortmode)
+  {
+    $this->_RowSortMode = $sortmode;
+  }
+
+  function SetTDClassHead($class)
+  {
+    $this->_TDClassHead = $class;
+  }
+  function SetTDClassLabel($class)
+  {
+    $this->_TDClassLabel = $class;
+  }
+  function SetTDClassCount($class)
+  {
+    $this->_TDClassCount = $class;
+  }
+  function GetMaxVal()
+  {
+    $maxval = 0;
+    foreach ( $this->_values as $value )
+    {
+      if ( $maxval < $value["value"] )
+      {
+        $maxval = $value["value"];
+      }
     }
-   echo "<td class=".$this->_TDClassCount.">$count</TD>";
-   }
-   echo "<td>";
-   $height = $this->_BarWidth;
-    $width=ceil($value["value"]*$this->_GraphWidth/$maxval);
-   echo "<img SRC=\"".$this->_BarImg."\" height=$height width=$width ";
-   echo "  style=\"border: ".$this->_BarBorderWidth."px solid ".$this->_BarBorderColor."\"";
-   echo ">";
-   echo "</TD></TR>";
+    return $maxval;
   }
-  echo "</TABLE>";
- }
+  function BarGraphVert()
+  {
+    $maxval = $this->GetMaxVal();
+    foreach($this->_values as $value)
+    {
+      $sumval += $value["value"];
+    }
+    
+    $this->SetSortMode($this->_RowSortMode);
+    
+    echo "\n<!-- ----------------------------------------- -->\n<div class=\"tblholder\" style=\"width: 100%; clip: rect(0px,auto,auto,0px); overflow: auto;\">\n<table border=\"0\" cellspacing=\"1\" cellpadding=\"4\">\n  ";
+    
+    if ( strlen($this->_GraphTitle) > 0 )
+    {
+      echo "<tr>\n    <th colspan=\"".count($this->_values)."\" class=\"".$this->_TDClassHead."\">".$this->_GraphTitle."</th>\n  </tr>\n  ";
+    }
+    
+    echo "<tr>\n  ";
+    $css_class = 'row1';
+    
+    foreach($this->_values as $value)
+    {
+      $css_class = ( $css_class == 'row1' ) ? 'row3' : 'row1';
+      echo "  <td valign=\"bottom\" align=\"center\" class=\"$css_class\">\n      ";
+      $width = $this->_BarWidth;
+      $height = ceil( $value["value"] * $this->_GraphWidth / $maxval );
+
+      echo "<div style=\"width: {$width}px; height: {$height}px; background-color: {$this->_BarBackgroundColor}; border: ".$this->_BarBorderWidth."px solid ".$this->_BarBorderColor."\">\n      ";
+      echo "</div>\n    ";
+      
+      // echo "<img src=\"".$this->_BarImg."\" height=\"$width\" width=\"$height\" ";
+      // echo "  style=\"border: ".$this->_BarBorderWidth."px solid ".$this->_BarBorderColor."\"";
+      // echo ">";
+
+      echo "</td>\n  ";
+    }
+    echo "</tr>\n  ";
+    if ( $this->_ShowCountsMode > 0 )
+    {
+      $css_class = 'row1';
+      echo "<tr>\n  ";
+      foreach($this->_values as $value)
+      {
+        $css_class = ( $css_class == 'row1' ) ? 'row3' : 'row1';
+        switch ($this->_ShowCountsMode)
+        {
+          case 1:
+            $count = round ( 100 * $value["value"] / $sumval ) . "%";
+            break;
+          case 2:
+            $count = $value["value"];
+            break;
+          default:
+            break;
+        }
+        echo "  <td align=\"center\" class=\"$css_class ".$this->_TDClassCount."\">$count</td>\n  ";
+      }
+      echo "</tr>\n";
+    }
+
+    if ($this->_ShowLabels)
+    {
+      $css_class = 'row1';
+      echo "  <tr>\n  ";
+      foreach($this->_values as $value)
+      {
+        $css_class = ( $css_class == 'row1' ) ? 'row3' : 'row1';
+        echo "  <td align=\"center\" class=\"$css_class ".$this->_TDClassLabel."\"";
+        echo ">".$value["label"]."</td>\n  ";
+      }
+      echo "</tr>\n";
+    }
+
+    echo "</table>";
+  }
+
+  function BarGraphHoriz()
+  {
+    $maxval = $this->GetMaxVal();
+    
+    foreach($this->_values as $value)
+    {
+      $sumval += $value["value"];
+    }
+    
+    $this->SetSortMode($this->_RowSortMode);
+    
+    echo "<table border=\"0\">";
+    
+    if ( strlen($this->_GraphTitle) > 0 )
+    {
+      echo "<tr><td ";
+      if ( $this->_ShowCountsMode > 0 )
+      {
+        echo " colspan=\"2\"";
+      }
+      echo " class=\"".$this->_TDClassHead."\">".$this->_GraphTitle."</td></tr>";
+    }
+    foreach($this->_values as $value)
+    {
+      if ($this->_ShowLabels)
+      {
+        echo "<tr>";
+        echo "<td class=\"".$this->_TDClassLabel."\"";
+        if ( $this->_ShowCountsMode > 0 )
+        {
+          echo " colspan=\"2\"";
+        }
+        echo ">".$value["label"]."</td></tr>";
+      }
+      echo "<tr>";
+      if ( $this->_ShowCountsMode > 0 )
+      {
+        switch ($this->_ShowCountsMode)
+        {
+          case 1:
+            $count = round(100 * $value["value"] / $sumval )."%";
+            break;
+          case 2:
+            $count = $value["value"];
+            break;  /* Exit the switch and the while. */
+          default:
+            break;
+        }
+        echo "<td class=\"".$this->_TDClassCount."\">$count</TD>";
+      }
+      echo "<td>";
+      $height = $this->_BarWidth;
+      $width = ceil( $value["value"] * $this->_GraphWidth / $maxval );
+      echo "<div style=\"width: {$width}px; height: {$height}px; background-color: #456798; border: ".$this->_BarBorderWidth."px solid ".$this->_BarBorderColor."\">\n      ";
+      echo "</div>\n    ";
+      //echo "<img SRC=\"".$this->_BarImg."\" height=$height width=$width ";
+      //echo "  style=\"border: ".$this->_BarBorderWidth."px solid ".$this->_BarBorderColor."\"";
+      //echo ">";
+      echo "</td></tr>";
+    }
+    echo "</table>";
+  }
+  /**
+   * Dummy functions for compatibility with the GD version of the class
+   */
+  
+  function SetGraphPadding($a, $b, $c, $d)
+  {
+    return true;
+  }
+  function SetBarPadding($a)
+  {
+    return true;
+  }
+  function SetAxisStep($a)
+  {
+    return true;
+  }
+  function SetGraphBackgroundTransparent($r, $g, $b, $a)
+  {
+    return true;
+  }
+  function SetGraphTransparency($a)
+  {
+    return true;
+  }
+  function SetGraphAreaHeight($a)
+  {
+    return true;
+  }
 }
+
 
