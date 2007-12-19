@@ -47,7 +47,7 @@ function userprefs_jbox_setup(&$button, &$tb, &$menubtn)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   
-  if ( $paths->namespace != 'Special' || $paths->cpage['urlname_nons'] != 'Preferences' )
+  if ( $paths->namespace != 'Special' || $paths->page_id != 'Preferences' )
     return false;
   
   $tb .= "<ul>$template->toolbar_menu</ul>";

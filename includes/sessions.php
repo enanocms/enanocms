@@ -1378,11 +1378,11 @@ class sessionManager {
       {
         $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE \n"
               . "    ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR \n"
-              . "    ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' LIKE ban_value ) OR \n"
+              . "    ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' ~ ban_value ) OR \n"
               . "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '{$this->username}' ) OR \n"
-              . "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '{$this->username}' LIKE ban_value ) OR \n"
+              . "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '{$this->username}' ~ ban_value ) OR \n"
               . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '{$this->email}' ) OR \n"
-              . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '{$this->email}' LIKE ban_value ) \n"
+              . "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '{$this->email}' ~ ban_value ) \n"
               . "  ORDER BY ban_type ASC;";
       }
       $q = $this->sql($sql);
@@ -1426,7 +1426,7 @@ class sessionManager {
       {
         $sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE
                   ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR
-                  ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' LIKE ban_value )
+                  ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' ~ ban_value )
                 ORDER BY ban_type ASC;";
       }
       $q = $this->sql($sql);
@@ -2274,7 +2274,7 @@ The {$site_name} administration team
     }
     
     // PAGE group info
-    $pg_list = $paths->get_page_groups($paths->cpage['urlname_nons'], $paths->namespace);
+    $pg_list = $paths->get_page_groups($paths->page_id, $paths->namespace);
     $pg_info = '';
     foreach ( $pg_list as $g_id )
     {
@@ -2294,7 +2294,7 @@ The {$site_name} administration team
     }
     // The reason we're using an ORDER BY statement here is because ACL_TYPE_GROUP is less than ACL_TYPE_USER, causing the user's individual
     // permissions to override group permissions.
-    $bs .= implode(" OR\n    ", $q) . " )\n  AND (" . $pg_info . ' ( page_id=\''.$db->escape($paths->cpage['urlname_nons']).'\' AND namespace=\''.$db->escape($paths->namespace).'\' ) )     
+    $bs .= implode(" OR\n    ", $q) . " )\n  AND (" . $pg_info . ' ( page_id=\''.$db->escape($paths->page_id).'\' AND namespace=\''.$db->escape($paths->namespace).'\' ) )     
       ORDER BY target_type ASC, page_id ASC, namespace ASC;';
     $q = $this->sql($bs);
     if ( $row = $db->fetchrow() )

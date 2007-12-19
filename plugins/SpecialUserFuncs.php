@@ -1342,12 +1342,15 @@ function page_Special_Memberlist()
                             array('%', '_'),
                             $finduser);
     $finduser = $db->escape($finduser);
-    $username_where = 'u.username LIKE "' . $finduser . '"';
+    $username_where = ENANO_SQLFUNC_LOWERCASE . '(u.username) LIKE \'%' . strtolower($finduser) . '%\'';
     $finduser_url = 'finduser=' . rawurlencode($_GET['finduser']) . '&';
   }
   else
   {
-    $username_where = 'u.username REGEXP "^' . $startletter_sql . '"';
+    if ( ENANO_DBLAYER == 'MYSQL' )
+      $username_where = 'lcase(u.username) REGEXP lcase("^' . $startletter_sql . '")';
+    else if ( ENANO_DBLAYER == 'PGSQL' )
+      $username_where = 'lower(u.username) ~ lower(\'^' . $startletter_sql . '\')';
     $finduser_url = '';
   }
   
@@ -1371,7 +1374,7 @@ function page_Special_Memberlist()
                </tr>';
                
   // determine number of rows
-  $q = $db->sql_query('SELECT u.user_id FROM '.table_prefix.'users AS u WHERE ' . $username_where . ' AND u.username != "Anonymous";');
+  $q = $db->sql_query('SELECT u.user_id FROM '.table_prefix.'users AS u WHERE ' . $username_where . ' AND u.username != \'Anonymous\';');
   if ( !$q )
     $db->_die();
   
@@ -1388,7 +1391,7 @@ function page_Special_Memberlist()
   $q = $db->sql_unbuffered_query('SELECT u.user_id, u.username, u.reg_time, u.email, u.user_level, u.reg_time, x.email_public FROM '.table_prefix.'users AS u
                                     LEFT JOIN '.table_prefix.'users_extra AS x
                                       ON ( u.user_id = x.user_id )
-                                    WHERE ' . $username_where . ' AND u.username != "Anonymous"
+                                    WHERE ' . $username_where . ' AND u.username != \'Anonymous\'
                                     ORDER BY ' . $sort_sqllet . ' ' . $target_order . ';');
   if ( !$q )
     $db->_die();
@@ -1418,7 +1421,7 @@ function page_Special_Memberlist()
               ' .
               '<div style="float: left;">
                 <form action="' . makeUrlNS('Special', 'Memberlist') . '" method="get" onsubmit="if ( !submitAuthorized ) return false;">'
-               . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->nslist[$paths->namespace] . $paths->cpage['urlname_nons'] ) . '" />' : '' )
+               . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->page ) . '" />' : '' )
                . ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : '')
                . '<p>Find a member: ' . $template->username_field('finduser') . ' <input type="submit" value="Go" /><br /><small>You may use the following wildcards: * to match multiple characters, ? to match a single character.</small></p>'
                . '</form>

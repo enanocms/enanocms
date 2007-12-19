@@ -416,9 +416,25 @@ function page_Special_About_Enano()
                 </a>
               </td>
               <td style="text-align: center;">
-                <a href="http://www.mysql.com/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
-                  <img alt="Database engine powered by MySQL" src="<?php echo scriptPath; ?>/images/about-powered-mysql.png" style="border-width: 0px;" width="88" height="31" />
-                </a>
+                <?php
+                switch(ENANO_DBLAYER)
+                {
+                  case 'MYSQL':
+                    ?>
+                    <a href="http://www.mysql.com/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
+                      <img alt="Database engine powered by MySQL" src="<?php echo scriptPath; ?>/images/about-powered-mysql.png" style="border-width: 0px;" width="88" height="31" />
+                    </a>
+                    <?php
+                    break;
+                  case 'PGSQL':
+                    ?>
+                    <a href="http://www.postgresql.org/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
+                      <img alt="Database engine powered by PostgreSQL" src="<?php echo scriptPath; ?>/images/about-powered-pgsql.png" style="border-width: 0px;" width="90" height="30" />
+                    </a>
+                    <?php
+                    break;
+                }
+                ?>
               </td>
             </tr>
           </table>
@@ -428,7 +444,23 @@ function page_Special_About_Enano()
       <tr><td style="width: 100px;" class="row2">Web server:</td><td class="row2"><?php if(isset($_SERVER['SERVER_SOFTWARE'])) echo $_SERVER['SERVER_SOFTWARE']; else echo 'Unable to determine web server software.'; ?></td></tr>
       <tr><td style="width: 100px;" class="row1">Server platform:</td><td class="row1"><?php echo $platform; ?></td></tr>
       <tr><td style="width: 100px;" class="row2"><a href="http://www.php.net/">PHP</a> version:</td><td class="row2"><?php echo PHP_VERSION; ?></td></tr>
-      <tr><td style="width: 100px;" class="row1"><a href="http://www.mysql.com/">MySQL</a> version:</td><td class="row1"><?php echo mysql_get_server_info($db->_conn); ?></td></tr>
+      <?php
+      switch(ENANO_DBLAYER)
+      {
+        case 'MYSQL':
+          ?>
+          <tr><td style="width: 100px;" class="row1"><a href="http://www.mysql.com/">MySQL</a> version:</td><td class="row1"><?php echo mysql_get_server_info($db->_conn); ?></td></tr>
+          <?php
+          break;
+        case 'PGSQL':
+          $pg_serverdata = pg_version($db->_conn);
+          $pg_version = $pg_serverdata['server'];
+          ?>
+          <tr><td style="width: 100px;" class="row1"><a href="http://www.postgresql.org/">PostgreSQL</a> version:</td><td class="row1"><?php echo $pg_version; ?></td></tr>
+          <?php
+          break;
+      }
+      ?>
     </table>
   </div>
   <?php

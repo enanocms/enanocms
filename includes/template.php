@@ -259,7 +259,7 @@ class template {
     if ( $session->get_permissions('read') && getConfig('enable_comments')=='1' && $paths->namespace != 'Special' && $paths->namespace != 'Admin' && $paths->cpage['comments_on'] == 1 )
     {
       
-      $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$paths->cpage['urlname_nons'].'\' AND namespace=\''.$paths->namespace.'\';');
+      $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$paths->page_id.'\' AND namespace=\''.$paths->namespace.'\';');
       if ( !$e )
       {
         $db->_die();
@@ -625,7 +625,7 @@ class template {
     
     $this->tpl_bool['stupid_mode'] = false;
     
-    $this->tpl_bool['in_admin'] = ( ( $paths->cpage['urlname_nons'] == 'Administration' && $paths->namespace == 'Special' ) || $paths->namespace == 'Admin' );
+    $this->tpl_bool['in_admin'] = ( ( $paths->page_id == 'Administration' && $paths->namespace == 'Special' ) || $paths->namespace == 'Admin' );
     
     $p = ( isset($_GET['printable']) ) ? '/printable' : '';
     
@@ -741,7 +741,7 @@ class template {
       'ADMIN_LINK'=>$admin_link,
       'THEME_LINK'=>$theme_link,
       'SEARCH_ACTION'=>makeUrlNS('Special', 'Search'),
-      'INPUT_TITLE'=>( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->nslist[$paths->namespace] . $paths->cpage['urlname_nons'] ) . '" />' : ''),
+      'INPUT_TITLE'=>( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->nslist[$paths->namespace] . $paths->page_id ) . '" />' : ''),
       'INPUT_AUTH'=>( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : ''),
       'TEMPLATE_DIR'=>scriptPath.'/themes/'.$this->theme,
       'THEME_ID'=>$this->theme,
@@ -1703,7 +1703,7 @@ EOF;
   function notify_unread_pms()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if ( ( $paths->cpage['urlname_nons'] == 'PrivateMessages' || $paths->cpage['urlname_nons'] == 'Preferences' ) && $paths->namespace == 'Special' )
+    if ( ( $paths->page_id == 'PrivateMessages' || $paths->page_id == 'Preferences' ) && $paths->namespace == 'Special' )
     {
       return '';
     }

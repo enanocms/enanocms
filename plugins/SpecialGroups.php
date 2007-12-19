@@ -59,14 +59,14 @@ function page_Special_Usergroups()
     $db->free_result();
     $members = array();
     $pending = array();
-    $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,m.pending,COUNT(c.comment_id)
+    $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,m.pending,COUNT(c.comment_id) AS num_comments
                            FROM '.table_prefix.'users AS u
                            LEFT JOIN '.table_prefix.'group_members AS m
                              ON ( m.user_id = u.user_id )
                            LEFT JOIN '.table_prefix.'comments AS c
                              ON ( c.name = u.username )
                            WHERE m.group_id=' . $gid . '
-                           GROUP BY u.user_id
+                           GROUP BY u.user_id,u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,m.pending
                            ORDER BY m.is_mod DESC,u.username ASC;');
     if ( !$q )
     {
@@ -200,7 +200,7 @@ function page_Special_Usergroups()
             $db->_die('SpecialGroups.php, line ' . __LINE__);
           echo '<div class="info-box">The user "' . $username . '" has been added to this usergroup.</div>';
           
-          $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,COUNT(c.comment_id)
+          $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,COUNT(c.comment_id) AS num_comments
                                  FROM '.table_prefix.'users AS u
                                  LEFT JOIN '.table_prefix.'group_members AS m
                                    ON ( m.user_id = u.user_id )
@@ -209,7 +209,7 @@ function page_Special_Usergroups()
                                  WHERE m.group_id=' . $gid . '
                                    AND m.pending!=1
                                    AND u.user_id=' . $uid . '
-                                 GROUP BY u.user_id
+                                 GROUP BY u.user_id,u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod
                                  ORDER BY m.is_mod DESC,u.username ASC
                                  LIMIT 1;');
           if ( !$q )
@@ -267,7 +267,7 @@ function page_Special_Usergroups()
         $db->_die('SpecialGroups.php, line ' . __LINE__);
       echo '<div class="info-box">You have been added to this group.</div>';
       
-      $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,COUNT(c.comment_id)
+      $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,COUNT(c.comment_id) AS num_comments
                              FROM '.table_prefix.'users AS u
                              LEFT JOIN '.table_prefix.'group_members AS m
                                ON ( m.user_id = u.user_id )
@@ -276,7 +276,7 @@ function page_Special_Usergroups()
                              WHERE m.group_id=' . $gid . '
                                AND m.pending!=1
                                AND u.user_id=' . $session->user_id . '
-                             GROUP BY u.user_id
+                             GROUP BY u.user_id,u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod
                              ORDER BY m.is_mod DESC,u.username ASC
                              LIMIT 1;');
       if ( !$q )
@@ -370,7 +370,7 @@ function page_Special_Usergroups()
                 <td class='{$cls}'>{$member['username']}</td>
                 <td class='{$cls}'>{$addy}</td>
                 <td class='{$cls}'>{$date}</td>
-                <td class='{$cls}'>{$member['COUNT(c.comment_id)']}</td>
+                <td class='{$cls}'>{$member['num_comments']}</td>
                 <td class='{$cls}' style='text-align: center;'><input type='checkbox' name='with_user[{$member['member_id']}]' /></td>
               </tr>";
       }
@@ -418,7 +418,7 @@ function page_Special_Usergroups()
               <td class='{$cls}'>{$member['username']}</td>
               <td class='{$cls}'>{$addy}</td>
               <td class='{$cls}'>{$date}</td>
-              <td class='{$cls}'>{$member['COUNT(c.comment_id)']}</td>
+              <td class='{$cls}'>{$member['num_comments']}</td>
               " . ( ( $can_do_admin_stuff ) ? "
               <td class='{$cls}' style='text-align: center;'><input type='checkbox' name='del_user[{$member['member_id']}]' /></td>
               " : '' ) . "
@@ -442,7 +442,7 @@ function page_Special_Usergroups()
               <td class='{$cls}'>{$member['username']}</td>
               <td class='{$cls}'>{$addy}</td>
               <td class='{$cls}'>{$date}</td>
-              <td class='{$cls}'>{$member['COUNT(c.comment_id)']}</td>
+              <td class='{$cls}'>{$member['num_comments']}</td>
               " . ( ( $can_do_admin_stuff ) ? "
               <td class='{$cls}' style='text-align: center;'><input type='checkbox' name='del_user[{$member['member_id']}]' /></td>
               " : '' ) . "

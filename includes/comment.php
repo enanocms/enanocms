@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.0.3 (Dyrad)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -54,7 +54,7 @@ class Comments
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Initialize permissions
-    if ( $page_id == $paths->cpage['urlname_nons'] && $namespace == $paths->namespace )
+    if ( $page_id == $paths->page_id && $namespace == $paths->namespace )
       $this->perms =& $GLOBALS['session'];
     else
       $this->perms = $session->fetch_page_acl($page_id, $namespace);

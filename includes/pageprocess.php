@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.0.3 (Dyrad)
  * pageprocess.php - intelligent retrieval of pages
  * Copyright (C) 2006-2007 Dan Fuhry
  *
@@ -15,6 +15,7 @@
 
 /**
  * Class to handle fetching page text (possibly from a cache) and formatting it.
+ * As of 1.0.4, this also handles the fetching and editing of certain data for pages.
  * @package Enano
  * @subpackage UI
  * @copyright 2007 Dan Fuhry
@@ -111,6 +112,13 @@ class PageProcessor
       'enable' => false,
       'works'  => false
     );
+  
+  /**
+   * The list of errors raised in the class.
+   * @var array
+   */
+  
+  var $_errors = array();
   
   /**
    * Constructor.
@@ -312,6 +320,173 @@ class PageProcessor
   }
   
   /**
+   * Fetches the wikitext or HTML source for the page.
+   * @return string
+   */
+  
+  function fetch_source()
+  {
+    if ( !$this->perms->get_permissions('view_source') )
+    {
+      return false;
+    }
+    return $this->fetch_text();
+  }
+  
+  /**
+   * Updates the content of the page.
+   * @param string The new text for the page
+   * @param string A summary of edits made to the page.
+   * @return bool True on success, false on failure
+   */
+  
+  function update_page($text, $edit_summary = false)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Create the page if it doesn't exist
+    if ( !$this->page_exists )
+    {
+      if ( !$this->create_page() )
+      {
+        return false;
+      }
+    }
+      
+    //
+    // Validation
+    //
+    
+    $page_id = $db->escape($this->page_id);
+    $namespace = $db->escape($this->namespace);
+    
+    $q = $db->sql_query('SELECT protected FROM ' . table_prefix . "pages WHERE urlname='$page_id' AND namespace='$namespace';");
+    if ( !$q )
+      $db->_die('PageProcess updating page content');
+    if ( $db->numrows() < 1 )
+    {
+      $this->raise_error('Page doesn\'t exist in the database');
+      return false;
+    }
+    
+    // Do we have permission to edit the page?
+    if ( !$this->perms->get_permissions('edit_page') )
+    {
+      $this->raise_error('You do not have permission to edit this page.');
+      return false;
+    }
+    
+    list($protection) = $db->fetchrow_num();
+    $db->free_result();
+    
+    if ( $protection == 1 )
+    {
+      // The page is protected - do we have permission to edit protected pages?
+      if ( !$this->perms->get_permissions('even_when_protected') )
+      {
+        $this->raise_error('This page is protected, and you do not have permission to edit protected pages.');
+        return false;
+      }
+    }
+    else if ( $protection == 2 )
+    {
+      // The page is semi-protected.
+      if (
+           ( !$session->user_logged_in || // Is the user logged in?
+             ( $session->user_logged_in && $session->reg_time + ( 4 * 86400 ) >= time() ) ) // If so, have they been registered for 4 days?
+           && !$this->perms->get_permissions('even_when_protected') ) // And of course, is there an ACL that overrides semi-protection?
+      {
+        $this->raise_error('This page is protected, and you do not have permission to edit protected pages.');
+        return false;
+      }
+    }
+    
+    // Protection validated
+    
+  }
+  
+  /**
+   * Creates the page if it doesn't already exist.
+   * @return bool True on success, false on failure.
+   */
+  
+  function create_page()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Do we have permission to create the page?
+    if ( !$this->perms->get_permissions('create_page') )
+    {
+      $this->raise_error('You do not have permission to create this page.');
+      return false;
+    }
+    
+    // Does it already exist?
+    if ( $this->page_exists )
+    {
+      $this->raise_error('The page already exists.');
+      return false;
+    }
+    
+    // It's not in there. Perform validation.
+    
+    // We can't create special, admin, or external pages.
+    if ( $this->namespace == 'Special' || $this->namespace == 'Admin' || $this->namespace == 'Anonymous' )
+    {
+      $this->raise_error('You cannot create Special or Admin pages - they can\'t be stored in the database.');
+      return false;
+    }
+    
+    // Guess the proper title
+    $name = dirtify_page_id($this->page_id);
+    
+    // Check for the restricted Project: prefix
+    if ( substr($this->page_id, 0, 8) == 'Project:' )
+    {
+      $this->raise_error('The prefix "Project:" is reserved for internal links and can\'t be used on a page name.');
+      return false;
+    }
+    
+    // Validation successful - insert the page
+    
+    $metadata = array(
+        'urlname' => $this->page_id,
+        'namespace' => $this->namespace,
+        'name' => $name,
+        'special' => 0,
+        'visible' => 1,
+        'comments_on' => 1,
+        'protected' => ( $this->namespace == 'System' ? 1 : 0 ),
+        'delvotes' => 0,
+        'delvote_ips' => serialize(array()),
+        'wiki_mode' => 2
+      );
+    
+    $paths->add_page($metadata);
+    
+    $page_id = $db->escape($this->page_id);
+    $namespace = $db->escape($this->namespace);
+    $name = $db->escape($name);
+    $protect = ( $this->namespace == 'System' ) ? '1' : '0';
+    $blank_array = $db->escape(serialize(array()));
+    
+    // Query 1: Metadata entry
+    $q = $db->sql_query('INSERT INTO ' . table_prefix . "pages(name, urlname, namespace, protected, delvotes, delvote_ips, wiki_mode)\n"
+                        . "VALUES ( '$name', '$page_id', '$namespace', $protect, 0, '$blank_array', 2 );");
+    if ( !$q )
+      $db->_die('PageProcessor page creation - metadata stage');
+    
+    // Query 2: Text insertion
+    $q = $db->sql_query('INSERT INTO ' . table_prefix . "page_text(page_id, namespace, page_text)\n"
+                        . "VALUES ( '$page_id', '$namespace', '' );");
+    if ( !$q )
+      $db->_die('PageProcessor page creation - text stage');
+    
+    // Page created. We're good!
+    return true;
+  }
+  
+  /**
    * Sets internal variables.
    * @access private
    */
@@ -336,7 +511,7 @@ class PageProcessor
     }
     
     // Does the page "exist"?
-    if ( $paths->cpage['urlname_nons'] == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
+    if ( $paths->page_id == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
     {
       $this->page_exists = false;
     }
@@ -354,7 +529,7 @@ class PageProcessor
     {
       $page_id = str_replace('.2e', '.', $page_id);
       
-      if ( $paths->cpage['urlname_nons'] == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
+      if ( $paths->page_id == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
       {
         $this->page_exists = false;
       }
@@ -630,7 +805,7 @@ class PageProcessor
     global $email;
     
     $page_urlname = dirtify_page_id($this->page_id);
-    if ( $this->page_id == $paths->cpage['urlname_nons'] && $this->namespace == $paths->namespace )
+    if ( $this->page_id == $paths->page_id && $this->namespace == $paths->namespace )
     {
       $page_name = ( isset($paths->cpage['name']) ) ? $paths->cpage['name'] : $this->page_id;
     }
@@ -1244,6 +1419,30 @@ class PageProcessor
     
     exit;
     
+  }
+  
+  /**
+   * Raises an error.
+   * @param string Error string
+   */
+   
+  function raise_error($string)
+  {
+    if ( !is_string($string) )
+      return false;
+    $this->_errors[] = $string;
+  }
+  
+  /**
+   * Retrieves the latest error from the error stack and returns it ('pops' the error stack)
+   * @return string
+   */
+  
+  function pop_error()
+  {
+    if ( count($this->_errors) < 1 )
+      return false;
+    return array_pop($this->_errors);
   }
   
 } // class PageProcessor

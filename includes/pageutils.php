@@ -202,7 +202,7 @@ class PageUtils {
         else echo ' Return to the <a href="'.makeUrl(getConfig('main_page')).'">homepage</a>.</p>';
         if ( $session->get_permissions('history_rollback') )
         {
-          $e = $db->sql_query('SELECT * FROM ' . table_prefix.'logs WHERE action=\'delete\' AND page_id=\'' . $paths->cpage['urlname_nons'] . '\' AND namespace=\'' . $pid[1] . '\' ORDER BY time_id DESC;');
+          $e = $db->sql_query('SELECT * FROM ' . table_prefix.'logs WHERE action=\'delete\' AND page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $pid[1] . '\' ORDER BY time_id DESC;');
           if ( !$e )
           {
             $db->_die('The deletion log could not be selected.');
@@ -379,7 +379,7 @@ class PageUtils {
     $msg = $db->escape($message);
     
     $minor = $minor ? ENANO_SQL_BOOLEAN_TRUE : ENANO_SQL_BOOLEAN_FALSE;
-    $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $paths->cpage['urlname_nons'] . '\', \'' . $paths->namespace . '\', ' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\', \'' . $uid . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($summary)) . '\', ' . $minor . ');';
+    $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $paths->page_id . '\', \'' . $paths->namespace . '\', ' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\', \'' . $uid . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($summary)) . '\', ' . $minor . ');';
     if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
     
     $q = 'UPDATE ' . table_prefix.'page_text SET page_text=' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\',char_tag=\'' . $uid . '\' WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';';
@@ -654,7 +654,7 @@ class PageUtils {
     }
     $db->free_result();
     echo '<h3>Other changes:</h3>';
-    $q = 'SELECT time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->cpage['urlname_nons'] . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
+    $q = 'SELECT time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
     if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
     if($db->numrows() < 1) echo 'No history entries in this category.';
     else {
@@ -1371,7 +1371,7 @@ class PageUtils {
     }
     if( ( $session->get_permissions('rename') && ( ( $prot && $session->get_permissions('even_when_protected') ) || !$prot ) ) && ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' ))
     {
-      $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'rename\', \'' . $db->escape($paths->cpage['urlname_nons']) . '\', \'' . $paths->namespace . '\', \'' . $db->escape($session->username) . '\', \'' . $db->escape($paths->cpage['name']) . '\')');
+      $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'rename\', \'' . $db->escape($paths->page_id) . '\', \'' . $paths->namespace . '\', \'' . $db->escape($session->username) . '\', \'' . $db->escape($paths->cpage['name']) . '\')');
       if ( !$e )
       {
         $db->_die('The page title could not be updated.');
@@ -1597,7 +1597,7 @@ class PageUtils {
     global $db, $session, $paths, $template, $plugins; // Common objects
     ob_start();
     $_ob = '';
-    $e = $db->sql_query('SELECT category_id FROM ' . table_prefix.'categories WHERE page_id=\'' . $paths->cpage['urlname_nons'] . '\' AND namespace=\'' . $paths->namespace . '\'');
+    $e = $db->sql_query('SELECT category_id FROM ' . table_prefix.'categories WHERE page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\'');
     if(!$e) jsdie('Error selecting category information for current page: '.mysql_error());
     $cat_current = Array();
     while($r = $db->fetchrow())
@@ -2183,7 +2183,7 @@ class PageUtils {
               <p><label><input name="data[scope]" value="entire_site" type="radio" /> The entire site</p>
               <div style="margin: 0 auto 0 0; text-align: right;">
                 <input name="data[mode]" value="seltarget" type="hidden" />
-                <input type="hidden" name="data[page_id]" value="' . $paths->cpage['urlname_nons'] . '" />
+                <input type="hidden" name="data[page_id]" value="' . $paths->page_id . '" />
                 <input type="hidden" name="data[namespace]" value="' . $paths->namespace . '" />
                 <input type="submit" value="Next &gt;" />
               </div>';

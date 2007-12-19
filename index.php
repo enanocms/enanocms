@@ -64,7 +64,7 @@
     case 'view':
       // echo PageUtils::getpage($paths->page, true, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
       $rev_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
-      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $rev_id );
+      $page = new PageProcessor( $paths->page_id, $paths->namespace, $rev_id );
       $page->send_headers = true;
       $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
       $page->password = $pagepass;
@@ -79,7 +79,7 @@
         default:
           $act = ( isset ($_GET['action']) ) ? $_GET['action'] : false;
           $id = ( isset ($_GET['id']) ) ? intval($_GET['id']) : -1;
-          echo PageUtils::comments_html($paths->cpage['urlname_nons'], $paths->namespace, $act, Array('id'=>$id));
+          echo PageUtils::comments_html($paths->page_id, $paths->namespace, $act, Array('id'=>$id));
           break;
         case 'postcomment':
           if(empty($_POST['name']) ||
@@ -88,8 +88,8 @@
              ) { echo 'Invalid request'; break; }
           $cid = ( isset($_POST['captcha_id']) ) ? $_POST['captcha_id'] : false;
           $cin = ( isset($_POST['captcha_input']) ) ? $_POST['captcha_input'] : false;
-          PageUtils::addcomment($paths->cpage['urlname_nons'], $paths->namespace, $_POST['name'], $_POST['subj'], $_POST['text'], $cin, $cid); // All filtering, etc. is handled inside this method
-          echo PageUtils::comments_html($paths->cpage['urlname_nons'], $paths->namespace);
+          PageUtils::addcomment($paths->page_id, $paths->namespace, $_POST['name'], $_POST['subj'], $_POST['text'], $cin, $cid); // All filtering, etc. is handled inside this method
+          echo PageUtils::comments_html($paths->page_id, $paths->namespace);
           break;
         case 'editcomment':
           if(!isset($_GET['id']) || ( isset($_GET['id']) && !preg_match('#^([0-9]+)$#', $_GET['id']) )) { echo '<p>Invalid comment ID</p>'; break; }
@@ -107,16 +107,16 @@
           break;
         case 'savecomment':
           if(empty($_POST['subj']) || empty($_POST['text'])) { echo '<p>Invalid request</p>'; break; }
-          $r = PageUtils::savecomment_neater($paths->cpage['urlname_nons'], $paths->namespace, $_POST['subj'], $_POST['text'], (int)$_POST['id']);
+          $r = PageUtils::savecomment_neater($paths->page_id, $paths->namespace, $_POST['subj'], $_POST['text'], (int)$_POST['id']);
           if($r != 'good') { echo "<pre>$r</pre>"; break; }
-          echo PageUtils::comments_html($paths->cpage['urlname_nons'], $paths->namespace);
+          echo PageUtils::comments_html($paths->page_id, $paths->namespace);
           break;
         case 'deletecomment':
           if(!empty($_GET['id']))
           {
-            PageUtils::deletecomment_neater($paths->cpage['urlname_nons'], $paths->namespace, (int)$_GET['id']);
+            PageUtils::deletecomment_neater($paths->page_id, $paths->namespace, (int)$_GET['id']);
           }
-          echo PageUtils::comments_html($paths->cpage['urlname_nons'], $paths->namespace);
+          echo PageUtils::comments_html($paths->page_id, $paths->namespace);
           break;
       }
       $template->footer();
@@ -129,7 +129,7 @@
       }
       if(isset($_POST['_save']))
       {
-        $e = PageUtils::savepage($paths->cpage['urlname_nons'], $paths->namespace, $_POST['page_text'], $_POST['edit_summary'], isset($_POST['minor']));
+        $e = PageUtils::savepage($paths->page_id, $paths->namespace, $_POST['page_text'], $_POST['edit_summary'], isset($_POST['minor']));
         if ( $e == 'good' )
         {
           redirect(makeUrl($paths->page), 'Changes saved', 'Your changes to this page have been saved. Redirecting...', 3);
@@ -141,7 +141,7 @@
         $text = $_POST['page_text'];
         echo PageUtils::genPreview($_POST['page_text']);
       }
-      else $text = RenderMan::getPage($paths->cpage['urlname_nons'], $paths->namespace, 0, false, false, false, false);
+      else $text = RenderMan::getPage($paths->page_id, $paths->namespace, 0, false, false, false, false);
       echo '
         <form action="'.makeUrl($paths->page, 'do=edit').'" method="post" enctype="multipart/form-data">
         <br />
@@ -166,7 +166,7 @@
       break;
     case 'viewsource':
       $template->header();
-      $text = RenderMan::getPage($paths->cpage['urlname_nons'], $paths->namespace, 0, false, false, false, false);
+      $text = RenderMan::getPage($paths->page_id, $paths->namespace, 0, false, false, false, false);
       echo '
         <form action="'.makeUrl($paths->page, 'do=edit').'" method="post">
         <br />
@@ -178,7 +178,7 @@
       $template->footer();
       break;
     case 'history':
-      $hist = PageUtils::histlist($paths->cpage['urlname_nons'], $paths->namespace);
+      $hist = PageUtils::histlist($paths->page_id, $paths->namespace);
       $template->header();
       echo $hist;
       $template->footer();
@@ -195,7 +195,7 @@
       if(isset($_POST['__enanoSaveButton']))
       {
         unset($_POST['__enanoSaveButton']);
-        $val = PageUtils::catsave($paths->cpage['urlname_nons'], $paths->namespace, $_POST);
+        $val = PageUtils::catsave($paths->page_id, $paths->namespace, $_POST);
         if($val == 'GOOD')
         {
           header('Location: '.makeUrl($paths->page)); echo '<html><head><title>Redirecting...</title></head><body>If you haven\'t been redirected yet, <a href="'.makeUrl($paths->page).'">click here</a>.'; break;
@@ -208,7 +208,7 @@
         header('Location: '.makeUrl($paths->page)); echo '<html><head><title>Redirecting...</title></head><body>If you haven\'t been redirected yet, <a href="'.makeUrl($paths->page).'">click here</a>.'; break;
       }
       $template->header();
-      $c = PageUtils::catedit_raw($paths->cpage['urlname_nons'], $paths->namespace);
+      $c = PageUtils::catedit_raw($paths->page_id, $paths->namespace);
       echo $c[1];
       $template->footer();
       break;
@@ -222,7 +222,7 @@
       if(!empty($_POST['reason']))
       {
         if(!preg_match('#^([0-2]*){1}$#', $_POST['level'])) die_friendly('Error protecting page', '<p>Request validation failed</p>');
-        PageUtils::protect($paths->cpage['urlname_nons'], $paths->namespace, intval($_POST['level']), $_POST['reason']);
+        PageUtils::protect($paths->page_id, $paths->namespace, intval($_POST['level']), $_POST['reason']);
         die_friendly('Page protected', '<p>The protection setting has been applied. <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>');
       }
       $template->header();
@@ -256,7 +256,7 @@
     case 'rename':
       if(!empty($_POST['newname']))
       {
-        $r = PageUtils::rename($paths->cpage['urlname_nons'], $paths->namespace, $_POST['newname']);
+        $r = PageUtils::rename($paths->page_id, $paths->namespace, $_POST['newname']);
         die_friendly('Page renamed', '<p>'.nl2br($r).' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>');
       }
       $template->header();
@@ -275,7 +275,7 @@
       if(isset($_POST['_downthejohn']))
       {
         $template->header();
-          $result = PageUtils::flushlogs($paths->cpage['urlname_nons'], $paths->namespace);
+          $result = PageUtils::flushlogs($paths->page_id, $paths->namespace);
           echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
         $template->footer();
         break;
@@ -296,7 +296,7 @@
       if(isset($_POST['_ballotbox']))
       {
         $template->header();
-        $result = PageUtils::delvote($paths->cpage['urlname_nons'], $paths->namespace);
+        $result = PageUtils::delvote($paths->page_id, $paths->namespace);
         echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
         $template->footer();
         break;
@@ -320,7 +320,7 @@
       if(isset($_POST['_youmaylivealittlelonger']))
       {
         $template->header();
-          $result = PageUtils::resetdelvotes($paths->cpage['urlname_nons'], $paths->namespace);
+          $result = PageUtils::resetdelvotes($paths->page_id, $paths->namespace);
           echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
         $template->footer();
         break;
@@ -344,7 +344,7 @@
         else
         {
           $template->header();
-            $result = PageUtils::deletepage($paths->cpage['urlname_nons'], $paths->namespace, $reason);
+            $result = PageUtils::deletepage($paths->page_id, $paths->namespace, $reason);
             echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
           $template->footer();
           break;
@@ -373,7 +373,7 @@
         {
           die_friendly('Invalid request', '<p>Level not specified</p>');
         }
-        $q = $db->sql_query('UPDATE '.table_prefix.'pages SET wiki_mode=' . $level . ' WHERE urlname=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND namespace=\'' . $paths->namespace . '\';');
+        $q = $db->sql_query('UPDATE '.table_prefix.'pages SET wiki_mode=' . $level . ' WHERE urlname=\'' . $db->escape($paths->page_id) . '\' AND namespace=\'' . $paths->namespace . '\';');
         if ( !$q )
           $db->_die();
         redirect(makeUrl($paths->page), htmlspecialchars($paths->cpage['name']), 'Wiki mode for this page has been set. Redirecting you to the page...', 2);
@@ -413,7 +413,7 @@
       if(!$id1 || !$id2) { echo '<p>Invalid request.</p>'; $template->footer(); break; }
       if(!preg_match('#^([0-9]+)$#', (string)$_GET['diff1']) ||
          !preg_match('#^([0-9]+)$#', (string)$_GET['diff2']  )) { echo '<p>SQL injection attempt</p>'; $template->footer(); break; }
-      echo PageUtils::pagediff($paths->cpage['urlname_nons'], $paths->namespace, $id1, $id2);
+      echo PageUtils::pagediff($paths->page_id, $paths->namespace, $id1, $id2);
       $template->footer();
       break;
     case 'detag':
@@ -425,7 +425,7 @@
       {
         die_friendly('Invalid request', '<p>The detag action is only valid for pages that have been deleted in the past.</p>');
       }
-      $q = $db->sql_query('DELETE FROM '.table_prefix.'tags WHERE page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND namespace=\'' . $paths->namespace . '\';');
+      $q = $db->sql_query('DELETE FROM '.table_prefix.'tags WHERE page_id=\'' . $db->escape($paths->page_id) . '\' AND namespace=\'' . $paths->namespace . '\';');
       if ( !$q )
         $db->_die('Detag query, index.php:'.__LINE__);
       die_friendly('Page detagged', '<p>All stale tags have been removed from this page.</p>');
@@ -436,7 +436,7 @@
       break;
     case 'sql_report':
       $rev_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
-      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $rev_id );
+      $page = new PageProcessor( $paths->page_id, $paths->namespace, $rev_id );
       $page->send_headers = true;
       $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
       $page->password = $pagepass;

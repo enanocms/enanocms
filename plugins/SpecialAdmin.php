@@ -2165,6 +2165,10 @@ function page_Admin_DBBackup()
     return;
   }
   
+  if ( ENANO_DBLAYER != 'MYSQL' )
+    die('<h3>Not supported</h3>
+          <p>This function is only supported under the MySQL database driver.</p>');
+  
   if(isset($_GET['submitting']) && $_GET['submitting'] == 'yes' && defined('ENANO_DEMO_MODE') )
   {
     redirect(makeUrlComplete('Special', 'Administration'), 'Access denied', 'You\'ve got to be kidding me. Forget it, kid.', 4 );
@@ -2176,13 +2180,11 @@ function page_Admin_DBBackup()
     
     if(defined('SQL_BACKUP_CRYPT'))
       // Try to increase our time limit
-      @set_time_limit(300); // five minutes
+      @set_time_limit(0);
     // Do the actual export
     $aesext = ( defined('SQL_BACKUP_CRYPT') ) ? '.tea' : '';
     $filename = 'enano_backup_' . date('ymd') . '.sql' . $aesext;
     ob_start();
-    header('Content-disposition: attachment, filename="'.$filename.'";');
-    header('Content-type: application/transact-sql');
     // Spew some headers
     $headdate = date('F d, Y \a\t h:i a');
     echo <<<HEADER
@@ -2212,12 +2214,17 @@ HEADER;
       // THE FOLLOWING COMMENT DOES NOT APPLY AS OF 1.0.
       // Sorry folks - this script CAN'T backup enano_files and enano_search_index due to the sheer size of the tables.
       // If encryption is enabled the log data will be excluded too.
-      echo export_table(
+      $result = export_table(
         $t,
         isset($_POST['do_struct']),
         ( isset($_POST['do_data']) ),
         false
         ) . "\n";
+      if ( !$result )
+      {
+        $db->_die();
+      }
+      echo $result;
     }
     $data = ob_get_contents();
     ob_end_clean();
@@ -2229,6 +2236,8 @@ HEADER;
       $tea = new TEACrypt();
       $data = $tea->encrypt($data, $session->private_key);
     }
+    header('Content-disposition: attachment, filename="'.$filename.'";');
+    header('Content-type: application/transact-sql');
     header('Content-length: '.strlen($data));
     echo $data;
     exit;
@@ -2243,7 +2252,14 @@ HEADER;
     <p>Additional tables to export:</p>
     <p><select name="additional_tables[]" multiple="multiple">
        <?php
-         $q = $db->sql_query('SHOW TABLES;') or $db->_die('Somehow we were denied the request to get the list of tables.');
+         if ( ENANO_DBLAYER == 'MYSQL' )
+         {
+           $q = $db->sql_query('SHOW TABLES;') or $db->_die('Somehow we were denied the request to get the list of tables.');
+         }
+         else if ( ENANO_DBLAYER == 'PGSQL' )
+         {
+           $q = $db->sql_query('SELECT relname FROM pg_stat_user_tables ORDER BY relname;') or $db->_die('Somehow we were denied the request to get the list of tables.');
+         }
          while($row = $db->fetchrow_num())
          {
            if(!in_array($row[0], $system_table_list)) echo '<option value="'.$row[0].'">'.$row[0].'</option>';

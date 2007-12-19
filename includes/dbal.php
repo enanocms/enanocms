@@ -120,7 +120,7 @@ class mysql {
     return $internal_text;
   }
   
-  function connect()
+  function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false)
   {
     $this->enable_errorhandler();
     
@@ -130,42 +130,46 @@ class mysql {
     define('ENANO_SQL_BOOLEAN_TRUE', 'true');
     define('ENANO_SQL_BOOLEAN_FALSE', 'false');
     
-    if ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') )
+    if ( !$manual_credentials )
     {
-      @include(ENANO_ROOT.'/config.new.php');
-    }
-    else
-    {
-      @include(ENANO_ROOT.'/config.php');
-    }
-      
-    if ( isset($crypto_key) )
-      unset($crypto_key); // Get this sucker out of memory fast
-    
-    if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
-    {
-      // scriptPath isn't set yet - we need to autodetect it to avoid infinite redirects
-      if ( !defined('scriptPath') )
+      if ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') )
       {
-        if ( isset($_SERVER['PATH_INFO']) && !preg_match('/index\.php$/', $_SERVER['PATH_INFO']) )
-        {
-          $_SERVER['REQUEST_URI'] = preg_replace(';' . preg_quote($_SERVER['PATH_INFO']) . '$;', '', $_SERVER['REQUEST_URI']);
-        }
-        if ( !preg_match('/\.php$/', $_SERVER['REQUEST_URI']) )
-        {
-          // user requested http://foo/enano as opposed to http://foo/enano/index.php
-          $_SERVER['REQUEST_URI'] .= '/index.php';
-        }
-        $sp = dirname($_SERVER['REQUEST_URI']);
-        if($sp == '/' || $sp == '\\') $sp = '';
-        define('scriptPath', $sp);
-        define('contentPath', "$sp/index.php?title=");
+        @include(ENANO_ROOT.'/config.new.php');
       }
-      $loc = scriptPath . '/install.php';
-      // header("Location: $loc");
-      redirect($loc, 'Enano not installed', 'We can\'t seem to find an Enano installation (valid config file). You will be transferred to the installation wizard momentarily...', 3);
-      exit;
+      else
+      {
+        @include(ENANO_ROOT.'/config.php');
+      }
+        
+      if ( isset($crypto_key) )
+        unset($crypto_key); // Get this sucker out of memory fast
+      
+      if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
+      {
+        // scriptPath isn't set yet - we need to autodetect it to avoid infinite redirects
+        if ( !defined('scriptPath') )
+        {
+          if ( isset($_SERVER['PATH_INFO']) && !preg_match('/index\.php$/', $_SERVER['PATH_INFO']) )
+          {
+            $_SERVER['REQUEST_URI'] = preg_replace(';' . preg_quote($_SERVER['PATH_INFO']) . '$;', '', $_SERVER['REQUEST_URI']);
+          }
+          if ( !preg_match('/\.php$/', $_SERVER['REQUEST_URI']) )
+          {
+            // user requested http://foo/enano as opposed to http://foo/enano/index.php
+            $_SERVER['REQUEST_URI'] .= '/index.php';
+          }
+          $sp = dirname($_SERVER['REQUEST_URI']);
+          if($sp == '/' || $sp == '\\') $sp = '';
+          define('scriptPath', $sp);
+          define('contentPath', "$sp/index.php?title=");
+        }
+        $loc = scriptPath . '/install.php';
+        // header("Location: $loc");
+        redirect($loc, 'Enano not installed', 'We can\'t seem to find an Enano installation (valid config file). You will be transferred to the installation wizard momentarily...', 3);
+        exit;
+      }
     }
+    
     $this->_conn = @mysql_connect($dbhost, $dbuser, $dbpasswd);
     unset($dbuser);
     unset($dbpasswd); // Security
@@ -871,7 +875,7 @@ class postgresql {
     return $internal_text;
   }
   
-  function connect()
+  function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false)
   {
     $this->enable_errorhandler();
     
@@ -881,41 +885,44 @@ class postgresql {
     define('ENANO_SQL_BOOLEAN_TRUE', '1');
     define('ENANO_SQL_BOOLEAN_FALSE', '0');
     
-    if ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') )
+    if ( !$manual_credentials )
     {
-      @include(ENANO_ROOT.'/config.new.php');
-    }
-    else
-    {
-      @include(ENANO_ROOT.'/config.php');
-    }
-      
-    if ( isset($crypto_key) )
-      unset($crypto_key); // Get this sucker out of memory fast
-    
-    if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
-    {
-      // scriptPath isn't set yet - we need to autodetect it to avoid infinite redirects
-      if ( !defined('scriptPath') )
+      if ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') )
       {
-        if ( isset($_SERVER['PATH_INFO']) && !preg_match('/index\.php$/', $_SERVER['PATH_INFO']) )
-        {
-          $_SERVER['REQUEST_URI'] = preg_replace(';' . preg_quote($_SERVER['PATH_INFO']) . '$;', '', $_SERVER['REQUEST_URI']);
-        }
-        if ( !preg_match('/\.php$/', $_SERVER['REQUEST_URI']) )
-        {
-          // user requested http://foo/enano as opposed to http://foo/enano/index.php
-          $_SERVER['REQUEST_URI'] .= '/index.php';
-        }
-        $sp = dirname($_SERVER['REQUEST_URI']);
-        if($sp == '/' || $sp == '\\') $sp = '';
-        define('scriptPath', $sp);
-        define('contentPath', "$sp/index.php?title=");
+        @include(ENANO_ROOT.'/config.new.php');
       }
-      $loc = scriptPath . '/install.php';
-      // header("Location: $loc");
-      redirect($loc, 'Enano not installed', 'We can\'t seem to find an Enano installation (valid config file). You will be transferred to the installation wizard momentarily...', 3);
-      exit;
+      else
+      {
+        @include(ENANO_ROOT.'/config.php');
+      }
+        
+      if ( isset($crypto_key) )
+        unset($crypto_key); // Get this sucker out of memory fast
+      
+      if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
+      {
+        // scriptPath isn't set yet - we need to autodetect it to avoid infinite redirects
+        if ( !defined('scriptPath') )
+        {
+          if ( isset($_SERVER['PATH_INFO']) && !preg_match('/index\.php$/', $_SERVER['PATH_INFO']) )
+          {
+            $_SERVER['REQUEST_URI'] = preg_replace(';' . preg_quote($_SERVER['PATH_INFO']) . '$;', '', $_SERVER['REQUEST_URI']);
+          }
+          if ( !preg_match('/\.php$/', $_SERVER['REQUEST_URI']) )
+          {
+            // user requested http://foo/enano as opposed to http://foo/enano/index.php
+            $_SERVER['REQUEST_URI'] .= '/index.php';
+          }
+          $sp = dirname($_SERVER['REQUEST_URI']);
+          if($sp == '/' || $sp == '\\') $sp = '';
+          define('scriptPath', $sp);
+          define('contentPath', "$sp/index.php?title=");
+        }
+        $loc = scriptPath . '/install.php';
+        // header("Location: $loc");
+        redirect($loc, 'Enano not installed', 'We can\'t seem to find an Enano installation (valid config file). You will be transferred to the installation wizard momentarily...', 3);
+        exit;
+      }
     }
     $this->_conn = @pg_connect("host=$dbhost port=5432 dbname=$dbname user=$dbuser password=$dbpasswd");
     unset($dbuser);

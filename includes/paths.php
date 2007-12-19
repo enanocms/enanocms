@@ -18,7 +18,7 @@
  */
  
 class pathManager {
-  var $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $anonymous_page;
+  var $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $anonymous_page;
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -293,6 +293,7 @@ class pathManager {
     {
       $this->page_exists = true;
       $this->cpage = $this->pages[$this->page];
+      $this->page_id =& $this->cpage['urlname_nons'];
       $this->namespace = $this->cpage['namespace'];
       if(!isset($this->cpage['wiki_mode'])) $this->cpage['wiki_mode'] = 2;
       
