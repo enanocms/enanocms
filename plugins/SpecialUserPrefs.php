@@ -4,13 +4,13 @@ Plugin Name: User control panel
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:Preferences.
 Author: Dan Fuhry
-Version: 1.0.2
+Version: 1.0.3
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2
+ * Version 1.0.3
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute it and/or modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ function userprefs_jbox_setup(&$button, &$tb, &$menubtn)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   
-  if ( $paths->namespace != 'Special' || $paths->cpage['urlname_nons'] != 'Preferences' )
+  if ( $paths->namespace != 'Special' || $paths->page_id != 'Preferences' )
     return false;
   
   $tb .= "<ul>$template->toolbar_menu</ul>";
@@ -599,7 +599,7 @@ function page_Special_Preferences()
       $code = $plugins->setHook('userprefs_body');
       foreach ( $code as $cmd )
       {
-        if ( eval($code) )
+        if ( eval($cmd) )
           $good = true;
       }
       if ( !$good )

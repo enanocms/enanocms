@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.0.3 (Dyrad)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -260,7 +260,14 @@ function get_page_title_ns($page_id, $namespace)
   global $db, $session, $paths, $template, $plugins; // Common objects
 
   $page_id_key = $paths->nslist[ $namespace ] . $page_id;
-  $page_data = $paths->pages[$page_id_key];
+  if ( isset($paths->pages[$page_id_key]) )
+  {
+    $page_data = $paths->pages[$page_id_key];
+  }
+  else
+  {
+    $page_data = array();
+  }
   $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$namespace] . str_replace('_', ' ', dirtify_page_id( $page_id ) );
   return $title;
 }
@@ -567,7 +574,7 @@ function show_category_info()
     $q = $db->sql_query('SELECT p.urlname, p.namespace, p.name, p.namespace=\'Category\' AS is_category FROM '.table_prefix.'categories AS c
                            LEFT JOIN '.table_prefix.'pages AS p
                              ON ( p.urlname = c.page_id AND p.namespace = c.namespace )
-                           WHERE c.category_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\'
+                           WHERE c.category_id=\'' . $db->escape($paths->page_id) . '\'
                            ORDER BY is_category DESC, p.name ASC;');
     if ( !$q )
     {
@@ -679,7 +686,7 @@ function show_category_info()
     echo '</div>';
     echo '<div id="mdgCatBox">' . $lang->get('catedit_catbox_lbl_categories') . ' ';
     
-    $where = '( c.page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND c.namespace=\'' . $db->escape($paths->namespace) . '\' )';
+    $where = '( c.page_id=\'' . $db->escape($paths->page_id) . '\' AND c.namespace=\'' . $db->escape($paths->namespace) . '\' )';
     $prefix = table_prefix;
     $sql = <<<EOF
 SELECT c.category_id FROM {$prefix}categories AS c
@@ -731,11 +738,11 @@ function show_file_info()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   if($paths->namespace != 'File') return null; // Prevent unnecessary work
-  $selfn = $paths->cpage['urlname_nons']; // substr($paths->page, strlen($paths->nslist['File']), strlen($paths->cpage));
-  if(substr($paths->cpage['name'], 0, strlen($paths->nslist['File']))==$paths->nslist['File']) $selfn = substr($paths->cpage['urlname_nons'], strlen($paths->nslist['File']), strlen($paths->cpage['urlname_nons']));
+  $selfn = $paths->page_id; // substr($paths->page, strlen($paths->nslist['File']), strlen($paths->cpage));
+  if(substr($paths->cpage['name'], 0, strlen($paths->nslist['File']))==$paths->nslist['File']) $selfn = substr($paths->page_id, strlen($paths->nslist['File']), strlen($paths->page_id));
   $q = $db->sql_query('SELECT mimetype,time_id,size FROM '.table_prefix.'files WHERE page_id=\''.$selfn.'\' ORDER BY time_id DESC;');
   if(!$q) $db->_die('The file type could not be fetched.');
-  if($db->numrows() < 1) { echo '<div class="mdg-comment" style="margin-left: 0;"><h3>Uploaded file</h3><p>There are no files uploaded with this name yet. <a href="'.makeUrlNS('Special', 'UploadFile/'.$paths->cpage['urlname_nons']).'">Upload a file...</a></p></div><br />'; return; }
+  if($db->numrows() < 1) { echo '<div class="mdg-comment" style="margin-left: 0;"><h3>Uploaded file</h3><p>There are no files uploaded with this name yet. <a href="'.makeUrlNS('Special', 'UploadFile/'.$paths->page_id).'">Upload a file...</a></p></div><br />'; return; }
   $r = $db->fetchrow();
   $mimetype = $r['mimetype'];
   $datestring = date('F d, Y h:i a', (int)$r['time_id']);
@@ -1134,7 +1141,8 @@ function enano_codename()
       '1.0.1'  => 'Loch Ness',
       '1.0.1.1'=> 'Loch Ness internal bugfix build',
       '1.0.2b1'=> 'Coblynau unstable',
-      '1.0.2'  => 'Coblynau'
+      '1.0.2'  => 'Coblynau',
+      '1.0.3'  => 'Dyrad'
     );
   $version = enano_version();
   if ( isset($names[$version]) )
@@ -2228,7 +2236,6 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
 function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10, $header = '', $footer = '')
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  $parser = $template->makeParserText($tpl_text);
   $num_pages = ceil ( $num_results / $perpage );
   $out = '';
   $i = 0;
@@ -2415,7 +2422,20 @@ function enano_fputs($socket, $data)
 
 function sanitize_page_id($page_id)
 {
-
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  if ( isset($paths->nslist['User']) )
+  {
+    if ( preg_match('/^' . preg_quote($paths->nslist['User']) . '/', $page_id) )
+    {
+      $ip = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $page_id);
+      if ( is_valid_ip($ip) )
+      {
+        return $page_id;
+      }
+    }
+  }
+  
   // Remove character escapes
   $page_id = dirtify_page_id($page_id);
 
@@ -2446,7 +2466,7 @@ function sanitize_page_id($page_id)
     else
       $page_id_cleaned .= $pid_dirty[$id];
   }
-
+  
   // global $mime_types;
 
   // $exts = array_keys($mime_types);
@@ -2470,11 +2490,9 @@ function dirtify_page_id($page_id)
   $page_id = str_replace(' ', '_', $page_id);
 
   // Exception for userpages for IP addresses
-  if ( preg_match('/^' . preg_quote($paths->nslist['User']) . '/', $page_id) )
+  if ( is_valid_ip($page_id) )
   {
-    $ip = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $page_id);
-    if ( is_valid_ip($ip) )
-      return $page_id;
+    return $page_id;
   }
 
   preg_match_all('/\.[A-Fa-f0-9][A-Fa-f0-9]/', $page_id, $matches);
@@ -2487,7 +2505,7 @@ function dirtify_page_id($page_id)
     $char = chr($char);
     $page_id = str_replace($matches[0][$id], $char, $page_id);
   }
-
+  
   return $page_id;
 }
 
@@ -2672,7 +2690,8 @@ function decode_unicode_array($array)
 function sanitize_tag($tag)
 {
   $tag = strtolower($tag);
-  $tag = preg_replace('/[^\w _@\$%\^&-]+/', '', $tag);
+  $tag = preg_replace('/[^\w @\$%\^&-]+/', '', $tag);
+  $tag = str_replace('_', ' ', $tag);
   $tag = trim($tag);
   return $tag;
 }

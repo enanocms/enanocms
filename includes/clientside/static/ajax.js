@@ -42,6 +42,81 @@ function ajaxPost(uri, parms, f) {
   ajax.send(parms);
 }
 
+/**
+ * Show a friendly error message depicting an AJAX response that is not valid JSON
+ * @param string Response text
+ * @param string Custom error message. If omitted, the default will be shown.
+ */
+
+function handle_invalid_json(response, customerror)
+{
+  var mainwin = $('ajaxEditContainer').object;
+  mainwin.innerHTML = '';
+  
+  // Title
+  var h3 = document.createElement('h3');
+  h3.appendChild(document.createTextNode('The site encountered an error while processing your request.'));
+  mainwin.appendChild(h3);
+  
+  if ( typeof(customerror) == 'string' )
+  {
+    var el = document.createElement('p');
+    el.appendChild(document.createTextNode(customerror));
+    mainwin.appendChild(el);
+  }
+  else
+  {
+    customerror  = 'We unexpectedly received the following response from the server. The response should have been in the JSON ';
+    customerror += 'serialization format, but the response wasn\'t composed only of the JSON response. There are three possible triggers';
+    customerror += 'for this problem:';
+    var el = document.createElement('p');
+    el.appendChild(document.createTextNode(customerror));
+    mainwin.appendChild(el);
+    var ul = document.createElement('ul');
+    var li1 = document.createElement('li');
+    var li2 = document.createElement('li');
+    var li3 = document.createElement('li');
+    li1.appendChild(document.createTextNode('The server sent back a bad HTTP response code and thus sent an error page instead of running Enano. This indicates a possible problem with your server, and is not likely to be a bug with Enano.'));
+    var osc_exception = ( window.location.hostname == 'demo.opensourcecms.com' ) ? ' This is KNOWN to be the case with the OpenSourceCMS.com demo version of Enano.' : '';
+    li2.appendChild(document.createTextNode('The server sent back the expected JSON response, but also injected some code into the response that should not be there. Typically this consists of advertisement code. In this case, the administrator of this site will have to contact their web host to have advertisements disabled.' + osc_exception));
+    li3.appendChild(document.createTextNode('It\'s possible that Enano triggered a PHP error or warning. In this case, you may be looking at a bug in Enano.'));
+      
+    ul.appendChild(li1);
+    ul.appendChild(li2);
+    ul.appendChild(li3);
+    mainwin.appendChild(ul);
+  }
+  
+  var p2 = document.createElement('p');
+  p2.appendChild(document.createTextNode('The response received from the server is as follows:'));
+  mainwin.appendChild(p2);
+  
+  var pre = document.createElement('pre');
+  pre.appendChild(document.createTextNode(response));
+  mainwin.appendChild(pre);
+  
+  var p3 = document.createElement('p');
+  p3.appendChild(document.createTextNode('You may also choose to view the response as HTML. '));
+  var a = document.createElement('a');
+  a.appendChild(document.createTextNode('View as HTML...'));
+  a._resp = response;
+  a.id = 'invalidjson_link';
+  a.onclick = function()
+  {
+    var mb = new messagebox(MB_YESNO | MB_ICONEXCLAMATION, 'Do you really want to view this response as HTML?', 'If the response was changed during transmission to include malicious code, you may be allowing that malicious code to run by viewing the response as HTML. Only do this if you have reviewed the response text and have found no suspicious code in it.');
+    mb.onclick['Yes'] = function()
+    {
+      var html = $('invalidjson_link').object._resp;
+      var win = window.open('about:blank', 'invalidjson_htmlwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes');
+      win.document.write(html);
+    }
+    return false;
+  }
+  a.href = '#';
+  p3.appendChild(a);
+  mainwin.appendChild(p3);
+}
+
 function ajaxEscape(text)
 {
   /*
@@ -925,7 +1000,7 @@ function ajaxCatToTag()
         resptext = resptext.substr(0, resptext.length-1);
         if ( resptext.substr(0, 1) != '{' )
         {
-          alert('Invalid JSON response from server:\n' + resptext);
+          handle_invalid_json(resptext);
           return false;
         }
         var json = parseJSON(resptext);
@@ -1025,7 +1100,7 @@ function ajaxAddTagStage2(tag, nukeme)
         resptext = resptext.substr(0, resptext.length-1);
         if ( resptext.substr(0, 1) != '{' )
         {
-          alert('Invalid JSON response from server:\n' + resptext);
+          handle_invalid_json(resptext);
           return false;
         }
         var json = parseJSON(resptext);

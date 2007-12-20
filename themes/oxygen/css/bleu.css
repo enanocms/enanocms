@@ -233,17 +233,22 @@ td.mdg-menu-br                    { width: 12px; height: 12px;     background: u
 td.mdg-menu-btm                   {              height: 12px;     background: url(../images/bleu/border-btm.gif);   }
 
 /* Buttons and textboxes - these settings are used almost everywhere */
-input, textarea, select                   { border: 1px solid #406080; background-color: #F2F2F2; padding: 3px; font-family: arial, helvetica, sans-serif; font-size: 8pt; }
+input, textarea, select, button           { border: 1px solid #406080; background-color: #F2F2F2; padding: 3px; font-family: arial, helvetica, sans-serif; font-size: 8pt; }
 input:hover, textarea:hover, select:hover { border: 1px solid #6080A0; background-color: #F8F8F8; padding: 3px; }
 input:focus, textarea:focus, select:focus { border: 1px solid #90B0D0; background-color: #FFFFFF; padding: 3px; }
 label                                     { padding: 3px; cursor: pointer; font-family: arial, helvetica, sans-serif; font-size: 8pt; }
 label:hover                               { padding: 3px; cursor: pointer; background-color: #F0F0F0; }
 input#pageheading                         { font-size: 14pt; border-bottom: 1px solid #90B0D0; margin-bottom: 0; }
 
-input[type ^="button"], input[type ^="submit"] {
+input[type ^="button"], input[type ^="submit"], button {
   background-image: url(../images/buttonbg.gif);
   background-repeat: repeat-x;
   color: #202020;
+}
+
+input[type ^="image"][disabled ^="disabled"] {
+  opacity: 0.5;
+  filter: alpha(opacity=50);
 }
 
 /* JWS window theming */

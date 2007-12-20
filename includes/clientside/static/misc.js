@@ -402,7 +402,8 @@ function ajaxAuthLoginInnerSetup()
         var response = String(ajax.responseText);
         if ( response.substr(0,1) != '{' )
         {
-          alert('Invalid JSON response from server: ' + response);
+          handle_invalid_json(response);
+          ajax_auth_mb_cache.destroy();
           return false;
         }
         response = parseJSON(response);
@@ -447,56 +448,77 @@ function ajaxAuthLoginInnerSetup()
          }
          var disableme = ( disable_controls ) ? 'disabled="disabled" ' : '';
         form_html += ' \
-          <table border="0" align="center"> \
-            <tr> \
-              <td>' + $lang.get('user_login_field_username') + ':</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     ' + disableme + 'size="25" /> \
-            </tr> \
-            <tr> \
-              <td>' + $lang.get('user_login_field_password') + ':</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" ' + disableme + 'size="25" /> \
-            </tr> \
-            ' + captcha_html + ' \
-            <tr> \
-              <td colspan="2" style="text-align: center;"> \
+          <form action="#" onsubmit="ajaxValidateLogin(); return false;" name="ajax_login_form"> \
+            <table border="0" align="center"> \
+              <tr> \
+                <td>' + $lang.get('user_login_field_username') + ':</td><td><input tabindex="1" id="ajaxlogin_user" type="text"     ' + disableme + 'size="25" /> \
+              </tr> \
+              <tr> \
+                <td>' + $lang.get('user_login_field_password') + ':</td><td><input tabindex="2" id="ajaxlogin_pass" type="password" ' + disableme + 'size="25" /> \
+              </tr> \
+              ' + captcha_html + ' \
+              <tr> \
+                <td colspan="2" style="text-align: center;"> \
                 <small>' + $lang.get('user_login_ajax_link_fullform', { link_full_form: makeUrlNS('Special', 'Login/' + title, 'level=' + level) }) + '<br />';
        if ( level <= USER_LEVEL_MEMBER )
        {
          form_html += ' \
-                ' + $lang.get('user_login_ajax_link_forgotpass', { forgotpass_link: makeUrlNS('Special', 'PasswordReset') }) + '<br /> \
-                ' + $lang.get('user_login_createaccount_blurb', { reg_link: makeUrlNS('Special', 'Register') });
+                  ' + $lang.get('user_login_ajax_link_forgotpass', { forgotpass_link: makeUrlNS('Special', 'PasswordReset') }) + '<br /> \
+                  ' + $lang.get('user_login_createaccount_blurb', { reg_link: makeUrlNS('Special', 'Register') });
        }
        form_html += '</small> \
-              </td> \
-            </tr> \
-          </table> \
-          <input type="hidden" id="ajaxlogin_crypt_key"       value="' + response.key + '" /> \
-          <input type="hidden" id="ajaxlogin_crypt_challenge" value="' + response.challenge + '" /> \
-        </form>';
+                </td> \
+              </tr> \
+            </table> \
+            <input type="hidden" id="ajaxlogin_crypt_key"       value="' + response.key + '" /> \
+            <input type="hidden" id="ajaxlogin_crypt_challenge" value="' + response.challenge + '" /> \
+          </form>';
         ajax_auth_mb_cache.updateContent(form_html);
         $('messageBox').object.nextSibling.firstChild.tabindex = '3';
         if ( typeof(response.username) == 'string' )
         {
           $('ajaxlogin_user').object.value = response.username;
-          $('ajaxlogin_pass').object.focus();
+          if ( IE )
+          {
+            setTimeout("document.forms['ajax_login_form'].password.focus();", 200);
+          }
+          else
+          {
+            $('ajaxlogin_pass').object.focus();
+          }
         }
         else
         {
-          $('ajaxlogin_user').object.focus();
+          if ( IE )
+          {
+            setTimeout("document.forms['ajax_login_form'].username.focus();", 200);
+          }
+          else
+          {
+            $('ajaxlogin_user').object.focus();
+          }
         }
-        if ( ajax_auth_show_captcha )
+        var enter_obj = ( ajax_auth_show_captcha ) ? 'ajaxlogin_captcha_code' : 'ajaxlogin_pass';
+        $(enter_obj).object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
+        $(enter_obj).object.onkeypress = function(e)
         {
-          $('ajaxlogin_captcha_code').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
-          $('ajaxlogin_captcha_code').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
-        }
-        else
-        {
-          $('ajaxlogin_pass').object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
-          $('ajaxlogin_pass').object.onkeypress = function(e) { if ( !e && IE ) return true; if ( e.keyCode == 13 ) $('messageBox').object.nextSibling.firstChild.click(); };
-        }
-        if ( disable_controls )
-        {
-          var panel = document.getElementById('messageBoxButtons');
-          panel.firstChild.disabled = true;
-        }
+          // Trigger a form submit when the password field is focused and the user presses enter
+          
+          // IE doesn't give us an event object when it should - check window.event. If that
+          // still fails, give up.
+          if ( !e )
+          {
+            e = window.event;
+          }
+          if ( !e && IE )
+          {
+            return true;
+          }
+          if ( e.keyCode == 13 )
+          {
+            ajaxValidateLogin();
+          }
+        };
         /*
         ## This causes the background image to disappear under Fx 2
         if ( shown_error )

@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2 (Coblynau)
+ * Version 1.0.3 (Dyrad)
  * Copyright (C) 2006-2007 Dan Fuhry
  * render.php - handles fetching pages and parsing them into HTML
  *
@@ -44,7 +44,7 @@ class RenderMan {
     
     $perms =& $session;
     
-    if ( $page_id != $paths->cpage['urlname_nons'] || $namespace != $paths->namespace )
+    if ( $page_id != $paths->page_id || $namespace != $paths->namespace )
     {
       unset($perms);
       unset($perms); // PHP <5.1.5 Zend bug
@@ -889,7 +889,7 @@ class RenderMan {
         {
           $side = ( $clear == '|left' ) ? 'left' : 'right';
           $opposite = ( $clear == '|left' ) ? 'right' : 'left';
-          $clear_text .= "float: $side; margin-$opposite: 20px;";
+          $clear_text .= "float: $side; margin-$opposite: 20px; width: {$r_width}px;";
           $complete_tag .= 'style="' . $clear_text . '" ';
         }
         $complete_tag .= '>';

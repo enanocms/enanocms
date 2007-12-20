@@ -4,13 +4,13 @@ Plugin Name: Special page-related pages
 Plugin URI: http://enanocms.org/
 Description: Provides the page Special:CreatePage, which can be used to create new pages. Also adds the About Enano and GNU General Public License pages.
 Author: Dan Fuhry
-Version: 1.0.2
+Version: 1.0.3
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.2
+ * Version 1.0.3
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -108,6 +108,11 @@ function page_Special_CreatePage()
       $db->close();
       
       exit;
+    }
+    $code = $plugins->setHook('page_create_request');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
     }
     if ( substr($urlname, 0, 8) == 'Project:' )
     {
@@ -442,9 +447,25 @@ function page_Special_About_Enano()
                 </a>
               </td>
               <td style="text-align: center;">
-                <a href="http://www.mysql.com/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
-                  <img alt="Database engine powered by MySQL" src="<?php echo scriptPath; ?>/images/about-powered-mysql.png" style="border-width: 0px;" width="88" height="31" />
-                </a>
+                <?php
+                switch(ENANO_DBLAYER)
+                {
+                  case 'MYSQL':
+                    ?>
+                    <a href="http://www.mysql.com/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
+                      <img alt="Database engine powered by MySQL" src="<?php echo scriptPath; ?>/images/about-powered-mysql.png" style="border-width: 0px;" width="88" height="31" />
+                    </a>
+                    <?php
+                    break;
+                  case 'PGSQL':
+                    ?>
+                    <a href="http://www.postgresql.org/" onclick="window.open(this.href); return false;" style="background: none; padding: 0;">
+                      <img alt="Database engine powered by PostgreSQL" src="<?php echo scriptPath; ?>/images/about-powered-pgsql.png" style="border-width: 0px;" width="90" height="30" />
+                    </a>
+                    <?php
+                    break;
+                }
+                ?>
               </td>
             </tr>
           </table>
@@ -454,7 +475,23 @@ function page_Special_About_Enano()
       <tr><td style="width: 100px;" class="row2"><?php echo $lang->get('meta_enano_about_lbl_webserver'); ?></td><td class="row2"><?php if(isset($_SERVER['SERVER_SOFTWARE'])) echo $_SERVER['SERVER_SOFTWARE']; else echo 'Unable to determine web server software.'; ?></td></tr>
       <tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_serverplatform'); ?></td><td class="row1"><?php echo $platform; ?></td></tr>
       <tr><td style="width: 100px;" class="row2"><?php echo $lang->get('meta_enano_about_lbl_phpversion'); ?></td><td class="row2"><?php echo PHP_VERSION; ?></td></tr>
-      <tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_mysqlversion'); ?></td><td class="row1"><?php echo mysql_get_server_info($db->_conn); ?></td></tr>
+      <?php
+      switch(ENANO_DBLAYER)
+      {
+        case 'MYSQL':
+          ?>
+          <tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_mysqlversion'); ?></td><td class="row1"><?php echo mysql_get_server_info($db->_conn); ?></td></tr>
+          <?php
+          break;
+        case 'PGSQL':
+          $pg_serverdata = pg_version($db->_conn);
+          $pg_version = $pg_serverdata['server'];
+          ?>
+          <tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_pgsqlversion'); ?></td><td class="row1"><?php echo $pg_version; ?></td></tr>
+          <?php
+          break;
+      }
+      ?>
     </table>
   </div>
   <?php

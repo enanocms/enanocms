@@ -74,6 +74,8 @@ function enlighten(nofade)
  *   onclick - an array of functions to be called on button click events
  *             NOTE: key names are to be strings, and they must be the value of the input, CaSe-SeNsItIvE
  *   onbeforeclick - same as onclick but called before the messagebox div is destroyed
+ * Methods:
+ *   destroy: kills the running message box
  * Example:
  *   var my_message = new messagebox(MB_OK|MB_ICONSTOP, 'Error logging in', 'The username and/or password is incorrect. Please check the username and retype your password');
  *   my_message.onclick['OK'] = function() {
@@ -274,6 +276,14 @@ function messagebox(type, title, message)
   this.updateContent = function(text)
     {
       this.text_area.innerHTML = text;
+    };
+    
+  this.destroy = function()
+    {
+      var mbdiv = document.getElementById('messageBox');
+      mbdiv.parentNode.removeChild(mbdiv.nextSibling);
+      mbdiv.parentNode.removeChild(mbdiv);
+      enlighten(true);
     };
   
   //domObjChangeOpac(0, mydiv);

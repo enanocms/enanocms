@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.0.3 (Dyrad)
  * upgrade.php - upgrade script
  * Copyright (C) 2006-2007 Dan Fuhry
  *
@@ -70,7 +70,7 @@ else
 // Everything related to versions goes here!
 
 // Valid versions to upgrade from
-$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.1.1', '1.0.2b1', '1.0.2', 'Stable1.0ToUnstable1.1');
+$valid_versions = Array('1.0b1', '1.0b2', '1.0b3', '1.0b4', '1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.1.1', '1.0.2b1', '1.0.2', '1.0.3', 'Stable1.0ToUnstable1.1');
 
 // Basically a list of dependencies, which should be resolved automatically
 // If, for example, upgrading from 1.0b1 to 1.0RC1 requires one extra query that would not
@@ -86,7 +86,8 @@ $deps_list = Array(
     '1.0' => Array('1.0.1'),
     '1.0.1' => Array('1.0.1.1'),
     '1.0.1.1' => Array('1.0.2b1'),
-    '1.0.2b1' => Array('Stable1.0ToUnstable1.1'),
+    '1.0.2b1' => Array('1.0.2'),
+    '1.0.2' => Array('Stable1.0ToUnstable1.1'),
     'Stable1.0ToUnstable1.1' => Array('1.1.1')
   );
 $this_version   = '1.1.1';

@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.0.3 (Dyrad)
  * Copyright (C) 2006-2007 Dan Fuhry
  * stats.php - handles statistics for pages (disablable in the admin CP)
  *
@@ -22,7 +22,7 @@ function doStats( $page_id = false, $namespace = false )
   {
     if(!$page_id || !$namespace)
     {
-      $page_id = $paths->cpage['urlname_nons'];
+      $page_id = $paths->page_id;
       $namespace = $paths->namespace;
     }
     if($namespace == 'Special' || $namespace == 'Admin') 

@@ -18,7 +18,7 @@
  */
  
 class pathManager {
-  var $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $anonymous_page;
+  var $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $anonymous_page;
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -293,6 +293,7 @@ class pathManager {
     {
       $this->page_exists = true;
       $this->cpage = $this->pages[$this->page];
+      $this->page_id =& $this->cpage['urlname_nons'];
       $this->namespace = $this->cpage['namespace'];
       if(!isset($this->cpage['wiki_mode'])) $this->cpage['wiki_mode'] = 2;
       
@@ -341,7 +342,7 @@ class pathManager {
       $pid_cleaned = sanitize_page_id($this->page);
       if ( $pid_cleaned != $this->page )
       {
-        redirect($pid_cleaned, 'Sanitizer message', 'page id sanitized', 0);
+        redirect(makeUrl($pid_cleaned), 'Sanitizer message', 'page id sanitized', 0);
       }
       
       if ( !is_array($this->cpage) )
@@ -375,6 +376,7 @@ class pathManager {
         }
       }
       $this->namespace = $this->cpage['namespace'];
+      $this->page_id =& $this->cpage['urlname_nons'];
       
       if($this->namespace=='System') 
       {
@@ -701,7 +703,12 @@ class pathManager {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     // sha1('') returns "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-    $texts = 'SELECT t.page_text, CONCAT(\'ns=\',t.namespace,\';pid=\',t.page_id) AS page_idstring, t.page_id, t.namespace FROM '.table_prefix.'page_text AS t
+    
+    $concat_column = ( ENANO_DBLAYER == 'MYSQL' ) ?
+      'CONCAT(\'ns=\',t.namespace,\';pid=\',t.page_id)' :
+      "'ns=' || t.namespace || ';pid=' || t.page_id";
+    
+    $texts = 'SELECT t.page_text, ' . $concat_column . ' AS page_idstring, t.page_id, t.namespace FROM '.table_prefix.'page_text AS t
                            LEFT JOIN '.table_prefix.'pages AS p
                              ON ( t.page_id=p.urlname AND t.namespace=p.namespace )
                            WHERE p.namespace=t.namespace
@@ -815,13 +822,26 @@ class pathManager {
     $search->buildIndex(Array("ns={$namespace};pid={$page_id}"=>$row['page_text'] . ' ' . $this->pages[$idstring]['name']));
     $new_index = $search->index;
     
-    $keys = array_keys($search->index);
-    foreach($keys as $i => $k)
+    if ( ENANO_DBLAYER == 'MYSQL' )
     {
-      $c =& $keys[$i];
-      $c = hexencode($c, '', '');
+      $keys = array_keys($search->index);
+      foreach($keys as $i => $k)
+      {
+        $c =& $keys[$i];
+        $c = hexencode($c, '', '');
+      }
+      $keys = "word=0x" . implode ( " OR word=0x", $keys ) . "";
     }
-    $keys = "word=0x" . implode ( " OR word=0x", $keys ) . "";
+    else
+    {
+      $keys = array_keys($search->index);
+      foreach($keys as $i => $k)
+      {
+        $c =& $keys[$i];
+        $c = $db->escape($c);
+      }
+      $keys = "word='" . implode ( "' OR word='", $keys ) . "'";
+    }
     
     $query = $db->sql_query('SELECT word,page_names FROM '.table_prefix.'search_index WHERE '.$keys.';');
     
@@ -995,5 +1015,5 @@ class pathManager {
   }
   
 }
-  
+
 ?>

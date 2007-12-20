@@ -155,7 +155,13 @@ if ( !isset($_SERVER['HTTP_HOST']) )
 // The first thing we need to do is start the database connection. At this point, for all we know, Enano might not
 // even be installed. If this connection attempt fails and it's because of a missing or corrupt config file, the
 // user will be redirected (intelligently) to install.php.
-$db = new mysql();
+
+@include(ENANO_ROOT . '/config.php');
+unset($dbuser, $dbpasswd);
+if ( !isset($dbdriver) )
+  $dbdriver = 'mysql';
+
+$db = new $dbdriver();
 $db->connect();
 
 // The URL separator is the character appended to contentPath + url_title type strings.
@@ -347,7 +353,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   // If the site is disabled, bail out, unless we're trying to log in or administer the site
   if(getConfig('site_disabled') == '1' && $session->user_level < USER_LEVEL_ADMIN)
   {
-    if ( $paths->namespace == 'Admin' || ( $paths->namespace == 'Special' && ( $paths->cpage['urlname_nons'] == 'CSS' || $paths->cpage['urlname_nons'] == 'Administration' || $paths->cpage['urlname_nons'] == 'Login' ) ) )
+    if ( $paths->namespace == 'Admin' || ( $paths->namespace == 'Special' && ( $paths->page_id == 'CSS' || $paths->page_id == 'Administration' || $paths->page_id == 'Login' ) ) )
     {
       // do nothing; allow execution to continue
     }

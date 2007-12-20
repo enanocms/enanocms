@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.0.3 (Dyrad)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -54,7 +54,7 @@ class Comments
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Initialize permissions
-    if ( $page_id == $paths->cpage['urlname_nons'] && $namespace == $paths->namespace )
+    if ( $page_id == $paths->page_id && $namespace == $paths->namespace )
       $this->perms =& $GLOBALS['session'];
     else
       $this->perms = $session->fetch_page_acl($page_id, $namespace);
@@ -113,7 +113,7 @@ class Comments
                                  ON ( ( b.user_id=' . $session->user_id.' AND b.buddy_user_id=c.user_id ) OR b.user_id IS NULL)
                                WHERE page_id=\'' . $this->page_id . '\'
                                  AND namespace=\'' . $this->namespace . '\'
-                               GROUP BY c.comment_id
+                               GROUP BY c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,u.user_level,u.user_id,u.signature,b.buddy_id,b.is_friend
                                ORDER BY c.time ASC;');
         $count_appr = 0;
         $count_total = 0;

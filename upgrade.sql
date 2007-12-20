@@ -14,6 +14,7 @@ CREATE TABLE {{TABLE_PREFIX}}language_strings( string_id bigint(15) NOT NULL aut
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_lang smallint(5) NOT NULL;
 ---END Stable1.0ToUnstable1.1---
 ---BEGIN 1.0.2---
+-- No DB changes in this release
 ---END 1.0.2---
 ---BEGIN 1.0.2b1---
 -- This is really optional, but could reduce confusion if regex page groups get truncated for no apparent reason.

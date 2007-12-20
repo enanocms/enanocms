@@ -18,11 +18,6 @@
   if ( isset($_GET['_mode']) && $_GET['_mode'] == 'fillusername' )
   {
     // setup and load a very basic, specialized instance of the Enano API
-    function dc_here($m)     { return false; }
-    function dc_dump($a, $g) { return false; }
-    function dc_watch($n)    { return false; }
-    function dc_start_timer($u) { return false; }
-    function dc_stop_timer($m) { return false; }
     function microtime_float()
     {
       list($usec, $sec) = explode(" ", microtime());
@@ -41,7 +36,14 @@
     require(ENANO_ROOT.'/includes/functions.php');
     require(ENANO_ROOT.'/includes/dbal.php');
     require(ENANO_ROOT.'/includes/json.php');
-    $db = new mysql();
+    
+    require(ENANO_ROOT . '/config.php');
+    unset($dbuser, $dbpasswd);
+    if ( !isset($dbdriver) )
+      $dbdriver = 'mysql';
+    
+    $db = new $dbdriver();
+    
     $db->connect();
     
     // result is sent using JSON
@@ -62,14 +64,10 @@
       die( $json->encode($return) );
     }
     $allowanon = ( isset($_GET['allowanon']) && $_GET['allowanon'] == '1' ) ? '' : ' AND user_id > 1';
-    $q = $db->sql_query('SELECT username FROM '.table_prefix.'users WHERE lcase(username) LIKE lcase(\'%'.$name.'%\')' . $allowanon . ' ORDER BY username ASC;');
+    $q = $db->sql_query('SELECT username FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username) LIKE ' . ENANO_SQLFUNC_LOWERCASE . '(\'%'.$name.'%\')' . $allowanon . ' ORDER BY username ASC;');
     if ( !$q )
     {
-      $return = array(
-        'mode' => 'error',
-        'error' => 'MySQL error selecting username data: '.addslashes(mysql_error())
-      );
-      die( $json->encode($return) );
+      $db->die_json();
     }
     $i = 0;
     while($r = $db->fetchrow())
@@ -99,13 +97,26 @@
       echo PageUtils::checkusername($_GET['name']);
       break;
     case "getsource":
-      $p = ( isset($_GET['pagepass']) ) ? $_GET['pagepass'] : false;
-      echo PageUtils::getsource($paths->page, $p);
+      $password = ( isset($_GET['pagepass']) ) ? $_GET['pagepass'] : false;
+      $page = new PageProcessor($paths->page_id, $paths->namespace);
+      $page->password = $password;
+      if ( $src = $page->fetch_source() )
+      {
+        echo $src;
+      }
+      else if ( $src !== false )
+      {
+        echo '';
+      }
+      else
+      {
+        echo 'err_access_denied';
+      }
       break;
     case "getpage":
       // echo PageUtils::getpage($paths->page, false, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
       $revision_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
-      $page = new PageProcessor( $paths->cpage['urlname_nons'], $paths->namespace, $revision_id );
+      $page = new PageProcessor( $paths->page_id, $paths->namespace, $revision_id );
       
       $pagepass = ( isset($_REQUEST['pagepass']) ) ? $_REQUEST['pagepass'] : '';
       $page->password = $pagepass;
@@ -115,10 +126,10 @@
     case "savepage":
       $summ = ( isset($_POST['summary']) ) ? $_POST['summary'] : '';
       $minor = isset($_POST['minor']);
-      $e = PageUtils::savepage($paths->cpage['urlname_nons'], $paths->namespace, $_POST['text'], $summ, $minor);
+      $e = PageUtils::savepage($paths->page_id, $paths->namespace, $_POST['text'], $summ, $minor);
       if($e=='good')
       {
-        $page = new PageProcessor($paths->cpage['urlname_nons'], $paths->namespace);
+        $page = new PageProcessor($paths->page_id, $paths->namespace);
         $page->send();
       }
       else
@@ -127,16 +138,16 @@
       }
       break;
     case "protect":
-      echo PageUtils::protect($paths->cpage['urlname_nons'], $paths->namespace, (int)$_POST['level'], $_POST['reason']);
+      echo PageUtils::protect($paths->page_id, $paths->namespace, (int)$_POST['level'], $_POST['reason']);
       break;
     case "histlist":
-      echo PageUtils::histlist($paths->cpage['urlname_nons'], $paths->namespace);
+      echo PageUtils::histlist($paths->page_id, $paths->namespace);
       break;
     case "rollback":
       echo PageUtils::rollback( (int)$_GET['id'] );
       break;
     case "comments":
-      $comments = new Comments($paths->cpage['urlname_nons'], $paths->namespace);
+      $comments = new Comments($paths->page_id, $paths->namespace);
       if ( isset($_POST['data']) )
       {
         $comments->process_json($_POST['data']);
@@ -147,37 +158,37 @@
       }
       break;
     case "rename":
-      echo PageUtils::rename($paths->cpage['urlname_nons'], $paths->namespace, $_POST['newtitle']);
+      echo PageUtils::rename($paths->page_id, $paths->namespace, $_POST['newtitle']);
       break;
     case "flushlogs":
-      echo PageUtils::flushlogs($paths->cpage['urlname_nons'], $paths->namespace);
+      echo PageUtils::flushlogs($paths->page_id, $paths->namespace);
       break;
     case "deletepage":
       $reason = ( isset($_POST['reason']) ) ? $_POST['reason'] : false;
       if ( empty($reason) )
         die('Please enter a reason for deleting this page.');
-      echo PageUtils::deletepage($paths->cpage['urlname_nons'], $paths->namespace, $reason);
+      echo PageUtils::deletepage($paths->page_id, $paths->namespace, $reason);
       break;
     case "delvote":
-      echo PageUtils::delvote($paths->cpage['urlname_nons'], $paths->namespace);
+      echo PageUtils::delvote($paths->page_id, $paths->namespace);
       break;
     case "resetdelvotes":
-      echo PageUtils::resetdelvotes($paths->cpage['urlname_nons'], $paths->namespace);
+      echo PageUtils::resetdelvotes($paths->page_id, $paths->namespace);
       break;
     case "getstyles":
       echo PageUtils::getstyles($_GET['id']);
       break;
     case "catedit":
-      echo PageUtils::catedit($paths->cpage['urlname_nons'], $paths->namespace);
+      echo PageUtils::catedit($paths->page_id, $paths->namespace);
       break;
     case "catsave":
-      echo PageUtils::catsave($paths->cpage['urlname_nons'], $paths->namespace, $_POST);
+      echo PageUtils::catsave($paths->page_id, $paths->namespace, $_POST);
       break;
     case "setwikimode":
-      echo PageUtils::setwikimode($paths->cpage['urlname_nons'], $paths->namespace, (int)$_GET['mode']);
+      echo PageUtils::setwikimode($paths->page_id, $paths->namespace, (int)$_GET['mode']);
       break;
     case "setpass":
-      echo PageUtils::setpass($paths->cpage['urlname_nons'], $paths->namespace, $_POST['password']);
+      echo PageUtils::setpass($paths->page_id, $paths->namespace, $_POST['password']);
       break;
     case "fillusername":
       break;
@@ -232,7 +243,7 @@
       if(!$id1 || !$id2) { echo '<p>Invalid request.</p>'; $template->footer(); break; }
       if(!preg_match('#^([0-9]+)$#', (string)$_GET['diff1']) ||
          !preg_match('#^([0-9]+)$#', (string)$_GET['diff2']  )) { echo '<p>SQL injection attempt</p>'; $template->footer(); break; }
-      echo PageUtils::pagediff($paths->cpage['urlname_nons'], $paths->namespace, $id1, $id2);
+      echo PageUtils::pagediff($paths->page_id, $paths->namespace, $id1, $id2);
       break;
     case "jsres":
       die('// ERROR: this section is deprecated and has moved to includes/clientside/static/enano-lib-basic.js.');
@@ -277,10 +288,10 @@
       $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
       
       $ret = array('tags' => array(), 'user_level' => $session->user_level, 'can_add' => $session->get_permissions('tag_create'));
-      $q = $db->sql_query('SELECT t.tag_id, t.tag_name, pg.pg_target IS NOT NULL AS used_in_acl, t.user FROM '.table_prefix.'tags AS t
+      $q = $db->sql_query('SELECT t.tag_id, t.tag_name, pg.pg_target IS NOT NULL AS used_in_acl, t.user_id FROM '.table_prefix.'tags AS t
         LEFT JOIN '.table_prefix.'page_groups AS pg
           ON ( ( pg.pg_type = ' . PAGE_GRP_TAGGED . ' AND pg.pg_target=t.tag_name ) OR ( pg.pg_type IS NULL AND pg.pg_target IS NULL ) )
-        WHERE t.page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND t.namespace=\'' . $db->escape($paths->namespace) . '\';');
+        WHERE t.page_id=\'' . $db->escape($paths->page_id) . '\' AND t.namespace=\'' . $db->escape($paths->namespace) . '\';');
       if ( !$q )
         $db->_die();
       
@@ -288,11 +299,11 @@
       {
         $can_del = true;
         
-        $perm = ( $row['user'] != $session->user_id ) ?
+        $perm = ( $row['user_id'] != $session->user_id ) ?
                 'tag_delete_other' :
                 'tag_delete_own';
         
-        if ( $row['user'] == 1 && !$session->user_logged_in )
+        if ( $row['user_id'] == 1 && !$session->user_logged_in )
           // anonymous user trying to delete tag (hardcode blacklisted)
           $can_del = false;
           
@@ -340,7 +351,7 @@
       }
       
       // check if tag is already on page
-      $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'tags WHERE page_id=\'' . $db->escape($paths->cpage['urlname_nons']) . '\' AND namespace=\'' . $db->escape($paths->namespace) . '\' AND tag_name=\'' . $tag . '\';');
+      $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'tags WHERE page_id=\'' . $db->escape($paths->page_id) . '\' AND namespace=\'' . $db->escape($paths->namespace) . '\' AND tag_name=\'' . $tag . '\';');
       if ( !$q )
         $db->_die();
       if ( $db->numrows() > 0 )
@@ -364,7 +375,7 @@
       $db->free_result();
       
       // we're good
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'tags(tag_name,page_id,namespace,user) VALUES(\'' . $tag . '\', \'' . $db->escape($paths->cpage['urlname_nons']) . '\', \'' . $db->escape($paths->namespace) . '\', ' . $session->user_id . ');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'tags(tag_name,page_id,namespace,user_id) VALUES(\'' . $tag . '\', \'' . $db->escape($paths->page_id) . '\', \'' . $db->escape($paths->namespace) . '\', ' . $session->user_id . ');');
       if ( !$q )
         $db->_die();
       
@@ -380,7 +391,7 @@
       if ( empty($tag_id) )
         die('Invalid tag ID');
       
-      $q = $db->sql_query('SELECT t.tag_id, t.user, t.page_id, t.namespace, pg.pg_target IS NOT NULL AS used_in_acl FROM '.table_prefix.'tags AS t
+      $q = $db->sql_query('SELECT t.tag_id, t.user_id, t.page_id, t.namespace, pg.pg_target IS NOT NULL AS used_in_acl FROM '.table_prefix.'tags AS t
   LEFT JOIN '.table_prefix.'page_groups AS pg
     ON ( pg.pg_id IS NULL OR ( pg.pg_target = t.tag_name AND pg.pg_type = ' . PAGE_GRP_TAGGED . ' ) )
   WHERE t.tag_id=' . $tag_id . ';');
@@ -394,16 +405,16 @@
       $row = $db->fetchrow();
       $db->free_result();
       
-      if ( $row['page_id'] == $paths->cpage['urlname_nons'] && $row['namespace'] == $paths->namespace )
+      if ( $row['page_id'] == $paths->page_id && $row['namespace'] == $paths->namespace )
         $perms =& $session;
       else
         $perms = $session->fetch_page_acl($row['page_id'], $row['namespace']);
         
-      $perm = ( $row['user'] != $session->user_id ) ?
+      $perm = ( $row['user_id'] != $session->user_id ) ?
                 'tag_delete_other' :
                 'tag_delete_own';
       
-      if ( $row['user'] == 1 && !$session->user_logged_in )
+      if ( $row['user_id'] == 1 && !$session->user_logged_in )
         // anonymous user trying to delete tag (hardcode blacklisted)
         die('You are not authorized to delete this tag.');
         
