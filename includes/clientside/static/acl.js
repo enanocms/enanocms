@@ -27,6 +27,17 @@ function ajaxOpenACLManager(page_id, namespace)
   ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
       if(ajax.readyState == 4)
       {
+        var response = String(ajax.responseText + '');
+        if ( response.substr(0, 1) != '{' )
+        {
+          handle_invalid_json(ajax.responseText);
+          return false;
+        }
+        try {
+          data = parseJSON(ajax.responseText);
+        } catch(e) {
+          handle_invalid_json(ajax.responseText);
+        }
         __aclBuildWizardWindow();
         groups = parseJSON(ajax.responseText);
         if ( groups.mode == 'error' )
@@ -307,10 +318,16 @@ function __aclJSONSubmitAjaxHandler(params)
   ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
       if(ajax.readyState == 4)
       {
+        var response = String(ajax.responseText + '');
+        if ( response.substr(0, 1) != '{' )
+        {
+          handle_invalid_json(ajax.responseText);
+          return false;
+        }
         try {
           data = parseJSON(ajax.responseText);
         } catch(e) {
-          aclDebug(e+"\n\nResponse:\n"+ajax.responseText);
+          handle_invalid_json(ajax.responseText);
         }
         aclDataCache = data;
         switch(data.mode)
@@ -480,7 +497,7 @@ function __aclJSONSubmitAjaxHandler(params)
             aclDebug(data.text);
             break;
           default:
-            alert("Invalid JSON response from server\nMode: "+data.mode+"\nJSON string: "+ajax.responseText);
+            handle_invalid_json(ajax.responseText);
             break;
         }
       }
