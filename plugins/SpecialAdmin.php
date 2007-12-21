@@ -57,6 +57,38 @@ function page_Admin_Home() {
     return;
   }
   
+  if ( $paths->getParam(0) == 'updates.xml' )
+  {
+    require_once(ENANO_ROOT . '/includes/http.php');
+    $req = new Request_HTTP('germantown.enanocms.org', '/meta/updates.xml');
+    $response = $req->get_response_body();
+    header('Content-type: application/xml');
+    if ( $req->response_code != HTTP_OK )
+    {
+      // Error in response
+      echo '<enano><latest><error><![CDATA[
+Did not properly receive response from server. Response code: ' . $req->response_code . ' ' . $req->response_string . '
+]]></error></latest></enano>';
+    }
+    else
+    {
+      // Retrieve first update
+      $first_update = preg_match('/<release tag="([^"]+)" version="([^"]+)" (codename="([^"]+)" )?relnotes="([^"]+)" ?\/>/', $response, $match);
+      if ( !$first_update )
+      {
+        echo '<enano><latest><error><![CDATA[
+Received invalid XML response.
+]]></error></latest></enano>';
+      }
+      if ( version_compare(enano_version(true), $match[2], '<') )
+      {
+        $response = str_replace_once('</latest>', "  <haveupdates />\n  </latest>", $response);
+      }
+      echo $response;
+    }
+    return;
+  }
+  
   // Basic information
   echo RenderMan::render(
 '== Welcome to Runt, the Enano administration panel. ==
@@ -77,6 +109,10 @@ Using the links on the left you can control every aspect of your website\'s look
   {
     echo '<div class="error-box"><b>NOTE:</b> It appears that your install.php and/or schema.sql files still exist. It is HIGHLY RECOMMENDED that you delete or rename these files, to prevent getting your server hacked.</div>';
   }
+  
+  echo '<h3>Check for updates</h3>';
+  echo '<p>Periodically, new releases of Enano will be made available. Click the button below to check for updates to Enano. During this process, a request will be sent to the Enano CMS server (germantown.enanocms.org) over HTTP. No information about your Enano installation will be transmitted.</p>';
+  echo '<div id="update_check_container"><input type="button" onclick="ajaxUpdateCheck(this.parentNode.id);" value="Check for updates" /></div>';
   
   // Inactive users
   $q = $db->sql_query('SELECT * FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\';');

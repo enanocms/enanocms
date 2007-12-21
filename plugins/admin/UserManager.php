@@ -15,9 +15,12 @@
 function page_Admin_UserManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -123,7 +126,7 @@ function page_Admin_UserManager()
       
       if ( count($errors) < 1 )
       {
-        $q = $db->sql_query('SELECT u.user_level FROM '.table_prefix.'users AS u WHERE u.user_id = ' . $user_id . ';');
+        $q = $db->sql_query('SELECT u.user_level, u.user_has_avatar, u.avatar_type FROM '.table_prefix.'users AS u WHERE u.user_id = ' . $user_id . ';');
         if ( !$q )
           $db->_die();
         
@@ -134,8 +137,10 @@ function page_Admin_UserManager()
         
         $row = $db->fetchrow();
         $existing_level =& $row['user_level'];
+        $avi_type =& $row['avatar_type'];
+        $has_avi = ( $row['user_has_avatar'] == 1 );
         $db->free_result();
-      
+        
         $to_update_users = array();
         if ( $user_id != $session->user_id )
         {
@@ -161,80 +166,231 @@ function page_Admin_UserManager()
           $to_update_users['activation_key'] = sha1($session->dss_rand());
         }
         
-        $to_update_users_extra = array();
-        $to_update_users_extra['user_aim'] = $imaddr_aim;
-        $to_update_users_extra['user_msn'] = $imaddr_msn;
-        $to_update_users_extra['user_yahoo'] = $imaddr_yahoo;
-        $to_update_users_extra['user_xmpp'] = $imaddr_xmpp;
-        $to_update_users_extra['user_homepage'] = $homepage;
-        $to_update_users_extra['user_location'] = $location;
-        $to_update_users_extra['user_job'] = $occupation;
-        $to_update_users_extra['user_hobbies'] = $hobbies;
-        $to_update_users_extra['email_public'] = ( $email_public ) ? '1' : '0';
-        
-        $update_sql = '';
-        
-        foreach ( $to_update_users as $key => $unused_crap )
+        // Avatar validation
+        $action = ( isset($_POST['avatar_action']) ) ? $_POST['avatar_action'] : 'keep';
+        $avi_path = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
+        switch($action)
         {
-          $value =& $to_update_users[$key];
-          $value = $db->escape($value);
-          $update_sql .= ( empty($update_sql) ? '' : ',' ) . "$key='$value'";
+          case 'keep':
+          default:
+            break;
+          case 'remove':
+            if ( $has_avi )
+            {
+              // First switch the avatar off
+              $to_update_users['user_has_avatar'] = '0';
+              @unlink($avi_path);
+            }
+            break;
+          case 'set_http':
+          case 'set_file':
+            // Hackish way to preserve the UNIX philosophy of reusing as much code as possible
+            if ( $action == 'set_http' )
+            {
+              // Check if this action is enabled
+              if ( getConfig('avatar_upload_http') !== '1' )
+              {
+                // non-localized, only appears on hack attempt
+                $errors[] = 'Uploads over HTTP are disabled.';
+                break;
+              }
+              // Download the file
+              require_once( ENANO_ROOT . '/includes/http.php' );
+              
+              if ( !preg_match('/^http:\/\/([a-z0-9-\.]+)(:([0-9]+))?\/(.+)$/', $_POST['avatar_http_url'], $match) )
+              {
+                $errors[] = $lang->get('usercp_avatar_invalid_url');
+                break;
+              }
+              
+              $hostname = $match[1];
+              $uri = '/' . $match[4];
+              $port = ( $match[3] ) ? intval($match[3]) : 80;
+              $max_size = intval(getConfig('avatar_max_size'));
+              
+              // Get temporary file
+              $tempfile = tempnam(false, "enanoavatar_{$user_id}");
+              if ( !$tempfile )
+                $errors[] = 'Error getting temp file.';
+              
+              @unlink($tempfile);
+              $request = new Request_HTTP($hostname, $uri, 'GET', $port);
+              $result = $request->write_response_to_file($tempfile, 50, $max_size);
+              if ( !$result || $request->response_code != HTTP_OK )
+              {
+                @unlink($tempfile);
+                $errors[] = $lang->get('usercp_avatar_bad_write');
+                break;
+              }
+              
+              // Response written. Proceed to validation...
+            }
+            else
+            {
+              // Check if this action is enabled
+              if ( getConfig('avatar_upload_file') !== '1' )
+              {
+                // non-localized, only appears on hack attempt
+                $errors[] = 'Uploads from the browser are disabled.';
+                break;
+              }
+              
+              $max_size = intval(getConfig('avatar_max_size'));
+              
+              $file =& $_FILES['avatar_file'];
+              $tempfile =& $file['tmp_name'];
+              if ( filesize($tempfile) > $max_size )
+              {
+                @unlink($tempfile);
+                $errors[] = $lang->get('usercp_avatar_file_too_large');
+                break;
+              }
+            }
+            $file_type = get_image_filetype($tempfile);
+            if ( !$file_type )
+            {
+              unlink($tempfile);
+              $errors[] = $lang->get('usercp_avatar_bad_filetype');
+              break;
+            }
+            
+            $avi_path_new = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $file_type;
+            
+            // The file type is good - validate dimensions and animation
+            switch($file_type)
+            {
+              case 'png':
+                $is_animated = is_png_animated($tempfile);
+                $dimensions = png_get_dimensions($tempfile);
+                break;
+              case 'gif':
+                $is_animated = is_gif_animated($tempfile);
+                $dimensions = gif_get_dimensions($tempfile);
+                break;
+              case 'jpg':
+                $is_animated = false;
+                $dimensions = jpg_get_dimensions($tempfile);
+                break;
+              default:
+                $errors[] = 'API mismatch';
+                break 2;
+            }
+            // Did we get invalid size data? If so the image is probably corrupt.
+            if ( !$dimensions )
+            {
+              @unlink($tempfile);
+              $errors[] = $lang->get('usercp_avatar_corrupt_image');
+              break;
+            }
+            // Is the image animated?
+            if ( $is_animated && getConfig('avatar_enable_anim') !== '1' )
+            {
+              @unlink($tempfile);
+              $errors[] = $lang->get('usercp_avatar_disallowed_animation');
+              break;
+            }
+            // Check image dimensions
+            list($image_x, $image_y) = $dimensions;
+            $max_x = intval(getConfig('avatar_max_width'));
+            $max_y = intval(getConfig('avatar_max_height'));
+            if ( $image_x > $max_x || $image_y > $max_y )
+            {
+              @unlink($tempfile);
+              $errors[] = $lang->get('usercp_avatar_too_large');
+              break;
+            }
+            // All good!
+            @unlink($avi_path);
+            if ( rename($tempfile, $avi_path_new) )
+            {
+              $to_update_users['user_has_avatar'] = '1';
+              $to_update_users['avatar_type'] = $file_type;
+            }
+            else
+            {
+              // move failed - turn avatar off
+              $to_update_users['user_has_avatar'] = '0';
+            }
+            break;
         }
         
-        $update_sql = 'UPDATE '.table_prefix."users SET $update_sql WHERE user_id=$user_id;";
-        
-        $update_sql_extra = '';
-        
-        foreach ( $to_update_users_extra as $key => $unused_crap )
+        if ( count($errors) < 1 )
         {
-          $value =& $to_update_users_extra[$key];
-          $value = $db->escape($value);
-          $update_sql_extra .= ( empty($update_sql_extra) ? '' : ',' ) . "$key='$value'";
-        }
-        
-        $update_sql_extra = 'UPDATE '.table_prefix."users_extra SET $update_sql_extra WHERE user_id=$user_id;";
-        
-        if ( !$db->sql_query($update_sql) )
-          $db->_die();
-        
-        if ( !$db->sql_query($update_sql_extra) )
-          $db->_die();
-        
-        if ( $existing_level != $user_level )
-        {
-          // We need to update group memberships
-          if ( $existing_level == USER_LEVEL_ADMIN ) 
+          $to_update_users_extra = array();
+          $to_update_users_extra['user_aim'] = $imaddr_aim;
+          $to_update_users_extra['user_msn'] = $imaddr_msn;
+          $to_update_users_extra['user_yahoo'] = $imaddr_yahoo;
+          $to_update_users_extra['user_xmpp'] = $imaddr_xmpp;
+          $to_update_users_extra['user_homepage'] = $homepage;
+          $to_update_users_extra['user_location'] = $location;
+          $to_update_users_extra['user_job'] = $occupation;
+          $to_update_users_extra['user_hobbies'] = $hobbies;
+          $to_update_users_extra['email_public'] = ( $email_public ) ? '1' : '0';
+          
+          $update_sql = '';
+          
+          foreach ( $to_update_users as $key => $unused_crap )
           {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_from_admin\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
-            if ( !$q )
-              $db->_die();
-            $session->remove_user_from_group($user_id, GROUP_ID_ADMIN);
-          }
-          else if ( $existing_level == USER_LEVEL_MOD ) 
-          {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_from_mod\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
-            if ( !$q )
-              $db->_die();
-            $session->remove_user_from_group($user_id, GROUP_ID_MOD);
+            $value =& $to_update_users[$key];
+            $value = $db->escape($value);
+            $update_sql .= ( empty($update_sql) ? '' : ',' ) . "$key='$value'";
           }
           
-          if ( $user_level == USER_LEVEL_ADMIN )
+          $update_sql = 'UPDATE '.table_prefix."users SET $update_sql WHERE user_id=$user_id;";
+          
+          $update_sql_extra = '';
+          
+          foreach ( $to_update_users_extra as $key => $unused_crap )
           {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_to_admin\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
-            if ( !$q )
-              $db->_die();
-            $session->add_user_to_group($user_id, GROUP_ID_ADMIN, false);
+            $value =& $to_update_users_extra[$key];
+            $value = $db->escape($value);
+            $update_sql_extra .= ( empty($update_sql_extra) ? '' : ',' ) . "$key='$value'";
           }
-          else if ( $user_level == USER_LEVEL_MOD )
+          
+          $update_sql_extra = 'UPDATE '.table_prefix."users_extra SET $update_sql_extra WHERE user_id=$user_id;";
+          
+          if ( !$db->sql_query($update_sql) )
+            $db->_die();
+          
+          if ( !$db->sql_query($update_sql_extra) )
+            $db->_die();
+          
+          if ( $existing_level != $user_level )
           {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_to_mod\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
-            if ( !$q )
-              $db->_die();
-            $session->add_user_to_group($user_id, GROUP_ID_MOD, false);
+            // We need to update group memberships
+            if ( $existing_level == USER_LEVEL_ADMIN ) 
+            {
+              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_from_admin\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
+              if ( !$q )
+                $db->_die();
+              $session->remove_user_from_group($user_id, GROUP_ID_ADMIN);
+            }
+            else if ( $existing_level == USER_LEVEL_MOD ) 
+            {
+              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_from_mod\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
+              if ( !$q )
+                $db->_die();
+              $session->remove_user_from_group($user_id, GROUP_ID_MOD);
+            }
+            
+            if ( $user_level == USER_LEVEL_ADMIN )
+            {
+              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_to_admin\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
+              if ( !$q )
+                $db->_die();
+              $session->add_user_to_group($user_id, GROUP_ID_ADMIN, false);
+            }
+            else if ( $user_level == USER_LEVEL_MOD )
+            {
+              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_to_mod\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
+              if ( !$q )
+                $db->_die();
+              $session->add_user_to_group($user_id, GROUP_ID_MOD, false);
+            }
           }
+          
+          echo '<div class="info-box">Your changes have been saved.</div>';
         }
-        
-        echo '<div class="info-box">Your changes have been saved.</div>';
       }
     }
     
@@ -290,7 +446,7 @@ function page_Admin_UserManager()
       echo 'No username provided';
       return false;
     }
-    $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, x.* FROM '.table_prefix.'users AS u
+    $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, u.user_has_avatar, u.avatar_type, x.* FROM '.table_prefix.'users AS u
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL )
                            WHERE ( ' . ENANO_SQLFUNC_LOWERCASE . '(u.username) = \'' . $db->escape(strtolower($username)) . '\' OR u.username = \'' . $db->escape($username) . '\' ) AND u.user_id != 1;');
@@ -314,6 +470,8 @@ function page_Admin_UserManager()
       $form->user_level= $row['user_level'];
       $form->account_active = ( $row['account_active'] == 1 );
       $form->email_public   = ( $row['email_public'] == 1 );
+      $form->has_avatar     = ( $row['user_has_avatar'] == 1 );
+      $form->avi_type       = $row['avatar_type'];
       $form->im = array(
           'aim' => $row['user_aim'],
           'yahoo' => $row['user_yahoo'],
@@ -541,6 +699,20 @@ class Admin_UserManager_SmartForm
   var $email_public = false;
   
   /**
+   * Whether the user has an avatar or not.
+   * @var bool
+   */
+  
+  var $has_avatar = false;
+  
+  /**
+   * The type of avatar the user has. One of "jpg", "png", or "gif".
+   * @var string
+   */
+  
+  var $avi_type = 'png';
+  
+  /**
    * Constructor.
    */
   
@@ -557,6 +729,7 @@ class Admin_UserManager_SmartForm
   function render()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     if ( file_exists( ENANO_ROOT . "/themes/$template->theme/admin_usermanager_form.tpl" ) )
     {
       $parser = $template->makeParser('admin_usermanager_form.tpl');
@@ -768,6 +941,70 @@ class Admin_UserManager_SmartForm
               
               <!-- / Extended options -->
               
+              <!-- Avatar settings -->
+              
+                <tr>
+                  <th class="subhead" colspan="2">
+                    {lang:adminusers_avatar_heading}
+                  </th>
+                </tr>
+                
+                <tr>
+                  <td class="row2">
+                    {lang:usercp_avatar_label_current}
+                  </td>
+                  <td class="row1">
+                    <!-- BEGIN user_has_avatar -->
+                      <img alt="{AVATAR_ALT}" src="{AVATAR_SRC}" />
+                    <!-- BEGINELSE user_has_avatar -->
+                      {lang:adminusers_avatar_image_none}
+                    <!-- END user_has_avatar -->
+                  </td>
+                </tr>
+                
+                <tr>
+                  <td class="row2">
+                    {lang:adminusers_avatar_lbl_change}
+                  </td>
+                  <td class="row1">
+                    <script type="text/javascript">
+                      function admincp_users_avatar_set_{UUID}(obj)
+                      {
+                        switch(obj.value)
+                        {
+                          case 'keep':
+                          case 'remove':
+                            $('avatar_upload_http_{UUID}').object.style.display = 'none';
+                            $('avatar_upload_file_{UUID}').object.style.display = 'none';
+                            break;
+                          case 'set_http':
+                            $('avatar_upload_http_{UUID}').object.style.display = 'block';
+                            $('avatar_upload_file_{UUID}').object.style.display = 'none';
+                            break;
+                          case 'set_file':
+                            $('avatar_upload_http_{UUID}').object.style.display = 'none';
+                            $('avatar_upload_file_{UUID}').object.style.display = 'block';
+                            break;
+                        }
+                      }
+                    </script>
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="keep" checked="checked" /> {lang:adminusers_avatar_lbl_keep}</label><br />
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="remove" /> {lang:adminusers_avatar_lbl_remove}</label><br />
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_http" /> {lang:adminusers_avatar_lbl_set_http}</label><br />
+                      <div id="avatar_upload_http_{UUID}" style="display: none; margin: 10px 0 0 2.2em;">
+                        {lang:usercp_avatar_lbl_url} <input type="text" name="avatar_http_url" size="40" value="http://" /><br />
+                        <small>{lang:usercp_avatar_lbl_url_desc} {lang:usercp_avatar_limits}</small>
+                      </div>
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_file" /> {lang:adminusers_avatar_lbl_set_file}</label>
+                      <div id="avatar_upload_file_{UUID}" style="display: none; margin: 10px 0 0 2.2em;">
+                        {lang:usercp_avatar_lbl_file} <input type="file" name="avatar_file" size="40" value="http://" /><br />
+                        <small>{lang:usercp_avatar_lbl_file_desc} {lang:usercp_avatar_limits}</small>
+                      </div>
+                  </td>
+                </tr>
+                
+              <!-- / Avatar settings -->
+              
               <!-- Administrator-only options -->
               
                 <tr>
@@ -895,6 +1132,14 @@ EOF;
         'FORM_ACTION' => $form_action
       ));
     
+    if ( $this->has_avatar )
+    {
+      $parser->assign_vars(array(
+          'AVATAR_SRC' => make_avatar_url($this->user_id, $this->avi_type),
+          'AVATAR_ALT' => $lang->get('usercp_avatar_image_alt', array('username' => $this->username))
+        ));
+    }
+    
     $parser->assign_bool(array(
         'password_meter' => ( getConfig('pw_strength_enable') == '1' ),
         'ul_member' => ( $this->user_level == USER_LEVEL_CHPREF ),
@@ -902,7 +1147,8 @@ EOF;
         'ul_admin' => ( $this->user_level == USER_LEVEL_ADMIN ),
         'account_active' => ( $this->account_active === true ),
         'email_public' => ( $this->email_public === true ),
-        'same_user' => ( $this->user_id == $session->user_id )
+        'same_user' => ( $this->user_id == $session->user_id ),
+        'user_has_avatar' => ( $this->has_avatar )
       ));
     
     $parsed = $parser->run();

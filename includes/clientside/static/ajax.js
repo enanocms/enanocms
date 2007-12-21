@@ -1289,3 +1289,179 @@ function ajaxShowCaptcha(code)
   body.appendChild(mydiv);
 }
 
+function ajaxUpdateCheck(targetelement)
+{
+  if ( !document.getElementById(targetelement) )
+  {
+    return false;
+  }
+  var target = document.getElementById(targetelement);
+  target.innerHTML = '';
+  var img = document.createElement('img');
+  img.src = scriptPath + '/images/loading.gif';
+  img.alt = 'Loading...';
+  target.appendChild(img);
+  ajaxGet(makeUrlNS('Admin', 'Home/updates.xml'), function()
+    {
+      if ( ajax.readyState == 4 )
+      {
+        var releases = new Array();
+        var update_available = false;
+        if ( ajax.responseXML == null )
+        {
+          alert("Error fetching updates list:\n" + ajax.responseText);
+          return false;
+        }
+        if ( ajax.responseXML.firstChild.tagName == 'enano' )
+        {
+          var enanotag = ajax.responseXML.firstChild;
+          for ( var i in enanotag.childNodes )
+          {
+            if ( enanotag.childNodes[i].tagName == 'error' )
+            {
+              alert(enanotag.childNodes[i].firstChild.nodeValue);
+            }
+            else if ( enanotag.childNodes[i].tagName == 'latest' )
+            {
+              // got <latest>
+              var latesttag = enanotag.childNodes[i];
+              for ( var i in latesttag.childNodes )
+              {
+                var node = latesttag.childNodes[i];
+                if ( node.tagName == 'release' )
+                {
+                  var releasedata = new Object();
+                  for ( var i in node.attributes )
+                  {
+                    releasedata[node.attributes[i].nodeName] = node.attributes[i].nodeValue;
+                  }
+                  releases.push(releasedata);
+                }
+                else if ( node.tagName == 'haveupdates' )
+                {
+                  update_available = true;
+                }
+              }
+              break;
+            }
+          }
+        }
+        else
+        {
+          if ( window.console )
+            window.console.error('Invalid XML response');
+          return false;
+        }
+        var thediv = document.getElementById(targetelement);
+        thediv.innerHTML = '';
+        if ( !thediv )
+        {
+          if ( window.console )
+            window.console.error('Can\'t get the div');
+          return false;
+        }
+        if ( releases.length > 0 )
+        {
+          thediv.className = 'tblholder';
+          if ( update_available )
+          {
+            var infobox = document.createElement('div');
+            infobox.className = 'info-box-mini';
+            infobox.appendChild(document.createTextNode('An update for Enano is available.'));
+            infobox.style.borderWidth = '0';
+            infobox.style.margin = '0 0 0 0';
+            thediv.appendChild(infobox);
+          }
+          else
+          {
+            var infobox = document.createElement('div');
+            infobox.className = 'info-box-mini';
+            infobox.appendChild(document.createTextNode('No new updates are available.'));
+            infobox.style.borderWidth = '0';
+            infobox.style.margin = '0 0 0 0';
+            thediv.appendChild(infobox);
+          }
+          var table = document.createElement('table');
+          table.border = '0';
+          table.cellspacing = '1';
+          table.cellpadding = '4';
+          
+          var tr = document.createElement('tr');
+          
+          var td1 = document.createElement('th');
+          var td2 = document.createElement('th');
+          var td3 = document.createElement('th');
+          var td4 = document.createElement('th');
+          
+          td1.appendChild( document.createTextNode('Release type') );
+          td2.appendChild( document.createTextNode('Version') );
+          td3.appendChild( document.createTextNode('Code name') );
+          td4.appendChild( document.createTextNode('Release notes') );
+          
+          tr.appendChild(td1);
+          tr.appendChild(td2);
+          tr.appendChild(td3);
+          tr.appendChild(td4);
+            
+          table.appendChild(tr);
+          
+          var cls = 'row2';
+          
+          var j = 0;
+          for ( var i in releases )
+          {
+            j++;
+            if ( j > 5 )
+              break;
+            if ( update_available && j == 1 )
+              cls = 'row1_green';
+            else
+              cls = ( cls == 'row1' ) ? 'row2' : 'row1';
+            var release = releases[i];
+            var tr = document.createElement('tr');
+            window.console.debug(release);
+            
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+            var td3 = document.createElement('td');
+            var td4 = document.createElement('td');
+            
+            td1.className = cls;
+            td2.className = cls;
+            td3.className = cls;
+            td4.className = cls;
+            
+            if ( release.tag )
+              td1.appendChild( document.createTextNode(release.tag) );
+            
+            if ( release.version )
+              td2.appendChild( document.createTextNode(release.version) );
+            
+            if ( release.codename )
+              td3.appendChild( document.createTextNode(release.codename) );
+            
+            if ( release.relnotes )
+            {
+              var a = document.createElement('a');
+              a.href = release.relnotes;
+              a.appendChild(document.createTextNode('View'));
+              td4.appendChild( a );
+            }
+            
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tr.appendChild(td4);
+            
+            table.appendChild(tr);
+          }
+          thediv.appendChild(table);
+        }
+        else
+        {
+          thediv.appendChild(document.createTextNode('No releases available.'));
+        }
+      }
+    });
+}
+

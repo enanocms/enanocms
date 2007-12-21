@@ -169,6 +169,15 @@ class PageProcessor
     }
     $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
     $strict_no_headers = false;
+    if ( $this->namespace == 'Admin' && strstr($this->page_id, '/') )
+    {
+      $this->page_id = substr($this->page_id, 0, strpos($this->page_id, '/'));
+      $funcname = "page_{$this->namespace}_{$this->page_id}";
+      if ( function_exists($funcname) )
+      {
+        $this->page_exists = true;
+      }
+    }
     if ( isset($paths->pages[$pathskey]) )
     {
       if ( $paths->pages[$pathskey]['special'] == 1 )

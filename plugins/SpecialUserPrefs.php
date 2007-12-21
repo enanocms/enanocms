@@ -708,6 +708,8 @@ function page_Special_Preferences()
               break;
             }
             
+            $avi_path_new = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $session->user_id . '.' . $file_type;
+            
             // The file type is good - validate dimensions and animation
             switch($file_type)
             {
@@ -752,7 +754,8 @@ function page_Special_Preferences()
               break;
             }
             // All good!
-            if ( rename($tempfile, $avi_path) )
+            @unlink($avi_path);
+            if ( rename($tempfile, $avi_path_new) )
             {
               $q = $db->sql_query('UPDATE ' . table_prefix . "users SET user_has_avatar = 1, avatar_type = '$file_type' WHERE user_id = {$session->user_id};");
               if ( !$q )
