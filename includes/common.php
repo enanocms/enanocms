@@ -45,10 +45,13 @@ $version = '1.1.1';
  * @return float
  */
 
-function microtime_float()
+if ( !function_exists('microtime_float') )
 {
-  list($usec, $sec) = explode(" ", microtime());
-  return ((float)$usec + (float)$sec);
+  function microtime_float()
+  {
+    list($usec, $sec) = explode(" ", microtime());
+    return ((float)$usec + (float)$sec);
+  }
 }
 
 // Determine starting time

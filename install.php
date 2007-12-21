@@ -64,6 +64,12 @@ function is_page($p)
   return true;
 }
 
+function microtime_float()
+{
+  list($usec, $sec) = explode(" ", microtime());
+  return ((float)$usec + (float)$sec);
+}
+
 require('includes/wikiformat.php');
 require('includes/constants.php');
 require('includes/rijndael.php');
@@ -71,6 +77,10 @@ require('includes/functions.php');
 require('includes/dbal.php');
 require('includes/lang.php');
 require('includes/json.php');
+
+// Initialize language support
+$lang = new Language('eng');
+$lang->load_file('./language/english/install.json');
 
 strip_magic_quotes_gpc();
 
@@ -823,6 +833,7 @@ function is_apache() { $r = strstr($_SERVER['SERVER_SOFTWARE'], 'Apache') ? true
 
 function show_license($fb = false)
 {
+  global $lang;
   ?>
   <div style="height: 500px; clip: rect(0px,auto,500px,auto); overflow: auto; padding: 10px; border: 1px dashed #456798; margin: 1em;">
   <?php
@@ -1075,10 +1086,6 @@ EEOF;
   default:
     break;
 }
-
-// Initialize language support
-$lang = new Language('eng');
-$lang->load_file('./language/english/install.json');
 
 $template = new template_nodb();
 $template->load_theme('stpatty', 'shamrock', false);
@@ -1689,6 +1696,14 @@ switch($_GET['mode'])
           </tr>
         </table>
       </div>
+      <?php
+      break;
+    case 'database_pgsql':
+      ?>
+    <script type="text/javascript">
+      function ajaxGet(uri, f) {
+        if (window.XMLHttpRequest) {
+          ajax = new XMLHttpRequest();
         } else {
           if (window.ActiveXObject) {           
             ajax = new ActiveXObject("Microsoft.XMLHTTP");
@@ -1725,7 +1740,7 @@ switch($_GET['mode'])
         v = verify();
         if(!v)
         {
-          alert('One or more of the form fields is incorrect. Please correct any information in the form that has an "X" next to it.');
+          alert($lang.get('meta_msg_err_verification'));
           return false;
         }
         var frm = document.forms.dbinfo;
@@ -1737,7 +1752,7 @@ switch($_GET['mode'])
         db_root_pass = escape(frm.db_root_pass.value.replace('+', '%2B'));
         
         parms = 'host='+db_host+'&name='+db_name+'&user='+db_user+'&pass='+db_pass+'&root_user='+db_root_user+'&root_pass='+db_root_pass;
-        ajaxPost('<?php echo scriptPath; ?>/install.php?mode=pgsql_test', parms, function() {
+        ajaxPost('<?php echo scriptPath; ?>/install.php?mode=mysql_test', parms, function() {
             if(ajax.readyState==4)
             {
               s = ajax.responseText.substr(0, 4);
@@ -1748,10 +1763,10 @@ switch($_GET['mode'])
                 document.getElementById('s_db_name').src='images/good.gif';
                 document.getElementById('s_db_auth').src='images/good.gif';
                 document.getElementById('s_db_root').src='images/good.gif';
-                if(t.match(/_creating_db/)) document.getElementById('e_db_name').innerHTML = '<b>Warning:<\/b> The database you specified does not exist. It will be created during installation.';
-                if(t.match(/_creating_user/)) document.getElementById('e_db_auth').innerHTML = '<b>Warning:<\/b> The specified regular user does not exist or the password is incorrect. The user will be created during installation. If the user already exists, the password will be reset.';
+                if(t.match(/_creating_db/)) document.getElementById('e_db_name').innerHTML = $lang.get('database_msg_warn_creating_db');
+                if(t.match(/_creating_user/)) document.getElementById('e_db_auth').innerHTML = $lang.get('database_msg_warn_creating_user');
                 document.getElementById('s_mysql_version').src='images/good.gif';
-                document.getElementById('e_mysql_version').innerHTML = 'Your version of PostgreSQL meets Enano requirements.';
+                document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_info_mysql_good');
               }
               else
               {
@@ -1762,50 +1777,50 @@ switch($_GET['mode'])
                   document.getElementById('s_db_name').src='images/unknown.gif';
                   document.getElementById('s_db_auth').src='images/unknown.gif';
                   document.getElementById('s_db_root').src='images/unknown.gif';
-                  document.getElementById('e_db_host').innerHTML = '<b>Error:<\/b> The database server "'+document.forms.dbinfo.db_host.value+'" couldn\'t be contacted.<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_host').innerHTML = $lang.get('database_msg_err_mysql_connect', { db_host: document.forms.dbinfo.db_host.value, mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'auth':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/unknown.gif';
                   document.getElementById('s_db_auth').src='images/bad.gif';
                   document.getElementById('s_db_root').src='images/unknown.gif';
-                  document.getElementById('e_db_auth').innerHTML = '<b>Error:<\/b> Access to MySQL under the specified credentials was denied.<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_auth').innerHTML = $lang.get('database_msg_err_mysql_auth', { mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'perm':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/bad.gif';
                   document.getElementById('s_db_auth').src='images/good.gif';
                   document.getElementById('s_db_root').src='images/unknown.gif';
-                  document.getElementById('e_db_name').innerHTML = '<b>Error:<\/b> Access to the specified database using those login credentials was denied.<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_name').innerHTML = $lang.get('database_msg_err_mysql_dbperm', { mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'name':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/bad.gif';
                   document.getElementById('s_db_auth').src='images/good.gif';
                   document.getElementById('s_db_root').src='images/unknown.gif';
-                  document.getElementById('e_db_name').innerHTML = '<b>Error:<\/b> The specified database does not exist<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_name').innerHTML = $lang.get('database_msg_err_mysql_dbexist', { mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'root':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/unknown.gif';
                   document.getElementById('s_db_auth').src='images/unknown.gif';
                   document.getElementById('s_db_root').src='images/bad.gif';
-                  document.getElementById('e_db_root').innerHTML = '<b>Error:<\/b> Access to MySQL under the specified credentials was denied.<br \/>'+t;
-                  document.getElementById('e_mysql_version').innerHTML = 'The MySQL version that your server is running could not be determined.';
+                  document.getElementById('e_db_root').innerHTML = $lang.get('database_msg_err_mysql_auth', { mysql_error: t });
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_warn_mysql_version');
                   break;
                 case 'vers':
                   document.getElementById('s_db_host').src='images/good.gif';
                   document.getElementById('s_db_name').src='images/good.gif';
                   document.getElementById('s_db_auth').src='images/good.gif';
                   document.getElementById('s_db_root').src='images/good.gif';
-                  if(t.match(/_creating_db/)) document.getElementById('e_db_name').innerHTML = '<b>Warning:<\/b> The database you specified does not exist. It will be created during installation.';
-                  if(t.match(/_creating_user/)) document.getElementById('e_db_auth').innerHTML = '<b>Warning:<\/b> The specified regular user does not exist or the password is incorrect. The user will be created during installation. If the user already exists, the password will be reset.';
+                  if(t.match(/_creating_db/)) document.getElementById('e_db_name').innerHTML = $lang.get('database_msg_warn_creating_db');
+                  if(t.match(/_creating_user/)) document.getElementById('e_db_auth').innerHTML = $lang.get('database_msg_warn_creating_user');
                   
-                  document.getElementById('e_mysql_version').innerHTML = '<b>Error:<\/b> Your version of MySQL ('+t+') is older than 4.1.17. Enano will still work, but there is a known bug with the comment system and MySQL 4.1.11 that involves some comments not being displayed, due to an issue with the PHP function mysql_fetch_row().';
+                  document.getElementById('e_mysql_version').innerHTML = $lang.get('database_msg_err_mysql_version', { mysql_version: t });
                   document.getElementById('s_mysql_version').src='images/bad.gif';
                 default:
                   alert(t);
@@ -1878,10 +1893,16 @@ switch($_GET['mode'])
       }
       window.onload = verify;
     </script>
-    <p>Now we need some information that will allow Enano to contact your database server. Enano uses PostgreSQL as a data storage backend,
-       and we need to have access to a PostgreSQL server in order to continue.</p>
-    <p>If you do not have access to a PostgreSQL server, and you are using your own server, you can download PostgreSQL for free from
-       <a href="http://www.postgresql.org/">PostgreSQL.org</a>.</p>
+    <p><?php echo $lang->get('database_blurb_needdb'); ?></p>
+    <p><?php echo $lang->get('database_blurb_howtomysql'); ?></p>
+    <?php
+    if ( file_exists('/etc/enano-is-virt-appliance') )
+    {
+      echo '<p>
+              ' . $lang->get('database_vm_login_info', array( 'host' => 'localhost', 'user' => 'enano', 'pass' => 'clurichaun', 'name' => 'enano_www1' )) . '
+            </p>';
+    }
+    ?>
     <form name="dbinfo" action="install.php?mode=website" method="post">
       <input type="hidden" name="db_driver" value="postgresql" />
       <table border="0">
@@ -2356,7 +2377,6 @@ switch($_GET['mode'])
       // Are we just trying to auto-rename the config files? If so, skip everything else
       if ( !isset($_GET['stage']) || ( isset($_GET['stage']) && $_GET['stage'] != 'renameconfig' ) )
       {
-      
         // The stages connect, decrypt, genkey, and parse are preprocessing and don't do any actual data modification.
         // Thus, they need to be run on each retry, e.g. never skipped.
         run_installer_stage('connect', $lang->get('install_stg_connect_title'), 'stg_mysql_connect', $lang->get('install_stg_connect_body'), false);

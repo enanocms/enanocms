@@ -164,6 +164,11 @@ class mysql {
           define('contentPath', "$sp/index.php?title=");
         }
         $loc = scriptPath . '/install.php';
+        define('IN_ENANO_INSTALL', 1);
+        $GLOBALS['lang'] = new Language('eng');
+        global $lang;
+        $lang->load_file('./language/english/enano.json');
+        $lang->load_file('./language/english/install.json');
         // header("Location: $loc");
         redirect($loc, 'Enano not installed', 'We can\'t seem to find an Enano installation (valid config file). You will be transferred to the installation wizard momentarily...', 3);
         exit;
