@@ -1076,6 +1076,10 @@ EEOF;
     break;
 }
 
+// Initialize language support
+$lang = new Language('eng');
+$lang->load_file('./language/english/install.json');
+
 $template = new template_nodb();
 $template->load_theme('stpatty', 'shamrock', false);
 
@@ -1151,6 +1155,8 @@ else
       $branch = 'stable';
   }
 }
+
+$template->header();
 
 switch($_GET['mode'])
 { 
