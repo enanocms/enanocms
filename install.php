@@ -2422,7 +2422,7 @@ switch($_GET['mode'])
         run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_import_language', $lang->get('install_stg_importlang_body'));
         run_installer_stage('initlogs', $lang->get('install_stg_initlogs_title'), 'stg_init_logs', $lang->get('install_stg_initlogs_body'));
         
-        run_installer_stage('buildindex', 'Initialize search index', 'stg_build_index', 'Something went wrong while the page manager was attempting to build a search index.');
+        run_installer_stage('buildindex', $lang->get('install_stg_buildindex_title'), 'stg_build_index', $lang->get('install_stg_buildindex_body'));
         
         /*
          * HACKERS:

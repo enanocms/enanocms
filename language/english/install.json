@@ -218,6 +218,8 @@ var enano_lang_install = {
       stg_startapi_body: 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.',
       stg_importlang_title: 'Import default language',
       stg_importlang_body: 'Enano couldn\'t import the English language file.',
+      stg_buildindex_title: 'Initialize search index',
+      stg_buildindex_body: 'Something went wrong while the page manager was attempting to build a search index.',
       stg_initlogs_title: 'Initialize logs',
       stg_initlogs_body: '<b>The session manager denied the request to flush logs for the main page.</b><br />
                            While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
@@ -256,23 +258,23 @@ var enano_lang_install = {
                                 embed Javascript and arbitrary HTML and CSS.</p>
                              <p>If you don\'t have experience coding in PHP, you can safely disable this option. You may change this at any time
                                 using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection.</p>',
-      url_scheme_title: 'URL schemes',
-      url_scheme_body: '<p>The URL scheme allows you to decide how the URLs to your Enano pages will look.</p>
-                        <p>The first option (Standard URLs) works on any web server. You should select it if your server doesn\'t run Apache, or
-                           if you are at all unsure of your server\'s configuration. With this scheme, URLs at your site will look like <tt>
-                           http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.</p>
-                        <p>The second option, Small URLs, will be selected by default if Enano detects Apache. Small URLs are more friendly towards
-                           search engines, but they don\'t work on very many non-Apache servers, or if PHP is set up through CGI on your server. Many
-                           free and low-cost web hosts will configure PHP through CGI in order to keep your user account as the owner of any files that
-                           Enano generates. With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.
-                           </p>
-                        <p>The last option, Tiny URLs, is the most friendly URL scheme for search engines, because your URLs won\'t have any special characters
-                           at all in them. However, this only works if your webhost has configured Apache with support for mod_rewrite. Most of the time if your
-                           host supports this you will see a listing for it in their feature matrix. None of the popular Linux distributions (such as Ubuntu,
-                           Debian, Red Hat Enterprise Linux&trade;, Fedora, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
-                           home-brew server, you should consult your distribution\'s documentation for enabling mod_rewrite before selecting this option.
-                           With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
-                           </p>',
+      url_schemes_title: 'URL schemes',
+      url_schemes_body: '<p>The URL scheme allows you to decide how the URLs to your Enano pages will look.</p>
+                         <p>The first option (Standard URLs) works on any web server. You should select it if your server doesn\'t run Apache, or
+                            if you are at all unsure of your server\'s configuration. With this scheme, URLs at your site will look like <tt>
+                            http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.</p>
+                         <p>The second option, Small URLs, will be selected by default if Enano detects Apache. Small URLs are more friendly towards
+                            search engines, but they don\'t work on very many non-Apache servers, or if PHP is set up through CGI on your server. Many
+                            free and low-cost web hosts will configure PHP through CGI in order to keep your user account as the owner of any files that
+                            Enano generates. With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.
+                            </p>
+                         <p>The last option, Tiny URLs, is the most friendly URL scheme for search engines, because your URLs won\'t have any special characters
+                            at all in them. However, this only works if your webhost has configured Apache with support for mod_rewrite. Most of the time if your
+                            host supports this you will see a listing for it in their feature matrix. None of the popular Linux distributions (such as Ubuntu,
+                            Debian, Red Hat Enterprise Linux&trade;, Fedora, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
+                            home-brew server, you should consult your distribution\'s documentation for enabling mod_rewrite before selecting this option.
+                            With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
+                            </p>',
       btn_close_window: 'Close window',
     }
   }
