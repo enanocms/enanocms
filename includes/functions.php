@@ -3407,6 +3407,405 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
   return false;
 }
 
+/**
+ * Determines whether a GIF file is animated or not. Credit goes to ZeBadger from <http://www.php.net/imagecreatefromgif>.
+ * Modified to conform to Enano coding standards.
+ * @param string Path to GIF file
+ * @return bool If animated, returns true
+ */
+
+ 
+function is_gif_animated($filename)
+{
+  $filecontents = @file_get_contents($filename);
+  if ( empty($filecontents) )
+    return false;
+
+  $str_loc = 0;
+  $count = 0;
+  while ( $count < 2 ) // There is no point in continuing after we find a 2nd frame
+  {
+    $where1 = strpos($filecontents,"\x00\x21\xF9\x04", $str_loc);
+    if ( $where1 === false )
+    {
+      break;
+    }
+    else
+    {
+      $str_loc = $where1 + 1;
+      $where2 = strpos($filecontents,"\x00\x2C", $str_loc);
+      if ( $where2 === false )
+      {
+        break;
+      }
+      else
+      {
+        if ( $where1 + 8 == $where2 )
+        {
+          $count++;
+        }
+        $str_loc = $where2 + 1;
+      }
+    }
+  }
+  
+  return ( $count > 1 ) ? true : false;
+}
+
+/**
+ * Retrieves the dimensions of a GIF image.
+ * @param string The path to the GIF file.
+ * @return array Key 0 is width, key 1 is height
+ */
+
+function gif_get_dimensions($filename)
+{
+  $filecontents = @file_get_contents($filename);
+  if ( empty($filecontents) )
+    return false;
+  if ( strlen($filecontents) < 10 )
+    return false;
+  
+  $width = substr($filecontents, 6, 2);
+  $height = substr($filecontents, 8, 2);
+  $width = unpack('v', $width);
+  $height = unpack('v', $height);
+  return array($width[1], $height[1]);
+}
+
+/**
+ * Determines whether a PNG image is animated or not. Based on some specification information from <http://wiki.mozilla.org/APNG_Specification>.
+ * @param string Path to PNG file.
+ * @return bool If animated, returns true
+ */
+
+function is_png_animated($filename)
+{
+  $filecontents = @file_get_contents($filename);
+  if ( empty($filecontents) )
+    return false;
+  
+  $parsed = parse_png($filecontents);
+  if ( !$parsed )
+    return false;
+  
+  if ( !isset($parsed['fdAT']) )
+    return false;
+  
+  if ( count($parsed['fdAT']) > 1 )
+    return true;
+}
+
+/**
+ * Gets the dimensions of a PNG image.
+ * @param string Path to PNG file
+ * @return array Key 0 is width, key 1 is length.
+ */
+
+function png_get_dimensions($filename)
+{
+  $filecontents = @file_get_contents($filename);
+  if ( empty($filecontents) )
+    return false;
+  
+  $parsed = parse_png($filecontents);
+  if ( !$parsed )
+    return false;
+  
+  $ihdr_stream = $parsed['IHDR'][0];
+  $width = substr($ihdr_stream, 0, 4);
+  $height = substr($ihdr_stream, 4, 4);
+  $width = unpack('N', $width);
+  $height = unpack('N', $height);
+  $x = $width[1];
+  $y = $height[1];
+  return array($x, $y);
+}
+
+/**
+ * Internal function to parse out the streams of a PNG file. Based on the W3 PNG spec: http://www.w3.org/TR/PNG/
+ * @param string The contents of the PNG
+ * @return array Associative array containing the streams
+ */
+
+function parse_png($data)
+{
+  // Trim off first 8 bytes to check for PNG header
+  $header = substr($data, 0, 8);
+  if ( $header != "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a" )
+  {
+    return false;
+  }
+  $return = array();
+  $data = substr($data, 8);
+  while ( strlen($data) > 0 )
+  {
+    $chunklen_bin = substr($data, 0, 4);
+    $chunk_type = substr($data, 4, 4);
+    $chunklen = unpack('N', $chunklen_bin);
+    $chunklen = $chunklen[1];
+    $chunk_data = substr($data, 8, $chunklen);
+    
+    // If the chunk type is not valid, this may be a malicious PNG with bad offsets. Break out of the loop.
+    if ( !preg_match('/^[A-z]{4}$/', $chunk_type) )
+      break;
+    
+    if ( !isset($return[$chunk_type]) )
+      $return[$chunk_type] = array();
+    $return[$chunk_type][] = $chunk_data;
+    
+    $offset_next = 4 // Length
+                 + 4 // Type
+                 + $chunklen // Data
+                 + 4; // CRC
+    $data = substr($data, $offset_next);
+  }
+  return $return;
+}
+
+/**
+ * Retreives information about the intrinsic characteristics of the jpeg image, such as Bits per Component, Height and Width. This function is from the PHP JPEG Metadata Toolkit. Licensed under the GPLv2 or later.
+ * @param array The JPEG header data, as retrieved from the get_jpeg_header_data function
+ * @return array An array containing the intrinsic JPEG values FALSE - if the comment segment couldnt be found
+ * @license GNU General Public License
+ * @copyright Copyright Evan Hunter 2004 
+ */
+
+function get_jpeg_intrinsic_values( $jpeg_header_data )
+{
+  // Create a blank array for the output
+  $Outputarray = array( );
+
+  //Cycle through the header segments until Start Of Frame (SOF) is found or we run out of segments
+  $i = 0;
+  while ( ( $i < count( $jpeg_header_data) )  && ( substr( $jpeg_header_data[$i]['SegName'], 0, 3 ) != "SOF" ) )
+  {
+    $i++;
+  }
+
+  // Check if a SOF segment has been found
+  if ( substr( $jpeg_header_data[$i]['SegName'], 0, 3 ) == "SOF" )
+  {
+    // SOF segment was found, extract the information
+
+    $data = $jpeg_header_data[$i]['SegData'];
+
+    // First byte is Bits per component
+    $Outputarray['Bits per Component'] = ord( $data{0} );
+
+    // Second and third bytes are Image Height
+    $Outputarray['Image Height'] = ord( $data{ 1 } ) * 256 + ord( $data{ 2 } );
+
+    // Forth and fifth bytes are Image Width
+    $Outputarray['Image Width'] = ord( $data{ 3 } ) * 256 + ord( $data{ 4 } );
+
+    // Sixth byte is number of components
+    $numcomponents = ord( $data{ 5 } );
+
+    // Following this is a table containing information about the components
+    for( $i = 0; $i < $numcomponents; $i++ )
+    {
+      $Outputarray['Components'][] = array (  'Component Identifier' => ord( $data{ 6 + $i * 3 } ),
+                'Horizontal Sampling Factor' => ( ord( $data{ 7 + $i * 3 } ) & 0xF0 ) / 16,
+                'Vertical Sampling Factor' => ( ord( $data{ 7 + $i * 3 } ) & 0x0F ),
+                'Quantization table destination selector' => ord( $data{ 8 + $i * 3 } ) );
+    }
+  }
+  else
+  {
+    // Couldn't find Start Of Frame segment, hence can't retrieve info
+    return FALSE;
+  }
+
+  return $Outputarray;
+}
+
+/**
+ * Reads all the JPEG header segments from an JPEG image file into an array. This function is from the PHP JPEG Metadata Toolkit. Licensed under the GPLv2 or later. Modified slightly for Enano coding standards and to remove unneeded capability.
+ * @param string the filename of the file to JPEG file to read
+ * @return string Array of JPEG header segments, or FALSE - if headers could not be read
+ * @license GNU General Public License
+ * @copyright Copyright Evan Hunter 2004
+ */
+
+function get_jpeg_header_data( $filename )
+{
+  // Attempt to open the jpeg file - the at symbol supresses the error message about
+  // not being able to open files. The file_exists would have been used, but it
+  // does not work with files fetched over http or ftp.
+  $filehnd = @fopen($filename, 'rb');
+
+  // Check if the file opened successfully
+  if ( ! $filehnd  )
+  {
+    // Could't open the file - exit
+    return FALSE;
+  }
+
+
+  // Read the first two characters
+  $data = fread( $filehnd, 2 );
+
+  // Check that the first two characters are 0xFF 0xDA  (SOI - Start of image)
+  if ( $data != "\xFF\xD8" )
+  {
+    // No SOI (FF D8) at start of file - This probably isn't a JPEG file - close file and return;
+    fclose($filehnd);
+    return FALSE;
+  }
+
+
+  // Read the third character
+  $data = fread( $filehnd, 2 );
+
+  // Check that the third character is 0xFF (Start of first segment header)
+  if ( $data{0} != "\xFF" )
+  {
+    // NO FF found - close file and return - JPEG is probably corrupted
+    fclose($filehnd);
+    return FALSE;
+  }
+
+  // Flag that we havent yet hit the compressed image data
+  $hit_compressed_image_data = FALSE;
+
+
+  // Cycle through the file until, one of: 1) an EOI (End of image) marker is hit,
+  //               2) we have hit the compressed image data (no more headers are allowed after data)
+  //               3) or end of file is hit
+
+  while ( ( $data{1} != "\xD9" ) && (! $hit_compressed_image_data) && ( ! feof( $filehnd ) ))
+  {
+    // Found a segment to look at.
+    // Check that the segment marker is not a Restart marker - restart markers don't have size or data after them
+    if (  ( ord($data{1}) < 0xD0 ) || ( ord($data{1}) > 0xD7 ) )
+    {
+      // Segment isn't a Restart marker
+      // Read the next two bytes (size)
+      $sizestr = fread( $filehnd, 2 );
+
+      // convert the size bytes to an integer
+      $decodedsize = unpack ("nsize", $sizestr);
+
+      // Save the start position of the data
+      $segdatastart = ftell( $filehnd );
+
+      // Read the segment data with length indicated by the previously read size
+      $segdata = fread( $filehnd, $decodedsize['size'] - 2 );
+
+
+      // Store the segment information in the output array
+      $headerdata[] = array(  "SegType" => ord($data{1}),
+            "SegName" => $GLOBALS[ "JPEG_Segment_Names" ][ ord($data{1}) ],
+            "SegDataStart" => $segdatastart,
+            "SegData" => $segdata );
+    }
+
+    // If this is a SOS (Start Of Scan) segment, then there is no more header data - the compressed image data follows
+    if ( $data{1} == "\xDA" )
+    {
+      // Flag that we have hit the compressed image data - exit loop as no more headers available.
+      $hit_compressed_image_data = TRUE;
+    }
+    else
+    {
+      // Not an SOS - Read the next two bytes - should be the segment marker for the next segment
+      $data = fread( $filehnd, 2 );
+
+      // Check that the first byte of the two is 0xFF as it should be for a marker
+      if ( $data{0} != "\xFF" )
+      {
+        // NO FF found - close file and return - JPEG is probably corrupted
+        fclose($filehnd);
+        return FALSE;
+      }
+    }
+  }
+
+  // Close File
+  fclose($filehnd);
+
+  // Return the header data retrieved
+  return $headerdata;
+}
+
+/**
+ * Returns the dimensions of a JPEG image in the same format as {php,gif}_get_dimensions().
+ * @param string JPEG file to check
+ * @return array Key 0 is width, key 1 is height
+ */
+
+function jpg_get_dimensions($filename)
+{
+  if ( !file_exists($filename) )
+  {
+    echo "Doesn't exist<br />";
+    return false;
+  }
+  
+  $headers = get_jpeg_header_data($filename);
+  if ( !$headers )
+  {
+    echo "Bad headers<br />";
+    return false;
+  }
+  
+  $metadata = get_jpeg_intrinsic_values($headers);
+  if ( !$metadata )
+  {
+    echo "Bad metadata: <pre>" . print_r($metadata, true) . "</pre><br />";
+    return false;
+  }
+  
+  if ( !isset($metadata['Image Width']) || !isset($metadata['Image Height']) )
+  {
+    echo "No metadata<br />";
+    return false;
+  }
+  
+  return array($metadata['Image Width'], $metadata['Image Height']);
+}
+
+/**
+ * Generates a URL for the avatar for the given user ID and avatar type.
+ * @param int User ID
+ * @param string Image type - must be one of jpg, png, or gif.
+ * @return string
+ */
+
+function make_avatar_url($user_id, $avi_type)
+{
+  if ( !is_int($user_id) )
+    return false;
+  if ( !in_array($avi_type, array('png', 'gif', 'jpg')) )
+    return false;
+  return scriptPath . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
+}
+
+/**
+ * Determines an image's filetype based on its signature.
+ * @param string Path to image file
+ * @return string One of gif, png, or jpg, or false if none of these.
+ */
+
+function get_image_filetype($filename)
+{
+  $filecontents = @file_get_contents($filename);
+  if ( empty($filecontents) )
+    return false;
+  
+  if ( substr($filecontents, 0, 8) == "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a" )
+    return 'png';
+  
+  if ( substr($filecontents, 0, 6) == 'GIF87a' || substr($filecontents, 0, 6) == 'GIF89a' )
+    return 'gif';
+  
+  if ( substr($filecontents, 0, 2) == "\xFF\xD8" )
+    return 'jpg';
+  
+  return false;
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>

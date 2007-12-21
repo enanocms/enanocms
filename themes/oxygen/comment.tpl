@@ -10,6 +10,13 @@
             <td valign="top" class="row1<!-- BEGIN is_friend --> row1_green<!-- END is_friend --><!-- BEGIN is_foe --> row1_red<!-- END is_foe -->">
               <b>{NAME}</b><br />
               <small>{USER_LEVEL}</small>
+              <!-- BEGIN user_has_avatar -->
+              <div class="avatar">
+                <a href="{USERPAGE_LINK}">
+                  <img alt="{AVATAR_ALT}" src="{AVATAR_URL}" style="border-width: 0px;" />
+                </a>
+              </div>
+              <!-- END user_has_avatar -->
             </td>
           </tr>
           <tr>

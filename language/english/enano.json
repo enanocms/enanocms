@@ -18,7 +18,7 @@
 var enano_lang = {
   categories: [
     'adm', 'meta', 'user', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar', 'acl',
-    'perm',
+    'perm', 'usercp',
   ],
   strings: {
     meta: {
@@ -150,6 +150,33 @@ var enano_lang = {
       reg_coppa_title: 'Before you can register, please tell us your age.',
       reg_coppa_link_atleast13: 'I was born <b>on or before</b> %yo13_date% and am <b>at least</b> 13 years of age',
       reg_coppa_link_not13: 'I was born <b>after</b> %yo13_date% and am <b>less than</b> 13 years of age',
+    },
+    usercp: {
+      avatar_err_disabled_title: 'Avatar support is disabled.',
+      avatar_err_disabled_body: 'The administrator has not enabled avatar support for this site.',
+      avatar_table_title: 'Avatar settings',
+      avatar_label_current: 'Current avatar:',
+      avatar_image_alt: '%username%\'s avatar',
+      avatar_image_none: 'You don\'t have an avatar currently.',
+      avatar_lbl_change: 'Change your avatar:',
+      avatar_lbl_keep: 'Keep my current avatar',
+      avatar_lbl_remove: 'Delete my avatar',
+      avatar_lbl_set_http: 'Upload a new avatar from the Web',
+      avatar_lbl_set_file: 'Upload a new avatar from my computer',
+      avatar_lbl_url: 'URL to image:',
+      avatar_lbl_url_desc: 'This must start with the <tt>http://</tt> prefix and must be a valid URL. The image will be copied from the existing URL to this server - dynamic avatars are not supported.',
+      avatar_lbl_file: 'Upload file:',
+      avatar_lbl_file_desc: 'Your browser needs to support file uploads for this option to work.',
+      avatar_limits: 'The image cannot be more than %config.avatar_max_size% bytes in size. The maximum dimensions are %config.avatar_max_width% &#215; %config.avatar_max_height% pixels. Allowed formats are PNG, GIF, and JPEG.',
+      avatar_delete_success: 'Your avatar has been deleted.',
+      avatar_bad_write: 'Either the remote server had trouble finding the image, or your image exceeded the allowed file size.',
+      avatar_bad_filetype: 'The file you selected is invalid. You must choose a file in PNG, JPEG, or GIF format.',
+      avatar_disallowed_animation: 'You have chosen an animated image, which is not allowed. Please choose a non-animated image.',
+      avatar_corrupt_image: 'The image you selected is corrupt. Please choose another image.',
+      avatar_too_large: 'The image you uploaded exceeds the maximum dimensions (%config.avatar_max_width% &#215; %config.avatar_max_height%px) allowed on this site. Please choose another image.',
+      avatar_move_failed: 'Your image was accepted, but there was a problem moving the image file to the correct location.',
+      avatar_upload_success: 'Your avatar has been updated.',
+      avatar_file_too_large: 'The image you uploaded exceeds the maximum file size allowed for avatars on this site.',
     },
     onpage: {
       lbl_pagetools: 'Page tools',

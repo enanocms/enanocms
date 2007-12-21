@@ -805,6 +805,7 @@ class PageProcessor
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $email;
+    global $lang;
     
     $page_urlname = dirtify_page_id($this->page_id);
     if ( $this->page_id == $paths->page_id && $this->namespace == $paths->namespace )
@@ -839,14 +840,14 @@ class PageProcessor
     
     $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($page_name);
     
-    $q = $db->sql_query('SELECT u.username, u.user_id AS authoritative_uid, u.real_name, u.email, u.reg_time, x.*, COUNT(c.comment_id) AS n_comments
+    $q = $db->sql_query('SELECT u.username, u.user_id AS authoritative_uid, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.*, COUNT(c.comment_id) AS n_comments
                            FROM '.table_prefix.'users u
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL ) 
                            LEFT JOIN '.table_prefix.'comments AS c
                              ON ( ( c.user_id=u.user_id AND c.name=u.username AND c.approved=1 ) OR ( c.comment_id IS NULL AND c.approved IS NULL ) )
                            WHERE u.username=\'' . $db->escape($target_username) . '\'
-                           GROUP BY u.username, u.user_id, u.real_name, u.email, u.reg_time,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
+                           GROUP BY u.username, u.user_id, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
     if ( !$q )
       $db->_die();
     
@@ -891,6 +892,10 @@ class PageProcessor
     // Basic user info
     
     echo '<tr><th class="subhead">All about ' . htmlspecialchars($target_username) . '</th></tr>';
+    if ( $userdata['user_has_avatar'] == '1' )
+    {
+      echo '<tr><td class="row1" style="text-align: center;"><img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $userdata['username'])) . '" src="' . make_avatar_url(intval($userdata['authoritative_uid']), $userdata['avatar_type']) . '" /></td></tr>';
+    }
     echo '<tr><td class="row3">Joined: ' . date('F d, Y h:i a', $userdata['reg_time']) . '</td></tr>';
     echo '<tr><td class="row1">Total comments: ' . $userdata['n_comments'] . '</td></tr>';
     

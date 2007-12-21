@@ -12,6 +12,8 @@ CREATE TABLE {{TABLE_PREFIX}}lockout( id int(12) NOT NULL auto_increment, ipaddr
 CREATE TABLE {{TABLE_PREFIX}}language( lang_id smallint(5) NOT NULL auto_increment, lang_code varchar(16) NOT NULL, lang_name_default varchar(64) NOT NULL, lang_name_native varchar(64) NOT NULL, last_changed int(12) NOT NULL DEFAULT 0, PRIMARY KEY ( lang_id ) ) CHARACTER SET `utf8`;
 CREATE TABLE {{TABLE_PREFIX}}language_strings( string_id bigint(15) NOT NULL auto_increment, lang_id smallint(5) NOT NULL, string_category varchar(32) NOT NULL, string_name varchar(64) NOT NULL, string_content longtext NOT NULL, PRIMARY KEY ( string_id ) );
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_lang smallint(5) NOT NULL;
+ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_has_avatar tinyint(1) NOT NULL;
+ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN avatar_type ENUM('jpg', 'png', 'gif') NOT NULL;
 ---END Stable1.0ToUnstable1.1---
 ---BEGIN 1.0.2---
 -- No DB changes in this release

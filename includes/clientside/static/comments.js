@@ -185,6 +185,14 @@ var _render_comment = function(this_comment, data)
   if ( this_comment.user_id > 1 )
     tplvars.NAME = '<a href="' + makeUrlNS('User', this_comment.name) + '">' + this_comment.name + '</a>';
   
+  // Avatar
+  if ( this_comment.user_has_avatar == '1' )
+  {
+    tplvars.AVATAR_URL = scriptPath + '/' + data.avatar_directory + '/' + this_comment.user_id + '.' + this_comment.avatar_type;
+    tplvars.USERPAGE_LINK = makeUrlNS('User', this_comment.name);
+    tplvars.AVATAR_ALT = $lang.get('usercp_avatar_image_alt', { username: this_comment.name });
+  }
+  
   // User level
   tplvars.USER_LEVEL = $lang.get('user_type_guest');
   if ( this_comment.user_level >= data.user_level.member ) tplvars.USER_LEVEL = $lang.get('user_type_member');
@@ -217,6 +225,7 @@ var _render_comment = function(this_comment, data)
   tplbool.auth_mod = data.auth_mod_comments;
   tplbool.is_friend = ( this_comment.is_buddy == 1 && this_comment.is_friend == 1 );
   tplbool.is_foe = ( this_comment.is_buddy == 1 && this_comment.is_friend == 0 );
+  tplbool.user_has_avatar = ( this_comment.user_has_avatar == '1' );
   
   if ( tplbool.is_friend )
     tplvars.USER_LEVEL += '<br /><b>' + $lang.get('comment_on_friend_list') + '</b>';
@@ -444,6 +453,14 @@ function materializeComment(data)
   if ( data.user_level >= data.user_level_list.mod ) tplvars.USER_LEVEL = $lang.get('user_type_mod');
   if ( data.user_level >= data.user_level_list.admin ) tplvars.USER_LEVEL = $lang.get('user_type_admin');
   
+  // Avatar
+  if ( data.user_has_avatar == '1' )
+  {
+    tplvars.AVATAR_URL = scriptPath + '/' + data.avatar_directory + '/' + data.user_id + '.' + data.avatar_type;
+    tplvars.USERPAGE_LINK = makeUrlNS('User', data.name);
+    tplvars.AVATAR_ALT = $lang.get('usercp_avatar_image_alt', { username: data.name });
+  }
+  
   // Send PM link
   tplvars.SEND_PM_LINK=(data.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( data.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br />':'';
   
@@ -468,6 +485,7 @@ function materializeComment(data)
   tplbool.signature = ( data.signature == '' ) ? false : true;
   tplbool.can_edit = ( data.auth_edit_comments && ( ( data.user_id == data.user_id && data.logged_in ) || data.auth_mod_comments ) );
   tplbool.auth_mod = data.auth_mod_comments;
+  tplbool.user_has_avatar = ( data.user_has_avatar == '1' );
   
   parser.assign_vars(tplvars);
   parser.assign_bool(tplbool);

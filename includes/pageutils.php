@@ -1005,7 +1005,7 @@ class PageUtils {
     if(!$e) $db->_die('The comment text data could not be selected.');
     $num_app = $db->numrows();
     $db->free_result();
-    $lq = $db->sql_query('SELECT c.comment_id,c.subject,c.name,c.comment_data,c.approved,c.time,c.user_id,u.user_level,u.signature
+    $lq = $db->sql_query('SELECT c.comment_id,c.subject,c.name,c.comment_data,c.approved,c.time,c.user_id,u.user_level,u.signature,u.user_has_avatar,u.avatar_type
                   FROM ' . table_prefix.'comments AS c
                   LEFT JOIN ' . table_prefix.'users AS u
                     ON c.user_id=u.user_id
@@ -1122,6 +1122,15 @@ class PageUtils {
         // Signature
         $strings['SIGNATURE'] = '';
         if($row['signature'] != '') $strings['SIGNATURE'] = RenderMan::render($row['signature']);
+        
+        // Avatar
+        if ( $row['user_has_avatar'] == 1 )
+        {
+          $bool['user_has_avatar'] = true;
+          $strings['AVATAR_ALT'] = $lang->get('usercp_avatar_image_alt', array('username' => $row['name']));
+          $strings['AVATAR_URL'] = make_avatar_url(intval($row['user_id']), $row['avatar_type']);
+          $strings['USERPAGE_LINK'] = makeUrlNS('User', $row['name']);
+        }
         
         $bool['auth_mod'] = ($session->get_permissions('mod_comments')) ? true : false;
         $bool['can_edit'] = ( ( $session->user_logged_in && $row['name'] == $session->username && $session->get_permissions('edit_comments') ) || $session->get_permissions('mod_comments') ) ? true : false;
