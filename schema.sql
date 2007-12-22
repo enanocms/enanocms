@@ -106,6 +106,8 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   temp_password_time int(12) NOT NULL DEFAULT 0,
   user_coppa tinyint(1) NOT NULL DEFAULT 0,
   user_lang smallint(5) NOT NULL,
+  user_has_avatar tinyint(1) NOT NULL,
+  avatar_type ENUM('jpg', 'png', 'gif') NOT NULL,
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
