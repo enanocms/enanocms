@@ -18,7 +18,7 @@ var Language = function(lang_id)
       return string_id;
     if ( typeof(this.strings[catname][string_name]) != 'string' )
       return string_id;
-    return '[LJS] ' + this.perform_subst(this.strings[catname][string_name], subst);
+    return this.perform_subst(this.strings[catname][string_name], subst) + '**';
   }
   
   this.perform_subst = function(str, subst)

@@ -792,3 +792,13 @@ function validateEmail(email)
   return ( email.match(/^(?:[\w\d_-]+\.?)+@((?:(?:[\w\d_-]\-?)+\.)+\w{2,4}|localhost)$/) ) ? true : false;
 }
 
+/**
+ * Equivalent of PHP's time()
+ * @return int
+ */
+
+function unix_time()
+{
+  return parseInt((new Date()).getTime()/1000);
+}
+

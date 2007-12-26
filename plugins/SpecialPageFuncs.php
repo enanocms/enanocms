@@ -22,45 +22,45 @@ Author URI: http://enanocms.org/
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('base_classes_initted', '
+$plugins->attachHook('session_started', '
   global $paths;
     $paths->add_page(Array(
-      \'name\'=>\'Create page\',
+      \'name\'=>\'specialpage_create_page\',
       \'urlname\'=>\'CreatePage\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'All pages\',
+      \'name\'=>\'specialpage_all_pages\',
       \'urlname\'=>\'AllPages\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'List of special pages\',
+      \'name\'=>\'specialpage_special_pages\',
       \'urlname\'=>\'SpecialPages\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'About Enano\',
+      \'name\'=>\'specialpage_about_enano\',
       \'urlname\'=>\'About_Enano\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'GNU General Public License\',
+      \'name\'=>\'specialpage_gnu_gpl\',
       \'urlname\'=>\'GNU_General_Public_License\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'Tag cloud\',
+      \'name\'=>\'specialpage_tag_cloud\',
       \'urlname\'=>\'TagCloud\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',

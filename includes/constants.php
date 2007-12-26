@@ -68,6 +68,15 @@ define('GROUP_REQUEST', 2);
 define('GROUP_HIDDEN', 3);
 define('GROUP_OPEN', 4);
 
+// Private message flags
+define('PM_UNREAD', 1);
+define('PM_STARRED', 2);
+define('PM_SENT', 4);
+define('PM_DRAFT', 8);
+define('PM_ARCHIVE', 16);
+define('PM_TRASH', 32);
+define('PM_DELIVERED', 64);
+
 // Other stuff
 
 define('MAX_PMS_PER_BATCH', 7); // The maximum number of users that users can send PMs to in one go; restriction does not apply to users with mod_misc rights

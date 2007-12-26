@@ -22,10 +22,10 @@ Author URI: http://enanocms.org/
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('base_classes_initted', '
+$plugins->attachHook('session_started', '
   global $paths;
     $paths->add_page(Array(
-      \'name\'=>\'Private Messages\',
+      \'name\'=>\'specialpage_private_messages\',
       \'urlname\'=>\'PrivateMessages\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
@@ -35,9 +35,10 @@ $plugins->attachHook('base_classes_initted', '
 function page_Special_PrivateMessages()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( !$session->user_logged_in )
   {
-    die_friendly('Access denied', '<p>You need to <a href="'.makeUrlNS('Special', 'Login/'.$paths->page).'">log in</a> to view your private messages.</p>');
+    die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('privmsgs_err_need_login', array('login_link' => makeUrlNS('Special', 'Login/' . $paths->page))) . '</p>');
   }
   $argv = Array();
   $argv[] = $paths->getParam(0);
@@ -67,7 +68,7 @@ function page_Special_PrivateMessages()
       $db->free_result();
       if ( ($r['message_to'] != $session->username && $r['message_from'] != $session->username ) || $r['folder_name']=='drafts' )
       {
-        die_friendly('Access denied', '<p>You are not authorized to view this message.</p>');
+        die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('privmsgs_err_not_authorized_read') . '</p>');
       }
       if ( $r['message_to'] == $session->username )
       {
@@ -83,17 +84,17 @@ function page_Special_PrivateMessages()
       ?>
         <br />
         <div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
-          <tr><th colspan="2">Private message from <?php echo $r['message_from']; ?></th></tr>
-          <tr><td class="row1">Subject:</td><td class="row1"><?php echo $r['subject']; ?></td></tr>
-          <tr><td class="row2">Date:</td><td class="row2"><?php echo date('M j, Y G:i', $r['date']); ?></td></tr>
-          <tr><td class="row1">Message:</td><td class="row1"><?php echo RenderMan::render($r['message_text']);
+          <tr><th colspan="2"><?php echo $lang->get('privmsgs_lbl_message_from', array('sender' => htmlspecialchars($r['message_from']))); ?></th></tr>
+          <tr><td class="row1"><?php echo $lang->get('privmsgs_lbl_subject') ?></td><td class="row1"><?php echo $r['subject']; ?></td></tr>
+          <tr><td class="row2"><?php echo $lang->get('privmsgs_lbl_date') ?></td><td class="row2"><?php echo date('M j, Y G:i', $r['date']); ?></td></tr>
+          <tr><td class="row1"><?php echo $lang->get('privmsgs_lbl_message') ?></td><td class="row1"><?php echo RenderMan::render($r['message_text']);
           if ( $r['signature'] != '' )
           {
             echo '<hr style="margin-left: 1em; width: 200px;" />';
             echo RenderMan::render($r['signature']);
           }
           ?></td></tr>
-          <tr><td colspan="2" class="row3"><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Compose/ReplyTo/'.$id); ?>">Send reply</a>  |  <a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Delete/'.$id); ?>">Delete message</a>  |  <?php if($r['folder_name'] != 'archive') { ?><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Move/'.$id.'/Archive'); ?>">Archive message</a>  |  <?php } ?><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Inbox') ?>">Return to inbox</a></td></tr>
+          <tr><td colspan="2" class="row3"><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Compose/ReplyTo/'.$id); ?>"><?php echo $lang->get('privmsgs_btn_send_reply'); ?></a>  |  <a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Delete/'.$id); ?>">Delete message</a>  |  <?php if($r['folder_name'] != 'archive') { ?><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Move/'.$id.'/Archive'); ?>"><?php echo $lang->get('privmsgs_btn_archive'); ?></a>  |  <?php } ?><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Inbox') ?>"><?php echo $lang->get('privmsgs_btn_return_to_inbox'); ?></a></td></tr>
         </table></div>
       <?php
       $template->footer();              
@@ -113,7 +114,7 @@ function page_Special_PrivateMessages()
       $db->free_result();
       if ( $r['message_to'] != $session->username )
       {
-        die_friendly('Access denied', '<p>You are not authorized to alter this message.</p>');
+        die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('privmsgs_err_not_authorized_edit') . '</p>');
       }
       $fname = $argv[2];
       if ( !$fname || ( $fname != 'Inbox' && $fname != 'Outbox' && $fname != 'Sent' && $fname != 'Drafts' && $fname != 'Archive' ) )
@@ -126,7 +127,7 @@ function page_Special_PrivateMessages()
       {
         $db->_die('The message was not successfully moved.');
       }
-      die_friendly('Message status', '<p>Your message has been moved to the folder "'.$fname.'".</p><p><a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">Return to inbox</a></p>');
+      die_friendly($lang->get('privmsgs_msg_message_status'), '<p>' . $lang->get('privmsgs_msg_message_moved', array('folder' => $fname)) . '</p><p><a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">' . $lang->get('privmsgs_btn_return_to_inbox') . '</a></p>');
       break;
     case 'Delete':
       $id = $argv[1];
@@ -142,7 +143,7 @@ function page_Special_PrivateMessages()
       $r = $db->fetchrow();
       if ( $r['message_to'] != $session->username )
       {
-        die_friendly('Access denied', '<p>You are not authorized to delete this message.</p>');
+        die_friendly($lang->get('etc_access_denied_short'), '<p>You are not authorized to delete this message.</p>');
       }
       $q = $db->sql_query('DELETE FROM '.table_prefix.'privmsgs WHERE message_id='.$id.';');
       if ( !$q )
@@ -150,55 +151,99 @@ function page_Special_PrivateMessages()
         $db->_die('The message was not successfully deleted.');
       }
       $db->free_result();
-      die_friendly('Message status', '<p>The message has been deleted.</p><p><a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">Return to inbox</a></p>');
+      die_friendly($lang->get('privmsgs_msg_message_status'), '<p>' . $lang->get('privmsgs_msg_message_deleted') . '</p><p><a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">' . $lang->get('privmsgs_btn_return_to_inbox') . '</a></p>');
       break;
     case 'Compose':
       if ( $argv[1]=='Send' && isset($_POST['_send']) )
       {
         // Check each POST DATA parameter...
-        if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == '')) die_friendly('Sending of message failed', '<p>Please enter the username to which you want to send your message.</p>');
-        if(!isset($_POST['subject']) || ( isset($_POST['subject']) && $_POST['subject'] == '')) die_friendly('Sending of message failed', '<p>Please enter a subject for your message.</p>');
-        if(!isset($_POST['message']) || ( isset($_POST['message']) && $_POST['message'] == '')) die_friendly('Sending of message failed', '<p>Please enter a message to send.</p>');
-        $namelist = $_POST['to'];
-        $namelist = str_replace(', ', ',', $namelist);
-        $namelist = explode(',', $namelist);
-        foreach($namelist as $n) { $n = $db->escape($n); }
-        $subject = RenderMan::preprocess_text($_POST['subject']);
-        $message = RenderMan::preprocess_text($_POST['message']);
-        $base_query = 'INSERT INTO '.table_prefix.'privmsgs(message_from,message_to,date,subject,message_text,folder_name,message_read) VALUES';
-        foreach($namelist as $n)
+        $errors = array();
+        if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == ''))
         {
-          $base_query .= '(\''.$session->username.'\', \''.$n.'\', '.time().', \''.$subject.'\', \''.$message.'\', \'inbox\', 0),';
+          $errors[] = $lang->get('privmsgs_err_need_username');
         }
-        $base_query = substr($base_query, 0, strlen($base_query)-1) . ';';
-        $result = $db->sql_query($base_query);
-        $db->free_result();
-        if(!$result) $db->_die('The message could not be sent.');
-        else die_friendly('Message status', '<p>Your message has been sent. You may edit the message if you wish; one copy for each recipient will be in your outbox until each recipient has read it. Return to your <a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">inbox</a>.</p>');
-        return;
-      } elseif($argv[1]=='Send' && isset($_POST['_savedraft'])) {
-        // Check each POST DATA parameter...
-        if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == '')) die_friendly('Sending of message failed', '<p>Please enter the username to which you want to send your message.</p>');
-        if(!isset($_POST['subject']) || ( isset($_POST['subject']) && $_POST['subject'] == '')) die_friendly('Sending of message failed', '<p>Please enter a subject for your message.</p>');
-        if(!isset($_POST['message']) || ( isset($_POST['message']) && $_POST['message'] == '')) die_friendly('Sending of message failed', '<p>Please enter a message to send.</p>');
-        $namelist = $_POST['to'];
-        $namelist = str_replace(', ', ',', $namelist);
-        $namelist = explode(',', $namelist);
-        foreach($namelist as $n) { $n = $db->escape($n); }
-        if(count($namelist) > MAX_PMS_PER_BATCH && $session->get_permssions('mod_misc')) die_friendly('Limit exceeded', '<p>You can only send this message to a maximum of '.MAX_PMS_PER_BATCH.' users.</p>');
-        $subject = $db->escape($_POST['subject']);
-        $message = RenderMan::preprocess_text($_POST['message']);
-        $base_query = 'INSERT INTO '.table_prefix.'privmsgs(message_from,message_to,date,subject,message_text,folder_name,message_read) VALUES';
-        foreach($namelist as $n)
+        if(!isset($_POST['subject']) || ( isset($_POST['subject']) && $_POST['subject'] == ''))
         {
-          $base_query .= '(\''.$session->username.'\', \''.$n.'\', '.time().', \''.$subject.'\', \''.$message.'\', \'drafts\', 0),';
+          $errors[] = $lang->get('privmsgs_err_need_subject');
         }
-        $base_query = substr($base_query, 0, strlen($base_query)-1) . ';';
-        $result = $db->sql_query($base_query);
-        $db->free_result();
-        if(!$result) $db->_die('The message could not be saved.');
-      } elseif(isset($_POST['_inbox'])) {
-        header('Location: '.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'));
+        if(!isset($_POST['message']) || ( isset($_POST['message']) && $_POST['message'] == ''))
+        {
+          $errors[] = $lang->get('privmsgs_err_need_message');
+        }
+        if ( count($errors) < 1 )
+        {
+          $namelist = $_POST['to'];
+          $namelist = str_replace(', ', ',', $namelist);
+          $namelist = explode(',', $namelist);
+          foreach($namelist as $n) { $n = $db->escape($n); }
+          $subject = RenderMan::preprocess_text($_POST['subject']);
+          $message = RenderMan::preprocess_text($_POST['message']);
+          $base_query = 'INSERT INTO '.table_prefix.'privmsgs(message_from,message_to,date,subject,message_text,folder_name,message_read) VALUES';
+          foreach($namelist as $n)
+          {
+            $base_query .= '(\''.$session->username.'\', \''.$n.'\', '.time().', \''.$subject.'\', \''.$message.'\', \'inbox\', 0),';
+          }
+          $base_query = substr($base_query, 0, strlen($base_query)-1) . ';';
+          $result = $db->sql_query($base_query);
+          $db->free_result();
+          if ( !$result )
+          {
+            $db->_die('The message could not be sent.');
+          }
+          else
+          {
+            die_friendly($lang->get('privmsgs_msg_message_status'), '<p>' . $lang->get('privmsgs_msg_message_sent', array('inbox_link' => makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'))) . '</p>');
+          }
+          return;
+        }
+      }
+      else if ( $argv[1] == 'Send' && isset($_POST['_savedraft'] ) )
+      {
+        $errors = array();
+        if ( !isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == '') )
+        {
+          $errors[] = $lang->get('privmsgs_err_need_username');
+        }
+        if ( !isset($_POST['subject']) || ( isset($_POST['subject']) && $_POST['subject'] == '') )
+        {
+          $errors[] = $lang->get('privmsgs_err_need_subject');
+        }
+        if ( !isset($_POST['message']) || ( isset($_POST['message']) && $_POST['message'] == '') )
+        {
+          $errors[] = $lang->get('privmsgs_err_need_message');
+        }
+        if ( count($errors) < 1 )
+        {
+          $namelist = $_POST['to'];
+          $namelist = str_replace(', ', ',', $namelist);
+          $namelist = explode(',', $namelist);
+          foreach($namelist as $n)
+          {
+            $n = $db->escape($n);
+          }
+          if ( count($namelist) > MAX_PMS_PER_BATCH && !$session->get_permssions('mod_misc') )
+          {
+            die_friendly($lang->get('privmsgs_err_limit_exceeded_title'), '<p>' . $lang->get('privmsgs_err_limit_exceeded_body', array('limit' => MAX_PMS_PER_BATCH)) . '</p>');
+          }
+          $subject = $db->escape($_POST['subject']);
+          $message = RenderMan::preprocess_text($_POST['message']);
+          $base_query = 'INSERT INTO '.table_prefix.'privmsgs(message_from,message_to,date,subject,message_text,folder_name,message_read) VALUES';
+          foreach($namelist as $n)
+          {
+            $base_query .= '(\''.$session->username.'\', \''.$n.'\', '.time().', \''.$subject.'\', \''.$message.'\', \'drafts\', 0),';
+          }
+          $base_query = substr($base_query, 0, strlen($base_query) - 1) . ';';
+          $result = $db->sql_query($base_query);
+          $db->free_result();
+          if ( !$result )
+          {
+            $db->_die('The message could not be saved.');
+          }
+        }
+      }
+      else if(isset($_POST['_inbox']))
+      {
+        redirect(makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'), '', '', 0);
       }
       if($argv[1] == 'ReplyTo' && preg_match('#^([0-9]+)$#', $argv[2]))
       {
@@ -207,12 +252,17 @@ function page_Special_PrivateMessages()
         $subj = '';
         $id = $argv[2];
         $q = $db->sql_query('SELECT p.message_from, p.message_to, p.subject, p.message_text, p.date, p.folder_name, u.signature FROM '.table_prefix.'privmsgs AS p LEFT JOIN '.table_prefix.'users AS u ON (p.message_from=u.username) WHERE message_id='.$id.';');
-        if(!$q) $db->_die('The message data could not be selected.');
+        if ( !$q )
+          $db->_die('The message data could not be selected.');
+        
         $r = $db->fetchrow();
         $db->free_result();
-        if( ($r['message_to'] != $session->username && $r['message_from'] != $session->username ) || $r['folder_name']=='drafts' ) die_friendly('Access denied', '<p>You are not authorized to view the contents of this message.</p>');
+        if ( ($r['message_to'] != $session->username && $r['message_from'] != $session->username ) || $r['folder_name'] == 'drafts' )
+        {
+          die_friendly($lang->get('etc_access_denied_short'), '<p>You are not authorized to view the contents of this message.</p>');
+        }
         $subj = 'Re: ' . $r['subject'];
-        $text = "\n\n\nOn ".date('M j, Y G:i', $r['date']).", ".$r['message_from']." wrote:\n> ".str_replace("\n", "\n> ", $r['message_text']); // Way less complicated than using a regex ;-)
+        $text = "\n\n\nOn " . date('M j, Y G:i', $r['date']) . ", " . $r['message_from'] . " wrote:\n> " . str_replace("\n", "\n> ", $r['message_text']); // Way less complicated than using a regex ;-)
         
         $tbuf = $text;
         while( preg_match("/\n([\> ]*?)\> \>/", $text) )
@@ -224,26 +274,47 @@ function page_Special_PrivateMessages()
         }
         
         $to = $r['message_from'];
-      } else {
-        if(( $argv[1]=='to' || $argv[1]=='To' ) && $argv[2]) $to = $argv[2];
-        else $to = '';
+      }
+      else
+      {
+        if ( ( $argv[1]=='to' || $argv[1]=='To' ) && $argv[2] )
+        {
+          $to = htmlspecialchars($argv[2]);
+        }
+        else
+        {
+          $to = '';
+        }
         $text = '';
         $subj = '';
       }
         $template->header();
         userprefs_show_menu();
-        echo '<form action="'.makeUrlNS('Special', 'PrivateMessages/Compose/Send').'" method="post" onsubmit="if(!submitAuthorized) return false;">';
+        if ( isset($errors) && count($errors) > 0 )
+        {
+          echo '<div class="warning-box">
+                  ' . $lang->get('privmsgs_err_send_submit') . '
+                  <ul>
+                    <li>' . implode('</li><li>', $errors) . '</li>
+                  </ul>
+                </div>';
+        }
+        echo '<form action="'.makeUrlNS('Special', 'PrivateMessages/Compose/Send').'" method="post">';
+        
+        if ( isset($_POST['_savedraft']) )
+        {
+          echo '<div class="info-box">' . $lang->get('privmsgs_msg_draft_saved') . '</div>';
+        }
         ?>
         <br />
         <div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
           <tr>
-            <th colspan="2">Compose new private message</th>
+            <th colspan="2"><?php echo $lang->get('privmsgs_lbl_compose_th'); ?></th>
           </tr>
           <tr>
             <td class="row1">
-              To:<br />
-              <small>Separate multiple names with a single comma; you<br />
-                     may send this message to up to <b><?php echo (string)MAX_PMS_PER_BATCH; ?></b> users.</small>
+              <?php echo $lang->get('privmsgs_lbl_compose_to'); ?><br />
+              <small><?php echo $lang->get('privmsgs_lbl_compose_to_max', array('limit' => MAX_PMS_PER_BATCH)); ?></small>
             </td>
             <td class="row1">
               <?php echo $template->username_field('to', (isset($_POST['_savedraft'])) ? $_POST['to'] : $to ); ?>
@@ -251,12 +322,37 @@ function page_Special_PrivateMessages()
           </tr>
           <tr>
             <td class="row2">
-              Subject:
+              <?php echo $lang->get('privmsgs_lbl_subject'); ?>
             </td>
             <td class="row2">
-              <input name="subject" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['subject']); else echo $subj; ?>" /></td></tr>
-          <tr><td class="row1">Message:</td><td class="row1" style="min-width: 80%;"><textarea rows="20" cols="40" name="message" style="width: 100%;"><?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['message']); else echo $text; ?></textarea></td></tr>
-          <tr><th colspan="2"><input type="submit" name="_send" value="Send message" />  <input type="submit" name="_savedraft" value="Save as draft" /> <input type="submit" name="_inbox" value="Back to Inbox" /></th></tr>
+              <input name="subject" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['subject']); else echo $subj; ?>" />
+            </td>
+          </tr>
+          <tr>
+            <td class="row1">
+              <?php echo $lang->get('privmsgs_lbl_message'); ?>
+            </td>
+            <td class="row1" style="min-width: 80%;">
+              <?php
+                if ( isset($_POST['_savedraft']) )
+                {
+                  $content = htmlspecialchars($_POST['message']);
+                }
+                else
+                {
+                  $content =& $text;
+                }
+                echo $template->tinymce_textarea('message', $content, 20, 40);
+              ?>
+            </td>
+          </tr>
+          <tr>
+            <th class="subhead" colspan="2">
+              <input type="submit" name="_send" value="<?php echo $lang->get('privmsgs_btn_send'); ?>" />
+              <input type="submit" name="_savedraft" value="<?php echo $lang->get('privmsgs_btn_savedraft'); ?>" />
+              <input type="submit" name="_inbox" value="<?php echo $lang->get('privmsgs_btn_return_to_inbox'); ?>" />
+            </th>
+          </tr>
         </table></div>
         <?php
         echo '</form>';
@@ -264,61 +360,162 @@ function page_Special_PrivateMessages()
       break;
     case 'Edit':
       $id = $argv[1];
-      if(!preg_match('#^([0-9]+)$#', $id)) die_friendly('Message error', '<p>Invalid message ID</p>');
+      if ( !preg_match('#^([0-9]+)$#', $id) )
+      {
+        die_friendly('Message error', '<p>Invalid message ID</p>');
+      }
       $q = $db->sql_query('SELECT message_from, message_to, subject, message_text, date, folder_name, message_read FROM '.table_prefix.'privmsgs WHERE message_id='.$id.'');
-      if(!$q) $db->_die('The message data could not be selected.');
+      if ( !$q )
+      {
+        $db->_die('The message data could not be selected.');
+      }
       $r = $db->fetchrow();
       $db->free_result();
-      if($r['message_from'] != $session->username || $r['message_read'] == 1 ) die_friendly('Access denied', '<p>You are not authorized to edit this message.</p>');
+      if ( $r['message_from'] != $session->username || $r['message_read'] == 1 )
+      {
+        die_friendly($lang->get('etc_access_denied_short'), '<p>You are not authorized to edit this message.</p>');
+      }
       $fname = $argv[2];
       
       if(isset($_POST['_send']))
       {
         // Check each POST DATA parameter...
-        if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == '')) die_friendly('Sending of message failed', '<p>Please enter the username to which you want to send your message.</p>');
-        if(!isset($_POST['subject']) || ( isset($_POST['subject']) && $_POST['subject'] == '')) die_friendly('Sending of message failed', '<p>Please enter a subject for your message.</p>');
-        if(!isset($_POST['message']) || ( isset($_POST['message']) && $_POST['message'] == '')) die_friendly('Sending of message failed', '<p>Please enter a message to send.</p>');
-        $namelist = $_POST['to'];
-        $namelist = str_replace(', ', ',', $namelist);
-        $namelist = explode(',', $namelist);
-        foreach($namelist as $n) { $n = $db->escape($n); }
-        $subject = RenderMan::preprocess_text($_POST['subject']);
-        $message = RenderMan::preprocess_text($_POST['message']);
-        $base_query = 'UPDATE '.table_prefix.'privmsgs SET subject=\''.$subject.'\',message_to=\''.$namelist[0].'\',message_text=\''.$message.'\',folder_name=\'inbox\' WHERE message_id='.$id.';';
-        $result = $db->sql_query($base_query);
-        $db->free_result();
-        if(!$result) $db->_die('The message could not be sent.');
-        else die_friendly('Message status', '<p>Your message has been sent. You may edit the message if you wish; one copy for each recipient will be in your outbox until each recipient has read it. Return to your <a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">inbox</a>.</p>');
-        return;
-      } elseif(isset($_POST['_savedraft'])) {
-        // Check each POST DATA parameter...
-        if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == '')) die_friendly('Sending of message failed', '<p>Please enter the username to which you want to send your message.</p>');
-        if(!isset($_POST['subject']) || ( isset($_POST['subject']) && $_POST['subject'] == '')) die_friendly('Sending of message failed', '<p>Please enter a subject for your message.</p>');
-        if(!isset($_POST['message']) || ( isset($_POST['message']) && $_POST['message'] == '')) die_friendly('Sending of message failed', '<p>Please enter a message to send.</p>');
-        $namelist = $_POST['to'];
-        $namelist = str_replace(', ', ',', $namelist);
-        $namelist = explode(',', $namelist);
-        foreach($namelist as $n) { $n = $db->escape($n); }
-        $subject = $db->escape($_POST['subject']);
-        $message = RenderMan::preprocess_text($_POST['message']);
-        $base_query = 'UPDATE '.table_prefix.'privmsgs SET subject=\''.$subject.'\',message_to=\''.$namelist[0].'\',message_text=\''.$message.'\' WHERE message_id='.$id.';';
-        $result = $db->sql_query($base_query);
-        $db->free_result();
-        if(!$result) $db->_die('The message could not be saved.');
+        $errors = array();
+        if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == ''))
+        {
+          $errors[] = $lang->get('privmsgs_err_need_username');
+        }
+        if(!isset($_POST['subject']) || ( isset($_POST['subject']) && $_POST['subject'] == ''))
+        {
+          $errors[] = $lang->get('privmsgs_err_need_subject');
+        }
+        if(!isset($_POST['message']) || ( isset($_POST['message']) && $_POST['message'] == ''))
+        {
+          $errors[] = $lang->get('privmsgs_err_need_message');
+        }
+        if ( count($errors) < 1 )
+        {
+          $namelist = $_POST['to'];
+          $namelist = str_replace(', ', ',', $namelist);
+          $namelist = explode(',', $namelist);
+          foreach ($namelist as $n)
+          {
+            $n = $db->escape($n);
+          }
+          $subject = RenderMan::preprocess_text($_POST['subject']);
+          $message = RenderMan::preprocess_text($_POST['message']);
+          $base_query = 'UPDATE '.table_prefix.'privmsgs SET subject=\''.$subject.'\',message_to=\''.$namelist[0].'\',message_text=\''.$message.'\',folder_name=\'inbox\' WHERE message_id='.$id.';';
+          $result = $db->sql_query($base_query);
+          $db->free_result();
+          if ( !$result )
+          {
+            $db->_die('The message could not be sent.');
+          }
+          else
+          {
+            die_friendly($lang->get('privmsgs_msg_message_status'), '<p>' . $lang->get('privmsgs_msg_message_sent', array('inbox_link' => makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'))) . '</p>');
+          }
+          return;
+        }
       }
-        if($argv[1]=='to' && $argv[2]) $to = $argv[2];
-        else $to = '';
+      else if ( isset($_POST['_savedraft']) )
+      {
+        // Check each POST DATA parameter...
+        $errors = array();
+        if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == ''))
+        {
+          $errors[] = $lang->get('privmsgs_err_need_username');
+        }
+        if(!isset($_POST['subject']) || ( isset($_POST['subject']) && $_POST['subject'] == ''))
+        {
+          $errors[] = $lang->get('privmsgs_err_need_subject');
+        }
+        if(!isset($_POST['message']) || ( isset($_POST['message']) && $_POST['message'] == ''))
+        {
+          $errors[] = $lang->get('privmsgs_err_need_message');
+        }
+        if ( count($errors) < 1 )
+        {
+          $namelist = $_POST['to'];
+          $namelist = str_replace(', ', ',', $namelist);
+          $namelist = explode(',', $namelist);
+          foreach ( $namelist as $n )
+          {
+            $n = $db->escape($n);
+          }
+          $subject = $db->escape($_POST['subject']);
+          $message = RenderMan::preprocess_text($_POST['message']);
+          $base_query = 'UPDATE '.table_prefix.'privmsgs SET subject=\''.$subject.'\',message_to=\''.$namelist[0].'\',message_text=\''.$message.'\' WHERE message_id='.$id.';';
+          $result = $db->sql_query($base_query);
+          $db->free_result();
+          if ( !$result )
+          {
+            $db->_die('The message could not be saved.');
+          }
+        }
+      }
+        if ( $argv[1]=='to' && $argv[2] )
+        {
+          $to = htmlspecialchars($argv[2]);
+        }
+        else
+        {
+          $to = '';
+        }
         $template->header();
         userprefs_show_menu();
         echo '<form action="'.makeUrlNS('Special', 'PrivateMessages/Edit/'.$id).'" method="post">';
+        
+        if ( isset($_POST['_savedraft']) )
+        {
+          echo '<div class="info-box">' . $lang->get('privmsgs_msg_draft_saved') . '</div>';
+        }
         ?>
         <br />
         <div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
-          <tr><th colspan="2">Edit draft</th></tr>
-          <tr><td class="row1">To:<br /><small>Separate multiple names with a single comma</small></td><td class="row1"><input name="to" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['to']); else echo $r['message_to']; ?>" /></td></tr>
-          <tr><td class="row2">Subject:</td><td class="row2"><input name="subject" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['subject']); else echo $r['subject']; ?>" /></td></tr>
-          <tr><td class="row1">Message:</td><td class="row1"><textarea rows="20" cols="40" name="message" style="width: 100%;"><?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['message']); else echo $r['message_text']; ?></textarea></td></tr>
-          <tr><th colspan="2"><input type="submit" name="_send" value="Send message" />  <input type="submit" name="_savedraft" value="Save as draft" /></th></tr>
+          <tr><th colspan="2"><?php echo $lang->get('privmsgs_lbl_edit_th'); ?></th></tr>
+          <tr>
+            <td class="row1">
+              <?php echo $lang->get('privmsgs_lbl_compose_to'); ?><br />
+              <small><?php echo $lang->get('privmsgs_lbl_compose_to_max', array('limit' => MAX_PMS_PER_BATCH)); ?></small>
+            </td>
+            <td class="row1">
+              <?php echo $template->username_field('to', (isset($_POST['_savedraft'])) ? $_POST['to'] : $r['message_to'] ); ?>
+            </td>
+          </tr>
+          <tr>
+            <td class="row2">
+              <?php echo $lang->get('privmsgs_lbl_subject'); ?>
+            </td>
+            <td class="row2">
+              <input name="subject" type="text" size="30" value="<?php if(isset($_POST['_savedraft'])) echo htmlspecialchars($_POST['subject']); else echo $r['subject']; ?>" />
+            </td>
+          </tr>
+          <tr>
+            <td class="row1">
+              <?php echo $lang->get('privmsgs_lbl_message'); ?>
+            </td>
+            <td class="row1" style="min-width: 80%;">
+              <?php
+                if ( isset($_POST['_savedraft']) )
+                {
+                  $content = htmlspecialchars($_POST['message']);
+                }
+                else
+                {
+                  $content =& $r['message_text'];
+                }
+                echo $template->tinymce_textarea('message', $content, 20, 40);
+              ?>
+            </td>
+          </tr>
+          
+          <tr>
+            <th class="subhead" colspan="2">
+              <input type="submit" name="_send" value="<?php echo $lang->get('privmsgs_btn_send'); ?>" />
+              <input type="submit" name="_savedraft" value="<?php echo $lang->get('privmsgs_btn_savedraft'); ?>" />
+            </th>
+          </tr>
         </table></div>
         <?php
         echo '</form>';
@@ -330,7 +527,10 @@ function page_Special_PrivateMessages()
       switch($argv[1])
       {
         default:
-          echo '<p>The folder "'.$argv[1].'" does not exist. Return to your <a href="'.makeUrlNS('Special', 'PrivateMessages/Folder/Inbox').'">inbox</a>.</p>';
+          echo '<p>' . $lang->get('privmsgs_err_folder_not_exist', array(
+              'folder_name' => htmlspecialchars($argv[1]),
+              'inbox_url' => makeUrlNS('Special', 'PrivateMessages/Folder/Inbox')
+            )) . '</p>';
           break;
         case 'Inbox':
         case 'Outbox':
@@ -342,15 +542,15 @@ function page_Special_PrivateMessages()
           <tr>
           <td style="padding: 0px; width: 120px;" valign="top"  >
           <div class="tblholder" style="width: 120px;"><table border="0" width="120" cellspacing="1" cellpadding="4">
-          <tr><th><small>Private messages</small></th></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Inbox'); ?>">Inbox</a>    </small></td></tr>
-          <tr><td class="row2"><small><a href="<?php echo $session->append_sid('Outbox'); ?>">Outbox</a>  </small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Sent'); ?>">Sent Items</a></small></td></tr>
-          <tr><td class="row2"><small><a href="<?php echo $session->append_sid('Drafts'); ?>">Drafts</a>  </small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Archive'); ?>">Archive</a></small></td></tr>
-          <tr><th><small>Buddies</small></th></tr>
-          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FriendList'); ?>">Friend list</a></small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FoeList'); ?>">Foe list</a></small></td></tr>
+          <tr><th><small><?php echo $lang->get('privmsgs_sidebar_th_privmsgs'); ?></small></th></tr>
+          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'); ?>"><?php echo $lang->get('privmsgs_folder_inbox'); ?></a></small></td></tr>
+          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Outbox'); ?>"><?php echo $lang->get('privmsgs_folder_outbox'); ?></a></small></td></tr>
+          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Sent'); ?>"><?php echo $lang->get('privmsgs_folder_sent'); ?></a></small></td></tr>
+          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Drafts'); ?>"><?php echo $lang->get('privmsgs_folder_drafts'); ?></a></small></td></tr>
+          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Archive'); ?>"><?php echo $lang->get('privmsgs_folder_archive'); ?></a></small></td></tr>
+          <tr><th><small><?php echo $lang->get('privmsgs_sidebar_th_buddies'); ?></small></th></tr>
+          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FriendList'); ?>"><?php echo $lang->get('privmsgs_sidebar_friend_list'); ?></a></small></td></tr>
+          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FoeList'); ?>"><?php echo $lang->get('privmsgs_sidebar_foe_list'); ?></a></small></td></tr>
           </table></div>
           </td>
           <td valign="top">
@@ -373,36 +573,88 @@ function page_Special_PrivateMessages()
               $q = $db->sql_query('SELECT p.message_id, p.message_from, p.message_to, p.date, p.subject, p.message_read FROM '.table_prefix.'privmsgs AS p WHERE p.folder_name=\''.$fname.'\' AND p.message_from=\''.$session->username.'\' ORDER BY date DESC;');
               break;
           }
-          if($argv[1] == 'Drafts' || $argv[1] == 'Outbox') $act = 'Edit';
-          else $act = 'View';
-          if(!$q) $db->_die('The private message data could not be selected.');
-          echo '<form action="'.makeUrlNS('Special', 'PrivateMessages/PostHandler').'" method="post"><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th colspan="4" style="text-align: left;">Folder: '.$argv[1].'</th></tr><tr><th class="subhead">';
-          if($fname == 'drafts' || $fname == 'Outbox') echo 'To'; else echo 'From';
-          echo '</th><th class="subhead">Subject</th><th class="subhead">Date</th><th class="subhead">Mark</th></tr>';
+          if ( !$q )
+          {
+            $db->_die('The private message data could not be selected.');
+          }
+          if ( $argv[1] == 'Drafts' || $argv[1] == 'Outbox' )
+          {
+            $act = 'Edit';
+          }
+          else
+          {
+            $act = 'View';
+          }
+          echo '<form action="'.makeUrlNS('Special', 'PrivateMessages/PostHandler').'" method="post">
+                  <div class="tblholder">
+                    <table border="0" width="100%" cellspacing="1" cellpadding="4">
+                      <tr>
+                        <th colspan="4" style="text-align: left;">' . $lang->get('privmsgs_folder_th_foldername') . ' ' . $lang->get('privmsgs_folder_' . strtolower($argv[1])) . '</th>
+                      </tr>
+                    <tr>
+                      <th class="subhead">';
+          if ( $fname == 'drafts' || $fname == 'Outbox' )
+          {
+            echo $lang->get('privmsgs_folder_th_to');
+          }
+          else
+          {
+            echo $lang->get('privmsgs_folder_th_from');
+          }
+          echo '</th>
+                <th class="subhead">' . $lang->get('privmsgs_folder_th_subject') . '</th>
+                <th class="subhead">' . $lang->get('privmsgs_folder_th_date') . '</th>
+                <th class="subhead">' . $lang->get('privmsgs_folder_th_mark') . '</th>
+              </tr>';
           if($db->numrows() < 1)
-            echo '<tr><td style="text-align: center;" class="row1" colspan="4">No messages in this folder.</td></tr>';
-          else {
+          {
+            echo '<tr><td style="text-align: center;" class="row1" colspan="4">' . $lang->get('privmsgs_msg_no_messages') . '</td></tr>';
+          }
+          else
+          {
             $cls = 'row2';
-            while($r = $db->fetchrow())
+            while ( $r = $db->fetchrow() )
             {
               if($cls == 'row2') $cls='row1';
               else $cls = 'row2';
               $mto = str_replace(' ', '_', $r['message_to']);
               $mfr = str_replace(' ', '_', $r['message_from']);
               echo '<tr><td class="'.$cls.'"><a href="'.makeUrlNS('User', ( $fname == 'drafts') ? $mto : $mfr).'">';
-              if($fname == 'drafts' || $fname == 'outbox') echo $r['message_to']; else echo $r['message_from'];
+              if ( $fname == 'drafts' || $fname == 'outbox' )
+              {
+                echo $r['message_to'];
+              }
+              else
+              {
+                echo $r['message_from'];
+              }
+              
               echo '</a></td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'PrivateMessages/'.$act.'/'.$r['message_id']).'">';
-              if($r['message_read'] == 0) echo '<b>';
+              
+              if ( $r['message_read'] == 0 )
+              {
+                echo '<b>';
+              }
               echo $r['subject'];
-              if($r['message_read'] == 0) echo '</b>';
+              if ( $r['message_read'] == 0 )
+              {
+                echo '</b>';
+              }
               echo '</a></td><td class="'.$cls.'">'.date('M j, Y G:i', $r['date']).'</td><td class="'.$cls.'" style="text-align: center;"><input name="marked_'.$r['message_id'].'" type="checkbox" /></td></tr>';
             }
             $db->free_result();
           }
-          echo '<tr><th style="text-align: right;" colspan="4"><input type="hidden" name="folder" value="'.$fname.'" /><input type="submit" name="archive" value="Archive selected" /> <input type="submit" name="delete" value="Delete selected" /> <input type="submit" name="deleteall" value="Delete all" /></th></tr>';
+          echo '<tr>
+                  <th style="text-align: right;" colspan="4">
+                    <input type="hidden" name="folder" value="'.$fname.'" />
+                    <input type="submit" name="archive" value="' . $lang->get('privmsgs_btn_archive_selected') . '" />
+                    <input type="submit" name="delete" value="' . $lang->get('privmsgs_btn_delete_selected') . '" />
+                    <input type="submit" name="deleteall" value="' . $lang->get('privmsgs_btn_delete_all') . '" />
+                  </th>
+                </tr>';
           echo '</table></div></form>
           <br />
-          <a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/').'">New message</a>
+          <a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/').'">' . $lang->get('privmsgs_btn_compose') . '</a>
           </td></tr></table>';
           break;
       }

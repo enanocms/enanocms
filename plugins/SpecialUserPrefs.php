@@ -103,6 +103,7 @@ function userprefs_menu_init()
   userprefs_menu_add('Profile/membership', 'Edit e-mail address and password', makeUrlNS('Special', 'Preferences/EmailPassword') . '" onclick="ajaxLoginNavTo(\'Special\', \'Preferences/EmailPassword\', '.USER_LEVEL_CHPREF.'); return false;');
   userprefs_menu_add('Profile/membership', 'Edit signature', makeUrlNS('Special', 'Preferences/Signature'));
   userprefs_menu_add('Profile/membership', 'Edit public profile', makeUrlNS('Special', 'Preferences/Profile'));
+  userprefs_menu_add('Profile/membership', 'Group memberships', makeUrlNS('Special', 'Usergroups'));
   if ( getConfig('avatar_enable') == '1' )
   {
     userprefs_menu_add('Profile/membership', 'Avatar settings', makeUrlNS('Special', 'Preferences/Avatar'));
@@ -112,6 +113,14 @@ function userprefs_menu_init()
   userprefs_menu_add('Private messages', 'Sent items', makeUrlNS('Special', 'PrivateMessages/Folder/Sent'));
   userprefs_menu_add('Private messages', 'Drafts', makeUrlNS('Special', 'PrivateMessages/Folder/Drafts'));
   userprefs_menu_add('Private messages', 'Archive', makeUrlNS('Special', 'PrivateMessages/Folder/Archive'));
+  /*
+  userprefs_menu_add('Private messages', 'Inbox', makeUrlNS('Special',      'Private_Messages#folder:inbox'));
+  userprefs_menu_add('Private messages', 'Starred', makeUrlNS('Special',     'Private_Messages#folder:starred'));
+  userprefs_menu_add('Private messages', 'Sent items', makeUrlNS('Special', 'Private_Messages#folder:sent'));
+  userprefs_menu_add('Private messages', 'Drafts', makeUrlNS('Special',     'Private_Messages#folder:drafts'));
+  userprefs_menu_add('Private messages', 'Archive', makeUrlNS('Special',    'Private_Messages#folder:archive'));
+  userprefs_menu_add('Private messages', 'Trash', makeUrlNS('Special',    'Private_Messages#folder:trash'));
+  */
   
   $userprefs_menu_links['Profile/membership'] = makeUrlNS('Special', 'Preferences');
   $userprefs_menu_links['Private messages']  = makeUrlNS('Special', 'PrivateMessages');
@@ -123,7 +132,7 @@ function userprefs_menu_init()
   }
 }
 
-$plugins->attachHook('session_started', 'userprefs_menu_init();');
+$plugins->attachHook('common_post', 'userprefs_menu_init();');
 
 function page_Special_Preferences()
 {

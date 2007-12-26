@@ -1,0 +1,130 @@
+/*
+ * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
+ * Version 1.1.1
+ * Copyright (C) 2006-2007 Dan Fuhry
+ *
+ * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+ */
+
+// This is the main language file for Enano. Feel free to use it as a base for your own translations.
+// All text in this file before the first left curly brace and all text after the last curly brace will
+// be trimmed. So you can use a limited amount of Javascript in this so that the language can be imported
+// via Javascript as well.
+
+var enano_lang = {
+  categories: [
+    'adm', 'acl', 'adminusers'
+  ],
+  strings: {
+    meta: {
+      adm: 'Administration panel nav menu',
+      acl: 'Access control list editor',
+      adminusers: 'ACP: User management'
+    },
+    adm: {
+      cat_general: 'General',
+      cat_content: 'Content',
+      cat_appearance: 'Appearance',
+      cat_users: 'Users',
+      cat_security: 'Security',
+      cat_plugins: 'Plugin configuration',
+      
+      page_general_config: 'General configuration',
+      page_file_uploads: 'File uploads',
+      page_file_types: 'Allowed file types',
+      page_plugins: 'Manage plugins',
+      page_db_backup: 'Backup database',
+      
+      page_manager: 'Manage pages',
+      page_editor: 'Edit page content',
+      page_pg_groups: 'Manage page groups',
+      
+      page_themes: 'Manage themes',
+      
+      page_users: 'Manage users',
+      page_user_groups: 'Edit user groups',
+      page_coppa: 'COPPA support',
+      page_mass_email: 'Mass e-mail',
+      
+      page_security_log: 'Security log',
+      page_ban_control: 'Ban control',
+      
+      btn_home: 'Administration panel home',
+      btn_logout: 'Log out of admin panel',
+      btn_keepalive_off: 'Turn on keep-alive',
+      btn_keepalive_on: 'Turn off keep-alive',
+      btn_keepalive_about: 'About keep-alive',
+      btn_keepalive_loading: 'Loading keep-alive button...',
+      
+      err_not_auth_title: 'Error: Not authenticated',
+      err_not_auth_body: 'It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="%login_link%">re-authenticate</a> to continue.',
+    },
+    acl: {
+      err_access_denied: 'You are not authorized to view or edit access control lists.',
+      err_missing_template: 'It seems that (a) the file acledit.tpl is missing from this theme, and (b) the JSON response is working.',
+      err_user_not_found: 'The username you entered was not found.',
+      err_bad_group_id: 'The group ID you submitted is not valid.',
+      err_demo: 'Editing access control lists is disabled in the administration demo.',
+      err_zero_list: 'Supplied rule list has a length of zero',
+      err_pleaseselect_targettype: 'Please select a target type.',
+      err_pleaseselect_username: 'Please enter a username.',
+      
+      radio_usergroup: 'A usergroup',
+      radio_user: 'A specific user',
+      radio_scope_thispage: 'Only this page',
+      radio_scope_wholesite: 'The entire website',
+      radio_scope_pagegroup: 'A group of pages',
+      
+      lbl_scope: 'What should this access rule control?',
+      lbl_welcome_title: 'Manage page access',
+      lbl_welcome_body: 'Please select who should be affected by this access rule.',
+      lbl_editwin_title_create: 'Create access rule',
+      lbl_editwin_title_edit: 'Editing permissions',
+      lbl_editwin_body: 'This panel allows you to edit what the %target_type% "<b>%target%</b>" can do on <b>%scope_type%</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.',
+      lbl_deleterule: 'Delete this rule',
+      lbl_save_success_title: 'Permissions updated',
+      lbl_save_success_body: 'The permissions for %target_name% on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.',
+      lbl_delete_success_title: 'Rule deleted',
+      lbl_delete_success_body: 'The access rules for %target_name% on this page have been deleted.',
+      lbl_field_deny: 'Deny',
+      lbl_field_disallow: 'Disallow',
+      lbl_field_wikimode: 'Wiki mode',
+      lbl_field_allow: 'Allow',
+      lbl_help: '<p><b>Permission types:</b></p><ul><li><b>Allow</b> means that the user is allowed to access the item</li><li><b>Wiki mode</b> means the user can access the item if wiki mode is active (per-page wiki mode is taken into account)</li><li><b>Disallow</b> means the user is denied access unless something allows it.</li><li><b>Deny</b> means that the user is denied access to the item. This setting overrides all other permissions.</li></ul>',
+      
+      scope_type_wholesite: 'this entire site',
+      scope_type_thispage: 'this page',
+      scope_type_pagegroup: 'this group of pages',
+      
+      target_type_user: 'user',
+      target_type_group: 'group',
+      
+      msg_guest_howto: 'To edit permissions for guests, select "a specific user", and enter Anonymous as the username.',
+      msg_deleterule_confirm: 'Do you really want to delete this rule?',
+      msg_closeacl_confirm: 'Do you really want to close the ACL manager?',
+      
+      btn_success_dismiss: 'dismiss',
+      btn_success_close: 'close manager',
+      btn_deleterule: 'Delete rule',
+      btn_createrule: 'Create rule',
+      btn_returnto_editor: 'Return to ACL editor',
+      btn_returnto_userscope: 'Return to user/scope selection',
+    },
+    adminusers: {
+      avatar_heading: 'Avatar settings',
+      avatar_image_none: 'This user does not currently have an avatar.',
+      avatar_lbl_change: 'Change avatar:',
+      avatar_lbl_keep: 'Keep current setting',
+      avatar_lbl_remove: 'Delete this user\'s avatar',
+      avatar_lbl_set_http: 'Replace avatar using a new image from a URL',
+      avatar_lbl_set_file: 'Replace avatar using a new image from my computer',
+    }
+  }
+};
+
+// All done! :-)
+

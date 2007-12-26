@@ -1608,10 +1608,9 @@ class PageUtils {
    
   function getstyles()
   {
-    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
     
     if ( !preg_match('/^([a-z0-9_-]+)$/', $_GET['id']) )
-      return $json->encode(false);
+      return enano_json_encode(false);
     
     $dir = './themes/' . $_GET['id'] . '/css/';
     $list = Array();
@@ -1631,10 +1630,10 @@ class PageUtils {
     }
     else
     {
-      return($json->encode(Array('mode' => 'error', 'error' => $dir.' is not a dir')));
+      return(enano_json_encode(Array('mode' => 'error', 'error' => $dir.' is not a dir')));
     }
     
-    return $json->encode($list);
+    return enano_json_encode($list);
   }
   
   /**
@@ -2188,10 +2187,9 @@ class PageUtils {
   function acl_json($parms = '{ }')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
-    $parms = $json->decode($parms);
+    $parms = enano_json_decode($parms);
     $ret = PageUtils::acl_editor($parms);
-    $ret = $json->encode($ret);
+    $ret = enano_json_encode($ret);
     return $ret;
   }
   

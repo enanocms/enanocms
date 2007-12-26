@@ -120,6 +120,7 @@ require_once(ENANO_ROOT.'/includes/rijndael.php');
 require_once(ENANO_ROOT.'/includes/email.php');
 require_once(ENANO_ROOT.'/includes/search.php');
 require_once(ENANO_ROOT.'/includes/json.php');
+require_once(ENANO_ROOT.'/includes/json2.php');
 require_once(ENANO_ROOT.'/includes/wikiengine/Tables.php');
 require_once(ENANO_ROOT.'/includes/pageprocess.php');
 require_once(ENANO_ROOT.'/includes/tagcloud.php');
@@ -348,6 +349,14 @@ if ( !defined('IN_ENANO_INSTALL') )
 
   // All checks passed! Start the main components up.  
   $session->start();
+  
+  // This is where plugins will want to add pages from 1.1.x on out. You can still add pages at base_classes_initted but the titles won't be localized.
+  $code = $plugins->setHook('session_started');
+  foreach ( $code as $cmd )
+  {
+    eval($cmd);
+  }
+  
   $paths->init();
   
   // We're ready for whatever life throws us now.
@@ -385,7 +394,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   // A better name for this hook would be common_post. At this point
   // all of Enano is fully initialized and running and you're ready
   // to do whatever you want.
-  $code = $plugins->setHook('session_started');
+  $code = $plugins->setHook('common_post');
   foreach ( $code as $cmd )
   {
     eval($cmd);

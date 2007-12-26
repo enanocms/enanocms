@@ -80,19 +80,18 @@ class Comments
   function process_json($json)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $parser = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
-    $data = $parser->decode($json);
+    $data = enano_json_decode($json);
     $data = decode_unicode_array($data);
     if ( !isset($data['mode']) )
     {
       $ret = Array('mode'=>'error','error'=>'No mode defined!');
-      echo $parser->encode($ret);
+      echo enano_json_encode($ret);
       return $ret;
     }
     if ( getConfig('enable_comments') == '0' )
     {
       $ret = Array('mode'=>'error','error'=>'Comments are not enabled on this site.');
-      echo $parser->encode($ret);
+      echo enano_json_encode($ret);
       return $ret;
     }
     $ret = Array();
@@ -346,7 +345,7 @@ class Comments
           'mode' => 'error', 
           'error' => 'You are not authorized to moderate comments.'
           );
-          echo $parser->encode($ret);
+          echo enano_json_encode($ret);
           return $ret;
         }
         
@@ -383,7 +382,7 @@ class Comments
           );
         break;
     }
-    echo $parser->encode($ret);
+    echo enano_json_encode($ret);
     return $ret;
   }
   

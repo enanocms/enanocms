@@ -20,10 +20,10 @@ Author URI: http://enanocms.org/
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-$plugins->attachHook('base_classes_initted', '
+$plugins->attachHook('session_started', '
   global $paths;
     $paths->add_page(Array(
-      \'name\'=>\'Group Membership\',
+      \'name\'=>\'specialpage_groupcp\',
       \'urlname\'=>\'Usergroups\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
@@ -34,6 +34,7 @@ function page_Special_Usergroups()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $email; // Import e-mail encryption functions
+  global $lang;
   
   if ( !$session->user_logged_in )
   {
@@ -43,6 +44,7 @@ function page_Special_Usergroups()
   }
   
   $template->header();
+  userprefs_show_menu();
   if ( isset($_POST['do_view']) || isset($_POST['do_view_n']) || ( isset($_GET['act']) && isset($_POST['group_id']) ) )
   {
     $gid = ( isset ( $_POST['do_view_n'] ) ) ? intval($_POST['group_id_n']) : intval($_POST['group_id']);
@@ -102,20 +104,20 @@ function page_Special_Usergroups()
     }
     
     $status = ( $is_member && $is_mod )
-      ? 'You are a moderator of this group.'
+      ? $lang->get('groupcp_status_mod')
       : ( ( $is_member && !$is_mod ) 
-        ? 'You are a member of this group.'
-        : 'You are not a member of this group.'
+        ? $lang->get('groupcp_status_member')
+        : $lang->get('groupcp_status_not_member')
         );
       
     $can_do_admin_stuff = ( $is_mod || $session->user_level >= USER_LEVEL_ADMIN );
       
     switch ( $row['group_type'] )
     {
-      case GROUP_HIDDEN:  $g_state = 'Hidden group';                break;
-      case GROUP_CLOSED:  $g_state = 'Closed group';                break;
-      case GROUP_REQUEST: $g_state = 'Members can request to join'; break;
-      case GROUP_OPEN:    $g_state = 'Anyone can join';             break;
+      case GROUP_HIDDEN:  $g_state = $lang->get('groupcp_type_hidden'); break;
+      case GROUP_CLOSED:  $g_state = $lang->get('groupcp_type_closed'); break;
+      case GROUP_REQUEST: $g_state = $lang->get('groupcp_type_request'); break;
+      case GROUP_OPEN:    $g_state = $lang->get('groupcp_type_open'); break;
     }
     
     if ( isset($_GET['act']) && $can_do_admin_stuff )
@@ -139,7 +141,7 @@ function page_Special_Usergroups()
           $r = $db->fetchrow();
           if ( $r['system_group'] == 1 && ( intval($_POST['group_state']) == GROUP_OPEN || intval($_POST['group_state']) == GROUP_REQUEST ) )
           {
-            echo '<div class="error-box" style="margin-left: 0;">Because this is a system group, you can\'t make it open or allow membership requests.</div>';
+            echo '<div class="error-box" style="margin-left: 0;">' . $lang->get('groupcp_err_state_system_group') . '</div>';
             $error = true;
           }
           if ( !$error )
@@ -148,7 +150,7 @@ function page_Special_Usergroups()
             if (!$q)
               $db->_die('SpecialGroups.php, line ' . __LINE__);
             $row['group_type'] = $_POST['group_state'];
-            echo '<div class="info-box" style="margin-left: 0;">The group state was updated.</div>';
+            echo '<div class="info-box" style="margin-left: 0;">' . $lang->get('groupcp_msg_state_updated') . '</div>';
           }
           break;
         case 'adduser':
@@ -160,7 +162,7 @@ function page_Special_Usergroups()
             $db->_die('SpecialGroups.php, line ' . __LINE__);
           if ($db->numrows() < 1)
           {
-            echo '<div class="error-box">The username you entered could not be found.</div>';
+            echo '<div class="error-box">' . $lang->get('groupcp_err_user_not_found') . '</div>';
             break;
           }
           $r = $db->fetchrow();
@@ -184,11 +186,11 @@ function page_Special_Usergroups()
                 if ( $member['member_id'] == $r['member_id'] )
                   $members[$i]['is_mod'] = (int)$mod;
               }
-              echo '<div class="info-box">The user "' . $username . '" is already in this group, so their moderator status was updated.</div>';
+              echo '<div class="info-box">' . $lang->get('groupcp_msg_user_already_in_mod_updated', array('username' => $username)) . '</div>';
             }
             else
             {
-              echo '<div class="info-box">The user "' . $username . '" is already in this group.</div>';
+              echo '<div class="info-box">' . $lang->get('groupcp_msg_user_already_in', array('username' => $username)) . '</div>';
             }
             break;
           }
@@ -198,7 +200,7 @@ function page_Special_Usergroups()
           $q = $db->sql_query('INSERT INTO '.table_prefix.'group_members(group_id,user_id,is_mod) VALUES(' . intval($_POST['group_id']) . ', ' . $uid . ', ' . $mod . ');');
           if (!$q)
             $db->_die('SpecialGroups.php, line ' . __LINE__);
-          echo '<div class="info-box">The user "' . $username . '" has been added to this usergroup.</div>';
+          echo '<div class="info-box">' . $lang->get('groupcp_msg_user_added', array('username' => $username)) . '</div>';
           
           $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,COUNT(c.comment_id) AS num_comments
                                  FROM '.table_prefix.'users AS u
@@ -255,17 +257,17 @@ function page_Special_Usergroups()
               }
             }
           }
-          echo '<div class="info-box">Pending members status updated successfully.</div>';
+          echo '<div class="info-box">' . $lang->get('groupcp_msg_pending_updated') . '</div>';
           break;
       }
     }
     
-    if ( isset($_GET['act']) && $_GET['act'] == 'update' && !$is_member && $row['group_type'] == GROUP_OPEN )
+    if ( isset($_GET['act']) && $_GET['act'] == 'update' && !$is_member && $row['group_type'] == GROUP_OPEN && !$can_do_admin_stuff )
     {
       $q = $db->sql_query('INSERT INTO '.table_prefix.'group_members(group_id,user_id) VALUES(' . $gid . ', ' . $session->user_id . ');');
       if (!$q)
         $db->_die('SpecialGroups.php, line ' . __LINE__);
-      echo '<div class="info-box">You have been added to this group.</div>';
+      echo '<div class="info-box">' . $lang->get('groupcp_msg_self_added') . '</div>';
       
       $q = $db->sql_query('SELECT u.username,u.email,u.reg_time,m.member_id,m.user_id,m.is_mod,COUNT(c.comment_id) AS num_comments
                              FROM '.table_prefix.'users AS u
@@ -288,55 +290,60 @@ function page_Special_Usergroups()
       
     }
     
-    if ( isset($_GET['act']) && $_GET['act'] == 'update' && !$is_member && $row['group_type'] == GROUP_REQUEST && !$is_pending )
+    if ( isset($_GET['act']) && $_GET['act'] == 'update' && !$is_member && $row['group_type'] == GROUP_REQUEST && !$is_pending && !$can_do_admin_stuff )
     {
       $q = $db->sql_query('INSERT INTO '.table_prefix.'group_members(group_id,user_id,pending) VALUES(' . $gid . ', ' . $session->user_id . ', 1);');
       if (!$q)
         $db->_die('SpecialGroups.php, line ' . __LINE__);
-      echo '<div class="info-box">A request has been sent to the moderator(s) of this group to add you.</div>';
+      echo '<div class="info-box">' . $lang->get('groupcp_msg_membership_requested') . '</div>';
     }
     
     $state_btns = ( $can_do_admin_stuff ) ?
-                  '<label><input type="radio" name="group_state" value="' . GROUP_HIDDEN . '" ' . (( $row['group_type'] == GROUP_HIDDEN ) ? 'checked="checked"' : '' ) . ' /> Hidden group</label>
-                   <label><input type="radio" name="group_state" value="' . GROUP_CLOSED . '" ' . (( $row['group_type'] == GROUP_CLOSED ) ? 'checked="checked"' : '' ) . ' /> Closed group</label>
-                   <label><input type="radio" name="group_state" value="' . GROUP_REQUEST. '" ' . (( $row['group_type'] == GROUP_REQUEST) ? 'checked="checked"' : '' ) . ' /> Members can request to join</label>
-                   <label><input type="radio" name="group_state" value="' . GROUP_OPEN   . '" ' . (( $row['group_type'] == GROUP_OPEN   ) ? 'checked="checked"' : '' ) . ' /> Anybody can join</label>'
+                  '<label><input type="radio" name="group_state" value="' . GROUP_HIDDEN . '" ' . (( $row['group_type'] == GROUP_HIDDEN ) ? 'checked="checked"' : '' ) . ' /> ' . $lang->get('groupcp_type_hidden') . '</label>
+                   <label><input type="radio" name="group_state" value="' . GROUP_CLOSED . '" ' . (( $row['group_type'] == GROUP_CLOSED ) ? 'checked="checked"' : '' ) . ' /> ' . $lang->get('groupcp_type_closed') . '</label>
+                   <label><input type="radio" name="group_state" value="' . GROUP_REQUEST. '" ' . (( $row['group_type'] == GROUP_REQUEST) ? 'checked="checked"' : '' ) . ' /> ' . $lang->get('groupcp_type_request') . '</label>
+                   <label><input type="radio" name="group_state" value="' . GROUP_OPEN   . '" ' . (( $row['group_type'] == GROUP_OPEN   ) ? 'checked="checked"' : '' ) . ' /> ' . $lang->get('groupcp_type_open') . '</label>'
                    : $g_state;
     if ( !$can_do_admin_stuff && $row['group_type'] == GROUP_REQUEST && !$is_member )
     {
       if ( $is_pending )
-        $state_btns .= ' (Your request to join is awaiting approval)';
+        $state_btns .= ' ' . $lang->get('groupcp_msg_status_pending');
       else
-        $state_btns .= ' <input type="submit" value="Request membership" />';
+        $state_btns .= ' <input type="submit" value="' . $lang->get('groupcp_btn_request_join') . '" />';
     }
     
     if ( !$can_do_admin_stuff && $row['group_type'] == GROUP_OPEN && !$is_member )
     {
-      $state_btns .= ' <input type="submit" value="Join this group" />';
+      $state_btns .= ' <input type="submit" value="' . $lang->get('groupcp_btn_join') . '" />';
     }
+    
+    $g_name_local = 'groupcp_grp_' . strtolower($row['group_name']);
+    $str = $lang->get($g_name_local);
+    if ( $str != $g_name_local )
+      $row['group_name'] = $str;
     
     echo '<form action="' . makeUrl($paths->page, 'act=update') . '" method="post" enctype="multipart/form-data">
           <div class="tblholder">
             <table border="0" cellspacing="1" cellpadding="4">
               <tr>
-                <th colspan="2">Group information</th>
+                <th colspan="2">' . $lang->get('groupcp_th_group_info') . '</th>
               </tr>
               <tr>
-                <td class="row2">Group name:</td>
-                <td class="row1">' . $row['group_name'] . ( $row['system_group'] == 1 ? ' (system group)' : '' ) . '</td>
+                <td class="row2">' . $lang->get('groupcp_lbl_group_name') . '</td>
+                <td class="row1">' . $row['group_name'] . ( $row['system_group'] == 1 ? ' ' . $lang->get('groupcp_msg_system_group') : '' ) . '</td>
               </tr>
               <tr>
-                <td class="row2">Membership status:</td>
+                <td class="row2">' . $lang->get('groupcp_lbl_status') . '</td>
                 <td class="row1">' . $status . '</td>
               </tr>
               <tr>
-                <td class="row2">Group state:</td>
+                <td class="row2">' . $lang->get('groupcp_lbl_state') . '</td>
                 <td class="row1">' . $state_btns . '</td>
               </tr>   
               ' . ( ( $is_mod || $session->user_level >= USER_LEVEL_ADMIN ) ? '
               <tr>
                 <th class="subhead" colspan="2">
-                  <input type="submit" value="Save changes" />
+                  <input type="submit" value="' . $lang->get('etc_save_changes') . '" />
                 </th>
               </tr>
               ' : '' ) . '
@@ -348,15 +355,15 @@ function page_Special_Usergroups()
     {
       echo '<form action="' . makeUrl($paths->page, 'act=pending') . '" method="post" enctype="multipart/form-data">
             <input name="group_id" value="' . $gid . '" type="hidden" />
-            <h2>Pending memberships</h2>
+            <h2>' . $lang->get('groupcp_th_pending_memberships') . '</h2>
             <div class="tblholder">
             <table border="0" cellspacing="1" cellpadding="4">
               <tr>
-                <th>Username</th>
-                <th>E-mail</th>
-                <th>Registered</th>
-                <th>Total comments</th>
-                <th>Select</th>
+                <th>' . $lang->get('groupcp_th_username') . '</th>
+                <th>' . $lang->get('groupcp_th_email') . '</th>
+                <th>' . $lang->get('groupcp_th_reg_time') . '</th>
+                <th>' . $lang->get('groupcp_th_comments') . '</th>
+                <th>' . $lang->get('groupcp_th_select') . '</th>
               </tr>';
       $cls = 'row2';
       foreach ( $pending as $member )
@@ -378,26 +385,26 @@ function page_Special_Usergroups()
             </div>
             <div style="margin: 10px 0 0 auto;">
               With selected: 
-              <input type="submit" name="do_appr_pending" value="Approve membership" />
-              <input type="submit" name="do_reject_pending" value="Reject membership" />
+              <input type="submit" name="do_appr_pending" value="' . $lang->get('groupcp_btn_approve_pending') . '" />
+              <input type="submit" name="do_reject_pending" value="' . $lang->get('groupcp_btn_reject_pending') . '" />
             </div>
             </form>';
     }
     echo '<form action="' . makeUrl($paths->page, 'act=del_users') . '" method="post" enctype="multipart/form-data">
-          <h2>Group members</h2>
+          <h2>' . $lang->get('groupcp_th_group_members') . '</h2>
           <div class="tblholder">
             <table border="0" cellspacing="1" cellpadding="4">
               <tr>
-                <th>Username</th>
-                <th>E-mail</th>
-                <th>Registered</th>
-                <th>Total comments</th>
-                ' . ( ( $can_do_admin_stuff ) ? "
-                <th>Remove?</th>
-                " : '' ) . '
+                <th>' . $lang->get('groupcp_th_username') . '</th>
+                <th>' . $lang->get('groupcp_th_email') . '</th>
+                <th>' . $lang->get('groupcp_th_reg_time') . '</th>
+                <th>' . $lang->get('groupcp_th_comments') . '</th>
+                ' . ( ( $can_do_admin_stuff ) ? '
+                <th>' . $lang->get('groupcp_th_remove') . '</th>
+                ' : '' ) . '
               </tr>
               <tr>
-                <th colspan="5" class="subhead">Group moderators</th>
+                <th colspan="5" class="subhead">' . $lang->get('groupcp_th_group_mods') . '</th>
               </tr>';
     $mod_printed = false;
     $mem_printed = false;
@@ -425,8 +432,8 @@ function page_Special_Usergroups()
             </tr>";
     }
     if (!$mod_printed)
-      echo '<tr><td class="' . $cls . '" colspan="5">This group has no moderators.</td></th>';
-    echo '<tr><th class="subhead" colspan="5">Group members</th></tr>';
+      echo '<tr><td class="' . $cls . '" colspan="5">' . $lang->get('groupcp_msg_no_mods') . '</td></th>';
+    echo '<tr><th class="subhead" colspan="5">' . $lang->get('groupcp_th_group_members') . '</th></tr>';
     foreach ( $members as $member )
     {
       if ( $member['is_mod'] == 1 )
@@ -449,12 +456,12 @@ function page_Special_Usergroups()
             </tr>";
     }
     if (!$mem_printed)
-      echo '<tr><td class="' . $cls . '" colspan="5">This group has no members.</td></th>';
+      echo '<tr><td class="' . $cls . '" colspan="5">' . $lang->get('groupcp_msg_no_members') . '</td></th>';
     echo '  </table>
           </div>';
     if ( $can_do_admin_stuff )
     {
-      echo "<div style='margin: 10px 0 0 auto;'><input type='submit' name='do_del_user' value='Remove selected users' /></div>";
+      echo "<div style='margin: 10px 0 0 auto;'><input type='submit' name='do_del_user' value=\"" . $lang->get('groupcp_btn_remove_selected') . "\" /></div>";
     }
     echo '<input name="group_id" value="' . $gid . '" type="hidden" />
           </form>';
@@ -464,17 +471,17 @@ function page_Special_Usergroups()
               <div class="tblholder">
                 <table border="0" cellspacing="1" cellpadding="4">
                   <tr>
-                    <th colspan="2">Add a new member to this group</th>
+                    <th colspan="2">' . $lang->get('groupcp_th_add_member') . '</th>
                   </tr>
                   <tr>
-                    <td class="row2">Username:</td><td class="row1">' . $template->username_field('add_username') . '</td>
+                    <td class="row2">' . $lang->get('groupcp_lbl_username') . '</td><td class="row1">' . $template->username_field('add_username') . '</td>
                   </tr>
                   <tr>
-                    <td class="row2">Group moderator:</td><td class="row1"><label><input type="checkbox" name="add_mod" /> User is a group moderator</label></td>
+                    <td class="row2">' . $lang->get('groupcp_lbl_moderator') . '</td><td class="row1"><label><input type="checkbox" name="add_mod" /> ' . $lang->get('groupcp_lbl_make_mod') . '</label></td>
                   </tr>
                   <tr>
                     <th class="subhead" colspan="2">
-                      <input type="submit" value="Add member" />
+                      <input type="submit" value="' . $lang->get('groupcp_btn_add_member') . '" />
                     </th>
                   </tr>
                 </table>
@@ -489,11 +496,11 @@ function page_Special_Usergroups()
     echo '<div class="tblholder">
           <table border="0" style="width: 100%;" cellspacing="1" cellpadding="4">
             <tr>
-              <th colspan="2">Group membership details</th>
+              <th colspan="2">' . $lang->get('groupcp_th_select_group') . '</th>
             </tr>
             <tr>
               <td class="row2" style="text-align: right; width: 50%;">
-                Current group memberships:
+                ' . $lang->get('groupcp_lbl_current_memberships') . '
               </td>
               <td class="row1" style="width: 50%;">';
     $taboo = Array('Everyone');
@@ -505,11 +512,15 @@ function page_Special_Usergroups()
         $taboo[] = $group;
         if ( $group != 'Everyone' )
         {
+          $g_name_local = 'groupcp_grp_' . strtolower($group);
+          $str = $lang->get($g_name_local);
+          if ( $str != $g_name_local )
+            $group = $str;
           echo '<option value="' . $id . '">' . $group . '</option>';
         }
       }
       echo '</select>
-            <input type="submit" name="do_view" value="View information" />';
+            <input type="submit" name="do_view" value="' . $lang->get('groupcp_btn_view') . '" />';
     }
     else
     {
@@ -530,7 +541,7 @@ function page_Special_Usergroups()
     {
       echo '<tr>
               <td class="row2" style="text-align: right;">
-                Non-memberships:
+                ' . $lang->get('groupcp_lbl_non_memberships') . '
               </td>
               <td class="row1">
               <select name="group_id_n">';
@@ -542,7 +553,7 @@ function page_Special_Usergroups()
         }
       }
       echo '</select>
-            <input type="submit" name="do_view_n" value="View information" />
+            <input type="submit" name="do_view_n" value="' . $lang->get('groupcp_btn_view') . '" />
           </td>
         </tr>
       ';

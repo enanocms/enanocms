@@ -1,0 +1,84 @@
+/*
+ * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
+ * Version 1.1.1
+ * Copyright (C) 2006-2007 Dan Fuhry
+ *
+ * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+ */
+
+// This is the main language file for Enano. Feel free to use it as a base for your own translations.
+// All text in this file before the first left curly brace and all text after the last curly brace will
+// be trimmed. So you can use a limited amount of Javascript in this so that the language can be imported
+// via Javascript as well.
+
+var enano_lang = {
+  categories: [
+    'search', 'specialpage'
+  ],
+  strings: {
+    meta: {
+      search: 'Search page',
+      specialpage: 'Special pages',
+    },
+    specialpage: {
+      administration: 'Administration',
+      manage_sidebar: 'Manage the Sidebar',
+      css: 'Templated style sheet generator',
+      groupcp: 'Group Membership',
+      create_page: 'Create page',
+      all_pages: 'All pages',
+      special_pages: 'List of special pages',
+      about_enano: 'About Enano',
+      gnu_gpl: 'GNU General Public License',
+      tag_cloud: 'Tag cloud',
+      search_rebuild: 'Rebuild search index',
+      search: 'Search',
+      upload_file: 'Upload file',
+      download_file: 'Download file',
+      log_in: 'Log in',
+      log_out: 'Log out',
+      register: 'Register',
+      preferences: 'Edit Profile',
+      contributions: 'User contributions',
+      change_theme: 'Change my preferred theme',
+      activate_account: 'Activate user account',
+      captcha: 'CAPTCHA image generator',
+      password_reset: 'Reset forgotten password',
+      member_list: 'Member list',
+      language_export: 'Language exporter',
+      private_messages: 'Private Messages',
+    },
+    search: {
+      th_advanced_search: 'Advanced Search',
+      
+      err_query_title: 'Some problems were encountered during your search.',
+      err_query_body: 'There was a problem with your search query, and as a result there may be a reduced number of search results.',
+      err_query_too_many_terms: 'Some of your search terms were excluded because searches are limited to 20 terms to prevent excessive server load.',
+      err_query_has_stopwords: 'One or more of your search terms was excluded because either it was less than 2 characters in length or is a common word (a stopword) that is typically found on a large number of pages. Examples of stopwords include "the", "this", "which", "with", etc.',
+      err_query_dup_terms: 'One or more of your search terms was excluded because duplicate terms were encountered.',
+      err_query_term_too_short: 'One or more of your search terms was excluded because terms must be at least 4 characters in length.',
+      
+      btn_search: 'Search',
+      // note the case difference with th_advanced_search
+      btn_advanced_search: 'Advanced search',
+      
+      msg_no_results: 'No results.',
+      msg_result_detail: 'Results <b>%start_string%</b> - <b>%per_string%</b> of about <b>%num_results%</b> for <b>%q_trim%</b> in %search_time%s.',
+      
+      lbl_site_search: 'Site search',
+      lbl_relevance: 'Relevance:',
+      lbl_field_any: 'Search for pages with <b>any of these words</b>:',
+      lbl_field_exact: 'with <b>this exact phrase</b>:',
+      lbl_field_none: 'with <b>none of these words</b>:',
+      lbl_field_all: 'with <b>all of these words</b>:',
+      lbl_field_casesensitive: 'Case-sensitive search:',
+    }
+  }
+};
+
+// All done! :-)
+

@@ -112,10 +112,11 @@ class Searcher
  * @param string Search query
  * @param string Will be filled with any warnings encountered whilst parsing the query
  * @param bool Case sensitivity - defaults to false
+ * @param array|reference Will be filled with the parsed list of words.
  * @return array
  */
 
-function perform_search($query, &$warnings, $case_sensitive = false)
+function perform_search($query, &$warnings, $case_sensitive = false, &$word_list)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $warnings = array();
@@ -522,7 +523,7 @@ function perform_search($query, &$warnings, $case_sensitive = false)
     if ( isset($scores[$idstring]) )
     {
       $page_data[$idstring] = array(
-          'page_name' => $page['name'],
+          'page_name' => highlight_search_result($page['name'], $word_list, $case_sensitive),
           'page_text' => '',
           'page_id' => $page['urlname_nons'],
           'namespace' => $page['namespace'],
@@ -592,6 +593,11 @@ function perform_search($query, &$warnings, $case_sensitive = false)
     // if ( $score > $divisor )
     //   $score = $divisor;
     $datum['score'] = round($score / $divisor, 2) * 100;
+    
+    // Highlight the URL
+    $datum['url_highlight'] = makeUrlComplete($datum['namespace'], $datum['page_id']);
+    $datum['url_highlight'] = preg_replace('/\?.+$/', '', $datum['url_highlight']);
+    $datum['url_highlight'] = highlight_search_result($datum['url_highlight'], $word_list, $case_sensitive);
 
     // Store it in our until-now-unused results array
     $results[] = $datum;
@@ -613,6 +619,8 @@ function perform_search($query, &$warnings, $case_sensitive = false)
 
 function parse_search_query($query, &$warnings)
 {
+  global $lang;
+  
   $stopwords = get_stopwords();
   $ret = array(
     'any' => array(),
@@ -663,7 +671,7 @@ function parse_search_query($query, &$warnings)
 
     if ( $ticker == 20 )
     {
-      $warnings[] = 'Some of your search terms were excluded because searches are limited to 20 terms to prevent excessive server load.';
+      $warnings[] = $lang->get('search_err_query_too_many_terms');
       break;
     }
 
@@ -672,13 +680,13 @@ function parse_search_query($query, &$warnings)
       $word = substr ( $atom, 2, ( strlen( $atom ) - 3 ) );
       if ( strlen ( $word ) < 2 || in_array($word, $stopwords) )
       {
-        $warnings[] = 'One or more of your search terms was excluded because either it was less than 2 characters in length or is a common word (a stopword) that is typically found on a large number of pages. Examples of stopwords include "the", "this", "which", "with", etc.';
+        $warnings[] = $lang->get('search_err_query_has_stopwords');
         $ticker--;
         continue;
       }
       if(in_array($word, $ret['req']))
       {
-        $warnings[] = 'One or more of your search terms was excluded because duplicate terms were encountered.';
+        $warnings[] = $lang->get('search_err_query_dup_terms');
         $ticker--;
         continue;
       }
@@ -689,13 +697,13 @@ function parse_search_query($query, &$warnings)
       $word = substr ( $atom, 2, ( strlen( $atom ) - 3 ) );
       if ( strlen ( $word ) < 4 )
       {
-        $warnings[] = 'One or more of your search terms was excluded because terms must be at least 4 characters in length.';
+        $warnings[] = $lang->get('search_err_query_term_too_short');
         $ticker--;
         continue;
       }
       if(in_array($word, $ret['not']))
       {
-        $warnings[] = 'One or more of your search terms was excluded because duplicate terms were encountered.';
+        $warnings[] = $lang->get('search_err_query_dup_terms');
         $ticker--;
         continue;
       }
@@ -706,13 +714,13 @@ function parse_search_query($query, &$warnings)
       $word = substr ( $atom, 1 );
       if ( strlen ( $word ) < 2 || in_array($word, $stopwords) )
       {
-        $warnings[] = 'One or more of your search terms was excluded because either it was less than 2 characters in length or is a common word (a stopword) that is typically found on a large number of pages. Examples of stopwords include "the", "this", "which", "with", etc.';
+        $warnings[] = $lang->get('search_err_query_has_stopwords');
         $ticker--;
         continue;
       }
       if(in_array($word, $ret['req']))
       {
-        $warnings[] = 'One or more of your search terms was excluded because duplicate terms were encountered.';
+        $warnings[] = $lang->get('search_err_query_dup_terms');
         $ticker--;
         continue;
       }
@@ -723,13 +731,13 @@ function parse_search_query($query, &$warnings)
       $word = substr ( $atom, 1 );
       if ( strlen ( $word ) < 2 || in_array($word, $stopwords) )
       {
-        $warnings[] = 'One or more of your search terms was excluded because either it was less than 2 characters in length or is a common word (a stopword) that is typically found on a large number of pages. Examples of stopwords include "the", "this", "which", "with", etc.';
+        $warnings[] = $lang->get('search_err_query_has_stopwords');
         $ticker--;
         continue;
       }
       if(in_array($word, $ret['not']))
       {
-        $warnings[] = 'One or more of your search terms was excluded because duplicate terms were encountered.';
+        $warnings[] = $lang->get('search_err_query_dup_terms');
         $ticker--;
         continue;
       }
@@ -740,13 +748,13 @@ function parse_search_query($query, &$warnings)
       $word = substr ( $atom, 1, ( strlen ( $atom ) - 2 ) );
       if ( strlen ( $word ) < 2 || in_array($word, $stopwords) )
       {
-        $warnings[] = 'One or more of your search terms was excluded because either it was less than 2 characters in length or is a common word (a stopword) that is typically found on a large number of pages. Examples of stopwords include "the", "this", "which", "with", etc.';
+        $warnings[] = $lang->get('search_err_query_has_stopwords');
         $ticker--;
         continue;
       }
       if(in_array($word, $ret['any']))
       {
-        $warnings[] = 'One or more of your search terms was excluded because duplicate terms were encountered.';
+        $warnings[] = $lang->get('search_err_query_dup_terms');
         $ticker--;
         continue;
       }
@@ -757,13 +765,13 @@ function parse_search_query($query, &$warnings)
       $word = $atom;
       if ( strlen ( $word ) < 2 || in_array($word, $stopwords) )
       {
-        $warnings[] = 'One or more of your search terms was excluded because either it was less than 2 characters in length or is a common word (a stopword) that is typically found on a large number of pages. Examples of stopwords include "the", "this", "which", "with", etc.';
+        $warnings[] = $lang->get('search_err_query_has_stopwords');
         $ticker--;
         continue;
       }
       if(in_array($word, $ret['any']))
       {
-        $warnings[] = 'One or more of your search terms was excluded because duplicate terms were encountered.';
+        $warnings[] = $lang->get('search_err_query_dup_terms');
         $ticker--;
         continue;
       }

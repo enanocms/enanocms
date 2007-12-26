@@ -418,8 +418,16 @@ class pathManager {
   
   function add_page($flags)
   {
+    global $lang;
     $flags['urlname_nons'] = $flags['urlname'];
     $flags['urlname'] = $this->nslist[$flags['namespace']] . $flags['urlname']; // Applies the User:/File:/etc prefixes to the URL names
+    
+    if ( is_object($lang) )
+    {
+      if ( preg_match('/^[a-z0-9]+_[a-z0-9_]+$/', $flags['name']) )
+        $flags['name'] = $lang->get($flags['name']);
+    }
+    
     $pages_len = sizeof($this->pages)/2;
     $this->pages[$pages_len] = $flags;
     $this->pages[$flags['urlname']] =& $this->pages[$pages_len];

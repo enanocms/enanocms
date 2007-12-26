@@ -1071,8 +1071,7 @@ EOF;
     break;
   case 'langjs':
     header('Content-type: text/javascript');
-    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
-    $lang_js = $json->encode($lang->strings);
+    $lang_js = enano_json_encode($lang->strings);
     // use EEOF here because jEdit misinterprets "typ'eof'"
     echo <<<EEOF
 if ( typeof(enano_lang) != 'object' )

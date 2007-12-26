@@ -47,7 +47,6 @@
     $db->connect();
     
     // result is sent using JSON
-    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
     $return = Array(
         'mode' => 'success',
         'users_real' => Array()
@@ -61,7 +60,7 @@
         'mode' => 'error',
         'error' => 'Invalid URI'
       );
-      die( $json->encode($return) );
+      die( enano_json_encode($return) );
     }
     $allowanon = ( isset($_GET['allowanon']) && $_GET['allowanon'] == '1' ) ? '' : ' AND user_id > 1';
     $q = $db->sql_query('SELECT username FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username) LIKE ' . ENANO_SQLFUNC_LOWERCASE . '(\'%'.$name.'%\')' . $allowanon . ' ORDER BY username ASC;');
@@ -80,7 +79,7 @@
     // all done! :-)
     $db->close();
     
-    echo $json->encode( $return );
+    echo enano_json_encode( $return );
     
     exit;
   }
@@ -285,7 +284,6 @@
       die('GOOD');
       break;
     case 'get_tags':
-      $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
       
       $ret = array('tags' => array(), 'user_level' => $session->user_level, 'can_add' => $session->get_permissions('tag_create'));
       $q = $db->sql_query('SELECT t.tag_id, t.tag_name, pg.pg_target IS NOT NULL AS used_in_acl, t.user_id FROM '.table_prefix.'tags AS t
@@ -321,11 +319,10 @@
         );
       }
       
-      echo $json->encode($ret);
+      echo enano_json_encode($ret);
       
       break;
     case 'addtag':
-      $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
       $resp = array(
           'success' => false,
           'error' => 'No error',
@@ -337,7 +334,7 @@
       if ( !$session->get_permissions('tag_create') )
       {
         $resp['error'] = 'You are not permitted to tag pages.';
-        die($json->encode($resp));
+        die(enano_json_encode($resp));
       }
       
       // sanitize the tag name
@@ -347,7 +344,7 @@
       if ( strlen($tag) < 2 )
       {
         $resp['error'] = 'Tags must consist of at least 2 alphanumeric characters.';
-        die($json->encode($resp));
+        die(enano_json_encode($resp));
       }
       
       // check if tag is already on page
@@ -357,7 +354,7 @@
       if ( $db->numrows() > 0 )
       {
         $resp['error'] = 'This page already has this tag.';
-        die($json->encode($resp));
+        die(enano_json_encode($resp));
       }
       $db->free_result();
       
@@ -369,7 +366,7 @@
       if ( $db->numrows() > 0 && !$can_edit_acl )
       {
         $resp['error'] = 'This tag is used in an ACL page group, and thus can\'t be added to a page by people without administrator privileges.';
-        die($json->encode($resp));
+        die(enano_json_encode($resp));
       }
       $resp['in_acl'] = ( $db->numrows() > 0 );
       $db->free_result();
@@ -383,7 +380,7 @@
       $resp['tag'] = $tag;
       $resp['tag_id'] = $db->insert_id();
       
-      echo $json->encode($resp);
+      echo enano_json_encode($resp);
       break;
     case 'deltag':
       

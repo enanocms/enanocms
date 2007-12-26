@@ -216,8 +216,7 @@ class Language
     }
     else
     {
-      $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
-      $langdata = $json->decode($contents);
+      $langdata = enano_json_decode($contents);
     
       if ( !is_array($langdata) )
         $db->_die('lang.php - invalid language file');
@@ -299,11 +298,34 @@ $lang_cache = ');
     $contents = preg_replace('/^([^{]+)\{/', '{', $contents);
     $contents = preg_replace('/\}([^}]+)$/', '}', $contents);
     
-    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
-    $langdata = $json->decode($contents);
+    // Correct syntax to be nice to the json parser
+    
+    // eliminate comments
+    $contents = preg_replace(array(
+            // eliminate single line comments in '// ...' form
+            '#^\s*//(.+)$#m',
+            // eliminate multi-line comments in '/* ... */' form, at start of string
+            '#^\s*/\*(.+)\*/#Us',
+            // eliminate multi-line comments in '/* ... */' form, at end of string
+            '#/\*(.+)\*/\s*$#Us'
+          ), '', $contents);
+    
+    $contents = preg_replace('/([,\{\[])([\s]*?)([a-z0-9_]+)([\s]*?):/', '\\1\\2"\\3" :', $contents);
+    
+    try
+    {
+      $langdata = enano_json_decode($contents);
+    }
+    catch(Zend_Json_Exception $e)
+    {
+      $db->_die('lang.php - Exception caught by JSON parser');
+      exit;
+    }
     
     if ( !is_array($langdata) )
-      $db->_die('lang.php - invalid language file');
+    {
+      $db->_die('lang.php - invalid or non-well-formed language file');
+    }
     
     if ( !isset($langdata['categories']) || !isset($langdata['strings']) )
       $db->_die('lang.php - language file does not contain the proper items');

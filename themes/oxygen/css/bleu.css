@@ -251,6 +251,12 @@ input[type ^="image"][disabled ^="disabled"] {
   filter: alpha(opacity=50);
 }
 
+input[type ^="button"][disabled ^="disabled"], input[type ^="submit"][disabled ^="disabled"], button[disabled ^="disabled"], .btn-disabled {
+  color: #808080 !important;
+  background-image: none !important;
+  background-color: #e0e0e0 !important;
+}
+
 /* JWS window theming */
 div.jswindow                      { border: 2px solid #7090B0; border-top: 5px solid #7090B0; padding: 0px; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; display: none; position: absolute; background-color: #FFFFFF; }
 div.titlebar                      { background-color: #7090B0; color: #FFFFFF; font-family: Trebuchet MS, tahoma, verdana, arial, sans-serif; font-size: 9pt; padding-bottom: 4px; cursor: default; }

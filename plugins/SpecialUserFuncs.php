@@ -22,77 +22,77 @@ Author URI: http://enanocms.org/
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('base_classes_initted', '
+$plugins->attachHook('session_started', '
   global $paths;
     $paths->add_page(Array(
-      \'name\'=>\'Log in\',
+      \'name\'=>\'specialpage_log_in\',
       \'urlname\'=>\'Login\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     $paths->add_page(Array(
-      \'name\'=>\'Log out\',
+      \'name\'=>\'specialpage_log_out\',
       \'urlname\'=>\'Logout\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     $paths->add_page(Array(
-      \'name\'=>\'Register\',
+      \'name\'=>\'specialpage_register\',
       \'urlname\'=>\'Register\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     $paths->add_page(Array(
-      \'name\'=>\'Edit Profile\',
+      \'name\'=>\'specialpage_preferences\',
       \'urlname\'=>\'Preferences\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'Contributions\',
+      \'name\'=>\'specialpage_contributions\',
       \'urlname\'=>\'Contributions\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'Change style\',
+      \'name\'=>\'specialpage_change_theme\',
       \'urlname\'=>\'ChangeStyle\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'Activate user account\',
+      \'name\'=>\'specialpage_activate_account\',
       \'urlname\'=>\'ActivateAccount\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'Captcha\',
+      \'name\'=>\'specialpage_captcha\',
       \'urlname\'=>\'Captcha\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'Forgot password\',
+      \'name\'=>\'specialpage_password_reset\',
       \'urlname\'=>\'PasswordReset\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'Member list\',
+      \'name\'=>\'specialpage_member_list\',
       \'urlname\'=>\'Memberlist\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
       
     $paths->add_page(Array(
-      \'name\'=>\'Language exporter\',
+      \'name\'=>\'specialpage_language_export\',
       \'urlname\'=>\'LangExportJSON\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
@@ -168,8 +168,7 @@ function page_Special_Login()
       unset($x, $y);
     }
     
-    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
-    $response = $json->encode($response);
+    $response = enano_json_encode($response);
     echo $response;
     return null;
   }
@@ -369,8 +368,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
   if ( isset($_GET['act']) && $_GET['act'] == 'ajaxlogin' )
   {
     $plugins->attachHook('login_password_reset', 'SpecialLogin_SendResponse_PasswordReset($row[\'user_id\'], $row[\'temp_password\']);');
-    $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
-    $data = $json->decode($_POST['params']);
+    $data = enano_json_decode($_POST['params']);
     $captcha_hash = ( isset($data['captcha_hash']) ) ? $data['captcha_hash'] : false;
     $captcha_code = ( isset($data['captcha_code']) ) ? $data['captcha_code'] : false;
     $level = ( isset($data['level']) ) ? intval($data['level']) : USER_LEVEL_MEMBER;
@@ -397,7 +395,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
           'captcha' => $captcha
         );
     }
-    $response = $json->encode($response);
+    $response = enano_json_encode($response);
     echo $response;
     $db->close();
     exit;
@@ -445,7 +443,6 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
 
 function SpecialLogin_SendResponse_PasswordReset($user_id, $passkey)
 {
-  $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
   
   $response = Array(
       'result' => 'success_reset',
@@ -453,7 +450,7 @@ function SpecialLogin_SendResponse_PasswordReset($user_id, $passkey)
       'temppass' => $passkey
     );
   
-  $response = $json->encode($response);
+  $response = enano_json_encode($response);
   echo $response;
   
   $db->close();
@@ -1722,7 +1719,6 @@ function page_Special_LangExportJSON()
   else
     $lang_local = new Language($lang_id);
   
-  $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
   
   $timestamp = date('D, j M Y H:i:s T', $lang_local->lang_timestamp);
   header("Last-Modified: $timestamp");
@@ -1733,7 +1729,7 @@ function page_Special_LangExportJSON()
   echo "if ( typeof(enano_lang) != 'object' )
   var enano_lang = new Object();
 
-enano_lang[{$lang->lang_id}] = " . $json->encode($lang_local->strings) . ";";
+enano_lang[{$lang->lang_id}] = " . enano_json_encode($lang_local->strings) . ";";
   
 }
 

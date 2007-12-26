@@ -1,0 +1,309 @@
+/*
+ * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
+ * Version 1.1.1
+ * Copyright (C) 2006-2007 Dan Fuhry
+ *
+ * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+ */
+
+// This is the main language file for Enano. Feel free to use it as a base for your own translations.
+// All text in this file before the first left curly brace and all text after the last curly brace will
+// be trimmed. So you can use a limited amount of Javascript in this so that the language can be imported
+// via Javascript as well.
+
+var enano_lang = {
+  categories: [
+    'user', 'usercp', 'groupcp', 'privmsgs'
+  ],
+  strings: {
+    meta: {
+      user: 'Login, logout, and authentication',
+      usercp: 'User control panel',
+      groupcp: 'Group control panel',
+      privmsgs: 'Private message and buddy list CP'
+    },
+    user: {
+      login_message_short: 'Please enter your username and password to log in.',
+      login_message_short_elev: 'Please re-enter your login details',
+      login_body: 'Logging in enables you to use your preferences and access member information. If you don\'t have a username and password here, you can <a href="%reg_link%">create an account</a>.',
+      login_body_elev: 'You are requesting that a sensitive operation be performed. To continue, please re-enter your password to confirm your identity.',
+      login_field_username: 'Username',
+      login_field_password: 'Password',
+      login_forgotpass_blurb: 'Forgot your password? <a href="%forgotpass_link%">No problem.</a>',
+      login_createaccount_blurb: 'Maybe you need to <a href="%reg_link%">create an account</a>.',
+      login_field_captcha: 'Code in image',
+      login_nocrypt_title: 'Important note regarding cryptography:',
+      login_nocrypt_body: 'Some countries do not allow the import or use of cryptographic technology. If you live in one of the countries listed below, you should <a href="%nocrypt_link%">log in without using encryption</a>.',
+      login_nocrypt_countrylist: 'This restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.',
+      login_usecrypt_title: 'Encryption is currently turned off.',
+      login_usecrypt_body: 'If you are not in one of the countries listed below, you should <a href="%usecrypt_link%">enable encryption</a> to secure the logon process.',
+      login_usecrypt_countrylist: 'The cryptography restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.',
+      login_success_title: 'Login successful',
+      login_success_body: 'You have successfully logged into the %config.site_name% site as "%username%". Redirecting to %redir_target%...',
+      login_success_body_mainpage: 'the main page',
+      login_success_short: 'Success.',
+      
+      login_ajax_fetching_key: 'Fetching an encryption key...',
+      login_ajax_prompt_title: 'Please enter your username and password to continue.',
+      login_ajax_prompt_title_elev: 'You are requesting a sensitive operation.',
+      login_ajax_prompt_body_elev: 'Please re-enter your login details, to verify your identity.',
+      login_ajax_link_fullform: 'Trouble logging in? Try the <a href="%link_full_form%">full login form</a>.',
+      login_ajax_link_forgotpass: 'Did you <a href="%forgotpass_link%">forget your password</a>?',
+      login_ajax_loggingin: 'Logging in...',
+      
+      err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',
+      err_key_not_found_cleared: 'It seems that the list of encryption keys used for login information has reached its maximum length, thus preventing new keys from being inserted. The list has been automatically cleared. Please try logging in again; if you are still unable to log in, please contact the site administration.',
+      err_key_wrong_length: 'The encryption key was the wrong length.',
+      err_too_big_for_britches: 'You are trying to authenticate at a level that your user account does not permit.',
+      err_invalid_credentials: 'You have entered an invalid username or password. Please enter your login details again.',
+      err_invalid_credentials_lockout: ' You have used up %fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will be locked out from logging in for %config.lockout_duration% minutes.',
+      err_invalid_credentials_lockout_captcha: ' You have used up %lockout_fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will have to enter a visual confirmation code while logging in, effective for %config.lockout_duration% minutes.',
+      err_backend_fail: 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.',
+      err_locked_out: 'You have used up all %config.lockout_threshold% allowed login attempts. Please wait %time_rem% minute%plural% before attempting to log in again%captcha_blurb%.',
+      err_locked_out_captcha_blurb: ', or enter the visual confirmation code shown above in the appropriate box',
+      
+      logout_success_title: 'Logged out',
+      logout_success_body: 'You have been successfully logged out, and all cookies have been cleared. You will now be transferred to the main page.',
+      logout_confirm_title: 'Are you sure you want to log out?',
+      logout_confirm_body: 'If you log out, you will no longer be able to access your user preferences, your private messages, or certain areas of this site until you log in again.',
+      logout_confirm_title_elev: 'Are you sure you want to de-authenticate?',
+      logout_confirm_body_elev: 'If you de-authenticate, you will no longer be able to use the administration panel until you re-authenticate again. You may do so at any time using the Administration button on the sidebar.',
+      logout_err_title: 'An error occurred during the logout process.',
+      // Unused at this point
+      logout_err_not_loggedin: 'You don\'t seem to be logged in.',
+      
+      keepalive_info_title: 'About the keep-alive feature',
+      keepalive_info_body: 'Keep-alive is a new Enano feature that keeps your administrative session from timing out while you are using the administration panel. This feature can be useful if you are editing a large page or doing something in the administration interface that will take longer than 15 minutes.<br /><br />For security reasons, Enano mandates that high-privilege logins last only 15 minutes, with the time being reset each time a page is loaded (or, more specifically, each time the session API is started). The consequence of this is that if you are performing an action in the administration panel that takes more than 15 minutes, your session may be terminated. The keep-alive feature attempts to relieve this by sending a "ping" to the server every 10 minutes.<br /><br />Please note that keep-alive state is determined by a cookie. Thus, if you log out and then back in as a different administrator, keep-alive will use the same setting that was used when you were logged in as the first administrative user. In the same way, if you log into the administration panel under your account from another computer, keep-alive will be set to "off".<br /><br /><b>For more information:</b><br /><a href="http://docs.enanocms.org/Help:Appendix_B" onclick="window.open(this.href); return false;">Overview of Enano\'s security model</a>',
+      
+      type_guest: 'Guest',
+      type_member: 'Member',
+      type_mod: 'Moderator',
+      type_admin: 'Administrator',
+      
+      msg_elev_timed_out: '<b>Your administrative session has timed out.</b> <a href="%login_link%">Log in again</a>',
+      
+      reg_err_captcha: 'The confirmation code you entered was incorrect.',
+      reg_err_disabled_title: 'Registration disabled',
+      reg_err_disabled_body: 'The administrator has disabled the registration of new accounts on this site.',
+      reg_err_disabled_body_adminblurb: 'Oops...it seems that you <em>are</em> the administrator...hehe...you can also <a href="%reg_link%">force account registration to work</a>.',
+      reg_err_username_invalid: 'Your username must be at least two characters in length and may not contain any of the following characters: &lt; &gt; _ &amp; ? \' " % / \\.',
+      // Not exactly an error
+      reg_err_password_good: 'The password you entered is valid.',
+      reg_err_alert_password_tooshort: 'Your password must be 6 characters or greater in length.',
+      reg_err_alert_password_nomatch: 'The passwords you entered do not match.',
+      reg_err_missing_key: 'Couldn\'t look up public encryption key',
+      
+      reg_msg_greatercontrol: 'A user account enables you to have greater control over your browsing experience.',
+      reg_msg_table_title: 'Create a user account',
+      reg_msg_table_subtitle: 'Please tell us a little bit about yourself.',
+      reg_msg_username_checking: 'Checking availability...',
+      reg_msg_username_available: 'This username is available.',
+      reg_msg_username_unavailable: 'This username is already taken.',
+      reg_msg_password_length: 'Your password must be at least six characters in length.',
+      reg_msg_password_score: 'It needs to score at least <b>%config.pw_strength_minimum%</b> for your registration to be accepted.',
+      reg_msg_password_needmatch: 'The passwords you entered do not match.',
+      reg_msg_email_activuser: 'An e-mail with an account activation key will be sent to this address, so please ensure that it is correct.',
+      reg_msg_realname_optional: 'Giving your real name is totally optional. If you choose to provide your real name, it will be used to provide attribution for any edits or contributions you may make to this site.',
+      reg_msg_captcha_pleaseenter: 'Please enter the code shown in the image to the right into the text box. This process helps to ensure that this registration is not being performed by an automated bot. If the image to the right is illegible, you can <a %regen_flags%>generate a new image</a>.',
+      reg_msg_captcha_blind: 'If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will create an account for you.',
+      reg_msg_success_title: 'Registration successful',
+      reg_msg_success_body: 'Thank you for registering, your user account has been created.',
+      reg_msg_success_activ_none: 'You may now <a href="%login_link%">log in</a> with the username and password that you created.',
+      reg_msg_success_activ_user: 'Because this site requires account activation, you have been sent an e-mail with further instructions. Please follow the instructions in that e-mail to continue your registration.',
+      reg_msg_success_activ_admin: 'Because this site requires administrative account activation, you cannot use your account at the moment. A notice has been sent to the site administration team that will alert them that your account has been created.',
+      reg_msg_success_activ_coppa: 'However, in compliance with the Childrens\' Online Privacy Protection Act, you must have your parent or legal guardian activate your account. Please ask them to check their e-mail for further information.',
+      
+      reg_lbl_field_username: 'Preferred username:',
+      reg_lbl_field_password: 'Password:',
+      reg_lbl_field_password_confirm: 'Enter your password again to confirm.',
+      reg_lbl_field_email: 'E-mail address:',
+      reg_lbl_field_email_coppa: 'Your parent or guardian\'s e-mail address:',
+      reg_lbl_field_realname: 'Real name:',
+      reg_lbl_field_captcha: 'Visual confirmation',
+      reg_lbl_field_captcha_code: 'Code:',
+      
+      reg_coppa_title: 'Before you can register, please tell us your age.',
+      reg_coppa_link_atleast13: 'I was born <b>on or before</b> %yo13_date% and am <b>at least</b> 13 years of age',
+      reg_coppa_link_not13: 'I was born <b>after</b> %yo13_date% and am <b>less than</b> 13 years of age',
+    },
+    usercp: {
+      avatar_err_disabled_title: 'Avatar support is disabled.',
+      avatar_err_disabled_body: 'The administrator has not enabled avatar support for this site.',
+      avatar_table_title: 'Avatar settings',
+      avatar_label_current: 'Current avatar:',
+      avatar_image_alt: '%username%\'s avatar',
+      avatar_image_none: 'You don\'t have an avatar currently.',
+      avatar_lbl_change: 'Change your avatar:',
+      avatar_lbl_keep: 'Keep my current avatar',
+      avatar_lbl_remove: 'Delete my avatar',
+      avatar_lbl_set_http: 'Upload a new avatar from the Web',
+      avatar_lbl_set_file: 'Upload a new avatar from my computer',
+      avatar_lbl_url: 'URL to image:',
+      avatar_lbl_url_desc: 'This must start with the <tt>http://</tt> prefix and must be a valid URL. The image will be copied from the existing URL to this server - dynamic avatars are not supported.',
+      avatar_lbl_file: 'Upload file:',
+      avatar_lbl_file_desc: 'Your browser needs to support file uploads for this option to work.',
+      avatar_limits: 'The image cannot be more than %config.avatar_max_size% bytes in size. The maximum dimensions are %config.avatar_max_width% &#215; %config.avatar_max_height% pixels. Allowed formats are PNG, GIF, and JPEG.',
+      avatar_delete_success: 'Your avatar has been deleted.',
+      avatar_bad_write: 'Either the remote server had trouble finding the image, or your image exceeded the allowed file size.',
+      avatar_bad_filetype: 'The file you selected is invalid. You must choose a file in PNG, JPEG, or GIF format.',
+      avatar_disallowed_animation: 'You have chosen an animated image, which is not allowed. Please choose a non-animated image.',
+      avatar_corrupt_image: 'The image you selected is corrupt. Please choose another image.',
+      avatar_too_large: 'The image you uploaded exceeds the maximum dimensions (%config.avatar_max_width% &#215; %config.avatar_max_height%px) allowed on this site. Please choose another image.',
+      avatar_move_failed: 'Your image was accepted, but there was a problem moving the image file to the correct location.',
+      avatar_upload_success: 'Your avatar has been updated.',
+      avatar_file_too_large: 'The image you uploaded exceeds the maximum file size allowed for avatars on this site.',
+    },
+    groupcp: {
+      status_mod: 'You are a moderator of this group.',
+      status_member: 'You are a member of this group.',
+      status_not_member: 'You are not a member of this group.',
+      
+      err_state_system_group: 'Because this is a system group, you can\'t make it open or allow membership requests.',
+      err_user_not_found: 'The username you entered could not be found.',
+      
+      type_hidden: 'Hidden group',
+      type_closed: 'Closed group',
+      type_request: 'Members can request to join',
+      type_open: 'Anyone can join',
+      
+      lbl_current_memberships: 'Current group memberships:',
+      lbl_non_memberships: 'Groups you are outside of:',
+      lbl_group_name: 'Group name:',
+      lbl_status: 'Membership status:',
+      lbl_state: 'Group state:',
+      lbl_make_mod: 'User is a group moderator',
+      lbl_username: 'Username:',
+      lbl_moderator: 'Group moderator:',
+      
+      msg_membership_requested: 'A request has been sent to the moderator(s) of this group to add you.',
+      msg_status_pending: '(Your request to join is awaiting approval)',
+      msg_no_mods: 'This group has no moderators.',
+      msg_no_members: 'This group has no members.',
+      msg_system_group: '(system group)',
+      msg_pending_updated: 'Pending members status updated successfully.',
+      msg_state_updated: 'The group state was updated.',
+      msg_user_already_in_mod_updated: 'The user "%username%" is already in this group, so their moderator status was updated.',
+      msg_user_already_in: 'The user "%username%" is already in this group.',
+      msg_user_added: 'The user "%username%" has been added to this usergroup.',
+      msg_self_added: 'You have been added to this group.',
+      
+      btn_view: 'View information',
+      btn_request_join: 'Request membership',
+      btn_join: 'Join this group',
+      btn_approve_pending: 'Approve membership',
+      btn_reject_pending: 'Reject membership',
+      btn_remove_selected: 'Remove selected users',
+      btn_add_member: 'Add member',
+      
+      grp_administrators: 'Administrators',
+      grp_moderators: 'Moderators',
+      
+      th_select_group: 'Group membership details',
+      th_group_info: 'Group information',
+      th_pending_memberships: 'Pending memberships',
+      th_group_members: 'Group members',
+      th_group_mods: 'Group moderators',
+      th_add_member: 'Add a new member to this group',
+      th_username: 'Username',
+      th_email: 'E-mail',
+      th_reg_time: 'Registered',
+      th_comments: 'Total comments',
+      th_select: 'Select',
+      th_remove: 'Remove?',
+    },
+    privmsgs: {
+      err_need_login: 'You need to be <a href="%login_link%">logged in</a> to view private messages.',
+      err_not_authorized_read: 'You are not authorized to view this message.',
+      err_not_authorized_edit: 'You are not authorized to alter this message.',
+      err_send_submit: 'Your message could not be sent because the following problems were encountered:',
+      err_need_username: 'Please enter the username to which you want to send your message.',
+      err_need_subject: 'Please enter a subject for your message.',
+      err_need_message: 'Please enter a message to send.',
+      err_limit_exceeded_title: 'Recipient limit exceeded',
+      err_limit_exceeded_body: 'You can only send this message to a maximum of %limit% users.',
+      err_folder_not_exist: 'The folder "%folder_name%" does not exist. Return to your <a href="%inbox_url%">inbox</a>.',
+      
+      msg_message_status: 'Message status',
+      msg_message_moved: 'Your message has been moved to the folder "%folder%".',
+      msg_message_deleted: 'The message has been deleted.',
+      msg_message_sent: 'Your message has been sent. You may edit the message if you wish; one copy for each recipient will be in your outbox until each recipient has read it. Return to your <a href="%inbox_link%">inbox</a>.',
+      msg_draft_saved: 'Your message has been saved to your Drafts folder.',
+      msg_no_messages: 'No messages in this folder.',
+      
+      lbl_message_from: 'Private message from %sender%',
+      lbl_subject: 'Subject:',
+      lbl_date: 'Date:',
+      lbl_message: 'Message:',
+      lbl_compose_th: 'Compose new private message',
+      lbl_compose_to: 'To:',
+      lbl_compose_to_max: 'Separate multiple names with a single comma; you may send this message to up to <b>%limit%</b> users.',
+      lbl_edit_th: 'Edit draft',
+      
+      btn_send_reply: 'Send reply',
+      btn_archive: 'Archive message',
+      btn_return_to_inbox: 'Return to inbox',
+      btn_send: 'Send message',
+      btn_savedraft: 'Save as draft',
+      btn_archive_selected: 'Archive selected',
+      btn_delete_selected: 'Delete selected',
+      btn_delete_all: 'Delete all',
+      btn_compose: 'New message',
+      
+      sidebar_th_privmsgs: 'Private messages',
+      folder_inbox: 'Inbox',
+      folder_outbox: 'Outbox',
+      folder_sent: 'Sent items',
+      folder_drafts: 'Drafts',
+      folder_archive: 'Archive',
+      sidebar_th_buddies: 'Buddies',
+      sidebar_friend_list: 'Friend list',
+      sidebar_foe_list: 'Foe list',
+      
+      folder_th_foldername: 'Folder:',
+      folder_th_to: 'To',
+      folder_th_from: 'From',
+      folder_th_subject: 'Subject',
+      folder_th_date: 'Date',
+      folder_th_mark: 'Mark',
+      
+      // AJAX interface
+      ajax_err_need_js: 'It looks like your browser doesn\'t have support for Javascript. You\'ll need to have Javascript support in order to use the new Private Message interface. You can also switch to the <a href="%basic_link%">old interface</a>, which doesn\'t require Javascript support.',
+      ajax_err_json: 'The server had a problem processing your request.',
+      
+      ajax_btn_compose: 'Compose message',
+      ajax_btn_archive: 'Archive',
+      ajax_btn_unarchive: 'Restore to inbox',
+      ajax_btn_mark_read: 'Mark as read',
+      ajax_btn_mark_unread: 'Mark as unread',
+      ajax_btn_delete: 'Move to trash',
+      ajax_btn_delete_forever: 'Delete forever',
+      ajax_btn_refresh: 'Refresh',
+      ajax_btn_reply: 'Reply',
+      
+      ajax_folder_inbox: 'Inbox',
+      ajax_folder_starred: 'Starred',
+      ajax_folder_sent: 'Sent messages',
+      ajax_folder_drafts: 'Drafts',
+      ajax_folder_archive: 'Archive',
+      ajax_folder_trash: 'Trash',
+      
+      ajax_msg_loading: 'Loading...',
+      
+      ajax_lbl_sender: '%sender% to %recipient%',
+      ajax_me: 'me',
+      
+      ajax_teaser_inbox: 'No new mail.',
+      ajax_teaser_starred: 'You haven\'t starred any messages yet. Starring a message lets you give it a special status that separates it from the rest of your mail so it\'s easier to find. You can star a message by clicking the small gray star next to a message in your inbox or archive.',
+      ajax_teaser_sent: 'You haven\'t sent any messages yet. When you send a message, a copy of it will appear here.',
+      
+      ajax_no_subject: '[No subject]',
+    }
+  }
+};
+
+// All done! :-)
+

@@ -20,17 +20,17 @@ Author URI: http://enanocms.org/
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-$plugins->attachHook('base_classes_initted', '
+$plugins->attachHook('session_started', '
   global $paths;
     $paths->add_page(Array(
-      \'name\'=>\'Rebuild search index\',
+      \'name\'=>\'specialpage_search_rebuild\',
       \'urlname\'=>\'SearchRebuild\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'Search\',
+      \'name\'=>\'specialpage_search\',
       \'urlname\'=>\'Search\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
@@ -40,7 +40,10 @@ $plugins->attachHook('base_classes_initted', '
 function page_Special_SearchRebuild()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if(!$session->get_permissions('mod_misc')) die_friendly('Unauthorized', '<p>You need to be an administrator to rebuild the search index</p>');
+  if ( !$session->get_permissions('mod_misc') )
+  {
+    die_friendly('Unauthorized', '<p>You need to be an administrator to rebuild the search index</p>');
+  }
   $template->header();
   @set_time_limit(0);
   if($paths->rebuild_search_index(true))
@@ -54,6 +57,8 @@ function page_Special_Search()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $aggressive_optimize_html;
+  global $lang;
+  
   $aggressive_optimize_html = false;
   
   if ( !$q = $paths->getParam(0) )
@@ -95,7 +100,7 @@ function page_Special_Search()
   
   $qin = ( isset($q) ) ? str_replace('"', '\"', htmlspecialchars($q)) : '';
   $search_form = '<form action="' . makeUrlNS('Special', 'Search') . '">
-  <input type="text" tabindex="1" name="q" size="50" value="' . $qin . '" />&nbsp;<input tabindex="2" type="submit" value="Search" />&nbsp;<a href="' . makeUrlNS('Special', 'Search') . '">Advanced search</a>
+  <input type="text" tabindex="1" name="q" size="50" value="' . $qin . '" />&nbsp;<input tabindex="2" type="submit" value="' . $lang->get('search_btn_search') . '" />&nbsp;<a href="' . makeUrlNS('Special', 'Search') . '">' . $lang->get('search_btn_advanced_search') . '</a>
   ' . ( $session->auth_level > USER_LEVEL_MEMBER ? '<input type="hidden" name="auth" value="' . $session->sid_super . '" />' : '' ) . '
   </form>';
   
@@ -103,7 +108,7 @@ function page_Special_Search()
   {
     $search_start = microtime_float();
     
-    $results = perform_search($q, $warn, ( isset($_GET['match_case']) ));
+    $results = perform_search($q, $warn, ( isset($_GET['match_case']) ), $word_list);
     $warn = array_unique($warn);
     
     if ( file_exists( ENANO_ROOT . '/themes/' . $template->theme . '/search-result.tpl' ) )
@@ -122,7 +127,7 @@ function page_Special_Search()
           {PAGE_TEXT}
           <span class="search-result-url">{PAGE_URL}</span> - 
           <!-- BEGINNOT special_page --><span class="search-result-info">{PAGE_LENGTH} {PAGE_LENGTH_UNIT}</span> -<!-- END special_page --> 
-          <span class="search-result-info">Relevance: {RELEVANCE_SCORE}%</span>
+          <span class="search-result-info">{lang:search_lbl_relevance} {RELEVANCE_SCORE}%</span>
         </p>
       </div>
       
@@ -138,22 +143,25 @@ LONGSTRING;
       if ( !empty($result['page_text']) )
         $result['page_text'] .= '<br />';
       $result['page_name'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="title-search-term">', '</span>'), $result['page_name']);
+      $result['url_highlight'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="url-search-term">', '</span>'), $result['url_highlight']);
       if ( $result['page_length'] >= 1048576 )
       {
         $result['page_length'] = round($result['page_length'] / 1048576, 1);
-        $length_unit = 'MB';
+        $length_unit = $lang->get('etc_unit_megabytes_short');
       }
       else if ( $result['page_length'] >= 1024 )
       {
         $result['page_length'] = round($result['page_length'] / 1024, 1);
-        $length_unit = 'KB';
+        $length_unit = $lang->get('etc_unit_kilobytes_short');
       }
       else
       {
-        $length_unit = 'bytes';
+        $length_unit = $lang->get('etc_unit_bytes');
       }
-      $url = makeUrlComplete($result['namespace'], $result['page_id']);
-      $url = preg_replace('/\?.+$/', '', $url);
+      //$url = makeUrlComplete($result['namespace'], $result['page_id']);
+      //$url = preg_replace('/\?.+$/', '', $url);
+      $url = $result['url_highlight'];
+      
       $parser->assign_vars(array(
          'PAGE_TITLE' => $result['page_name'],
          'PAGE_TEXT' => $result['page_text'],
@@ -193,13 +201,20 @@ LONGSTRING;
     $q_trim = ( strlen($q) > 30 ) ? substr($q, 0, 27) . '...' : $q;
     $q_trim = htmlspecialchars($q_trim);
     
-    $result_string = ( count($results) > 0 ) ? "Results <b>$start_string</b> - <b>$per_string</b> of about <b>$num_results</b> for <b>" . $q_trim . "</b> in {$search_time}s." : 'No results.';
+    $result_detail = $lang->get('search_msg_result_detail', array(
+        'start_string' => $start_string,
+        'per_string' => $per_string,
+        'q_trim' => $q_trim,
+        'num_results' => $num_results,
+        'search_time' => $search_time
+      ));
+    $result_string = ( count($results) > 0 ) ? $result_detail : $lang->get('search_msg_no_results');
     
     echo '<div class="search-hibar">
             <div style="float: right;">
               ' . $result_string . '
             </div>
-            <b>Site search</b>
+            <b>' . $lang->get('search_lbl_site_search') . '</b>
           </div>
           <div class="search-lobar">
             ' . $search_form . '
@@ -208,8 +223,8 @@ LONGSTRING;
     if ( count($warn) > 0 )
     {
       echo '<div class="warning-box" style="margin: 10px 0 0 0;">';
-      echo '<b>Some problems were encountered during your search.</b><br />
-            There was a problem with your search query, and as a result there may be a reduced number of search results.';
+      echo '<b>' . $lang->get('search_err_query_title') . '</b><br />
+            ' . $lang->get('search_err_query_body');
       echo '<ul><li>' . implode('</li><li>', $warn) . '</li></ul>';
       echo '</div>';
     }
@@ -254,26 +269,26 @@ LONGSTRING;
       endif; ?>
       <div class="tblholder">
         <table border="0" style="width: 100%;" cellspacing="1" cellpadding="4">
-          <tr><th colspan="2">Advanced Search</th></tr>
+          <tr><th colspan="2"><?php echo $lang->get('search_th_advanced_search'); ?></th></tr>
           <tr>
-            <td class="row1">Search for pages with <b>any of these words</b>:</td>
+            <td class="row1"><?php echo $lang->get('search_lbl_field_any'); ?></td>
             <td class="row1"><input type="text" name="words_any" size="40" /></td>
           </tr>
           <tr>
-            <td class="row2">with <b>this exact phrase</b>:</td>
+            <td class="row2"><?php echo $lang->get('search_lbl_field_exact'); ?></td>
             <td class="row2"><input type="text" name="exact_phrase" size="40" /></td>
           </tr>
           <tr>
-            <td class="row1">with <b>none of these words</b>:</td>
+            <td class="row1"><?php echo $lang->get('search_lbl_field_none'); ?></td>
             <td class="row1"><input type="text" name="exclude_words" size="40" /></td>
           </tr>
           <tr>
-            <td class="row2">with <b>all of these words</b>:</td>
+            <td class="row2"><?php echo $lang->get('search_lbl_field_all'); ?></td>
             <td class="row2"><input type="text" name="require_words" size="40" /></td>
           </tr>
           <tr>
             <td class="row1">
-              <label for="chk_case">Case-sensitive search:</label>
+              <label for="chk_case"><?php echo $lang->get('search_lbl_field_casesensitive'); ?></label>
             </td>
             <td class="row1">
               <input type="checkbox" name="match_case" id="chk_case" />
@@ -281,7 +296,7 @@ LONGSTRING;
           </tr>
           <tr>
             <th colspan="2" class="subhead">
-              <input type="submit" name="do_search" value="Search" />
+              <input type="submit" name="do_search" value="<?php echo $lang->get('search_btn_search'); ?>" />
             </td>
           </tr>
         </table>

@@ -481,7 +481,6 @@ function page_Admin_PageGroups()
      
       if ( isset($_POST['action']['edit']['add_page']) && isset($_GET['src']) && $_GET['src'] == 'ajax' )
       {
-        $json = new Services_JSON(SERVICES_JSON_LOOSE_TYPE);
         $return = array('successful' => false);
         
         //
@@ -493,7 +492,7 @@ function page_Admin_PageGroups()
         if ( !$edit_id )
         {
           $return = array('mode' => 'error', 'text' => 'Hack attempt');
-          echo $json->encode($return);
+          echo enano_json_encode($return);
           return;
         }
         
@@ -502,7 +501,7 @@ function page_Admin_PageGroups()
         if ( empty($page) )
         {
           $return = array('mode' => 'error', 'text' => 'Please enter a page title.');
-          echo $json->encode($return);
+          echo enano_json_encode($return);
           return;
         }
         
@@ -511,7 +510,7 @@ function page_Admin_PageGroups()
         if ( !isPage($page) )
         {
           $return = array('mode' => 'error', 'text' => 'The page you are trying to add (' . htmlspecialchars($page) . ') does not exist.');
-          echo $json->encode($return);
+          echo enano_json_encode($return);
           return;
         }
         */
@@ -522,7 +521,7 @@ function page_Admin_PageGroups()
         if ( !isset($paths->namespace[$namespace]) )
         {
           $return = array('mode' => 'error', 'text' => 'Invalid namespace return from RenderMan::strToPageID()');
-          echo $json->encode($return);
+          echo enano_json_encode($return);
           return;
         }
         
@@ -530,13 +529,13 @@ function page_Admin_PageGroups()
         if ( !$q )
         {
           $return = array('mode' => 'error', 'text' => $db->get_error());
-          echo $json->encode($return);
+          echo enano_json_encode($return);
           return;
         }
         if ( $db->numrows() > 0 )
         {
           $return = array('mode' => 'error', 'text' => 'The page you are trying to add is already in this group.');
-          echo $json->encode($return);
+          echo enano_json_encode($return);
           return;
         }
         
@@ -544,7 +543,7 @@ function page_Admin_PageGroups()
         if ( !$q )
         {
           $return = array('mode' => 'error', 'text' => $db->get_error());
-          echo $json->encode($return);
+          echo enano_json_encode($return);
           return;
         }
         
@@ -552,7 +551,7 @@ function page_Admin_PageGroups()
         
         $return = array('mode' => 'info', 'text' => 'The page has been added to the specified group.', 'successful' => true, 'title' => $title, 'member_id' => $db->insert_id());
         
-        echo $json->encode($return);
+        echo enano_json_encode($return);
         return;
       }
       

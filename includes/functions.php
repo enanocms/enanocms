@@ -3806,6 +3806,58 @@ function get_image_filetype($filename)
   return false;
 }
 
+/**
+ * Generates a JSON encoder/decoder singleton.
+ * @return object
+ */
+
+function enano_json_singleton()
+{
+  static $json_obj;
+  if ( !is_object($json_obj) )
+    $json_obj = new Services_JSON(SERVICES_JSON_LOOSE_TYPE | SERVICES_JSON_SUPPRESS_ERRORS);
+  
+  return $json_obj;
+}
+
+/**
+ * Wrapper for JSON encoding.
+ * @param mixed Variable to encode
+ * @return string JSON-encoded string
+ */
+
+function enano_json_encode($data)
+{
+  /*
+  if ( function_exists('json_encode') )
+  {
+    // using PHP5 with JSON support
+    return json_encode($data);
+  }
+  */
+  
+  return Zend_Json::encode($data, true);
+}
+
+/**
+ * Wrapper for JSON decoding.
+ * @param string JSON-encoded string
+ * @return mixed Decoded value
+ */
+
+function enano_json_decode($data)
+{
+  /*
+  if ( function_exists('json_decode') )
+  {
+    // using PHP5 with JSON support
+    return json_decode($data);
+  }
+  */
+  
+  return Zend_Json::decode($data, Zend_Json::TYPE_ARRAY);
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>
