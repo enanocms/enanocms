@@ -125,7 +125,8 @@ function disableUnload(message)
   if(typeof message != 'string') message = 'You may want to save your changes first.';
   var body = document.getElementsByTagName('body');
   body = body[0];
-  body.onbeforeunload='return unescape(\''+escape(message)+'\')';
+  body._unloadmsg = message;
+  body.onbeforeunload = function() { return this._unloadmsg };
 }
 
 function enableUnload()
@@ -133,6 +134,7 @@ function enableUnload()
   var body = document.getElementsByTagName('body');
   body = body[0];
   body.onbeforeunload = null;
+  body._unloadmsg = null;
 }
 
 /**
