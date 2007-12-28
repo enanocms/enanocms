@@ -374,6 +374,14 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     $level = ( isset($data['level']) ) ? intval($data['level']) : USER_LEVEL_MEMBER;
     $result = $session->login_with_crypto($data['username'], $data['crypt_data'], $data['crypt_key'], $data['challenge'], $level, $captcha_hash, $captcha_code);
     $session->start();
+    
+    // Run the session_started hook to establish special pages
+    $code = $plugins->setHook('session_started');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     if ( $result['success'] )
     {
       $response = Array(
@@ -412,6 +420,14 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       $result = $session->login_without_crypto($_POST['username'], $_POST['pass'], false, intval($_POST['auth_level']), $captcha_hash, $captcha_code);
     }
     $session->start();
+    
+    // Run the session_started hook to establish special pages
+    $code = $plugins->setHook('session_started');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     $paths->init();
     if($result['success'])
     {
@@ -959,89 +975,172 @@ function page_Special_Register()
   $template->footer();
 }
 
-/*
-If you want the old preferences page back, be my guest.
-function page_Special_Preferences() {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  $template->header();
-  if(isset($_POST['submit'])) {
-    $data = $session->update_user($session->user_id, $_POST['username'], $_POST['current_pass'], $_POST['new_pass'], $_POST['email'], $_POST['real_name'], $_POST['sig']);
-    if($data == 'success') echo '<h3>Information</h3><p>Your profile has been updated. <a href="'.scriptPath.'/">Return to the index page</a>.</p>';
-    else echo $data;
-  } else {
-    echo '
-    <h3>Edit your profile</h3>
-    <form action="'.makeUrl($paths->nslist['Special'].'Preferences').'" method="post">
-      <table border="0" style="margin-left: 0.2in;">   
-        <tr><td>Username:</td><td><input type="text" name="username" value="'.$session->username.'" /></td></tr>
-        <tr><td>Current Password:</td><td><input type="password" name="current_pass" /></td></tr>
-        <tr><td colspan="2"><small>You only need to enter your current password if you are changing your e-mail address or changing your password.</small></td></tr>
-        <tr><td>New Password:</td><td><input type="password" name="new_pass" /></td></tr>
-        <tr><td>E-mail:</td><td><input type="text" name="email" value="'.$session->email.'" /></td></tr>
-        <tr><td>Real Name:</td><td><input type="text" name="real_name" value="'.$session->real_name.'" /></td></tr>
-        <tr><td>Signature:<br /><small>Your signature appears<br />below your comment posts.</small></td><td><textarea rows="10" cols="40" name="sig">'.$session->signature.'</textarea></td></tr>
-        <tr><td colspan="2">
-        <input type="submit" name="submit" value="Save Changes" /></td></tr>
-      </table>
-    </form>
-    ';
-  }
-  $template->footer();
-}
-*/
-
 function page_Special_Contributions() {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  // This is a vast improvement over the old Special:Contributions in 1.0.x.
+  
   $template->header();
   $user = $paths->getParam();
-  if(!$user && isset($_GET['user']))
+  if ( !$user && isset($_GET['user']) )
   {
     $user = $_GET['user'];
   }
-  elseif(!$user && !isset($_GET['user']))
+  else if ( !$user && !isset($_GET['user']) )
   {
-    echo 'No user selected!';
+    echo '<p>' . $lang->get('userfuncs_contribs_err_no_user') . '</p>';
     $template->footer();
     return;
   }
   
   $user = $db->escape($user);
+  $q = 'SELECT log_type, time_id, action, date_string, page_id, namespace, author, edit_summary, minor_edit, page_id, namespace, ( action = \'edit\' ) AS is_edit FROM '.table_prefix.'logs WHERE author=\''.$user.'\' AND log_type=\'page\' ORDER BY is_edit DESC, time_id DESC;';
+  $q = $db->sql_query($q);
+  if ( !$q )
+    $db->_die('SpecialUserFuncs selecting contribution data');
   
-  $q = 'SELECT time_id,date_string,page_id,namespace,author,edit_summary,minor_edit,page_id,namespace FROM '.table_prefix.'logs WHERE author=\''.$user.'\' AND action=\'edit\' ORDER BY time_id DESC;';
-  if(!$db->sql_query($q)) $db->_die('The history data for the page "'.$paths->cpage['name'].'" could not be selected.');
-  echo 'History of edits and actions<h3>Edits:</h3>';
-  if($db->numrows() < 1) echo 'No history entries in this category.';
-  while($r = $db->fetchrow())
+  echo '<h3>' . $lang->get('userfuncs_contribs_heading_edits') . '</h3>';
+  
+  $cnt_edits = 0;
+  $cnt_other = 0;
+  $current = 'cnt_edits';
+  $cls = 'row2';
+  
+  while ( $row = $db->fetchrow($q) )
   {
-    $title = get_page_title($r['page_id'], $r['namespace']);    
-    echo '<a href="' . makeUrlNS($r['namespace'], $r['page_id'], "oldid={$r['time_id']}", true) . '" onclick="ajaxHistView(\''.$r['time_id'].'\', \''.$paths->nslist[$r['namespace']].$r['page_id'].'\'); return false;"><i>'.$r['date_string'].'</i></a> (<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">revert to</a>) <a href="'.makeUrl($paths->nslist[$r['namespace']].$r['page_id']).'">'.htmlspecialchars($title).'</a>: '.$r['edit_summary'];
-    if($r['minor_edit']) echo '<b> - minor edit</b>';
-    echo '<br />';
+    if ( $current == 'cnt_edits' && $row['is_edit'] != 1 )
+    {
+      // No longer processing page edits - split the table
+      if ( $cnt_edits == 0 )
+      {
+        echo '<p>' . $lang->get('userfuncs_contribs_msg_no_edits') . '</p>';
+      }
+      else
+      {
+        echo '</table></div>';
+        echo '<h3>' . $lang->get('userfuncs_contribs_heading_other') . '</h3>';
+      }
+      $current = 'cnt_other';
+      $cls = 'row2';
+    }
+    if ( $$current == 0 )
+    {
+      echo '<div class="tblholder">
+              <table border="0" cellspacing="1" cellpadding="4">';
+      echo '  <tr>
+                <th>' . $lang->get('history_col_datetime') . '</th>';
+      echo '    <th>' . $lang->get('history_col_page') . '</th>';
+      if ( $current == 'cnt_edits' )
+      {
+        echo '  <th>' . $lang->get('history_col_summary') . '</th>';
+      }
+      echo '    <th>' . $lang->get('history_col_minor') . '</th>';
+      if ( $current == 'cnt_other' )
+      {
+        echo '  <th>' . $lang->get('history_col_action_taken') . '</th>
+                <th>' . $lang->get('history_col_extra') . '</th>
+             ';
+      }
+      echo '    <th>' . $lang->get('history_col_actions') . '</th>
+              </tr>';
+    }
+    ++$$current;
+    $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
+    
+    echo '<tr>';
+    
+    // date & time
+    echo '  <td class="' . $cls . '">' . date('d M Y h:i a', $row['time_id']) . '</td>';
+    
+    // page & link to said page
+    echo '  <td class="' . $cls . '"><a href="' . makeUrlNS($row['namespace'], $row['page_id']) . '">' . get_page_title_ns($row['page_id'], $row['namespace']) . '</a></td>';
+    
+    switch ( $row['action'] )
+    {
+      case 'edit':
+        if ( $row['edit_summary'] == 'Automatic backup created when logs were purged' )
+        {
+          $row['edit_summary'] = $lang->get('history_summary_clearlogs');
+        }
+        else if ( empty($row['edit_summary']) )
+        {
+          $row['edit_summary'] = '<span style="color: #808080">' . $lang->get('history_summary_none_given') . '</span>';
+        }
+        echo '  <td class="' . $cls . '">' . $row['edit_summary'] . '</td>';
+        if ( $row['minor_edit'] == 1 )
+        {
+          echo '<td class="' . $cls . '"><b>M</b></td>';
+        }
+        else
+        {
+          echo '<td class="' . $cls . '"></td>';
+        }
+        break;
+      case 'prot':
+        echo '  <td class="' . $cls . '"></td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_log_protect') . '</td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
+        break;
+      case 'unprot':
+        echo '  <td class="' . $cls . '"></td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_log_unprotect') . '</td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
+        break;
+      case 'semiprot':
+        echo '  <td class="' . $cls . '"></td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_log_semiprotect') . '</td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
+        break;
+      case 'rename':
+        echo '  <td class="' . $cls . '"></td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_log_rename') . '</td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_oldtitle') . ' ' . htmlspecialchars($row['edit_summary']) . '</td>';
+        break;
+      case 'create':
+        echo '  <td class="' . $cls . '"></td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_log_create') . '</td>';
+        echo '  <td class="' . $cls . '"></td>';
+        break;
+      case 'delete':
+        echo '  <td class="' . $cls . '"></td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_log_delete') . '</td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
+        break;
+      case 'reupload':
+        echo '  <td class="' . $cls . '"></td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_log_uploadnew') . '</td>';
+        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
+        break;
+    }
+    
+    // actions column
+    echo '    <td class="' . $cls . '" style="text-align: center;">';
+    if ( $row['is_edit'] == 1 )
+    {
+      echo '    <a href="' . makeUrlNS($row['namespace'], $row['page_id'], "oldid={$row['time_id']}", true) . '">' . $lang->get('history_action_view') . '</a> | ';
+      echo '      <a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=rollback&id={$row['time_id']}", true) . '">' . $lang->get('history_action_restore') . '</a>';
+    }
+    else
+    {
+      echo '      <a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=rollback&id={$row['time_id']}", true) . '">' . $lang->get('history_action_revert') . '</a>';
+    }
+    echo '    </td>';
+    
+    if ( $current == 'cnt_other' && $cnt_edits + $cnt_other >= $db->numrows($q) )
+    {
+      echo '</table></div>';
+    }
   }
-  $db->free_result();
-  echo '<h3>Other changes:</h3>';
-  $q = 'SELECT log_type,time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit,page_id,namespace FROM '.table_prefix.'logs WHERE author=\''.$user.'\' AND action!=\'edit\' ORDER BY time_id DESC;';
-  if(!$db->sql_query($q)) $db->_die('The history data for the page "'.$paths->cpage['name'].'" could not be selected.');
-  if($db->numrows() < 1) echo 'No history entries in this category.';
-  while($r = $db->fetchrow()) 
+  
+  if ( $current == 'cnt_edits' )
   {
-    if ( $r['log_type'] == 'page' )
-    {
-      $title = get_page_title($r['page_id'], $r['namespace']);
-      echo '(<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">rollback</a>) <i>'.$r['date_string'].'</i> <a href="'.makeUrl($paths->nslist[$r['namespace']].$r['page_id']).'">'.htmlspecialchars($title).'</a>: ';
-      if      ( $r['action'] == 'prot'   ) echo 'Protected page; reason: '.$r['edit_summary'];
-      else if ( $r['action'] == 'unprot' ) echo 'Unprotected page; reason: '.$r['edit_summary'];
-      else if ( $r['action'] == 'rename' ) echo 'Renamed page; old title was: '.htmlspecialchars($r['edit_summary']);
-      else if ( $r['action'] == 'create' ) echo 'Created page';
-      else if ( $r['action'] == 'delete' ) echo 'Deleted page';
-      if ( $r['minor_edit'] ) echo '<b> - minor edit</b>';
-      echo '<br />';
-    }
-    else if($r['log_type']=='security') 
-    {
-      // Not implemented, and when it is, it won't be public
-    }
+    // no "other" edits, close the table
+    echo '</table></div>';
+    echo '<h3>' . $lang->get('userfuncs_contribs_heading_other') . '</h3>';
+    echo '<p>' . $lang->get('userfuncs_contribs_msg_no_other') . '</p>';
   }
+  
   $db->free_result();
   $template->footer();
 }
@@ -1049,7 +1148,12 @@ function page_Special_Contributions() {
 function page_Special_ChangeStyle()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if(!$session->user_logged_in) die_friendly('Access denied', '<p>You must be logged in to change your style. Spoofer.</p>');
+  global $lang;
+  
+  if ( !$session->user_logged_in )
+  {
+    die_friendly('Access denied', '<p>You must be logged in to change your style. Spoofer.</p>');
+  }
   if(isset($_POST['theme']) && isset($_POST['style']) && isset($_POST['return_to']))
   {
     if ( !preg_match('/^([a-z0-9_-]+)$/i', $_POST['theme']) )
@@ -1058,51 +1162,64 @@ function page_Special_ChangeStyle()
       die('Hacking attempt');
     $d = ENANO_ROOT . '/themes/' . $_POST['theme'];
     $f = ENANO_ROOT . '/themes/' . $_POST['theme'] . '/css/' . $_POST['style'] . '.css';
-    if(!file_exists($d) || !is_dir($d)) die('The directory "'.$d.'" does not exist.');
-    if(!file_exists($f)) die('The file "'.$f.'" does not exist.');
+    if ( !file_exists($d) || !is_dir($d) )
+    {
+      die('The directory "'.$d.'" does not exist.');
+    }
+    if ( !file_exists($f) )
+    {
+      die('The file "'.$f.'" does not exist.');
+    }
     $d = $db->escape($_POST['theme']);
     $f = $db->escape($_POST['style']);
     $q = 'UPDATE '.table_prefix.'users SET theme=\''.$d.'\',style=\''.$f.'\' WHERE username=\''.$session->username.'\'';
-    if(!$db->sql_query($q))
+    if ( !$db->sql_query($q) )
     {
       $db->_die('Your theme/style preferences were not updated.');
     }
     else
     {
-      redirect(makeUrl($_POST['return_to']), '', '', 0);
+      redirect(makeUrl($_POST['return_to']), $lang->get('userfuncs_changetheme_success_title'), $lang->get('userfuncs_changetheme_success_body'), 3);
     }
   }
   else
   {
     $template->header();
       $ret = ( isset($_POST['return_to']) ) ? $_POST['return_to'] : $paths->getParam(0);
-      if(!$ret) $ret = getConfig('main_page');
+      if ( !$ret )
+      {
+        $ret = getConfig('main_page');
+      }
       ?>
         <form action="<?php echo makeUrl($paths->page); ?>" method="post">
-          <?php if(!isset($_POST['themeselected'])) { ?>
-            <h3>Please select a new theme:</h3>
+          <?php if ( !isset($_POST['themeselected']) ) { ?>
+            <h3><?php echo $lang->get('userfuncs_changetheme_heading_theme'); ?></h3>
             <p>
               <select name="theme">
                <?php
-                foreach($template->theme_list as $t) {
-                  if($t['enabled'])
+                foreach ( $template->theme_list as $t )
+                {
+                  if ( $t['enabled'] )
                   {
                     echo '<option value="'.$t['theme_id'].'"';
-                    if($t['theme_id'] == $session->theme) echo ' selected="selected"';
-                    echo '>'.$t['theme_name'].'</option>';
+                    if ( $t['theme_id'] == $session->theme )
+                    {
+                      echo ' selected="selected"';
+                    }
+                    echo '>' . $t['theme_name'] . '</option>';
                   }
                 }
                ?>
               </select>
             </p>
             <p><input type="hidden" name="return_to" value="<?php echo $ret; ?>" />
-               <input type="submit" name="themeselected" value="Continue" /></p>
+               <input type="submit" name="themeselected" value="<?php echo $lang->get('userfuncs_changetheme_btn_continue'); ?>" /></p>
           <?php } else { 
             $theme = $_POST['theme'];
             if ( !preg_match('/^([0-9A-z_-]+)$/i', $theme ) )
               die('Hacking attempt');
             ?>
-            <h3>Please select a stylesheet:</h3>
+            <h3><?php echo $lang->get('userfuncs_changetheme_heading_style'); ?></h3>
             <p>
               <select name="style">
                 <?php
@@ -1128,7 +1245,7 @@ function page_Special_ChangeStyle()
             </p>
             <p><input type="hidden" name="return_to" value="<?php echo $ret; ?>" />
                <input type="hidden" name="theme" value="<?php echo $theme; ?>" />
-               <input type="submit" name="allclear" value="Change style" /></p>
+               <input type="submit" name="allclear" value="<?php echo $lang->get('userfuncs_changetheme_btn_allclear'); ?>" /></p>
           <?php } ?>
         </form>
       <?php
@@ -1139,13 +1256,27 @@ function page_Special_ChangeStyle()
 function page_Special_ActivateAccount()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
   $user = $paths->getParam(0);
-  if(!$user) die_friendly('Account activation error', '<p>This page can only be accessed using links sent to users via e-mail.</p>');
+  if ( !$user )
+  {
+    die_friendly($lang->get('userfuncs_activate_err_badlink_title'), '<p>' . $lang->get('userfuncs_activate_err_badlink_body') . '</p>');
+  }
   $key = $paths->getParam(1);
-  if(!$key) die_friendly('Account activation error', '<p>This page can only be accessed using links sent to users via e-mail.</p>');
+  if ( !$key )
+  {
+    die_friendly($lang->get('userfuncs_activate_err_badlink_title'), '<p>' . $lang->get('userfuncs_activate_err_badlink_body') . '</p>');
+  }
   $s = $session->activate_account(str_replace('_', ' ', $user), $key);
-  if($s > 0) die_friendly('Activation successful', '<p>Your account is now active. Thank you for registering.</p>');
-  else die_friendly('Activation failed', '<p>The activation key was probably incorrect.</p>');
+  if ( $s > 0 )
+  {
+    die_friendly($lang->get('userfuncs_activate_success_title'), '<p>' . $lang->get('userfuncs_activate_success_body') . '</p>');
+  }
+  else
+  {
+    die_friendly($lang->get('userfuncs_activate_err_badlink_title'), '<p>' . $lang->get('userfuncs_activate_err_bad_key') . '</p>');
+  }
 }
 
 function page_Special_Captcha()
@@ -1196,6 +1327,8 @@ function page_Special_Captcha()
 function page_Special_PasswordReset()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
   $template->header();
   if($paths->getParam(0) == 'stage2')
   {
@@ -1226,7 +1359,7 @@ function page_Special_PasswordReset()
     
     if ( ( intval($row['temp_password_time']) + ( 3600 * 24 ) ) < time() )
     {
-      echo '<p>Your temporary password has expired. Please <a href="' . makeUrlNS('Special', 'PasswordReset') . '">request another one</a>.</p>';
+      echo '<p>' . $lang->get('userfuncs_passreset_err_pass_expired', array('reset_url' => makeUrlNS('Special', 'PasswordReset'))) . '</p>';
       $template->footer();
       return false;
     }
@@ -1239,7 +1372,7 @@ function page_Special_PasswordReset()
         $crypt_key = $session->fetch_public_key($_POST['crypt_key']);
         if(!$crypt_key)
         {
-          echo 'ERROR: Couldn\'t look up public key for decryption.';
+          echo $lang->get('user_err_key_not_found');
           $template->footer();
           return false;
         }
@@ -1247,7 +1380,7 @@ function page_Special_PasswordReset()
         $data = $aes->decrypt($_POST['crypt_data'], $crypt_key, ENC_HEX);
         if(strlen($data) < 6)
         {
-          echo 'ERROR: Your password must be six characters or greater in length.';
+          echo $lang->get('userfuncs_passreset_err_too_short');
           $template->footer();
           return false;
         }
@@ -1258,13 +1391,13 @@ function page_Special_PasswordReset()
         $conf = $_POST['pass_confirm'];
         if($data != $conf)
         {
-          echo 'ERROR: The passwords you entered do not match.';
+          echo $lang->get('userfuncs_passreset_err_no_match');
           $template->footer();
           return false;
         }
         if(strlen($data) < 6)
         {
-          echo 'ERROR: Your password must be six characters or greater in length.';
+          echo $lang->get('userfuncs_passreset_err_too_short');
           $template->footer();
           return false;
         }
@@ -1282,7 +1415,7 @@ function page_Special_PasswordReset()
         if ( $inp_score < $min_score )
         {
           $url = makeUrl($paths->fullpage);
-          echo "<p>ERROR: Your password did not pass the complexity score requirement. You need $min_score points to pass; your password received a score of $inp_score. <a href=\"$url\">Go back</a></p>";
+          echo "<p>" . $lang->get('userfuncs_passreset_err_failed_score', array('inp_score' => $inp_score, 'url' => $url)) . "</p>";
           $template->footer();
           return false;
         }
@@ -1293,7 +1426,7 @@ function page_Special_PasswordReset()
       if($q)
       {
         $session->login_without_crypto($row['username'], $data);
-        echo '<p>Your password has been reset. Return to the <a href="' . makeUrl(getConfig('main_page')) . '">main page</a>.</p>';
+        echo '<p>' . $lang->get('userfuncs_passreset_stage2_success', array('url_mainpage' => makeUrl(getConfig('main_page')))) . '</p>';
       }
       else
       {
@@ -1308,24 +1441,24 @@ function page_Special_PasswordReset()
     $pubkey = $session->rijndael_genkey();
     
     $evt_get_score = ( getConfig('pw_strength_enable') == '1' ) ? 'onkeyup="password_score_field(this);" ' : '';
-    $pw_meter =      ( getConfig('pw_strength_enable') == '1' ) ? '<tr><td class="row1">Password strength rating:</td><td class="row1"><div id="pwmeter"></div><script type="text/javascript">password_score_field(document.forms.resetform.pass);</script></td></tr>' : '';
-    $pw_blurb =      ( getConfig('pw_strength_enable') == '1' && intval(getConfig('pw_strength_minimum')) > -10 ) ? '<br /><small>Your password needs to have a score of at least <b>'.getConfig('pw_strength_minimum').'</b>.</small>' : '';
+    $pw_meter =      ( getConfig('pw_strength_enable') == '1' ) ? '<tr><td class="row1">' . $lang->get('userfuncs_passreset_stage2_lbl_strength') . '</td><td class="row1"><div id="pwmeter"></div><script type="text/javascript">password_score_field(document.forms.resetform.pass);</script></td></tr>' : '';
+    $pw_blurb =      ( getConfig('pw_strength_enable') == '1' && intval(getConfig('pw_strength_minimum')) > -10 ) ? '<br /><small>' . $lang->get('userfuncs_passreset_stage2_blurb_strength') . '</small>' : '';
     
     ?>
     <form action="<?php echo makeUrl($paths->fullpage); ?>" method="post" name="resetform" onsubmit="return runEncryption();">
       <br />
       <div class="tblholder">
         <table border="0" style="width: 100%;" cellspacing="1" cellpadding="4">
-          <tr><th colspan="2">Reset password</th></tr>
-          <tr><td class="row1">Password:<?php echo $pw_blurb; ?></td><td class="row1"><input name="pass" type="password" <?php echo $evt_get_score; ?>/></td></tr>
-          <tr><td class="row2">Confirm: </td><td class="row2"><input name="pass_confirm" type="password" /></td></tr>
+          <tr><th colspan="2"><?php echo $lang->get('userfuncs_passreset_stage2_th'); ?></th></tr>
+          <tr><td class="row1"><?php echo $lang->get('userfuncs_passreset_stage2_lbl_password'); ?> <?php echo $pw_blurb; ?></td><td class="row1"><input name="pass" type="password" <?php echo $evt_get_score; ?>/></td></tr>
+          <tr><td class="row2"><?php echo $lang->get('userfuncs_passreset_stage2_lbl_confirm'); ?> </td><td class="row2"><input name="pass_confirm" type="password" /></td></tr>
           <?php echo $pw_meter; ?>
           <tr>
-            <td colspan="2" class="row1" style="text-align: center;">
+            <td colspan="2" class="row3" style="text-align: center;">
               <input type="hidden" name="use_crypt" value="no" />
               <input type="hidden" name="crypt_key" value="<?php echo $pubkey; ?>" />
               <input type="hidden" name="crypt_data" value="" />
-              <input type="submit" name="do_stage2" value="Reset password" />
+              <input type="submit" name="do_stage2" value="<?php echo $lang->get('userfuncs_passreset_stage2_btn_submit'); ?>" />
             </td>
           </tr>
         </table>
@@ -1375,12 +1508,12 @@ function page_Special_PasswordReset()
         pass2 = frm.pass_confirm.value;
         if ( pass1 != pass2 )
         {
-          alert('The passwords you entered do not match.');
+          alert($lang.get('userfuncs_passreset_err_no_match'));
           return false;
         }
         if ( pass1.length < 6 )
         {
-          alert('The new password must be 6 characters or greater in length.');
+          alert($lang.get('userfuncs_passreset_err_too_short'));
           return false;
         }
         if(testpassed)
@@ -1409,20 +1542,20 @@ function page_Special_PasswordReset()
   {
     if($session->mail_password_reset($_POST['username']))
     {
-      echo '<p>An e-mail has been sent to the e-mail address on file for your username with a new password in it. Please check your e-mail for further instructions.</p>';
+      echo '<p>' . $lang->get('userfuncs_passreset_stage1_success') . '</p>';
     }
     else
     {
-      echo '<p>Error occured, your new password was not sent.</p>';
+      echo '<p>' . $lang->get('userfuncs_passreset_stage1_error') . '</p>';
     }
     $template->footer();
     return true;
   }
-  echo '<p>Don\'t worry, it happens to the best of us.</p>
-        <p>To reset your password, just enter your username below, and a new password will be e-mailed to you.</p>
+  echo '<p>' . $lang->get('userfuncs_passreset_blurb_line1') . '</p>
+        <p>' . $lang->get('userfuncs_passreset_blurb_line2') . '</p>
         <form action="'.makeUrl($paths->page).'" method="post" onsubmit="if(!submitAuthorized) return false;">
-          <p>Username:  '.$template->username_field('username').'</p>
-          <p><input type="submit" name="do_reset" value="Mail new password" /></p>
+          <p>' . $lang->get('userfuncs_passreset_lbl_username') . '  '.$template->username_field('username').'</p>
+          <p><input type="submit" name="do_reset" value="' . $lang->get('userfuncs_passreset_btn_mailpasswd') . '" /></p>
         </form>';
   $template->footer();
 }
@@ -1430,6 +1563,8 @@ function page_Special_PasswordReset()
 function page_Special_Memberlist()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
   $template->header();
   
   $startletters = 'abcdefghijklmnopqrstuvwxyz';

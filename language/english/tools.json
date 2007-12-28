@@ -17,12 +17,13 @@
 
 var enano_lang = {
   categories: [
-    'search', 'specialpage'
+    'search', 'specialpage', 'pagetools'
   ],
   strings: {
     meta: {
       search: 'Search page',
       specialpage: 'Special pages',
+      pagetools: 'Userspace page-management tools',
     },
     specialpage: {
       administration: 'Administration',
@@ -68,6 +69,14 @@ var enano_lang = {
       
       msg_no_results: 'No results.',
       msg_result_detail: 'Results <b>%start_string%</b> - <b>%per_string%</b> of about <b>%num_results%</b> for <b>%q_trim%</b> in %search_time%s.',
+      body_no_results_title: 'Your search for <b>"%query%"</b> didn\'t turn up any results.',
+      body_no_results_body: '<p>There are a few things you can try:</p>
+                             <ul>
+                               <li>Were you looking for a specific Special page? Special pages are not searchable. You may want to see a <a href="%special_url%">list of special pages</a>.</li>
+                               <li>If you have the appropriate permissions, you can <a href="%create_url%">start the %query% page</a>.</li>
+                               <li>Try using fewer keywords. You can get broader results if you remove quotes from your search query.</li>
+                               <li>Did your search trigger any warnings? Sometimes a search can be cancelled if there aren\'t any terms in a search query that are 4 characters or greater in length.</li>
+                             </ul>',
       
       lbl_site_search: 'Site search',
       lbl_relevance: 'Relevance:',
@@ -76,7 +85,49 @@ var enano_lang = {
       lbl_field_none: 'with <b>none of these words</b>:',
       lbl_field_all: 'with <b>all of these words</b>:',
       lbl_field_casesensitive: 'Case-sensitive search:',
-    }
+      
+      result_tag_special: 'Special page',
+    },
+    pagetools: {
+      
+      // Create a page
+      create_err_title: 'The page could not be created.',
+      create_err_name_invalid: 'The name "%page_name%" is invalid.',
+      create_err_project_shortcut: 'The page title can\'t start with "Project:" because this prefix is reserved for a parser shortcut.',
+      create_err_already_exist: 'The page already exists.',
+      
+      create_blurb: 'Using the form below you can create a page.',
+      create_namespace_none: '[No prefix]',
+      create_btn_create: 'Create Page',
+      
+      // All pages
+      allpages_blurb: 'Below is a list of all of the pages on this website.',
+      
+      // Special pages
+      specialpages_blurb: 'Below is a list of all of the special pages on this website.',
+      
+      // GPL page
+      gpl_blurb: 'The following text represents the license that the <a href="%about_url%">Enano</a> content management system is under. To make it easier to read, the text has been wiki-formatted; in no other way has it been changed.',
+      // The following three strings will be used only in non-English languages. A Spanish example is provided here.
+      
+      // "Version in Spanish"
+      gpl_title_native: 'Versión en español',
+      // "Version in English"
+      gpl_title_english: 'Versión en inglés',
+      // "View the license in English"
+      gpl_link_to_english: 'Vea la licencia en inglés',
+      
+      gpl_err_file_missing: 'It appears that the file "GPL" is missing from your Enano installation. You may find a wiki-formatted copy of the GPL at: <a href="http://enanocms.org/GPL">http://enanocms.org/GPL</a>. In the mean time, you may wish to contact the site administration and ask them to replace the GPL file.',
+      
+      // Tag cloud
+      tagcloud_pagelist_th: 'Pages tagged "%tag%"',
+      tagcloud_blurb: 'Summary of page tagging',
+      tagcloud_msg_no_tags: 'No pages are tagged yet.',
+      tagcloud_btn_return: 'Return to tag cloud',
+      tagcloud_instructions: 'Hover your mouse over a tag to see how many pages have the tag. Click on a tag to see a list of the pages that have it.',
+      tagcloud_sidebar_title: 'Tag cloud',
+      tagcloud_sidebar_btn_larger: 'Larger version',
+    },
   }
 };
 

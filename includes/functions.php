@@ -318,7 +318,7 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
   $template->header(true);
   echo '<p>' . $message . '</p>';
   $subst = array(
-      'timeout' => ( $timeout + 1 ),
+      'timeout' => $timeout,
       'redirect_url' => str_replace('"', '\\"', $url)
     );
   echo '<p>' . $lang->get('etc_redirect_timeout', $subst) . '</p>';

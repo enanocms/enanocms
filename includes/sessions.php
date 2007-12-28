@@ -1977,6 +1977,8 @@ Date (YYYY-MM-DD): ______ / _____ / _____
   function mail_password_reset($user)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     if(is_int($user))
     {
       $q = $this->sql('SELECT user_id,username,email FROM '.table_prefix.'users WHERE user_id='.$user.';'); // This is SAFE! This is only called if $user is an integer
@@ -1996,24 +1998,13 @@ Date (YYYY-MM-DD): ______ / _____ / _____
     $this->register_temp_password($row['user_id'], $temp_pass);
     
     $site_name = getConfig('site_name');
-    
-    $message = "Dear {$row['username']},
-    
-Someone (hopefully you) on the {$site_name} website requested that a new password be created.
-
-The request was sent from the IP address {$_SERVER['REMOTE_ADDR']}.
-
-If you did not request the new password, then you do not need to do anything; the password will be invalidated after 24 hours.
-
-If you did request this password, then please log in using the password shown below:
-
-  Password: {$temp_pass}
-  
-After you log in using this password, you will be able to reset your real password. You can only log in using this temporary password once.
-
-Sincerely yours,
-The {$site_name} administration team
-";
+ 
+    $message = $lang->get('userfuncs_passreset_email', array(
+        'username' => $row['username'],
+        'site_name' => $site_name,
+        'remote_addr' => $_SERVER['REMOTE_ADDR'],
+        'temp_pass' => $temp_pass
+      ));
     
     if(getConfig('smtp_enabled') == '1')
     {

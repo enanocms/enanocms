@@ -23,6 +23,10 @@ body {
   font-family: "Lucida Sans Unicode", sans-serif;
   font-size: 75%;
 }
+body#tinymce {
+  background-color: white;
+  background-image: none;
+}
 div#bg {
   min-height: 500px;
   width: 100%;

@@ -425,6 +425,10 @@ div.progressbar_inner {
 .usermessage a:hover {
   color: #AA5500 !important;
 }
+.usermessage h2 {
+  border-bottom-color: #ef8500 !important;
+  color: black;
+}
 div.thumbnail {
   display: table;
   border: 1px solid #AAAAAA;

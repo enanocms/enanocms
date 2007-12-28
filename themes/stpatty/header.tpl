@@ -82,7 +82,7 @@
           <h2>{SITE_DESC}</h2>
         </div>
         <div class="menu_nojs" id="pagebar_main">
-          <div class="label">Page tools</div>
+          <div class="label">{lang:onpage_lbl_pagetools}</div>
           {TOOLBAR}
           <ul>
             {TOOLBAR_EXTRAS}

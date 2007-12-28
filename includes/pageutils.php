@@ -1878,7 +1878,7 @@ class PageUtils {
   function genPreview($text)
   {
     global $lang;
-    $ret = '<div class="info-box">' . $lang->get('editor_preview_blurb') . '</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 1em 0 1em 1em;">';
+    $ret = '<div class="info-box">' . $lang->get('editor_preview_blurb') . '</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 10px 0;">';
     $text = RenderMan::render(RenderMan::preprocess_text($text, false, false));
     ob_start();
     eval('?>' . $text);

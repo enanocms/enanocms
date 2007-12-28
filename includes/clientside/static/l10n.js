@@ -23,13 +23,13 @@ var Language = function(lang_id)
   
   this.perform_subst = function(str, subst)
   {
-    // var this_regex = /%this\.([a-z0-9_]+)%/;
-    // var match;
-    // while ( str.match(this_regex) )
-    // {
-    //   match = str.match(this_regex);
-    //   alert(match);
-    // }
+    var this_regex = /%this\.([a-z0-9_]+)%/;
+    var match;
+    while ( str.match(this_regex) )
+    {
+      match = str.match(this_regex);
+      str = str.replace(match[0], this.get(match[1]));
+    }
     // hackish workaround for %config.*%
     str = str.replace(/%config\.([a-z0-9_]+)%/g, '%$1%');
     if ( typeof(subst) == 'object' )

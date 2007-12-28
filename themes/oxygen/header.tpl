@@ -6,6 +6,11 @@
     <link rel="stylesheet" type="text/css" href="{SCRIPTPATH}/includes/clientside/css/enano-shared.css" />
     <link id="mdgCss" rel="stylesheet" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" type="text/css" />
     {JS_DYNAMIC_VARS}
+    
+    <script type="text/javascript">
+      var tinymce_skin = 'o2k7';
+    </script>
+    
     <!-- This script automatically loads the other 15 JS files -->
     <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/static/enano-lib-basic.js"></script>
     {ADDITIONAL_HEADERS}

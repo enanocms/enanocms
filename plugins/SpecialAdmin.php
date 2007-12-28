@@ -111,7 +111,7 @@ Using the links on the left you can control every aspect of your website\'s look
   }
   
   echo '<h3>Check for updates</h3>';
-  echo '<p>Periodically, new releases of Enano will be made available. Click the button below to check for updates to Enano. During this process, a request will be sent to the Enano CMS server (germantown.enanocms.org) over HTTP. No information about your Enano installation will be transmitted.</p>';
+  echo '<p>Periodically, new releases of Enano will be made available. Click the button below to check for updates to Enano. During this process, a request will be sent to the Enano CMS server (germantown.enanocms.org) over HTTP for an <a href="http://germantown.enanocms.org/meta/updates.xml">XML file</a> containing a list of the latest releases. No information about your Enano installation will be transmitted.</p>';
   echo '<div id="update_check_container"><input type="button" onclick="ajaxUpdateCheck(this.parentNode.id);" value="Check for updates" /></div>';
   
   // Inactive users

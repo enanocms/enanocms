@@ -391,9 +391,7 @@ if ( !defined('IN_ENANO_INSTALL') )
     $template->site_disabled = true;
   }
   
-  // A better name for this hook would be common_post. At this point
-  // all of Enano is fully initialized and running and you're ready
-  // to do whatever you want.
+  // At this point all of Enano is fully initialized and running and you're ready to do whatever you want.
   $code = $plugins->setHook('common_post');
   foreach ( $code as $cmd )
   {

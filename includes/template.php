@@ -324,7 +324,7 @@ class template {
     else if($session->get_permissions('view_source') && ( !$session->get_permissions('edit_page') || !$session->get_permissions('even_when_protected') && $paths->page_protected ) && $paths->namespace != 'Special' && $paths->namespace != 'Admin') 
     {
       $button->assign_vars(array(
-        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxViewSource()); return false; }" title="' . $lang->get('onpage_tip_viewsource') . '" accesskey="e"',
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_viewsource') . '" accesskey="e"',
         'PARENTFLAGS' => 'id="mdgToolbar_edit"',
         'HREF' => makeUrl($paths->page, 'do=viewsource', true),
         'TEXT' => $lang->get('onpage_btn_viewsource')

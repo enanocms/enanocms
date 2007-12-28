@@ -351,12 +351,14 @@ class PageProcessor
    * Updates the content of the page.
    * @param string The new text for the page
    * @param string A summary of edits made to the page.
+   * @param bool If true, the edit is marked as a minor revision
    * @return bool True on success, false on failure
    */
   
-  function update_page($text, $edit_summary = false)
+  function update_page($text, $edit_summary = false, $minor_edit = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     // Create the page if it doesn't exist
     if ( !$this->page_exists )
@@ -379,14 +381,14 @@ class PageProcessor
       $db->_die('PageProcess updating page content');
     if ( $db->numrows() < 1 )
     {
-      $this->raise_error('Page doesn\'t exist in the database');
+      $this->raise_error($lang->get('editor_err_no_rows'));
       return false;
     }
     
     // Do we have permission to edit the page?
     if ( !$this->perms->get_permissions('edit_page') )
     {
-      $this->raise_error('You do not have permission to edit this page.');
+      $this->raise_error($lang->get('editor_err_no_permission'));
       return false;
     }
     
@@ -398,7 +400,7 @@ class PageProcessor
       // The page is protected - do we have permission to edit protected pages?
       if ( !$this->perms->get_permissions('even_when_protected') )
       {
-        $this->raise_error('This page is protected, and you do not have permission to edit protected pages.');
+        $this->raise_error($lang->get('editor_err_page_protected'));
         return false;
       }
     }
@@ -410,12 +412,46 @@ class PageProcessor
              ( $session->user_logged_in && $session->reg_time + ( 4 * 86400 ) >= time() ) ) // If so, have they been registered for 4 days?
            && !$this->perms->get_permissions('even_when_protected') ) // And of course, is there an ACL that overrides semi-protection?
       {
-        $this->raise_error('This page is protected, and you do not have permission to edit protected pages.');
+        $this->raise_error($lang->get('editor_err_page_protected'));
         return false;
       }
     }
     
-    // Protection validated
+    //
+    // Protection validated; update page content
+    //
+    
+    $text_undb = RenderMan::preprocess_text($text, false, false);
+    $text = $db->escape($text_undb);
+    $author = $db->escape($session->username);
+    $time = time();
+    $edit_summary = ( strval($edit_summary) === $edit_summary ) ? $db->escape($edit_summary) : '';
+    $minor_edit = ( $minor_edit ) ? '1' : '0';
+    $date_string = date('d M Y h:i a');
+    
+    // Insert log entry
+    $sql = 'INSERT INTO ' . table_prefix . "logs ( time_id, date_string, log_type, action, page_id, namespace, author, page_text, edit_summary, minor_edit )\n"
+         . "  VALUES ( $time, '$date_string', 'page', 'edit', '{$this->page_id}', '{$this->namespace}', '$author', '$text', '$edit_summary', $minor_edit );";
+    if ( !$db->sql_query($sql) )
+    {
+      $this->raise_error($db->get_error());
+      return false;
+    }
+    
+    // Update the master text entry
+    $sql = 'UPDATE ' . table_prefix . "page_text SET page_text = '$text' WHERE page_id = '{$this->page_id}' AND namespace = '{$this->namespace}';";
+    if ( !$db->sql_query($sql) )
+    {
+      $this->raise_error($db->get_error());
+      return false;
+    }
+    
+    // Rebuild the search index
+    $paths->rebuild_page_index($this->page_id, $this->namespace);
+    
+    $this->text_cache = $text;
+    
+    return true;
     
   }
   

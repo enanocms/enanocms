@@ -2,7 +2,22 @@
  * AJAX applets
  */
  
-function ajaxGet(uri, f) {
+function ajaxGet(uri, f, call_editor_safe) {
+  // Is the editor open?
+  if ( editor_open && !call_editor_safe )
+  {
+    // Make sure the user is willing to close the editor
+    var conf = confirm($lang.get('editor_msg_confirm_ajax'));
+    if ( !conf )
+    {
+      // Kill off any "loading" windows, etc. and cancel the request
+      unsetAjaxLoading();
+      return false;
+    }
+    // The user allowed the editor to be closed. Reset flags and knock out the on-close confirmation.
+    editor_open = false;
+    enableUnload();
+  }
   if (window.XMLHttpRequest) {
     ajax = new XMLHttpRequest();
   } else {
@@ -19,7 +34,22 @@ function ajaxGet(uri, f) {
   ajax.send(null);
 }
 
-function ajaxPost(uri, parms, f) {
+function ajaxPost(uri, parms, f, call_editor_safe) {
+  // Is the editor open?
+  if ( editor_open && !call_editor_safe )
+  {
+    // Make sure the user is willing to close the editor
+    var conf = confirm($lang.get('editor_msg_confirm_ajax'));
+    if ( !conf )
+    {
+      // Kill off any "loading" windows, etc. and cancel the request
+      unsetAjaxLoading();
+      return false;
+    }
+    // The user allowed the editor to be closed. Reset flags and knock out the on-close confirmation.
+    editor_open = false;
+    enableUnload();
+  }
   if (window.XMLHttpRequest) {
     ajax = new XMLHttpRequest();
   } else {
@@ -134,132 +164,6 @@ function ajaxAltEscape(text)
   return text;
 }
 
-// Page editor
-
-function ajaxEditor()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  setAjaxLoading();
-  ajaxGet(stdAjaxPrefix+'&_mode=getsource', function() {
-      if(ajax.readyState == 4) {
-        unsetAjaxLoading();
-        if(edit_open) {
-          c=confirm($lang.get('editor_msg_revert_confirm'));
-          if(!c) return;
-        }
-        edit_open = true;
-        selectButtonMajor('article');
-        selectButtonMinor('edit');
-        if(in_array('ajaxEditArea', grippied_textareas))
-        {
-          // Allow the textarea grippifier to re-create the resizer control on the textarea
-          grippied_textareas.pop(in_array('ajaxEditArea', grippied_textareas));
-        }
-        disableUnload($lang.get('editor_msg_unload'));
-        var switcher = ( readCookie('enano_editor_mode') == 'tinymce' ) ?
-                        '<a href="#" onclick="setEditorText(); return false;">' + $lang.get('editor_btn_wikitext') + '</a>  |  ' + $lang.get('editor_btn_graphical') :
-                        $lang.get('editor_btn_wikitext') + '  |  <a href="#" onclick="setEditorMCE(); return false;">' + $lang.get('editor_btn_graphical') + '</a>' ;
-        document.getElementById('ajaxEditContainer').innerHTML = '\
-        <div id="mdgPreviewContainer"></div> \
-        <span id="switcher">' + switcher + '</span><br />\
-        <form name="mdgAjaxEditor" method="get" action="#" onsubmit="ajaxSavePage(); return false;">\
-        <textarea id="ajaxEditArea" rows="20" cols="60" style="display: block; margin: 1em 0 1em 1em; width: 96.5%;">'+ajax.responseText+'</textarea><br />\
-          ' + $lang.get('editor_lbl_edit_summary') + ' <input id="ajaxEditSummary" size="40" /><br />\
-          <input id="ajaxEditMinor" name="minor" type="checkbox" /> <label for="ajaxEditMinor">' + $lang.get('editor_lbl_minor_edit') + '</label><br />\
-          <a href="#" onclick="void(ajaxSavePage()); return false;">' + $lang.get('editor_btn_save') + '</a>  |  <a href="#" onclick="void(ajaxShowPreview()); return false;">' + $lang.get('editor_btn_preview') + '</a>  |  <a href="#" onclick="void(ajaxEditor()); return false;">' + $lang.get('editor_btn_revert') + '</a>  |  <a href="#" onclick="void(ajaxDiscard()); return false;">' + $lang.get('editor_btn_cancel') + '</a>\
-          <br />\
-          '+editNotice+'\
-        </form>';
-        // initTextareas();
-        if(readCookie('enano_editor_mode') == 'tinymce')
-        {
-          $('ajaxEditArea').switchToMCE();
-        }
-      }
-  });
-}
-
-function setEditorMCE()
-{
-  $('ajaxEditArea').switchToMCE();
-  createCookie('enano_editor_mode', 'tinymce', 365);
-  $('switcher').object.innerHTML = '<a href="#" onclick="setEditorText(); return false;">' + $lang.get('editor_btn_wikitext') + '</a>  |  ' + $lang.get('editor_btn_graphical');
-}
-
-function setEditorText()
-{
-  $('ajaxEditArea').destroyMCE();
-  createCookie('enano_editor_mode', 'text', 365);
-  $('switcher').object.innerHTML = $lang.get('editor_btn_wikitext') + '  |  <a href="#" onclick="setEditorMCE(); return false;">' + $lang.get('editor_btn_graphical') + '</a>';
-}
-
-function ajaxViewSource()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  setAjaxLoading();
-  ajaxGet(stdAjaxPrefix+'&_mode=getsource', function() {
-      if(ajax.readyState == 4) {
-        unsetAjaxLoading();
-        edit_open = false;
-        selectButtonMajor('article');
-        selectButtonMinor('edit');
-        if(in_array('ajaxEditArea', grippied_textareas))
-        {
-          // Allow the textarea grippifier to re-create the resizer control on the textarea
-          grippied_textareas.pop(in_array('ajaxEditArea', grippied_textareas));
-        }
-        document.getElementById('ajaxEditContainer').innerHTML = '\
-          <form method="get" action="#" onsubmit="ajaxSavePage(); return false;">\
-            <textarea readonly="readonly" id="ajaxEditArea" rows="20" cols="60" style="display: block; margin: 1em 0 1em 1em; width: 96.5%;">'+ajax.responseText+'</textarea><br />\
-            <a href="#" onclick="void(ajaxReset()); return false;">' + $lang.get('editor_btn_closeviewer') + '</a>\
-          </form>';
-        initTextareas();
-      }
-  });
-}
-
-function ajaxShowPreview()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  goBusy('Loading preview...');
-  var text = ajaxEscape($('ajaxEditArea').getContent());
-  if(document.mdgAjaxEditor.minor.checked) minor='&minor';
-  else minor='';
-  ajaxPost(stdAjaxPrefix+'&_mode=preview', 'summary='+document.getElementById('ajaxEditSummary').value+minor+'&text='+text, function() {
-    if(ajax.readyState == 4) {
-      unBusy();
-      edit_open = false;
-      document.getElementById('mdgPreviewContainer').innerHTML = ajax.responseText;
-    }
-  });
-}
-
-function ajaxSavePage()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  //goBusy('Saving page...');
-  var text = ajaxEscape($('ajaxEditArea').getContent());
-  if(document.mdgAjaxEditor.minor.checked) minor='&minor';
-  else minor='';
-  ajaxPost(stdAjaxPrefix+'&_mode=savepage', 'summary='+document.getElementById('ajaxEditSummary').value+minor+'&text='+text, function() {
-    if(ajax.readyState == 4) {
-      unBusy();
-      edit_open = false;
-      document.getElementById('ajaxEditContainer').innerHTML = ajax.responseText;
-      enableUnload();
-      unselectAllButtonsMinor();
-    }
-  });
-}
-
 function ajaxDiscard()
 {
   // IE <6 pseudo-compatibility
@@ -283,7 +187,6 @@ function ajaxReset()
   ajaxGet(stdAjaxPrefix+'&_mode=getpage&noheaders', function() {
     if(ajax.readyState == 4) {
       unsetAjaxLoading();
-      edit_open = false;
       document.getElementById('ajaxEditContainer').innerHTML = ajax.responseText;
       selectButtonMajor('article');
       unselectAllButtonsMinor();
@@ -314,7 +217,7 @@ function ajaxProtect(l) {
       if(ajax.responseText != 'good')
         alert(ajax.responseText);
     }
-  });
+  }, true);
 }
 
 function ajaxRename()
@@ -330,7 +233,7 @@ function ajaxRename()
       unsetAjaxLoading();
       alert(ajax.responseText);
     }
-  });
+  }, true);
 }
 
 function ajaxMakePage()
@@ -385,7 +288,7 @@ function ajaxDelVote()
       unsetAjaxLoading();
       alert(ajax.responseText);
     }
-  });
+  }, true);
 }
 
 function ajaxResetDelVotes()
@@ -407,7 +310,7 @@ function ajaxResetDelVotes()
         setTimeout("document.getElementById('mdgDeleteVoteNoticeBox').style.display = 'none';", 1000);
       }
     }
-  });
+  }, true);
 }
 
 function ajaxSetWikiMode(val) {
@@ -705,7 +608,7 @@ function ajaxGetStyles(id)
         kid.appendChild(p_parent);
         
       }
-    });
+    }, true);
 }
 
 function ajaxChangeStyleComplete()
@@ -750,7 +653,7 @@ function ajaxChangeStyleComplete()
           alert('Error occurred during attempt to change theme:\n' + ajax.responseText);
         }
       }
-    });
+    }, true);
   
   return false;
   
@@ -840,8 +743,7 @@ function ajaxSetPassword()
       {
         alert(ajax.responseText);
       }
-    }
-  );
+    }, true);
 }
 
 function ajaxStartLogin()
@@ -1315,7 +1217,7 @@ function ajaxUpdateCheck(targetelement)
         if ( ajax.responseXML.firstChild.tagName == 'enano' )
         {
           var enanotag = ajax.responseXML.firstChild;
-          for ( var i in enanotag.childNodes )
+          for ( var i = 0; i < enanotag.childNodes.length; i++ )
           {
             if ( enanotag.childNodes[i].tagName == 'error' )
             {
@@ -1325,13 +1227,13 @@ function ajaxUpdateCheck(targetelement)
             {
               // got <latest>
               var latesttag = enanotag.childNodes[i];
-              for ( var i in latesttag.childNodes )
+              for ( var i = 0; i < latesttag.childNodes.length; i++ )
               {
                 var node = latesttag.childNodes[i];
                 if ( node.tagName == 'release' )
                 {
                   var releasedata = new Object();
-                  for ( var i in node.attributes )
+                  for ( var i = 0; i < node.attributes.length; i++ )
                   {
                     releasedata[node.attributes[i].nodeName] = node.attributes[i].nodeValue;
                   }
@@ -1367,7 +1269,7 @@ function ajaxUpdateCheck(targetelement)
           {
             var infobox = document.createElement('div');
             infobox.className = 'info-box-mini';
-            infobox.appendChild(document.createTextNode('An update for Enano is available.'));
+            infobox.appendChild(document.createTextNode('An update for Enano is available. The newest release is highlighted below.'));
             infobox.style.borderWidth = '0';
             infobox.style.margin = '0 0 0 0';
             thediv.appendChild(infobox);
@@ -1376,7 +1278,7 @@ function ajaxUpdateCheck(targetelement)
           {
             var infobox = document.createElement('div');
             infobox.className = 'info-box-mini';
-            infobox.appendChild(document.createTextNode('No new updates are available.'));
+            infobox.appendChild(document.createTextNode('No new updates are available. The latest available releases are shown below.'));
             infobox.style.borderWidth = '0';
             infobox.style.margin = '0 0 0 0';
             thediv.appendChild(infobox);

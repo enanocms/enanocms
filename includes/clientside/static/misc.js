@@ -123,16 +123,19 @@ function bannerOff(id)
 function disableUnload(message)
 {
   if(typeof message != 'string') message = 'You may want to save your changes first.';
-  var body = document.getElementsByTagName('body');
-  body = body[0];
-  body.onbeforeunload='return unescape(\''+escape(message)+'\')';
+  window._unloadmsg = message;
+  window.onbeforeunload = function(e)
+  {
+    if ( !e )
+      e = window.event;
+    e.returnValue = window._unloadmsg;
+  }
 }
 
 function enableUnload()
 {
-  var body = document.getElementsByTagName('body');
-  body = body[0];
-  body.onbeforeunload = null;
+  window._unloadmsg = null;
+  window.onbeforeunload = null;
 }
 
 /**
@@ -656,7 +659,7 @@ function ajaxValidateLogin()
             }
             break;
           case 'success_reset':
-            var conf = confirm('You have logged in using a temporary password. Before you can log in, you must finish resetting your password. Do you want to reset your real password now?');
+            var conf = confirm($lang.get('user_login_ajax_msg_used_temp_pass'));
             if ( conf )
             {
               var url = makeUrlNS('Special', 'PasswordReset/stage2/' + response.user_id + '/' + response.temppass);

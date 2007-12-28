@@ -318,7 +318,7 @@ $lang_cache = ');
     }
     catch(Zend_Json_Exception $e)
     {
-      $db->_die('lang.php - Exception caught by JSON parser');
+      $db->_die('lang.php - Exception caught by JSON parser</p><pre>' . htmlspecialchars(print_r($e, true)) . '</pre><p>');
       exit;
     }
     

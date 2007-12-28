@@ -75,7 +75,7 @@ class Searcher
       $words = explode(' ', $letters);
       foreach($words as $c => $w)
       {
-        if(strlen($w) < 2 || in_array($w, $stopwords))
+        if(strlen($w) < 2 || in_array($w, $stopwords) || strlen($w) > 63)
           unset($words[$c]);
         else
           $words[$c] = $w;
@@ -119,6 +119,8 @@ class Searcher
 function perform_search($query, &$warnings, $case_sensitive = false, &$word_list)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
   $warnings = array();
 
   $query = parse_search_query($query, $warnings);
@@ -529,7 +531,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
           'namespace' => $page['namespace'],
           'score' => $scores[$idstring],
           'page_length' => 1,
-          'page_note' => '[Special page]'
+          'page_note' => '[' . $lang->get('search_result_tag_special') . ']'
         );
     }
   }

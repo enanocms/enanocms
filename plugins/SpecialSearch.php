@@ -243,14 +243,12 @@ LONGSTRING;
     else
     {
       // No results for the search
-      echo '<h3 style="font-weight: normal;">Your search for <b>"' . htmlspecialchars($q) . '"</b> didn\'t turn up any results.</h3>';
-      echo '<p>There are a few things you can try:</p>';
-      echo '<ul>
-              <li>Were you looking for a specific Special page? Special pages are not searchable. You may want to see a <a href="' . makeUrlNS('Special', 'SpecialPages') . '">list of special pages</a>.</li>
-              <li>If you have the appropriate permissions, you can <a href="' . makeUrl($q) . '#do:edit">start the ' . htmlspecialchars($q) . ' page</a>.</li>
-              <li>Try using fewer keywords. You can get broader results if you remove quotes from your search query.</li>
-              <li>Did your search trigger any warnings? Sometimes a search can be cancelled if there aren\'t any terms in a search query that are 4 characters or greater in length.</li>
-            </ul>';
+      echo '<h3 style="font-weight: normal;">' . $lang->get('search_body_no_results_title', array('query' => htmlspecialchars($q))) . '</h3>';
+      echo $lang->get('search_body_no_results_body', array(
+          'query' => htmlspecialchars($q),
+          'create_url' => makeUrl($q),
+          'special_url' => makeUrlNS('Special', 'SpecialPages'),
+        ));
     }
     $code = $plugins->setHook('search_results');
     foreach ( $code as $cmd )

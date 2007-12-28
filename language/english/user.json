@@ -17,14 +17,15 @@
 
 var enano_lang = {
   categories: [
-    'user', 'usercp', 'groupcp', 'privmsgs'
+    'user', 'usercp', 'groupcp', 'privmsgs', 'userfuncs',
   ],
   strings: {
     meta: {
       user: 'Login, logout, and authentication',
       usercp: 'User control panel',
       groupcp: 'Group control panel',
-      privmsgs: 'Private message and buddy list CP'
+      privmsgs: 'Private message and buddy list CP',
+      userfuncs: 'User management pages',
     },
     user: {
       login_message_short: 'Please enter your username and password to log in.',
@@ -54,6 +55,7 @@ var enano_lang = {
       login_ajax_link_fullform: 'Trouble logging in? Try the <a href="%link_full_form%">full login form</a>.',
       login_ajax_link_forgotpass: 'Did you <a href="%forgotpass_link%">forget your password</a>?',
       login_ajax_loggingin: 'Logging in...',
+      login_ajax_msg_used_temp_pass: 'You have logged in using a temporary password. Before you can log in, you must finish resetting your password. Do you want to reset your real password now?',
       
       err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',
       err_key_not_found_cleared: 'It seems that the list of encryption keys used for login information has reached its maximum length, thus preventing new keys from being inserted. The list has been automatically cleared. Please try logging in again; if you are still unable to log in, please contact the site administration.',
@@ -301,6 +303,68 @@ var enano_lang = {
       ajax_teaser_sent: 'You haven\'t sent any messages yet. When you send a message, a copy of it will appear here.',
       
       ajax_no_subject: '[No subject]',
+    },
+    userfuncs: {
+      
+      // Special:Contributions
+      contribs_err_no_user: 'You need to select a user to view contributions for.',
+      contribs_heading_edits: 'Page edits',
+      contribs_msg_no_edits: 'This user has not made any edits.',
+      contribs_heading_other: 'Other changes made by this user',
+      contribs_msg_no_other: 'This user has not made any non-editing changes.',
+      
+      // Special:ChangeStyle
+      changetheme_heading_theme: 'Please select a new theme:',
+      changetheme_heading_style: 'Please select a stylesheet:',
+      changetheme_btn_continue: 'Continue',
+      changetheme_btn_allclear: 'Change style',
+      changetheme_success_title: 'Theme changed',
+      changetheme_success_body: 'Your theme preferences have been updated. Redirecting you to the last viewed page...',
+      
+      // Special:ActivateAccount
+      activate_err_badlink_title: 'Account activation error',
+      activate_err_badlink_body: 'This page can only be accessed using links sent to users via e-mail.',
+      activate_err_bad_key: 'The activation key was probably incorrect, or the account is already active.',
+      activate_success_title: 'Activation successful',
+      activate_success_body: 'Your account is now active. Thank you for registering.',
+      
+      // Special:PasswordReset
+      passreset_blurb_line1: 'Don\'t worry, it happens to the best of us.',
+      passreset_blurb_line2: 'To reset your password, just enter your username below, and a new password will be e-mailed to you.',
+      passreset_lbl_username: 'Username:',
+      passreset_btn_mailpasswd: 'Mail new password',
+      passreset_email: "Dear %username%,
+    
+Someone (hopefully you) on the %site_name% website requested that a new password be created.
+
+The request was sent from the IP address %remote_addr%.
+
+If you did not request the new password, then you do not need to do anything; the password will be invalidated after 24 hours.
+
+If you did request this password, then please log in using the password shown below:
+
+  Password: %temp_pass%
+  
+After you log in using this password, you will be able to reset your real password. You can only log in using this temporary password once.
+
+Sincerely yours,
+The %site_name% administration team
+",
+      passreset_stage1_success: 'An e-mail has been sent to the e-mail address on file for your username with a new password in it. Please check your e-mail for further instructions.',
+      passreset_stage1_error: 'Error occured, your new password was not sent.',
+      passreset_stage2_th: 'Reset password',
+      passreset_stage2_lbl_password: 'Password:',
+      passreset_stage2_lbl_confirm: 'Confirm:',
+      passreset_stage2_lbl_strength: 'Password strength rating:',
+      passreset_stage2_blurb_strength: 'Your password needs to have a score of at least <b>%config.pw_strength_minimum%</b>.',
+      passreset_stage2_btn_submit: 'Reset password',
+      passreset_stage2_success: 'Your password has been reset. Return to the <a href="%url_mainpage%">main page</a>.',
+      
+      passreset_err_no_match: 'The passwords you entered do not match.',
+      passreset_err_too_short: 'The new password must be 6 characters or greater in length.',
+      passreset_err_failed_score: 'ERROR: Your password did not pass the complexity score requirement. You need %config.pw_strength_minimum% points to pass; your password received a score of %inp_score%. <a href="%url%">Go back</a>',
+      passreset_err_pass_expired: 'Your temporary password has expired. Please <a href="%reset_url%">request another one</a>.',
+      
     }
   }
 };

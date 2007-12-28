@@ -49,7 +49,7 @@ function ajaxOpenACLManager(page_id, namespace)
         aclDataCache = groups;
         __aclBuildSelector(groups);
       }
-    });
+    }, true);
   return false;
 }
 
@@ -84,7 +84,7 @@ function ajaxACLSwitchToSelector()
         groups.namespace = thispage[1];
         __aclBuildSelector(groups);
       }
-    });
+    }, true);
 }
 
 function __aclBuildSelector(groups)
@@ -426,13 +426,13 @@ function __aclJSONSubmitAjaxHandler(params)
             note.appendChild(document.createTextNode($lang.get('acl_lbl_save_success_body', { target_name: data.target_name })));
             note.appendChild(document.createElement('br'));
             var a = document.createElement('a');
-            a.href = 'javascript:void(0);';
-            a.onclick = function() { this.parentNode.parentNode.removeChild(this.parentNode); return false; };
+            a.href = '#';
+            a.onclick = function(e) { alert('ONCLICK'); return false; };
             a.appendChild(document.createTextNode('[ ' + $lang.get('acl_btn_success_dismiss') + ' :'));
             note.appendChild(a);
             var a2 = document.createElement('a');
-            a2.href = 'javascript:void(0);';
-            a2.onclick = function() { killACLManager(); return false; };
+            a2.href = '#';
+            a2.onclick = function(e) { alert('ONCLICK'); return false; };
             a2.appendChild(document.createTextNode(': ' + $lang.get('acl_btn_success_close') + ' ]'));
             note.appendChild(a2);
             document.getElementById(aclManagerID + '_main').insertBefore(note, document.getElementById(aclManagerID + '_main').firstChild);
@@ -487,7 +487,7 @@ function __aclJSONSubmitAjaxHandler(params)
                 //fadeInfoBoxes();
                 
               }
-            });
+            }, true);
             
             break;
           case 'error':
@@ -501,7 +501,7 @@ function __aclJSONSubmitAjaxHandler(params)
             break;
         }
       }
-    });
+    }, true);
 }
 
 function __aclBuildGroupsHTML(groups)

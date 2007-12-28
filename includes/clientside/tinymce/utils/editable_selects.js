@@ -1,5 +1,5 @@
 /**
- * $Id: editable_selects.js 162 2007-01-03 16:16:52Z spocke $
+ * $Id: editable_selects.js 324 2007-11-01 12:58:49Z spocke $
  *
  * Makes select boxes editable.
  *
@@ -20,13 +20,13 @@ var TinyMCE_EditableSelects = {
 				o.className = 'mceAddSelectValue';
 
 				nl[i].options[nl[i].options.length] = o;
-				nl[i].setAttribute('onchange', 'TinyMCE_EditableSelects.onChangeEditableSelect(this);');
+				nl[i].onchange = TinyMCE_EditableSelects.onChangeEditableSelect;
 			}
 		}
 	},
 
-	onChangeEditableSelect : function(se) {
-		var d = document, ne;
+	onChangeEditableSelect : function(e) {
+		var d = document, ne, se = window.event ? window.event.srcElement : e.target;
 
 		if (se.options[se.selectedIndex].value == '__mce_add_custom__') {
 			ne = d.createElement("input");
@@ -34,7 +34,7 @@ var TinyMCE_EditableSelects = {
 			ne.name = se.name + "_custom";
 			ne.type = "text";
 
-			ne.style.width = se.clientWidth;
+			ne.style.width = se.offsetWidth + 'px';
 			se.parentNode.insertBefore(ne, se);
 			se.style.display = 'none';
 			ne.focus();

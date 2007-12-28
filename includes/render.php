@@ -272,6 +272,9 @@ class RenderMan {
       $text = RenderMan::include_templates($text);
     }
     
+    // Before shipping it out to the renderer, replace spaces in between headings and paragraphs:
+    $text = preg_replace('/<\/(h[0-9]|div|p)>([\s]+)<(h[0-9]|div|p)( .+?)?>/i', '</\\1><\\3\\4>', $text);
+    
     $text = process_tables($text);
     $text = RenderMan::parse_internal_links($text);
     

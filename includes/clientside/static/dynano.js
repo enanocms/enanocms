@@ -86,7 +86,7 @@ function __DNObjGetTop(obj) {
   return left_offset;
 }
 
-function DN_switchToMCE()
+function DN_switchToMCE(performWikiTransform)
 {
   //if ( this.object.dn_is_mce )
   //  return this;
@@ -94,17 +94,38 @@ function DN_switchToMCE()
     this.object.id = 'textarea_' + Math.floor(Math.random() * 1000000);
   if ( !this.object.name )
     this.object.name = 'textarea_' + Math.floor(Math.random() * 1000000);
-  tinyMCE.addMCEControl(this.object, this.object.name, document);
+  // TinyMCE 2.x
+  // tinyMCE.addMCEControl(this.object, this.object.name, document);
+  // TinyMCE 3.x
+  if ( performWikiTransform )
+  {
+    this.object.value = DN_WikitextToXHTML(this.object.value);
+  }
+  tinyMCE.execCommand("mceAddControl", true, this.object.id);
   this.object.dnIsMCE = 'yes';
   return this;
 }
 
-function DN_destroyMCE()
+function DN_destroyMCE(performWikiTransform)
 {
   //if ( !this.object.dn_is_mce )
   //  return this;
-  if ( this.object.name )
-    tinyMCE.removeMCEControl(this.object.name);
+  if ( this.object.id )
+  {
+    // TinyMCE 2.x
+    // tinyMCE.removeMCEControl(this.object.name);
+    // TinyMCE 3.x
+    var ed = tinyMCE.getInstanceById(this.object.id);
+    if ( ed )
+    {
+      if ( !tinyMCE.execCommand("mceRemoveEditor", false, this.object.id) )
+        alert('could not destroy editor');
+      if ( performWikiTransform )
+      {
+        this.object.value = DN_XHTMLToWikitext(this.object.value);
+      }
+    }
+  }
   this.object.dnIsMCE = 'no';
   return this;
 }
@@ -114,14 +135,38 @@ function DN_mceFetchContent()
   if ( this.object.name )
   {
     var text = this.object.value;
-    if ( tinyMCE.getInstanceById(this.object.name) )
-      text = tinyMCE.getContent(this.object.name);
+    if ( tinyMCE.get(this.object.id) )
+    {
+      var editor = tinyMCE.get(this.object.id);
+      text = editor.getContent();
+    }
     return text;
   }
   else
   {
     return this.object.value;
   }
+}
+
+// A basic Wikitext to XHTML converter
+function DN_WikitextToXHTML(text)
+{
+  text = text.replace(/^===[\s]*(.+?)[\s]*===$/g, '<h3>$1</h3>');
+  text = text.replace(/'''(.+?)'''/g, '<b>$1</b>');
+  text = text.replace(/''(.+?)''/g, '<i>$1</i>');
+  text = text.replace(/\[(http|ftp|irc|mailto):([^ \]])+ ([^\]]+?)\]/g, '<a href="$1:$2">$4</a>');
+  return text;
+}
+
+// Inverse of the previous function
+function DN_XHTMLToWikitext(text)
+{
+  text = text.replace(/<h3>(.+?)<\/h3>/g, '=== $1 ===');
+  text = text.replace(/<(b|strong)>(.+?)<\/(b|strong)>/g, "'''$2'''");
+  text = text.replace(/<(i|em)>(.+?)<\/(i|em)>/g, "''$2''");
+  text = text.replace(/<a href="([^" ]+)">(.+?)<\/a>/g, '[$1 $2]');
+  text = text.replace(/<\/?p>/g, '');
+  return text;
 }
 
 DNobj.prototype.addClass = function(clsname) { addClass(this.object, clsname); return this; };
