@@ -332,7 +332,7 @@ function page_Special_PrivateMessages()
             <td class="row1">
               <?php echo $lang->get('privmsgs_lbl_message'); ?>
             </td>
-            <td class="row1" style="min-width: 80%;">
+            <td class="row1" style="width: 80%;">
               <?php
                 if ( isset($_POST['_savedraft']) )
                 {
