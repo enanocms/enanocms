@@ -130,13 +130,32 @@
       }
       if(isset($_POST['_save']))
       {
-        $e = PageUtils::savepage($paths->page_id, $paths->namespace, $_POST['page_text'], $_POST['edit_summary'], isset($_POST['minor']));
-        if ( $e == 'good' )
+        $captcha_valid = true;
+        if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
         {
-          redirect(makeUrl($paths->page), $lang->get('editor_msg_save_success_title'), $lang->get('editor_msg_save_success_body'), 3);
+          $captcha_valid = false;
+          if ( isset($_POST['captcha_id']) && isset($_POST['captcha_code']) )
+          {
+            $hash_correct = strtolower($session->get_captcha($_POST['captcha_id']));
+            $hash_input   = strtolower($_POST['captcha_code']);
+            if ( $hash_input === $hash_correct )
+              $captcha_valid = true;
+          }
+        }
+        if ( $captcha_valid )
+        {
+          $e = PageUtils::savepage($paths->page_id, $paths->namespace, $_POST['page_text'], $_POST['edit_summary'], isset($_POST['minor']));
+          if ( $e == 'good' )
+          {
+            redirect(makeUrl($paths->page), $lang->get('editor_msg_save_success_title'), $lang->get('editor_msg_save_success_body'), 3);
+          }
         }
       }
       $template->header();
+      if ( isset($captcha_valid) )
+      {
+        echo '<div class="usermessage">' . $lang->get('editor_err_captcha_wrong') . '</div>';
+      }
       if(isset($_POST['_preview']))
       {
         $text = $_POST['page_text'];
@@ -153,8 +172,21 @@
         <textarea name="page_text" rows="20" cols="60" style="width: 97%;">'.$text.'</textarea><br />
         <br />
         ';
-      if($paths->wiki_mode)
-        echo $lang->get('editor_lbl_edit_summary') . ' <input name="edit_summary" type="text" size="40" /><br /><label><input type="checkbox" name="minor" /> This is a minor edit</label><br />';  
+      echo $lang->get('editor_lbl_edit_summary') . ' <input name="edit_summary" type="text" size="40" /><br /><label><input type="checkbox" name="minor" /> ' . $lang->get('editor_lbl_minor_edit_field') . '</label><br />';
+      if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
+      {
+        echo '<br /><table border="0"><tr><td>';
+        echo '<b>' . $lang->get('editor_lbl_field_captcha') . '</b><br />'
+             . '<br />'
+             . $lang->get('editor_msg_captcha_pleaseenter') . '<br /><br />'
+             . $lang->get('editor_msg_captcha_blind');
+        echo '</td><td>';
+        $hash = $session->make_captcha();
+        echo '<img src="' . makeUrlNS('Special', "Captcha/$hash") . '" onclick="this.src+=\'/a\'" style="cursor: pointer;" /><br />';
+        echo '<input type="hidden" name="captcha_id" value="' . $hash . '" />';
+        echo $lang->get('editor_lbl_field_captcha_code') . ' <input type="text" name="captcha_code" value="" size="9" />';
+        echo '</td></tr></table>';
+      }
       echo '<br />
           <input type="submit" name="_save"    value="' . $lang->get('editor_btn_save') . '" style="font-weight: bold;" />
           <input type="submit" name="_preview" value="' . $lang->get('editor_btn_preview') . '" />

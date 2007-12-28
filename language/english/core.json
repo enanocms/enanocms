@@ -258,7 +258,7 @@ var enano_lang = {
       msg_save_success_title: 'Changes saved',
       msg_save_success_body: 'Your changes to this page have been saved. Redirecting...',
       
-      msg_captcha_pleaseenter: 'Please enter the code shown in the image to the right into the text box. This process helps to ensure that this page is not being edited by an automated bot. If the image to the right is illegible, you can regenerate it by clicking on the image.',
+      msg_captcha_pleaseenter: 'Please enter the code shown in the image to the right into the text box. This process helps to ensure that this page is not being edited by an automated bot. If the image to the right is illegible, you can regenerate it by clicking on the image (only works if your browser supports Javascript).',
       msg_captcha_blind: 'If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will be able to make your requested edits.',
       lbl_field_captcha: 'Visual confirmation',
       lbl_field_captcha_code: 'Code:',
