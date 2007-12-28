@@ -365,6 +365,31 @@ The %site_name% administration team
       passreset_err_failed_score: 'ERROR: Your password did not pass the complexity score requirement. You need %config.pw_strength_minimum% points to pass; your password received a score of %inp_score%. <a href="%url%">Go back</a>',
       passreset_err_pass_expired: 'Your temporary password has expired. Please <a href="%reset_url%">request another one</a>.',
       
+      // Special:Memberlist
+      ml_column_username: 'Username',
+      ml_column_userlevel: 'Title',
+      ml_column_email: 'E-mail',
+      ml_column_regtime: 'Registered',
+      ml_level_guest: 'Guest',
+      ml_level_member: 'Member',
+      ml_level_mod: 'Moderator',
+      ml_level_admin: 'Site administrator',
+      ml_level_unknown: 'Unknown (level %level%)',
+      ml_email_nonpublic: 'Non-public',
+      ml_date_daysago: '%days_ago% days ago',
+      ml_date_today: 'Today',
+      ml_date_yesterday: 'Yesterday',
+      ml_btn_adminuser: 'Administer user',
+      ml_tip_userpage: 'Click to view this user\'s userpage',
+      ml_tip_nouserpage: 'This user hasn\'t created a userpage yet, but you can still view profile details by clicking this link.',
+      ml_lbl_finduser: 'Find a member:',
+      ml_btn_go: 'Go',
+      ml_tip_wildcard: 'You may use the following wildcards: * to match multiple characters, ? to match a single character.',
+      ml_err_nousers_find: 'Sorry - no users that matched your query could be found. Please try some different search terms.',
+      ml_err_nousers: 'Sorry - no users with usernames that start with that letter could be found.',
+      ml_msg_matches_zero: 'Search returned no matches',
+      ml_msg_matches_one: 'Search returned 1 match',
+      ml_msg_matches: 'Search returned %matches% matches',
     }
   }
 };

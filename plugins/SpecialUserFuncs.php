@@ -1655,16 +1655,16 @@ function page_Special_Memberlist()
                    <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=uid&orderby=' . $sortorders['uid'], true) . '">#</a>
                  </th>
                  <th>
-                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=username&orderby=' . $sortorders['username'], true) . '">Username</a>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=username&orderby=' . $sortorders['username'], true) . '">' . $lang->get('userfuncs_ml_column_username') . '</a>
                  </th>
                  <th>
-                   Title
+                   ' . $lang->get('userfuncs_ml_column_userlevel') . '
                  </th>
                  <th>
-                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=email&orderby=' . $sortorders['email'], true) . '">E-mail</a>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=email&orderby=' . $sortorders['email'], true) . '">' . $lang->get('userfuncs_ml_column_email') . '</a>
                  </th>
                  <th>
-                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=regist&orderby=' . $sortorders['regist'], true) . '">Registered</a>
+                   <a href="' . makeUrlNS('Special', 'Memberlist', $finduser_url . 'letter=' . $startletter . '&sort=regist&orderby=' . $sortorders['regist'], true) . '">' . $lang->get('userfuncs_ml_column_regtime') . '</a>
                  </th>
                </tr>';
                
@@ -1678,8 +1678,16 @@ function page_Special_Memberlist()
   
   if ( !empty($finduser_url) )
   {
-    $s = ( $num_rows == 1 ) ? '' : 'es';
-    echo "<h3 style='float: left;'>Search returned $num_rows match$s</h3>";
+    switch ( $num_rows )
+    {
+      case 0:
+        $str = $lang->get('userfuncs_ml_msg_matches_zero'); break;
+      case 1:
+        $str = $lang->get('userfuncs_ml_msg_matches_one'); break;
+      default:
+        $str = $lang->get('userfuncs_ml_msg_matches', array('matches' => $num_rows)); break;
+    }
+    echo "<h3>$str</h3>";
   }
   
   // main selector
@@ -1718,14 +1726,16 @@ function page_Special_Memberlist()
                 <form action="' . makeUrlNS('Special', 'Memberlist') . '" method="get" onsubmit="if ( !submitAuthorized ) return false;">'
                . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->page ) . '" />' : '' )
                . ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : '')
-               . '<p>Find a member: ' . $template->username_field('finduser') . ' <input type="submit" value="Go" /><br /><small>You may use the following wildcards: * to match multiple characters, ? to match a single character.</small></p>'
+               . '<p>' . $lang->get('userfuncs_ml_lbl_finduser') . ' ' . $template->username_field('finduser') . ' <input type="submit" value="' . $lang->get('userfuncs_ml_btn_go') . '" /><br />
+                  <small>' . $lang->get('userfuncs_ml_tip_wildcard') . '</small></p>'
                . '</form>
                </div>'                                                                                                // Footer (printed after rows)
           );
   
   if ( $num_rows < 1 )
   {
-    echo ( isset($_GET['finduser']) ) ? '<p>Sorry - no users that matched your query could be found. Please try some different search terms.</p>' : '<p>Sorry - no users with usernames that start with that letter could be found.</p>';
+    echo ( isset($_GET['finduser']) ) ? '<p>' . $lang->get('userfuncs_ml_err_nousers_find') . '</p>' :
+                                        '<p>' . $lang->get('userfuncs_ml_err_nousers') . '</p>';
   }
   else
   {
@@ -1745,37 +1755,41 @@ class MemberlistFormatter
   function username($username, $row)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     $userpage = $paths->nslist['User'] . sanitize_page_id($username);
-    $class = ( isPage($userpage) ) ? ' title="Click to view this user\'s userpage"' : ' class="wikilink-nonexistent" title="This user hasn\'t created a userpage yet, but you can still view profile details by clicking this link."';
+    $class = ( isPage($userpage) ) ? ' title="' . $lang->get('userfuncs_ml_tip_userpage') . '"' : ' class="wikilink-nonexistent" title="' . $lang->get('userfuncs_ml_tip_nouserpage') . '"';
     $anchor = '<a href="' . makeUrlNS('User', sanitize_page_id($username)) . '"' . $class . '>' . htmlspecialchars($username) . '</a>';
     if ( $session->user_level >= USER_LEVEL_ADMIN )
     {
       $anchor .= ' <small>- <a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&username=' . urlencode($username), true) . '"
-                               onclick="ajaxAdminUser(\'' . addslashes(htmlspecialchars($username)) . '\'); return false;">Administer user</a></small>';
+                               onclick="ajaxAdminUser(\'' . addslashes(htmlspecialchars($username)) . '\'); return false;">' . $lang->get('userfuncs_ml_btn_adminuser') . '</a></small>';
     }
     return $anchor;
   }
   function user_level($level, $row)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     switch ( $level )
     {
       case USER_LEVEL_GUEST:
-        $s_level = 'Guest'; break;
+        $s_level = $lang->get('userfuncs_ml_level_guest'); break;
       case USER_LEVEL_MEMBER:
       case USER_LEVEL_CHPREF:
-        $s_level = 'Member'; break;
+        $s_level = $lang->get('userfuncs_ml_level_member'); break;
       case USER_LEVEL_MOD:
-        $s_level = 'Moderator'; break;
+        $s_level = $lang->get('userfuncs_ml_level_mod'); break;
       case USER_LEVEL_ADMIN:
-        $s_level = 'Site administrator'; break;
+        $s_level = $lang->get('userfuncs_ml_level_admin'); break;
       default:
-        $s_level = 'Unknown (level ' . $level . ')';
+        $s_level = $lang->get('userfuncs_ml_level_unknown', array( 'level' => $level ));
     }
     return $s_level;
   }
   function email($addy, $row)
   {
+    global $lang;
     if ( $row['email_public'] == '1' )
     {
       global $email;
@@ -1784,7 +1798,7 @@ class MemberlistFormatter
     }
     else
     {
-      return '<small>&lt;Non-public&gt;</small>';
+      return '<small>&lt;' . $lang->get('userfuncs_ml_email_nonpublic') . '&gt;</small>';
     }
   }
   /**
@@ -1795,6 +1809,7 @@ class MemberlistFormatter
   
   function format_date($time)
   {
+    global $lang;
     // Our formattting string to pass to date()
     // This should not include minute/second info, only today's date in whatever format suits your fancy
     $formatstring = 'F j, Y';
@@ -1814,16 +1829,16 @@ class MemberlistFormatter
       if ( $then == $days_ago )
       {
         // yes, return $i
-        return "$i days ago";
+        return $lang->get('userfuncs_ml_date_daysago', array('days_ago' => $i));
       }
     }
     // either yesterday, today, or before 6 days ago
     switch($then)
     {
       case $today:
-        return 'Today';
+        return $lang->get('userfuncs_ml_date_today');
       case $yesterday:
-        return 'Yesterday';
+        return $lang->get('userfuncs_ml_date_yesterday');
       default:
         return $then;
     }
