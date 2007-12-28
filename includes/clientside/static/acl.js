@@ -471,7 +471,7 @@ function __aclJSONSubmitAjaxHandler(params)
                 b.appendChild(document.createTextNode($lang.get('acl_lbl_delete_success_title')));
                 note.appendChild(b);
                 note.appendChild(document.createElement('br'));
-                note.appendChild(document.createTextNode($lang.get('acl_lbl_delete_success_title', { target_name: aclDataCache.target_name })));
+                note.appendChild(document.createTextNode($lang.get('acl_lbl_delete_success_body', { target_name: aclDataCache.target_name })));
                 note.appendChild(document.createElement('br'));
                 a = document.createElement('a');
                 a.href = '#';

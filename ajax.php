@@ -114,13 +114,24 @@
         $allowed = false;
         $src = '';
       }
+      
+      $auth_edit = ( $session->get_permissions('edit_page') && ( $session->get_permissions('even_when_protected') || !$paths->page_protected ) );
+      
       $return = array(
           'mode' => 'editor',
           'src' => $src,
           'auth_view_source' => $allowed,
-          'auth_edit' => $session->get_permissions('edit_page'),
-          'time' => time()
+          'auth_edit' => $auth_edit,
+          'time' => time(),
+          'require_captcha' => false,
         );
+      
+      if ( $auth_edit && !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
+      {
+        $return['require_captcha'] = true;
+        $return['captcha_id'] = $session->make_captcha();
+      }
+      
       echo enano_json_encode($return);
       break;
     case "getpage":
@@ -178,6 +189,27 @@
         break;
       }
       
+      // Verify captcha, if needed
+      if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
+      {
+        if ( !isset($request['captcha_id']) || !isset($request['captcha_code']) )
+        {
+          die('Invalid request, need captcha metadata');
+        }
+        $code_correct = strtolower($session->get_captcha($request['captcha_id']));
+        $code_input = strtolower($request['captcha_code']);
+        if ( $code_correct !== $code_input )
+        {
+          $return = array(
+            'mode' => 'errors',
+            'errors' => array($lang->get('editor_err_captcha_wrong')),
+            'new_captcha' => $session->make_captcha()
+          );
+          echo enano_json_encode($return);
+          break;
+        }
+      }
+      
       // Verification complete. Start the PageProcessor and let it do the dirty work for us.
       $page = new PageProcessor($paths->page_id, $paths->namespace);
       if ( $page->update_page($request['src'], $request['summary'], ( $request['minor_edit'] == 1 )) )
@@ -197,6 +229,10 @@
           'mode' => 'errors',
           'errors' => array_values($errors)
           );
+        if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
+        {
+          $return['new_captcha'] = $session->make_captcha();
+        }
       }
       
       echo enano_json_encode($return);

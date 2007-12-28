@@ -220,10 +220,15 @@ var enano_lang = {
       err_save_body: 'A few problems were encountered while your page was being saved:',
       err_obsolete_title: 'Someone else modified this page while you were editing it',
       err_obsolete_body: 'While you were editing this page, %author% modified this page. The edit took place on %timestamp%. You can <a href="%page_url%" onclick="window.open(this.href); return false;">view the latest version of the page</a>, or click %this.editor_btn_save% again to replace the page with your revision.',
+      err_need_captcha_title: 'Missing confirmation code',
+      err_need_captcha_body: 'Please enter the confirmation code in the box labeled "%this.editor_lbl_field_captcha_code%". %this.editor_msg_captcha_blind%',
+      err_no_text_title: 'No text entered',
+      err_no_text_body: 'Please enter the text that will be in this page.',
       // Server-side errors
       err_no_rows: 'Page doesn\'t exist in the database',
       err_no_permission: 'You do not have permission to edit this page.',
       err_page_protected: 'This page is protected, and you do not have permission to edit protected pages.',
+      err_captcha_wrong: 'The confirmation code you entered is incorrect.',
       
       msg_saved: 'Your changes to this page have been saved.',
       msg_revert_confirm: 'Do you really want to revert your changes?',
@@ -252,6 +257,11 @@ var enano_lang = {
       preview_blurb: '<b>Reminder:</b> This is only a preview - your changes to this page have not yet been saved.',
       msg_save_success_title: 'Changes saved',
       msg_save_success_body: 'Your changes to this page have been saved. Redirecting...',
+      
+      msg_captcha_pleaseenter: 'Please enter the code shown in the image to the right into the text box. This process helps to ensure that this page is not being edited by an automated bot. If the image to the right is illegible, you can regenerate it by clicking on the image.',
+      msg_captcha_blind: 'If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will be able to make your requested edits.',
+      lbl_field_captcha: 'Visual confirmation',
+      lbl_field_captcha_code: 'Code:',
     },
     history: {
       summary_clearlogs: 'Automatic backup created when logs were purged',

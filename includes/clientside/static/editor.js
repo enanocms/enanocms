@@ -80,12 +80,15 @@ function ajaxEditor()
           return false;
         }
         
-        ajaxBuildEditor(response.src, (!response.auth_edit), response.time);
+        // do we need to enter a captcha before saving the page?
+        var captcha_hash = ( response.require_captcha ) ? response.captcha_id : false;
+        
+        ajaxBuildEditor(response.src, (!response.auth_edit), response.time, captcha_hash);
       }
     });
 }
 
-function ajaxBuildEditor(content, readonly, timestamp)
+function ajaxBuildEditor(content, readonly, timestamp, captcha_hash)
 {
   // Set flags
   // We don't want the fancy confirmation framework to trigger if the user is only viewing the page source
@@ -255,6 +258,47 @@ function ajaxBuildEditor(content, readonly, timestamp)
     tr2.appendChild(td2_1);
     tr2.appendChild(td2_2);
     
+    if ( captcha_hash )
+    {
+      // generate captcha field (effectively third row)
+      var tr4 = document.createElement('tr');
+      var td4_1 = document.createElement('td');
+      var td4_2 = document.createElement('td');
+      td4_1.className = 'row2';
+      td4_2.className = 'row1';
+      
+      td4_1.appendChild(document.createTextNode($lang.get('editor_lbl_field_captcha')));
+      td4_1.appendChild(document.createElement('br'));
+      var small2 = document.createElement('small');
+      small2.appendChild(document.createTextNode($lang.get('editor_msg_captcha_pleaseenter')));
+      small2.appendChild(document.createElement('br'));
+      small2.appendChild(document.createElement('br'));
+      small2.appendChild(document.createTextNode($lang.get('editor_msg_captcha_blind')));
+      td4_1.appendChild(small2);
+      
+      var img = document.createElement('img');
+      img.src = makeUrlNS('Special', 'Captcha/' + captcha_hash);
+      img._captchaHash = captcha_hash;
+      img.id = 'enano_editor_captcha_img';
+      img.onclick = function()
+      {
+        this.src = makeUrlNS('Special', 'Captcha/' + this._captchaHash + '/' + Math.floor(Math.random() * 100000));
+      }
+      img.style.cursor = 'pointer';
+      td4_2.appendChild(img);
+      td4_2.appendChild(document.createElement('br'));
+      td4_2.appendChild(document.createTextNode($lang.get('editor_lbl_field_captcha_code') + ' '));
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.id = 'enano_editor_field_captcha';
+      input._captchaHash = captcha_hash;
+      input.size = '9';
+      td4_2.appendChild(input);
+      
+      tr4.appendChild(td4_1);
+      tr4.appendChild(td4_2);
+    }
+    
     // Third row: controls
     var tr3 = document.createElement('tr');
     var td3 = document.createElement('th');
@@ -302,6 +346,10 @@ function ajaxBuildEditor(content, readonly, timestamp)
     
     metatable.appendChild(tr1);
     metatable.appendChild(tr2);
+    if ( captcha_hash )
+    {
+      metatable.appendChild(tr4);
+    }
     metatable.appendChild(tr3);
   }
   tblholder.appendChild(metatable);
@@ -339,6 +387,14 @@ function ajaxEditorSave()
 {
   ajaxSetEditorLoading();
   var ta_content = $('ajaxEditArea').getContent();
+  
+  if ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' )
+  {
+    new messagebox(MB_OK|MB_ICONSTOP, $lang.get('editor_err_no_text_title'), $lang.get('editor_err_no_text_body'));
+    ajaxUnSetEditorLoading();
+    return false;
+  }
+  
   var edit_summ = $('enano_editor_field_summary').object.value;
   if ( !edit_summ )
     edit_summ = '';
@@ -351,6 +407,21 @@ function ajaxEditorSave()
     minor_edit: is_minor,
     time: timestamp
   };
+  
+  // Do we need to add captcha info?
+  if ( document.getElementById('enano_editor_field_captcha') )
+  {
+    var captcha_field = document.getElementById('enano_editor_field_captcha');
+    if ( captcha_field.value == '' )
+    {
+      new messagebox(MB_OK|MB_ICONSTOP, $lang.get('editor_err_need_captcha_title'), $lang.get('editor_err_need_captcha_body'));
+      ajaxUnSetEditorLoading();
+      return false;
+    }
+    json_packet.captcha_code = captcha_field.value;
+    json_packet.captcha_id = captcha_field._captchaHash;
+  }
+  
   json_packet = ajaxEscape(toJSONString(json_packet));
   ajaxPost(stdAjaxPrefix + '&_mode=savepage_json', 'r=' + json_packet, function()
     {
@@ -374,6 +445,21 @@ function ajaxEditorSave()
         // This will be used if the PageProcessor generated errors (usually security/permissions related)
         if ( response.mode == 'errors' )
         {
+          // This will be true if the user entered a captcha code incorrectly, thus
+          // invalidating the code and requiring a new image to be generated.
+          if ( response.new_captcha )
+          {
+            // Generate the new captcha field
+            var img = document.getElementById('enano_editor_captcha_img');
+            var input = document.getElementById('enano_editor_field_captcha');
+            if ( img && input )
+            {
+              img._captchaHash = response.new_captcha;
+              input._captchaHash = response.new_captcha;
+              img.src = makeUrlNS('Special', 'Captcha/' + response.new_captcha);
+              input.value = '';
+            }
+          }
           var errors = '<ul><li>' + implode('</li><li>', response.errors) + '</li></ul>';
           new messagebox(MB_OK | MB_ICONSTOP, $lang.get('editor_err_save_title'), $lang.get('editor_err_save_body') + errors);
           return false;
@@ -392,14 +478,17 @@ function ajaxEditorSave()
           setAjaxLoading();
           editor_open = false;
           enableUnload();
+          changeOpac(0, 'ajaxEditContainer');
           ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function()
             {
               if ( ajax.readyState == 4 )
               {
                 unsetAjaxLoading();
-                document.getElementById('ajaxEditContainer').innerHTML = '<div class="usermessage">' + $lang.get('editor_msg_saved') + '</div>' + ajax.responseText;
                 selectButtonMajor('article');
                 unselectAllButtonsMinor();
+                
+                document.getElementById('ajaxEditContainer').innerHTML = '<div class="usermessage">' + $lang.get('editor_msg_saved') + '</div>' + ajax.responseText;
+                opacity('ajaxEditContainer', 0, 100, 1000);
               }
             });
         }

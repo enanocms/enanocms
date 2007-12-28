@@ -181,6 +181,8 @@ function page_Admin_GeneralConfig() {
     if(isset($_POST['editmsg']))                 setConfig('wiki_edit_notice', '1');
     else                                         setConfig('wiki_edit_notice', '0');
     setConfig('wiki_edit_notice_text', $_POST['editmsg_text']);
+    if(isset($_POST['guest_edit_require_captcha'])) setConfig('guest_edit_require_captcha', '1');
+    else                                         setConfig('guest_edit_require_captcha', '0');
     
     // Stats
     if(isset($_POST['log_hits']))                setConfig('log_hits', '1');
@@ -338,6 +340,19 @@ function page_Admin_GeneralConfig() {
       <tr>
         <td class="row2">
           <textarea <?php if(getConfig('wiki_edit_notice')!='1') echo('style="display:none" '); ?>rows="5" cols="30" name="editmsg_text" id="editmsg_text"><?php echo getConfig('wiki_edit_notice_text'); ?></textarea>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <b>Require visual confirmation for guests editing pages</b><br />
+          If this is enabled, guests will be asked to enter a visual confirmation code before saving changes to a page.
+        </td>
+        <td class="row1">
+          <label>
+            <input type="checkbox" name="guest_edit_require_captcha" <?php if ( getConfig('guest_edit_require_captcha') == '1' ) echo 'checked="checked" '; ?>/>
+            Require guests to complete a CAPTCHA when editing pages
+          </label>
         </td>
       </tr>
       
