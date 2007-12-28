@@ -234,6 +234,10 @@ function getWidth() {
  * dom-drag.js
  * 09.25.2001
  * www.youngpup.net
+ * The original version of this code is in the
+ * public domain. We have relicensed this modified
+ * version under the GPL version 2 or later for
+ * Enano.
  **************************************************/
 
 var Drag = {

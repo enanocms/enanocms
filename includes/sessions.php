@@ -2908,6 +2908,13 @@ class Session_ACLPageInfo {
   var $acl_defaults_used = Array();
   
   /**
+   * Tracks whether Wiki Mode is on for the page we're operating on.
+   * @var bool
+   */
+  
+  var $wiki_mode = false;
+  
+  /**
    * Constructor.
    * @param string $page_id The ID of the page to check
    * @param string $namespace The namespace of the page to check.
@@ -2964,6 +2971,36 @@ class Session_ACLPageInfo {
     
     $this->page_id = $page_id;
     $this->namespace = $namespace;
+    
+    $pathskey = $paths->nslist[$this->namespace].$this->page_id;
+    $ppwm = 2;
+    if ( isset($paths->pages[$pathskey]) )
+    {
+      if ( isset($paths->pages[$pathskey]['wiki_mode']) )
+        $ppwm = $paths->pages[$pathskey]['wiki_mode'];
+    }
+    if ( $ppwm == 1 && ( $session->user_logged_in || getConfig('wiki_mode_require_login') != '1' ) )
+      $this->wiki_mode = true;
+    else if ( $ppwm == 1 && !$session->user_logged_in && getConfig('wiki_mode_require_login') == '1' )
+      $this->wiki_mode = true;
+    else if ( $ppwm == 0 )
+      $this->wiki_mode = false;
+    else if ( $ppwm == 2 )
+    {
+      if ( $session->user_logged_in )
+      {
+        $this->wiki_mode = ( getConfig('wiki_mode') == '1' );
+      }
+      else
+      {
+        $this->wiki_mode = ( getConfig('wiki_mode') == '1' && getConfig('wiki_mode_require_login') != '1' );
+      }
+    }
+    else
+    {
+      // Ech. Internal logic failure, this should never happen.
+      return false;
+    }
   }
   
   /**
@@ -2977,30 +3014,29 @@ class Session_ACLPageInfo {
   {
     // echo '<pre>' . print_r($this->perms, true) . '</pre>';
     global $db, $session, $paths, $template, $plugins; // Common objects
+    
     if ( isset( $this->perms[$type] ) )
     {
       if ( $this->perms[$type] == AUTH_DENY )
+      {
         $ret = false;
-      else if ( $this->perms[$type] == AUTH_WIKIMODE &&
-        ( isset($paths->pages[$paths->nslist[$this->namespace].$this->page_id]) && 
-          ( $paths->pages[$paths->nslist[$this->namespace].$this->page_id]['wiki_mode'] == '1' ||
-            ( $paths->pages[$paths->nslist[$this->namespace].$this->page_id]['wiki_mode'] == '2'
-              && getConfig('wiki_mode') == '1'
-          ) ) ) )
+      }
+      else if ( $this->perms[$type] == AUTH_WIKIMODE && $this->wiki_mode )
+      {
         $ret = true;
-      else if ( $this->perms[$type] == AUTH_WIKIMODE && (
-        !isset($paths->pages[$paths->nslist[$this->namespace].$this->page_id])
-        || (
-          isset($paths->pages[$paths->nslist[$this->namespace].$this->page_id]) && (
-            $paths->pages[$paths->nslist[$this->namespace].$this->page_id]['wiki_mode'] == '0'
-            || (
-              $paths->pages[$paths->nslist[$this->namespace].$this->page_id]['wiki_mode'] == '2' && getConfig('wiki_mode') != '1'
-          ) ) ) ) )
+      }
+      else if ( $this->perms[$type] == AUTH_WIKIMODE && !$this->wiki_mode )
+      {
         $ret = false;
+      }
       else if ( $this->perms[$type] == AUTH_ALLOW )
+      {
         $ret = true;
+      }
       else if ( $this->perms[$type] == AUTH_DISALLOW )
+      {
         $ret = false;
+      }
     }
     else if(isset($this->acl_types[$type]))
     {
