@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Runt - the Enano administration panel
+Plugin Name: plugin_specialadmin_title
 Plugin URI: http://enanocms.org/
-Description: Provides the page Special:Administration, which is the AJAX frontend to the various Admin pagelets. This plugin cannot be disabled.
+Description: plugin_specialadmin_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/
@@ -40,6 +40,7 @@ $plugins->attachHook('session_started', '
   ');
 
 // Admin pages that were too enormous to be in this file were split off into the plugins/admin/ directory in 1.0.1
+require(ENANO_ROOT . '/plugins/admin/PageManager.php');
 require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
 require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
 require(ENANO_ROOT . '/plugins/admin/UserManager.php');
@@ -90,40 +91,46 @@ Received invalid XML response.
   }
   
   // Basic information
-  echo RenderMan::render(
-'== Welcome to Runt, the Enano administration panel. ==
-
-Thank you for choosing Enano as your CMS. This screen allows you to see some information about your website, plus some details about how your site is doing statistically.
-
-Using the links on the left you can control every aspect of your website\'s look and feel, plus you can manage users, work with pages, and install plugins to make your Enano installation even better.');
+  echo '<h2>' . $lang->get('acphome_heading_main') . '</h2>';
+  echo '<p>' . $lang->get('acphome_welcome_line1') . '</p>';
+  echo '<p>' . $lang->get('acphome_welcome_line2') . '</p>';
   
   // Demo mode
   if ( defined('ENANO_DEMO_MODE') )
   {
-    echo '<h3>Enano is running in demo mode.</h3>
-          <p>If you borked something up, or if you\'re done testing, you can <a href="' . makeUrlNS('Special', 'DemoReset', false, true) . '">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.</p>';
+    echo '<h3>' . $lang->get('acphome_msg_demo_title') . '</h3>
+          <p>' . $lang->get('acphome_msg_demo_body', array('reset_url' => makeUrlNS('Special', 'DemoReset', false, true))) . '</p>';
   }
   
   // Check for the installer scripts
   if( ( file_exists(ENANO_ROOT.'/install.php') || file_exists(ENANO_ROOT.'/schema.sql') ) && !defined('ENANO_DEMO_MODE') )
   {
-    echo '<div class="error-box"><b>NOTE:</b> It appears that your install.php and/or schema.sql files still exist. It is HIGHLY RECOMMENDED that you delete or rename these files, to prevent getting your server hacked.</div>';
+    echo '<div class="error-box">
+            ' . $lang->get('acphome_msg_install_files') . '
+          </div>';
   }
   
-  echo '<h3>Check for updates</h3>';
-  echo '<p>Periodically, new releases of Enano will be made available. Click the button below to check for updates to Enano. During this process, a request will be sent to the Enano CMS server (germantown.enanocms.org) over HTTP for an <a href="http://germantown.enanocms.org/meta/updates.xml">XML file</a> containing a list of the latest releases. No information about your Enano installation will be transmitted.</p>';
-  echo '<div id="update_check_container"><input type="button" onclick="ajaxUpdateCheck(this.parentNode.id);" value="Check for updates" /></div>';
+  echo '<h3>' . $lang->get('acphome_heading_updates') . '</h3>';
+  echo '<p>' . $lang->get('acphome_msg_updates_info', array('updates_url' => 'http://germantown.enanocms.org/meta/updates.xml')) . '</p>';
+  echo '<div id="update_check_container"><input type="button" onclick="ajaxUpdateCheck(this.parentNode.id);" value="' . $lang->get('acphome_btn_check_updates') . '" /></div>';
   
   // Inactive users
-  $q = $db->sql_query('SELECT * FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\';');
-  if($q)
-    if($db->numrows() > 0)
+  $q = $db->sql_query('SELECT time_id FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\';');
+  if ( $q )
+  {
+    if ( $db->numrows() > 0 )
     {
       $n = $db->numrows();
-      if($n == 1) $s = $n . ' user is';
-      else $s = $n . ' users are';
-      echo '<div class="warning-box">It appears that '.$s.' awaiting account activation. You can activate those accounts by going to the <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'UserManager\'); return false;">User Manager</a>.</div>';
+      $um_flags = 'href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'UserManager\'); return false;"';
+      if ( $n == 1 )
+        $s = $lang->get('acphome_msg_inactive_users_one', array('um_flags' => $um_flags));
+      else
+        $s = $lang->get('acphome_msg_inactive_users_plural', array('um_flags' => $um_flags));
+      echo '<div class="warning-box">
+              ' . $s . '
+            </div>';
     }
+  }
   $db->free_result();
   // Stats
   if(getConfig('log_hits') == '1')
@@ -132,23 +139,32 @@ Using the links on the left you can control every aspect of your website\'s look
     //die('<pre>'.print_r($stats,true).'</pre>');
     $c = 0;
     $cls = 'row2';
-    echo '<h3>Most requested pages</h3><div class="tblholder"><table style="width: 100%;" border="0" cellspacing="1" cellpadding="4"><tr><th>Page</th><th>Hits</th></tr>';
+    echo '<h3>' . $lang->get('acphome_heading_top_pages') . '</h3>
+          <div class="tblholder">
+            <table style="width: 100%;" border="0" cellspacing="1" cellpadding="4">
+              <tr>
+                <th>' . $lang->get('acphome_th_toppages_page') . '</th>
+                <th>' . $lang->get('acphome_th_toppages_hits') . '</th>
+              </tr>';
     foreach($stats as $data)
     {
-      echo '<tr>';
+      echo   '<tr>';
       $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      echo '<td class="'.$cls.'"><a href="'.makeUrl($data['page_urlname']).'">'.$data['page_title'].'</a></td><td style="text-align: center;" class="'.$cls.'">'.$data['num_hits'].'</td>';
-      echo '</tr>';
+      echo     '<td class="'.$cls.'">
+                  <a href="'.makeUrl($data['page_urlname']).'">'.$data['page_title'].'</a></td><td style="text-align: center;" class="'.$cls.'">'.$data['num_hits']
+             . '</td>';
+      echo   '</tr>';
     }
-    echo '</table></div>';
+    echo '  </table>
+          </div>';
   }
   
   // Security log
-  echo '<h3>Security log</h3>';
+  echo '<h3>' . $lang->get('acphome_heading_seclog') . '</h3>';
   $seclog = get_security_log(5);
   echo $seclog;
   
-  echo '<p><a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'SecurityLog\'); return false;">Full security log</a></p>';
+  echo '<p><a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'SecurityLog\'); return false;">' . $lang->get('acphome_btn_seclog_full') . '</a></p>';
   
 }
 
@@ -278,15 +294,15 @@ function page_Admin_GeneralConfig() {
       }
       else
       {
-        echo '<div class="error-box">You have entered an invalid avatar directory.</div>';
+        echo '<div class="error-box">' . $lang->get('acpgc_err_avatar_dir_invalid') . '</div>';
       }
     }
     else
     {
-      echo '<div class="error-box">You have entered an invalid avatar directory.</div>';
+      echo '<div class="error-box">' . $lang->get('acpgc_err_avatar_dir_invalid') . '</div>';
     }
     
-    echo '<div class="info-box">Your changes to the site configuration have been saved.</div><br />';
+    echo '<div class="info-box">' . $lang->get('acpgc_msg_save_success') . '</div><br />';
     
   }
   else if ( isset($_POST['submit']) && defined('ENANO_DEMO_MODE') )
@@ -300,28 +316,28 @@ function page_Admin_GeneralConfig() {
       
     <!-- Global options -->
     
-      <tr><th colspan="2">Global site options</th></tr>
-      <tr><th colspan="2" class="subhead">These options control the entire site.</th></tr>
+      <tr><th colspan="2"><?php echo $lang->get('acpgc_heading_main'); ?></th></tr>
+      <tr><th colspan="2" class="subhead"><?php echo $lang->get('acpgc_heading_submain'); ?></th></tr>
       
-      <tr><td class="row1" style="width: 50%;">Site name:</td>  <td class="row1" style="width: 50%;"><input type="text" name="site_name" size="30" value="<?php echo htmlspecialchars(getConfig('site_name')); ?>" /></td></tr>
-      <tr><td class="row2">Site description:</td>               <td class="row2"><input type="text" name="site_desc" size="30" value="<?php echo htmlspecialchars(getConfig('site_desc')); ?>" /></td></tr>
-      <tr><td class="row1">Main page:</td>                      <td class="row1"><?php echo $template->pagename_field('main_page', htmlspecialchars(str_replace('_', ' ', getConfig('main_page')))); ?></td></tr>
-      <tr><td class="row2">Copyright notice shown on pages:</td><td class="row2"><input type="text" name="copyright" size="30" value="<?php echo htmlspecialchars(getConfig('copyright_notice')); ?>" /></td></tr>
-      <tr><td class="row1" colspan="2">Hint: If you're using Windows, you can make a "&copy;" symbol by holding ALT and pressing 0169 on the numeric keypad.</td></tr>
-      <tr><td class="row2">Contact e-mail<br /><small>All e-mail sent from this site will appear to have come from the address shown here.</small></td><td class="row2"><input name="contact_email" type="text" size="40" value="<?php echo htmlspecialchars(getConfig('contact_email')); ?>" /></td></tr>
+      <tr><td class="row1" style="width: 50%;"><?php echo $lang->get('acpgc_field_site_name'); ?></td>  <td class="row1" style="width: 50%;"><input type="text" name="site_name" size="30" value="<?php echo htmlspecialchars(getConfig('site_name')); ?>" /></td></tr>
+      <tr><td class="row2"><?php echo $lang->get('acpgc_field_site_desc'); ?></td>               <td class="row2"><input type="text" name="site_desc" size="30" value="<?php echo htmlspecialchars(getConfig('site_desc')); ?>" /></td></tr>
+      <tr><td class="row1"><?php echo $lang->get('acpgc_field_main_page'); ?></td>                      <td class="row1"><?php echo $template->pagename_field('main_page', htmlspecialchars(str_replace('_', ' ', getConfig('main_page')))); ?></td></tr>
+      <tr><td class="row2"><?php echo $lang->get('acpgc_field_copyright'); ?></td><td class="row2"><input type="text" name="copyright" size="30" value="<?php echo htmlspecialchars(getConfig('copyright_notice')); ?>" /></td></tr>
+      <tr><td class="row1" colspan="2"><?php echo $lang->get('acpgc_field_copyright_hint'); ?></td></tr>
+      <tr><td class="row2"><?php echo $lang->get('acpgc_field_contactemail'); ?><br /><small><?php echo $lang->get('acpgc_field_contactemail_hint'); ?></small></td><td class="row2"><input name="contact_email" type="text" size="40" value="<?php echo htmlspecialchars(getConfig('contact_email')); ?>" /></td></tr>
       
     <!-- Wiki mode -->
       
-      <tr><th class="subhead" colspan="2">Wiki mode</th></tr>
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_wikimode'); ?></th></tr>
       
       <tr>
         <td class="row3" rowspan="2">
-          Enano can also act as a wiki, meaning anyone can edit and create pages. To enable Wiki Mode, check the box to the right.<br /><br />
-          In Wiki Mode, certain HTML tags such as &lt;script&gt; and &lt;object&gt; are disabled, and all PHP code is disabled, except if the person editing the page is an administrator.<br /><br />
-          Also, Enano keeps complete page history, which makes restoring vandalized pages easy. You can also protect pages so that they cannot be edited.
+          <?php echo $lang->get('acpgc_field_wikimode_intro'); ?><br /><br />
+          <?php echo $lang->get('acpgc_field_wikimode_info_sanitize'); ?><br /><br />
+          <?php echo $lang->get('acpgc_field_wikimode_info_history'); ?>
         </td>
         <td class="row1">
-          <input type="checkbox" name="wikimode" id="wikimode" <?php if(getConfig('wiki_mode')=='1') echo('CHECKED '); ?> /><label for="wikimode">Enable Wiki Mode</label>
+          <input type="checkbox" name="wikimode" id="wikimode" <?php if(getConfig('wiki_mode')=='1') echo('CHECKED '); ?> /><label for="wikimode"><?php echo $lang->get('acpgc_field_wikimode'); ?></label>
         </td>
       </tr>
       
@@ -329,11 +345,12 @@ function page_Admin_GeneralConfig() {
       
       <tr>
         <td class="row3" rowspan="2">
-          <b>Edit page notice</b><br />
-          When Wiki Mode is enabled, anyone can edit pages. Check the box below and enter a message to display it whenever the page editor is opened.
+          <b><?php echo $lang->get('acpgc_field_editnotice_title'); ?></b><br />
+          <?php echo $lang->get('acpgc_field_editnotice_info'); ?>
         </td>
         <td class="row1">
-          <input onclick="if(this.checked) document.getElementById('editmsg_text').style.display='block'; else document.getElementById('editmsg_text').style.display='none';" type="checkbox" name="editmsg" id="editmsg" <?php if(getConfig('wiki_edit_notice')=='1') echo('CHECKED '); ?>/> <label for="editmsg">Show a message whenever pages are edited</label>
+          <input onclick="if(this.checked) document.getElementById('editmsg_text').style.display='block'; else document.getElementById('editmsg_text').style.display='none';" type="checkbox" name="editmsg" id="editmsg" <?php if(getConfig('wiki_edit_notice')=='1') echo('CHECKED '); ?>/>
+          <label for="editmsg"><?php echo $lang->get('acpgc_field_editnotice'); ?></label>
         </td>
       </tr>
       
@@ -345,34 +362,86 @@ function page_Admin_GeneralConfig() {
       
       <tr>
         <td class="row1">
-          <b>Require visual confirmation for guests editing pages</b><br />
-          If this is enabled, guests will be asked to enter a visual confirmation code before saving changes to a page.
+          <b><?php echo $lang->get('acpgc_field_edit_require_captcha_title'); ?></b><br />
+          <?php echo $lang->get('acpgc_field_edit_require_captcha_hint'); ?>
         </td>
         <td class="row1">
           <label>
             <input type="checkbox" name="guest_edit_require_captcha" <?php if ( getConfig('guest_edit_require_captcha') == '1' ) echo 'checked="checked" '; ?>/>
-            Require guests to complete a CAPTCHA when editing pages
+            <?php echo $lang->get('acpgc_field_edit_require_captcha'); ?>
           </label>
         </td>
       </tr>
       
     <!-- Site statistics -->
     
-      <tr><th class="subhead" colspan="2">Statistics and hit counting</th></tr>
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_stats'); ?></th></tr>
       
       <tr>
-        <td class="row1">Enano has the ability to show statistics for every page on the site. This allows you to keep very close track of who is visiting your site, and from where.<br /><br />Unfortunately, some users don't like being logged. For this reason, you should state clearly what is logged (usually the username or IP address, current time, page name, and referer URL) in your privacy policy. If your site is primarily geared towards children, and you are a United States citizen, you are required to have a privacy policy stating exactly what is being logged under the terms of the Childrens' Online Privacy Protection Act.</td>
-        <td class="row1"><label><input type="checkbox" name="log_hits" <?php if(getConfig('log_hits') == '1') echo 'checked="checked" '; ?>/>  Log all page hits</label><br /><small>This excludes special and administration pages.</small></td>
+        <td class="row1">
+          <?php echo $lang->get('acpgc_stats_intro'); ?><br /><br />
+          <?php echo $lang->get('acpgc_stats_hint_privacy'); ?>
+        </td>
+        <td class="row1">
+          <label>
+            <input type="checkbox" name="log_hits" <?php if(getConfig('log_hits') == '1') echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_stats_enable'); ?>
+          </label><br />
+          <small><?php echo $lang->get('acpgc_field_stats_hint'); ?></small>
+        </td>
       </tr>
       
     <!-- Comment options -->
       
-      <tr><th class="subhead" colspan="2">Comment system</th></tr>
-      <tr><td class="row1"><label for="enable-comments"><b>Enable the comment system</b></label>                      </td><td class="row1"><input name="enable-comments"  id="enable-comments"  type="checkbox" <?php if(getConfig('enable_comments')=='1')  echo('CHECKED '); ?>/></td></tr>
-      <tr><td class="row2"><label for="comment-approval">Require approval before article comments can be shown</label></td><td class="row2"><input name="comment-approval" id="comment-approval" type="checkbox" <?php if(getConfig('approve_comments')=='1') echo('CHECKED '); ?>/></td></tr>
-      <tr><td class="row1">Guest comment posting allowed                                                              </td><td class="row1"><label><input name="comments_need_login" type="radio" value="0" <?php if(getConfig('comments_need_login')=='0') echo 'CHECKED '; ?>/> Yes</label>
-                                                                                                                                            <label><input name="comments_need_login" type="radio" value="1" <?php if(getConfig('comments_need_login')=='1') echo 'CHECKED '; ?>/> Require visual confirmation</label>
-    <!-- Default permissions -->                                                                                                            <label><input name="comments_need_login" type="radio" value="2" <?php if(getConfig('comments_need_login')=='2') echo 'CHECKED '; ?>/> No (require login)</label></td></tr>
+      <tr>
+        <th class="subhead" colspan="2">
+          <?php echo $lang->get('acpgc_heading_comments'); ?>
+        </th>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <label for="enable-comments">
+            <b><?php echo $lang->get('acpgc_field_enable_comments'); ?></b>
+          </label>
+        </td>
+        <td class="row1">
+          <input name="enable-comments"  id="enable-comments"  type="checkbox" <?php if(getConfig('enable_comments')=='1')  echo('CHECKED '); ?>/>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row2">
+          <label for="comment-approval">
+            <?php echo $lang->get('acpgc_field_approve_comments'); ?>
+          </label>
+        </td>
+        <td class="row2">
+          <input name="comment-approval" id="comment-approval" type="checkbox" <?php if(getConfig('approve_comments')=='1') echo('CHECKED '); ?>/>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <?php echo $lang->get('acpgc_field_comment_allow_guests'); ?>
+        </td>
+        <td class="row1">
+          <label>
+            <input name="comments_need_login" type="radio" value="0" <?php if(getConfig('comments_need_login')=='0') echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_comment_allow_guests_yes'); ?>
+          </label>
+          <label>
+            <input name="comments_need_login" type="radio" value="1" <?php if(getConfig('comments_need_login')=='1') echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_comment_allow_guests_captcha'); ?>
+          </label>
+          <label>
+            <input name="comments_need_login" type="radio" value="2" <?php if(getConfig('comments_need_login')=='2') echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_comment_allow_guests_no'); ?>
+          </label>
+        </td>
+      </tr>
+            
+    <!-- Default permissions -->
     
     <!--
     
@@ -390,16 +459,23 @@ function page_Admin_GeneralConfig() {
       
     <!-- Site disablement -->
     
-      <tr><th class="subhead" colspan="2">Disable all site access</th></tr>
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_disablesite'); ?></th></tr>
       
       <tr>
-        <td class="row3" rowspan="2">Disabling the site allows you to work on the site without letting non-administrators see or use it.</td>
-        <td class="row1"><label><input onclick="if(this.checked) document.getElementById('site_disabled_notice').style.display='block'; else document.getElementById('site_disabled_notice').style.display='none';" type="checkbox" name="site_disabled" <?php if(getConfig('site_disabled') == '1') echo 'checked="checked" '; ?>/>  Disable this site</label></td>
+        <td class="row3" rowspan="2">
+          <?php echo $lang->get('acpgc_field_disablesite_hint'); ?>
+        </td>
+        <td class="row1">
+          <label>
+            <input onclick="if(this.checked) document.getElementById('site_disabled_notice').style.display='block'; else document.getElementById('site_disabled_notice').style.display='none';" type="checkbox" name="site_disabled" <?php if(getConfig('site_disabled') == '1') echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_disablesite'); ?>
+          </label>
+        </td>
       </tr>
       <tr>
         <td class="row2">
           <div id="site_disabled_notice"<?php if(getConfig('site_disabled')!='1') echo(' style="display:none"'); ?>>
-            Message to show to users:<br />
+            <?php echo $lang->get('acpgc_field_disablesite_message'); ?><br />
             <textarea name="site_disabled_notice" rows="7" cols="30"><?php echo getConfig('site_disabled_notice'); ?></textarea>
           </div>
         </td>
@@ -412,41 +488,41 @@ function page_Admin_GeneralConfig() {
     <table border="0" width="100%" cellspacing="1" cellpadding="4">
     
     <tr>
-      <th colspan="2">Users and communication</th>
+      <th colspan="2"><?php echo $lang->get('acpgc_heading_users'); ?></th>
     </tr>
     
     <!-- Account activation -->
       
-      <tr><th class="subhead" colspan="2">User account activation</th></tr>
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_activate'); ?></th></tr>
       
       <tr>
         <td class="row3" colspan="2">
-          If you would like to require users to confirm their e-mail addresses by way of account activation, you can enable this behavior here. If this option is set to "None", users will be able to register and use this site without confirming their e-mail addresses. If this option is set to "User", users will automatically be sent e-mails upon registration with a link to activate their accounts. And lastly, if this option is set to "Admin", users' accounts will not be active until an administrator activates the account.<br /><br />
-          You may also disable registration completely if needed.<br /><br />
-          <b>Note: because of abuse by project administrators, sending account activation e-mails will not work on SourceForge.net servers.</b>
+          <?php echo $lang->get('acpgc_activate_intro_line1'); ?><br /><br />
+          <?php echo $lang->get('acpgc_activate_intro_line2'); ?><br /><br />
+          <b><?php echo $lang->get('acpgc_activate_intro_sfnet_warning'); ?></b>
         </td>
       </tr>
       
       <tr>
-      <td class="row1" style="width: 50%;">Account activation:</td><td class="row1">
+      <td class="row1" style="width: 50%;"><?php echo $lang->get('acpgc_field_activate'); ?></td><td class="row1">
           <?php
-          echo '<label><input'; if(getConfig('account_activation') == 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="disable" /> Disable registration</label><br />';
-          echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin' && getConfig('account_activation') != 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> None</label>';
-          echo '<label><input'; if(getConfig('account_activation') == 'user') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="user" /> User</label>';
-          echo '<label><input'; if(getConfig('account_activation') == 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="admin" /> Admin</label>';
+          echo '<label><input'; if(getConfig('account_activation') == 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="disable" /> ' . $lang->get('acpgc_field_activate_disable') . '</label><br />';
+          echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin' && getConfig('account_activation') != 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> ' . $lang->get('acpgc_field_activate_none') . '</label>';
+          echo '<label><input'; if(getConfig('account_activation') == 'user') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="user" /> ' . $lang->get('acpgc_field_activate_user') . '</label>';
+          echo '<label><input'; if(getConfig('account_activation') == 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="admin" /> ' . $lang->get('acpgc_field_activate_admin') . '</label>';
           ?>
         </td>
       </tr>
       
     <!-- Account lockout -->
     
-      <tr><th class="subhead" colspan="2">Account lockouts</th></tr>
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_lockout'); ?></th></tr>
       
-      <tr><td class="row3" colspan="2">Configure Enano to prevent or restrict logins for a specified period of time if a user enters an incorrect password a specific number of times.</td></tr>
+      <tr><td class="row3" colspan="2"><?php echo $lang->get('acpgc_lockout_intro'); ?></td></tr>
       
       <tr>
-        <td class="row2">Lockout threshold:<br />
-          <small>How many times can a user enter wrong credentials before a lockout goes into effect?</small>
+        <td class="row2"><?php echo $lang->get('acpgc_field_lockout_threshold'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_lockout_threshold_hint'); ?></small>
         </td>
         <td class="row2">
           <input type="text" name="lockout_threshold" value="<?php echo ( $_ = getConfig('lockout_threshold') ) ? $_ : '5' ?>" />
@@ -454,8 +530,8 @@ function page_Admin_GeneralConfig() {
       </tr>
       
       <tr>
-        <td class="row1">Lockout duration:<br />
-          <small>This is how long an account lockout should last, in minutes.</small>
+        <td class="row1"><?php echo $lang->get('acpgc_field_lockout_duration'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_lockout_duration_hint'); ?></small>
         </td>
         <td class="row1">
           <input type="text" name="lockout_duration" value="<?php echo ( $_ = getConfig('lockout_duration') ) ? $_ : '15' ?>" />
@@ -463,34 +539,34 @@ function page_Admin_GeneralConfig() {
       </tr>
       
       <tr>
-        <td class="row2">Lockout policy:<br />
-          <small>What should be done when a lockout goes into effect?</small>
+        <td class="row2"><?php echo $lang->get('acpgc_field_lockout_policy'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_lockout_policy_hint'); ?></small>
         </td>
         <td class="row2">
-          <label><input type="radio" name="lockout_policy" value="disable" <?php if ( getConfig('lockout_policy') == 'disable' ) echo 'checked="checked"'; ?> /> Don't do anything</label><br />
-          <label><input type="radio" name="lockout_policy" value="captcha" <?php if ( getConfig('lockout_policy') == 'captcha' ) echo 'checked="checked"'; ?> /> Require visual confirmation</label><br />
-          <label><input type="radio" name="lockout_policy" value="lockout" <?php if ( getConfig('lockout_policy') == 'lockout' || !getConfig('lockout_policy') ) echo 'checked="checked"'; ?> /> Prevent all login attempts</label>
+          <label><input type="radio" name="lockout_policy" value="disable" <?php if ( getConfig('lockout_policy') == 'disable' ) echo 'checked="checked"'; ?> /> <?php echo $lang->get('acpgc_field_lockout_policy_nothing'); ?></label><br />
+          <label><input type="radio" name="lockout_policy" value="captcha" <?php if ( getConfig('lockout_policy') == 'captcha' ) echo 'checked="checked"'; ?> /> <?php echo $lang->get('acpgc_field_lockout_policy_captcha'); ?></label><br />
+          <label><input type="radio" name="lockout_policy" value="lockout" <?php if ( getConfig('lockout_policy') == 'lockout' || !getConfig('lockout_policy') ) echo 'checked="checked"'; ?> /> <?php echo $lang->get('acpgc_field_lockout_policy_lockout'); ?></label>
         </td>
       </tr>
       
     <!-- Password strength -->
       
-      <tr><th class="subhead" colspan="2">Password strength</th></tr>
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_passstrength'); ?></th></tr>
       
       <tr>
         <td class="row2">
-          <b>Enable password strength analysis</b><br />
-          <small>This should be enabled in most cases. When this is enabled, a strength meter and a numerical score will be displayed wherever a password can be changed.</small>
+          <b><?php echo $lang->get('acpgc_field_passstrength_title'); ?></b><br />
+          <small><?php echo $lang->get('acpgc_field_passstrength_hint'); ?></small>
         </td>
         <td class="row2">
-          <label><input type="checkbox" name="pw_strength_enable" <?php if ( getConfig('pw_strength_enable') == '1' ) echo 'checked="checked" '; ?>/> Enabled</label>
+          <label><input type="checkbox" name="pw_strength_enable" <?php if ( getConfig('pw_strength_enable') == '1' ) echo 'checked="checked" '; ?>/> <?php echo $lang->get('acpgc_field_passstrength'); ?></label>
         </td>
       </tr>
       
       <tr>
         <td class="row1">
-          <b>Minimum strength score</b><br />
-          <small>This is the lowest score a password will be allowed to have. -10 will allow any password. A score of under -3 is considered weak, under 1 is fair, under 4 is good, under 10 is strong, and 10 and above are very strong. The scale is open-ended. This only has an effect if the meter is enabled above.</small>
+          <b><?php echo $lang->get('acpgc_field_passminimum_title'); ?></b><br />
+          <small><?php echo $lang->get('acpgc_field_passminimum_hint'); ?></small>
         </td>
         <td class="row1">
           <input type="text" name="pw_strength_minimum" value="<?php echo ( $x = getConfig('pw_strength_minimum') ) ? $x : '-10'; ?>" />
@@ -499,87 +575,130 @@ function page_Admin_GeneralConfig() {
       
     <!-- E-mail options -->
     
-      <tr><th class="subhead" colspan="2">E-mail sent from the site</th></tr>
-      <tr><td class="row1">E-mail sending method:<br /><small>Try using the built-in e-mail method first. If that doesn't work, you will need to enter valid SMTP information here.</small></td>
-          <td class="row1"><label><input <?php if(getConfig('smtp_enabled') != '1') echo 'checked="checked"'; ?> type="radio" name="emailmethod" value="phpmail" />PHP's built-in mail() function</label><br />
-                           <label><input <?php if(getConfig('smtp_enabled') == '1') echo 'checked="checked"'; ?> type="radio" name="emailmethod" value="smtp" />Use an external SMTP server</label></td>
-          </tr>
-      <tr><td class="row2">SMTP hostname:<br /><small>This option only applies to the external SMTP mode.</small></td>
-          <td class="row2"><input value="<?php echo getConfig('smtp_server'); ?>" name="smtp_host" type="text" size="30" /></td>
-          </tr>
-      <tr><td class="row1">SMTP credentials:<br /><small>This option only applies to the external SMTP mode.</small></td>
-          <td class="row1">Username: <input value="<?php echo getConfig('smtp_user'); ?>" name="smtp_user" type="text" size="30" /><br />
-              Password: <input value="<?php if(getConfig('smtp_password') != false) echo 'XXXXXXXXXXXX'; ?>" name="smtp_pass" type="password" size="30" /></td>
-          </tr>
-        
-    <!-- Avatar support -->
-    
       <tr>
-        <th class="subhead" colspan="2">Avatars</th>
-      </tr>
-      
-      <tr>
-        <td class="row3" colspan="2">
-          Avatars are small images that users can display on their profiles and in comments.
+        <th class="subhead" colspan="2">
+          <?php echo $lang->get('acpgc_heading_email'); ?>
         </th>
       </tr>
       
       <tr>
         <td class="row1">
-          Enable avatar support:<br />
-          <small>Supported formats are JPEG, PNG, and GIF&trade;.</small>
+          <?php echo $lang->get('acpgc_field_email_method'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_email_method_hint'); ?></small>
         </td>
         <td class="row1">
-          <label><input type="checkbox" name="avatar_enable" <?php if ( getConfig('avatar_enable') == '1' ) echo 'checked="checked" '; ?>/> Enabled</label>
+          <label>
+            <input <?php if(getConfig('smtp_enabled') != '1') echo 'checked="checked"'; ?> type="radio" name="emailmethod" value="phpmail" />
+            <?php echo $lang->get('acpgc_field_email_method_builtin'); ?>
+          </label>
+          
+          <br />
+          
+          <label>
+            <input <?php if(getConfig('smtp_enabled') == '1') echo 'checked="checked"'; ?> type="radio" name="emailmethod" value="smtp" />
+            <?php echo $lang->get('acpgc_field_email_method_smtp'); ?>
+          </label>
         </td>
       </tr>
       
       <tr>
         <td class="row2">
-          Maximum avatar file size:<br />
-          <small>For smaller sites, the highest value for this should be about 50KB, 51200. Larger sites with more visitors will likely want to use something much smaller, such as 10KB.</small>
+          <?php echo $lang->get('acpgc_field_email_smtp_hostname'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_email_smtp_hostname_hint'); ?></small>
         </td>
         <td class="row2">
-          <input type="text" name="avatar_max_size" size="7" <?php if ( ($x = getConfig('avatar_max_size')) !== false ) echo "value=\"$x\" "; else echo "value=\"10240\" "; ?>/> bytes
+          <input value="<?php echo getConfig('smtp_server'); ?>" name="smtp_host" type="text" size="30" />
         </td>
       </tr>
       
       <tr>
         <td class="row1">
-          Maximum avatar dimensions:<br />
-          <small>The format is width &#215; height. Typically you want to have this square (the same width and height). These are only maximum dimensions; users are not prevented from having smaller images.</small>
+          <?php echo $lang->get('acpgc_field_email_smtp_auth'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_email_smtp_hostname_hint'); ?></small>
+        </td>
+        <td class="row1">
+          <?php echo $lang->get('acpgc_field_email_smtp_username'); ?> <input value="<?php echo getConfig('smtp_user'); ?>" name="smtp_user" type="text" size="30" /><br />
+          <?php echo $lang->get('acpgc_field_email_smtp_password'); ?> <input value="<?php if(getConfig('smtp_password') != false) echo 'XXXXXXXXXXXX'; ?>" name="smtp_pass" type="password" size="30" />
+        </td>
+      </tr>
+        
+    <!-- Avatar support -->
+    
+      <tr>
+        <th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_avatars'); ?></th>
+      </tr>
+      
+      <tr>
+        <td class="row3" colspan="2">
+          <?php echo $lang->get('acpgc_avatars_intro'); ?>
+        </th>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <?php echo $lang->get('acpgc_field_avatar_enable'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_avatar_enable_hint'); ?></small>
+        </td>
+        <td class="row1">
+          <label><input type="checkbox" name="avatar_enable" <?php if ( getConfig('avatar_enable') == '1' ) echo 'checked="checked" '; ?>/> <?php echo $lang->get('acpgc_field_avatar_enable_label'); ?></label>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row2">
+          <?php echo $lang->get('acpgc_field_avatar_max_filesize'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_avatar_max_filesize_hint'); ?></small>
+        </td>
+        <td class="row2">
+          <input type="text" name="avatar_max_size" size="7" <?php if ( ($x = getConfig('avatar_max_size')) !== false ) echo "value=\"$x\" "; else echo "value=\"10240\" "; ?>/> <?php echo $lang->get('etc_unit_bytes'); ?>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <?php echo $lang->get('acpgc_field_avatar_max_dimensions'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_avatar_max_dimensions_hint'); ?></small>
         </td>
         <td class="row1">
           <input type="text" name="avatar_max_width" size="7" <?php if ( $x = getConfig('avatar_max_width') ) echo "value=\"$x\" "; else echo "value=\"150\" "; ?>/> &#215;
-          <input type="text" name="avatar_max_height" size="7" <?php if ( $x = getConfig('avatar_max_height') ) echo "value=\"$x\" "; else echo "value=\"150\" "; ?>/> pixels
+          <input type="text" name="avatar_max_height" size="7" <?php if ( $x = getConfig('avatar_max_height') ) echo "value=\"$x\" "; else echo "value=\"150\" "; ?>/> <?php echo $lang->get('etc_unit_pixels'); ?>
         </td>
       </tr>
       
       <tr>
         <td class="row2">
-          Allow animated avatars:<br />
-          <small>If this is checked, users can upload APNG and Animated GIF&trade; avatars. Sometimes such images can be specifically made to be distracting, like rapidly flashing images. If this is unchecked, these formats will be blocked, and only still PNGs and GIFs will be allowed.</small>
+          <?php echo $lang->get('acpgc_field_avatar_allow_anim_title'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_avatar_allow_anim_hint'); ?></small>
         </td>
         <td class="row2">
-          <label><input type="checkbox" name="avatar_enable_anim" <?php if ( getConfig('avatar_enable_anim') == '1' ) echo 'checked="checked" '; ?>/> Don't block animated images</label>
+          <label><input type="checkbox" name="avatar_enable_anim" <?php if ( getConfig('avatar_enable_anim') == '1' ) echo 'checked="checked" '; ?>/> <?php echo $lang->get('acpgc_field_avatar_allow_anim'); ?></label>
         </td>
       </tr>
       
       <tr>
         <td class="row1">
-          Allowed upload methods:<br />
+          <?php echo $lang->get('acpgc_field_avatar_upload_methods'); ?><br />
           <small></small>
         </td>
         <td class="row1">
-          <label><input type="checkbox" name="avatar_upload_file" <?php if ( getConfig('avatar_upload_file') == '1' || getConfig('avatar_upload_file') === false ) echo 'checked="checked" '; ?>/> Allow users to upload image files from their computers</label><br />
-          <label><input type="checkbox" name="avatar_upload_http" <?php if ( getConfig('avatar_upload_http') == '1' || getConfig('avatar_upload_http') === false ) echo 'checked="checked" '; ?>/> Allow users to enter a URL to their desired avatar</label>
+          <label>
+            <input type="checkbox" name="avatar_upload_file" <?php if ( getConfig('avatar_upload_file') == '1' || getConfig('avatar_upload_file') === false ) echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_avatar_upload_file'); ?>
+          </label>
+          
+          <br />
+          
+          <label>
+            <input type="checkbox" name="avatar_upload_http" <?php if ( getConfig('avatar_upload_http') == '1' || getConfig('avatar_upload_http') === false ) echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_avatar_upload_http'); ?>
+          </label>
         </td>
       </tr>
       
       <tr>
         <td class="row2">
-          Avatar storage directory:<br />
-          <small>This should be relative to your Enano root and should contain only alphanumeric characters and forward slashes, even if your server runs Windows.</small>
+          <?php echo $lang->get('acpgc_field_avatar_directory'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_avatar_directory_hint'); ?></small>
         </td>
         <td class="row2">
           <input type="text" name="avatar_directory" size="30" <?php if ( $x = getConfig('avatar_directory') ) echo "value=\"$x\" "; else echo "value=\"files/avatars\" "; ?>/>
@@ -593,90 +712,114 @@ function page_Admin_GeneralConfig() {
     <table border="0" width="100%" cellspacing="1" cellpadding="4">
     
     <tr>
-      <th colspan="2">Sidebar links</th>
+      <th colspan="2"><?php echo $lang->get('acpgc_heading_sidebar'); ?></th>
     </tr>
     
     <!-- enanocms.org link -->
     
     <tr>
-      <th colspan="2" class="subhead">Promote Enano</th>
-    </tr>
+      <th colspan="2" class="subhead"><?php echo $lang->get('acpgc_heading_promoteenano'); ?></th>
+    </tr>                      
     <tr>
-    <td class="row3" style="width: 50%;">
-        If you think Enano is nice, or if you want to show your support for the Enano team, you can do so by placing a link to the Enano
-        homepage in your Links sidebar block. You absolutely don't have to do this, and you won't get degraded support if you don't. Because
-        Enano is still relatively new in the CMS world, it needs all the attention it can get - and you can easily help to spread the word
-        using this link.
+      <td class="row3" style="width: 50%;">
+        <?php echo $lang->get('acpgc_field_enano_link_title'); ?>
       </td>
       <td class="row1">
         <label>
-          <input name="enano_powered_link" type="checkbox" <?php if(getConfig('powered_btn') == '1') echo 'checked="checked"'; ?> />&nbsp;&nbsp;Place a link to enanocms.org on the sidebar
+          <input name="enano_powered_link" type="checkbox" <?php if(getConfig('powered_btn') == '1') echo 'checked="checked"'; ?> />&nbsp;&nbsp;<?php echo $lang->get('acpgc_field_enano_link'); ?>
         </label>
       </td>
     </tr>
       
     <!-- SourceForge.net logo -->
       
-      <tr><th class="subhead" colspan="2">SourceForge.net logo</th></tr>
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_sfnet_logo'); ?></th></tr>
       
       <tr>
         <td colspan="2" class="row3">
-          All projects hosted by SourceForge.net are required to display an official SourceForge.net logo on their pages.  If you want
-          to display a SourceForge.net logo on the sidebar, check the box below, enter your group ID, and select an image type.
+          <?php echo $lang->get('acpgc_sfnet_intro'); ?>
         </td>
       </tr>
       
       <?php
-      if(getConfig("sflogo_enabled")=='1') $c='CHECKED ';
-      else $c='';
-      if(getConfig("sflogo_groupid")) $g=getConfig("sflogo_groupid");
-      else $g='';
-      if(getConfig("sflogo_type")) $t=getConfig("sflogo_type");
-      else $t='1';
+      if ( getConfig("sflogo_enabled") == '1' )
+        $c='checked="checked" ';
+      else
+        $c='';
+        
+      if ( getConfig("sflogo_groupid") )
+        $g = getConfig("sflogo_groupid");
+      else
+        $g = '';
+        
+      if ( getConfig("sflogo_type") )
+        $t = getConfig("sflogo_type");
+      else
+        $t = '1';
       ?>
       
       <tr>
-        <td class="row1">Display the SourceForge.net logo on the right sidebar</td>
+        <td class="row1"><?php echo $lang->get('acpgc_field_sfnet_display'); ?></td>
         <td class="row1"><input type=checkbox name="showsf" id="showsf" <?php echo $c; ?> /></td>
       </tr>
       
       <tr>
-        <td class="row2">Group ID:</td>
+        <td class="row2"><?php echo $lang->get('acpgc_field_sfnet_group_id'); ?></td>
         <td class="row2"><input value="<?php echo $g; ?>" type=text size=15 name=sfgroup /></td>
       </tr>
       
       <tr>
-        <td class="row1">Logo style:</td>
+        <td class="row1"><?php echo $lang->get('acpgc_field_sfnet_logo_style'); ?></td>
         <td class="row1">
           <select name="sflogo">
-            <option <?php if($t=='1') echo('SELECTED '); ?>value=1>88x31px, white</option>
-            <option <?php if($t=='2') echo('SELECTED '); ?>value=2>125x37px, white</option>
-            <option <?php if($t=='3') echo('SELECTED '); ?>value=3>125x37px, black</option>
-            <option <?php if($t=='4') echo('SELECTED '); ?>value=4>125x37px, blue</option>
-            <option <?php if($t=='5') echo('SELECTED '); ?>value=5>210x62px, white</option>
-            <option <?php if($t=='6') echo('SELECTED '); ?>value=6>210x62px, black</option>
-            <option <?php if($t=='7') echo('SELECTED '); ?>value=7>210x62px, blue</option>
+            <option <?php if($t=='1') echo('selected="selected" '); ?>value=1><?php echo $lang->get('acpgc_field_sfnet_logo_style_1'); ?></option>
+            <option <?php if($t=='2') echo('selected="selected" '); ?>value=2><?php echo $lang->get('acpgc_field_sfnet_logo_style_2'); ?></option>
+            <option <?php if($t=='3') echo('selected="selected" '); ?>value=3><?php echo $lang->get('acpgc_field_sfnet_logo_style_3'); ?></option>
+            <option <?php if($t=='4') echo('selected="selected" '); ?>value=4><?php echo $lang->get('acpgc_field_sfnet_logo_style_4'); ?></option>
+            <option <?php if($t=='5') echo('selected="selected" '); ?>value=5><?php echo $lang->get('acpgc_field_sfnet_logo_style_5'); ?></option>
+            <option <?php if($t=='6') echo('selected="selected" '); ?>value=6><?php echo $lang->get('acpgc_field_sfnet_logo_style_6'); ?></option>
+            <option <?php if($t=='7') echo('selected="selected" '); ?>value=7><?php echo $lang->get('acpgc_field_sfnet_logo_style_7'); ?></option>
           </select>
         </td>
       </tr>
       
     <!-- W3C validator buttons -->
       
-      <tr><th class="subhead" colspan="2">W3C compliance logos</th></tr>
-      <tr><td colspan="2" class="row3">Enano generates (by default) Valid XHTML 1.1 code, plus valid CSS.  If you want to show this off, check the appropriate boxes below.</th></tr>
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_w3clogos'); ?></th></tr>
+      <tr><td colspan="2" class="row3"><?php echo $lang->get('acpgc_w3clogos_intro'); ?></th></tr>
       
-      <tr><td class="row1"><label for="w3c-vh32">HTML 3.2</label>     </td><td class="row1"><input type="checkbox" <?php if(getConfig('w3c_vh32')=='1')     echo('CHECKED '); ?> id="w3c-vh32"     name="w3c-vh32"     /></td></tr>
-      <tr><td class="row2"><label for="w3c-vh40">HTML 4.0</label>     </td><td class="row2"><input type="checkbox" <?php if(getConfig('w3c_vh40')=='1')     echo('CHECKED '); ?> id="w3c-vh40"     name="w3c-vh40"     /></td></tr>
-      <tr><td class="row1"><label for="w3c-vh401">HTML 4.01</label>   </td><td class="row1"><input type="checkbox" <?php if(getConfig('w3c_vh401')=='1')    echo('CHECKED '); ?> id="w3c-vh401"    name="w3c-vh401"    /></td></tr>
-      <tr><td class="row2"><label for="w3c-vxhtml10">XHTML 1.0</label></td><td class="row2"><input type="checkbox" <?php if(getConfig('w3c_vxhtml10')=='1') echo('CHECKED '); ?> id="w3c-vxhtml10" name="w3c-vxhtml10" /></td></tr>
-      <tr><td class="row1"><label for="w3c-vxhtml11">XHTML 1.1</label></td><td class="row1"><input type="checkbox" <?php if(getConfig('w3c_vxhtml11')=='1') echo('CHECKED '); ?> id="w3c-vxhtml11" name="w3c-vxhtml11" /></td></tr>
-      <tr><td class="row2"><label for="w3c-vcss">CSS</label>          </td><td class="row2"><input type="checkbox" <?php if(getConfig('w3c_vcss')=='1')     echo('CHECKED '); ?> id="w3c-vcss"     name="w3c-vcss"     /></td></tr>
+      <tr><td class="row1"><label for="w3c-vh32"><?php     echo $lang->get('acpgc_w3clogos_btn_html32');  ?></label></td><td class="row1"><input type="checkbox" <?php if(getConfig('w3c_vh32')=='1')     echo('checked="checked" '); ?> id="w3c-vh32"     name="w3c-vh32"     /></td></tr>
+      <tr><td class="row2"><label for="w3c-vh40"><?php     echo $lang->get('acpgc_w3clogos_btn_html40');  ?></label></td><td class="row2"><input type="checkbox" <?php if(getConfig('w3c_vh40')=='1')     echo('checked="checked" '); ?> id="w3c-vh40"     name="w3c-vh40"     /></td></tr>
+      <tr><td class="row1"><label for="w3c-vh401"><?php    echo $lang->get('acpgc_w3clogos_btn_html401'); ?></label></td><td class="row1"><input type="checkbox" <?php if(getConfig('w3c_vh401')=='1')    echo('checked="checked" '); ?> id="w3c-vh401"    name="w3c-vh401"    /></td></tr>
+      <tr><td class="row2"><label for="w3c-vxhtml10"><?php echo $lang->get('acpgc_w3clogos_btn_xhtml10'); ?></label></td><td class="row2"><input type="checkbox" <?php if(getConfig('w3c_vxhtml10')=='1') echo('checked="checked" '); ?> id="w3c-vxhtml10" name="w3c-vxhtml10" /></td></tr>
+      <tr><td class="row1"><label for="w3c-vxhtml11"><?php echo $lang->get('acpgc_w3clogos_btn_xhtml11'); ?></label></td><td class="row1"><input type="checkbox" <?php if(getConfig('w3c_vxhtml11')=='1') echo('checked="checked" '); ?> id="w3c-vxhtml11" name="w3c-vxhtml11" /></td></tr>
+      <tr><td class="row2"><label for="w3c-vcss"><?php     echo $lang->get('acpgc_w3clogos_btn_css');     ?></label></td><td class="row2"><input type="checkbox" <?php if(getConfig('w3c_vcss')=='1')     echo('checked="checked" '); ?> id="w3c-vcss"     name="w3c-vcss"     /></td></tr>
 
     <!-- DefectiveByDesign.org ad -->      
       
-      <tr><th class="subhead" colspan="2">Defective By Design Anti-DRM button</th></tr>
-      <tr><td colspan="2" class="row3"><b>The Enano project is strongly against Digital Restrictions Management.</b> DRM removes the freedoms that every consumer should have: to freely copy and use digital media items they legally purchased to their own devices. Showing your opposition to DRM is as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.</td></tr>
-      <tr><td class="row1"><label for="dbdbutton">Help stop DRM by placing a link to DBD on the sidebar!</label></td><td class="row1"><input type="checkbox" name="dbdbutton" id="dbdbutton" <?php if(getConfig('dbd_button')=='1')  echo('checked="checked" '); ?>/></td></tr>
+      <tr>
+        <th class="subhead" colspan="2">
+          <?php echo $lang->get('acpgc_heading_dbd'); ?>
+        </th>
+      </tr>
+      
+      <tr>
+        <td colspan="2" class="row3">
+          <b><?php echo $lang->get('acpgc_dbd_intro'); ?></b>
+          <?php echo $lang->get('acpgc_dbd_explain'); ?>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <label for="dbdbutton">
+            <?php echo $lang->get('acpgc_field_stopdrm'); ?>
+          </label>
+        </td>
+        <td class="row1">
+          <input type="checkbox" name="dbdbutton" id="dbdbutton" <?php if(getConfig('dbd_button')=='1')  echo('checked="checked" '); ?>/>
+        </td>
+      </tr>
       
     <!-- Save button -->
     
@@ -686,7 +829,7 @@ function page_Admin_GeneralConfig() {
     <div class="tblholder">
     <table border="0" width="100%" cellspacing="1" cellpadding="4">
       
-      <tr><th colspan="2"><input type="submit" name="submit" value="Save changes" /></th></tr>
+      <tr><th colspan="2"><input type="submit" name="submit" value="<?php echo $lang->get('acpgc_btn_save_changes'); ?>" /></th></tr>
       
     </table>
   </div>
@@ -783,39 +926,138 @@ function page_Admin_UploadConfig()
   }
   echo '<form name="main" action="'.htmlspecialchars(makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module'])).'" method="post">';
   ?>
-  <h3>File upload configuration</h3>
-  <p>Enano supports the ability to upload files to your website and store the files in the database. This enables you to embed images
-     and such into pages without manually writing the HTML. However, the upload feature can sometimes pose a risk to your site, as viruses
-     and executable files can sometimes be uploaded.</p>
-  <p><label><input type="checkbox" name="enable_uploads" <?php if(getConfig('enable_uploads')=='1') echo 'checked="checked"'; ?> /> <b>Enable file uploads</b></label></p>
-  <p>Maximum file size: <input name="max_file_size" onkeyup="if(!this.value.match(/^([0-9\.]+)$/ig)) this.value = this.value.substr(0,this.value.length-1);" value="<?php echo getConfig('max_file_size'); ?>" /> <select name="fs_units"><option value="1" selected="selected">bytes</option><option value="1024">KB</option><option value="1048576">MB</option></select></p>
-  <p>You can allow Enano to generate thumbnails of images automatically. This feature requires ImageMagick to work properly. If your server
-     does not have ImageMagick on it, Enano will simply make your users' browsers scale the images. In most cases this is fine, but if you
-     are uploading large (>100KB) images and embedding them inside of pages, you should try to enable ImageMagick because transferring these
-     large images many times can cost you quite a lot of bandwidth.</p>
-  <p><label><input type="checkbox" name="enable_imagemagick" <?php if(getConfig('enable_imagemagick')=='1') echo 'checked="checked"'; ?> /> Use ImageMagick to scale images</label><br />
-     Path to ImageMagick: <input type="text" name="imagemagick_path" value="<?php if(getConfig('imagemagick_path')) echo getConfig('imagemagick_path'); else echo '/usr/bin/convert'; ?>" /><br />
-     On Linux and Unix servers, the most likely options here are /usr/bin/convert and /usr/local/bin/convert. If you server runs Windows, then
-     ImageMagick is most likely to be C:\Windows\Convert.exe or C:\Windows\System32\Convert.exe.
-     </p>
-  <p>If you use ImageMagick to scale images, your server will be very busy constantly scaling images if your website is busy, and your site
-     may experience slowdowns. You can dramatically speed up this scaling process if you use a directory to cache thumbnail images.</p>
-  <p><b>Please note:</b> the cache/ directory on your server <u>must</u> be writable by the server. While this is not usually a problem on
-     Windows servers, most Linux/Unix servers will require you to CHMOD the cache/ directory to 777. See your FTP client's user guide for
-     more information on how to do this.<?php if(!is_writable(ENANO_ROOT.'/cache/')) echo ' <b>At present, it seems that the cache directory
-     is not writable. The checkbox below has been disabled to maintain the stability of Enano.</b>'; ?></p>
-  <p><label><input type="checkbox" name="cache_thumbs" <?php if(getConfig('cache_thumbs')=='1' && is_writable(ENANO_ROOT.'/cache/')) echo 'checked="checked"'; elseif(!is_writable(ENANO_ROOT.'/cache/')) echo 'readonly="readonly"'; ?> /> Cache thumbnailed images</label></p>
-  <p>Lastly, you can choose whether file history will be saved. If this option is turned on, you will be able to roll back any malicious
-     changes made to uploaded files, but this requires a significant amount of database storage. You should probably leave this option
-     enabled unless you have less than 250MB of MySQL database space.</p>
-  <p><label><input type="checkbox" name="file_history" <?php if(getConfig('file_history')=='1') echo 'checked="checked"'; ?> /> Keep a history of uploaded files</label></p>
+  <h3><?php echo $lang->get('acpup_heading_main'); ?></h3>
+  
+  <p>
+    <?php echo $lang->get('acpup_intro'); ?>
+  </p>
+  <p>
+    <label>
+      <input type="checkbox" name="enable_uploads" <?php if(getConfig('enable_uploads')=='1') echo 'checked="checked"'; ?> />
+      <b><?php echo $lang->get('acpup_field_enable'); ?></b>
+    </label>
+  </p>
+  <p>
+    <?php echo $lang->get('acpup_field_max_size'); ?>
+    <input name="max_file_size" onkeyup="if(!this.value.match(/^([0-9\.]+)$/ig)) this.value = this.value.substr(0,this.value.length-1);" value="<?php echo getConfig('max_file_size'); ?>" />
+    <select name="fs_units">
+      <option value="1" selected="selected"><?php echo $lang->get('etc_unit_bytes'); ?></option>
+      <option value="1024"><?php echo $lang->get('etc_unit_kilobytes_short'); ?></option>
+      <option value="1048576"><?php echo $lang->get('etc_unit_megabytes_short'); ?></option>
+    </select>
+  </p>
+  
+  <p><?php echo $lang->get('acpup_info_magick'); ?></p>
+  <p>
+    <label>
+      <input type="checkbox" name="enable_imagemagick" <?php if(getConfig('enable_imagemagick')=='1') echo 'checked="checked"'; ?> />
+      <?php echo $lang->get('acpup_field_magick_enable'); ?>
+    </label>
+    <br />
+    <?php echo $lang->get('acpup_field_magick_path'); ?> <input type="text" name="imagemagick_path" value="<?php if(getConfig('imagemagick_path')) echo getConfig('imagemagick_path'); else echo '/usr/bin/convert'; ?>" /><br />
+    <?php echo $lang->get('acpup_field_magick_path_hint'); ?>
+  </p>
+     
+  <p><?php echo $lang->get('acpup_info_cache'); ?></p>
+  <p>
+    <?php echo $lang->get('acpup_info_cache_chmod'); ?>
+  
+    <?php
+      if(!is_writable(ENANO_ROOT.'/cache/'))
+        echo $lang->get('acpup_msg_cache_not_writable');
+    ?>
+  </p>
+  
+  <p>
+    <label>
+      <input type="checkbox" name="cache_thumbs" <?php if(getConfig('cache_thumbs')=='1' && is_writable(ENANO_ROOT.'/cache/')) echo 'checked="checked"'; else if ( ! is_writable(ENANO_ROOT . '/cache/') ) echo 'readonly="readonly"'; ?> />
+      <?php echo $lang->get('acpup_field_cache'); ?>
+    </label>
+  </p>
+  
+  <p><?php echo $lang->get('acpup_info_history'); ?></p>
+  <p>
+    <label>
+      <input type="checkbox" name="file_history" <?php if(getConfig('file_history')=='1') echo 'checked="checked"'; ?> />
+      <?php echo $lang->get('acpup_field_history'); ?>
+    </label>
+  </p>
+  
   <hr style="margin-left: 1em;" />
-  <p><input type="submit" name="save" value="Save changes" style="font-weight: bold;" /></p>
+  <p><input type="submit" name="save" value="<?php echo $lang->get('acpup_btn_save'); ?>" style="font-weight: bold;" /></p>
   <?php
   echo '</form>';
 }
 
-function page_Admin_PluginManager() {
+function page_Admin_UploadAllowedMimeTypes()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
+  {
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    return;
+  }
+  
+  global $mime_types, $mimetype_exps, $mimetype_extlist;
+  if(isset($_POST['save']) && !defined('ENANO_DEMO_MODE'))
+  {
+    $bits = '';
+    $keys = array_keys($mime_types);
+    foreach($keys as $i => $k)
+    {
+      if(isset($_POST['ext_'.$k])) $bits .= '1';
+      else $bits .= '0';
+    }
+    $bits = compress_bitfield($bits);
+    setConfig('allowed_mime_types', $bits);
+    echo '<div class="info-box">' . $lang->get('acpft_msg_saved') . '</div>';
+  }
+  else if ( isset($_POST['save']) && defined('ENANO_DEMO_MODE') )
+  {
+    echo '<div class="error-box">' . $lang->get('acpft_msg_demo_mode') . '</div>';
+  }
+  $allowed = fetch_allowed_extensions();
+  ?>
+  <h3><?php echo $lang->get('acpft_heading_main'); ?></h3>
+   <p><?php echo $lang->get('acpft_hint'); ?></p>
+  <?php
+  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', (( isset($_GET['sqldbg'])) ? 'sqldbg&amp;' : '') .'module='.$paths->cpage['module']).'" method="post">';
+    $c = -1;
+    $t = -1;
+    $cl = 'row1';
+    echo "\n".'    <div class="tblholder">'."\n".'      <table cellspacing="1" cellpadding="2" style="margin: 0; padding: 0;" border="0">'."\n".'        <tr>'."\n        ";
+    ksort($mime_types);
+    foreach($mime_types as $e => $m)
+    {
+      $c++;
+      $t++;
+      if($c == 3)
+      {
+        $c = 0;
+        $cl = ( $cl == 'row1' ) ? 'row2' : 'row1';
+        echo '</tr>'."\n".'        <tr>'."\n        ";
+      }
+      $seed = "extchkbx_{$e}_".md5(microtime() . mt_rand());
+      $chk = (!empty($allowed[$e])) ? ' checked="checked"' : '';
+      echo "  <td class='$cl'>\n            <label><input id='{$seed}' type='checkbox' name='ext_{$e}'{$chk} />.{$e}\n            ({$m})</label>\n          </td>\n        ";
+    }
+    while($c < 2)
+    {
+      $c++;
+      echo "  <td class='{$cl}'></td>\n        ";
+    }
+    echo '<tr><th class="subhead" colspan="3"><input type="submit" name="save" value="' . $lang->get('etc_save_changes') . '" /></th></tr>';
+    echo '</tr>'."\n".'      </table>'."\n".'    </div>';
+    echo '</form>';
+  ?>
+  <?php
+}
+
+function page_Admin_PluginManager()
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
@@ -828,32 +1070,46 @@ function page_Admin_PluginManager() {
   
   if(isset($_GET['action']))
   {
-    switch($_GET['action'])
+    if ( !isset($_GET['plugin']) )
     {
-      case "enable":
-        $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'plugin_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',"' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
-        if ( !$q )
-          $db->_die();
-        setConfig('plugin_'.$_GET['plugin'], '1');
-        break;
-      case "disable":
-        if ( defined('ENANO_DEMO_MODE') && strstr($_GET['plugin'], 'Demo') )
-        {
-          echo('<h3>Error disabling plugin</h3><p>The demo lockdown plugin cannot be disabled in demo mode.</p>');
-          break;
-        }
-        if ( !in_array($_GET['plugin'], $plugins->system_plugins) )
-        {
-          $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'plugin_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',"' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
+      echo '<div class="error-box">No plugin specified.</div>';
+    }
+    else if ( !preg_match('/^[A-z0-9_-]+\.php$/', $_GET['plugin']) )
+    {
+      echo '<div class="error-box">Hacking attempt</div>';
+    }
+    else
+    {
+      $plugin =& $_GET['plugin'];
+      switch($_GET['action'])
+      {
+        case "enable":
+          $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'plugin_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',"' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
           if ( !$q )
             $db->_die();
-          setConfig('plugin_'.$_GET['plugin'], '0');
-        }
-        else 
-        {
-          echo('<h3>Error disabling plugin</h3><p>The plugin you selected cannot be disabled because it is a system plugin.</p>');
-        }
-        break;
+          setConfig("plugin_$plugin", '1');
+          break;
+        case "disable":
+          if ( defined('ENANO_DEMO_MODE') && strstr($_GET['plugin'], 'Demo') )
+          {
+            echo('<h3>' . $lang->get('acppl_err_heading') . '</h3>
+                   <p>' . $lang->get('acppl_err_demo_plugin') . '</p>');
+            break;
+          }
+          if ( !in_array($plugin, $plugins->system_plugins) )
+          {
+            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'plugin_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',"' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
+            if ( !$q )
+              $db->_die();
+            setConfig("plugin_$plugin", '0');
+          }
+          else 
+          {
+            echo '<h3>' . $lang->get('acppl_err_heading') . '</h3>
+                   <p>' . $lang->get('acppl_err_system_plugin') . '</p>';
+          }
+          break;
+      }
     }
   }
   $dir = './plugins/';
@@ -896,23 +1152,37 @@ function page_Admin_PluginManager() {
           $thelist[$file]['auth'] = $f[3];
           $thelist[$file]['vers'] = $f[4];
           $thelist[$file]['aweb'] = $f[5];
+          
+          if ( preg_match('/^[a-z0-9]+_[a-z0-9_]+$/', $thelist[$file]['name']) )
+            $thelist[$file]['name'] = $lang->get($thelist[$file]['name']);
+          
+          if ( preg_match('/^[a-z0-9]+_[a-z0-9_]+$/', $thelist[$file]['desc']) )
+            $thelist[$file]['desc'] = $lang->get($thelist[$file]['desc']);
+          
         }
       }
       closedir($dh);
     }
     else
     {
-      echo '<div class="error-box">The plugins/ directory could not be opened.</div>';
+      echo '<div class="error-box">' . $lang->get('acppl_err_open_dir') . '</div>';
       return;
     }
   }
   else
   {
-    echo '<div class="error-box">The plugins/ directory is missing from your Enano installation.</div>';
+    echo '<div class="error-box">' . $lang->get('acppl_err_missing_dir') . '</div>';
     return;
   }
   echo('<div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
-      <tr><th>Plugin filename</th><th>Plugin name</th><th>Description</th><th>Author</th><th>Version</th><th></th></tr>');
+      <tr>
+        <th>' . $lang->get('acppl_col_filename') . '</th>
+        <th>' . $lang->get('acppl_col_name') . '</th>
+        <th>' . $lang->get('acppl_col_description') . '</th>
+        <th>' . $lang->get('acppl_col_author') . '</th>
+        <th>' . $lang->get('acppl_col_version') . '</th>
+        <th></th>
+      </tr>');
     $plugin_files_1 = array_keys($plugin_list);
     $plugin_files_2 = array_keys($system);
     $plugin_files = array_values(array_merge($plugin_files_1, $plugin_files_2));
@@ -938,27 +1208,28 @@ function page_Admin_PluginManager() {
       {
         if ( getConfig('plugin_'.$plugin_files[$i]) == '1' )
         {
-          echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=disable&amp;plugin='.$plugin_files[$i].'">Disable</a>';
+          echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=disable&amp;plugin='.$plugin_files[$i].'">' . $lang->get('acppl_btn_disable') . '</a>';
         }
         else
         {
-          echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=enable&amp;plugin='.$plugin_files[$i].'">Enable</a>';
+          echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=enable&amp;plugin='.$plugin_files[$i].'">' . $lang->get('acppl_btn_enable') . '</a>';
         }
       }
       else
       {
-        echo '[System]';
+        echo $lang->get('acppl_lbl_system_plugin');
       }
       echo '</td></tr>';
     }
     $showhide_link = ( $show_system ) ?
-    '<a style="color: white;" href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'] . '&show_system=no', true) . '">Hide system plugins</a>' :
-    '<a style="color: white;" href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'] . '&show_system=yes', true) . '">Show system plugins</a>' ;
+    '<a style="color: white;" href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'] . '&show_system=no', true) . '">' . $lang->get('acppl_btn_hide_system') . '</a>' :
+    '<a style="color: white;" href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'] . '&show_system=yes', true) . '">' . $lang->get('acppl_btn_show_system') . '</a>' ;
     echo '<tr><th colspan="6" class="subhead">'.$showhide_link.'</th></tr>';
     echo '</table></div>';
 }
 
-function page_Admin_UploadAllowedMimeTypes()
+/*
+function page_Admin_PageManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
@@ -970,63 +1241,414 @@ function page_Admin_UploadAllowedMimeTypes()
     return;
   }
   
-  global $mime_types, $mimetype_exps, $mimetype_extlist;
-  if(isset($_POST['save']) && !defined('ENANO_DEMO_MODE'))
+  echo '<h2>Page management</h2>';
+  
+  if ( isset($_POST['search']) || isset($_POST['select']) || ( isset($_GET['source']) && $_GET['source'] == 'ajax' ) )
   {
-    $bits = '';
-    $keys = array_keys($mime_types);
-    foreach($keys as $i => $k)
+    // The object of the game: using only the text a user entered, guess the page ID and namespace. *sigh* I HATE writing search algorithms...
+    $source = ( isset($_GET['source']) ) ? $_GET['source'] : false;
+    if ( $source == 'ajax' )
     {
-      if(isset($_POST['ext_'.$k])) $bits .= '1';
-      else $bits .= '0';
+      $_POST['search'] = true;
+      $_POST['page_url'] = $_GET['page_id'];
     }
-    $bits = compress_bitfield($bits);
-    setConfig('allowed_mime_types', $bits);
-    echo '<div class="info-box">Your changes have been saved.</div>';
-  }
-  else if ( isset($_POST['save']) && defined('ENANO_DEMO_MODE') )
-  {
-    echo '<div class="error-box">Hmm, enabling executables, are we? Tsk tsk. I\'d love to know what\'s in that EXE file you want to upload. OK, maybe you didn\'t enable EXEs. But nevertheless, changing allowed filetypes is disabled in the demo.</div>';
-  }
-  $allowed = fetch_allowed_extensions();
-  ?>
-  <h3>Allowed file types</h3>
-   <p>Using the form below, you can decide which file types are allowed to be uploaded to this site.</p>
-  <?php
-  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', (( isset($_GET['sqldbg'])) ? 'sqldbg&amp;' : '') .'module='.$paths->cpage['module']).'" method="post">';
-    $c = -1;
-    $t = -1;
-    $cl = 'row1';
-    echo "\n".'    <div class="tblholder">'."\n".'      <table cellspacing="1" cellpadding="2" style="margin: 0; padding: 0;" border="0">'."\n".'        <tr>'."\n        ";
-    ksort($mime_types);
-    foreach($mime_types as $e => $m)
+    if ( isset($_POST['search']) )
     {
-      $c++;
-      $t++;
-      if($c == 3)
+      $pid = $_POST['page_url'];
+    }
+    elseif ( isset($_POST['select']) )
+    {
+      $pid = $_POST['page_force_url'];
+    }
+    else
+    {
+      echo 'Internal error selecting page search terms';
+      return false;
+    }
+    // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
+    $k = array_keys($paths->nslist);
+    for ( $i = 0; $i < sizeof($paths->nslist); $i++ )
+    {
+      $ln = strlen($paths->nslist[$k[$i]]);
+      if(substr($pid, 0, $ln) == $paths->nslist[$k[$i]])
       {
-        $c = 0;
-        $cl = ( $cl == 'row1' ) ? 'row2' : 'row1';
-        echo '</tr>'."\n".'        <tr>'."\n        ";
+        $ns = $k[$i];
+        $page_id = substr($pid, $ln, strlen($pid));
       }
-      $seed = "extchkbx_{$e}_".md5(microtime() . mt_rand());
-      $chk = (!empty($allowed[$e])) ? ' checked="checked"' : '';
-      echo "  <td class='$cl'>\n            <label><input id='{$seed}' type='checkbox' name='ext_{$e}'{$chk} />.{$e}\n            ({$m})</label>\n          </td>\n        ";
     }
-    while($c < 2)
+    // The namespace is in $ns and the page name or ID (we don't know which yet) is in $page_id
+    // Now, iterate through $paths->pages searching for a page with this name or ID
+    for ( $i = 0; $i < sizeof($paths->pages) / 2; $i++ )
     {
-      $c++;
-      echo "  <td class='{$cl}'></td>\n        ";
+      if ( !isset($final_pid) )
+      {
+        if ( $paths->pages[$i]['urlname_nons'] == str_replace(' ', '_', $page_id) )
+        {
+          $final_pid = str_replace(' ', '_', $page_id);
+        }
+        else if ( $paths->pages[$i]['name'] == $page_id )
+        {
+          $final_pid = $paths->pages[$i]['urlname_nons'];
+        }
+        else if ( strtolower($paths->pages[$i]['urlname_nons']) == strtolower(str_replace(' ', '_', $page_id)) )
+        {
+          $final_pid = $paths->pages[$i]['urlname_nons'];
+        }
+        else if ( strtolower($paths->pages[$i]['name']) == strtolower(str_replace('_', ' ', $page_id)) )
+        {
+          $final_pid = $paths->pages[$i]['urlname_nons'];
+        }
+        if ( isset($final_pid) )
+        {
+          $_POST['name'] = $paths->pages[$i]['name'];
+          $_POST['urlname'] = $paths->pages[$i]['urlname_nons'];
+        }
+      }
     }
-    echo '<tr><th class="subhead" colspan="3"><input type="submit" name="save" value="Save changes" /></th></tr>';
-    echo '</tr>'."\n".'      </table>'."\n".'    </div>';
+    if ( !isset($final_pid) )
+    {
+      echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>';
+      return false;
+    }
+    $_POST['namespace'] = $ns;
+    $_POST['old_namespace'] = $ns;
+    $_POST['page_id'] = $final_pid;
+    $_POST['old_page_id'] = $final_pid;
+    if ( !isset($paths->pages[$paths->nslist[$_POST['namespace']].$_POST['urlname']]) )
+    {
+      echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>';
+      return false;
+    }
+  }
+  
+  if ( isset($_POST['page_id']) && isset($_POST['namespace']) && !isset($_POST['cancel']) )
+  {
+    $cpage = $paths->pages[$paths->nslist[$_POST['old_namespace']].$_POST['old_page_id']];
+    if(isset($_POST['submit']))
+    {
+      switch(true)
+      {
+        case true:
+          // Create a list of things to update
+          $page_info = Array(
+              'name'=>$_POST['name'],
+              'urlname'=>sanitize_page_id($_POST['page_id']),
+              'namespace'=>$_POST['namespace'],
+              'special'=>isset($_POST['special']) ? '1' : '0',
+              'visible'=>isset($_POST['visible']) ? '1' : '0',
+              'comments_on'=>isset($_POST['comments_on']) ? '1' : '0',
+              'protected'=>isset($_POST['protected']) ? '1' : '0'
+            );
+          
+          $updating_urlname_or_namespace = ( $page_info['namespace'] != $cpage['namespace'] || $page_info['urlname'] != $cpage['urlname_nons'] );
+          
+          if ( !isset($paths->nslist[ $page_info['namespace'] ]) )
+          {
+            echo '<div class="error-box">The namespace you selected is not properly registered.</div>';
+            break;
+          }
+          if ( isset($paths->pages[ $paths->nslist[$page_info['namespace']] . $page_info[ 'urlname' ] ]) && $updating_urlname_or_namespace )
+          {
+            echo '<div class="error-box">There is already a page that exists with that URL string and namespace.</div>';
+            break;
+          }
+          // Build the query
+          $q = 'UPDATE '.table_prefix.'pages SET ';
+          $k = array_keys($page_info);
+          foreach($k as $c)
+          {
+            $q .= $c.'=\''.$db->escape($page_info[$c]).'\',';
+          }
+          $q = substr($q, 0, strlen($q)-1);
+          // Build the WHERE statements
+          $q .= ' WHERE ';
+          $k = array_keys($cpage);
+          if ( !isset($cpage) )
+            die('[internal] no cpage');
+          foreach($k as $c)
+          {
+            if($c != 'urlname_nons' && $c != 'urlname' && $c != 'really_protected')
+            {
+              $q .= $c.'=\''.$db->escape($cpage[$c]).'\' AND ';
+            }
+            else if($c == 'urlname')
+            {
+              $q .= $c.'=\''.$db->escape($cpage['urlname_nons']).'\' AND ';
+            }
+          }
+          // Trim off the last " AND " and append a semicolon
+          $q = substr($q, 0, strlen($q)-5) . ';';
+          // Send the completed query to MySQL
+          $e = $db->sql_query($q);
+          if(!$e) $db->_die('The page data could not be updated.');
+          // Update any additional tables
+          $q = Array(
+            'UPDATE '.table_prefix.'categories SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+            'UPDATE '.table_prefix.'comments   SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+            'UPDATE '.table_prefix.'logs       SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+            'UPDATE '.table_prefix.'page_text  SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+            'UPDATE '.table_prefix.'acl        SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';'
+            );
+          foreach($q as $cq)
+          {
+            $e = $db->sql_query($cq);
+            if(!$e) $db->_die('Some of the additional tables containing page information could not be updated.');
+          }
+          // Update $cpage
+          $cpage = $page_info;
+          $cpage['urlname_nons'] = $cpage['urlname'];
+          $cpage['urlname'] = $paths->nslist[$cpage['namespace']].$cpage['urlname'];
+          $_POST['old_page_id'] = $page_info['urlname'];
+          $_POST['old_namespace'] = $page_info['namespace'];
+          echo '<div class="info-box">Your changes have been saved.</div>';
+          break;
+      }
+    } elseif(isset($_POST['delete'])) {
+      $q = Array(
+        'DELETE FROM '.table_prefix.'categories WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+        'DELETE FROM '.table_prefix.'comments   WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+        'DELETE FROM '.table_prefix.'logs       WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+        'DELETE FROM '.table_prefix.'page_text  WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
+        );
+      foreach($q as $cq)
+      {
+        $e = $db->sql_query($cq);
+        if(!$e) $db->_die('Some of the additional tables containing page information could not be updated.');
+      }
+      
+      if(!$db->sql_query(
+        'DELETE FROM '.table_prefix.'pages WHERE urlname="'.$db->escape($_POST['old_page_id']).'" AND namespace="'.$db->escape($_POST['old_namespace']).'";'
+      )) $db->_die('The page could not be deleted.');
+      echo '<div class="info-box">This page has been deleted.</p><p><a href="javascript:ajaxPage(\''.$paths->nslist['Admin'].'PageManager\');">Return to Page manager</a><br /><a href="javascript:ajaxPage(\''.$paths->nslist['Admin'].'Home\');">Admin home</a></div>';
+      return;
+    }
+    $url = makeUrlNS('Special', 'Administration', 'module='.$paths->cpage['module'], true);
+    echo '<form action="'.$url.'" method="post">';
+    ?>
+    <h3>Modify page: <?php echo htmlspecialchars($_POST['name']); ?></h3>
+     <table border="0">
+       <tr>
+         <td>Namespace:</td>
+         <td>
+           <select name="namespace">
+             <?php
+             $nm = array_keys($paths->nslist);
+             foreach ( $nm as $ns )
+             {
+               if ( $ns != 'Special' && $ns != 'Admin' )
+               {
+                 echo '<option ';
+                 if ( $_POST['namespace'] == $ns )
+                 echo 'selected="selected" ';
+                 echo 'value="'.$ns.'">';
+                 if ( $paths->nslist[$ns] == '' )
+                   echo '[No prefix]';
+                 else
+                   echo $paths->nslist[$ns];
+                 echo '</option>';
+               }
+             } ?>
+           </select>
+         </td>
+       </tr>
+       <tr>
+         <td>
+           Page title:
+         </td>
+         <td>
+           <input type="text" name="name" value="<?php echo htmlspecialchars($cpage['name']); ?>" />
+         </td>
+       </tr>
+       <tr>
+         <td>
+           Page URL string:<br />
+           <small>No spaces, and don't enter the namespace prefix (e.g. User:).<br />
+                  Changing this value is usually not a good idea, especially for templates and project pages.</small>
+          </td>
+          <td>
+            <input type="text" name="page_id" value="<?php echo htmlspecialchars(dirtify_page_id($cpage['urlname_nons'])); ?>" />
+          </td>
+       </tr>
+       <tr>
+         <td></td>
+         <td>
+           <input <?php if($cpage['comments_on']) echo 'checked="checked"'; ?> name="comments_on" type="checkbox" id="cmt" />
+           <label for="cmt">Enable comments for this page</label>
+         </td>
+       </tr>
+       <tr>
+         <td></td>
+         <td>
+           <input <?php if($cpage['special']) echo 'checked="checked"'; ?> name="special" type="checkbox" id="spc" />
+           <label for="spc">Bypass the template engine for this page</label><br />
+           <small>This option enables you to use your own HTML headers and other code. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages, meaning you can use Enano's API on the page.</small>
+         </td>
+       </tr>
+       <tr>
+         <td></td>
+         <td>
+           <input <?php if($cpage['visible']) echo 'checked="checked"'; ?> name="visible" type="checkbox" id="vis" />
+           <label for="vis">Allow this page to be shown in page lists</label><br />
+           <small>Unchecking this checkbox prevents the page for being indexed for searching. The index is rebuilt each time a page is saved, and you can force an index rebuild by going to the page <?php echo $paths->nslist['Special']; ?>SearchRebuild.</small>
+         </td>
+       </tr>
+       <tr>
+         <td></td>
+         <td>
+           <input <?php if($cpage['protected']) echo 'checked="checked"'; ?> name="protected" type="checkbox" id="prt" />
+           <label for="prt">Prevent non-administrators from editing this page</label><br />
+           <small>This option only has an effect when Wiki Mode is enabled.</small>
+         </td>
+       </tr>
+       <tr>
+         <td></td>
+         <td>
+           <input type="submit" name="delete" value="Delete page" style="color: red" onclick="return confirm('Do you REALLY want to delete this page?')" />
+         </td>
+       </tr>
+       <tr>
+         <td colspan="2" style="text-align: center;">
+           <hr />
+         </td>
+       </tr>
+       <tr>
+         <td colspan="2" style="text-align: right;">
+           <input type="hidden" name="old_page_id" value="<?php echo htmlspecialchars($_POST['old_page_id']); ?>" />
+           <input type="hidden" name="old_namespace" value="<?php echo htmlspecialchars($_POST['old_namespace']); ?>" />
+           <input type="Submit" name="submit" value="Save changes" style="font-weight: bold;" />
+           <input type="submit" name="cancel" value="Cancel changes" />
+         </td>
+       </tr>
+     </table>
+    <?php
     echo '</form>';
-  ?>
-  <?php
+  }
+  else
+  {
+    echo '<h3>Please select a page</h3>';
+    echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
+    ?>
+      <p>Search for page title (remember prefixes like User: and File:) <?php echo $template->pagename_field('page_url'); ?>  <input type="submit" style="font-weight: bold;" name="search" value="Search" /></p>
+      <p>Select page title from a list: <select name="page_force_url">
+      <?php
+        for($i=0;$i<sizeof($paths->pages)/2;$i++)
+        {
+          if($paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['namespace'] != 'Special') echo '<option value="'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['urlname_nons'].'">'.htmlspecialchars($paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['name']).'</option>'."\n";
+        }
+      ?>
+      </select>  <input type="submit" name="select" value="Select" /></p>
+    <?php
+    echo '</form>';
+    
+  }
+}
+*/
+
+function page_Admin_PageEditor()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
+  {
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    return;
+  }
+  
+  
+  echo '<h2>Edit page content</h2>';
+  
+  if(isset($_POST['search']) || isset($_POST['select'])) {
+    // The object of the game: using only the text a user entered, guess the page ID and namespace. *sigh* I HATE writing search algorithms...
+    if(isset($_POST['search'])) $pid = $_POST['page_url'];
+    elseif(isset($_POST['select'])) $pid = $_POST['page_force_url'];
+    else { echo 'Internal error selecting page search terms'; return false; }
+    // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
+    $k = array_keys($paths->nslist);
+    for($i=0;$i<sizeof($paths->nslist);$i++)
+    {
+      $ln = strlen($paths->nslist[$k[$i]]);
+      if(substr($pid, 0, $ln) == $paths->nslist[$k[$i]])
+      {
+        $ns = $k[$i];
+        $page_id = substr($pid, $ln, strlen($pid));
+      }
+    }
+    // The namespace is in $ns and the page name or ID (we don't know which yet) is in $page_id
+    // Now, iterate through $paths->pages searching for a page with this name or ID
+    for($i=0;$i<sizeof($paths->pages)/2;$i++)
+    {
+      if(!isset($final_pid))
+      {
+        if    ($paths->pages[$i]['urlname_nons'] == str_replace(' ', '_', $page_id)) $final_pid = str_replace(' ', '_', $page_id);
+        elseif($paths->pages[$i]['name'] == $page_id) $final_pid = $paths->pages[$i]['urlname_nons'];
+        elseif(strtolower($paths->pages[$i]['urlname_nons']) == strtolower(str_replace(' ', '_', $page_id))) $final_pid = $paths->pages[$i]['urlname_nons'];
+        elseif(strtolower($paths->pages[$i]['name']) == strtolower(str_replace('_', ' ', $page_id))) $final_pid = $paths->pages[$i]['urlname_nons'];
+        if(isset($final_pid)) { $_POST['name'] = $paths->pages[$i]['name']; $_POST['urlname'] = $paths->pages[$i]['urlname_nons']; }
+      }
+    }
+    if(!isset($final_pid)) { echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>'; return false; }
+    $_POST['namespace'] = $ns;
+    $_POST['page_id'] = $final_pid;
+    if(!isset($paths->pages[$paths->nslist[$_POST['namespace']].$_POST['urlname']])) { echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>'; return false; }
+  }
+  
+  if(isset($_POST['page_id']) && !isset($_POST['cancel']))
+  {
+    echo '<form name="main" action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
+    if(!isset($_POST['content']) || isset($_POST['revert'])) $content = RenderMan::getPage($_POST['page_id'], $_POST['namespace'], 0, false, false, false, false);
+    else $content = $_POST['content'];
+    if(isset($_POST['save']))
+    {
+      $data = $content;
+      $id = md5( microtime() . mt_rand() );
+      
+      $minor = isset($_POST['minor']) ? 'true' : 'false';
+      $q='INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $db->escape($_POST['page_id']) . '\', \'' . $db->escape($_POST['namespace']) . '\', \''.$db->escape($data).'\', \''.$id.'\', \''.$session->username.'\', \''.$db->escape(htmlspecialchars($_POST['summary'])).'\', '.$minor.');';
+      if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
+      
+      $query = 'UPDATE '.table_prefix.'page_text SET page_text=\''.$db->escape($data).'\',char_tag=\''.$id.'\' WHERE page_id=\'' . $db->escape($_POST['page_id']) . '\' AND namespace=\'' . $db->escape($_POST['namespace']) . '\';';
+      $e = $db->sql_query($query);
+      if(!$e) echo '<div class="warning-box">The page data could not be saved. MySQL said: '.mysql_error().'<br /><br />Query:<br /><pre>'.$query.'</pre></div>';
+      else echo '<div class="info-box">Your page has been saved. <a href="'.makeUrlNS($_POST['namespace'], $_POST['page_id']).'">View page...</a></div>';
+    } elseif(isset($_POST['preview'])) {
+      echo '<h3>Preview</h3><p><b>Reminder:</b> This is only a preview; your changes to this page have not yet been saved.</p><div style="margin: 1em; padding: 10px; border: 1px dashed #606060; background-color: #F8F8F8; max-height: 200px; overflow: auto;">'.RenderMan::render($content).'</div>';
+    }
+    ?>
+    <p>
+    <textarea name="content" rows="20" cols="60" style="width: 100%;"><?php echo htmlspecialchars($content); ?></textarea><br />
+    Edit summary: <input name="summary" value="<?php if(isset($_POST['summary'])) echo htmlspecialchars($_POST['summary']); ?>" size="40" /><br />
+    <label><input type="checkbox" name="minor" <?php if(isset($_POST['minor'])) echo 'checked="checked" '; ?>/>  This is a minor edit</label>
+    </p>
+    <p>
+    <input type="hidden" name="page_id" value="<?php echo htmlspecialchars($_POST['page_id']); ?>" />
+    <input type="hidden" name="namespace" value="<?php echo htmlspecialchars($_POST['namespace']); ?>" />
+    <input type="submit" name="save" value="Save changes" style="font-weight: bold;" />&nbsp;&nbsp;<input type="submit" name="preview" value="Show preview" />&nbsp;&nbsp;<input type="submit" name="revert" value="Revert changes" onclick="return confirm('Do you really want to revert your changes?');" />&nbsp;&nbsp;<input type="submit" name="cancel" value="Cancel" onclick="return confirm('Do you really want to cancel your changes?');" />
+    </p>
+    <?php
+    echo '</form>';
+  } else {
+    echo '<h3>Please select a page</h3>';
+    echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
+    ?>
+      <p>Search for page title (remember prefixes like User: and File:) <?php echo $template->pagename_field('page_url'); ?>  <input type="submit" style="font-weight: bold;" name="search" value="Search" /></p>
+      <p>Select page title from a list: <select name="page_force_url">
+      <?php
+        for ( $i = 0; $i < sizeof($paths->pages) / 2; $i++ )
+        {
+          if($paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['namespace'] != 'Special') echo '<option value="'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['urlname_nons'].'">'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['name'].'</option>'."\n";
+        }
+      ?>
+      </select>  <input type="submit" name="select" value="Select" /></p>
+    <?php
+    echo '</form>';
+  }
 }
 
-function page_Admin_Sidebar()
+function page_Admin_ThemeManager() 
 {
+  
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
@@ -1037,52 +1659,258 @@ function page_Admin_Sidebar()
     return;
   }
   
-  ?>
-  <h2>Editing and managing the Enano sidebar</h2>
-   <p>The Enano sidebar is a versatile tool when scripted correctly. You don't have to be a programmer to enjoy the features the Sidebar
-      provides; however, editing the sidebar requires a small bit of programming knowledge and an understanding of Enano's system message
-      markup language.
+  
+  // Get the list of styles in the themes/ dir
+  $h = opendir('./themes');
+  $l = Array();
+  if(!$h) die('Error opening directory "./themes" for reading.');
+  while(false !== ($n = readdir($h))) {
+    if($n != '.' && $n != '..' && is_dir('./themes/'.$n))
+      $l[] = $n;
+  }
+  closedir($h);
+  echo('
+  <h3>Theme Management</h3>
+   <p>Install, uninstall, and manage Enano themes.</p>
+  ');
+  if(isset($_POST['disenable'])) {
+    $q = 'SELECT enabled FROM '.table_prefix.'themes WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
+    $s = $db->sql_query($q);
+    if(!$s) die('Error selecting enabled/disabled state value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    $r = $db->fetchrow_num($s);
+    $db->free_result();
+    if($r[0] == 1) $e = 0;
+    else $e = 1;
+    $s=true;
+    if($e==0)
+    {
+      $c = $db->sql_query('SELECT * FROM '.table_prefix.'themes WHERE enabled=1');
+      if(!$c) $db->_die('The backup check for having at least on theme enabled failed.');
+      if($db->numrows() <= 1) { echo '<div class="warning-box">You cannot disable the last remaining theme.</div>'; $s=false; }
+    }
+    $db->free_result();
+    if($s) {
+    $q = 'UPDATE '.table_prefix.'themes SET enabled='.$e.' WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
+    $a = $db->sql_query($q);
+    if(!$a) die('Error updating enabled/disabled state value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    else echo('<div class="info-box">The theme "'.$_POST['theme_id'].'" has been  '. ( ( $e == '1' ) ? 'enabled' : 'disabled' ).'.</div>');
+    }
+  }
+  elseif(isset($_POST['edit'])) {
+    
+    $dir = './themes/'.$_POST['theme_id'].'/css/';
+    $list = Array();
+    // Open a known directory, and proceed to read its contents
+    if (is_dir($dir)) {
+      if ($dh = opendir($dir)) {
+        while (($file = readdir($dh)) !== false) {
+          if(preg_match('#^(.*?)\.css$#is', $file) && $file != '_printable.css') {
+            $list[$file] = capitalize_first_letter(substr($file, 0, strlen($file)-4));
+          }
+        }
+        closedir($dh);
+      }
+    }
+    $lk = array_keys($list);
+    
+    $q = 'SELECT theme_name,default_style FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
+    $s = $db->sql_query($q);
+    if(!$s) die('Error selecting name value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    $r = $db->fetchrow_num($s);
+    $db->free_result();
+    echo('<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">');
+    echo('<div class="question-box">
+          Theme name displayed to users: <input type="text" name="name" value="'.$r[0].'" /><br /><br />
+          Default stylesheet: <select name="defaultcss">');
+    foreach ($lk as $l)
+    {
+      if($r[1] == $l) $v = ' selected="selected"';
+      else $v = '';
+      echo "<option value='{$l}'$v>{$list[$l]}</option>";
+    }
+    echo('</select><br /><br />
+          <input type="submit" name="editsave" value="OK" /><input type="hidden" name="theme_id" value="'.$_POST['theme_id'].'" />
+          </div>');
+    echo('</form>');
+  }
+  elseif(isset($_POST['editsave'])) {
+    $q = 'UPDATE '.table_prefix.'themes SET theme_name=\'' . $db->escape($_POST['name']) . '\',default_style=\''.$db->escape($_POST['defaultcss']).'\' WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
+    $s = $db->sql_query($q);
+    if(!$s) die('Error updating name value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    else echo('<div class="info-box">Theme data updated.</div>');
+  }
+  elseif(isset($_POST['up'])) {
+    // If there is only one theme or if the selected theme is already at the top, do nothing
+    $q = 'SELECT theme_order FROM '.table_prefix.'themes ORDER BY theme_order;';
+    $s = $db->sql_query($q);
+    if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
+    $sn = $db->sql_query($q);
+    if(!$sn) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    $r = $db->fetchrow_num($sn);
+    if( /* check for only one theme... */ $db->numrows($s) < 2 || $r[0] == 1 /* ...and check if this theme is already at the top */ ) { echo('<div class="warning-box">This theme is already at the top of the list, or there is only one theme installed.</div>'); } else {
+      // Get the order IDs of the selected theme and the theme before it
+      $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
+      $s = $db->sql_query($q);
+      if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      $r = $db->fetchrow_num($s);
+      $r = $r[0];
+      $rb = $r - 1;
+      // Thank God for jEdit's rectangular selection and the ablity to edit multiple lines at the same time ;)
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      echo('<div class="info-box">Theme moved up.</div>');
+    }
+    $db->free_result($s);
+    $db->free_result($sn);
+  }
+  elseif(isset($_POST['down'])) {
+    // If there is only one theme or if the selected theme is already at the top, do nothing
+    $q = 'SELECT theme_order FROM '.table_prefix.'themes ORDER BY theme_order;';
+    $s = $db->sql_query($q);
+    if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    $r = $db->fetchrow_num($s);
+    if( /* check for only one theme... */ $db->numrows($s) < 2 || $r[0] == $db->numrows($s) /* ...and check if this theme is already at the bottom */ ) { echo('<div class="warning-box">This theme is already at the bottom of the list, or there is only one theme installed.</div>'); } else {
+      // Get the order IDs of the selected theme and the theme before it
+      $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
+      $s = $db->sql_query($q);
+      if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      $r = $db->fetchrow_num($s);
+      $r = $r[0];
+      $rb = $r + 1;
+      // Thank God for jEdit's rectangular selection and the ablity to edit multiple lines at the same time ;)
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      echo('<div class="info-box">Theme moved down.</div>');
+    }
+  }
+  else if(isset($_POST['uninstall'])) 
+  {
+    $q = 'SELECT * FROM '.table_prefix.'themes;';
+    $s = $db->sql_query($q);
+    if ( !$s )
+    {
+      die('Error getting theme count: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    }
+    $n = $db->numrows($s);
+    $db->free_result();
+    
+    if ( $_POST['theme_id'] == 'oxygen' )
+    {
+      echo '<div class="error-box">The Oxygen theme is used by Enano for installation, upgrades, and error messages, and cannot be uninstalled.</div>';
+    }
+    else
+    {
+      if($n < 2)
+      {
+        echo '<div class="error-box">The theme could not be uninstalled because it is the only theme left.</div>';
+      }
+      else
+      {
+        $q = 'DELETE FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\' LIMIT 1;';
+        $s = $db->sql_query($q);
+        if ( !$s )
+        {
+          die('Error deleting theme data: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+        }
+        else
+        {
+          echo('<div class="info-box">Theme uninstalled.</div>');
+        }
+      }
+    }
+  }
+  elseif(isset($_POST['install'])) {
+    $q = 'SELECT theme_id FROM '.table_prefix.'themes;';
+    $s = $db->sql_query($q);
+    if(!$s) die('Error getting theme count: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    $n = $db->numrows($s);
+    $n++;
+    $theme_id = $_POST['theme_id'];
+    $theme = Array();
+    include('./themes/'.$theme_id.'/theme.cfg');
+    if ( !isset($theme['theme_id']) )
+    {
+      echo '<div class="error-box">Could not load theme.cfg (theme metadata file)</div>';
+    }
+    else
+    {
+      $default_style = false;
+      if ( $dh = opendir('./themes/' . $theme_id . '/css') )
+      {
+        while ( $file = readdir($dh) )
+        {
+          if ( $file != '_printable.css' && preg_match('/\.css$/i', $file) )
+          {
+            $default_style = $file;
+            break;
+          }
+        }
+        closedir($dh);
+      }
+      else
+      {
+        die('The /css subdirectory could not be located in the theme\'s directory');
+      }
+      
+      if ( $default_style )
+      {
+        $q = 'INSERT INTO '.table_prefix.'themes(theme_id,theme_name,theme_order,enabled,default_style) VALUES(\''.$db->escape($theme['theme_id']).'\', \''.$db->escape($theme['theme_name']).'\', '.$n.', 1, \'' . $db->escape($default_style) . '\')';
+        $s = $db->sql_query($q);
+        if(!$s) die('Error inserting theme data: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+        else echo('<div class="info-box">Theme "'.$theme['theme_name'].'" installed.</div>');
+      }
+      else
+      {
+        echo '<div class="error-box">Could not determine the default style for the theme.</div>';
+      }
+    }
+  }
+  echo('
+  <h3>Currently installed themes</h3>
+    <form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">
+    <p>
+      <select name="theme_id">
+        ');
+        $q = 'SELECT theme_id,theme_name,enabled FROM '.table_prefix.'themes ORDER BY theme_order';
+        $s = $db->sql_query($q);
+        if(!$s) die('Error selecting theme data: '.mysql_error().'<br /><u>Attempted SQL:</u><br />'.$q);
+        while ( $r = $db->fetchrow_num($s) ) {
+          if($r[2] < 1) $r[1] .= ' (disabled)';
+          echo('<option value="'.$r[0].'">'.$r[1].'</option>');
+        }
+        $db->free_result();
+        echo('
+        </select> <input type="submit" name="disenable" value="Enable/Disable" /> <input type="submit" name="edit" value="Change settings" /> <input type="submit" name="up" value="Move up" /> <input type="submit" name="down" value="Move down" /> <input type="submit" name="uninstall" value="Uninstall" style="color: #DD3300; font-weight: bold;" />
       </p>
-   <p>The Enano system markup language is somewhat similar to HTML, in that it uses tags (&lt;example&gt;like this&lt;/example&gt;) for the
-      main syntax. However, Enano uses curly brackets ({ and }) as opposed to less-than and greater-than signs (&lt; and &gt;).</p>
-   <p>Programming the Enano sidebar requires the use of two tags: {slider} and {if}. The {slider} tag is used to create a new heading
-      on the sidebar, and all text enclosed in that tag will be collapsed when the heading is clicked. To specify the text on the heading,
-      use an equals sign (=) after the "slider" text. Then insert any links (they should be wiki-formatted) to internal Enano pages and
-      external sites.</p>
-   <p>So here is what the language for the default sidebar's "Navigation" heading looks like:</p>
-   <pre>{slider=Navigation}
-  [[Main Page|Home]]
-  [[Enano:Sidebar|Edit the sidebar]]
-{/slider}</pre>
-   <p>Pretty simple, huh? Good, now we're going to learn another common aspect of Enano programming: conditionals. The {if} tag allows you
-      to decide whether a portion of the sidebar will be displayed based on a template variable. Currently the only available conditions are
-      "user_logged_in" and "auth_admin", but more will be added soon. To use a conditional, enter {if conditional_name}, and then the
-      wiki-formatted text that you want to be under that condition, and then close the tag with {/if}. In the same way, you can reverse the
-      effect with {!if}. With {!if}, the closing tag is still {/if}, so keep that in mind. An {else} tag will be supported soon.</p>
-   <p>Now it's time for some real fun: variables. All template variables can be accessed from the sidebar. A variable is simply the
-      variable name, prefixed by a dollar sign ($). Some of the most common variables are $USERNAME, $SITE_NAME, $SITE_DESC, and $PAGE_NAME.
-      The sidebar also has some special variables that it uses for some of its links. The logout link can be added with $LOGOUT_LINK, and
-      the "change theme" button can be added with $STYLE_LINK.</p>
-   <p>So here is the Enano markup for the portion of the sidebar that contains the user tools:</p>
-   <pre>{slider=$USERNAME}
-  [[User:$USERNAME|User page]]
-  [[Special:Contributions?user=$USERNAME|My Contributions]]
-  {if user_logged_in}
-    [[Special:Preferences|Preferences]]
-    $THEME_LINK
-  {/if}
-  {if auth_admin}
-    [[Special:Administration|Administration]]
-  {/if}
-  {if user_logged_in}
-    $LOGOUT_LINK
-  {/if}
-  {!if user_logged_in}
-    Create an account
-    Log in
-  {/if}
-{/slider}</pre>
-  <?php
+    </form>
+    <h3>Install a new theme</h3>
+  ');
+    $theme = Array();
+    $obb = '';
+    for($i=0;$i<sizeof($l);$i++) {
+      if(is_file('./themes/'.$l[$i].'/theme.cfg') && file_exists('./themes/'.$l[$i].'/theme.cfg')) {
+        include('./themes/'.$l[$i].'/theme.cfg');
+        $q = 'SELECT * FROM '.table_prefix.'themes WHERE theme_id=\''.$theme['theme_id'].'\'';
+        $s = $db->sql_query($q);
+        if(!$s) die('Error selecting list of currently installed themes: '.mysql_error().'<br /><u>Attempted SQL:</u><br />'.$q);
+        if($db->numrows($s) < 1) {
+          $obb .= '<option value="'.$theme['theme_id'].'">'.$theme['theme_name'].'</option>';
+        }
+        $db->free_result();
+      }
+    }
+    if($obb != '') {
+      echo('<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post"><p>');
+      echo('<select name="theme_id">');
+      echo($obb);
+      echo('</select>');
+      echo('
+      <input type="submit" name="install" value="Install this theme" />
+      </p></form>');
+    } else echo('<p>All themes are currently installed.</p>');
 }
 
 function page_Admin_GroupManager()
@@ -1521,574 +2349,6 @@ function page_Admin_COPPA()
   
   echo '</form>';
   
-}
-
-function page_Admin_PageManager()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  
-  echo '<h2>Page management</h2>';
-  
-  if(isset($_POST['search']) || isset($_POST['select']) || ( isset($_GET['source']) && $_GET['source'] == 'ajax' )) {
-    // The object of the game: using only the text a user entered, guess the page ID and namespace. *sigh* I HATE writing search algorithms...
-    $source = ( isset($_GET['source']) ) ? $_GET['source'] : false;
-    if ( $source == 'ajax' )
-    {
-      $_POST['search'] = true;
-      $_POST['page_url'] = $_GET['page_id'];
-    }
-    if(isset($_POST['search'])) $pid = $_POST['page_url'];
-    elseif(isset($_POST['select'])) $pid = $_POST['page_force_url'];
-    else { echo 'Internal error selecting page search terms'; return false; }
-    // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
-    $k = array_keys($paths->nslist);
-    for($i=0;$i<sizeof($paths->nslist);$i++)
-    {
-      $ln = strlen($paths->nslist[$k[$i]]);
-      if(substr($pid, 0, $ln) == $paths->nslist[$k[$i]])
-      {
-        $ns = $k[$i];
-        $page_id = substr($pid, $ln, strlen($pid));
-      }
-    }
-    // The namespace is in $ns and the page name or ID (we don't know which yet) is in $page_id
-    // Now, iterate through $paths->pages searching for a page with this name or ID
-    for($i=0;$i<sizeof($paths->pages)/2;$i++)
-    {
-      if(!isset($final_pid))
-      {
-        if    ($paths->pages[$i]['urlname_nons'] == str_replace(' ', '_', $page_id)) $final_pid = str_replace(' ', '_', $page_id);
-        elseif($paths->pages[$i]['name'] == $page_id) $final_pid = $paths->pages[$i]['urlname_nons'];
-        elseif(strtolower($paths->pages[$i]['urlname_nons']) == strtolower(str_replace(' ', '_', $page_id))) $final_pid = $paths->pages[$i]['urlname_nons'];
-        elseif(strtolower($paths->pages[$i]['name']) == strtolower(str_replace('_', ' ', $page_id))) $final_pid = $paths->pages[$i]['urlname_nons'];
-        if(isset($final_pid)) { $_POST['name'] = $paths->pages[$i]['name']; $_POST['urlname'] = $paths->pages[$i]['urlname_nons']; }
-      }
-    }
-    if(!isset($final_pid)) { echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>'; return false; }
-    $_POST['namespace'] = $ns;
-    $_POST['old_namespace'] = $ns;
-    $_POST['page_id'] = $final_pid;
-    $_POST['old_page_id'] = $final_pid;
-    if(!isset($paths->pages[$paths->nslist[$_POST['namespace']].$_POST['urlname']])) { echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>'; return false; }
-  }
-  
-  if(isset($_POST['page_id']) && isset($_POST['namespace']) && !isset($_POST['cancel']))
-  {
-    $cpage = $paths->pages[$paths->nslist[$_POST['old_namespace']].$_POST['old_page_id']];
-    if(isset($_POST['submit']))
-    {
-      switch(true)
-      {
-        case true:
-          // Create a list of things to update
-          $page_info = Array(
-              'name'=>$_POST['name'],
-              'urlname'=>sanitize_page_id($_POST['page_id']),
-              'namespace'=>$_POST['namespace'],
-              'special'=>isset($_POST['special']) ? '1' : '0',
-              'visible'=>isset($_POST['visible']) ? '1' : '0',
-              'comments_on'=>isset($_POST['comments_on']) ? '1' : '0',
-              'protected'=>isset($_POST['protected']) ? '1' : '0'
-            );
-          
-          $updating_urlname_or_namespace = ( $page_info['namespace'] != $cpage['namespace'] || $page_info['urlname'] != $cpage['urlname_nons'] );
-          
-          if ( !isset($paths->nslist[ $page_info['namespace'] ]) )
-          {
-            echo '<div class="error-box">The namespace you selected is not properly registered.</div>';
-            break;
-          }
-          if ( isset($paths->pages[ $paths->nslist[$page_info['namespace']] . $page_info[ 'urlname' ] ]) && $updating_urlname_or_namespace )
-          {
-            echo '<div class="error-box">There is already a page that exists with that URL string and namespace.</div>';
-            break;
-          }
-          // Build the query
-          $q = 'UPDATE '.table_prefix.'pages SET ';
-          $k = array_keys($page_info);
-          foreach($k as $c)
-          {
-            $q .= $c.'=\''.$db->escape($page_info[$c]).'\',';
-          }
-          $q = substr($q, 0, strlen($q)-1);
-          // Build the WHERE statements
-          $q .= ' WHERE ';
-          $k = array_keys($cpage);
-          if ( !isset($cpage) )
-            die('[internal] no cpage');
-          foreach($k as $c)
-          {
-            if($c != 'urlname_nons' && $c != 'urlname' && $c != 'really_protected')
-            {
-              $q .= $c.'=\''.$db->escape($cpage[$c]).'\' AND ';
-            }
-            else if($c == 'urlname')
-            {
-              $q .= $c.'=\''.$db->escape($cpage['urlname_nons']).'\' AND ';
-            }
-          }
-          // Trim off the last " AND " and append a semicolon
-          $q = substr($q, 0, strlen($q)-5) . ';';
-          // Send the completed query to MySQL
-          $e = $db->sql_query($q);
-          if(!$e) $db->_die('The page data could not be updated.');
-          // Update any additional tables
-          $q = Array(
-            'UPDATE '.table_prefix.'categories SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-            'UPDATE '.table_prefix.'comments   SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-            'UPDATE '.table_prefix.'logs       SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-            'UPDATE '.table_prefix.'page_text  SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-            'UPDATE '.table_prefix.'acl        SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';'
-            );
-          foreach($q as $cq)
-          {
-            $e = $db->sql_query($cq);
-            if(!$e) $db->_die('Some of the additional tables containing page information could not be updated.');
-          }
-          // Update $cpage
-          $cpage = $page_info;
-          $cpage['urlname_nons'] = $cpage['urlname'];
-          $cpage['urlname'] = $paths->nslist[$cpage['namespace']].$cpage['urlname'];
-          $_POST['old_page_id'] = $page_info['urlname'];
-          $_POST['old_namespace'] = $page_info['namespace'];
-          echo '<div class="info-box">Your changes have been saved.</div>';
-          break;
-      }
-    } elseif(isset($_POST['delete'])) {
-      $q = Array(
-        'DELETE FROM '.table_prefix.'categories WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'DELETE FROM '.table_prefix.'comments   WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'DELETE FROM '.table_prefix.'logs       WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'DELETE FROM '.table_prefix.'page_text  WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        );
-      foreach($q as $cq)
-      {
-        $e = $db->sql_query($cq);
-        if(!$e) $db->_die('Some of the additional tables containing page information could not be updated.');
-      }
-      
-      if(!$db->sql_query(
-        'DELETE FROM '.table_prefix.'pages WHERE urlname="'.$db->escape($_POST['old_page_id']).'" AND namespace="'.$db->escape($_POST['old_namespace']).'";'
-      )) $db->_die('The page could not be deleted.');
-      echo '<div class="info-box">This page has been deleted.</p><p><a href="javascript:ajaxPage(\''.$paths->nslist['Admin'].'PageManager\');">Return to Page manager</a><br /><a href="javascript:ajaxPage(\''.$paths->nslist['Admin'].'Home\');">Admin home</a></div>';
-      return;
-    }
-    $url = makeUrlNS('Special', 'Administration', 'module='.$paths->cpage['module'], true);
-    echo '<form action="'.$url.'" method="post">';
-    ?>
-    <h3>Modify page: <?php echo htmlspecialchars($_POST['name']); ?></h3>
-     <table border="0">
-       <tr><td>Namespace:</td><td><select name="namespace"><?php $nm = array_keys($paths->nslist); foreach($nm as $ns) { if($ns != 'Special' && $ns != 'Admin') { echo '<option '; if($_POST['namespace']==$ns) echo 'selected="selected" '; echo 'value="'.$ns.'">'; if($paths->nslist[$ns] == '') echo '[No prefix]'; else echo $paths->nslist[$ns]; echo '</option>'; } } ?></select></td></tr>
-       <tr><td>Page title:</td><td><input type="text" name="name" value="<?php echo htmlspecialchars($cpage['name']); ?>" /></td></tr>
-       <tr><td>Page URL string:<br /><small>No spaces, and don't enter the namespace prefix (e.g. User:).<br />Changing this value is usually not a good idea, especially for templates and project pages.</small></td><td><input type="text" name="page_id" value="<?php echo htmlspecialchars(dirtify_page_id($cpage['urlname_nons'])); ?>" /></td></tr>
-       <tr><td></td><td><input <?php if($cpage['comments_on']) echo 'checked="checked"'; ?> name="comments_on" type="checkbox" id="cmt" />  <label for="cmt">Enable comments for this page</label></td></tr>
-       <tr><td></td><td><input <?php if($cpage['special']) echo 'checked="checked"'; ?> name="special" type="checkbox" id="spc" />  <label for="spc">Bypass the template engine for this page</label><br /><small>This option enables you to use your own HTML headers and other code. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages, meaning you can use Enano's API on the page.</small></td></tr>
-       <tr><td></td><td><input <?php if($cpage['visible']) echo 'checked="checked"'; ?> name="visible" type="checkbox" id="vis" />  <label for="vis">Allow this page to be shown in page lists</label><br /><small>Unchecking this checkbox prevents the page for being indexed for searching. The index is rebuilt each time a page is saved, and you can force an index rebuild by going to the page <?php echo $paths->nslist['Special']; ?>SearchRebuild.</small></td></tr>
-       <tr><td></td><td><input <?php if($cpage['protected']) echo 'checked="checked"'; ?> name="protected" type="checkbox" id="prt" />  <label for="prt">Prevent non-administrators from editing this page</label><br /><small>This option only has an effect when Wiki Mode is enabled.</small></td></tr>
-       <tr><td></td><td><input type="submit" name="delete" value="Delete page" style="color: red" onclick="return confirm('Do you REALLY want to delete this page?')" /></td></tr>
-       <tr><td colspan="2" style="text-align: center;"><hr /></td></tr>
-       <tr><td colspan="2" style="text-align: right;">
-       <input type="hidden" name="old_page_id" value="<?php echo $_POST['old_page_id']; ?>" />
-       <input type="hidden" name="old_namespace" value="<?php echo $_POST['old_namespace']; ?>" />
-       <input type="Submit" name="submit" value="Save changes" style="font-weight: bold;" />  <input type="submit" name="cancel" value="Cancel changes" /></td></tr>
-     </table>
-    <?php
-    echo '</form>';
-  } else {
-    echo '<h3>Please select a page</h3>';
-    echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
-    ?>
-      <p>Search for page title (remember prefixes like User: and File:) <?php echo $template->pagename_field('page_url'); ?>  <input type="submit" style="font-weight: bold;" name="search" value="Search" /></p>
-      <p>Select page title from a list: <select name="page_force_url">
-      <?php
-        for($i=0;$i<sizeof($paths->pages)/2;$i++)
-        {
-          if($paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['namespace'] != 'Special') echo '<option value="'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['urlname_nons'].'">'.htmlspecialchars($paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['name']).'</option>'."\n";
-        }
-      ?>
-      </select>  <input type="submit" name="select" value="Select" /></p>
-    <?php
-    echo '</form>';
-    
-  }
-}
-
-function page_Admin_PageEditor()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  
-  echo '<h2>Edit page content</h2>';
-  
-  if(isset($_POST['search']) || isset($_POST['select'])) {
-    // The object of the game: using only the text a user entered, guess the page ID and namespace. *sigh* I HATE writing search algorithms...
-    if(isset($_POST['search'])) $pid = $_POST['page_url'];
-    elseif(isset($_POST['select'])) $pid = $_POST['page_force_url'];
-    else { echo 'Internal error selecting page search terms'; return false; }
-    // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
-    $k = array_keys($paths->nslist);
-    for($i=0;$i<sizeof($paths->nslist);$i++)
-    {
-      $ln = strlen($paths->nslist[$k[$i]]);
-      if(substr($pid, 0, $ln) == $paths->nslist[$k[$i]])
-      {
-        $ns = $k[$i];
-        $page_id = substr($pid, $ln, strlen($pid));
-      }
-    }
-    // The namespace is in $ns and the page name or ID (we don't know which yet) is in $page_id
-    // Now, iterate through $paths->pages searching for a page with this name or ID
-    for($i=0;$i<sizeof($paths->pages)/2;$i++)
-    {
-      if(!isset($final_pid))
-      {
-        if    ($paths->pages[$i]['urlname_nons'] == str_replace(' ', '_', $page_id)) $final_pid = str_replace(' ', '_', $page_id);
-        elseif($paths->pages[$i]['name'] == $page_id) $final_pid = $paths->pages[$i]['urlname_nons'];
-        elseif(strtolower($paths->pages[$i]['urlname_nons']) == strtolower(str_replace(' ', '_', $page_id))) $final_pid = $paths->pages[$i]['urlname_nons'];
-        elseif(strtolower($paths->pages[$i]['name']) == strtolower(str_replace('_', ' ', $page_id))) $final_pid = $paths->pages[$i]['urlname_nons'];
-        if(isset($final_pid)) { $_POST['name'] = $paths->pages[$i]['name']; $_POST['urlname'] = $paths->pages[$i]['urlname_nons']; }
-      }
-    }
-    if(!isset($final_pid)) { echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>'; return false; }
-    $_POST['namespace'] = $ns;
-    $_POST['page_id'] = $final_pid;
-    if(!isset($paths->pages[$paths->nslist[$_POST['namespace']].$_POST['urlname']])) { echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>'; return false; }
-  }
-  
-  if(isset($_POST['page_id']) && !isset($_POST['cancel']))
-  {
-    echo '<form name="main" action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
-    if(!isset($_POST['content']) || isset($_POST['revert'])) $content = RenderMan::getPage($_POST['page_id'], $_POST['namespace'], 0, false, false, false, false);
-    else $content = $_POST['content'];
-    if(isset($_POST['save']))
-    {
-      $data = $content;
-      $id = md5( microtime() . mt_rand() );
-      
-      $minor = isset($_POST['minor']) ? 'true' : 'false';
-      $q='INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $db->escape($_POST['page_id']) . '\', \'' . $db->escape($_POST['namespace']) . '\', \''.$db->escape($data).'\', \''.$id.'\', \''.$session->username.'\', \''.$db->escape(htmlspecialchars($_POST['summary'])).'\', '.$minor.');';
-      if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
-      
-      $query = 'UPDATE '.table_prefix.'page_text SET page_text=\''.$db->escape($data).'\',char_tag=\''.$id.'\' WHERE page_id=\'' . $db->escape($_POST['page_id']) . '\' AND namespace=\'' . $db->escape($_POST['namespace']) . '\';';
-      $e = $db->sql_query($query);
-      if(!$e) echo '<div class="warning-box">The page data could not be saved. MySQL said: '.mysql_error().'<br /><br />Query:<br /><pre>'.$query.'</pre></div>';
-      else echo '<div class="info-box">Your page has been saved. <a href="'.makeUrlNS($_POST['namespace'], $_POST['page_id']).'">View page...</a></div>';
-    } elseif(isset($_POST['preview'])) {
-      echo '<h3>Preview</h3><p><b>Reminder:</b> This is only a preview; your changes to this page have not yet been saved.</p><div style="margin: 1em; padding: 10px; border: 1px dashed #606060; background-color: #F8F8F8; max-height: 200px; overflow: auto;">'.RenderMan::render($content).'</div>';
-    }
-    ?>
-    <p>
-    <textarea name="content" rows="20" cols="60" style="width: 100%;"><?php echo htmlspecialchars($content); ?></textarea><br />
-    Edit summary: <input name="summary" value="<?php if(isset($_POST['summary'])) echo htmlspecialchars($_POST['summary']); ?>" size="40" /><br />
-    <label><input type="checkbox" name="minor" <?php if(isset($_POST['minor'])) echo 'checked="checked" '; ?>/>  This is a minor edit</label>
-    </p>
-    <p>
-    <input type="hidden" name="page_id" value="<?php echo htmlspecialchars($_POST['page_id']); ?>" />
-    <input type="hidden" name="namespace" value="<?php echo htmlspecialchars($_POST['namespace']); ?>" />
-    <input type="submit" name="save" value="Save changes" style="font-weight: bold;" />&nbsp;&nbsp;<input type="submit" name="preview" value="Show preview" />&nbsp;&nbsp;<input type="submit" name="revert" value="Revert changes" onclick="return confirm('Do you really want to revert your changes?');" />&nbsp;&nbsp;<input type="submit" name="cancel" value="Cancel" onclick="return confirm('Do you really want to cancel your changes?');" />
-    </p>
-    <?php
-    echo '</form>';
-  } else {
-    echo '<h3>Please select a page</h3>';
-    echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
-    ?>
-      <p>Search for page title (remember prefixes like User: and File:) <?php echo $template->pagename_field('page_url'); ?>  <input type="submit" style="font-weight: bold;" name="search" value="Search" /></p>
-      <p>Select page title from a list: <select name="page_force_url">
-      <?php
-        for ( $i = 0; $i < sizeof($paths->pages) / 2; $i++ )
-        {
-          if($paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['namespace'] != 'Special') echo '<option value="'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['urlname_nons'].'">'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['name'].'</option>'."\n";
-        }
-      ?>
-      </select>  <input type="submit" name="select" value="Select" /></p>
-    <?php
-    echo '</form>';
-  }
-}
-
-function page_Admin_ThemeManager() 
-{
-  
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  
-  // Get the list of styles in the themes/ dir
-  $h = opendir('./themes');
-  $l = Array();
-  if(!$h) die('Error opening directory "./themes" for reading.');
-  while(false !== ($n = readdir($h))) {
-    if($n != '.' && $n != '..' && is_dir('./themes/'.$n))
-      $l[] = $n;
-  }
-  closedir($h);
-  echo('
-  <h3>Theme Management</h3>
-   <p>Install, uninstall, and manage Enano themes.</p>
-  ');
-  if(isset($_POST['disenable'])) {
-    $q = 'SELECT enabled FROM '.table_prefix.'themes WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error selecting enabled/disabled state value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    $r = $db->fetchrow_num($s);
-    $db->free_result();
-    if($r[0] == 1) $e = 0;
-    else $e = 1;
-    $s=true;
-    if($e==0)
-    {
-      $c = $db->sql_query('SELECT * FROM '.table_prefix.'themes WHERE enabled=1');
-      if(!$c) $db->_die('The backup check for having at least on theme enabled failed.');
-      if($db->numrows() <= 1) { echo '<div class="warning-box">You cannot disable the last remaining theme.</div>'; $s=false; }
-    }
-    $db->free_result();
-    if($s) {
-    $q = 'UPDATE '.table_prefix.'themes SET enabled='.$e.' WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
-    $a = $db->sql_query($q);
-    if(!$a) die('Error updating enabled/disabled state value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    else echo('<div class="info-box">The theme "'.$_POST['theme_id'].'" has been  '. ( ( $e == '1' ) ? 'enabled' : 'disabled' ).'.</div>');
-    }
-  }
-  elseif(isset($_POST['edit'])) {
-    
-    $dir = './themes/'.$_POST['theme_id'].'/css/';
-    $list = Array();
-    // Open a known directory, and proceed to read its contents
-    if (is_dir($dir)) {
-      if ($dh = opendir($dir)) {
-        while (($file = readdir($dh)) !== false) {
-          if(preg_match('#^(.*?)\.css$#is', $file) && $file != '_printable.css') {
-            $list[$file] = capitalize_first_letter(substr($file, 0, strlen($file)-4));
-          }
-        }
-        closedir($dh);
-      }
-    }
-    $lk = array_keys($list);
-    
-    $q = 'SELECT theme_name,default_style FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error selecting name value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    $r = $db->fetchrow_num($s);
-    $db->free_result();
-    echo('<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">');
-    echo('<div class="question-box">
-          Theme name displayed to users: <input type="text" name="name" value="'.$r[0].'" /><br /><br />
-          Default stylesheet: <select name="defaultcss">');
-    foreach ($lk as $l)
-    {
-      if($r[1] == $l) $v = ' selected="selected"';
-      else $v = '';
-      echo "<option value='{$l}'$v>{$list[$l]}</option>";
-    }
-    echo('</select><br /><br />
-          <input type="submit" name="editsave" value="OK" /><input type="hidden" name="theme_id" value="'.$_POST['theme_id'].'" />
-          </div>');
-    echo('</form>');
-  }
-  elseif(isset($_POST['editsave'])) {
-    $q = 'UPDATE '.table_prefix.'themes SET theme_name=\'' . $db->escape($_POST['name']) . '\',default_style=\''.$db->escape($_POST['defaultcss']).'\' WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error updating name value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    else echo('<div class="info-box">Theme data updated.</div>');
-  }
-  elseif(isset($_POST['up'])) {
-    // If there is only one theme or if the selected theme is already at the top, do nothing
-    $q = 'SELECT theme_order FROM '.table_prefix.'themes ORDER BY theme_order;';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
-    $sn = $db->sql_query($q);
-    if(!$sn) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    $r = $db->fetchrow_num($sn);
-    if( /* check for only one theme... */ $db->numrows($s) < 2 || $r[0] == 1 /* ...and check if this theme is already at the top */ ) { echo('<div class="warning-box">This theme is already at the top of the list, or there is only one theme installed.</div>'); } else {
-      // Get the order IDs of the selected theme and the theme before it
-      $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
-      $s = $db->sql_query($q);
-      if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $r = $db->fetchrow_num($s);
-      $r = $r[0];
-      $rb = $r - 1;
-      // Thank God for jEdit's rectangular selection and the ablity to edit multiple lines at the same time ;)
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      echo('<div class="info-box">Theme moved up.</div>');
-    }
-    $db->free_result($s);
-    $db->free_result($sn);
-  }
-  elseif(isset($_POST['down'])) {
-    // If there is only one theme or if the selected theme is already at the top, do nothing
-    $q = 'SELECT theme_order FROM '.table_prefix.'themes ORDER BY theme_order;';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    $r = $db->fetchrow_num($s);
-    if( /* check for only one theme... */ $db->numrows($s) < 2 || $r[0] == $db->numrows($s) /* ...and check if this theme is already at the bottom */ ) { echo('<div class="warning-box">This theme is already at the bottom of the list, or there is only one theme installed.</div>'); } else {
-      // Get the order IDs of the selected theme and the theme before it
-      $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
-      $s = $db->sql_query($q);
-      if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $r = $db->fetchrow_num($s);
-      $r = $r[0];
-      $rb = $r + 1;
-      // Thank God for jEdit's rectangular selection and the ablity to edit multiple lines at the same time ;)
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      echo('<div class="info-box">Theme moved down.</div>');
-    }
-  }
-  else if(isset($_POST['uninstall'])) 
-  {
-    $q = 'SELECT * FROM '.table_prefix.'themes;';
-    $s = $db->sql_query($q);
-    if ( !$s )
-    {
-      die('Error getting theme count: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    }
-    $n = $db->numrows($s);
-    $db->free_result();
-    
-    if ( $_POST['theme_id'] == 'oxygen' )
-    {
-      echo '<div class="error-box">The Oxygen theme is used by Enano for installation, upgrades, and error messages, and cannot be uninstalled.</div>';
-    }
-    else
-    {
-      if($n < 2)
-      {
-        echo '<div class="error-box">The theme could not be uninstalled because it is the only theme left.</div>';
-      }
-      else
-      {
-        $q = 'DELETE FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\' LIMIT 1;';
-        $s = $db->sql_query($q);
-        if ( !$s )
-        {
-          die('Error deleting theme data: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-        }
-        else
-        {
-          echo('<div class="info-box">Theme uninstalled.</div>');
-        }
-      }
-    }
-  }
-  elseif(isset($_POST['install'])) {
-    $q = 'SELECT theme_id FROM '.table_prefix.'themes;';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error getting theme count: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-    $n = $db->numrows($s);
-    $n++;
-    $theme_id = $_POST['theme_id'];
-    $theme = Array();
-    include('./themes/'.$theme_id.'/theme.cfg');
-    if ( !isset($theme['theme_id']) )
-    {
-      echo '<div class="error-box">Could not load theme.cfg (theme metadata file)</div>';
-    }
-    else
-    {
-      $default_style = false;
-      if ( $dh = opendir('./themes/' . $theme_id . '/css') )
-      {
-        while ( $file = readdir($dh) )
-        {
-          if ( $file != '_printable.css' && preg_match('/\.css$/i', $file) )
-          {
-            $default_style = $file;
-            break;
-          }
-        }
-        closedir($dh);
-      }
-      else
-      {
-        die('The /css subdirectory could not be located in the theme\'s directory');
-      }
-      
-      if ( $default_style )
-      {
-        $q = 'INSERT INTO '.table_prefix.'themes(theme_id,theme_name,theme_order,enabled,default_style) VALUES(\''.$db->escape($theme['theme_id']).'\', \''.$db->escape($theme['theme_name']).'\', '.$n.', 1, \'' . $db->escape($default_style) . '\')';
-        $s = $db->sql_query($q);
-        if(!$s) die('Error inserting theme data: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-        else echo('<div class="info-box">Theme "'.$theme['theme_name'].'" installed.</div>');
-      }
-      else
-      {
-        echo '<div class="error-box">Could not determine the default style for the theme.</div>';
-      }
-    }
-  }
-  echo('
-  <h3>Currently installed themes</h3>
-    <form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">
-    <p>
-      <select name="theme_id">
-        ');
-        $q = 'SELECT theme_id,theme_name,enabled FROM '.table_prefix.'themes ORDER BY theme_order';
-        $s = $db->sql_query($q);
-        if(!$s) die('Error selecting theme data: '.mysql_error().'<br /><u>Attempted SQL:</u><br />'.$q);
-        while ( $r = $db->fetchrow_num($s) ) {
-          if($r[2] < 1) $r[1] .= ' (disabled)';
-          echo('<option value="'.$r[0].'">'.$r[1].'</option>');
-        }
-        $db->free_result();
-        echo('
-        </select> <input type="submit" name="disenable" value="Enable/Disable" /> <input type="submit" name="edit" value="Change settings" /> <input type="submit" name="up" value="Move up" /> <input type="submit" name="down" value="Move down" /> <input type="submit" name="uninstall" value="Uninstall" style="color: #DD3300; font-weight: bold;" />
-      </p>
-    </form>
-    <h3>Install a new theme</h3>
-  ');
-    $theme = Array();
-    $obb = '';
-    for($i=0;$i<sizeof($l);$i++) {
-      if(is_file('./themes/'.$l[$i].'/theme.cfg') && file_exists('./themes/'.$l[$i].'/theme.cfg')) {
-        include('./themes/'.$l[$i].'/theme.cfg');
-        $q = 'SELECT * FROM '.table_prefix.'themes WHERE theme_id=\''.$theme['theme_id'].'\'';
-        $s = $db->sql_query($q);
-        if(!$s) die('Error selecting list of currently installed themes: '.mysql_error().'<br /><u>Attempted SQL:</u><br />'.$q);
-        if($db->numrows($s) < 1) {
-          $obb .= '<option value="'.$theme['theme_id'].'">'.$theme['theme_name'].'</option>';
-        }
-        $db->free_result();
-      }
-    }
-    if($obb != '') {
-      echo('<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post"><p>');
-      echo('<select name="theme_id">');
-      echo($obb);
-      echo('</select>');
-      echo('
-      <input type="submit" name="install" value="Install this theme" />
-      </p></form>');
-    } else echo('<p>All themes are currently installed.</p>');
 }
 
 function page_Admin_BanControl()

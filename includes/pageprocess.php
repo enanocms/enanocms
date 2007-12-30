@@ -247,7 +247,7 @@ class PageProcessor
       
       $text = RenderMan::render( $text );
       
-      echo $text;
+      eval( '?>' . $text );
       
       $this->footer();
     }
@@ -1354,45 +1354,54 @@ class PageProcessor
     $this->header();
     $this->do_breadcrumbs();
     
-    if ( $userpage )
+    $msg = $paths->sysmsg('Page_not_found');
+    if ( $msg )
     {
-      echo '<h3>There is no page with this title yet.</h3>
-             <p>This user has not created his or her user page yet.';
+      $msg = RenderMan::render($msg);
+      eval( '?>' . $msg );
     }
     else
     {
-      echo '<h3>There is no page with this title yet.</h3>
-             <p>You have requested a page that doesn\'t exist yet.';
-    }
-    if ( $session->get_permissions('create_page') )
-    {
-      echo ' You can <a href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;">create this page</a>, or return to the <a href="'.makeUrl(getConfig('main_page')).'">homepage</a>.';
-    }
-    else
-    {
-      echo ' Return to the <a href="'.makeUrl(getConfig('main_page')).'">homepage</a>.</p>';
-    }
-    if ( $session->get_permissions('history_rollback') )
-    {
-      $e = $db->sql_query('SELECT * FROM ' . table_prefix . 'logs WHERE action=\'delete\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' ORDER BY time_id DESC;');
-      if ( !$e )
+      if ( $userpage )
       {
-        $db->_die('The deletion log could not be selected.');
+        echo '<h3>There is no page with this title yet.</h3>
+               <p>This user has not created his or her user page yet.';
       }
-      if ( $db->numrows() > 0 )
+      else
       {
-        $r = $db->fetchrow();
-        echo '<p><b>This page was deleted on ' . $r['date_string'] . '.</b> The stated reason was:</p><blockquote>' . $r['edit_summary'] . '</blockquote><p>You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">roll back</a> the deletion.</p>';
-        if ( $session->user_level >= USER_LEVEL_ADMIN )
+        echo '<h3>There is no page with this title yet.</h3>
+               <p>You have requested a page that doesn\'t exist yet.';
+      }
+      if ( $session->get_permissions('create_page') )
+      {
+        echo ' You can <a href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;">create this page</a>, or return to the <a href="'.makeUrl(getConfig('main_page')).'">homepage</a>.';
+      }
+      else
+      {
+        echo ' Return to the <a href="'.makeUrl(getConfig('main_page')).'">homepage</a>.</p>';
+      }
+      if ( $session->get_permissions('history_rollback') )
+      {
+        $e = $db->sql_query('SELECT * FROM ' . table_prefix . 'logs WHERE action=\'delete\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' ORDER BY time_id DESC;');
+        if ( !$e )
         {
-          echo '<p>Additional admin options: <a href="' . makeUrl($paths->page, 'do=detag', true) . '" title="Remove any tags on this page">detag page</a></p>';
+          $db->_die('The deletion log could not be selected.');
         }
+        if ( $db->numrows() > 0 )
+        {
+          $r = $db->fetchrow();
+          echo '<p><b>This page was deleted on ' . $r['date_string'] . '.</b> The stated reason was:</p><blockquote>' . $r['edit_summary'] . '</blockquote><p>You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">roll back</a> the deletion.</p>';
+          if ( $session->user_level >= USER_LEVEL_ADMIN )
+          {
+            echo '<p>Additional admin options: <a href="' . makeUrl($paths->page, 'do=detag', true) . '" title="Remove any tags on this page">detag page</a></p>';
+          }
+        }
+        $db->free_result();
       }
-      $db->free_result();
+      echo '<p>
+              HTTP Error: 404 Not Found
+            </p>';
     }
-    echo '<p>
-            HTTP Error: 404 Not Found
-          </p>';
     $this->footer();
   }
   

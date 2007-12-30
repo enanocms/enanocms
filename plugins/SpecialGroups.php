@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Group control panel
+Plugin Name: plugin_specialgroups_title
 Plugin URI: http://enanocms.org/
-Description: Provides group moderators and site administrators with the ability to control who is part of their groups. 
+Description: plugin_specialgroups_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/

@@ -17,7 +17,7 @@
 
 var enano_lang = {
   categories: [
-    'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar', 'perm'
+    'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar', 'perm', 'plugin',
   ],
   strings: {
     meta: {
@@ -33,6 +33,7 @@ var enano_lang = {
       ajax: 'On-page AJAX applets',
       sidebar: 'Default sidebar blocks and buttons',
       perm: 'Page actions (for ACLs)',
+      plugin: 'Plugin names and descriptions',
       plural: 's',
       enano_about_th: 'About the Enano Content Management System',
       enano_about_poweredby: '<p>This website is powered by <a href="http://enanocms.org/">Enano</a>, the lightweight and open source CMS that everyone can use. Enano is copyright &copy; 2006-2007 Dan Fuhry. For legal information, along with a list of libraries that Enano uses, please see <a href="http://enanocms.org/Legal_information">Legal Information</a>.</p><p>The developers and maintainers of Enano strongly believe that software should not only be free to use, but free to be modified, distributed, and used to create derivative works. For more information about Free Software, check out the <a href="http://en.wikipedia.org/wiki/Free_Software" onclick="window.open(this.href); return false;">Wikipedia page</a> or the <a href="http://www.fsf.org/" onclick="window.open(this.href); return false;">Free Software Foundation\'s</a> homepage.</p>',
@@ -407,6 +408,26 @@ var enano_lang = {
       php_in_pages: 'Embed PHP code in pages',
       edit_acl: 'Edit access control lists',
     },
+    plugin: {
+      specialadmin_title: 'Runt - the Enano administration panel',
+      specialadmin_desc: 'Provides the page Special:Administration, which is the AJAX frontend to the various Admin pagelets. This plugin cannot be disabled.',
+      privatemessages_title: 'Private Message frontend',
+      privatemessages_desc: 'Provides the page Special:PrivateMessages, which is used to manage private message functions. Also handles buddy lists.',
+      specialcss_title: 'CSS Backend',
+      specialcss_desc: 'Provides the page Special:CSS, which is used in template files to reference the style sheet. Disabling or deleting this plugin will result in site instability.',
+      specialgroups_title: 'Group control panel',
+      specialgroups_desc: 'Provides group moderators and site administrators with the ability to control who is part of their groups.',
+      specialpagefuncs_title: 'Special page-related pages',
+      specialpagefuncs_desc: 'Provides the page Special:CreatePage, which can be used to create new pages. Also adds the About Enano and GNU General Public License pages.',
+      specialsearch_title: 'Search UI/frontend',
+      specialsearch_desc: 'Provides the page Special:Search, which is a frontend to the Enano search engine.',
+      specialupdownload_title: 'Upload/download frontend',
+      specialupdownload_desc: 'Provides the pages Special:UploadFile and Special:DownloadFile. UploadFile is used to upload files to the site, and DownloadFile fetches the file from the database, creates thumbnails if necessary, and sends the file to the user.',
+      specialuserfuncs_title: 'Special user/login-related pages',
+      specialuserfuncs_desc: 'Provides the pages Special:Login, Special:Logout, Special:Register, and Special:Preferences.',
+      specialuserprefs_title: 'User control panel',
+      specialuserprefs_desc: 'Provides the page Special:Preferences.',
+    },
     etc: {
       redirect_title: 'Redirecting...',
       redirect_body: 'Please wait while you are redirected.',
@@ -440,6 +461,8 @@ var enano_lang = {
       unit_megabytes_short: 'MB',
       unit_gigabytes_short: 'GB',
       unit_terabytes_short: 'TB',
+      unit_pixels: 'pixels',
+      unit_pixels_short: 'px',
     }
   }
 };

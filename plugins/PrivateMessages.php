@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Private Message frontend
+Plugin Name: plugin_privatemessages_title
 Plugin URI: http://enanocms.org/
-Description: Provides the page Special:PrivateMessages, which is used to manage private message functions. Also handles buddy lists.
+Description: plugin_privatemessages_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/

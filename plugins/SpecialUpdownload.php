@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Upload/download frontend
+Plugin Name: plugin_specialupdownload_title
 Plugin URI: http://enanocms.org/
-Description: Provides the pages Special:UploadFile and Special:DownloadFile. UploadFile is used to upload files to the site, and DownloadFile fetches the file from the database, creates thumbnails if necessary, and sends the file to the user.
+Description: plugin_specialupdownload_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/

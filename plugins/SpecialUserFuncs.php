@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Special user/login-related pages
+Plugin Name: plugin_specialuserfuncs_title
 Plugin URI: http://enanocms.org/
-Description: Provides the pages Special:Login, Special:Logout, Special:Register, and Special:Preferences.
+Description: plugin_specialuserfuncs_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/

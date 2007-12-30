@@ -285,7 +285,9 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
 
-  if ( $timeout == 0 )
+  // POST check added in 1.1.x because Firefox asks us if we want to "resend the form
+  // data to the new location", which can be confusing for some users.
+  if ( $timeout == 0 && empty($_POST) )
   {
     header('Location: ' . $url);
     header('HTTP/1.1 307 Temporary Redirect');

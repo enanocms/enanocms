@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: User control panel
+Plugin Name: plugin_specialuserprefs_title
 Plugin URI: http://enanocms.org/
-Description: Provides the page Special:Preferences.
+Description: plugin_specialuserprefs_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/

@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Special page-related pages
+Plugin Name: plugin_specialpagefuncs_title
 Plugin URI: http://enanocms.org/
-Description: Provides the page Special:CreatePage, which can be used to create new pages. Also adds the About Enano and GNU General Public License pages.
+Description: plugin_specialpagefuncs_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/

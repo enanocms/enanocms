@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: CSS Backend
+Plugin Name: plugin_specialcss_title
 Plugin URI: http://enanocms.org/
-Description: Provides the page Special:CSS, which is used in template files to reference the style sheet. Disabling or deleting this plugin will result in site instability.
+Description: plugin_specialcss_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/

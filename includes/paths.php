@@ -450,7 +450,7 @@ class pathManager {
   function sysmsg($n)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\''.$db->escape($n).'\' AND namespace=\'System\'');
+    $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\''.$db->escape(sanitize_page_id($n)).'\' AND namespace=\'System\'');
     if( !$q )
     {
       $db->_die('Error during generic selection of system page data.');
@@ -465,6 +465,7 @@ class pathManager {
     $message = $r['page_text'];
     
     $message = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '', $message);
+    $message = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '\\1', $message);
     
     return $message;
   }
