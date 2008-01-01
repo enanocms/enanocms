@@ -17,12 +17,19 @@
 
 var enano_lang = {
   categories: [
-    'adm', 'acl', 'adminusers'
+    'adm', 'acl', 'adminusers',
+    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm',
   ],
   strings: {
     meta: {
       adm: 'Administration panel nav menu',
       acl: 'Access control list editor',
+      acphome: 'ACP: Home',
+      acpgc: 'ACP: General configuration',
+      acpup: 'ACP: File uploads',
+      acpft: 'ACP: Allowed file types',
+      acppl: 'ACP: Manage plugins',
+      acppm: 'ACP: Manage pages',
       adminusers: 'ACP: User management'
     },
     adm: {
@@ -113,6 +120,277 @@ var enano_lang = {
       btn_createrule: 'Create rule',
       btn_returnto_editor: 'Return to ACL editor',
       btn_returnto_userscope: 'Return to user/scope selection',
+    },
+    acphome: {
+      heading_main: 'Welcome to Runt, the Enano administration panel.',
+      welcome_line1: 'Thank you for choosing Enano as your CMS. This screen allows you to see some information about your website, plus some details about how your site is doing statistically.',
+      welcome_line2: 'Using the links on the left you can control every aspect of your website\'s look and feel, plus you can manage users, work with pages, and install plugins to make your Enano installation even better.',
+      msg_demo_title: 'Enano is running in demo mode.',
+      msg_demo_body: 'If you borked something up, or if you\'re done testing, you can <a href="%reset_url%">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.',
+      msg_install_files: '<b>NOTE:</b> It appears that your install.php and/or schema.sql files still exist. It is HIGHLY RECOMMENDED that you delete or rename these files, to prevent getting your server hacked.',
+      heading_updates: 'Check for updates',
+      msg_updates_info: 'Periodically, new releases of Enano will be made available. Click the button below to check for updates to Enano. During this process, a request will be sent to the Enano CMS server (germantown.enanocms.org) over HTTP for an <a href="%updates_url%">XML file</a> containing a list of the latest releases. No information about your Enano installation will be transmitted.',
+      btn_check_updates: 'Check for updates',
+      msg_inactive_users_one: 'It appears that 1 user is awaiting account activation. You can activate the account by going to the <a %um_flags%>User Manager</a>.',
+      msg_inactive_users_plural: 'It appears that %num_users% users are awaiting account activation. You can activate those accounts by going to the <a %um_flags%>User Manager</a>.',
+      heading_top_pages: 'Most requested pages',
+      th_toppages_page: 'Page',
+      th_toppages_hits: 'Hits',
+      heading_seclog: 'Security log',
+      btn_seclog_full: 'Full security log',
+    },
+    acpgc: {
+      err_avatar_dir_invalid: 'You have entered an invalid avatar directory.',
+      msg_save_success: 'Your changes to the site configuration have been saved.',
+      
+      // Section: global site options
+      heading_main: 'Global site options',
+      heading_submain: 'These options control the entire site.',
+      field_site_name: 'Site name:',
+      field_site_desc: 'Site description:',
+      field_main_page: 'Main page:',
+      field_copyright: 'Copyright notice shown on pages:',
+      field_copyright_hint: 'Hint: If you\'re using Windows, you can make a "&copy;" symbol by holding ALT and pressing 0169 on the numeric keypad.',
+      field_contactemail: 'Contact e-mail',
+      field_contactemail_hint: 'All e-mail sent from this site will appear to have come from the address shown here.',
+      
+      // Section: wiki mode
+      heading_wikimode: 'Wiki mode',
+      field_wikimode_intro: 'Enano can also act as a wiki, meaning anyone can edit and create pages. To enable Wiki Mode, check the box to the right.',
+      field_wikimode_info_sanitize: 'In Wiki Mode, certain HTML tags such as &lt;script&gt; and &lt;object&gt; are disabled, and all PHP code is disabled, except if the person editing the page is an administrator.',
+      field_wikimode_info_history: 'Also, Enano keeps complete page history, which makes restoring vandalized pages easy. You can also protect pages so that they cannot be edited.',
+      field_wikimode: 'Enable Wiki Mode',
+      field_editnotice_title: 'Edit page notice',
+      field_editnotice_info: 'When Wiki Mode is enabled, anyone can edit pages. Check the box below and enter a message to display it whenever the page editor is opened. Administrators often use this field to display a legal disclaimer or a notice of what license the user agrees to submit their content under.',
+      field_editnotice: 'Show a message whenever pages are edited',
+      field_edit_require_captcha_title: 'Require visual confirmation for guests editing pages',
+      field_edit_require_captcha_hint: 'If this is enabled, guests will be asked to enter a visual confirmation code before saving changes to a page.',
+      field_edit_require_captcha: 'Require guests to complete a CAPTCHA when editing pages',
+      
+      // Section: statistics and hit counting
+      heading_stats: 'Statistics and hit counting',
+      stats_intro: 'Enano has the ability to show statistics for every page on the site. This allows you to keep very close track of who is visiting your site, and from where.',
+      stats_hint_privacy: 'Unfortunately, some users don\'t like being logged. For this reason, you should state clearly what is logged (usually the username or IP address, current time, page name, and referer URL) in your privacy policy. If your site is primarily geared towards children, and you are a United States citizen, you are required to have a privacy policy stating exactly what is being logged under the terms of the Childrens\' Online Privacy Protection Act.',
+      field_stats_enable: 'Log all page hits',
+      field_stats_hint: 'This excludes special and administration pages.',
+      
+      // Section: comment system
+      heading_comments: 'Comment system',
+      field_enable_comments: 'Enable the comment system',
+      field_approve_comments: 'Require approval before article comments can be shown',
+      field_comment_allow_guests: 'Allow guests to post comments',
+      field_comment_allow_guests_yes: 'Yes',
+      field_comment_allow_guests_captcha: 'Require visual confirmation',
+      field_comment_allow_guests_no: 'No (require login)',
+      
+      // Section: disable site
+      heading_disablesite: 'Disable all site access',
+      field_disablesite_hint: 'Disabling the site allows you to work on the site without letting non-administrators see or use it.',
+      field_disablesite: 'Disable this site',
+      field_disablesite_message: 'Message to show to users:',
+      
+      // Main section: users and communication
+      heading_users: 'Users and communication',
+      
+      // Section: account activation
+      heading_activate: 'User account activation',
+      activate_intro_line1: 'If you would like to require users to confirm their e-mail addresses by way of account activation, you can enable this behavior here. If this option is set to "None", users will be able to register and use this site without confirming their e-mail addresses. If this option is set to "User", users will automatically be sent e-mails upon registration with a link to activate their accounts. And lastly, if this option is set to "Admin", users\' accounts will not be active until an administrator activates the account.',
+      activate_intro_line2: 'You may also disable registration completely if needed.',
+      activate_intro_sfnet_warning: 'Note: because of abuse by project administrators, sending account activation e-mails will not work on SourceForge.net servers.',
+      field_activate: 'Account activation:',
+      field_activate_disable: 'Disable registration',
+      field_activate_none: 'None',
+      field_activate_user: 'User',
+      field_activate_admin: 'Admin',
+      
+      // Section: account lockouts
+      heading_lockout: 'Account lockouts',
+      lockout_intro: 'Configure Enano to prevent or restrict logins for a specified period of time if a user enters an incorrect password a specific number of times.',
+      field_lockout_threshold: 'Lockout threshold:',
+      field_lockout_threshold_hint: 'How many times can a user enter wrong credentials before a lockout goes into effect?',
+      field_lockout_duration: 'Lockout duration:',
+      field_lockout_duration_hint: 'This is how long an account lockout should last, in minutes.',
+      field_lockout_policy: 'Lockout policy:',
+      field_lockout_policy_hint: 'What should be done when a lockout goes into effect?',
+      field_lockout_policy_nothing: 'Don\'t do anything',
+      field_lockout_policy_captcha: 'Require visual confirmation',
+      field_lockout_policy_lockout: 'Prevent all login attempts',
+      
+      // Section: password strength
+      heading_passstrength: 'Password strength',
+      field_passstrength_title: 'Enable password strength analysis',
+      field_passstrength_hint: 'This should be enabled in most cases. When this is enabled, a strength meter and a numerical score will be displayed wherever a password can be changed.',
+      field_passstrength: 'Enabled',
+      field_passminimum_title: 'Minimum strength score',
+      field_passminimum_hint: 'This is the lowest score a password will be allowed to have. -10 will allow any password. A score of under -3 is considered weak, under 1 is fair, under 4 is good, under 10 is strong, and 10 and above are very strong. The scale is open-ended. This only has an effect if the meter is enabled above.',
+      
+      // Section: e-mail
+      heading_email: 'E-mail sent from the site',
+      field_email_method: 'E-mail sending method:',
+      field_email_method_hint: 'Try using the built-in e-mail method first. If that doesn\'t work, you will need to enter valid SMTP information here.',
+      field_email_method_builtin: 'PHP\'s built-in mail() function',
+      field_email_method_smtp: 'Use an external SMTP server',
+      field_email_smtp_hostname: 'SMTP hostname:',
+      field_email_smtp_hostname_hint: 'This option only applies to the external SMTP mode.',
+      field_email_smtp_auth: 'SMTP credentials:',
+      field_email_smtp_username: 'Username:',
+      field_email_smtp_password: 'Password:',
+      
+      // Section: avatars
+      heading_avatars: 'Avatars',
+      avatars_intro: 'Avatars are small images that users can display on their profiles and in comments.',
+      field_avatar_enable: 'Enable avatar support:',
+      field_avatar_enable_hint: 'Supported formats are JPEG, PNG, and GIF&trade;.',
+      field_avatar_enable_label: 'Enabled',
+      field_avatar_max_filesize: 'Maximum avatar file size:',
+      field_avatar_max_filesize_hint: 'For smaller sites, the highest value for this should be about 50KB, 51200. Larger sites with more visitors will likely want to use something much smaller, such as 10KB.',
+      field_avatar_max_dimensions: 'Maximum avatar dimensions:',
+      field_avatar_max_dimensions_hint: 'The format is width &#215; height. Typically you want to have this square (the same width and height). These are only maximum dimensions; users are not prevented from having smaller images.',
+      field_avatar_allow_anim_title: 'Allow animated avatars:',
+      field_avatar_allow_anim_hint: 'If this is checked, users can upload APNG and Animated GIF&trade; avatars. Sometimes such images can be specifically made to be distracting, like rapidly flashing images. If this is unchecked, these formats will be blocked, and only still PNGs and GIFs will be allowed.',
+      field_avatar_allow_anim: 'Don\'t block animated images',
+      field_avatar_upload_methods: 'Allowed upload methods:',
+      field_avatar_upload_file: 'Allow users to upload image files from their computers',
+      field_avatar_upload_http: 'Allow users to enter a URL to their desired avatar',
+      field_avatar_directory: 'Avatar storage directory:',
+      field_avatar_directory_hint: 'This should be relative to your Enano root and should contain only alphanumeric characters and forward slashes, even if your server runs Windows.',
+      
+      // Main section: sidebar links
+      heading_sidebar: 'Sidebar links',
+      
+      // Section: promote Enano
+      heading_promoteenano: 'Promote Enano',
+      field_enano_link_title: 'If you think Enano is nice, or if you want to show your support for the Enano team, you can do so by placing a link to the Enano homepage in your Links sidebar block. You absolutely don\'t have to do this, and you won\'t get degraded support if you don\'t. Because Enano is still relatively new in the CMS world, it needs all the attention it can get - and you can easily help to spread the word using this link. Note that this is different from the "Powered by Enano" link in the footer of the page - our philosophy and guidelines regarding the About Enano page and its associated link on every page are discussed on the <a href="http://enanocms.org/Licensing_specifics">Enano website</a>.',
+      field_enano_link: 'Place a link to enanocms.org on the sidebar',
+      
+      // Section: SF.net logo
+      heading_sfnet_logo: 'SourceForge.net logo',
+      sfnet_intro: 'All projects hosted by SourceForge.net are required to display an official SourceForge.net logo on their pages.  If you want to display a SourceForge.net logo on the sidebar, check the box below, enter your group ID, and select an image type.',
+      field_sfnet_display: 'Display the SourceForge.net logo on the right sidebar',
+      field_sfnet_group_id: 'Group ID:',
+      field_sfnet_logo_style: 'Logo style:',
+      field_sfnet_logo_style_1: '88x31%this.etc_unit_pixels_short%, white',
+      field_sfnet_logo_style_2: '125x37%this.etc_unit_pixels_short%, white',
+      field_sfnet_logo_style_3: '125x37%this.etc_unit_pixels_short%, black',
+      field_sfnet_logo_style_4: '125x37%this.etc_unit_pixels_short%, blue',
+      field_sfnet_logo_style_5: '210x62%this.etc_unit_pixels_short%, white',
+      field_sfnet_logo_style_6: '210x62%this.etc_unit_pixels_short%, black',
+      field_sfnet_logo_style_7: '210x62%this.etc_unit_pixels_short%, blue',
+      
+      // Section: W3C validation buttons
+      heading_w3clogos: 'W3C compliance logos',
+      w3clogos_intro: 'Enano generates (by default) Valid XHTML 1.1 code, plus valid CSS.  If you want to show this off, check the appropriate boxes below.',
+      w3clogos_btn_html32: 'HTML 3.2',
+      w3clogos_btn_html40: 'HTML 4.0',
+      w3clogos_btn_html401: 'HTML 4.01',
+      w3clogos_btn_xhtml10: 'XHTML 1.0',
+      w3clogos_btn_xhtml11: 'XHTML 1.1',
+      w3clogos_btn_css: 'CSS',
+      
+      // Section Defective By Design link
+      heading_dbd: 'Defective By Design Anti-DRM button',
+      dbd_intro: 'The Enano project is strongly against Digital Restrictions Management.',
+      dbd_explain: 'DRM removes the freedoms that every consumer should have: to freely copy and use digital media items they legally purchased to their own devices. Showing your opposition to DRM is as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
+      field_stopdrm: 'Help stop DRM by placing a link to DBD on the sidebar!',
+      
+      // Save button
+      btn_save_changes: 'Save changes'
+    },
+    acpup: {
+      heading_main: 'File upload configuration',
+      intro: 'Enano supports the ability to upload files to your website and store the files in the database. This enables you to embed images and such into pages without manually writing the HTML. However, the upload feature can sometimes pose a risk to your site, as viruses and executable files can sometimes be uploaded.',
+      field_enable: 'Enable file uploads',
+      field_max_size: 'Maximum file size:',
+      info_magick: 'You can allow Enano to generate thumbnails of images automatically. This feature requires ImageMagick to work properly. If your server does not have ImageMagick on it, Enano will try to use the GD library (if available) to scale images. This can be slower, but it works on a wider range of servers. If even that does not work, Enano will simply make your users\' browsers scale the images. In most cases this is fine, but if you are uploading large (>100KB) images and embedding them inside of pages, you should try to enable ImageMagick or configure GD because transferring these large images many times can cost you quite a lot of bandwidth.',
+      field_magick_enable: 'Use ImageMagick to scale images',
+      field_magick_path: 'Path to ImageMagick:',
+      // Translators: for the path here, please be sure to use a double-backslash in the Windows path. Avoid translating the file paths
+      // anyway since they're generally the same even on non-English Windows systems.
+      field_magick_path_hint: 'On Linux and Unix servers, the most likely options here are /usr/bin/convert and /usr/local/bin/convert. If you server runs Windows, then ImageMagick is most likely to be C:\\Windows\\Convert.exe or C:\\Windows\\System32\\Convert.exe.',
+      info_cache: 'If you use ImageMagick to scale images, your server will be very busy constantly scaling images if your website is busy, and your site may experience slowdowns. You can dramatically speed up this scaling process if you use a directory to cache thumbnail images.',
+      info_cache_chmod: '<b>Please note:</b> the cache/ directory on your server <u>must</u> be writable by the server. While this is not usually a problem on Windows servers, most Linux/Unix servers will require you to CHMOD the cache/ directory to 777. See your FTP client\'s user guide for more information on how to do this.',
+      msg_cache_not_writable: ' <b>At present, it seems that the cache directory is not writable. The checkbox below has been disabled to maintain the stability of Enano.</b>',
+      field_cache: 'Cache thumbnailed images',
+      info_history: 'Lastly, you can choose whether file history will be saved. If this option is turned on, you will be able to roll back any malicious changes made to uploaded files, but this requires a significant amount of filesystem storage. You should probably leave this option enabled unless you have less than 250MB of disk space on your hosting account or server.',
+      field_history: 'Keep a history of uploaded files',
+      btn_save: 'Save changes',
+    },
+    acpft: {
+      // Nope. There isn't anything else. Sorry to disappoint.
+      heading_main: 'Allowed file types',
+      hint: 'Using the form below, you can decide which file types are allowed to be uploaded to this site.',
+      msg_saved: 'Your changes have been saved.',
+      msg_demo_mode: 'Hmm, enabling executables, are we? Tsk tsk. I\'d love to know what\'s in that EXE file you want to upload. OK, maybe you didn\'t enable EXEs. But nevertheless, changing allowed filetypes is disabled in the demo.',
+    },
+    acppl: {
+      err_heading: 'Error disabling plugin',
+      err_demo_plugin: 'The demo lockdown plugin cannot be disabled in demo mode.',
+      err_system_plugin: 'The plugin you selected cannot be disabled because it is a system plugin.',
+      err_open_dir: 'The plugins/ directory could not be opened.',
+      err_missing_dir: 'The plugins/ directory is missing from your Enano installation.',
+      col_filename: 'Plugin filename',
+      col_name: 'Plugin name',
+      col_description: 'Description',
+      col_author: 'Author',
+      col_version: 'Version',
+      btn_enable: 'Enable',
+      btn_disable: 'Disable',
+      btn_hide_system: 'Hide system plugins',
+      btn_show_system: 'Show system plugins',
+      lbl_system_plugin: '[System]',
+    },
+    acppm: {
+      heading_main: 'Edit page properties',
+      hint: 'This panel allows you to edit various properties of pages that aren\'t visible anywhere else. In addition to renaming pages, you can also change their <a href="http://docs.enanocms.org/Help:2.3">URL string</a> and options such as whether to index the page for searching or bypass Enano\'s template engine.',
+      err_page_not_found: 'No pages matching that search string could be found.',
+      msg_results_ambiguous_title: 'Ambiguous search results',
+      msg_results_ambiguous_body: 'Multiple pages that matched your search terms were found. Please select the page you wish to modify:',
+      ambig_btn_viewpage: 'View',
+      err_ambig_absolute: 'Your database is corrupt as it contains multiple pages with the same urlname and namespace.',
+      lbl_field_search: 'Search for a page title or URL string:',
+      heading_select_page_from_list: 'Select page from a list',
+      hint_select_page_from_list: 'You can also select the page you want to modify from the list below. The list is broken into sections of 100 pages, so if you have a lot of pages on your site, you can click the pagination control below to view more pages.',
+      
+      // Edit form
+      heading_editing: 'Editing page:',
+      lbl_page_name: 'Page\'s title:',
+      lbl_page_urlname: 'URL string:',
+      lbl_page_urlname_hint: 'No spaces, and don\'t enter the namespace prefix (e.g. User:). Changing this value is usually not a good idea, especially for templates and project pages, because it will invalidate the page\'s current URL.',
+      lbl_namespace: 'Namespace (URL prefix):',
+      ns_article: '[No prefix, default Article namespace]',
+      heading_advanced: 'Advanced options',
+      lbl_enable_comments_title: 'Allow comments to be posted on this page?',
+      lbl_enable_comments_hint: 'This option has no effect if comments are disabled globally in the administration panel. This option is enabled by default.',
+      lbl_enable_comments: 'Enable comments on this page',
+      lbl_special_title: 'Mark page as self-contained?',
+      lbl_special_hint: 'This option enables you to use your own HTML headers and other code. If you enable this, only the raw contents of the page will be displayed instead of Enano\'s full page formatting and styles. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages (dependent on permissions), meaning you can use Enano\'s API on the page.',
+      lbl_special: 'Bypass the template engine for this page',
+      lbl_visible_title: 'Make page publicly listed?',
+      lbl_visible_hint: 'If you enable this option, this page will be indexed for searching and will appear in public page lists such as Special:AllPages. This option is enabled by default. Disabling this does not protect the page from unauthorized access. If you want to keep this page from being accessed without authorization, you should create abstract new ACL rule or password-protect the page.',
+      lbl_visible: 'Allow page to be indexed and listed',
+      lbl_protected_title: 'Protect page from edits?',
+      lbl_protected_off: 'Unprotected',
+      lbl_protected_on: 'Fully protected',
+      lbl_protected_semi: 'Semi-protected',
+      lbl_protected_hint: 'This option only has an effect if Wiki Mode is enabled. Selecting Unprotected means that any user (unless specifically blacklisted) can edit this page. Fully protected means that only administrators can edit the page. Semi-protected restricts editing to administrators and users that have been registered for at least four days.<br /><br /><b>Above all, no users except administrators can edit this page unless an ACL specifically allows it or Wiki Mode is enabled.</b>',
+      lbl_wikimode_title: 'Enable Wiki Mode for this page?',
+      lbl_wikimode_on: 'Enabled',
+      lbl_wikimode_off: 'Disabled',
+      lbl_wikimode_global: 'Inherit global setting',
+      lbl_wikimode_hint: 'By default, all pages use the Wiki Mode setting defined in General Configuration. You can override that using this field. Be aware that there are advantages and disadvantages to Wiki Mode. For example, Wiki Mode encourages collaboration, but also permits vandalism. See the <a href="http://docs.enanocms.org/Help:2.5">Enano Documentation article on Wiki Mode</a> for more information.',
+      lbl_delete_title: 'Delete this page?',
+      lbl_delete_hint: 'Remember that deleting pages is always reversible unless you clear the page\'s logs after deleting it.',
+      lbl_delete: 'Delete this page when I click Save',
+      
+      err_invalid_page_name: 'Please enter a name for the page.',
+      err_invalid_url_string: 'Please enter a URL string for the page.',
+      err_invalid_namespace: 'The namespace you selected is, for whatever reason, not valid.',
+      err_invalid_protection: 'The protection level selected is invalid.',
+      err_invalid_wiki_mode: 'The Wiki Mode level selected is invalid.',
+      err_header: 'There were one or more problems that prevented the page from being saved:',
+      delete_reason: 'Administrative deletion from admin CP; contact webmaster for details',
+      
+      msg_save_success: 'Your changes to the page have been saved. <a href="%viewpage_url%">View page &raquo;</a>',
     },
     adminusers: {
       avatar_heading: 'Avatar settings',

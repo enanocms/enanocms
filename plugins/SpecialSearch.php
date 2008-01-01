@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Search UI/frontend
+Plugin Name: plugin_specialsearch_title
 Plugin URI: http://enanocms.org/
-Description: Provides the page Special:Search, which is a frontend to the Enano search engine.
+Description: plugin_specialsearch_desc
 Author: Dan Fuhry
 Version: 1.0.3
 Author URI: http://enanocms.org/

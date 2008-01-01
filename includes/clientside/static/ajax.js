@@ -1227,15 +1227,15 @@ function ajaxUpdateCheck(targetelement)
             {
               // got <latest>
               var latesttag = enanotag.childNodes[i];
-              for ( var i = 0; i < latesttag.childNodes.length; i++ )
+              for ( var j = 0; j < latesttag.childNodes.length; j++ )
               {
-                var node = latesttag.childNodes[i];
+                var node = latesttag.childNodes[j];
                 if ( node.tagName == 'release' )
                 {
                   var releasedata = new Object();
-                  for ( var i = 0; i < node.attributes.length; i++ )
+                  for ( var k = 0; k < node.attributes.length; k++ )
                   {
-                    releasedata[node.attributes[i].nodeName] = node.attributes[i].nodeValue;
+                    releasedata[node.attributes[k].nodeName] = node.attributes[k].nodeValue;
                   }
                   releases.push(releasedata);
                 }
@@ -1250,16 +1250,12 @@ function ajaxUpdateCheck(targetelement)
         }
         else
         {
-          if ( window.console )
-            window.console.error('Invalid XML response');
           return false;
         }
         var thediv = document.getElementById(targetelement);
         thediv.innerHTML = '';
         if ( !thediv )
         {
-          if ( window.console )
-            window.console.error('Can\'t get the div');
           return false;
         }
         if ( releases.length > 0 )
@@ -1284,9 +1280,9 @@ function ajaxUpdateCheck(targetelement)
             thediv.appendChild(infobox);
           }
           var table = document.createElement('table');
-          table.border = '0';
-          table.cellspacing = '1';
-          table.cellpadding = '4';
+          table.setAttribute('border', '0');
+          table.setAttribute('cellspacing', '1');
+          table.setAttribute('cellpadding', '4');
           
           var tr = document.createElement('tr');
           
@@ -1321,7 +1317,6 @@ function ajaxUpdateCheck(targetelement)
               cls = ( cls == 'row1' ) ? 'row2' : 'row1';
             var release = releases[i];
             var tr = document.createElement('tr');
-            window.console.debug(release);
             
             var td1 = document.createElement('td');
             var td2 = document.createElement('td');
