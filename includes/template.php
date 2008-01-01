@@ -1236,7 +1236,6 @@ EOF;
     $tplvars = $this->extract_vars($filename);
     if($session->sid_super) $as = htmlspecialchars(urlSeparator).'auth='.$session->sid_super;
     else $as = '';
-    error_reporting(E_ALL);
     $random_id = sha1(microtime().''); // A temp value
     
     /*

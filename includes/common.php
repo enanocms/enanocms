@@ -56,7 +56,7 @@ global $_starttime;
 $_starttime = microtime_float();
 
 // Verbose error reporting
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_STRICT);
 
 //
 // Determine the location of Enano as an absolute path.

@@ -10,8 +10,6 @@
  * @license BSD-style license
  */
 
-error_reporting(E_ALL);
-
 define ('ENC_HEX', 201);
 define ('ENC_BASE64', 202);
 define ('ENC_BINARY', 203);
@@ -1028,7 +1026,8 @@ class TEACrypt extends AESCrypt {
       return (int)$n;
   }
    
-  function encrypt($str, $key) {
+  // The third parameter is to ensure compatibility with php 6.0-dev
+  function encrypt($str, $key, $unused = ENC_HEX) {
       if ($str == "")
       {
           return "";
@@ -1062,7 +1061,8 @@ class TEACrypt extends AESCrypt {
       return $this->long2str($v, false);
   }
    
-  function decrypt($str, $key) {
+  // The third parameter is to ensure compatibility with php 6.0-dev
+  function decrypt($str, $key, $unused = ENC_HEX) {
       if ($str == "") {
           return "";
       }

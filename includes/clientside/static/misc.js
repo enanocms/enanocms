@@ -123,18 +123,19 @@ function bannerOff(id)
 function disableUnload(message)
 {
   if(typeof message != 'string') message = 'You may want to save your changes first.';
-  var body = document.getElementsByTagName('body');
-  body = body[0];
-  body._unloadmsg = message;
-  body.onbeforeunload = function() { return this._unloadmsg };
+  window._unloadmsg = message;
+  window.onbeforeunload = function(e)
+  {
+    if ( !e )
+      e = window.event;
+    e.returnValue = window._unloadmsg;
+  }
 }
 
 function enableUnload()
 {
-  var body = document.getElementsByTagName('body');
-  body = body[0];
-  body.onbeforeunload = null;
-  body._unloadmsg = null;
+  window._unloadmsg = null;
+  window.onbeforeunload = null;
 }
 
 /**
