@@ -646,6 +646,12 @@ class PageProcessor
       echo $redir_html;
     }
     
+    $code = $plugins->setHook('pageprocess_render_head');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     if ( $incl_inner_headers )
     {
       $text = '?>' . RenderMan::render($text);
@@ -657,6 +663,12 @@ class PageProcessor
     }
     // echo('<pre>'.htmlspecialchars($text).'</pre>');
     eval ( $text );
+    
+    $code = $plugins->setHook('pageprocess_render_tail');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
     
     if ( $incl_inner_headers )
     {
