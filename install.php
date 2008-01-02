@@ -22,6 +22,12 @@ if( ( defined('ENANO_INSTALLED') || defined('MIDGET_INSTALLED') ) && ((isset($_G
   exit;
 }
 
+function microtime_float()
+{
+  list($usec, $sec) = explode(" ", microtime());
+  return ((float)$usec + (float)$sec);
+}
+
 define('IN_ENANO_INSTALL', 'true');
 
 define('ENANO_VERSION', '1.0.3');
@@ -64,6 +70,7 @@ require('includes/wikiformat.php');
 require('includes/constants.php');
 require('includes/rijndael.php');
 require('includes/functions.php');
+require('includes/dbal.php');
 
 strip_magic_quotes_gpc();
 $neutral_color = 'C';
