@@ -95,11 +95,6 @@ class AESCrypt {
    23,  43,   4, 126, 186, 119, 214,  38, 225, 105,  20,  99,  85,  33,  12,
   125 );
   
-  function AESCrypt($ks = 128, $bs = 128, $debug = false)
-  {
-    $this->__construct($ks, $bs, $debug);
-  }
-  
   function __construct($ks = 128, $bs = 128, $debug = false)
   {
     $this->keySizeInBits = $ks;
@@ -1028,7 +1023,7 @@ class TEACrypt extends AESCrypt {
       return (int)$n;
   }
    
-  function encrypt($str, $key) {
+  function encrypt($str, $key, $return_encoding = ENC_HEX) {
       if ($str == "")
       {
           return "";
@@ -1062,7 +1057,7 @@ class TEACrypt extends AESCrypt {
       return $this->long2str($v, false);
   }
    
-  function decrypt($str, $key) {
+  function decrypt($str, $key, $encoding = ENC_HEX) {
       if ($str == "") {
           return "";
       }

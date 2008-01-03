@@ -517,7 +517,7 @@ function page_Special_Register()
     
     $captcharesult = $session->get_captcha($_POST['captchahash']);
     $session->kill_captcha();
-    if($captcharesult != $_POST['captchacode'])
+    if ( strtolower($captcharesult) != strtolower($_POST['captchacode']) )
     {
       $s = $lang->get('user_reg_err_captcha');
     }
@@ -946,10 +946,10 @@ function page_Special_Register()
   }
   else
   {
-    $year = intval( date('Y') );
+    $year = intval( enano_date('Y') );
     $year = $year - 13;
-    $month = date('F');
-    $day = date('d');
+    $month = enano_date('F');
+    $day = enano_date('d');
     
     $yo13_date = "$month $day, $year";
     $link_coppa_yes = makeUrlNS('Special', 'Register', 'coppa=yes', true);
@@ -1051,7 +1051,7 @@ function page_Special_Contributions() {
     echo '<tr>';
     
     // date & time
-    echo '  <td class="' . $cls . '">' . date('d M Y h:i a', $row['time_id']) . '</td>';
+    echo '  <td class="' . $cls . '">' . enano_date('d M Y h:i a', $row['time_id']) . '</td>';
     
     // page & link to said page
     echo '  <td class="' . $cls . '"><a href="' . makeUrlNS($row['namespace'], $row['page_id']) . '">' . get_page_title_ns($row['page_id'], $row['namespace']) . '</a></td>';
@@ -1810,21 +1810,21 @@ class MemberlistFormatter
   function format_date($time)
   {
     global $lang;
-    // Our formattting string to pass to date()
+    // Our formattting string to pass to enano_date()
     // This should not include minute/second info, only today's date in whatever format suits your fancy
     $formatstring = 'F j, Y';
     // Today's date
-    $today = date($formatstring);
+    $today = enano_date($formatstring);
     // Yesterday's date
-    $yesterday = date($formatstring, (time() - (24*60*60)));
+    $yesterday = enano_date($formatstring, (time() - (24*60*60)));
     // Date on the input
-    $then = date($formatstring, $time);
+    $then = enano_date($formatstring, $time);
     // "X days ago" logic
     for ( $i = 2; $i <= 6; $i++ )
     {
       // hours_in_day * minutes_in_hour * seconds_in_minute * num_days
       $offset = 24 * 60 * 60 * $i;
-      $days_ago = date($formatstring, (time() - $offset));
+      $days_ago = enano_date($formatstring, (time() - $offset));
       // so does the input timestamp match the date from $i days ago?
       if ( $then == $days_ago )
       {
@@ -1870,7 +1870,7 @@ function page_Special_LangExportJSON()
     $lang_local = new Language($lang_id);
   
   
-  $timestamp = date('D, j M Y H:i:s T', $lang_local->lang_timestamp);
+  $timestamp = enano_date('D, j M Y H:i:s T', $lang_local->lang_timestamp);
   header("Last-Modified: $timestamp");
   header("Date: $timestamp");
   header('Content-type: text/javascript');

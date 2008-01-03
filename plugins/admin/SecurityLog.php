@@ -161,7 +161,7 @@ function seclog_format_inner($r, $f = false)
     case "u_to_admin":       $return .= "User {$r['page_text']} added to Administrators group"; break;
     case "u_to_mod":         $return .= "User {$r['page_text']} added to Moderators group"; break;
   }
-  $return .= '</td><td class="'.$cls.'">'.date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="Click for reverse DNS info">'.$r['edit_summary'].'</td></tr>';
+  $return .= '</td><td class="'.$cls.'">'.enano_date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="Click for reverse DNS info">'.$r['edit_summary'].'</td></tr>';
   return $return;
 }
 

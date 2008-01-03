@@ -64,15 +64,6 @@ class Comments
   }
   
   /**
-   * PHP 4 constructor.
-   * @see Comments::__construct
-   */
-  function Comments($page_id, $namespace)
-  {
-    $this->__construct($page_id, $namespace);
-  }
-  
-  /**
    * Processes a command in JSON format.
    * @param string The JSON-encoded input, probably something sent from the Javascript/AJAX frontend
    */
@@ -151,7 +142,7 @@ class Comments
             }
             
             // Format date
-            $row['time'] = date('F d, Y h:i a', $row['time']);
+            $row['time'] = enano_date('F d, Y h:i a', $row['time']);
             
             // Format signature
             $row['signature'] = ( !empty($row['signature']) ) ? RenderMan::render($row['signature']) : '';
@@ -293,7 +284,7 @@ class Comments
           $text = RenderMan::render($text);
           $appr = ( getConfig('approve_comments') == '1' ) ? '0' : '1';
           $time = time();
-          $date = date('F d, Y h:i a', $time);
+          $date = enano_date('F d, Y h:i a', $time);
           
           // Send it to the database
           $q = $db->sql_query('INSERT INTO '.table_prefix.'comments(page_id,namespace,name,subject,comment_data,approved, time, user_id) VALUES' .

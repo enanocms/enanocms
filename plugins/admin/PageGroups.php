@@ -15,9 +15,12 @@
 function page_Admin_PageGroups()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -30,27 +33,27 @@ function page_Admin_PageGroups()
         case true:
           if ( empty($_POST['pg_name']) || empty($_POST['group_type']) )
           {
-            echo '<div class="error-box">Please enter a name for the page group.</div>';
+            echo '<div class="error-box">' . $lang->get('acppg_err_need_name') . '</div>';
             return;
           }
           if ( $_POST['group_type'] == PAGE_GRP_TAGGED && empty($_POST['member_tag']) )
           {
-            echo '<div class="error-box">Please enter a page tag.</div>';
+            echo '<div class="error-box">' . $lang->get('acppg_err_need_tag') . '</div>';
             return;
           }
           if ( $_POST['group_type'] == PAGE_GRP_CATLINK && empty($_POST['member_cat']) )
           {
-            echo '<div class="error-box">Please create a category page before linking a page group to a category.</div>';
+            echo '<div class="error-box">' . $lang->get('acppg_err_need_cat') . '</div>';
             return;
           }
           if ( $_POST['group_type'] == PAGE_GRP_NORMAL && empty($_POST['member_page_0']) )
           {
-            echo '<div class="error-box">Please specify at least one page to place in this group.</div>';
+            echo '<div class="error-box">' . $lang->get('acppg_err_need_page') . '</div>';
             return;
           }
           if ( $_POST['group_type'] == PAGE_GRP_REGEX && empty($_POST['regex']) )
           {
-            echo '<div class="error-box">Please specify a regular expression to match page IDs against.</div>';
+            echo '<div class="error-box">' . $lang->get('acppg_err_need_regex') . '</div>';
             return;
           }
           if ( $_POST['group_type'] != PAGE_GRP_TAGGED && $_POST['group_type'] != PAGE_GRP_CATLINK && $_POST['group_type'] != PAGE_GRP_NORMAL && $_POST['group_type'] != PAGE_GRP_REGEX )
@@ -117,7 +120,7 @@ function page_Admin_PageGroups()
                 $db->_die();
               break;
           }
-          echo '<div class="info-box">The page group "' . htmlspecialchars($_POST['pg_name']) . '" has been created.</div>';
+          echo '<div class="info-box">' . $lang->get('acppg_msg_create_success', array('group_name' => htmlspecialchars($_POST['pg_name']))) . '</div>';
           break;
       }
       // A little Javascript magic
@@ -295,7 +298,7 @@ function page_Admin_PageGroups()
       
       if ( $db->numrows() < 1 )
       {
-        $catlist = 'There aren\'t any categories on this site.';
+        $catlist = $lang->get('acppg_err_no_cats');
       }
       else
       {
@@ -316,14 +319,14 @@ function page_Admin_PageGroups()
       echo '<div class="tblholder">
             <table border="0" cellspacing="1" cellpadding="4">
               <tr>
-              <th colspan="2">Create page group</th>
+              <th colspan="2">' . $lang->get('acppg_th_create') . '</th>
               </tr>';
       
       // Name
       echo '<tr>
               <td class="row2">
-              Group name:<br />
-              <small>This should be short, descriptive, and human-readable.</small>
+              ' . $lang->get('acppg_field_group_name') . '<br />
+              <small>' . $lang->get('acppg_field_group_name_hint') . '</small>
               </td>
               <td class="row1">
               <input type="text" name="pg_name" size="30" />
@@ -333,14 +336,14 @@ function page_Admin_PageGroups()
       // Group type
       echo '<tr>
               <td class="row2">
-              Group type:
+              ' . $lang->get('acppg_field_group_type') . '
               </td>
               <td class="row1">
               <select name="group_type" onchange="pg_create_typeset(this);">
-                <option value="' . PAGE_GRP_NORMAL  . '" selected="selected">Static group of pages</option>
-                <option value="' . PAGE_GRP_TAGGED  . '">Group of pages with one tag</option>
-                <option value="' . PAGE_GRP_CATLINK . '">Link to category</option>
-                <option value="' . PAGE_GRP_REGEX   . '">Perl-compatible regular expression (advanced)</option>
+                <option value="' . PAGE_GRP_NORMAL  . '" selected="selected">' . $lang->get('acppg_gtype_static') . '</option>
+                <option value="' . PAGE_GRP_TAGGED  . '">' . $lang->get('acppg_gtype_tagged') . '</option>
+                <option value="' . PAGE_GRP_CATLINK . '">' . $lang->get('acppg_gtype_catlink') . '</option>
+                <option value="' . PAGE_GRP_REGEX   . '">' . $lang->get('acppg_gtype_regex_long') . '</option>
               </select>
               </td>
             </tr>';
@@ -349,16 +352,16 @@ function page_Admin_PageGroups()
       echo '<tr>
               <th colspan="2">
                 <span id="pg_create_title_normal">
-                  Static group of pages
+                  ' . $lang->get('acppg_gtype_static') . '
                 </span>
                 <span id="pg_create_title_tagged">
-                  Group of commonly tagged pages
+                  ' . $lang->get('acppg_gtype_tagged') . '
                 </span>
                 <span id="pg_create_title_catlink">
-                  Mirror a category
+                  ' . $lang->get('acppg_gtype_catlink') . '
                 </span>
                 <span id="pg_create_title_regex">
-                  Filter through a regular expression
+                  ' . $lang->get('acppg_gtype_regex') . '
                 </span>
               </th>
             </tr>';
@@ -366,24 +369,19 @@ function page_Admin_PageGroups()
       echo '<tr>
               <td class="row2">
                 <div id="pg_create_normal_1">
-                  Member pages:<br />
-                  <small>Click the "plus" button to add more fields.</small>
+                  ' . $lang->get('acppg_field_member_pages') . '<br />
+                  <small>' . $lang->get('acppg_field_member_pages_hint') . '</small>
                 </div>
                 <div id="pg_create_catlink_1">
-                  Include pages in this category:<br />
-                  <small>Pages in subcategories are <u>not</u> included, however subcategory pages themselves are.</small>
+                  ' . $lang->get('acppg_field_target_category') . '<br />
+                  <small>' . $lang->get('acppg_field_target_category_hint') . '</small>
                 </div>
                 <div id="pg_create_tagged_1">
-                  Include pages with this tag:
+                  ' . $lang->get('acppg_field_target_tag') . '
                 </div>
                 <div id="pg_create_regex_1">
-                  Regular expression:<br />
-                  <small>Be sure to include the starting and ending delimiters and any flags you might need.<br />
-                         These pages might help: <a href="http://us.php.net/manual/en/reference.pcre.pattern.modifiers.php">Pattern modifiers</a> &bull;
-                         <a href="http://us.php.net/manual/en/reference.pcre.pattern.syntax.php">Pattern syntax</a><br />
-                         Examples: <tt>/^(Special|Admin):/i</tt> &bull; <tt>/^Image:([0-9]+)$/</tt><br />
-                         Developers, remember that this will be matched against the full page identifier string. This means that <tt>/^About_Enano$/</tt>
-                         will NOT match the page Special:About_Enano.</small>
+                  ' . $lang->get('acppg_field_target_regex') . '<br />
+                  <small>' . $lang->get('acppg_field_target_regex_hint') . '</small>
               </td>';
             
       echo '  <td class="row1">
@@ -409,7 +407,7 @@ function page_Admin_PageGroups()
             
       // Submit button
       echo '<tr>
-              <th class="subhead" colspan="2"><input type="submit" name="action[create_stage2]" value="Create page group" style="font-weight: bold;" /> <input type="submit" name="action[noop]" value="Cancel" style="font-weight: normal;" /></th>
+              <th class="subhead" colspan="2"><input type="submit" name="action[create_stage2]" value="' . $lang->get('acppg_btn_create_finish') . '" style="font-weight: bold;" /> <input type="submit" name="action[noop]" value="' . $lang->get('etc_cancel') . '" style="font-weight: normal;" /></th>
             </tr>';
             
       echo '</table>
@@ -427,18 +425,18 @@ function page_Admin_PageGroups()
       
       if ( !empty($delete_id) )
       {
-        echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
-        echo '<input type="hidden" name="delete_id" value="' . $delete_id . '" />';
-        echo '<div class="tblholder">';
-        echo '  <table border="0" cellspacing="1" cellpadding="4">';
-        echo '    <tr><th>Confirm deletion</th></tr>';
-        echo '    <tr><td class="row2" style="text-align: center; padding: 20px 0;">Are you sure you want to delete this page group?</td></tr>';
-        echo '    <tr><td class="row1" style="text-align: center;">';
-        echo '        <input type="submit" name="action[del_confirm]" value="Yes, delete group" style="font-weight: bold;" />';
-        echo '        <input type="submit" name="action[noop]" value="Cancel" style="font-weight: normal;" />';
-        echo '        </td></tr>';
-        echo '  </table>';
-        echo '</form>';
+        echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">' . "\n";
+        echo '<input type="hidden" name="delete_id" value="' . $delete_id . '" />' . "\n";
+        echo '<div class="tblholder">' . "\n";
+        echo '  <table border="0" cellspacing="1" cellpadding="4">' . "\n";
+        echo '    <tr><th>' . $lang->get('acppg_th_delete_confirm') . '</th></tr>' . "\n";
+        echo '    <tr><td class="row2" style="text-align: center; padding: 20px 0;">' . $lang->get('acppg_msg_delete_confirm') . '</td></tr>' . "\n";
+        echo '    <tr><td class="row1" style="text-align: center;">' . "\n";
+        echo '        <input type="submit" name="action[del_confirm]" value="' . $lang->get('acppg_btn_delete_confirm') . '" style="font-weight: bold;" />' . "\n";
+        echo '        <input type="submit" name="action[noop]" value="' . $lang->get('etc_cancel') . '" style="font-weight: normal;" />' . "\n";
+        echo '        </td></tr>' . "\n";
+        echo '  </table>' . "\n";
+        echo '</form>' . "\n";
         
         return;
       }
@@ -471,7 +469,9 @@ function page_Admin_PageGroups()
       $q = $db->sql_query('DELETE FROM '.table_prefix.'page_group_members WHERE pg_id=' . $delete_id . ';');
       if ( !$q )
         $db->_die();
-      echo "<div class='info-box'>The group ".'"'.htmlspecialchars("$pg_name").'"'." has been deleted.</div>";
+      
+      $del_msg = $lang->get('acppg_msg_delete_success', array('pg_name' => htmlspecialchars($pg_name)));
+      echo "<div class=\"info-box\">$del_msg</div>";
     }
     else if ( isset($_POST['action']['edit']) && !isset($_POST['action']['noop']) )
     {
@@ -500,7 +500,7 @@ function page_Admin_PageGroups()
         $page = $_POST['new_page'];
         if ( empty($page) )
         {
-          $return = array('mode' => 'error', 'text' => 'Please enter a page title.');
+          $return = array('mode' => 'error', 'text' => $lang->get('acppg_err_ajaxadd_need_title'));
           echo enano_json_encode($return);
           return;
         }
@@ -534,7 +534,7 @@ function page_Admin_PageGroups()
         }
         if ( $db->numrows() > 0 )
         {
-          $return = array('mode' => 'error', 'text' => 'The page you are trying to add is already in this group.');
+          $return = array('mode' => 'error', 'text' => $lang->get('acppg_err_ajaxadd_already_in'));
           echo enano_json_encode($return);
           return;
         }
@@ -549,7 +549,7 @@ function page_Admin_PageGroups()
         
         $title = "($namespace) " . get_page_title($paths->nslist[$namespace] . $page_id);
         
-        $return = array('mode' => 'info', 'text' => 'The page has been added to the specified group.', 'successful' => true, 'title' => $title, 'member_id' => $db->insert_id());
+        $return = array('mode' => 'info', 'text' => $lang->get('acppg_ajaxadd_success'), 'successful' => true, 'title' => $title, 'member_id' => $db->insert_id());
         
         echo enano_json_encode($return);
         return;
@@ -565,7 +565,7 @@ function page_Admin_PageGroups()
           $new_name = $_POST['pg_name'];
           if ( empty($new_name) )
           {
-            echo '<div class="error-box">Please enter a valid name for this group.</div>';
+            echo '<div class="error-box">' . $lang->get('acppg_err_save_need_name') . '</div>';
           }
           else
           {
@@ -581,7 +581,7 @@ function page_Admin_PageGroups()
               if ( !$q )
                 $db->_die();
               else
-                echo '<div class="info-box">The group name was updated successfully.</div>';
+                echo '<div class="info-box">' . $lang->get('acppg_msg_save_name_updated') . '</div>';
             }
             if ( $_POST['pg_type'] == PAGE_GRP_TAGGED )
             {
@@ -589,7 +589,7 @@ function page_Admin_PageGroups()
               $target = sanitize_tag($target);
               if ( empty($target) )
               {
-                echo '<div class="error-box">Please enter a valid tag.</div>';
+                echo '<div class="error-box">' . $lang->get('acppg_err_save_need_tag') . '</div>';
               }
               else
               {
@@ -598,7 +598,7 @@ function page_Admin_PageGroups()
                 if ( !$q )
                   $db->_die();
                 else
-                  echo '<div class="info-box">The affecting tag was updated.</div>';
+                  echo '<div class="info-box">' . $lang->get('acppg_msg_save_tag_updated') . '</div>';
               }
             }
             else if ( $_POST['pg_type'] == PAGE_GRP_REGEX )
@@ -606,7 +606,7 @@ function page_Admin_PageGroups()
               $target = $_POST['pg_target'];
               if ( empty($target) )
               {
-                echo '<div class="error-box">Please enter an expression to match against..</div>';
+                echo '<div class="error-box">' . $lang->get('acppg_err_save_need_regex') . '</div>';
               }
               else
               {
@@ -615,7 +615,7 @@ function page_Admin_PageGroups()
                 if ( !$q )
                   $db->_die();
                 else
-                  echo '<div class="info-box">The expression to match against was updated.</div>';
+                  echo '<div class="info-box">' . $lang->get('acppg_msg_save_regex_updated') . '</div>';
               }
             }
             else if ( $_POST['pg_type'] == PAGE_GRP_CATLINK )
@@ -623,7 +623,7 @@ function page_Admin_PageGroups()
               $target = $_POST['pg_target'];
               if ( empty($target) )
               {
-                echo '<div class="error-box">No category ID specified on POST URI.</div>';
+                echo '<div class="error-box">' . $lang->get('acppg_err_save_bad_category') . '</div>';
               }
               else
               {
@@ -632,7 +632,7 @@ function page_Admin_PageGroups()
                 if ( !$q )
                   $db->_die();
                 else
-                  echo '<div class="info-box">The affecting category was updated.</div>';
+                  echo '<div class="info-box">' . $lang->get('acppg_msg_save_cat_updated') . '</div>';
               }
             }
           }
@@ -667,7 +667,7 @@ function page_Admin_PageGroups()
         $subquery = ( count($good) > 0 ) ? 'pg_member_id=' . implode(' OR pg_member_id=', $good) : "'foo'='bar'";
         if ( $subquery == "'foo'='bar'" )
         {
-          echo '<div class="warning-box">No pages were selected for deletion, and thus none were deleted.</div>';
+          echo '<div class="warning-box">' . $lang->get('acppg_err_save_no_pages') . '</div>';
         }
         else
         {
@@ -676,7 +676,7 @@ function page_Admin_PageGroups()
           {
             $db->_die();
           }
-          echo '<div class="info-box">The requested page group members have been deleted.</div>';
+          echo '<div class="info-box">' . $lang->get('acppg_msg_save_pages_deleted') . '</div>';
         }
       }
       
@@ -700,12 +700,12 @@ function page_Admin_PageGroups()
       echo '<div class="tblholder">
               <table border="0" cellspacing="1" cellpadding="4">
                 <tr>
-                  <th colspan="3">Editing page group: ' . htmlspecialchars($row['pg_name']) . '</th>
+                  <th colspan="3">' . $lang->get('acppg_th_editing_group') . ' ' . htmlspecialchars($row['pg_name']) . '</th>
                 </tr>';
       // Group name
       
       echo '    <tr>
-                  <td class="row2">Group name:</td>
+                  <td class="row2">' . $lang->get('acppg_field_group_name') . '</td>
                   <td class="row1" colspan="2"><input type="text" name="pg_name" value="' . htmlspecialchars($row['pg_name']) . '" size="30" /></td>
                 </tr>';
       
@@ -725,7 +725,7 @@ function page_Admin_PageGroups()
           // You have guessed correct.
           // *Sits in chair for 10 minutes listening to the radio in an effort to put off writing the code you see below*
           
-          echo '<tr><th colspan="3" class="subhead"><input type="submit" name="action[edit_save]" value="Save group name" /></th></tr>';
+          echo '<tr><th colspan="3" class="subhead"><input type="submit" name="action[edit_save]" value="' . $lang->get('acppg_btn_save_name') . '" /></th></tr>';
           echo '</table></div>';
           echo '</form>';
           echo '<form name="pg_static_rm_frm" action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" enctype="multipart/form-data">';
@@ -733,7 +733,7 @@ function page_Admin_PageGroups()
           echo '<div class="tblholder">
                   <table border="0" cellspacing="1" cellpadding="4">
                     <tr>
-                      <th colspan="3">Remove pages from this group</th>
+                      <th colspan="3">' . $lang->get('acppg_th_remove_selected') . '</th>
                     </tr>';
           
           $q = $db->sql_query('SELECT m.pg_member_id,m.page_id,m.namespace FROM '.table_prefix.'page_group_members AS m
@@ -744,11 +744,11 @@ function page_Admin_PageGroups()
           if ( !$q )
             $db->_die();
           
-          $delim = ceil( $db->numrows() / 2 );
+          $delim = ceil( $db->numrows($q) / 2 );
           if ( $delim < 5 )
           {
             $delim = 0xFFFFFFFE;
-            // stupid hack
+            // stupid hack. I'm XSSing my own code.
             $colspan = '2" id="pg_edit_tackon2me';
           }
           else
@@ -756,10 +756,10 @@ function page_Admin_PageGroups()
             $colspan = "1";
           }
           
-          echo '<tr><td class="row2" rowspan="2"><b>Remove</b> pages:</td><td class="row1" colspan="' . $colspan . '">';
+          echo '<tr><td class="row2" rowspan="2">' . $lang->get('acppg_field_remove') . '</td><td class="row1" colspan="' . $colspan . '">';
           $i = 0;
           
-          while ( $row = $db->fetchrow() )
+          while ( $row = $db->fetchrow($q) )
           {
             $i++;
             if ( $i == $delim )
@@ -771,7 +771,7 @@ function page_Admin_PageGroups()
           }
           
           echo '</td></tr>';
-          echo '<tr><th colspan="2" class="subhead" style="width: 70%;"><input type="submit" name="action[edit_save][do_rm]" value="Remove selected" /></th></tr>';
+          echo '<tr><th colspan="2" class="subhead" style="width: 70%;"><input type="submit" name="action[edit_save][do_rm]" value="' . $lang->get('acppg_btn_do_remove') . '" /></th></tr>';
           
           // More javascript magic!
           ?>
@@ -781,7 +781,10 @@ function page_Admin_PageGroups()
             {
               var input = document.getElementById('inptext_pg_add_member');
               input.onkeyup = function(e) { ajaxPageNameComplete(this); };
-              input.onkeypress = function(e) { if ( e.keyCode == 13 ) { setTimeout('__pg_edit_ajaxadd(document.getElementById(\'' + this.id + '\'));', 500); } };
+              <?php
+              // stupid jEdit hack
+              echo "input.onkeypress = function(e) { if ( e.keyCode == 13 ) { setTimeout('__pg_edit_ajaxadd(document.getElementById(\'' + this.id + '\'));', 500); } };";
+              ?>
             }
             addOnloadHook(__ol_pg_edit_setup);
             var __pg_edit_objcache = false;
@@ -869,7 +872,7 @@ function page_Admin_PageGroups()
         case PAGE_GRP_TAGGED:
           echo '<tr>
                   <td class="row2">
-                    Include pages with this tag:
+                    ' . $lang->get('acppg_field_target_tag') . '
                   </td>
                   <td class="row1">
                     <input type="text" name="pg_target" value="' . htmlspecialchars($row['pg_target']) . '" size="30" />
@@ -879,13 +882,8 @@ function page_Admin_PageGroups()
         case PAGE_GRP_REGEX:
           echo '<tr>
                   <td class="row2">
-                    Regular expression to use:<br />
-                    <small>Be sure to include the starting and ending delimiters and any flags you might need.<br />
-                           These pages might help: <a href="http://us.php.net/manual/en/reference.pcre.pattern.modifiers.php">Pattern modifiers</a> &bull;
-                           <a href="http://us.php.net/manual/en/reference.pcre.pattern.syntax.php">Pattern syntax</a><br />
-                           Examples: <tt>/^(Special|Admin):/i</tt> &bull; <tt>/^Image:([0-9]+)$/</tt><br />
-                           Developers, remember that this will be matched against the full page identifier string. This means that <tt>/^About_Enano$/</tt>
-                           will NOT match the page Special:About_Enano.</small>
+                    ' . $lang->get('acppg_field_target_regex') . '<br />
+                    <small>' . $lang->get('acppg_field_target_regex_hint') . '</small>
                   </td>
                   <td class="row1">
                     <input type="text" name="pg_target" value="' . htmlspecialchars($row['pg_target']) . '" size="30" />
@@ -916,11 +914,8 @@ function page_Admin_PageGroups()
           
           echo '<tr>
                   <td class="row2">
-                    Include pages that are in this category:<br />
-                    <small><b>Reminder:</b> Enano does not automatically place any access controls on the category. If you
-                           don\'t want users to be able to freely add and remove pages from the category (assuming Wiki Mode is enabled
-                           for the category) then you need to enable protection on the category using the button on the more options menu.
-                           </small>
+                    ' . $lang->get('acppg_field_target_category') . '<br />
+                    <small>' . $lang->get('acppg_field_target_category_hint2') . '</small>
                   </td>
                   <td class="row1">
                     ' . $catlist . '
@@ -932,13 +927,13 @@ function page_Admin_PageGroups()
       
       if ( $ajax_page_add )
       {
-        echo '<tr><th colspan="3"><input type="submit" name="action[noop]" value="Cancel all changes" /></th></tr>';
+        echo '<tr><th colspan="3"><input type="submit" name="action[noop]" value="' . $lang->get('acppg_btn_cancel_all') . '" /></th></tr>';
       }
       else
       {
         echo '<tr><th colspan="3" class="subhead">
-                <input type="submit" name="action[edit_save]" value="Save and update" />
-                <input type="submit" name="action[noop]" value="Cancel all changes" />
+                <input type="submit" name="action[edit_save]" value="' . $lang->get('acppg_btn_save_update') . '" />
+                <input type="submit" name="action[noop]" value="' . $lang->get('acppg_btn_cancel_all') . '" />
               </th></tr>';
       }
       
@@ -950,10 +945,10 @@ function page_Admin_PageGroups()
       {
         // This needs to be outside of the form.
         echo '<div class="tblholder"><table border="0" cellspacing="1" cellpadding="4"><tr>';
-        echo '<th colspan="2">On-the-fly tools</th></tr>';
+        echo '<th colspan="2">' . $lang->get('acppg_th_onthefly') . '</th></tr>';
         echo '<tr>';
         // Add pages AJAX form
-        echo '<td class="row2">Add page:<br /><small>You can add multiple pages by entering part of a page title, and it will be auto-completed. Press Enter to quickly add the page. This only works if you a really up-to-date browser.</small></td>';
+        echo '<td class="row2">' . $lang->get('acppg_field_add_page') . '<br /><small>' . $lang->get('acppg_field_add_page_hint') . '</small></td>';
         echo '<td class="row1"><input type="text" size="30" name="pg_add_member" id="inptext_pg_add_member" /></td>';
         echo '</tr></table></div>';
       }
@@ -971,8 +966,8 @@ function page_Admin_PageGroups()
   }
   // No action defined - show default menu
   
-  echo '<h2>Manage page groups</h2>';
-  echo '<p>Enano\'s page grouping system allows you to build sets of pages that can be controlled by a single ACL rule. This makes managing features such as a members-only section of your site a lot easier. If you don\'t use the ACL system, you probably don\'t need to use page groups.</p>';
+  echo '<h2>' . $lang->get('acppg_heading_main') . '</h2>';
+  echo '<p>' . $lang->get('acppg_hint_intro') . '</p>';
   
   $q = $db->sql_query('SELECT pg_id, pg_type, pg_name, pg_target FROM '.table_prefix.'page_groups;');
   if ( !$q )
@@ -983,13 +978,13 @@ function page_Admin_PageGroups()
   echo '<div class="tblholder">
           <table border="0" cellspacing="1" cellpadding="4">
             <tr>
-              <th>Group name</th>
-              <th>Type</th>
-              <th>Target</th>
-              <th colspan="2">Actions</th>
+              <th>' . $lang->get('acppg_col_group_name') . '</th>
+              <th>' . $lang->get('acppg_col_type') . '</th>
+              <th>' . $lang->get('acppg_col_target') . '</th>
+              <th colspan="2">' . $lang->get('acppg_col_actions') . '</th>
             </tr>';
   
-  if ( $row = $db->fetchrow() )
+  if ( $row = $db->fetchrow($q) )
   {
     do
     {
@@ -998,53 +993,51 @@ function page_Admin_PageGroups()
       switch ( $row['pg_type'] )
       {
         case PAGE_GRP_CATLINK:
-          $type = 'Link to category';
+          $type = $lang->get('acppg_gtype_catlink');
           break;
         case PAGE_GRP_TAGGED:
-          $type = 'Set of tagged pages';
+          $type = $lang->get('acppg_gtype_tagged');
           break;
         case PAGE_GRP_NORMAL:
-          $type = 'Static set of pages';
+          $type = $lang->get('acppg_gtype_static');
           break;
         case PAGE_GRP_REGEX:
-          $type = 'Regular expression match';
+          $type = $lang->get('acppg_gtype_regex');
           break;
       }
       $target = '';
       if ( $row['pg_type'] == PAGE_GRP_TAGGED )
       {
-        $target = 'Tag: ' . htmlspecialchars($row['pg_target']);
+        $target = $lang->get('acppg_lbl_tag') . ' ' . htmlspecialchars($row['pg_target']);
       }
       else if ( $row['pg_type'] == PAGE_GRP_CATLINK )
       {
-        $target = 'Category: ' . htmlspecialchars(get_page_title($paths->nslist['Category'] . sanitize_page_id($row['pg_target'])));
+        $target = $lang->get('acppg_lbl_category') . ' ' . htmlspecialchars(get_page_title($paths->nslist['Category'] . sanitize_page_id($row['pg_target'])));
       }
       else if ( $row['pg_type'] == PAGE_GRP_REGEX )
       {
-        $target = 'Expression: <tt>' . htmlspecialchars($row['pg_target']) . '</tt>';
+        $target = $lang->get('acppg_lbl_regex') . ' <tt>' . htmlspecialchars($row['pg_target']) . '</tt>';
       }
-      $btn_edit = '<input type="submit" name="action[edit][' . $row['pg_id'] . ']" value="Edit" />';
-      $btn_del = '<input type="submit" name="action[del][' . $row['pg_id'] . ']" value="Delete" />';
-      // stupid jEdit bug/hack
-      $quot = '"';
+      $btn_edit = '<input type="submit" name="action[edit][' . $row['pg_id'] . ']" value="' . $lang->get('acppg_btn_edit') . '" />';
+      $btn_del = '<input type="submit" name="action[del][' . $row['pg_id'] . ']" value="' . $lang->get('acppg_btn_delete') . '" />';
       echo "<tr>
-              <td class={$quot}row1{$quot}>$name</td>
-              <td class={$quot}row2{$quot}>$type</td>
-              <td class={$quot}row1{$quot}>$target</td>
-              <td class={$quot}row3{$quot} style={$quot}text-align: center;{$quot}>$btn_edit</td>
-              <td class={$quot}row3{$quot} style={$quot}text-align: center;{$quot}>$btn_del</td>
+              <td class=\"row1\">$name</td>
+              <td class=\"row2\">$type</td>
+              <td class=\"row1\">$target</td>
+              <td class=\"row3\" style=\"text-align: center;\">$btn_edit</td>
+              <td class=\"row3\" style=\"text-align: center;\">$btn_del</td>
             </tr>";
     }
-    while ( $row = $db->fetchrow() );
+    while ( $row = $db->fetchrow($q) );
   }
   else
   {
-    echo '  <tr><td class="row3" colspan="5" style="text-align: center;">No page groups defined.</td></tr>';
+    echo '  <tr><td class="row3" colspan="5" style="text-align: center;">' . $lang->get('acppg_msg_no_groups') . '</td></tr>';
   }
   
   echo '    <tr>
               <th class="subhead" colspan="5">
-                <input type="submit" name="action[create]" value="Create new group" />
+                <input type="submit" name="action[create]" value="' . $lang->get('acppg_btn_create_new') . '" />
               </th>
             </tr>';
   

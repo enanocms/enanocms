@@ -33,7 +33,7 @@ if ( !file_exists($fname) )
 $everything = file_get_contents($fname);
 
 $mtime = filemtime($fname);
-header('Last-Modified: '.date('D, d M Y H:i:s T', $mtime));
+header('Last-Modified: '.enano_date('D, d M Y H:i:s T', $mtime));
 header('Content-disposition: attachment; filename=' . $file);
 
 if(defined('ENABLE_COMPRESSION'))

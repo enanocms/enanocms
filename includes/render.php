@@ -644,8 +644,8 @@ class RenderMan {
       $text = str_replace('<nowiki>'.$nowiki[1][$i].'</nowiki>', '{NOWIKI:'.$random_id.':'.$i.'}', $text);
     }
     
-    $text = str_replace('~~~~~', date('G:i, j F Y (T)'), $text);
-    $text = str_replace('~~~~', "[[User:$session->username|$session->username]] ".date('G:i, j F Y (T)'), $text);
+    $text = str_replace('~~~~~', enano_date('G:i, j F Y (T)'), $text);
+    $text = str_replace('~~~~', "[[User:$session->username|$session->username]] ".enano_date('G:i, j F Y (T)'), $text);
     $text = str_replace('~~~', "[[User:$session->username|$session->username]] ", $text);
     
     // Reinsert <nowiki> sections

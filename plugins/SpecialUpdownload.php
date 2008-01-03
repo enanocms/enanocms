@@ -33,7 +33,7 @@ $plugins->attachHook('session_started', '
       ));
     
     $paths->add_page(Array(
-      \'name\'=>\'download_file\',
+      \'name\'=>\'specialpage_download_file\',
       \'urlname\'=>\'DownloadFile\',
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
@@ -154,13 +154,13 @@ function page_Special_UploadFile()
     if(!$db->sql_query('INSERT INTO '.table_prefix.'files(time_id,page_id,filename,size,mimetype,file_extension,file_key) VALUES('.$utime.', \''.$urln.'\', \''.$filename.'\', '.$flen.', \''.$type.'\', \''.$ext.'\', \''.$key.'\')')) $db->_die('The file data entry could not be inserted.');
     if(!isset($_POST['update']))
     {
-      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.$utime.', \''.date('d M Y h:i a').'\', \'page\', \'create\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\');')) $db->_die('The page log could not be updated.');
+      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.$utime.', \''.enano_date('d M Y h:i a').'\', \'page\', \'create\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\');')) $db->_die('The page log could not be updated.');
       if(!$db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace,protected,delvotes,delvote_ips) VALUES(\''.$filename.'\', \''.$urln.'\', \'File\', 0, 0, \'\')')) $db->_die('The page listing entry could not be inserted.');
       if(!$db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace,page_text,char_tag) VALUES(\''.$urln.'\', \'File\', \''.$comments.'\', \''.$chartag.'\')')) $db->_die('The page text entry could not be inserted.');
     }
     else
     {
-      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.$utime.', \''.date('d M Y h:i a').'\', \'page\', \'reupload\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\', \''.$comments.'\');')) $db->_die('The page log could not be updated.');
+      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.$utime.', \''.enano_date('d M Y h:i a').'\', \'page\', \'reupload\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\', \''.$comments.'\');')) $db->_die('The page log could not be updated.');
     }
     die_friendly('Upload complete', '<p>Your file has been uploaded successfully. View the <a href="'.makeUrlNS('File', $filename).'">file\'s page</a>.</p>');
   }
@@ -235,7 +235,7 @@ function page_Special_DownloadFile()
   if ( $db->numrows() < 1 )
   {
     header('HTTP/1.1 404 Not Found');
-    die_friendly('File not found', '<p>The file "'.$filename.'" cannot be found.</p>');
+    die_friendly('File not found', '<p>The file "'.htmlspecialchars($filename).'" cannot be found.</p>');
   }
   $row = $db->fetchrow();
   $db->free_result();
@@ -307,7 +307,7 @@ function page_Special_DownloadFile()
     header('Content-disposition: attachment, filename="' . $filename . '";');
   }
   header('Content-length: '.$len);
-  header('Last-Modified: '.date('r', $row['time_id']));
+  header('Last-Modified: '.enano_date('r', $row['time_id']));
   
   // using this method limits RAM consumption
   while ( !feof($handle) )

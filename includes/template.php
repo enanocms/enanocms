@@ -81,10 +81,6 @@ class template {
     $this->style_list = $list;
     
   }
-  function template()
-  {
-    $this->__construct();
-  }
   function sidebar_widget($t, $h)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1777,7 +1773,7 @@ EOF;
     $messages = array();
     while ( $row = $db->fetchrow() )
     {
-      $messages[] = '<a href="' . makeUrlNS('Special', 'PrivateMessages/View/' . $row['message_id']) . '" title="Sent ' . date('F d, Y h:i a', $row['date']) . ' by ' . $row['message_from'] . '">' . $row['subject'] . '</a>';
+      $messages[] = '<a href="' . makeUrlNS('Special', 'PrivateMessages/View/' . $row['message_id']) . '" title="Sent ' . enano_date('F d, Y h:i a', $row['date']) . ' by ' . $row['message_from'] . '">' . $row['subject'] . '</a>';
     }
     $ob .= implode(",\n    " , $messages)."\n";
     $ob .= '</div>'."\n";
@@ -1810,12 +1806,14 @@ class templateIndividual extends template {
     $this->tpl_bool = $template->tpl_bool;
   }
   /**
-   * PHP 4 constructor.
+   * PHP 4 constructor. Deprecated in 1.1.x.
    */
+  /*
   function templateIndividual($text)
   {
     $this->__construct($text);
   }
+  */
   /**
    * Assigns an array of string values to the template. Strings can be accessed from the template by inserting {KEY_NAME} in the template file.
    * @param $vars array

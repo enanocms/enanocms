@@ -27,7 +27,7 @@ class emailer
 
   var $tpl_msg;
 
-  function emailer($use_smtp)
+  function __construct($use_smtp)
   {
     $this->reset();
     $this->use_smtp = $use_smtp;
@@ -151,7 +151,7 @@ class emailer
                            (($this->from != '') ? "From: $this->from\n" : "From: " . getConfig('contact_email') . "\n") .
                            "Return-Path: " . getConfig('contact_email') .
                            "\nMessage-ID: <" . md5(uniqid(time())) . "@" . $_SERVER['SERVER_NAME'] . ">\nMIME-Version: 1.0\nContent-type: text/plain; charset=" . $this->encoding .
-                           "\nContent-transfer-encoding: 8bit\nDate: " . date('r', time()) .
+                           "\nContent-transfer-encoding: 8bit\nDate: " . enano_date('r', time()) .
                            "\nX-Priority: 3\nX-MSMail-Priority: Normal\nX-Mailer: PHP\nX-MimeOLE: Produced By Enano CMS\n" .
                            $this->extra_headers .
                            (($cc != '') ? "Cc: $cc\n" : '')  .
@@ -247,7 +247,7 @@ class emailer
     {
       $this->mimeOut .= "From: ".$szFromAddress."\n";
       $this->mimeOut .= "To: ".$this->emailAddress."\n";
-      $this->mimeOut .= "Date: ".date("D, d M Y H:i:s") . " UT\n";
+      $this->mimeOut .= "Date: ".enano_date("D, d M Y H:i:s") . " UT\n";
       $this->mimeOut .= "Reply-To:".$szFromAddress."\n";
       $this->mimeOut .= "Subject: ".$this->mailSubject."\n";
       $this->mimeOut .= "X-Mailer: PHP/".phpversion()."\n";
@@ -347,11 +347,6 @@ class EmailEncryptor
       $this->p = $this->primes[mt_rand(0, sizeof($this->primes)-1)];
       $this->q = $this->primes[mt_rand(0, sizeof($this->primes)-1)];
     }
-  }
-  
-  function EmailEncryptor()
-  {
-    $this->__construct();
   }
   
   function testAll() {

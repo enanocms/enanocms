@@ -569,7 +569,14 @@ function admin_pagemanager_format_listing($_, $row)
   }
   $title = get_page_title_ns($row['urlname'], $row['namespace']);
   $pathskey = $paths->nslist[$row['namespace']] . $row['urlname'];
-  $url = makeUrlNS('Special', 'Administration', "module={$paths->nslist['Admin']}PageManager&action=select&page_id=$pathskey", true);
+  if ( isset($row['mode']) && $row['mode'] == 'edit' )
+  {
+    $url = makeUrlNS($row['namespace'], $row['urlname'], false, true) . '#do:edit';
+  }
+  else
+  {
+    $url = makeUrlNS('Special', 'Administration', "module={$paths->nslist['Admin']}PageManager&action=select&page_id=$pathskey", true);
+  }
   $url = '<a href="' . $url . '">' . htmlspecialchars($title) . '</a>';
   $return .= '  <td class="' . $td_class . '" style="width: 33%;">' . $url . '</td>' . "\n";
   $cell_count++;

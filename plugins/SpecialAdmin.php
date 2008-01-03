@@ -41,6 +41,7 @@ $plugins->attachHook('session_started', '
 
 // Admin pages that were too enormous to be in this file were split off into the plugins/admin/ directory in 1.0.1
 require(ENANO_ROOT . '/plugins/admin/PageManager.php');
+require(ENANO_ROOT . '/plugins/admin/PageEditor.php');
 require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
 require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
 require(ENANO_ROOT . '/plugins/admin/UserManager.php');
@@ -161,6 +162,7 @@ Received invalid XML response.
   
   // Security log
   echo '<h3>' . $lang->get('acphome_heading_seclog') . '</h3>';
+  echo '<p>' . $lang->get('acphome_msg_seclog_info') . '</p>';
   $seclog = get_security_log(5);
   echo $seclog;
   
@@ -1228,8 +1230,7 @@ function page_Admin_PluginManager()
     echo '</table></div>';
 }
 
-/*
-function page_Admin_PageManager()
+function page_Admin_DBBackup()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
@@ -1241,410 +1242,124 @@ function page_Admin_PageManager()
     return;
   }
   
-  echo '<h2>Page management</h2>';
+  if ( ENANO_DBLAYER != 'MYSQL' )
+    die('<h3>' . $lang->get('acpdb_err_not_supported_title') . '</h3>
+          <p>' . $lang->get('acpdb_err_not_supported_desc') . '</p>');
   
-  if ( isset($_POST['search']) || isset($_POST['select']) || ( isset($_GET['source']) && $_GET['source'] == 'ajax' ) )
+  if(isset($_GET['submitting']) && $_GET['submitting'] == 'yes' && defined('ENANO_DEMO_MODE') )
   {
-    // The object of the game: using only the text a user entered, guess the page ID and namespace. *sigh* I HATE writing search algorithms...
-    $source = ( isset($_GET['source']) ) ? $_GET['source'] : false;
-    if ( $source == 'ajax' )
-    {
-      $_POST['search'] = true;
-      $_POST['page_url'] = $_GET['page_id'];
-    }
-    if ( isset($_POST['search']) )
-    {
-      $pid = $_POST['page_url'];
-    }
-    elseif ( isset($_POST['select']) )
-    {
-      $pid = $_POST['page_force_url'];
-    }
-    else
-    {
-      echo 'Internal error selecting page search terms';
-      return false;
-    }
-    // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
-    $k = array_keys($paths->nslist);
-    for ( $i = 0; $i < sizeof($paths->nslist); $i++ )
-    {
-      $ln = strlen($paths->nslist[$k[$i]]);
-      if(substr($pid, 0, $ln) == $paths->nslist[$k[$i]])
-      {
-        $ns = $k[$i];
-        $page_id = substr($pid, $ln, strlen($pid));
-      }
-    }
-    // The namespace is in $ns and the page name or ID (we don't know which yet) is in $page_id
-    // Now, iterate through $paths->pages searching for a page with this name or ID
-    for ( $i = 0; $i < sizeof($paths->pages) / 2; $i++ )
-    {
-      if ( !isset($final_pid) )
-      {
-        if ( $paths->pages[$i]['urlname_nons'] == str_replace(' ', '_', $page_id) )
-        {
-          $final_pid = str_replace(' ', '_', $page_id);
-        }
-        else if ( $paths->pages[$i]['name'] == $page_id )
-        {
-          $final_pid = $paths->pages[$i]['urlname_nons'];
-        }
-        else if ( strtolower($paths->pages[$i]['urlname_nons']) == strtolower(str_replace(' ', '_', $page_id)) )
-        {
-          $final_pid = $paths->pages[$i]['urlname_nons'];
-        }
-        else if ( strtolower($paths->pages[$i]['name']) == strtolower(str_replace('_', ' ', $page_id)) )
-        {
-          $final_pid = $paths->pages[$i]['urlname_nons'];
-        }
-        if ( isset($final_pid) )
-        {
-          $_POST['name'] = $paths->pages[$i]['name'];
-          $_POST['urlname'] = $paths->pages[$i]['urlname_nons'];
-        }
-      }
-    }
-    if ( !isset($final_pid) )
-    {
-      echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>';
-      return false;
-    }
-    $_POST['namespace'] = $ns;
-    $_POST['old_namespace'] = $ns;
-    $_POST['page_id'] = $final_pid;
-    $_POST['old_page_id'] = $final_pid;
-    if ( !isset($paths->pages[$paths->nslist[$_POST['namespace']].$_POST['urlname']]) )
-    {
-      echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>';
-      return false;
-    }
+    redirect(makeUrlComplete('Special', 'Administration'), $lang->get('acpdb_err_demo_mode_title'), $lang->get('acpdb_err_demo_mode_desc'), 5);
   }
   
-  if ( isset($_POST['page_id']) && isset($_POST['namespace']) && !isset($_POST['cancel']) )
+  global $system_table_list;
+  if(isset($_GET['submitting']) && $_GET['submitting'] == 'yes')
   {
-    $cpage = $paths->pages[$paths->nslist[$_POST['old_namespace']].$_POST['old_page_id']];
-    if(isset($_POST['submit']))
+    
+    if(defined('SQL_BACKUP_CRYPT'))
+      // Try to increase our time limit
+      @set_time_limit(0);
+    // Do the actual export
+    $aesext = ( defined('SQL_BACKUP_CRYPT') ) ? '.tea' : '';
+    $filename = 'enano_backup_' . enano_date('ymd') . '.sql' . $aesext;
+    ob_start();
+    // Spew some headers
+    $headdate = enano_date('F d, Y \a\t h:i a');
+    echo <<<HEADER
+-- Enano CMS SQL backup
+-- Generated on {$headdate} by {$session->username}
+
+HEADER;
+    // build the table list
+    $base = ( isset($_POST['do_system_tables']) ) ? $system_table_list : Array();
+    $add  = ( isset($_POST['additional_tables'])) ? $_POST['additional_tables'] : Array();
+    $tables = array_merge($base, $add);
+    
+    // Log it!
+    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'db_backup\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(implode(', ', $tables)) . '\')');
+    if ( !$e )
+      $db->_die();
+    
+    foreach($tables as $i => $t)
     {
-      switch(true)
-      {
-        case true:
-          // Create a list of things to update
-          $page_info = Array(
-              'name'=>$_POST['name'],
-              'urlname'=>sanitize_page_id($_POST['page_id']),
-              'namespace'=>$_POST['namespace'],
-              'special'=>isset($_POST['special']) ? '1' : '0',
-              'visible'=>isset($_POST['visible']) ? '1' : '0',
-              'comments_on'=>isset($_POST['comments_on']) ? '1' : '0',
-              'protected'=>isset($_POST['protected']) ? '1' : '0'
-            );
-          
-          $updating_urlname_or_namespace = ( $page_info['namespace'] != $cpage['namespace'] || $page_info['urlname'] != $cpage['urlname_nons'] );
-          
-          if ( !isset($paths->nslist[ $page_info['namespace'] ]) )
-          {
-            echo '<div class="error-box">The namespace you selected is not properly registered.</div>';
-            break;
-          }
-          if ( isset($paths->pages[ $paths->nslist[$page_info['namespace']] . $page_info[ 'urlname' ] ]) && $updating_urlname_or_namespace )
-          {
-            echo '<div class="error-box">There is already a page that exists with that URL string and namespace.</div>';
-            break;
-          }
-          // Build the query
-          $q = 'UPDATE '.table_prefix.'pages SET ';
-          $k = array_keys($page_info);
-          foreach($k as $c)
-          {
-            $q .= $c.'=\''.$db->escape($page_info[$c]).'\',';
-          }
-          $q = substr($q, 0, strlen($q)-1);
-          // Build the WHERE statements
-          $q .= ' WHERE ';
-          $k = array_keys($cpage);
-          if ( !isset($cpage) )
-            die('[internal] no cpage');
-          foreach($k as $c)
-          {
-            if($c != 'urlname_nons' && $c != 'urlname' && $c != 'really_protected')
-            {
-              $q .= $c.'=\''.$db->escape($cpage[$c]).'\' AND ';
-            }
-            else if($c == 'urlname')
-            {
-              $q .= $c.'=\''.$db->escape($cpage['urlname_nons']).'\' AND ';
-            }
-          }
-          // Trim off the last " AND " and append a semicolon
-          $q = substr($q, 0, strlen($q)-5) . ';';
-          // Send the completed query to MySQL
-          $e = $db->sql_query($q);
-          if(!$e) $db->_die('The page data could not be updated.');
-          // Update any additional tables
-          $q = Array(
-            'UPDATE '.table_prefix.'categories SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-            'UPDATE '.table_prefix.'comments   SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-            'UPDATE '.table_prefix.'logs       SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-            'UPDATE '.table_prefix.'page_text  SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-            'UPDATE '.table_prefix.'acl        SET page_id=\''.$page_info['urlname'].'\',namespace=\''.$page_info['namespace'].'\' WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';'
-            );
-          foreach($q as $cq)
-          {
-            $e = $db->sql_query($cq);
-            if(!$e) $db->_die('Some of the additional tables containing page information could not be updated.');
-          }
-          // Update $cpage
-          $cpage = $page_info;
-          $cpage['urlname_nons'] = $cpage['urlname'];
-          $cpage['urlname'] = $paths->nslist[$cpage['namespace']].$cpage['urlname'];
-          $_POST['old_page_id'] = $page_info['urlname'];
-          $_POST['old_namespace'] = $page_info['namespace'];
-          echo '<div class="info-box">Your changes have been saved.</div>';
-          break;
-      }
-    } elseif(isset($_POST['delete'])) {
-      $q = Array(
-        'DELETE FROM '.table_prefix.'categories WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'DELETE FROM '.table_prefix.'comments   WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'DELETE FROM '.table_prefix.'logs       WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        'DELETE FROM '.table_prefix.'page_text  WHERE page_id=\'' . $db->escape($_POST['old_page_id']) . '\' AND namespace=\'' . $db->escape($_POST['old_namespace']) . '\';',
-        );
-      foreach($q as $cq)
-      {
-        $e = $db->sql_query($cq);
-        if(!$e) $db->_die('Some of the additional tables containing page information could not be updated.');
-      }
-      
-      if(!$db->sql_query(
-        'DELETE FROM '.table_prefix.'pages WHERE urlname="'.$db->escape($_POST['old_page_id']).'" AND namespace="'.$db->escape($_POST['old_namespace']).'";'
-      )) $db->_die('The page could not be deleted.');
-      echo '<div class="info-box">This page has been deleted.</p><p><a href="javascript:ajaxPage(\''.$paths->nslist['Admin'].'PageManager\');">Return to Page manager</a><br /><a href="javascript:ajaxPage(\''.$paths->nslist['Admin'].'Home\');">Admin home</a></div>';
-      return;
+      if(!preg_match('#^([a-z0-9_]+)$#i', $t))
+        die('Hacking attempt');
+      // if($t == table_prefix.'files' && isset($_POST['do_data']))
+      //   unset($tables[$i]);
     }
-    $url = makeUrlNS('Special', 'Administration', 'module='.$paths->cpage['module'], true);
-    echo '<form action="'.$url.'" method="post">';
-    ?>
-    <h3>Modify page: <?php echo htmlspecialchars($_POST['name']); ?></h3>
-     <table border="0">
-       <tr>
-         <td>Namespace:</td>
-         <td>
-           <select name="namespace">
-             <?php
-             $nm = array_keys($paths->nslist);
-             foreach ( $nm as $ns )
-             {
-               if ( $ns != 'Special' && $ns != 'Admin' )
-               {
-                 echo '<option ';
-                 if ( $_POST['namespace'] == $ns )
-                 echo 'selected="selected" ';
-                 echo 'value="'.$ns.'">';
-                 if ( $paths->nslist[$ns] == '' )
-                   echo '[No prefix]';
-                 else
-                   echo $paths->nslist[$ns];
-                 echo '</option>';
-               }
-             } ?>
-           </select>
-         </td>
-       </tr>
-       <tr>
-         <td>
-           Page title:
-         </td>
-         <td>
-           <input type="text" name="name" value="<?php echo htmlspecialchars($cpage['name']); ?>" />
-         </td>
-       </tr>
-       <tr>
-         <td>
-           Page URL string:<br />
-           <small>No spaces, and don't enter the namespace prefix (e.g. User:).<br />
-                  Changing this value is usually not a good idea, especially for templates and project pages.</small>
-          </td>
-          <td>
-            <input type="text" name="page_id" value="<?php echo htmlspecialchars(dirtify_page_id($cpage['urlname_nons'])); ?>" />
-          </td>
-       </tr>
-       <tr>
-         <td></td>
-         <td>
-           <input <?php if($cpage['comments_on']) echo 'checked="checked"'; ?> name="comments_on" type="checkbox" id="cmt" />
-           <label for="cmt">Enable comments for this page</label>
-         </td>
-       </tr>
-       <tr>
-         <td></td>
-         <td>
-           <input <?php if($cpage['special']) echo 'checked="checked"'; ?> name="special" type="checkbox" id="spc" />
-           <label for="spc">Bypass the template engine for this page</label><br />
-           <small>This option enables you to use your own HTML headers and other code. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages, meaning you can use Enano's API on the page.</small>
-         </td>
-       </tr>
-       <tr>
-         <td></td>
-         <td>
-           <input <?php if($cpage['visible']) echo 'checked="checked"'; ?> name="visible" type="checkbox" id="vis" />
-           <label for="vis">Allow this page to be shown in page lists</label><br />
-           <small>Unchecking this checkbox prevents the page for being indexed for searching. The index is rebuilt each time a page is saved, and you can force an index rebuild by going to the page <?php echo $paths->nslist['Special']; ?>SearchRebuild.</small>
-         </td>
-       </tr>
-       <tr>
-         <td></td>
-         <td>
-           <input <?php if($cpage['protected']) echo 'checked="checked"'; ?> name="protected" type="checkbox" id="prt" />
-           <label for="prt">Prevent non-administrators from editing this page</label><br />
-           <small>This option only has an effect when Wiki Mode is enabled.</small>
-         </td>
-       </tr>
-       <tr>
-         <td></td>
-         <td>
-           <input type="submit" name="delete" value="Delete page" style="color: red" onclick="return confirm('Do you REALLY want to delete this page?')" />
-         </td>
-       </tr>
-       <tr>
-         <td colspan="2" style="text-align: center;">
-           <hr />
-         </td>
-       </tr>
-       <tr>
-         <td colspan="2" style="text-align: right;">
-           <input type="hidden" name="old_page_id" value="<?php echo htmlspecialchars($_POST['old_page_id']); ?>" />
-           <input type="hidden" name="old_namespace" value="<?php echo htmlspecialchars($_POST['old_namespace']); ?>" />
-           <input type="Submit" name="submit" value="Save changes" style="font-weight: bold;" />
-           <input type="submit" name="cancel" value="Cancel changes" />
-         </td>
-       </tr>
-     </table>
-    <?php
-    echo '</form>';
+    foreach($tables as $t)
+    {
+      // THE FOLLOWING COMMENT DOES NOT APPLY AS OF 1.0.
+      // Sorry folks - this script CAN'T backup enano_files and enano_search_index due to the sheer size of the tables.
+      // If encryption is enabled the log data will be excluded too.
+      $result = export_table(
+        $t,
+        isset($_POST['do_struct']),
+        ( isset($_POST['do_data']) ),
+        false
+        ) . "\n";
+      if ( !$result )
+      {
+        $db->_die();
+      }
+      echo $result;
+    }
+    $data = ob_get_contents();
+    ob_end_clean();
+    if(defined('SQL_BACKUP_CRYPT'))
+    {
+      // Free some memory, we don't need this stuff any more
+      $db->close();
+      unset($paths, $db, $template, $plugins);
+      $tea = new TEACrypt();
+      $data = $tea->encrypt($data, $session->private_key);
+    }
+    header('Content-disposition: attachment; filename='.$filename.'');
+    header('Content-type: application/octet-stream');
+    header('Content-length: '.strlen($data));
+    echo $data;
+    exit;
   }
   else
   {
-    echo '<h3>Please select a page</h3>';
-    echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
+    // Show the UI
+    echo '<form action="'.makeUrlNS('Admin', 'DBBackup', 'submitting=yes', true).'" method="post" enctype="multipart/form-data">';
     ?>
-      <p>Search for page title (remember prefixes like User: and File:) <?php echo $template->pagename_field('page_url'); ?>  <input type="submit" style="font-weight: bold;" name="search" value="Search" /></p>
-      <p>Select page title from a list: <select name="page_force_url">
-      <?php
-        for($i=0;$i<sizeof($paths->pages)/2;$i++)
-        {
-          if($paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['namespace'] != 'Special') echo '<option value="'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['urlname_nons'].'">'.htmlspecialchars($paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['name']).'</option>'."\n";
-        }
-      ?>
-      </select>  <input type="submit" name="select" value="Select" /></p>
+    <p><?php echo $lang->get('acpdb_intro'); ?></p>
+    <p><label><input type="checkbox" name="do_system_tables" checked="checked" /> <?php echo $lang->get('acpdb_lbl_system_tables'); ?></label><p>
+    <p><?php echo $lang->get('acpdb_lbl_additional_tables'); ?></p>
+    <p><select name="additional_tables[]" multiple="multiple">
+       <?php
+         if ( ENANO_DBLAYER == 'MYSQL' )
+         {
+           $q = $db->sql_query('SHOW TABLES;') or $db->_die('Somehow we were denied the request to get the list of tables.');
+         }
+         else if ( ENANO_DBLAYER == 'PGSQL' )
+         {
+           $q = $db->sql_query('SELECT relname FROM pg_stat_user_tables ORDER BY relname;') or $db->_die('Somehow we were denied the request to get the list of tables.');
+         }
+         while($row = $db->fetchrow_num())
+         {
+           if(!in_array($row[0], $system_table_list)) echo '<option value="'.$row[0].'">'.$row[0].'</option>';
+         }
+       ?>
+       </select>
+       </p>
+    <p><label><input type="checkbox" name="do_struct" checked="checked" /> <?php echo $lang->get('acpdb_lbl_include_structure'); ?></label><br />
+       <label><input type="checkbox" name="do_data"   checked="checked" /> <?php echo $lang->get('acpdb_lbl_include_data'); ?></label>
+       </p>
+    <p><input type="submit" value="<?php echo $lang->get('acpdb_btn_create_backup'); ?>" /></p>
     <?php
     echo '</form>';
-    
   }
 }
-*/
 
-function page_Admin_PageEditor()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  
-  echo '<h2>Edit page content</h2>';
-  
-  if(isset($_POST['search']) || isset($_POST['select'])) {
-    // The object of the game: using only the text a user entered, guess the page ID and namespace. *sigh* I HATE writing search algorithms...
-    if(isset($_POST['search'])) $pid = $_POST['page_url'];
-    elseif(isset($_POST['select'])) $pid = $_POST['page_force_url'];
-    else { echo 'Internal error selecting page search terms'; return false; }
-    // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
-    $k = array_keys($paths->nslist);
-    for($i=0;$i<sizeof($paths->nslist);$i++)
-    {
-      $ln = strlen($paths->nslist[$k[$i]]);
-      if(substr($pid, 0, $ln) == $paths->nslist[$k[$i]])
-      {
-        $ns = $k[$i];
-        $page_id = substr($pid, $ln, strlen($pid));
-      }
-    }
-    // The namespace is in $ns and the page name or ID (we don't know which yet) is in $page_id
-    // Now, iterate through $paths->pages searching for a page with this name or ID
-    for($i=0;$i<sizeof($paths->pages)/2;$i++)
-    {
-      if(!isset($final_pid))
-      {
-        if    ($paths->pages[$i]['urlname_nons'] == str_replace(' ', '_', $page_id)) $final_pid = str_replace(' ', '_', $page_id);
-        elseif($paths->pages[$i]['name'] == $page_id) $final_pid = $paths->pages[$i]['urlname_nons'];
-        elseif(strtolower($paths->pages[$i]['urlname_nons']) == strtolower(str_replace(' ', '_', $page_id))) $final_pid = $paths->pages[$i]['urlname_nons'];
-        elseif(strtolower($paths->pages[$i]['name']) == strtolower(str_replace('_', ' ', $page_id))) $final_pid = $paths->pages[$i]['urlname_nons'];
-        if(isset($final_pid)) { $_POST['name'] = $paths->pages[$i]['name']; $_POST['urlname'] = $paths->pages[$i]['urlname_nons']; }
-      }
-    }
-    if(!isset($final_pid)) { echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>'; return false; }
-    $_POST['namespace'] = $ns;
-    $_POST['page_id'] = $final_pid;
-    if(!isset($paths->pages[$paths->nslist[$_POST['namespace']].$_POST['urlname']])) { echo 'The page you searched for cannot be found. <a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'PageManager\'); return false;">Back</a>'; return false; }
-  }
-  
-  if(isset($_POST['page_id']) && !isset($_POST['cancel']))
-  {
-    echo '<form name="main" action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
-    if(!isset($_POST['content']) || isset($_POST['revert'])) $content = RenderMan::getPage($_POST['page_id'], $_POST['namespace'], 0, false, false, false, false);
-    else $content = $_POST['content'];
-    if(isset($_POST['save']))
-    {
-      $data = $content;
-      $id = md5( microtime() . mt_rand() );
-      
-      $minor = isset($_POST['minor']) ? 'true' : 'false';
-      $q='INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $db->escape($_POST['page_id']) . '\', \'' . $db->escape($_POST['namespace']) . '\', \''.$db->escape($data).'\', \''.$id.'\', \''.$session->username.'\', \''.$db->escape(htmlspecialchars($_POST['summary'])).'\', '.$minor.');';
-      if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
-      
-      $query = 'UPDATE '.table_prefix.'page_text SET page_text=\''.$db->escape($data).'\',char_tag=\''.$id.'\' WHERE page_id=\'' . $db->escape($_POST['page_id']) . '\' AND namespace=\'' . $db->escape($_POST['namespace']) . '\';';
-      $e = $db->sql_query($query);
-      if(!$e) echo '<div class="warning-box">The page data could not be saved. MySQL said: '.mysql_error().'<br /><br />Query:<br /><pre>'.$query.'</pre></div>';
-      else echo '<div class="info-box">Your page has been saved. <a href="'.makeUrlNS($_POST['namespace'], $_POST['page_id']).'">View page...</a></div>';
-    } elseif(isset($_POST['preview'])) {
-      echo '<h3>Preview</h3><p><b>Reminder:</b> This is only a preview; your changes to this page have not yet been saved.</p><div style="margin: 1em; padding: 10px; border: 1px dashed #606060; background-color: #F8F8F8; max-height: 200px; overflow: auto;">'.RenderMan::render($content).'</div>';
-    }
-    ?>
-    <p>
-    <textarea name="content" rows="20" cols="60" style="width: 100%;"><?php echo htmlspecialchars($content); ?></textarea><br />
-    Edit summary: <input name="summary" value="<?php if(isset($_POST['summary'])) echo htmlspecialchars($_POST['summary']); ?>" size="40" /><br />
-    <label><input type="checkbox" name="minor" <?php if(isset($_POST['minor'])) echo 'checked="checked" '; ?>/>  This is a minor edit</label>
-    </p>
-    <p>
-    <input type="hidden" name="page_id" value="<?php echo htmlspecialchars($_POST['page_id']); ?>" />
-    <input type="hidden" name="namespace" value="<?php echo htmlspecialchars($_POST['namespace']); ?>" />
-    <input type="submit" name="save" value="Save changes" style="font-weight: bold;" />&nbsp;&nbsp;<input type="submit" name="preview" value="Show preview" />&nbsp;&nbsp;<input type="submit" name="revert" value="Revert changes" onclick="return confirm('Do you really want to revert your changes?');" />&nbsp;&nbsp;<input type="submit" name="cancel" value="Cancel" onclick="return confirm('Do you really want to cancel your changes?');" />
-    </p>
-    <?php
-    echo '</form>';
-  } else {
-    echo '<h3>Please select a page</h3>';
-    echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
-    ?>
-      <p>Search for page title (remember prefixes like User: and File:) <?php echo $template->pagename_field('page_url'); ?>  <input type="submit" style="font-weight: bold;" name="search" value="Search" /></p>
-      <p>Select page title from a list: <select name="page_force_url">
-      <?php
-        for ( $i = 0; $i < sizeof($paths->pages) / 2; $i++ )
-        {
-          if($paths->pages[$i]['namespace'] != 'Admin' && $paths->pages[$i]['namespace'] != 'Special') echo '<option value="'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['urlname_nons'].'">'.$paths->nslist[$paths->pages[$i]['namespace']].$paths->pages[$i]['name'].'</option>'."\n";
-        }
-      ?>
-      </select>  <input type="submit" name="select" value="Select" /></p>
-    <?php
-    echo '</form>';
-  }
-}
+/*
+ * Admin:PageManager sources are in /plugins/admin/PageManager.php.
+ */
+
+/*
+ * Admin:PageEditor sources are in /plugins/admin/PageEditor.php.
+ */
 
 function page_Admin_ThemeManager() 
 {
@@ -1676,7 +1391,7 @@ function page_Admin_ThemeManager()
   if(isset($_POST['disenable'])) {
     $q = 'SELECT enabled FROM '.table_prefix.'themes WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
     $s = $db->sql_query($q);
-    if(!$s) die('Error selecting enabled/disabled state value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    if(!$s) die('Error selecting enabled/disabled state value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     $r = $db->fetchrow_num($s);
     $db->free_result();
     if($r[0] == 1) $e = 0;
@@ -1692,7 +1407,7 @@ function page_Admin_ThemeManager()
     if($s) {
     $q = 'UPDATE '.table_prefix.'themes SET enabled='.$e.' WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
     $a = $db->sql_query($q);
-    if(!$a) die('Error updating enabled/disabled state value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    if(!$a) die('Error updating enabled/disabled state value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     else echo('<div class="info-box">The theme "'.$_POST['theme_id'].'" has been  '. ( ( $e == '1' ) ? 'enabled' : 'disabled' ).'.</div>');
     }
   }
@@ -1715,7 +1430,7 @@ function page_Admin_ThemeManager()
     
     $q = 'SELECT theme_name,default_style FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
     $s = $db->sql_query($q);
-    if(!$s) die('Error selecting name value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    if(!$s) die('Error selecting name value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     $r = $db->fetchrow_num($s);
     $db->free_result();
     echo('<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">');
@@ -1736,30 +1451,30 @@ function page_Admin_ThemeManager()
   elseif(isset($_POST['editsave'])) {
     $q = 'UPDATE '.table_prefix.'themes SET theme_name=\'' . $db->escape($_POST['name']) . '\',default_style=\''.$db->escape($_POST['defaultcss']).'\' WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
     $s = $db->sql_query($q);
-    if(!$s) die('Error updating name value: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    if(!$s) die('Error updating name value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     else echo('<div class="info-box">Theme data updated.</div>');
   }
   elseif(isset($_POST['up'])) {
     // If there is only one theme or if the selected theme is already at the top, do nothing
     $q = 'SELECT theme_order FROM '.table_prefix.'themes ORDER BY theme_order;';
     $s = $db->sql_query($q);
-    if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    if(!$s) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
     $sn = $db->sql_query($q);
-    if(!$sn) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    if(!$sn) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     $r = $db->fetchrow_num($sn);
     if( /* check for only one theme... */ $db->numrows($s) < 2 || $r[0] == 1 /* ...and check if this theme is already at the top */ ) { echo('<div class="warning-box">This theme is already at the top of the list, or there is only one theme installed.</div>'); } else {
       // Get the order IDs of the selected theme and the theme before it
       $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
       $s = $db->sql_query($q);
-      if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      if(!$s) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
       $r = $db->fetchrow_num($s);
       $r = $r[0];
       $rb = $r - 1;
       // Thank God for jEdit's rectangular selection and the ablity to edit multiple lines at the same time ;)
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
       echo('<div class="info-box">Theme moved up.</div>');
     }
     $db->free_result($s);
@@ -1769,20 +1484,20 @@ function page_Admin_ThemeManager()
     // If there is only one theme or if the selected theme is already at the top, do nothing
     $q = 'SELECT theme_order FROM '.table_prefix.'themes ORDER BY theme_order;';
     $s = $db->sql_query($q);
-    if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    if(!$s) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     $r = $db->fetchrow_num($s);
     if( /* check for only one theme... */ $db->numrows($s) < 2 || $r[0] == $db->numrows($s) /* ...and check if this theme is already at the bottom */ ) { echo('<div class="warning-box">This theme is already at the bottom of the list, or there is only one theme installed.</div>'); } else {
       // Get the order IDs of the selected theme and the theme before it
       $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
       $s = $db->sql_query($q);
-      if(!$s) die('Error selecting order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      if(!$s) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
       $r = $db->fetchrow_num($s);
       $r = $r[0];
       $rb = $r + 1;
       // Thank God for jEdit's rectangular selection and the ablity to edit multiple lines at the same time ;)
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
+      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
       echo('<div class="info-box">Theme moved down.</div>');
     }
   }
@@ -1792,7 +1507,7 @@ function page_Admin_ThemeManager()
     $s = $db->sql_query($q);
     if ( !$s )
     {
-      die('Error getting theme count: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+      die('Error getting theme count: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     }
     $n = $db->numrows($s);
     $db->free_result();
@@ -1813,7 +1528,7 @@ function page_Admin_ThemeManager()
         $s = $db->sql_query($q);
         if ( !$s )
         {
-          die('Error deleting theme data: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+          die('Error deleting theme data: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
         }
         else
         {
@@ -1825,7 +1540,7 @@ function page_Admin_ThemeManager()
   elseif(isset($_POST['install'])) {
     $q = 'SELECT theme_id FROM '.table_prefix.'themes;';
     $s = $db->sql_query($q);
-    if(!$s) die('Error getting theme count: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+    if(!$s) die('Error getting theme count: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     $n = $db->numrows($s);
     $n++;
     $theme_id = $_POST['theme_id'];
@@ -1859,7 +1574,7 @@ function page_Admin_ThemeManager()
       {
         $q = 'INSERT INTO '.table_prefix.'themes(theme_id,theme_name,theme_order,enabled,default_style) VALUES(\''.$db->escape($theme['theme_id']).'\', \''.$db->escape($theme['theme_name']).'\', '.$n.', 1, \'' . $db->escape($default_style) . '\')';
         $s = $db->sql_query($q);
-        if(!$s) die('Error inserting theme data: '.mysql_error().'<br /><u>SQL:</u><br />'.$q);
+        if(!$s) die('Error inserting theme data: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
         else echo('<div class="info-box">Theme "'.$theme['theme_name'].'" installed.</div>');
       }
       else
@@ -1876,7 +1591,7 @@ function page_Admin_ThemeManager()
         ');
         $q = 'SELECT theme_id,theme_name,enabled FROM '.table_prefix.'themes ORDER BY theme_order';
         $s = $db->sql_query($q);
-        if(!$s) die('Error selecting theme data: '.mysql_error().'<br /><u>Attempted SQL:</u><br />'.$q);
+        if(!$s) die('Error selecting theme data: '.$db->get_error().'<br /><u>Attempted SQL:</u><br />'.$q);
         while ( $r = $db->fetchrow_num($s) ) {
           if($r[2] < 1) $r[1] .= ' (disabled)';
           echo('<option value="'.$r[0].'">'.$r[1].'</option>');
@@ -1895,7 +1610,7 @@ function page_Admin_ThemeManager()
         include('./themes/'.$l[$i].'/theme.cfg');
         $q = 'SELECT * FROM '.table_prefix.'themes WHERE theme_id=\''.$theme['theme_id'].'\'';
         $s = $db->sql_query($q);
-        if(!$s) die('Error selecting list of currently installed themes: '.mysql_error().'<br /><u>Attempted SQL:</u><br />'.$q);
+        if(!$s) die('Error selecting list of currently installed themes: '.$db->get_error().'<br /><u>Attempted SQL:</u><br />'.$q);
         if($db->numrows($s) < 1) {
           $obb .= '<option value="'.$theme['theme_id'].'">'.$theme['theme_name'].'</option>';
         }
@@ -1935,7 +1650,7 @@ function page_Admin_GroupManager()
     echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
     echo '<div class="tblholder">
           <table border="0" style="width:100%;" cellspacing="1" cellpadding="4">
-          <tr><th colspan="2">Creating group: '.$_POST['create_group_name'].'</th></tr>
+          <tr><th colspan="2">Creating group: '.htmlspecialchars($_POST['create_group_name']).'</th></tr>
           <tr>
             <td class="row1">Group moderator</td><td class="row1">' . $template->username_field('group_mod') . '</td>
           </tr>
@@ -1947,7 +1662,7 @@ function page_Admin_GroupManager()
           </td></tr>
           <tr>
             <th class="subhead" colspan="2">
-              <input type="hidden" name="create_group_name" value="'.$_POST['create_group_name'].'" />
+              <input type="hidden" name="create_group_name" value="'.htmlspecialchars($_POST['create_group_name']).'" />
               <input type="submit" name="do_create_stage2" value="Create group" />
             </th>
           </tr>
@@ -2020,9 +1735,10 @@ function page_Admin_GroupManager()
       echo $db->get_error();
       return;
     }
+    $g_name = htmlspecialchars($_POST['create_group_name']);
     echo "<div class='info-box'>
             <b>Information</b><br />
-            The group {$_POST['create_group_name']} has been created successfully.
+            The group {$g_name} has been created successfully.
           </div>";
   }
   if(isset($_POST['do_edit']) || isset($_POST['edit_do']))
@@ -2039,7 +1755,7 @@ function page_Admin_GroupManager()
       echo '<p>Error: couldn\'t look up group name</p>';
     }
     $row = $db->fetchrow();
-    $name = $row['group_name'];
+    $name = htmlspecialchars($row['group_name']);
     $db->free_result();
     if(isset($_POST['edit_do']))
     {
@@ -2087,7 +1803,7 @@ function page_Admin_GroupManager()
                   The group name has been updated.
                 </div>';
         }
-        $name = $_POST['group_name'];
+        $name = htmlspecialchars($_POST['group_name']);
         
       }
       $q = $db->sql_query('SELECT member_id FROM '.table_prefix.'group_members
@@ -2140,7 +1856,7 @@ function page_Admin_GroupManager()
           }
         }
         else
-          echo '<div class="warning-box"><b>The user "'.$_POST['edit_add_username'].'" could not be added.</b><br />This username does not exist.</div>';
+          echo '<div class="warning-box"><b>The user "'.htmlspecialchars($_POST['edit_add_username']).'" could not be added.</b><br />This username does not exist.</div>';
       }
     }
     $sg_disabled = ( $row['system_group'] == 1 ) ? ' value="Can\'t delete system group" disabled="disabled" style="color: #FF9773" ' : ' value="Delete this group" style="color: #FF3713" ';
@@ -2161,7 +1877,7 @@ function page_Admin_GroupManager()
           </tr>
           </table>
           </div>
-          <input type="hidden" name="group_edit_id" value="'.$_POST['group_edit_id'].'" />';
+          <input type="hidden" name="group_edit_id" value="'.htmlspecialchars($_POST['group_edit_id']).'" />';
     echo '</form>';
     echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
     echo '<div class="tblholder">
@@ -2204,7 +1920,7 @@ function page_Admin_GroupManager()
     $db->free_result();
     echo '</table>
           </div>
-          <input type="hidden" name="group_edit_id" value="'.$_POST['group_edit_id'].'" />';
+          <input type="hidden" name="group_edit_id" value="'.htmlspecialchars($_POST['group_edit_id']).'" />';
     echo '</form>';
     echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
     echo '<div class="tblholder">
@@ -2229,7 +1945,7 @@ function page_Admin_GroupManager()
             </tr>
           </table>
           </div>
-          <input type="hidden" name="group_edit_id" value="'.$_POST['group_edit_id'].'" />';
+          <input type="hidden" name="group_edit_id" value="'.htmlspecialchars($_POST['group_edit_id']).'" />';
     echo '</form>';
     return;
   }
@@ -2680,129 +2396,6 @@ function page_Admin_MassEmail()
   </div>
   <?php
   echo '</form>';
-}
-
-function page_Admin_DBBackup()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  if ( ENANO_DBLAYER != 'MYSQL' )
-    die('<h3>Not supported</h3>
-          <p>This function is only supported under the MySQL database driver.</p>');
-  
-  if(isset($_GET['submitting']) && $_GET['submitting'] == 'yes' && defined('ENANO_DEMO_MODE') )
-  {
-    redirect(makeUrlComplete('Special', 'Administration'), 'Access denied', 'You\'ve got to be kidding me. Forget it, kid.', 4 );
-  }
-  
-  global $system_table_list;
-  if(isset($_GET['submitting']) && $_GET['submitting'] == 'yes')
-  {
-    
-    if(defined('SQL_BACKUP_CRYPT'))
-      // Try to increase our time limit
-      @set_time_limit(0);
-    // Do the actual export
-    $aesext = ( defined('SQL_BACKUP_CRYPT') ) ? '.tea' : '';
-    $filename = 'enano_backup_' . date('ymd') . '.sql' . $aesext;
-    ob_start();
-    // Spew some headers
-    $headdate = date('F d, Y \a\t h:i a');
-    echo <<<HEADER
--- Enano CMS SQL backup
--- Generated on {$headdate} by {$session->username}
-
-HEADER;
-    // build the table list
-    $base = ( isset($_POST['do_system_tables']) ) ? $system_table_list : Array();
-    $add  = ( isset($_POST['additional_tables'])) ? $_POST['additional_tables'] : Array();
-    $tables = array_merge($base, $add);
-    
-    // Log it!
-    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'db_backup\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(implode(', ', $tables)) . '\')');
-    if ( !$e )
-      $db->_die();
-    
-    foreach($tables as $i => $t)
-    {
-      if(!preg_match('#^([a-z0-9_]+)$#i', $t))
-        die('Hacking attempt');
-      // if($t == table_prefix.'files' && isset($_POST['do_data']))
-      //   unset($tables[$i]);
-    }
-    foreach($tables as $t)
-    {
-      // THE FOLLOWING COMMENT DOES NOT APPLY AS OF 1.0.
-      // Sorry folks - this script CAN'T backup enano_files and enano_search_index due to the sheer size of the tables.
-      // If encryption is enabled the log data will be excluded too.
-      $result = export_table(
-        $t,
-        isset($_POST['do_struct']),
-        ( isset($_POST['do_data']) ),
-        false
-        ) . "\n";
-      if ( !$result )
-      {
-        $db->_die();
-      }
-      echo $result;
-    }
-    $data = ob_get_contents();
-    ob_end_clean();
-    if(defined('SQL_BACKUP_CRYPT'))
-    {
-      // Free some memory, we don't need this stuff any more
-      $db->close();
-      unset($paths, $db, $template, $plugins);
-      $tea = new TEACrypt();
-      $data = $tea->encrypt($data, $session->private_key);
-    }
-    header('Content-disposition: attachment, filename="'.$filename.'";');
-    header('Content-type: application/transact-sql');
-    header('Content-length: '.strlen($data));
-    echo $data;
-    exit;
-  }
-  else
-  {
-    // Show the UI
-    echo '<form action="'.makeUrlNS('Admin', 'DBBackup', 'submitting=yes', true).'" method="post" enctype="multipart/form-data">';
-    ?>
-    <p>This page allows you to back up your Enano database should something go miserably wrong.</p>
-    <p><label><input type="checkbox" name="do_system_tables" checked="checked" />  Export tables that are part of the Enano core</label><p>
-    <p>Additional tables to export:</p>
-    <p><select name="additional_tables[]" multiple="multiple">
-       <?php
-         if ( ENANO_DBLAYER == 'MYSQL' )
-         {
-           $q = $db->sql_query('SHOW TABLES;') or $db->_die('Somehow we were denied the request to get the list of tables.');
-         }
-         else if ( ENANO_DBLAYER == 'PGSQL' )
-         {
-           $q = $db->sql_query('SELECT relname FROM pg_stat_user_tables ORDER BY relname;') or $db->_die('Somehow we were denied the request to get the list of tables.');
-         }
-         while($row = $db->fetchrow_num())
-         {
-           if(!in_array($row[0], $system_table_list)) echo '<option value="'.$row[0].'">'.$row[0].'</option>';
-         }
-       ?>
-       </select>
-       </p>
-    <p><label><input type="checkbox" name="do_struct" checked="checked" /> Include table structure</label><br />
-       <label><input type="checkbox" name="do_data"   checked="checked" /> Include table data</label>
-       </p>
-    <p><input type="submit" value="Create backup" /></p>
-    <?php
-    echo '</form>';
-  }
 }
 
 function page_Admin_AdminLogout()

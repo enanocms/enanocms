@@ -36,7 +36,7 @@ function page_Admin_UserManager()
     
     if ( defined('ENANO_DEMO_MODE') )
     {
-      $errors[] = 'Users cannot be modified or deleted in demo mode.';
+      $errors[] = $lang->get('acpum_err_nosave_demo');
     }
     
     $user_id = intval($_POST['user_id']);
@@ -51,7 +51,7 @@ function page_Admin_UserManager()
       $q = $db->sql_query('DELETE FROM '.table_prefix."users WHERE user_id=$user_id;");
       if ( !$q )
         $db->_die();
-      echo '<div class="info-box">The user account has been deleted.</div>';
+      echo '<div class="info-box">' . $lang->get('acpum_msg_delete_success') . '</div>';
     }
     else
     {
@@ -66,7 +66,7 @@ function page_Admin_UserManager()
       {
         $username = $_POST['username'];
         if ( !preg_match('#^'.$session->valid_username.'$#', $username) )
-          $errors[] = 'The username you entered contains invalid characters.';
+          $errors[] = $lang->get('acpum_err_illegal_username');
         
         $password = false;
         if ( $_POST['changing_pw'] == 'yes' )
@@ -82,13 +82,13 @@ function page_Admin_UserManager()
           }
           else
           {
-            $errors[] = 'Session manager denied public encryption key lookup request';
+            $errors[] = $lang->get('acpum_err_no_aes_key');
           }
         }
         
         $email = $_POST['email'];
         if ( !preg_match('/^(?:[\w\d]+\.?)+@((?:(?:[\w\d]\-?)+\.)+\w{2,4}|localhost)$/', $email) )
-          $errors[] = 'You have entered an invalid e-mail address.';
+          $errors[] = $lang->get('acpum_err_illegal_email');
         
         $real_name = $_POST['real_name'];
       }
@@ -389,7 +389,7 @@ function page_Admin_UserManager()
             }
           }
           
-          echo '<div class="info-box">Your changes have been saved.</div>';
+          echo '<div class="info-box">' . $lang->get('acpum_msg_save_success') . '</div>';
         }
       }
     }
@@ -397,7 +397,7 @@ function page_Admin_UserManager()
     if ( count($errors) > 0 )
     {
       echo '<div class="error-box">
-              <b>Your request could not be processed due to the following validation errors:</b>
+              <b>' . $lang->get('acpum_err_validation_fail') . '</b>
               <ul>
                 <li>' . implode("</li>\n        <li>", $errors) . '</li>
               </ul>
@@ -455,7 +455,7 @@ function page_Admin_UserManager()
     
     if ( $db->numrows() < 1 )
     {
-      echo '<div class="error-box">The username you entered could not be found.</div>';
+      echo '<div class="error-box">' . $lang->get('acpum_err_bad_username') . '</div>';
     }
     else
     {
@@ -501,7 +501,7 @@ function page_Admin_UserManager()
   {
     if ( defined('ENANO_DEMO_MODE') )
     {
-      echo '<div class="error-box">Sorry Charlie, no can do. You might mess up other people logged into the demo site.</div>';
+      echo '<div class="error-box">' . $lang->get('acpum_err_sessionclear_demo') . '</div>';
     }
     else
     {
@@ -534,27 +534,27 @@ function page_Admin_UserManager()
       $db->sql_query('DELETE FROM '.table_prefix.'session_keys;');
       $db->sql_query('INSERT INTO '.table_prefix.'session_keys( session_key,salt,user_id,auth_level,source_ip,time ) VALUES( \''.$ra['session_key'].'\', \''.$ra['salt'].'\', \''.$session->user_id.'\', \''.$ra['auth_level'].'\', \''.$ra['source_ip'].'\', '.$ra['time'].' ),( \''.$rb['session_key'].'\', \''.$rb['salt'].'\', \''.$session->user_id.'\', \''.$rb['auth_level'].'\', \''.$rb['source_ip'].'\', '.$rb['time'].' )');
       
-      echo '<div class="info-box">The session key table has been cleared. Your database should be a little bit smaller now.</div>';
+      echo '<div class="info-box">' . $lang->get('acpum_msg_sessionclear_success') . '</div>';
     }
   }
   echo '<form action="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'], true) . '" method="post" enctype="multipart/form-data" onsubmit="if ( !submitAuthorized ) return false;">';
-  echo '<h3>User administration panel</h3>';
-  echo '<p>From this panel you can modify or delete user accounts.</p>';
+  echo '<h3>' . $lang->get('acpum_heading_main') . '</h3>';
+  echo '<p>' . $lang->get('acpum_hint_intro') . '</p>';
   echo '<table border="0">
           <tr>
-            <td><b>Search for user:</b><br />
-                <small>If your browser supports AJAX, this will provide suggestions for you.</small>
+            <td><b>' . $lang->get('acpum_field_search_user') . '</b><br />
+                <small>' . $lang->get('acpum_field_search_user_hint') . '</small>
                 </td>
             <td style="width: 10px;"></td>
             <td>' . $template->username_field('username') . '</td>
             <td>
-              <input type="submit" name="action[go]" value="Go &raquo;" />
+              <input type="submit" name="action[go]" value="' . $lang->get('acpum_btn_search_user_go') . ' &raquo;" />
             </td>
           </tr>
         </table>';
-  echo '<h3>Clear session key table</h3>';
-  echo '<p>It\'s a good idea to clean out your session keys table every once in a while, since this helps to reduce database size. During this process you will be logged off and (hopefully) logged back on automatically. If you do this, all users besides you will be logged off, so be sure to do this at a time when traffic is low.</p>';
-  echo '<p><input type="submit" name="action[clear_sessions]" value="Clear session keys" /></p>';
+  echo '<h3>' . $lang->get('acpum_heading_clear_sessions') . '</h3>';
+  echo '<p>' . $lang->get('acpum_hint_clear_sessions') . '</p>';
+  echo '<p><input type="submit" name="action[clear_sessions]" value="' . $lang->get('acpum_btn_clear_sessions') . '" /></p>';
   echo '</form>';
   
   if(isset($_GET['action']) && isset($_GET['user']))
@@ -563,22 +563,47 @@ function page_Admin_UserManager()
     {
       case "activate":
         $e = $db->sql_query('SELECT activation_key FROM '.table_prefix.'users WHERE username=\'' . $db->escape($_GET['user']) . '\'');
-        if($e)
+        if ( $e )
         {
+          // attempt to activate the account
           $row = $db->fetchrow();
           $db->free_result();
-          if($session->activate_account($_GET['user'], $row['activation_key'])) { echo '<div class="info-box">The user account "' . htmlspecialchars($_GET['user']) . '" has been activated.</div>'; $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid'])); }
-          else echo '<div class="warning-box">The user account "' . htmlspecialchars($_GET['user']) . '" has NOT been activated, possibly because the account is already active.</div>';
-        } else echo '<div class="error-box">Error activating account: '.mysql_error().'</div>';
+          if ( $session->activate_account($_GET['user'], $row['activation_key']) )
+          {
+            echo '<div class="info-box">' . $lang->get('acpum_msg_activate_success', array('username' => htmlspecialchars($_GET['user']))) . '</div>';
+            $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid']));
+          }
+          else
+          {
+            echo '<div class="warning-box">' . $lang->get('acpum_err_activate_fail', array('username' => htmlspecialchars($_GET['user']))) . '</div>';
+          }
+        }
+        else
+        {
+          echo '<div class="error-box">Error activating account: '.$db->get_error().'</div>';
+        }
         break;
       case "sendemail":
-        if($session->send_activation_mail($_GET['user'])) { echo '<div class="info-box">The user "' . htmlspecialchars($_GET['user']) . '" has been sent an e-mail with an activation link.</div>'; $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid'])); }
-        else echo '<div class="error-box">The user account "' . htmlspecialchars($_GET['user']) . '" has not been activated, probably because of a bad SMTP configuration.</div>';
+        if ( $session->send_activation_mail($_GET['user'] ) )
+        {
+          echo '<div class="info-box">' . $lang->get('acpum_msg_activate_email_success', array('username' => htmlspecialchars($_GET['user']))) . '</div>';
+          $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE time_id=' . $db->escape($_GET['logid']));
+        }
+        else
+        {
+          echo '<div class="error-box">' . $lang->get('acpum_err_activate_email_fail', array('username' => htmlspecialchars($_GET['user']))) . '</div>';
+        }
         break;
       case "deny":
         $e = $db->sql_query('DELETE FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\' AND time_id=\'' . $db->escape($_GET['logid']) . '\';');
-        if(!$e) echo '<div class="error-box">Error during row deletion: '.mysql_error().'</div>';
-        else echo '<div class="info-box">All activation requests for the user "' . htmlspecialchars($_GET['user']) . '" have been deleted.</div>';
+        if ( !$e )
+        {
+          echo '<div class="error-box">Error during row deletion: '.$db->get_error().'</div>';
+        }
+        else
+        {
+          echo '<div class="info-box">' . $lang->get('acpum_msg_activate_deny_success', array('username' => htmlspecialchars($_GET['user']))) . '</div>';
+        }
         break;
     }
   }
@@ -591,19 +616,42 @@ function page_Admin_UserManager()
     if($db->numrows() > 0)
     {
       $n = $db->numrows();
-      if($n == 1) $s = $n . ' user is';
-      else $s = $n . ' users are';
-      echo '<h3>'.$s . ' awaiting account activation</h3>';
+      $str = ( $n == 1 ) ?
+        $lang->get('acpum_heading_activation_one') :
+        $lang->get('acpum_heading_activation_plural', array('count' => strval($n)));
+        
+      echo '<h3>' . $str . '</h3>';
+        
       echo '<div class="tblholder">
-            <table border="0" cellspacing="1" cellpadding="4" width="100%">
-            <tr><th>Date of request</th><th>Requested by</th><th>Requested for</th><th>COPPA user</th><th colspan="3">Actions</th></tr>';
+              <table border="0" cellspacing="1" cellpadding="4" width="100%">
+                <tr>
+                  <th>' . $lang->get('acpum_col_activate_timestamp') . '</th>
+                  <th>' . $lang->get('acpum_col_activate_requestedby') . '</th>
+                  <th>' . $lang->get('acpum_col_activate_requestedfor') . '</th>
+                  <th>' . $lang->get('acpum_col_activate_coppauser') . '</th>
+                  <th colspan="3">' . $lang->get('acpum_col_activate_actions') . '</th>
+                </tr>';
       $cls = 'row2';
       while($row = $db->fetchrow())
       {
         if($cls == 'row2') $cls = 'row1';
         else $cls = 'row2';
-        $coppa = ( $row['user_coppa'] == '1' ) ? '<b>Yes</b>' : 'No';
-        echo '<tr><td class="'.$cls.'">'.date('F d, Y h:i a', $row['time_id']).'</td><td class="'.$cls.'">'.$row['author'].'</td><td class="'.$cls.'">'.$row['edit_summary'].'</td><td style="text-align: center;" class="' . $cls . '">' . $coppa . '</td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=activate&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Activate now</a></td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=sendemail&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Send activation e-mail</a></td><td class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&amp;action=deny&amp;user='.$row['edit_summary'].'&amp;logid='.$row['time_id']).'">Deny request</a></td></tr>';
+        $coppa = ( $row['user_coppa'] == '1' ) ? '<b>' . $lang->get('acpum_coppauser_yes') . '</b>' : $lang->get('acpum_coppauser_no');
+        echo '<tr>
+                <td class="'.$cls.'">'.enano_date('F d, Y h:i a', $row['time_id']).'</td>
+                <td class="'.$cls.'">'.$row['author'].'</td>
+                <td class="'.$cls.'">'.$row['edit_summary'].'</td>
+                <td style="text-align: center;" class="' . $cls . '">' . $coppa . '</td>
+                <td class="'.$cls.'" style="text-align: center;">
+                  <a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&action=activate&user='.rawurlencode($row['edit_summary']).'&logid='.$row['time_id'], true).'">' . $lang->get('acpum_btn_activate_now') . '</a>
+                </td>
+                <td class="'.$cls.'" style="text-align: center;">
+                  <a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&action=sendemail&user='.rawurlencode($row['edit_summary']).'&logid='.$row['time_id'], true).'">' . $lang->get('acpum_btn_send_email') . '</a>
+                </td>
+                <td class="'.$cls.'" style="text-align: center;">
+                  <a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'UserManager&action=deny&user='.rawurlencode($row['edit_summary']).'&logid='.$row['time_id'], true).'">' . $lang->get('acpum_btn_activate_deny') . '</a>
+                </td>
+              </tr>';
       }
       echo '</table>';
     }
@@ -768,7 +816,7 @@ class Admin_UserManager_SmartForm
             {
               if ( form.new_password.value != form.new_password_confirm.value )
               {
-                alert('The passwords you entered did not match.');
+                alert(\$lang.get('user_reg_err_alert_password_nomatch'));
                 return false;
               }
               form.new_password_confirm.value = '';
@@ -790,7 +838,7 @@ class Admin_UserManager_SmartForm
             
               <tr>
                 <th colspan="2">
-                  Editing user: {USERNAME}
+                  {lang:acpum_heading_editing_user} {USERNAME}
                 </th>
               </tr>
               
@@ -798,35 +846,36 @@ class Admin_UserManager_SmartForm
               
                 <tr>
                   <th colspan="2" class="subhead">
-                    Basic options
+                    {lang:acpum_heading_basic_options}
                   </th>
                 </tr>
                 
                 <tr>
                   <td class="row2" style="width: 25%;">
-                    Username:<br />
-                    <small>Must be at least 2 characters in length</small>
+                    {lang:acpum_field_username}<br />
+                    <small>{lang:acpum_field_username_hint}</small>
                   </td>
                   <td class="row1" style="width: 75%;">
-                    <input type="text" name="username" value="{USERNAME}" size="40" <!-- BEGIN same_user -->disabled="disabled" <!-- END same_user -->/><!-- BEGIN same_user --> <small>You cannot change your own username. To change your username you must log into a different administrative account.</small><!-- END same_user -->
+                    <input type="text" name="username" value="{USERNAME}" size="40" <!-- BEGIN same_user -->disabled="disabled" <!-- END same_user -->/>
+                    <!-- BEGIN same_user --><small>{lang:acpum_msg_same_user_username}</small><!-- END same_user -->
                   </td>
                 </tr>
                 
                 <tr>
                   <td class="row2">
-                    Password:
+                    {lang:acpum_field_password}
                     <!-- BEGIN password_meter -->
                     <br />
-                    <small>Password strength requirements are not enforced here.</small>
+                    <small>{lang:acpum_field_password_hint}</small>
                     <!-- END password_meter -->
                   </td>
                   <td class="row1">
                     <div id="userform_{UUID}_pwlink">
-                      <b>Password will be left unchanged.</b> <a href="#" onclick="userform_{UUID}_chpasswd(); return false;">Reset password...</a>
+                      <b>{lang:acpum_msg_password_unchanged}</b> <a href="#" onclick="userform_{UUID}_chpasswd(); return false;">{lang:acpum_btn_reset_password}</a>
                     </div>
                     <div id="userform_{UUID}_pwform" style="display: none;">
                       <!-- BEGIN same_user -->
-                      To change your password, please use the user preferences panel. <a href="#" onclick="userform_{UUID}_chpasswd_cancel(); return false;">Cancel</a>
+                        {lang:acpum_msg_same_user_password} <a href="#" onclick="userform_{UUID}_chpasswd_cancel(); return false;">{lang:etc_cancel}</a>
                       <!-- BEGINELSE same_user -->
                       <input type="hidden" name="changing_pw" value="no" />
                       <input type="hidden" name="challenge_data" value="{MD5_CHALLENGE}" />
@@ -836,11 +885,12 @@ class Admin_UserManager_SmartForm
                       <table border="0" style="background-color: transparent;" cellspacing="0" cellpadding="0">
                         <tr>
                           <td colspan="2">
-                            <b>Change password to:</b>
+                            <b>{lang:acpum_field_password_title}</b>
                           </td>
                         </tr>
                         <tr>
-                          <td>New password:</td>
+                          <td>{lang:acpum_field_newpassword}</td>
+                          <!-- FIXME: localize password strength widget -->
                           <td><input type="password" name="new_password" value="" <!-- BEGIN password_meter -->onkeyup="password_score_field(this);" /><span class="password-checker" style="font-weight: bold; color: #AA0000"> Weak (score: -10)</span><!-- BEGINELSE password_meter --> /><!-- END password_meter -->
                             <!-- BEGIN password_meter -->
                               <div id="pwmeter" style="margin: 4px 0; height: 8px;"></div>
@@ -848,12 +898,12 @@ class Admin_UserManager_SmartForm
                           </td>
                         </tr>
                         <tr>
-                          <td>Confirm:</td>
+                          <td>{lang:acpum_field_newpassword_confirm}</td>
                           <td><input type="password" name="new_password_confirm" value="" /></td>
                         </tr>
                         <tr>
                           <td colspan="2">
-                            <a href="#" onclick="userform_{UUID}_chpasswd_cancel(); return false;">Cancel</a>
+                            <a href="#" onclick="userform_{UUID}_chpasswd_cancel(); return false;">{lang:etc_cancel}</a>
                           </td>
                         </tr>
                       </table>
@@ -864,25 +914,27 @@ class Admin_UserManager_SmartForm
                 
                 <tr>
                   <td class="row2" style="width: 25%;">
-                    E-mail address:
+                    {lang:acpum_field_email}
                   </td>
                   <td class="row1" style="width: 75%;">
-                    <input type="text" name="email" value="{EMAIL}" size="40" <!-- BEGIN same_user -->disabled="disabled" <!-- END same_user -->/><!-- BEGIN same_user --> <small>To change your e-mail address, please use the user preferences panel.</small><!-- END same_user -->
+                    <input type="text" name="email" value="{EMAIL}" size="40" <!-- BEGIN same_user -->disabled="disabled" <!-- END same_user -->/>
+                    <!-- BEGIN same_user --><small>{lang:acpum_msg_same_user_email}</small><!-- END same_user -->
                   </td>
                 </tr>
                 
                 <tr>
                   <td class="row2" style="width: 25%;">
-                    Real name:
+                    {lang:acpum_field_realname}
                   </td>
                   <td class="row1" style="width: 75%;">
-                    <input type="text" name="real_name" value="{REAL_NAME}" size="40" <!-- BEGIN same_user -->disabled="disabled" <!-- END same_user -->/><!-- BEGIN same_user --> <small>To change your real name on file, please use the user preferences panel.</small><!-- END same_user -->
+                    <input type="text" name="real_name" value="{REAL_NAME}" size="40" <!-- BEGIN same_user -->disabled="disabled" <!-- END same_user -->/>
+                    <!-- BEGIN same_user --><small>{lang:acpum_msg_same_user_realname}</small><!-- END same_user -->
                   </td>
                 </tr>
                 
                 <tr>
                   <td class="row2" style="width: 25%;">
-                    Signature:
+                    {lang:acpum_field_signature}
                   </td>
                   <td class="row1" style="width: 75%;">
                     {SIGNATURE_FIELD}
@@ -895,47 +947,47 @@ class Admin_UserManager_SmartForm
               
                 <tr>
                   <th class="subhead" colspan="2">
-                    Instant messenger contact information
+                    {lang:acpum_heading_imcontact}
                   </th>
                 <tr>
-                  <td class="row2">AIM handle:</td>
+                  <td class="row2">{lang:acpum_field_aim}</td>
                   <td class="row1"><input type="text" name="imaddr_aim" value="{IM_AIM}" size="30" /></td>
                 </tr>
                 <tr>
-                  <td class="row2"><acronym title="Windows&trade; Live Messenger">WLM</acronym> handle:<br /><small>If you don't specify the domain (@whatever.com), "@hotmail.com" will be assumed.</small></td>
+                  <td class="row2">{lang:acpum_field_wlm}<br /><small>{lang:acpum_field_wlm_hint}</small></td>
                   <td class="row1"><input type="text" name="imaddr_msn" value="{IM_WLM}" size="30" /></td>
                 </tr>
                 <tr>
-                  <td class="row2">Yahoo! IM handle:</td>
+                  <td class="row2">{lang:acpum_field_yim}</td>
                   <td class="row1"><input type="text" name="imaddr_yahoo" value="{IM_YAHOO}" size="30" /></td>
                 </tr>
                 <tr>
-                  <td class="row2">Jabber/XMPP handle:</td>
+                  <td class="row2">{lang:acpum_field_xmpp}</td>
                   <td class="row1"><input type="text" name="imaddr_xmpp" value="{IM_XMPP}" size="30" /></td>
                 </tr>
                 <tr>
                   <th class="subhead" colspan="2">
-                    Extra contact information
+                    {lang:acpum_heading_contact_extra}
                   </th>
                 </tr>
                 <tr>
-                  <td class="row2">Homepage:<br /><small>Please remember the http:// prefix.</small></td>
+                  <td class="row2">{lang:acpum_field_homepage}<br /><small>{lang:acpum_field_homepage_hint}</small></td>
                   <td class="row1"><input type="text" name="homepage" value="{HOMEPAGE}" size="30" /></td>
                 </tr>
                 <tr>
-                  <td class="row2">Location:</td>
+                  <td class="row2">{lang:acpum_field_location}</td>
                   <td class="row1"><input type="text" name="location" value="{LOCATION}" size="30" /></td>
                 </tr>
                 <tr>
-                  <td class="row2">Job:</td>
+                  <td class="row2">{lang:acpum_field_job}</td>
                   <td class="row1"><input type="text" name="occupation" value="{JOB}" size="30" /></td>
                 </tr>
                 <tr>
-                  <td class="row2">Hobbies:</td>
+                  <td class="row2">{lang:acpum_field_hobbies}</td>
                   <td class="row1"><input type="text" name="hobbies" value="{HOBBIES}" size="30" /></td>
                 </tr>
                 <tr>
-                  <td class="row2"><label for="chk_email_public_{UUID}">E-mail address is public</label><br /><small>If this is checked, the user's e-mail address will be displayed on your the page. To protect the address from spambots, it will be encrypted.</small></td>
+                  <td class="row2"><label for="chk_email_public_{UUID}">{lang:acpum_field_email_public}</label><br /><small>{lang:acpum_field_email_public_hint}</small></td>
                   <td class="row1"><input type="checkbox" id="chk_email_public_{UUID}" name="email_public" <!-- BEGIN email_public -->checked="checked" <!-- END email_public -->size="30" /></td>
                 </tr>
               
@@ -945,7 +997,7 @@ class Admin_UserManager_SmartForm
               
                 <tr>
                   <th class="subhead" colspan="2">
-                    {lang:adminusers_avatar_heading}
+                    {lang:acpum_avatar_heading}
                   </th>
                 </tr>
                 
@@ -957,14 +1009,14 @@ class Admin_UserManager_SmartForm
                     <!-- BEGIN user_has_avatar -->
                       <img alt="{AVATAR_ALT}" src="{AVATAR_SRC}" />
                     <!-- BEGINELSE user_has_avatar -->
-                      {lang:adminusers_avatar_image_none}
+                      {lang:acpum_avatar_image_none}
                     <!-- END user_has_avatar -->
                   </td>
                 </tr>
                 
                 <tr>
                   <td class="row2">
-                    {lang:adminusers_avatar_lbl_change}
+                    {lang:acpum_avatar_lbl_change}
                   </td>
                   <td class="row1">
                     <script type="text/javascript">
@@ -988,14 +1040,14 @@ class Admin_UserManager_SmartForm
                         }
                       }
                     </script>
-                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="keep" checked="checked" /> {lang:adminusers_avatar_lbl_keep}</label><br />
-                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="remove" /> {lang:adminusers_avatar_lbl_remove}</label><br />
-                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_http" /> {lang:adminusers_avatar_lbl_set_http}</label><br />
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="keep" checked="checked" /> {lang:acpum_avatar_lbl_keep}</label><br />
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="remove" /> {lang:acpum_avatar_lbl_remove}</label><br />
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_http" /> {lang:acpum_avatar_lbl_set_http}</label><br />
                       <div id="avatar_upload_http_{UUID}" style="display: none; margin: 10px 0 0 2.2em;">
                         {lang:usercp_avatar_lbl_url} <input type="text" name="avatar_http_url" size="40" value="http://" /><br />
                         <small>{lang:usercp_avatar_lbl_url_desc} {lang:usercp_avatar_limits}</small>
                       </div>
-                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_file" /> {lang:adminusers_avatar_lbl_set_file}</label>
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_file" /> {lang:acpum_avatar_lbl_set_file}</label>
                       <div id="avatar_upload_file_{UUID}" style="display: none; margin: 10px 0 0 2.2em;">
                         {lang:usercp_avatar_lbl_file} <input type="file" name="avatar_file" size="40" value="http://" /><br />
                         <small>{lang:usercp_avatar_lbl_file_desc} {lang:usercp_avatar_limits}</small>
@@ -1009,44 +1061,43 @@ class Admin_UserManager_SmartForm
               
                 <tr>
                   <th class="subhead" colspan="2">
-                    Administrator-only options
+                    {lang:acpum_heading_adminonly}
                   </th>
                 </tr>
                 
                 <tr>
-                  <td class="row2">User account is active<br />
-                                   <small>If this is unchecked, the existing activation key will be overwritten in the database, thus invalidating any activation e-mails sent to the user.</small>
+                  <td class="row2">{lang:acpum_field_active_title}<br />
+                                   <small>{lang:acpum_field_active_hint}</small>
                                    </td>
-                  <td class="row1"><label><input type="checkbox" name="account_active" <!-- BEGIN account_active -->checked="checked" <!-- END account_active -->/> Account is active and enabled</label></td>
+                  <td class="row1"><label><input type="checkbox" name="account_active" <!-- BEGIN account_active -->checked="checked" <!-- END account_active -->/> {lang:acpum_field_active}</label></td>
                 </tr>
                 
                 <tr>
                   <td class="row2">
-                    User's site access level<br />
-                    <small>If this is changed, the relevant group memberships will be updated accordingly.</small>
+                    {lang:acpum_field_userlevel}<br />
+                    <small>{lang:acpum_field_userlevel_hint}</small>
                   </td>
                   <td class="row1">
                     <select name="user_level">
-                      <option value="{USER_LEVEL_MEMBER}"<!-- BEGIN ul_member --> selected="selected"<!-- END ul_member -->>Normal member</option>
-                      <option value="{USER_LEVEL_MOD}"<!-- BEGIN ul_mod --> selected="selected"<!-- END ul_mod -->>Moderator</option>
-                      <option value="{USER_LEVEL_ADMIN}"<!-- BEGIN ul_admin --> selected="selected"<!-- END ul_admin -->>Site administrator</option>
+                      <option value="{USER_LEVEL_MEMBER}"<!-- BEGIN ul_member --> selected="selected"<!-- END ul_member -->>{lang:userfuncs_ml_level_member}</option>
+                      <option value="{USER_LEVEL_MOD}"<!-- BEGIN ul_mod --> selected="selected"<!-- END ul_mod -->>{lang:userfuncs_ml_level_mod}</option>
+                      <option value="{USER_LEVEL_ADMIN}"<!-- BEGIN ul_admin --> selected="selected"<!-- END ul_admin -->>{lang:userfuncs_ml_level_admin}</option>
                     </select>
                   </td>
                 </tr>
                 
                 <tr>
                   <td class="row2">
-                    Delete user account
+                    {lang:acpum_field_deleteaccount_title}
                   </td>
                   <td class="row1">
-                    <label><input type="checkbox" name="delete_account" onclick="var d = (this.checked) ? 'block' : 'none'; document.getElementById('delete_blurb_{UUID}').style.display = d;" /> Permanently delete this user account when I click Save</label>
+                  <label><input type="checkbox" name="delete_account" onclick="var d = (this.checked) ? 'block' : 'none'; document.getElementById('delete_blurb_{UUID}').style.display = d;" /> {lang:acpum_field_deleteaccount}</label>
                     <div id="delete_blurb_{UUID}" style="display: none;">
                       <!-- BEGIN same_user -->
-                      <p><b><blink style="color: red;">WARNING!</blink> This will delete your own user account!</b></p>
+                      <!-- Obnoxious I know, but it's needed. -->
+                      <p><b>{lang:acpum_msg_delete_own_account}</b></p>
                       <!-- END same_user -->
-                      <p><small>Even if you delete this user account, the username will be shown in page edit history, comments, and other areas of the site.
-                      Deleting a user account CANNOT BE UNDONE and should only be done in extreme circumstances.
-                      If the user has violated the site policy, deleting the account will not prevent him from using the site or creating a new account, for that you need to add a new ban rule.</small></p>
+                      <p><small>{lang:acpum_field_deleteaccount_hint}</small></p>
                     </div>
                   </td>
                 </tr>
@@ -1055,8 +1106,8 @@ class Admin_UserManager_SmartForm
               <!-- Save button -->
               <tr>
                 <th colspan="2">
-                  <input type="submit" name="action[save]" value="Save changes" style="font-weight: bold;" />
-                  <input type="submit" name="action[noop]" value="Cancel" style="font-weight: normal;" />
+                  <input type="submit" name="action[save]" value="{lang:acpum_btn_save}" style="font-weight: bold;" />
+                  <input type="submit" name="action[noop]" value="{lang:etc_cancel}" style="font-weight: normal;" />
                 </th>
               </tr>
             

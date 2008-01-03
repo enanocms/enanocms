@@ -98,6 +98,18 @@ define('GENERAL_ERROR', 'General error');
 define('GENERAL_NOTICE', 'Information');
 define('CRITICAL_ERROR', 'Critical error');
 
+//
+// Enano versions progress
+//
+
+// These constants are used to perform "at least version X" type logic in plugins. Constants should
+// be defined as ENANO_ATLEAST_<major version>_<minor version>, and they should match the version of
+// the Enano API, not any forked version. This is to ensure that plugins know what features to enable
+// and disable for compatibility with both branches.
+
+define('ENANO_ATLEAST_1_0', '');
+define('ENANO_ATLEAST_1_1', '');
+
 // You can un-comment the next line to require database backups to be encrypted using the site's unique key.
 // This keeps the file safe in transit, but also prevents any type of editing to the file. This is NOT
 // recommended except for tiny sites because encrypting an average of 2MB of data will take a while.

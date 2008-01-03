@@ -324,13 +324,15 @@ class sessionManager {
   }
   
   /**
-   * PHP 4 compatible constructor.
+   * PHP 4 compatible constructor. Deprecated in 1.1.x.
    */
    
+  /*
   function sessionManager()
   {
     $this->__construct();
   }
+  */
   
   /**
    * Wrapper function to sanitize strings for MySQL and HTML
@@ -593,7 +595,7 @@ class sessionManager {
         // policy is captcha -- check if it's correct, and if so, bypass lockout check
         $real_code = $this->get_captcha($captcha_hash);
       }
-      if ( $policy != 'disable' && !( $policy == 'captcha' && isset($real_code) && $real_code == $captcha_code ) )
+      if ( $policy != 'disable' && !( $policy == 'captcha' && isset($real_code) && strtolower($real_code) == strtolower($captcha_code) ) )
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         $timestamp_cutoff = time() - $duration;
@@ -668,9 +670,9 @@ class sessionManager {
     {
       // This wasn't logged in <1.0.2, dunno how it slipped through
       if($level > USER_LEVEL_MEMBER)
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
     
       if ( $policy != 'disable' && !defined('IN_ENANO_INSTALL') )
       {
@@ -758,9 +760,9 @@ class sessionManager {
         $this->style = $row['style'];
         
         if($level > USER_LEVEL_MEMBER)
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
         else
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
         $code = $plugins->setHook('login_success');
         foreach ( $code as $cmd )
@@ -780,9 +782,9 @@ class sessionManager {
     else
     {
       if($level > USER_LEVEL_MEMBER)
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
       // Do we also need to increment the lockout countdown?
       if ( $policy != 'disable' && !defined('IN_ENANO_INSTALL') )
@@ -886,9 +888,9 @@ class sessionManager {
     {
       // This wasn't logged in <1.0.2, dunno how it slipped through
       if($level > USER_LEVEL_MEMBER)
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
       
       // Do we also need to increment the lockout countdown?
       if ( $policy != 'disable' && !defined('IN_ENANO_INSTALL') )
@@ -968,9 +970,9 @@ class sessionManager {
       if($sess)
       {
         if($level > USER_LEVEL_MEMBER)
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
         else
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
         $code = $plugins->setHook('login_success');
         foreach ( $code as $cmd )
@@ -991,9 +993,9 @@ class sessionManager {
     else
     {
       if($level > USER_LEVEL_MEMBER)
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
       // Do we also need to increment the lockout countdown?
       if ( $policy != 'disable' && !defined('IN_ENANO_INSTALL') )
@@ -2046,7 +2048,7 @@ Date (YYYY-MM-DD): ______ / _____ / _____
   function admin_activation_request($u)
   {
     global $db;
-    $this->sql('INSERT INTO '.table_prefix.'logs(log_type, action, time_id, date_string, author, edit_summary) VALUES(\'admin\', \'activ_req\', '.time().', \''.date('d M Y h:i a').'\', \''.$this->username.'\', \''.$db->escape($u).'\');');
+    $this->sql('INSERT INTO '.table_prefix.'logs(log_type, action, time_id, date_string, author, edit_summary) VALUES(\'admin\', \'activ_req\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$this->username.'\', \''.$db->escape($u).'\');');
   }
   
   /**
@@ -2062,11 +2064,11 @@ Date (YYYY-MM-DD): ______ / _____ / _____
     $r = mysql_affected_rows();
     if ( $r > 0 )
     {
-      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_good\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
+      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
     }
     else
     {
-      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_bad\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
+      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
     }
     return $r;
   }
@@ -2549,6 +2551,8 @@ Date (YYYY-MM-DD): ______ / _____ / _____
     $s = '';
     foreach($perms as $perm => $ac)
     {
+      if ( $ac == 'i' )
+        continue;
       $s .= "$perm=$ac;";
     }
     return $s;
@@ -2592,6 +2596,31 @@ Date (YYYY-MM-DD): ______ / _____ / _____
       // {
       //   $ret[$type] = $level;
       // }
+    }
+    return $ret;
+  }
+  
+  /**
+   * Merges two ACL arrays, but instead of calculating inheritance for missing permission types, just returns 'i' for that type. Useful
+   * for explicitly requiring inheritance in ACL editing interfaces
+   * @param array $perm1 The first set of permissions
+   * @param array $perm2 The second, authoritative set of permissions
+   */
+  
+  function acl_merge_inherit($perm1, $perm2)
+  {
+    foreach ( $perm1 as $type => $level )
+    {
+      $perm1[$type][$level] = 'i';
+    }
+    $ret = $perm1;
+    foreach ( $perm2 as $type => $level )
+    {
+      if ( isset( $ret[$type] ) )
+      {
+        if ( $ret[$type] != AUTH_DENY )
+          $ret[$type] = $level;
+      }
     }
     return $ret;
   }

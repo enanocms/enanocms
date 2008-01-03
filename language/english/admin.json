@@ -18,7 +18,7 @@
 var enano_lang = {
   categories: [
     'adm', 'acl', 'adminusers',
-    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm',
+    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum',
   ],
   strings: {
     meta: {
@@ -29,8 +29,11 @@ var enano_lang = {
       acpup: 'ACP: File uploads',
       acpft: 'ACP: Allowed file types',
       acppl: 'ACP: Manage plugins',
+      acpdb: 'ACP: Database backup',
       acppm: 'ACP: Manage pages',
-      adminusers: 'ACP: User management'
+      acped: 'ACP: Edit page content',
+      acppg: 'ACP: Page groups',
+      acpum: 'ACP: User management',
     },
     adm: {
       cat_general: 'General',
@@ -97,11 +100,21 @@ var enano_lang = {
       lbl_save_success_body: 'The permissions for %target_name% on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.',
       lbl_delete_success_title: 'Rule deleted',
       lbl_delete_success_body: 'The access rules for %target_name% on this page have been deleted.',
+      lbl_field_inherit: 'Inherit',
       lbl_field_deny: 'Deny',
       lbl_field_disallow: 'Disallow',
       lbl_field_wikimode: 'Wiki mode',
       lbl_field_allow: 'Allow',
-      lbl_help: '<p><b>Permission types:</b></p><ul><li><b>Allow</b> means that the user is allowed to access the item</li><li><b>Wiki mode</b> means the user can access the item if wiki mode is active (per-page wiki mode is taken into account)</li><li><b>Disallow</b> means the user is denied access unless something allows it.</li><li><b>Deny</b> means that the user is denied access to the item. This setting overrides all other permissions.</li></ul>',
+      lbl_help: '<p>
+                   <b>Permission types:</b>
+                 </p>
+                 <ul>
+                   <li><b>Allow</b> means that the user is allowed to access the item</li>
+                   <li><b>Wiki mode</b> means the user can access the item if wiki mode is active (per-page wiki mode is taken into account)</li>
+                   <li><b>Disallow</b> means the user is denied access unless something allows it.</li>
+                   <li><b>Deny</b> means that the user is denied access to the item. This setting overrides all other permissions.</li>
+                   <li><b>Inherit</b> forces the permission to be unset and thus inherited from the defaults. Setting every permission to Inherit is the same as deleting the rule.</li>
+                 </ul>',
       
       scope_type_wholesite: 'this entire site',
       scope_type_thispage: 'this page',
@@ -137,6 +150,7 @@ var enano_lang = {
       th_toppages_page: 'Page',
       th_toppages_hits: 'Hits',
       heading_seclog: 'Security log',
+      msg_seclog_info: 'This list shows the 5 most recent actions/attempted actions performed by administrators on this site. This also includes attempts to view blocked pages and use the administration panel without appropriate privileges. You can view a complete list using the link below.',
       btn_seclog_full: 'Full security log',
     },
     acpgc: {
@@ -392,7 +406,200 @@ var enano_lang = {
       
       msg_save_success: 'Your changes to the page have been saved. <a href="%viewpage_url%">View page &raquo;</a>',
     },
-    adminusers: {
+    acped: {
+      heading_main: 'Edit page content',
+      hint: 'This panel allows you to edit the contents of pages that are stored in the database.',
+      // The rest of this section is identical to the first parts of the acppm category by default (you can copy and paste).
+      err_page_not_found: 'No pages matching that search string could be found.',
+      msg_results_ambiguous_title: 'Ambiguous search results',
+      msg_results_ambiguous_body: 'Multiple pages that matched your search terms were found. Please select the page you wish to edit:',
+      ambig_btn_viewpage: 'View',
+      err_ambig_absolute: 'Your database is corrupt as it contains multiple pages with the same urlname and namespace.',
+      lbl_field_search: 'Search for a page title or URL string:',
+      heading_select_page_from_list: 'Select page from a list',
+      hint_select_page_from_list: 'You can also select the page you want to edit from the list below. The list is broken into sections of 100 pages, so if you have a lot of pages on your site, you can click the pagination control below to view more pages.',
+    },
+    acpdb: {
+      err_not_supported_title: 'Not supported',
+      err_not_supported_desc: 'This function is only supported under the MySQL database driver.',
+      err_demo_mode_title: 'Access denied',
+      err_demo_mode_desc: 'Since you\'re using the Enano demo, we can\'t allow database backups. Sorry.',
+      
+      intro: 'This page allows you to back up your Enano database should something go miserably wrong.',
+      lbl_system_tables: 'Export tables that are part of the Enano core',
+      lbl_additional_tables: 'Additional tables to export:',
+      lbl_include_structure: 'Include table structure',
+      lbl_include_data: 'Include table data',
+      btn_create_backup: 'Create backup',
+    },
+    acppg: {
+      // Main menu
+      heading_main: 'Manage page groups',
+      hint_intro: 'Enano\'s page grouping system allows you to build sets of pages that can be controlled by a single ACL rule. This makes managing features such as a members-only section of your site a lot easier. If you don\'t use the ACL system, you probably don\'t need to use page groups.',
+      col_group_name: 'Group name',
+      col_type: 'Type',
+      col_target: 'Target',
+      col_actions: 'Actions',
+      gtype_catlink: 'Link to category',
+      gtype_tagged: 'Group of pages with one tag',
+      gtype_static: 'Static group of pages',
+      gtype_regex: 'Regular expression match',
+      gtype_regex_long: 'Perl-compatible regular expression (advanced)',
+      lbl_tag: 'Tag:',
+      lbl_category: 'Category:',
+      lbl_regex: 'Expression:',
+      btn_edit: 'Edit',
+      btn_delete: 'Delete',
+      msg_no_groups: 'No page groups defined.',
+      btn_create_new: 'Create new group',
+      
+      // Creation form
+      err_no_cats: 'There aren\'t any categories on this site.',
+      th_create: 'Create page group',
+      field_group_name: 'Group name:',
+      field_group_name_hint: 'This should be short, descriptive, and human-readable.',
+      field_group_type: 'Group type:',
+      
+      field_member_pages: 'Member pages:',
+      field_member_pages_hint: 'Click the "plus" button to add more fields.',
+      field_target_category: 'Include pages in this category:',
+      field_target_category_hint: 'Pages in subcategories are <u>not</u> included, however subcategory pages themselves are.',
+      field_target_category_hint2: '<b>Reminder:</b> Enano does not automatically place any access controls on the category. If you don\'t want users to be able to freely add and remove pages from the category (assuming Wiki Mode is enabled for the category) then you need to enable protection on the category using the button on the more options menu.',
+      field_target_tag: 'Include pages with this tag:',
+      field_target_regex: 'Regular expression:',
+      field_target_regex_hint: 'Be sure to include the starting and ending delimiters and any flags you might need.<br />
+                                These pages might help: <a href="http://us.php.net/manual/en/reference.pcre.pattern.modifiers.php">Pattern modifiers</a> &bull; <a href="http://us.php.net/manual/en/reference.pcre.pattern.syntax.php">Pattern syntax</a><br />
+                                Examples: <tt>/^(Special|Admin):/i</tt> &bull; <tt>/^Image:([0-9]+)$/</tt><br />
+                                Developers, remember that this will be matched against the full page identifier string. This means that <tt>/^About_Enano$/</tt> will NOT match the page Special:About_Enano.',
+      btn_create_finish: 'Create page group',
+      
+      err_need_name: 'Please enter a name for the page group.',
+      err_need_tag: 'Please enter a page tag.',
+      err_need_cat: 'Please create a category page before linking a page group to a category.',
+      err_need_page: 'Please specify at least one page to place in this group.',
+      err_need_regex: 'Please specify a regular expression to match page IDs against.',
+      msg_create_success: 'The page group "%group_name%" has been created.',
+      
+      // Delete form
+      th_delete_confirm: 'Confirm deletion',
+      msg_delete_confirm: 'Are you sure you want to delete this page group?',
+      btn_delete_confirm: 'Yes, delete group',
+      msg_delete_success: 'The group "%pg_name%" has been deleted.',
+      
+      // Editor
+      th_editing_group: 'Editing page group:',
+      btn_save_name: 'Save group name',
+      th_remove_selected: 'Remove pages from this group',
+      field_remove: '<b>Remove</b> pages:',
+      btn_do_remove: 'Remove selected',
+      btn_save_update: 'Save and update',
+      btn_cancel_all: 'Cancel all changes',
+      th_onthefly: 'On-the-fly tools',
+      field_add_page: 'Add page:',
+      field_add_page_hint: 'You can add multiple pages by entering part of a page title, and it will be auto-completed. Press Enter to quickly add the page. This only works if you a really up-to-date browser.',
+      
+      // Validation messages and errors
+      err_ajaxadd_need_title: 'Please enter a page title.',
+      err_ajaxadd_already_in: 'The page you are trying to add is already in this group.',
+      ajaxadd_success: 'The page has been added to the specified group.',
+      err_save_need_name: 'Please enter a valid name for this group.',
+      msg_save_name_updated: 'The group name was updated successfully.',
+      err_save_need_tag: 'Please enter a valid tag.',
+      msg_save_tag_updated: 'The affecting tag was updated.',
+      err_save_need_regex: 'Please enter an expression to match against.',
+      msg_save_regex_updated: 'The expression to match against was updated.',
+      err_save_bad_category: 'No category ID specified on POST URI.',
+      msg_save_cat_updated: 'The affecting category was updated.',
+      err_save_no_pages: 'No pages were selected for deletion, and thus none were deleted.',
+      msg_save_pages_deleted: 'The requested page group members have been deleted.',
+    },
+    acpum: {
+      heading_main: 'User administration panel',
+      hint_intro: 'From this panel you can modify or delete user accounts.',
+      field_search_user: 'Search for user:',
+      field_search_user_hint: 'If your browser supports AJAX, this will provide suggestions for you.',
+      btn_search_user_go: 'Go',
+      heading_clear_sessions: 'Clear session key table',
+      hint_clear_sessions: 'It\'s a good idea to clean out your session keys table every once in a while, since this helps to reduce database size. During this process you will be logged off and (hopefully) logged back on automatically. If you do this, all users besides you will be logged off, so be sure to do this at a time when traffic is low.',
+      btn_clear_sessions: 'Clear session keys',
+      
+      heading_activation_one: '1 user is awaiting account activation',
+      heading_activation_plural: '%count% users are awaiting account activation',
+      col_activate_timestamp: 'Date of request',
+      col_activate_requestedby: 'Requested by',
+      col_activate_requestedfor: 'Requested for',
+      col_activate_coppauser: 'COPPA user',
+      col_activate_actions: 'Actions',
+      coppauser_yes: 'Yes',
+      coppauser_no: 'No',
+      btn_activate_now: 'Activate now',
+      btn_send_email: 'Send activation e-mail',
+      btn_activate_deny: 'Deny request',
+      msg_activate_success: 'The user account "%username%" has been activated.',
+      err_activate_fail: 'The user account %username% has NOT been activated, possibly because the account is already active.',
+      msg_activate_email_success: 'The user %username% has been sent an e-mail with an activation link.',
+      err_activate_email_fail: 'The user account %username% has not been activated, probably because of a bad SMTP configuration.',
+      msg_activate_deny_success: 'All activation requests for the user %username% have been deleted.',
+      
+      msg_sessionclear_success: 'The session key table has been cleared. Your database should be a little bit smaller now.',
+      err_sessionclear_demo: 'Sorry Charlie, no can do. You might mess up other people logged into the demo site.',
+      
+      // VALIDATION ERRORS
+      err_bad_username: 'The username you entered could not be found.',
+      err_validation_fail: 'Your request could not be processed due to the following validation errors:',
+      err_nosave_demo: 'Users cannot be modified or deleted in demo mode.',
+      msg_delete_success: 'The user account has been deleted.',
+      // Note the difference between this and err_bad_username. err_bad_username is shown when the username entered
+      // doesn't match any usernames in the database (e.g. no search results); err_illegal_username is shown when
+      // the admin tries to change the username to one that has illegal characters in it.
+      err_illegal_username: 'The username you entered contains invalid characters.',
+      err_no_aes_key: 'Session manager denied public encryption key lookup request',
+      err_illegal_email: 'You have entered an invalid e-mail address.',
+      msg_save_success: 'Your changes have been saved.',
+      
+      // EDITOR SMARTFORM
+      heading_editing_user: 'Editing user:',
+      heading_basic_options: 'Basic options',
+      
+      field_username: 'Username:',
+      field_username_hint: 'Must be at least 2 characters in length',
+      msg_same_user_username: 'You cannot change your own username. To change your username you must log into a different administrative account.',
+      
+      field_password: 'Password:',
+      field_password_hint: 'Password strength requirements are not enforced here.',
+      msg_password_unchanged: 'Password will be left unchanged.',
+      btn_reset_password: 'Reset password...',
+      msg_same_user_password: 'To change your password, please use the user preferences panel.',
+      field_password_title: 'Change password to:',
+      field_newpassword: 'New password:',
+      field_newpassword_confirm: 'Confirm:',
+      
+      field_email: 'E-mail address:',
+      msg_same_user_email: 'To change your e-mail address, please use the user preferences panel.',
+      
+      field_realname: 'Real name:',
+      msg_same_user_realname: 'To change your real name on file, please use the user preferences panel.',
+      
+      field_signature: 'Signature:',
+      
+      heading_imcontact: 'Instant messenger contact information',
+      
+      field_aim: 'AIM handle:',
+      field_wlm: '<acronym title="Windows&trade; Live Messenger">WLM</acronym> handle:',
+      field_wlm_hint: 'If you don\'t specify the domain (@whatever.com), "@hotmail.com" will be assumed.',
+      field_yim: 'Yahoo! IM handle:',
+      field_xmpp: 'Jabber&trade;/XMPP handle:',
+      
+      heading_contact_extra: 'Extra contact information',
+      
+      field_homepage: 'Homepage:',
+      field_homepage_hint: 'Please remember the http:// prefix.',
+      field_location: 'Location:',
+      field_job: 'Job:',
+      field_hobbies: 'Hobbies:',
+      field_email_public: 'E-mail address is public',
+      field_email_public_hint: 'If this is checked, the user\'s e-mail address will be displayed on your the page. To protect the address from spambots, it will be encrypted.',
+      
       avatar_heading: 'Avatar settings',
       avatar_image_none: 'This user does not currently have an avatar.',
       avatar_lbl_change: 'Change avatar:',
@@ -400,6 +607,21 @@ var enano_lang = {
       avatar_lbl_remove: 'Delete this user\'s avatar',
       avatar_lbl_set_http: 'Replace avatar using a new image from a URL',
       avatar_lbl_set_file: 'Replace avatar using a new image from my computer',
+      
+      heading_adminonly: 'Administrator-only options',
+      
+      field_active_title: 'User account is active',
+      field_active_hint: 'If this is unchecked, the existing activation key will be overwritten in the database, thus invalidating any activation e-mails sent to the user.',
+      field_active: 'Account is active and enabled',
+      field_userlevel: 'User\'s site access level',
+      field_userlevel_hint: 'If this is changed, the relevant group memberships will be updated accordingly.',
+      
+      field_deleteaccount_title: 'Delete user account',
+      field_deleteaccount: 'Permanently delete this user account when I click Save',
+      msg_delete_own_account: '<blink style="color: red;">WARNING!</blink> This will delete your own user account!',
+      field_deleteaccount_hint: 'Even if you delete this user account, the username will be shown in page edit history, comments, and other areas of the site. Deleting a user account CANNOT BE UNDONE and should only be done in extreme circumstances. If the user has violated the site policy, deleting the account will not prevent him from using the site or creating a new account, for that you need to add a new ban rule.',
+      
+      btn_save: 'Save changes',
     }
   }
 };

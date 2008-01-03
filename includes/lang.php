@@ -105,16 +105,6 @@ class Language
   }
   
   /**
-   * PHP 4 constructor.
-   * @param int|string Language ID or code to load.
-   */
-  
-  function Language($lang)
-  {
-    $this->__construct($lang);
-  }
-  
-  /**
    * Fetches language strings from the database, or a cache file if it's available.
    * @param bool If true (default), allows the cache to be used.
    */

@@ -182,7 +182,7 @@
         $return = array(
           'mode' => 'obsolete',
           'author' => $row['author'],
-          'date_string' => date('d M Y h:i a', $row['time_id']),
+          'date_string' => enano_date('d M Y h:i a', $row['time_id']),
           'time' => $row['time_id'] // time() ???
           );
         echo enano_json_encode($return);

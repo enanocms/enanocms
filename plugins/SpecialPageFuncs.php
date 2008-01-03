@@ -161,7 +161,7 @@ function page_Special_CreatePage()
     if ( !$perms->get_permissions('create_page') )
       die_friendly($lang->get('pagetools_create_err_title'), '<p>An access control rule is preventing you from creating pages.</p>');
     
-    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'create\', \''.$session->username.'\', \''.$urlname.'\', \''.$_POST['namespace'].'\');');
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'create\', \''.$session->username.'\', \''.$urlname.'\', \''.$_POST['namespace'].'\');');
     if ( !$q )
     {
       $db->_die('The page log could not be updated.');
@@ -333,6 +333,8 @@ function page_Special_SpecialPages()
 {
   // This should be an easy one
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
   $template->header();
   $sz = sizeof($paths->pages) / 2;
   echo '<p>' . $lang->get('pagetools_specialpages_blurb') . '</p><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">';

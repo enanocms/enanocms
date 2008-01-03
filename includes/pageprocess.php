@@ -427,7 +427,7 @@ class PageProcessor
     $time = time();
     $edit_summary = ( strval($edit_summary) === $edit_summary ) ? $db->escape($edit_summary) : '';
     $minor_edit = ( $minor_edit ) ? '1' : '0';
-    $date_string = date('d M Y h:i a');
+    $date_string = enano_date('d M Y h:i a');
     
     // Insert log entry
     $sql = 'INSERT INTO ' . table_prefix . "logs ( time_id, date_string, log_type, action, page_id, namespace, author, page_text, edit_summary, minor_edit )\n"
@@ -681,12 +681,18 @@ class PageProcessor
     
     if ( $this->revision_id )
     {
-      echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;"><b>Notice:</b><br />The page you are viewing was archived on '.date('F d, Y \a\t h:i a', $this->revision_id).'.<br /><a href="'.makeUrlNS($this->namespace, $this->page_id).'" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="'.makeUrlNS($this->namespace, $this->page_id, 'do=rollback&amp;id='.$this->revision_id).'" onclick="ajaxRollback(\''.$this->revision_id.'\')">Restore this version</a></div><br />';
+      echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;"><b>Notice:</b><br />The page you are viewing was archived on '.enano_date('F d, Y \a\t h:i a', $this->revision_id).'.<br /><a href="'.makeUrlNS($this->namespace, $this->page_id).'" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="'.makeUrlNS($this->namespace, $this->page_id, 'do=rollback&amp;id='.$this->revision_id).'" onclick="ajaxRollback(\''.$this->revision_id.'\')">Restore this version</a></div><br />';
     }
     
     if ( $redir_enabled )
     {
       echo $redir_html;
+    }
+    
+    $code = $plugins->setHook('pageprocess_render_head');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
     }
     
     if ( $incl_inner_headers )
@@ -700,6 +706,12 @@ class PageProcessor
     }
     // echo('<pre>'.htmlspecialchars($text).'</pre>');
     eval ( $text );
+    
+    $code = $plugins->setHook('pageprocess_render_tail');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
     
     if ( $incl_inner_headers )
     {
@@ -941,7 +953,7 @@ class PageProcessor
     {
       echo '<tr><td class="row1" style="text-align: center;"><img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $userdata['username'])) . '" src="' . make_avatar_url(intval($userdata['authoritative_uid']), $userdata['avatar_type']) . '" /></td></tr>';
     }
-    echo '<tr><td class="row3">Joined: ' . date('F d, Y h:i a', $userdata['reg_time']) . '</td></tr>';
+    echo '<tr><td class="row3">Joined: ' . enano_date('F d, Y h:i a', $userdata['reg_time']) . '</td></tr>';
     echo '<tr><td class="row1">Total comments: ' . $userdata['n_comments'] . '</td></tr>';
     
     if ( !empty($userdata['real_name']) )
@@ -970,7 +982,7 @@ class PageProcessor
     {
       do 
       {
-        $row['time'] = date('F d, Y', $row['time']);
+        $row['time'] = enano_date('F d, Y', $row['time']);
         $comments[] = $row;
       }
       while ( $row = $db->fetchrow() );
@@ -1241,7 +1253,7 @@ class PageProcessor
     global $email;
     
     // Log it for crying out loud
-    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \''.date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
     
     $ob = '';
     //$template->tpl_strings['PAGE_NAME'] = 'Access denied';
@@ -1455,16 +1467,6 @@ class PageProcessor
             <!-- End breadcrumbs -->
             ';
     }
-  }
-  
-  /**
-   * PHP 4 constructor.
-   * @see PageProcessor::__construct()
-   */
-  
-  function PageProcessor( $page_id, $namespace, $revision_id = 0 )
-  {
-    $this->__construct($page_id, $namespace, $revision_id);
   }
   
   /**

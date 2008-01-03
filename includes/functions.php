@@ -225,6 +225,21 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
 }
 
 /**
+ * Enano replacement for date(). Accounts for individual users' timezone preferences.
+ * @param string Date-formatted string
+ * @param int Optional - UNIX timestamp value to use. If omitted, the current time is used.
+ * @return string Formatted string
+ */
+
+function enano_date($string, $timestamp = false)
+{
+  if ( !is_int($timestamp) && !is_double($timestamp) && strval(intval($timestamp)) !== $timestamp )
+    $timestamp = time();
+  // FIXME: Offset $timestamp by user's timezone
+  return gmdate($string, $timestamp);
+}
+
+/**
  * Tells you the title for the given page ID string
  * @param string Page ID string (ex: Special:Administration)
  * @param bool Optional. If true, and if the namespace turns out to be something other than Article, the namespace prefix will be prepended to the return value.
@@ -747,7 +762,7 @@ function show_file_info()
   if($db->numrows() < 1) { echo '<div class="mdg-comment" style="margin-left: 0;"><h3>Uploaded file</h3><p>There are no files uploaded with this name yet. <a href="'.makeUrlNS('Special', 'UploadFile/'.$paths->page_id).'">Upload a file...</a></p></div><br />'; return; }
   $r = $db->fetchrow();
   $mimetype = $r['mimetype'];
-  $datestring = date('F d, Y h:i a', (int)$r['time_id']);
+  $datestring = enano_date('F d, Y h:i a', (int)$r['time_id']);
   echo '<div class="mdg-comment" style="margin-left: 0;"><p><h3>Uploaded file</h3></p><p>Type: '.$r['mimetype'].'<br />Size: ';
   $fs = $r['size'];
   echo $fs.' bytes';
@@ -784,7 +799,7 @@ function show_file_info()
       if($session->get_permissions('history_rollback'))
         echo ' (<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">revert</a>) ';
       $mimetype = $r['mimetype'];
-      $datestring = date('F d, Y h:i a', (int)$r['time_id']);
+      $datestring = enano_date('F d, Y h:i a', (int)$r['time_id']);
       echo $datestring.': '.$r['mimetype'].', ';
       $fs = $r['size'];
       $fs = (int)$fs;

@@ -369,7 +369,7 @@ function page_Special_Usergroups()
       foreach ( $pending as $member )
       {
         
-        $date = date('F d, Y', $member['reg_time']);
+        $date = enano_date('F d, Y', $member['reg_time']);
         $cls = ( $cls == 'row2' ) ? 'row1' : 'row2';
         $addy = $email->encryptEmail($member['email']);
         
@@ -415,7 +415,7 @@ function page_Special_Usergroups()
       if ( $member['is_mod'] != 1 )
         break;
       
-      $date = date('F d, Y', $member['reg_time']);
+      $date = enano_date('F d, Y', $member['reg_time']);
       $cls = ( $cls == 'row2' ) ? 'row1' : 'row2';
       $addy = $email->encryptEmail($member['email']);
       
@@ -439,7 +439,7 @@ function page_Special_Usergroups()
       if ( $member['is_mod'] == 1 )
         continue;
       
-      $date = date('F d, Y', $member['reg_time']);
+      $date = enano_date('F d, Y', $member['reg_time']);
       $cls = ( $cls == 'row2' ) ? 'row1' : 'row2';
       $addy = $email->encryptEmail($member['email']);
       

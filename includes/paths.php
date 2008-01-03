@@ -101,10 +101,6 @@ class pathManager {
     $this->wiki_mode = (int)getConfig('wiki_mode')=='1';
     $this->template_cache = Array();
   }
-  function pathManager()
-  {
-    $this->__construct();
-  }
   function init()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects

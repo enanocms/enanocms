@@ -363,18 +363,26 @@ function __aclJSONSubmitAjaxHandler(params)
                   {
                     vars['FIELD_DESC'] = data.acl_descs[i];
                   }
+                  vars['FIELD_INHERIT_CHECKED'] = '';
                   vars['FIELD_DENY_CHECKED'] = '';
                   vars['FIELD_DISALLOW_CHECKED'] = '';
                   vars['FIELD_WIKIMODE_CHECKED'] = '';
                   vars['FIELD_ALLOW_CHECKED'] = '';
                   vars['FIELD_NAME'] = i;
+                  if ( !data.current_perms[i] )
+                  {
+                    data.current_perms[i] = 'i';
+                  }
                   switch(data.current_perms[i])
                   {
+                    case 'i':
+                    default:
+                      vars['FIELD_INHERIT_CHECKED'] = 'checked="checked"';
+                      break;
                     case 1:
                       vars['FIELD_DENY_CHECKED'] = 'checked="checked"';
                       break;
                     case 2:
-                    default:
                       vars['FIELD_DISALLOW_CHECKED'] = 'checked="checked"';
                       break;
                     case 3:

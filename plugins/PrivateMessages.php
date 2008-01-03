@@ -86,7 +86,7 @@ function page_Special_PrivateMessages()
         <div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
           <tr><th colspan="2"><?php echo $lang->get('privmsgs_lbl_message_from', array('sender' => htmlspecialchars($r['message_from']))); ?></th></tr>
           <tr><td class="row1"><?php echo $lang->get('privmsgs_lbl_subject') ?></td><td class="row1"><?php echo $r['subject']; ?></td></tr>
-          <tr><td class="row2"><?php echo $lang->get('privmsgs_lbl_date') ?></td><td class="row2"><?php echo date('M j, Y G:i', $r['date']); ?></td></tr>
+          <tr><td class="row2"><?php echo $lang->get('privmsgs_lbl_date') ?></td><td class="row2"><?php echo enano_date('M j, Y G:i', $r['date']); ?></td></tr>
           <tr><td class="row1"><?php echo $lang->get('privmsgs_lbl_message') ?></td><td class="row1"><?php echo RenderMan::render($r['message_text']);
           if ( $r['signature'] != '' )
           {
@@ -262,7 +262,7 @@ function page_Special_PrivateMessages()
           die_friendly($lang->get('etc_access_denied_short'), '<p>You are not authorized to view the contents of this message.</p>');
         }
         $subj = 'Re: ' . $r['subject'];
-        $text = "\n\n\nOn " . date('M j, Y G:i', $r['date']) . ", " . $r['message_from'] . " wrote:\n> " . str_replace("\n", "\n> ", $r['message_text']); // Way less complicated than using a regex ;-)
+        $text = "\n\n\nOn " . enano_date('M j, Y G:i', $r['date']) . ", " . $r['message_from'] . " wrote:\n> " . str_replace("\n", "\n> ", $r['message_text']); // Way less complicated than using a regex ;-)
         
         $tbuf = $text;
         while( preg_match("/\n([\> ]*?)\> \>/", $text) )
@@ -332,7 +332,7 @@ function page_Special_PrivateMessages()
             <td class="row1">
               <?php echo $lang->get('privmsgs_lbl_message'); ?>
             </td>
-            <td class="row1" style="width: 80%;">
+            <td class="row1" style="min-width: 80%;">
               <?php
                 if ( isset($_POST['_savedraft']) )
                 {
@@ -640,7 +640,7 @@ function page_Special_PrivateMessages()
               {
                 echo '</b>';
               }
-              echo '</a></td><td class="'.$cls.'">'.date('M j, Y G:i', $r['date']).'</td><td class="'.$cls.'" style="text-align: center;"><input name="marked_'.$r['message_id'].'" type="checkbox" /></td></tr>';
+              echo '</a></td><td class="'.$cls.'">'.enano_date('M j, Y G:i', $r['date']).'</td><td class="'.$cls.'" style="text-align: center;"><input name="marked_'.$r['message_id'].'" type="checkbox" /></td></tr>';
             }
             $db->free_result();
           }

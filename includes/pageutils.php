@@ -28,7 +28,7 @@ class PageUtils {
     $q = $db->sql_query('SELECT username FROM ' . table_prefix.'users WHERE username=\'' . $db->escape(rawurldecode($name)) . '\'');
     if ( !$q )
     {
-      die(mysql_error());
+      die($db->get_error());
     }
     if ( $db->numrows() < 1)
     {
@@ -380,7 +380,7 @@ class PageUtils {
     $msg = $db->escape($message);
     
     $minor = $minor ? ENANO_SQL_BOOLEAN_TRUE : ENANO_SQL_BOOLEAN_FALSE;
-    $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $paths->page_id . '\', \'' . $paths->namespace . '\', ' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\', \'' . $uid . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($summary)) . '\', ' . $minor . ');';
+    $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.enano_date('d M Y h:i a').'\', \'' . $paths->page_id . '\', \'' . $paths->namespace . '\', ' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\', \'' . $uid . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($summary)) . '\', ' . $minor . ');';
     if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
     
     $q = 'UPDATE ' . table_prefix.'page_text SET page_text=' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\',char_tag=\'' . $uid . '\' WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';';
@@ -472,7 +472,7 @@ class PageUtils {
     
     $qa = $db->sql_query('INSERT INTO ' . table_prefix.'pages(name,urlname,namespace,visible,protected,delvote_ips) VALUES(\'' . $db->escape($name) . '\', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\', '. ( $visible ? '1' : '0' ) .', ' . $prot . ', \'' . $db->escape(serialize($ips)) . '\');');
     $qb = $db->sql_query('INSERT INTO ' . table_prefix.'page_text(page_id,namespace) VALUES(\'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
-    $qc = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'create\', \'' . $session->username . '\', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
+    $qc = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'create\', \'' . $session->username . '\', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
     
     if($qa && $qb && $qc)
       return 'good';
@@ -514,13 +514,13 @@ class PageUtils {
     switch($level)
     {
       case 0:
-        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'unprot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
+        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'unprot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
         break;
       case 1:
-        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'prot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
+        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'prot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
         break;
       case 2:
-        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'semiprot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
+        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'semiprot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
         break;
       default:
         return 'PageUtils::protect(): Invalid value for $level';
@@ -807,7 +807,7 @@ class PageUtils {
             $e = $db->sql_query('UPDATE ' . table_prefix.'page_text SET page_text=\'' . $t . '\',char_tag=\'' . $rb['char_tag'] . '\' WHERE page_id=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\'');
             if ( !$e )
             {
-              return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
+              return("An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
             }
             else
             {
@@ -821,7 +821,7 @@ class PageUtils {
             $e = $db->sql_query('UPDATE ' . table_prefix.'pages SET name=\'' . $t . '\' WHERE urlname=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\'');
             if ( !$e )
             {
-              return "An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
+              return "An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
             }
             else
             {
@@ -833,7 +833,7 @@ class PageUtils {
               return "You don't have permission to protect pages, so rolling back protection can't be allowed either.";
             $e = $db->sql_query('UPDATE ' . table_prefix.'pages SET protected=0 WHERE urlname=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\'');
             if ( !$e )
-              return "An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
+              return "An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
             else
               return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at ' . $rb['date_string'] . '.';
             break;
@@ -842,7 +842,7 @@ class PageUtils {
               return "You don't have permission to protect pages, so rolling back protection can't be allowed either.";
             $e = $db->sql_query('UPDATE ' . table_prefix.'pages SET protected=0 WHERE urlname=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\'');
             if ( !$e )
-              return "An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
+              return "An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
             else
               return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at ' . $rb['date_string'] . '.';
             break;
@@ -851,7 +851,7 @@ class PageUtils {
               return "You don't have permission to protect pages, so rolling back protection can't be allowed either.";
             $e = $db->sql_query('UPDATE ' . table_prefix.'pages SET protected=1 WHERE urlname=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\'');
             if ( !$e )
-              return "An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
+              return "An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
             else
               return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been protected according to the log created at ' . $rb['date_string'] . '.';
             break;
@@ -861,10 +861,10 @@ class PageUtils {
             if ( isset($paths->pages[$paths->cpage['urlname']]) )
               return 'You cannot raise a dead page that is alive.';
             $name = str_replace('_', ' ', $rb['page_id']);
-            $e = $db->sql_query('INSERT INTO ' . table_prefix.'pages(name,urlname,namespace) VALUES( \'' . $name . '\', \'' . $rb['page_id'] . '\',\'' . $rb['namespace'] . '\' )');if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            $e = $db->sql_query('SELECT page_text,char_tag FROM ' . table_prefix.'logs WHERE page_id=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\' AND log_type=\'page\' AND action=\'edit\' ORDER BY time_id DESC;'); if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
+            $e = $db->sql_query('INSERT INTO ' . table_prefix.'pages(name,urlname,namespace) VALUES( \'' . $name . '\', \'' . $rb['page_id'] . '\',\'' . $rb['namespace'] . '\' )');if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
+            $e = $db->sql_query('SELECT page_text,char_tag FROM ' . table_prefix.'logs WHERE page_id=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\' AND log_type=\'page\' AND action=\'edit\' ORDER BY time_id DESC;'); if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
             $r = $db->fetchrow();
-            $e = $db->sql_query('INSERT INTO ' . table_prefix.'page_text(page_id,namespace,page_text,char_tag) VALUES(\'' . $rb['page_id'] . '\',\'' . $rb['namespace'] . '\',\'' . $db->escape($r['page_text']) . '\',\'' . $r['char_tag'] . '\')'); if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".mysql_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
+            $e = $db->sql_query('INSERT INTO ' . table_prefix.'page_text(page_id,namespace,page_text,char_tag) VALUES(\'' . $rb['page_id'] . '\',\'' . $rb['namespace'] . '\',\'' . $db->escape($r['page_text']) . '\',\'' . $r['char_tag'] . '\')'); if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
             return 'The page "' . $name . '" has been undeleted according to the log created at ' . $rb['date_string'] . '.';
             break;
           case "reupload":
@@ -873,12 +873,12 @@ class PageUtils {
               return 'Administrative privileges are required for file rollbacks.';
             }
             $newtime = time();
-            $newdate = date('d M Y h:i a');
+            $newdate = enano_date('d M Y h:i a');
             if(!$db->sql_query('UPDATE ' . table_prefix.'logs SET time_id=' . $newtime . ',date_string=\'' . $newdate . '\' WHERE time_id=' . $id))
-              return 'Error during query: '.mysql_error();
+              return 'Error during query: '.$db->get_error();
             if(!$db->sql_query('UPDATE ' . table_prefix.'files SET time_id=' . $newtime . ' WHERE time_id=' . $id))
-              return 'Error during query: '.mysql_error();
-            return 'The file has been rolled back to the version uploaded on '.date('d M Y h:i a', (int)$id).'.';
+              return 'Error during query: '.$db->get_error();
+            return 'The file has been rolled back to the version uploaded on '.enano_date('d M Y h:i a', (int)$id).'.';
             break;
           default:
             return('Rollback of the action "' . $rb['action'] . '" is not yet supported.');
@@ -923,7 +923,7 @@ class PageUtils {
     if(getConfig('approve_comments')=='1') $appr = '0'; else $appr = '1';
     $q = 'INSERT INTO ' . table_prefix.'comments(page_id,namespace,subject,comment_data,name,user_id,approved,time) VALUES(\'' . $page_id . '\',\'' . $namespace . '\',\'' . $subj . '\',\'' . $text . '\',\'' . $name . '\',' . $session->user_id . ',' . $appr . ','.time().')';
     $e = $db->sql_query($q);
-    if(!$e) die('alert(unescape(\''.rawurlencode('Error inserting comment data: '.mysql_error().'\n\nQuery:\n' . $q) . '\'))');
+    if(!$e) die('alert(unescape(\''.rawurlencode('Error inserting comment data: '.$db->get_error().'\n\nQuery:\n' . $q) . '\'))');
     else $_ob .= '<div class="info-box">Your comment has been posted.</div>';
     return PageUtils::comments($page_id, $namespace, false, Array(), $_ob);
   }
@@ -962,7 +962,7 @@ class PageUtils {
           $q = 'DELETE FROM ' . table_prefix.'comments WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND name=\'' . $n . '\' AND subject=\'' . $s . '\' AND comment_data=\'' . $t . '\' LIMIT 1;';
         }
         $e=$db->sql_query($q);
-        if(!$e) die('alert(unesape(\''.rawurlencode('Error during query: '.mysql_error().'\n\nQuery:\n' . $q) . '\'));');
+        if(!$e) die('alert(unesape(\''.rawurlencode('Error during query: '.$db->get_error().'\n\nQuery:\n' . $q) . '\'));');
         break;
       case "approve":
         if(isset($flags['id']))
@@ -976,13 +976,13 @@ class PageUtils {
         }
         $q = 'SELECT approved FROM ' . table_prefix.'comments WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND ' . $where . ' LIMIT 1;';
         $e = $db->sql_query($q);
-        if(!$e) die('alert(unesape(\''.rawurlencode('Error selecting approval status: '.mysql_error().'\n\nQuery:\n' . $q) . '\'));');
+        if(!$e) die('alert(unesape(\''.rawurlencode('Error selecting approval status: '.$db->get_error().'\n\nQuery:\n' . $q) . '\'));');
         $r = $db->fetchrow();
         $db->free_result();
         $a = ( $r['approved'] ) ? '0' : '1';
         $q = 'UPDATE ' . table_prefix.'comments SET approved=' . $a . ' WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND ' . $where . ';';
         $e=$db->sql_query($q);
-        if(!$e) die('alert(unesape(\''.rawurlencode('Error during query: '.mysql_error().'\n\nQuery:\n' . $q) . '\'));');
+        if(!$e) die('alert(unesape(\''.rawurlencode('Error during query: '.$db->get_error().'\n\nQuery:\n' . $q) . '\'));');
         if($a=='1') $v = $lang->get('comment_btn_mod_unapprove');
         else $v = $lang->get('comment_btn_mod_approve');
         echo 'document.getElementById("mdgApproveLink'.intval($_GET['id']).'").innerHTML="' . $v . '";';
@@ -1011,7 +1011,7 @@ class PageUtils {
                     ON c.user_id=u.user_id
                   WHERE page_id=\'' . $page_id . '\'
                   AND namespace=\'' . $namespace . '\' ORDER BY c.time ASC;');
-    if(!$lq) _die('The comment text data could not be selected. '.mysql_error());
+    if(!$lq) _die('The comment text data could not be selected. '.$db->get_error());
     $_ob .= '<h3>' . $lang->get('comment_heading') . '</h3>';
     
     $n = ( $session->get_permissions('mod_comments')) ? $db->numrows() : $num_app;
@@ -1062,7 +1062,7 @@ class PageUtils {
         $strings['SUBJECT'] = $s;
         
         // Date and time
-        $strings['DATETIME'] = date('F d, Y h:i a', $row['time']);
+        $strings['DATETIME'] = enano_date('F d, Y h:i a', $row['time']);
         
         // User level
         switch($row['user_level'])
@@ -1247,7 +1247,7 @@ class PageUtils {
       if(!$session->user_logged_in) _die('AJAX comment save safety check failed because you are not logged in. Sometimes this can happen because you are using a browser that does not send cookies as part of AJAX requests.<br /><br />Please log in and try again.');
       $q = 'SELECT c.name FROM ' . table_prefix.'comments c, ' . table_prefix.'users u WHERE comment_data=\'' . $old_text . '\' AND subject=\'' . $old_subject . '\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND u.user_id=c.user_id;';
       $s = $db->sql_query($q);
-      if(!$s) _die('SQL error during safety check: '.mysql_error().'<br /><br />Attempted SQL:<br /><pre>'.htmlspecialchars($q).'</pre>');
+      if(!$s) _die('SQL error during safety check: '.$db->get_error().'<br /><br />Attempted SQL:<br /><pre>'.htmlspecialchars($q).'</pre>');
       $r = $db->fetchrow($s);
       $db->free_result();
       if($db->numrows() < 1 || $r['name'] != $session->username) _die('Safety check failed, probably due to a hacking attempt.');
@@ -1270,7 +1270,7 @@ class PageUtils {
       Performed SQL:
       ' . $sql . '
     
-      Error returned by MySQL: '.mysql_error()).'");';
+      Error returned by MySQL: '.$db->get_error()).'");';
     }
   }
   
@@ -1296,7 +1296,7 @@ class PageUtils {
       if(!$session->user_logged_in) _die('AJAX comment save safety check failed because you are not logged in. Sometimes this can happen because you are using a browser that does not send cookies as part of AJAX requests.<br /><br />Please log in and try again.');
       $q = 'SELECT c.name FROM ' . table_prefix.'comments c, ' . table_prefix.'users u WHERE comment_id=' . $id . ' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND u.user_id=c.user_id;';
       $s = $db->sql_query($q);
-      if(!$s) _die('SQL error during safety check: '.mysql_error().'<br /><br />Attempted SQL:<br /><pre>'.htmlspecialchars($q).'</pre>');
+      if(!$s) _die('SQL error during safety check: '.$db->get_error().'<br /><br />Attempted SQL:<br /><pre>'.htmlspecialchars($q).'</pre>');
       $r = $db->fetchrow($s);
       if($db->numrows() < 1 || $r['name'] != $session->username) _die('Safety check failed, probably due to a hacking attempt.');
       $db->free_result();
@@ -1311,7 +1311,7 @@ class PageUtils {
     Performed SQL:
     ' . $sql . '
     
-    Error returned by MySQL: '.mysql_error();
+    Error returned by MySQL: '.$db->get_error();
   }
   
   /**
@@ -1343,14 +1343,14 @@ class PageUtils {
       if(!$session->user_logged_in) _die('AJAX comment save safety check failed because you are not logged in. Sometimes this can happen because you are using a browser that does not send cookies as part of AJAX requests.<br /><br />Please log in and try again.');
       $q = 'SELECT c.name FROM ' . table_prefix.'comments c, ' . table_prefix.'users u WHERE comment_data=\'' . $t . '\' AND subject=\'' . $s . '\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND u.user_id=c.user_id;';
       $s = $db->sql_query($q);
-      if(!$s) _die('SQL error during safety check: '.mysql_error().'<br /><br />Attempted SQL:<br /><pre>'.htmlspecialchars($q).'</pre>');
+      if(!$s) _die('SQL error during safety check: '.$db->get_error().'<br /><br />Attempted SQL:<br /><pre>'.htmlspecialchars($q).'</pre>');
       $r = $db->fetchrow($s);
       if($db->numrows() < 1 || $r['name'] != $session->username) _die('Safety check failed, probably due to a hacking attempt.');
       $db->free_result();
     }
     $q = 'DELETE FROM ' . table_prefix.'comments WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND name=\'' . $n . '\' AND subject=\'' . $s . '\' AND comment_data=\'' . $t . '\' LIMIT 1;';
     $e=$db->sql_query($q);
-    if(!$e) return('alert(unesape(\''.rawurlencode('Error during query: '.mysql_error().'\n\nQuery:\n' . $q) . '\'));');
+    if(!$e) return('alert(unesape(\''.rawurlencode('Error during query: '.$db->get_error().'\n\nQuery:\n' . $q) . '\'));');
     return('good');
   }
   
@@ -1377,14 +1377,14 @@ class PageUtils {
       if(!$session->user_logged_in) _die('AJAX comment save safety check failed because you are not logged in. Sometimes this can happen because you are using a browser that does not send cookies as part of AJAX requests.<br /><br />Please log in and try again.');
       $q = 'SELECT c.name FROM ' . table_prefix.'comments c, ' . table_prefix.'users u WHERE comment_id=' . $id . ' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND u.user_id=c.user_id;';
       $s = $db->sql_query($q);
-      if(!$s) _die('SQL error during safety check: '.mysql_error().'<br /><br />Attempted SQL:<br /><pre>'.htmlspecialchars($q).'</pre>');
+      if(!$s) _die('SQL error during safety check: '.$db->get_error().'<br /><br />Attempted SQL:<br /><pre>'.htmlspecialchars($q).'</pre>');
       $r = $db->fetchrow($s);
       if($db->numrows() < 1 || $r['name'] != $session->username) _die('Safety check failed, probably due to a hacking attempt.');
       $db->free_result();
     }
     $q = 'DELETE FROM ' . table_prefix.'comments WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND comment_id=' . $id . ' LIMIT 1;';
     $e=$db->sql_query($q);
-    if(!$e) return('alert(unesape(\''.rawurlencode('Error during query: '.mysql_error().'\n\nQuery:\n' . $q) . '\'));');
+    if(!$e) return('alert(unesape(\''.rawurlencode('Error during query: '.$db->get_error().'\n\nQuery:\n' . $q) . '\'));');
     return('good');
   }
   
@@ -1412,7 +1412,7 @@ class PageUtils {
     }
     if( ( $session->get_permissions('rename') && ( ( $prot && $session->get_permissions('even_when_protected') ) || !$prot ) ) && ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' ))
     {
-      $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'rename\', \'' . $db->escape($paths->page_id) . '\', \'' . $paths->namespace . '\', \'' . $db->escape($session->username) . '\', \'' . $db->escape($paths->cpage['name']) . '\')');
+      $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'rename\', \'' . $db->escape($paths->page_id) . '\', \'' . $paths->namespace . '\', \'' . $db->escape($session->username) . '\', \'' . $db->escape($paths->cpage['name']) . '\')');
       if ( !$e )
       {
         $db->_die('The page title could not be updated.');
@@ -1469,7 +1469,7 @@ class PageUtils {
       $row = $db->fetchrow();
       $db->free_result();
       $minor_edit = ( ENANO_DBLAYER == 'MYSQL' ) ? 'false' : '0';
-      $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.date('d M Y h:i a').'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.$minor_edit.');';
+      $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.enano_date('d M Y h:i a').'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.$minor_edit.');';
       if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
     }
     return $lang->get('ajax_clearlogs_success');
@@ -1494,7 +1494,7 @@ class PageUtils {
       return $lang->get('ajax_delete_need_reason');
     }
     if(!$perms->get_permissions('delete_page')) return('Administrative privileges are required to delete pages, you loser.');
-    $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.date('d M Y h:i a').'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
+    $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
     if(!$e) $db->_die('The page log entry could not be inserted.');
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'categories WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'');
     if(!$e) $db->_die('The page categorization entries could not be deleted.');
@@ -1662,7 +1662,7 @@ class PageUtils {
     ob_start();
     $_ob = '';
     $e = $db->sql_query('SELECT category_id FROM ' . table_prefix.'categories WHERE page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\'');
-    if(!$e) jsdie('Error selecting category information for current page: '.mysql_error());
+    if(!$e) jsdie('Error selecting category information for current page: '.$db->get_error());
     $cat_current = Array();
     while($r = $db->fetchrow())
     {
@@ -1820,7 +1820,7 @@ class PageUtils {
     $q = $db->sql_query('UPDATE ' . table_prefix.'pages SET wiki_mode=' . $level . ' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';');
     if ( !$q )
     {
-      return('Error during update query: '.mysql_error()."\n\nSQL Backtrace:\n".$db->sql_backtrace());
+      return('Error during update query: '.$db->get_error()."\n\nSQL Backtrace:\n".$db->sql_backtrace());
     }
     return('GOOD');
   }
@@ -1856,7 +1856,7 @@ class PageUtils {
     $e = $db->sql_query('UPDATE ' . table_prefix.'pages SET password=\'' . $p . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';');
     if ( !$e )
     {
-      die('PageUtils::setpass(): Error during update query: '.mysql_error()."\n\nSQL Backtrace:\n".$db->sql_backtrace());
+      die('PageUtils::setpass(): Error during update query: '.$db->get_error()."\n\nSQL Backtrace:\n".$db->sql_backtrace());
     }
     // Is the new password blank?
     if ( $p == '' )
@@ -1920,8 +1920,8 @@ class PageUtils {
        !preg_match('#^([0-9]+)$#', (string)$id2  )) return 'SQL injection attempt';
     // OK we made it through security
     // Safest way to make sure we don't end up with the revisions in wrong columns is to make 2 queries
-    if(!$q1 = $db->sql_query('SELECT page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id=' . $id1 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: '.mysql_error();
-    if(!$q2 = $db->sql_query('SELECT page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id=' . $id2 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: '.mysql_error();
+    if(!$q1 = $db->sql_query('SELECT page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id=' . $id1 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: '.$db->get_error();
+    if(!$q2 = $db->sql_query('SELECT page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id=' . $id2 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: '.$db->get_error();
     $row1 = $db->fetchrow($q1);
     $db->free_result($q1);
     $row2 = $db->fetchrow($q2);
@@ -1929,8 +1929,8 @@ class PageUtils {
     if(sizeof($row1) < 1 || sizeof($row2) < 2) return 'Couldn\'t find any rows that matched the query. The time ID probably doesn\'t exist in the logs table.';
     $text1 = $row1['page_text'];
     $text2 = $row2['page_text'];
-    $time1 = date('F d, Y h:i a', $id1);
-    $time2 = date('F d, Y h:i a', $id2);
+    $time1 = enano_date('F d, Y h:i a', $id1);
+    $time2 = enano_date('F d, Y h:i a', $id2);
     $_ob = "
     <p>" . $lang->get('history_lbl_comparingrevisions') . " {$time1} &rarr; {$time2}</p>
     ";
@@ -2027,19 +2027,19 @@ class PageUtils {
                     AND u.username=\'' . $db->escape($parms['target_id']) . '\'
                     ' . $page_where_clause . ';');
               if(!$q)
-                return(Array('mode'=>'error','error'=>mysql_error()));
+                return(Array('mode'=>'error','error'=>$db->get_error()));
               if($db->numrows() < 1)
               {
                 $return['type'] = 'new';
                 $q = $db->sql_query('SELECT user_id FROM ' . table_prefix.'users WHERE username=\'' . $db->escape($parms['target_id']) . '\';');
                 if(!$q)
-                  return(Array('mode'=>'error','error'=>mysql_error()));
+                  return(Array('mode'=>'error','error'=>$db->get_error()));
                 if($db->numrows() < 1)
                   return Array('mode'=>'error','error'=>$lang->get('acl_err_user_not_found'));
                 $row = $db->fetchrow();
                 $return['target_name'] = $return['target_id'];
                 $return['target_id'] = intval($row['user_id']);
-                $return['current_perms'] = $session->acl_types;
+                $return['current_perms'] = array();
               }
               else
               {
@@ -2047,7 +2047,7 @@ class PageUtils {
                 $row = $db->fetchrow();
                 $return['target_name'] = $return['target_id'];
                 $return['target_id'] = intval($row['user_id']);
-                $return['current_perms'] = $session->acl_merge($perms_obj->acl_types, $session->string_to_perm($row['rules']));
+                $return['current_perms'] = $session->string_to_perm($row['rules']);
               }
               $db->free_result();
               // Eliminate types that don't apply to this namespace
@@ -2074,19 +2074,19 @@ class PageUtils {
                     AND g.group_id=\''.intval($parms['target_id']).'\'
                     ' . $page_where_clause . ';');
               if(!$q)
-                return(Array('mode'=>'error','error'=>mysql_error()));
+                return(Array('mode'=>'error','error'=>$db->get_error()));
               if($db->numrows() < 1)
               {
                 $return['type'] = 'new';
                 $q = $db->sql_query('SELECT group_id,group_name FROM ' . table_prefix.'groups WHERE group_id=\''.intval($parms['target_id']).'\';');
                 if(!$q)
-                  return(Array('mode'=>'error','error'=>mysql_error()));
+                  return(Array('mode'=>'error','error'=>$db->get_error()));
                 if($db->numrows() < 1)
                   return Array('mode'=>'error','error'=>$lang->get('acl_err_bad_group_id'));
                 $row = $db->fetchrow();
                 $return['target_name'] = $row['group_name'];
                 $return['target_id'] = intval($row['group_id']);
-                $return['current_perms'] = $session->acl_types;
+                $return['current_perms'] = array();
               }
               else
               {
@@ -2094,7 +2094,7 @@ class PageUtils {
                 $row = $db->fetchrow();
                 $return['target_name'] = $row['group_name'];
                 $return['target_id'] = intval($row['group_id']);
-                $return['current_perms'] = $session->acl_merge($session->acl_types, $session->string_to_perm($row['rules']));
+                $return['current_perms'] = $session->string_to_perm($row['rules']);
               }
               $db->free_result();
               // Eliminate types that don't apply to this namespace
@@ -2129,20 +2129,25 @@ class PageUtils {
           $q = $db->sql_query('DELETE FROM ' . table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
             ' . $page_where_clause_lite . ';');
           if(!$q)
-            return Array('mode'=>'error','error'=>mysql_error());
-          $rules = $session->perm_to_string($parms['perms']);
-          if ( sizeof ( $rules ) < 1 )
+            return Array('mode'=>'error','error'=>$db->get_error());
+          if ( sizeof ( $parms['perms'] ) < 1 )
           {
-            return array(
-                'mode' => 'error', 
-                'error' => $lang->get('acl_err_zero_list')
-              );
+            // As of 1.1.x, this returns success because the rule length is zero if the user selected "inherit" in all columns
+            return Array(
+              'mode' => 'success',
+              'target_type' => $parms['target_type'],
+              'target_id' => $parms['target_id'],
+              'target_name' => $parms['target_name'],
+              'page_id' => $page_id,
+              'namespace' => $namespace,
+            );
           }
+          $rules = $session->perm_to_string($parms['perms']);
           $q = ($page_id && $namespace) ? 'INSERT INTO ' . table_prefix.'acl ( target_type, target_id, page_id, namespace, rules )
                                              VALUES( '.intval($parms['target_type']).', '.intval($parms['target_id']).', \'' . $db->escape($page_id) . '\', \'' . $db->escape($namespace) . '\', \'' . $db->escape($rules) . '\' )' :
                                           'INSERT INTO ' . table_prefix.'acl ( target_type, target_id, rules )
                                              VALUES( '.intval($parms['target_type']).', '.intval($parms['target_id']).', \'' . $db->escape($rules) . '\' )';
-          if(!$db->sql_query($q)) return Array('mode'=>'error','error'=>mysql_error());
+          if(!$db->sql_query($q)) return Array('mode'=>'error','error'=>$db->get_error());
           return Array(
               'mode' => 'success',
               'target_type' => $parms['target_type'],
@@ -2160,7 +2165,7 @@ class PageUtils {
           $q = $db->sql_query('DELETE FROM ' . table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
             ' . $page_where_clause_lite . ';');
           if(!$q)
-            return Array('mode'=>'error','error'=>mysql_error());
+            return Array('mode'=>'error','error'=>$db->get_error());
           return Array(
               'mode' => 'delete',
               'target_type' => $parms['target_type'],
@@ -2317,6 +2322,7 @@ class PageUtils {
         foreach ( $response['acl_types'] as $acl_type => $value )
         {
           $vars = Array(
+              'FIELD_INHERIT_CHECKED' => '',
               'FIELD_DENY_CHECKED' => '',
               'FIELD_DISALLOW_CHECKED' => '',
               'FIELD_WIKIMODE_CHECKED' => '',
@@ -2327,6 +2333,10 @@ class PageUtils {
           
           switch ( $response['current_perms'][$acl_type] )
           {
+            case 'i':
+            default:
+              $vars['FIELD_INHERIT_CHECKED'] = 'checked="checked"';
+              break;
             case AUTH_ALLOW:
               $vars['FIELD_ALLOW_CHECKED'] = 'checked="checked"';
               break;
@@ -2334,7 +2344,6 @@ class PageUtils {
               $vars['FIELD_WIKIMODE_CHECKED'] = 'checked="checked"';
               break;
             case AUTH_DISALLOW:
-            default:
               $vars['FIELD_DISALLOW_CHECKED'] = 'checked="checked"';
               break;
              case AUTH_DENY:
