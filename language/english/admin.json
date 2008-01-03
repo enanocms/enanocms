@@ -18,7 +18,7 @@
 var enano_lang = {
   categories: [
     'adm', 'acl', 'adminusers',
-    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum',
+    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug',
   ],
   strings: {
     meta: {
@@ -34,6 +34,7 @@ var enano_lang = {
       acped: 'ACP: Edit page content',
       acppg: 'ACP: Page groups',
       acpum: 'ACP: User management',
+      acpug: 'ACP: User group management',
     },
     adm: {
       cat_general: 'General',
@@ -622,6 +623,48 @@ var enano_lang = {
       field_deleteaccount_hint: 'Even if you delete this user account, the username will be shown in page edit history, comments, and other areas of the site. Deleting a user account CANNOT BE UNDONE and should only be done in extreme circumstances. If the user has violated the site policy, deleting the account will not prevent him from using the site or creating a new account, for that you need to add a new ban rule.',
       
       btn_save: 'Save changes',
+    },
+    acpug: {
+      heading_main: 'Manage Usergroups',
+      heading_edit_existing: 'Edit an existing group',
+      btn_edit_stage1: 'Edit group',
+      heading_create_new: 'Create a new group',
+      field_group_name: 'Group name:',
+      btn_create_stage1: 'Continue',
+      
+      // Edit form
+      heading_edit_name: 'Edit group name',
+      btn_cant_delete: 'Can\'t delete system group',
+      btn_delete_group: 'Delete this group',
+      btn_save_name: 'Save name',
+      heading_edit_members: 'Edit group members',
+      msg_no_members: 'This group has no members.',
+      lbl_member_mod: 'Mod',
+      btn_remove_member: 'Remove member',
+      heading_add_member: 'Add a new member',
+      field_username: 'Username:',
+      field_make_mod: 'Is a group moderator',
+      field_make_mod_hint: '(can add and delete other members)',
+      btn_add_user: 'Add user to group',
+      
+      // Create form
+      err_group_name_invalid: 'The group name you chose is invalid.',
+      heading_creating_group: 'Creating group:',
+      field_group_mod: 'Group moderator',
+      field_group_type: 'Group status',
+      btn_create_stage2: 'Create group',
+      err_already_exist: 'The group name you entered already exists.',
+      err_bad_username: 'The username you entered could not be found.',
+      err_bad_insert_id: 'The group ID could not be looked up.',
+      heading_info: 'Information',
+      msg_create_success: 'The group %g_name% has been created successfully.',
+      
+      // More editor bits, validation messages
+      err_nodelete_system_group: 'The group "%g_name%" could not be deleted because it is a system group required for site functionality.',
+      msg_delete_success: 'The group "%g_name%" has been deleted. Return to the <a %a_flags%>group manager</a>.',
+      msg_name_update_success: 'The group name has been updated.',
+      msg_user_added: 'The user "%username%" has been added to this usergroup.',
+      err_username_not_exist: '<b>The user "%username%" could not be added.</b><br />This username does not exist.',
     }
   }
 };
