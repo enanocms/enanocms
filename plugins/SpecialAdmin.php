@@ -69,6 +69,22 @@ Using the links on the left you can control every aspect of your website\'s look
           <p>If you borked something up, or if you\'re done testing, you can <a href="' . makeUrlNS('Special', 'DemoReset', false, true) . '">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.</p>';
   }
   
+  // If we're on PHP4, warn the user
+  // Enano is not supported on PHP4 after December 31, 2007.
+  if ( version_compare(PHP_VERSION, '5.0.0', '<') )
+  {
+    echo '<div class="warning-box">
+            <b>Your server is running PHP ' . PHP_VERSION . '.</b><br />
+            As of December 31, 2007, servers running the PHP 4.x interpreter are not eligible for support on the Enano forums. While you
+            may be able to obtain support elsewhere, all official Enano support channels do not provide any type of support for servers
+            running this outdated and vulnerable version of PHP.<br />
+            <br />
+            This notice will not show if PHP 5.0.0 or later is detected. You may want to ask your web host to upgrade their PHP
+            installation. If you\'re refused, point them to <a href="http://gophp5.org/">GoPHP5.org</a> and explain that they are opening
+            themselves to security problems by not upgrading.
+          </div>';
+  }
+  
   // Check for the installer scripts
   if( ( file_exists(ENANO_ROOT.'/install.php') || file_exists(ENANO_ROOT.'/schema.sql') ) && !defined('ENANO_DEMO_MODE') )
   {

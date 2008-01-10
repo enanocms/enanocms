@@ -60,7 +60,16 @@ global $_starttime;
 $_starttime = microtime_float();
 
 // Verbose error reporting
-error_reporting(E_ALL & ~E_STRICT);
+if ( defined('E_STRICT') )
+{
+  // PHP5, PHP6
+  error_reporting(E_ALL & ~E_STRICT);
+}
+else
+{
+  // PHP4
+  error_reporting(E_ALL);
+}
 
 //
 // Determine the location of Enano as an absolute path.
