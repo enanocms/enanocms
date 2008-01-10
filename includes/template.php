@@ -2095,9 +2095,9 @@ class templateIndividualSafe extends template_nodb {
   /**
    * PHP 4 constructor.
    */
-  function templateIndividual($text)
+  function templateIndividualSafe($text, $parent)
   {
-    $this->__construct($text);
+    $this->__construct($text, $parent);
   }
   /**
    * Assigns an array of string values to the template. Strings can be accessed from the template by inserting {KEY_NAME} in the template file.
