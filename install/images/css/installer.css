@@ -1,0 +1,231 @@
+/*
+ * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
+ * Version 1.1.1
+ * Copyright (C) 2006-2007 Dan Fuhry
+ * Installation package
+ * installer.css - visual styling rules for the installer
+ *
+ * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+ */
+
+body {
+  font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
+  font-size: 9pt;
+  margin: 0;
+  padding: 0;
+}
+
+div#header {
+  margin: 0px auto;
+  width: 800px;
+  padding: 10px 0;
+}
+
+div#step {
+  float: right;
+  font-size: 12pt;
+  color: #D84308;
+  line-height: 48px;
+  background-image: url(../icons/install.png);
+  background-position: right center;
+  background-repeat: no-repeat;
+  padding-right: 56px;
+  margin: 10px 0 0 0;
+}
+
+div.stages-holder {
+  color: #ffffff;
+  background-color: #2f527a;
+  width: 100%;
+}
+
+ul.stages {
+  margin: 0;
+  line-height: 24px;
+  font-size: 8pt;
+  padding: 0;
+}
+ul.stages-fixed {
+  /*
+  width: 840px;
+  */
+  display: table;
+  margin: 0 auto;
+}
+li.stage {
+  list-style-type: none;
+  float: left;
+  text-align: center;
+  padding: 3px 20px 3px 20px;
+}
+li.stage-active {
+  font-weight: bold;
+  padding: 1px 20px 5px 20px;
+  background-image: url(../marker.gif);
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-color: #5f82aa;
+}
+div#enano-fill {
+  background-image: url(../substages.png);
+  background-repeat: repeat-x;
+}
+div#enano-body {
+  width: 780px;
+  padding: 10px;
+  margin: 0 auto;
+}
+div#enano-body a {
+  color: #003366;
+  text-decoration: underline;
+}
+div#enano-body a:hover {
+  color: #0055AA;
+}
+div#copyright {
+  border-top: 1px dotted #003399;
+  font-size: 6pt;
+  padding: 10px;
+  background-image: url(../substages.png);
+  background-repeat: repeat-x;
+  width: 70%;
+  margin: 20px auto 0 auto;
+  text-align: center;
+  color: #808080;
+}
+td.balancer {
+  width: 21px;
+  background-image: url(../balancer.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+ul.icons {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  display: table;
+}
+ul.icons li:first-child {
+  border-top-color: #FFFFFF;
+}
+ul.icons li {
+  /* Invisible border to prevent size-switching later */
+  border: 1px solid #FFFFFF;
+  border-top-color: #F0F0F0;
+  margin: 0 0 -2px 0;
+  padding: 0;
+  display: block;
+}
+ul.icons li:hover {
+  border-color: #D0D0D0;
+  -moz-border-radius: 5px;
+}
+a.icon {
+  display: block;
+  font-size: 18pt;
+  line-height: 48px;
+  padding: 10px 20px 10px 68px;
+  background-position: 10px center;
+  background-repeat: no-repeat;
+  color: #002266;
+  text-decoration: none !important;
+}
+a.icon:hover {
+  cursor: pointer;
+  color: #002266 !important;
+  background-color: #F0F0F0;
+}
+a.icon-disabled {
+  color: #808080 !important;
+  opacity: 0.7;
+  filter: alpha(opacity=70);
+}
+a.icon-disabled:hover {
+  color: #808080 !important;
+  background-color: #FCFCFC;
+  border-color: #F8F8F8;
+}
+a.icon small, a.icon-disabled small {
+  display: block;
+  font-size: 8pt;
+  line-height: normal;
+  margin-top: -10px;
+}
+a.readme {
+  background-image: url(../icons/readme.png);
+}
+a.install {
+  background-image: url(../icons/install.png);
+}
+a.install-disabled {
+  background-image: url(../icons/install-disabled.png);
+}
+a.upgrade {
+  background-image: url(../icons/upgrade.png);
+}
+a.upgrade-disabled {
+  background-image: url(../icons/upgrade-disabled.png);
+}
+
+.scroller {
+  padding: 10px;
+  border: 1px dotted #002266;
+  background-color: #F0F0F0;
+  max-height: 500px;
+  clip: rect(0px, auto, auto, 0px);
+  overflow: auto;
+}
+
+div#installnotice {
+  margin: 5% 0 0 0;
+}
+
+table#installmenu {
+  margin: 0 auto 5% auto;
+}
+span.fieldtip_js {
+  display: block;
+  background-color: #F0F0FF;
+  padding: 10px;
+  border: 1px solid #245687;
+  position: absolute;
+}
+
+/* Inputs, form controls */
+
+input[type ^="button"], button {
+  background-color: #F8F8FB;
+  color: #202020;
+  border-color: #B0B0B8 #D0D0D8 #D0D0D8 #B0B0B8;
+  border-width: 1px;
+  border-style: solid;
+}
+input[type ^="submit"] {
+  background-color: #4F729A;
+  color: #FFFFFF;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #1F426A #7FA2CA #7FA2CA #1F426A;
+}
+input[type ^="submit"]:hover, input[type ^="submit"]:focus {
+  background-color: #5f82aa;
+}
+input[type ^="text"], input[type ^="password"] {
+  color: #202020;
+  background-color: #F0F0F4;
+  border: 1px solid #D6D6E9;
+}
+input[type ^="text"]:hover, input[type ^="password"]:hover {
+  color: #202020;
+  background-color: #F4F4F8;
+  border: 1px solid #D6D6E9;
+}
+input[type ^="text"]:focus, input[type ^="password"]:focus {
+  color: #202020;
+  background-color: #FFFFFF;
+  border: 1px solid #D6D6E9;
+}

@@ -266,6 +266,8 @@ function page_Admin_GeneralConfig() {
       setConfig('pw_strength_minimum', $strength);
     }
     
+    setConfig('register_tou', RenderMan::preprocess_text($_POST['register_tou'], true, false));
+    
     // Account lockout policy
     if ( preg_match('/^[0-9]+$/', $_POST['lockout_threshold']) )
       setConfig('lockout_threshold', $_POST['lockout_threshold']);
@@ -513,6 +515,27 @@ function page_Admin_GeneralConfig() {
           echo '<label><input'; if(getConfig('account_activation') != 'user' && getConfig('account_activation') != 'admin' && getConfig('account_activation') != 'disable') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="none" /> ' . $lang->get('acpgc_field_activate_none') . '</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'user') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="user" /> ' . $lang->get('acpgc_field_activate_user') . '</label>';
           echo '<label><input'; if(getConfig('account_activation') == 'admin') echo ' checked="checked"'; echo ' type="radio" name="account_activation" value="admin" /> ' . $lang->get('acpgc_field_activate_admin') . '</label>';
+          ?>
+        </td>
+      </tr>
+      
+    <!-- Terms of Use -->
+    
+      <tr>
+        <th class="subhead" colspan="2">
+          <?php echo $lang->get('acpgc_heading_tou'); ?>
+        </th>
+      </tr>
+      
+      <tr>
+        <td class="row2">
+          <b><?php echo $lang->get('acpgc_field_tou'); ?></b><br />
+          <small><?php echo $lang->get('acpgc_field_tou_hint'); ?></small>
+        </td>
+        <td class="row2">
+          <?php
+            $terms = getConfig('register_tou');
+            echo $template->tinymce_textarea('register_tou', $terms, 10, 40);
           ?>
         </td>
       </tr>

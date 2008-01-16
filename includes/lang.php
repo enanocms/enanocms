@@ -185,7 +185,16 @@ class Language
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     if ( !file_exists($file) )
-      $db->_die('lang.php - requested JSON file doesn\'t exist');
+    {
+      if ( defined('IN_ENANO_INSTALL') )
+      {
+        die('lang.php - requested JSON file (' . htmlspecialchars($file) . ') doesn\'t exist');
+      }
+      else
+      {
+        $db->_die('lang.php - requested JSON file doesn\'t exist');
+      }
+    }
     
     $contents = trim(@file_get_contents($file));
     if ( empty($contents) )
@@ -206,7 +215,29 @@ class Language
     }
     else
     {
-      $langdata = enano_json_decode($contents);
+      // Correct syntax to be nice to the json parser
+    
+      // eliminate comments
+      $contents = preg_replace(array(
+              // eliminate single line comments in '// ...' form
+              '#^\s*//(.+)$#m',
+              // eliminate multi-line comments in '/* ... */' form, at start of string
+              '#^\s*/\*(.+)\*/#Us',
+              // eliminate multi-line comments in '/* ... */' form, at end of string
+              '#/\*(.+)\*/\s*$#Us'
+            ), '', $contents);
+      
+      $contents = preg_replace('/([,\{\[])([\s]*?)([a-z0-9_]+)([\s]*?):/', '\\1\\2"\\3" :', $contents);
+      
+      try
+      {
+        $langdata = enano_json_decode($contents);
+      }
+      catch(Zend_Json_Exception $e)
+      {
+        $db->_die('lang.php - Exception caught by JSON parser</p><pre>' . htmlspecialchars(print_r($e, true)) . '</pre><p>');
+        exit;
+      }
     
       if ( !is_array($langdata) )
         $db->_die('lang.php - invalid language file');

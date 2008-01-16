@@ -565,32 +565,8 @@ function ajaxValidateLogin()
   
   disableJSONExts();
   
-  //
-  // Encryption test
-  //
+  var auth_enabled = aes_self_test();
   
-  var str = '';
-  for(i=0;i<keySizeInBits/4;i++)
-  {
-    str+='0';
-  }
-  str = hexToByteArray(str);
-  var ct  = rijndaelEncrypt(str, str, 'ECB');
-  ct      = byteArrayToHex(ct);
-  var v;
-  switch(keySizeInBits)
-  {
-    case 128:
-      v = '66e94bd4ef8a2c3b884cfa59ca342b2e';
-      break;
-    case 192:
-      v = 'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7';
-      break;
-    case 256:
-      v = 'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087';
-      break;
-  }
-  auth_enabled = ( ct == v && md5_vm_test() );
   if ( !auth_enabled )
   {
     alert('Login error: encryption sanity check failed\n');
@@ -793,6 +769,18 @@ function insertAfter(parent, baby, bigsister)
 function validateEmail(email)
 {
   return ( email.match(/^(?:[\w\d_-]+\.?)+@((?:(?:[\w\d_-]\-?)+\.)+\w{2,4}|localhost)$/) ) ? true : false;
+}
+
+/**
+ * Validates a username.
+ * @param string Username to test
+ * @return bool
+ */
+
+function validateUsername(username)
+{
+  var regex = new RegExp('^[^<>&\?\'"%\n\r/]+$', '');
+  return ( username.match(regex) ) ? true : false;
 }
 
 /**

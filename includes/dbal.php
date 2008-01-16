@@ -163,14 +163,14 @@ class mysql {
           define('scriptPath', $sp);
           define('contentPath', "$sp/index.php?title=");
         }
-        $loc = scriptPath . '/install.php';
+        $loc = scriptPath . '/install/index.php';
         define('IN_ENANO_INSTALL', 1);
         $GLOBALS['lang'] = new Language('eng');
         global $lang;
-        $lang->load_file('./language/english/enano.json');
+        $lang->load_file('./language/english/core.json');
         $lang->load_file('./language/english/install.json');
         // header("Location: $loc");
-        redirect($loc, 'Enano not installed', 'We can\'t seem to find an Enano installation (valid config file). You will be transferred to the installation wizard momentarily...', 3);
+        redirect($loc, 'Enano not installed', 'We can\'t seem to find an Enano installation (valid config file). You will be transferred to the installation wizard momentarily...', 0);
         exit;
       }
     }
@@ -179,9 +179,13 @@ class mysql {
     unset($dbuser);
     unset($dbpasswd); // Security
     
-    if ( !$this->_conn )
+    if ( !$this->_conn && !$manual_credentials )
     {
       grinding_halt('Enano is having a problem', '<p>Error: couldn\'t connect to MySQL.<br />'.mysql_error().'</p>');
+    }
+    else if ( !$this->_conn && $manual_credentials )
+    {
+      return false;
     }
     
     // Reset some variables
@@ -677,14 +681,7 @@ class mysql {
 
 	function sql_error()
 	{
-		if ( $this->_conn )
-		{
-			return mysql_error();
-		}
-		else
-		{
-			return array();
-		}
+    return mysql_error();
 	}
   function sql_escape_string($t) 
   {
@@ -865,7 +862,7 @@ class postgresql {
   }
   
   function get_error($t = '') {
-    header('HTTP/1.1 500 Internal Server Error');
+    @header('HTTP/1.1 500 Internal Server Error');
     $bt = $this->sql_backtrace();
     $e = htmlspecialchars(pg_last_error());
     if($e=='') $e='&lt;none&gt;';
@@ -933,9 +930,13 @@ class postgresql {
     unset($dbuser);
     unset($dbpasswd); // Security
     
-    if ( !$this->_conn )
+    if ( !$this->_conn && !$manual_credentials )
     {
       grinding_halt('Enano is having a problem', '<p>Error: couldn\'t connect to PostgreSQL.<br />'.pg_last_error().'</p>');
+    }
+    else if ( !$this->_conn && $manual_credentials )
+    {
+      return false;
     }
     
     // Reset some variables
@@ -1425,11 +1426,11 @@ class postgresql {
 	{
 		if ( $this->_conn )
 		{
-			return mysql_error();
+			return pg_last_error();
 		}
 		else
 		{
-			return array();
+			return ( defined('IN_ENANO_INSTALL') ) ? $GLOBALS["lang"]->get('dbpgsql_msg_err_auth') : 'Access to the database was denied. Ensure that your database exists and that your username and password are correct.';
 		}
 	}
   function sql_escape_string($t) 

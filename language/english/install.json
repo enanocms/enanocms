@@ -15,7 +15,7 @@
 
 var enano_lang_install = {
   categories: [
-    'meta', 'welcome', 'license', 'sysreqs', 'database', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp',
+    'meta', 'language', 'welcome', 'license', 'sysreqs', 'database', 'dbmysql', 'dbpgsql', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp',
   ],
   strings: {
     meta: {
@@ -26,6 +26,7 @@ var enano_lang_install = {
       btn_article: 'installation page',
       btn_continue: 'Continue',
       lbl_before_continue: 'Before continuing:',
+      step: 'Step %step%: %title%',
       
       msg_err_verification: 'One or more of the form fields is incorrect. Please correct any information in the form that has an "X" next to it.',
       
@@ -33,6 +34,9 @@ var enano_lang_install = {
       msg_err_stagefailed_body: 'When you have corrected the error, click the button below to attempt to continue the installation.',
       msg_err_stagefailed_mysqlerror: 'The error returned from MySQL was:',
       btn_retry_installation: 'Retry installation',
+    },
+    language: {
+      modetitle: 'Language',
     },
     welcome: {
       modetitle: 'Welcome',
@@ -44,7 +48,8 @@ var enano_lang_install = {
       btn_start: 'Start installation',
     },
     license: {
-      modetitle: 'License agreement',
+      modetitle: 'License',
+      modetitle_long: 'License agreement',
       heading: 'Welcome to the Enano installer.',
       blurb_thankyou: 'Thank you for choosing Enano as your CMS. You\'ve selected the finest in design, the strongest in security, and the latest in Web 2.0 toys. Trust us, you\'ll like it.',
       blurb_pleaseread: 'To get started, please read and accept the following license agreement. You\'ve probably seen it before.',
@@ -57,11 +62,13 @@ var enano_lang_install = {
       gpl_blurb_inenglish: 'You may view a copy of the GNU General Public License in English in the file GPL-EN included with this package.',
     },
     sysreqs: {
-      modetitle: 'Server requirements',
+      modetitle: 'Requirements',
+      modetitle_long: 'Server requirements',
       heading: 'Checking your server',
       blurb: 'Enano has several requirements that must be met before it can be installed. If all is good then note any warnings and click Continue below.',
       req_php: 'PHP Version >=4.3.0',
       req_php5: 'PHP 5.2.0 or later',
+      req_postgres: 'PostgreSQL extension for PHP',
       req_mysql: 'MySQL extension for PHP',
       req_uploads: 'File upload support',
       req_apache: 'Apache HTTP Server',
@@ -72,6 +79,7 @@ var enano_lang_install = {
       
       req_desc_php: 'It seems that the version of PHP that your server is running is too old to support Enano properly. If this is your server, please upgrade to the most recent version of PHP, remembering to use the --with-mysql configure option if you compile it yourself. If this is not your server, please contact your webhost and ask them if it would be possible to upgrade PHP. If this is not possible, you will need to switch to a different webhost in order to use Enano.',
       req_desc_php5: 'Your server does not have support for PHP 5.2.0. While you may continue installing Enano, please be warned that as of December 31, 2007, all support for Enano on PHP 4 servers is discontinued. If you have at least PHP 5.0.0, support will still be available, but there are many security problems in PHP versions under 5.2.0 that Enano cannot effectively prevent.',
+      req_desc_postgres: 'It seems that your PHP installation does not have the PostgreSQL extension enabled. Because of this, you won\'t be able to use the PostgreSQL database driver. This is OK in the majority of cases. If you want to use PostgreSQL support, you\'ll need to either compile the PHP extension for Postgres or install the extension with your distribution\'s package manager. Windows administrators will need enable php_pgsql.dll in their php.ini.',
       req_desc_mysql: 'It seems that your PHP installation does not have the MySQL extension enabled. If this is your own server, you may need to just enable the "libmysql.so" extension in php.ini. If you do not have the MySQL extension installed, you will need to either use your distribution\'s package manager to install it, or you will have to compile PHP from source. If you compile PHP from source, please remember to use the "--with-mysql" configure option, and you will have to have the MySQL development files installed (they usually are). If this is not your server, please contact your hosting company and ask them to install the PHP MySQL extension.',
       req_desc_uploads: 'It seems that your server does not support uploading files. Enano *requires* this functionality in order to work properly. Please ask your server administrator to set the "file_uploads" option in php.ini to "On".',
       req_desc_apache: 'Apparently your server is running a web server other than Apache. Enano will work nontheless, but there are some known bugs with non-Apache servers, and the "fancy" URLs will not work properly. The "Standard URLs" option will be set on the website configuration page, only change it if you are absolutely certain that your server is running Apache.',
@@ -92,9 +100,24 @@ var enano_lang_install = {
       objective_scalebacks: 'Review the list above to ensure that you are satisfied with any of Enano\'s workarounds for your server. If you need a particular feature and that feature is listed as disabled above, you should take the opportunity now to correct the problem.'
     },
     database: {
-      modetitle: 'Database information',
+      modetitle: 'Database',
+      modetitle_long: 'Database information',
       heading_optionalinfo: 'Optional information',
       
+      driver_heading: 'Choose a database driver',
+      driver_intro: 'The next step is to choose the database driver that Enano will use. In most cases this is MySQL, but there are certain advantages to PostgreSQL, which is made available only experimentally.',
+      driver_msg_virt_appliance: '<b>You\'re using the Enano virtual appliance.</b><br />Unless you configured the appliance manually, PostgreSQL support is not available. In 99% of cases you\'ll want to click MySQL below.',
+      driver_err_no_mysql: 'You don\'t have the MySQL PHP extension installed.',
+      driver_err_no_pgsql: 'You don\'t have the PostgreSQL PHP extensnion installed.',
+      driver_mysql: 'MySQL',
+      driver_mysql_intro: 'Click this button to use MySQL as the database backend for your site. Most web hosts support MySQL, and if you have administrative access to your MySQL server, you can create a new database and user during this installation process if you haven\'t done so already.',
+      driver_pgsql: 'PostgreSQL',
+      driver_pgsql_intro: 'Click this button to use PostgreSQL as the database backend for your site. While not as widely supported, PostgreSQL has more liberal licensing conditions and when properly configured is faster than MySQL. Some plugins may not work with the PostgreSQL driver.',
+      
+      objective_test: 'Check your MySQL connection using the "Test Connection" button.',
+      objective_uncrypt: 'Be aware that your database information will be transmitted unencrypted several times.',
+    },
+    dbmysql: {
       msg_err_mysql_connect: '<b>Error:</b> The database server "%db_host%" couldn\'t be contacted.<br />%mysql_error%',
       msg_err_mysql_auth: '<b>Error:</b> Access to MySQL under the specified credentials was denied.<br />%mysql_error%',
       msg_err_mysql_dbperm: '<b>Error:</b> Access to the specified database using those login credentials was denied.<br />%mysql_error%',
@@ -106,6 +129,7 @@ var enano_lang_install = {
       msg_warn_mysql_version: 'The MySQL version that your server is running could not be determined.',
       
       msg_info_mysql_good: 'Your version of MySQL meets Enano requirements.',
+      msg_test_success: 'All checks passed! You can use this database configuration with Enano.',
       
       blurb_needdb: 'Now we need some information that will allow Enano to contact your database server. Enano uses MySQL as a data storage backend, and we need to have access to a MySQL server in order to continue.',
       blurb_howtomysql: 'If you do not have access to a MySQL server, and you are using your own server, you can download MySQL for free from <a href="http://www.mysql.com/">MySQL.com</a>. <b>Please note that, like Enano, MySQL is licensed under the GNU GPL.</b> If you need to modify MySQL and then distribute your modifications, you must either distribute them under the terms of the GPL or purchase a proprietary license.',
@@ -131,12 +155,45 @@ var enano_lang_install = {
       field_droptables_lbl: 'Drop existing tables',
       
       btn_testconnection: 'Test connection',
+    },
+    dbpgsql: {
+      msg_err_connect: 'There was a problem connecting to PostgreSQL. Please check your connection information above.',
+      msg_err_version: '<b>Error:</b> Your version of PostgreSQL (%pg_version%) is older than 8.2.5. Enano cannot be installed.',
       
-      objective_test: 'Check your MySQL connection using the "Test Connection" button.',
-      objective_uncrypt: 'Be aware that your database information will be transmitted unencrypted several times.',
+      msg_warn_pg_version: 'The PostgreSQL version that your server is running could not be determined.',
+      msg_err_auth: 'Access to the database was denied. Ensure that your database exists and that your username and password are correct.',
+      
+      msg_info_version_good: 'Your version of PostgreSQL meets Enano requirements.',
+      msg_test_success: 'All checks passed! You can use this database configuration with Enano.',
+      
+      blurb_needdb: 'Now we need some information that will allow Enano to contact your database server. Enano uses PostgreSQL as a data storage backend, and we need to have access to a PostgreSQL server in order to continue.',
+      blurb_howtomysql: 'If you do not have access to a PostgreSQL server, and you are using your own server, you can download PostgreSQL for free from <a href="http://www.mysql.com/">PostgreSQL.com</a>. <b>Please note that, like Enano, PostgreSQL is licensed under the GNU GPL.</b> If you need to modify PostgreSQL and then distribute your modifications, you must either distribute them under the terms of the GPL or purchase a proprietary license.',
+      
+      vm_login_info: '<b>PostgreSQL login information for this virtual appliance:</b><br /><br />Database hostname: %host%<br />Database login: username "%user%", password: "%pass%" (without quotes)<br />Database name: %name%',
+      
+      table_title: 'Database information',
+      
+      field_hostname_title: 'Database hostname',
+      field_hostname_body: 'This is the hostname (or sometimes the IP address) of your PostgreSQL server. In many cases, this is "localhost".',
+      field_dbname_title: 'Database name',
+      field_dbname_body: 'The name of the actual database. If you don\'t already have a database, you can create one here, if you have the username and password of a PostgreSQL user with administrative rights.',
+      field_dbauth_title: 'Database login',
+      field_dbauth_body: 'These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.',
+      field_tableprefix_title: 'Table prefix',
+      field_tableprefix_body: 'The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).',
+      field_rootauth_title: 'Database administrative login',
+      field_rootauth_body: 'If the PostgreSQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.',
+      field_pgsqlversion_title: 'PostgreSQL version',
+      field_pgsqlversion_blurb_willbechecked: 'PostgreSQL version information will be checked when you click "Test Connection".',
+      field_droptables_title: 'Delete existing tables?',
+      field_droptables_body: 'If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.',
+      field_droptables_lbl: 'Drop existing tables',
+      
+      btn_testconnection: 'Test connection',
     },
     website: {
-      modetitle: 'Website configuration',
+      modetitle: 'Site info',
+      modetitle_long: 'Website information',
       header_blurb: 'The next step is to enter some information about your website. You can always change this information later, using the administration panel.',
       
       field_name_title: 'Website name',
@@ -158,8 +215,9 @@ var enano_lang_install = {
       objective_verify: 'Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.',
     },
     login: {
-      modetitle: 'Administration login',
+      modetitle: 'Admin login',
       header_blurb: 'Next, enter your desired username and password. The account you create here will be used to administer your site.',
+      modetitle_long: 'Administration login',
       
       field_username_title: 'Administration username',
       field_username_body: 'The administration username you will use to log into your site.<br />This cannot be "anonymous" or in the form of an IP address.',
@@ -177,7 +235,8 @@ var enano_lang_install = {
       objective_remember: 'Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.',
     },
     confirm: {
-      modetitle: 'Confirm installation',
+      modetitle: 'Review',
+      modetitle_long: 'Confirm installation',
       
       header_blurb_title: 'Enano is ready to install.',
       header_blurb_body: 'The wizard has finished collecting information and is ready to install the database schema. Please review the information below, and then click the button below to install the database.',
@@ -197,7 +256,8 @@ var enano_lang_install = {
       btn_install_enano: 'Install Enano!',
     },
     install: {
-      modetitle: 'Database installation',
+      modetitle: 'Install',
+      modetitle_long: 'Database installation',
       
       stg_connect_title: 'Connect to MySQL',
       stg_connect_body: 'MySQL denied our attempt to connect to the database. This is most likely because your login information was incorrect. You will most likely need to <a href="install.php?mode=license">restart the installation</a>.',
@@ -229,7 +289,8 @@ var enano_lang_install = {
       msg_complete_body: 'Review any warnings above, and then <a href="%finish_link%">click here to finish the installation</a>.',
     },
     finish: {
-      modetitle: 'Installation complete',
+      modetitle: 'Finish',
+      modetitle_long: 'Complete installation',
       msg_congratulations: 'Congratulations!',
       body: '<p>You have finished installing Enano on this server.</p>
             <h3>Now what?</h3>

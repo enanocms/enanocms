@@ -98,6 +98,7 @@ var enano_lang = {
       reg_err_alert_password_tooshort: 'Your password must be 6 characters or greater in length.',
       reg_err_alert_password_nomatch: 'The passwords you entered do not match.',
       reg_err_missing_key: 'Couldn\'t look up public encryption key',
+      reg_err_accept_tou: 'Please read and accept the Terms of Use before creating your account.',
       
       reg_msg_greatercontrol: 'A user account enables you to have greater control over your browsing experience.',
       reg_msg_table_title: 'Create a user account',
@@ -112,6 +113,7 @@ var enano_lang = {
       reg_msg_realname_optional: 'Giving your real name is totally optional. If you choose to provide your real name, it will be used to provide attribution for any edits or contributions you may make to this site.',
       reg_msg_captcha_pleaseenter: 'Please enter the code shown in the image to the right into the text box. The code is case-insensitive and the numeral zero is never used. This process helps to ensure that this registration is not being performed by an automated bot. If the image to the right is illegible, you can <a %regen_flags%>generate a new image</a>.',
       reg_msg_captcha_blind: 'If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will create an account for you.',
+      reg_msg_please_read_tou:'Please read and agree to the following terms before registering. By continuing to create an account you agree to be legally bound by the terms below.',
       reg_msg_success_title: 'Registration successful',
       reg_msg_success_body: 'Thank you for registering, your user account has been created.',
       reg_msg_success_activ_none: 'You may now <a href="%login_link%">log in</a> with the username and password that you created.',
@@ -127,6 +129,9 @@ var enano_lang = {
       reg_lbl_field_realname: 'Real name:',
       reg_lbl_field_captcha: 'Visual confirmation',
       reg_lbl_field_captcha_code: 'Code:',
+      reg_lbl_field_tou: 'I agree to abide by the terms and conditions stated above',
+      
+      reg_btn_create_account: 'Create my account',
       
       reg_coppa_title: 'Before you can register, please tell us your age.',
       reg_coppa_link_atleast13: 'I was born <b>on or before</b> %yo13_date% and am <b>at least</b> 13 years of age',

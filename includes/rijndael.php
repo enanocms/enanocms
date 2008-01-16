@@ -126,7 +126,7 @@ class AESCrypt {
     $this->debug = $debug;
   }
   
-  function singleton($key_size, $block_size)
+  public static function singleton($key_size, $block_size)
   {
     global $_aes_objcache;
     if ( isset($_aes_objcache["$key_size,$block_size"]) )

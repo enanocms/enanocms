@@ -577,3 +577,34 @@ function stringToByteArray(text)
   return result;
 }
 
+function aes_self_test()
+{
+  //
+  // Encryption test
+  //
+  
+  var str = '';
+  for(i=0;i<keySizeInBits/4;i++)
+  {
+    str+='0';
+  }
+  str = hexToByteArray(str);
+  var ct  = rijndaelEncrypt(str, str, 'ECB');
+  ct      = byteArrayToHex(ct);
+  var v;
+  switch(keySizeInBits)
+  {
+    // These test vectors are for 128-bit block size.
+    case 128:
+      v = '66e94bd4ef8a2c3b884cfa59ca342b2e';
+      break;
+    case 192:
+      v = 'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7';
+      break;
+    case 256:
+      v = 'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087';
+      break;
+  }
+  return ( ct == v && md5_vm_test() );
+}
+

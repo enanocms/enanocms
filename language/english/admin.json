@@ -218,6 +218,11 @@ var enano_lang = {
       field_activate_user: 'User',
       field_activate_admin: 'Admin',
       
+      // Section: terms of use (TOU)
+      heading_tou: 'Registration agreement/Terms of Use',
+      field_tou: 'Registration agreement',
+      field_tou_hint: 'The text you enter here will be displayed to users upon any attempt to create an account on this site.',
+      
       // Section: account lockouts
       heading_lockout: 'Account lockouts',
       lockout_intro: 'Configure Enano to prevent or restrict logins for a specified period of time if a user enters an incorrect password a specific number of times.',

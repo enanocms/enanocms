@@ -502,6 +502,8 @@ function page_Special_Register()
   $email = '';
   $realname = '';
   
+  $terms = getConfig('register_tou');
+  
   if(getConfig('account_activation') == 'disable' && ( ( $session->user_level >= USER_LEVEL_ADMIN && !isset($_GET['IWannaPlayToo']) ) || $session->user_level < USER_LEVEL_ADMIN || !$session->user_logged_in ))
   {
     $s = ($session->user_level >= USER_LEVEL_ADMIN) ? '<p>' . $lang->get('user_reg_err_disabled_body_adminblurb', array( 'reg_link' => makeUrl($paths->page, 'IWannaPlayToo&coppa=no', true) )) . '</p>' : '';
@@ -526,6 +528,10 @@ function page_Special_Register()
       if ( getConfig('enable_coppa') == '1' && ( !isset($_POST['coppa']) || ( isset($_POST['coppa']) && !in_array($_POST['coppa'], array('yes', 'no')) ) ) )
       {
         $s = 'Invalid COPPA input';
+      }
+      else if ( !empty($terms) && !isset($_POST['tou_agreed']) )
+      {
+        $s = $lang->get('user_reg_err_accept_tou');
       }
       else
       {
@@ -723,10 +729,44 @@ function page_Special_Register()
               </td>
             </tr>
             
+            <!-- FIELD: TOU -->
+            
+            <?php
+            if ( !empty($terms) ):
+            ?>
+            
+            <tr>
+              <td class="row1" colspan="3">
+                <?php
+                echo $lang->get('user_reg_msg_please_read_tou');
+                ?>
+              </td>
+            </tr>
+            
+            <tr>
+              <td class="row3" colspan="3">
+                <div style="border: 1px solid #000000; height: 75px; width: 60%; clip: rect(0px,auto,auto,0px); overflow: auto; background-color: #FFF; margin: 0 auto; padding: 4px;">
+                  <?php
+                  echo RenderMan::render($terms);
+                  ?>
+                </div>
+                <p style="text-align: center;">
+                  <label>
+                    <input type="checkbox" name="tou_agreed" />
+                    <b><?php echo $lang->get('user_reg_lbl_field_tou'); ?></b>
+                  </label>
+                </p>
+              </td>
+            </tr>
+            
+            <?php
+            endif;
+            ?>
+            
             <!-- FIELD: submit button -->
             <tr>
               <th class="subhead" colspan="3" style="text-align: center;">
-                <input tabindex="7" type="submit" name="submit" value="Create my account" />
+                <input tabindex="7" type="submit" name="submit" value="<?php echo $lang->get('user_reg_btn_create_account'); ?>" />
               </td>
             </tr>
             

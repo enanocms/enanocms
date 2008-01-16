@@ -137,6 +137,8 @@ define('AES_BITS', 192);
 //   define('AES_BLOCKSIZE', AES_BITS);
 // }
 
+// You probably don't want to change the block size because it will cause the Javascript test vectors to fail. Changing it doesn't
+// significantly increase encryption strength either.
 define('AES_BLOCKSIZE', 128);
 
 /*

@@ -63,6 +63,11 @@ if ( IE )
 // dummy tinyMCE object
 var tinyMCE = new Object();
 
+if ( typeof(DISABLE_MCE) == undefined )
+{
+  var DISABLE_MCE = false;
+}
+
 // Obsolete JSON kill switch
 function disableJSONExts() { };
 
@@ -251,7 +256,7 @@ function runOnloadHooks(e)
 }
 
 var head = document.getElementsByTagName('head')[0];
-if ( !KILL_SWITCH )
+if ( !KILL_SWITCH && !DISABLE_MCE )
 {
   var script = document.createElement('script');
   script.type="text/javascript";

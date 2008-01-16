@@ -33,7 +33,7 @@ var initTinyMCE = function(e)
 {
   if ( typeof(tinyMCE) == 'object' )
   {
-    if ( !KILL_SWITCH )
+    if ( !KILL_SWITCH && !DISABLE_MCE )
     {
       tinyMCE.init(enano_tinymce_options);
     }

@@ -85,12 +85,6 @@ else
 if ( !defined('ENANO_ROOT') )
   define('ENANO_ROOT', dirname(dirname($filename)));
 
-// Debugging features are PHP5-specifid
-if ( defined('ENANO_DEBUG') && version_compare(PHP_VERSION, '5.0.0') < 0 )
-{
-  die(__FILE__.':'.__LINE__.': The debugConsole requires PHP 5.x.x or greater. Please comment out the ENANO_DEBUG constant in your index.php.');
-}
-
 // We deprecated debugConsole in 1.0.2 because it was never used and there were a lot of unneeded debugging points in the code.
 
 // _nightly.php is used to tag non-Mercurial-generated nightly builds
@@ -185,7 +179,7 @@ if ( isset($_GET['do']) && $_GET['do'] == 'diag' && isset($_GET['sub']) )
       unset($_COOKIE['sid']);
       setcookie('sid', '', time()-3600*24, scriptPath);
       setcookie('sid', '', time()-3600*24, scriptPath.'/');
-      die('Session cookie cleared. <a href="'.$_SERVER['PHP_SELF'].'">Continue</a>');
+      die('Session cookie cleared. <a href="'.htmlspecialchars($_SERVER['PHP_SELF']).'">Continue</a>');
       break;
   }
 }
@@ -209,7 +203,7 @@ while($r = $db->fetchrow())
 $db->free_result();
 
 // Now that we have the config, check the Enano version.
-if ( enano_version(false, true) != $version )
+if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
 {
   grinding_halt('Version mismatch', '<p>It seems that the Enano release we\'re trying to run ('.$version.') is different from the version specified in your database ('.enano_version().'). Perhaps you need to <a href="'.scriptPath.'/upgrade.php">upgrade</a>?</p>');
 }
@@ -283,7 +277,6 @@ $system_table_list = Array(
     table_prefix.'privmsgs',
     table_prefix.'sidebar',
     table_prefix.'hits',
-    table_prefix.'search_index',
     table_prefix.'groups',
     table_prefix.'group_members',
     table_prefix.'acl',
@@ -350,7 +343,10 @@ if ( !defined('IN_ENANO_INSTALL') )
   // All checks passed! Start the main components up.  
   $session->start();
   
-  // This is where plugins will want to add pages from 1.1.x on out. You can still add pages at base_classes_initted but the titles won't be localized.
+  // This is where plugins will want to add pages from 1.1.x on out. You can still add
+  // pages at base_classes_initted but the titles won't be localized. This is because
+  // the session manager has to be started before localization will work in the user's
+  // preferred language.
   $code = $plugins->setHook('session_started');
   foreach ( $code as $cmd )
   {

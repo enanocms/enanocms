@@ -1,0 +1,8 @@
+# Used for testing mod_rewrite.
+
+RewriteEngine on
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule (.*) install.php?do=modrewrite_test&str=$1
+
