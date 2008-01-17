@@ -279,7 +279,7 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
 # Main rule - short and sweet
-RewriteRule (.*) index.php?title=\$1
+RewriteRule (.*) index.php?title=\$1 [L,QSA]
 
 EOF;
     fwrite($hh, $hhc);

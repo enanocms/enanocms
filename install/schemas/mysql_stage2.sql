@@ -181,12 +181,6 @@ CREATE TABLE {{TABLE_PREFIX}}hits(
   PRIMARY KEY ( hit_id ) 
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
-CREATE TABLE {{TABLE_PREFIX}}search_index(
-  word varchar(64) NOT NULL,
-  page_names text,
-  PRIMARY KEY ( word ) 
-) CHARACTER SET `utf8` COLLATE `utf8_bin`;
-
 CREATE TABLE {{TABLE_PREFIX}}groups(
   group_id mediumint(5) UNSIGNED NOT NULL auto_increment,
   group_name varchar(64),

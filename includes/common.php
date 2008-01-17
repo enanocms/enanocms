@@ -282,7 +282,10 @@ $system_table_list = Array(
     table_prefix.'acl',
     table_prefix.'page_groups',
     table_prefix.'page_group_members',
-    table_prefix.'tags'
+    table_prefix.'tags',
+    table_prefix.'language',
+    table_prefix.'language_strings',
+    table_prefix.'lockout'
   );
 
 // Load plugin manager

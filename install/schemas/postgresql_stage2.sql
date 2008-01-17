@@ -177,12 +177,6 @@ CREATE TABLE {{TABLE_PREFIX}}hits(
   PRIMARY KEY ( hit_id ) 
 );
 
-CREATE TABLE {{TABLE_PREFIX}}search_index(
-  word varchar(64) NOT NULL,
-  page_names text,
-  PRIMARY KEY ( word ) 
-);
-
 CREATE TABLE {{TABLE_PREFIX}}groups(
   group_id SERIAL,
   group_name varchar(64),
