@@ -73,10 +73,7 @@ flush();
 function stg_load_files()
 {
   global $dbdriver;
-  if ( !@include( ENANO_ROOT . "/install/includes/payloads/common.php" ) )
-    return false;
-  
-  if ( !@include( ENANO_ROOT . "/install/includes/payloads/$dbdriver.php" ) )
+  if ( !@include( ENANO_ROOT . "/install/includes/payload.php" ) )
     return false;
   
   return true;
@@ -90,6 +87,25 @@ run_installer_stage('setpass', 'Retrieve administrator password', 'stg_password_
 run_installer_stage('genaes', 'Generate private key', 'stg_make_private_key', 'Couldn\'t generate a private key for the site. This really shouldn\'t happen.');
 run_installer_stage('sqlparse', 'Prepare database schema', 'stg_load_schema', 'Couldn\'t load or parse the schema file. This really shouldn\'t happen.');
 run_installer_stage('payload', 'Install database', 'stg_deliver_payload', 'There was a problem with an SQL query.');
+run_installer_stage('writeconfig', $lang->get('install_stg_writeconfig_title'), 'stg_write_config', $lang->get('install_stg_writeconfig_body'));
+
+// Now that the config is written, shutdown our primitive API and startup the full Enano API
+$db->close();
+
+@define('ENANO_ALLOW_LOAD_NOLANG', 1);
+require(ENANO_ROOT . '/includes/common.php');
+        
+if ( is_object($db) && is_object($session) )
+{
+  run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_sim_good', '...', false);
+}
+else
+{
+  run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_sim_bad', $lang->get('install_stg_startapi_body'), false);
+}
+
+// Import languages
+run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_language_setup', $lang->get('install_stg_importlang_body'));
 
 close_install_table();
 

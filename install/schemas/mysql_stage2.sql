@@ -277,8 +277,6 @@ CREATE TABLE {{TABLE_PREFIX}}language_strings(
   PRIMARY KEY ( string_id )
 );
 
-DELETE FROM {{TABLE_PREFIX}}config;
-
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),

@@ -306,7 +306,7 @@ class template {
       $tb .= $button->run();
     }
     // Edit button
-    if($session->get_permissions('read') && ($paths->namespace != 'Special' && $paths->namespace != 'Admin') && ( $session->get_permissions('edit_page') && ( ( $paths->page_protected && $session->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
+    if($session->get_permissions('read') && ($paths->namespace != 'Special' && $paths->namespace != 'Admin' && $paths->namespace != 'Anonymous') && ( $session->get_permissions('edit_page') && ( ( $paths->page_protected && $session->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
     {
       $button->assign_vars(array(
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_edit') . '" accesskey="e"',
@@ -317,7 +317,7 @@ class template {
       $tb .= $button->run();
     // View source button
     }
-    else if($session->get_permissions('view_source') && ( !$session->get_permissions('edit_page') || !$session->get_permissions('even_when_protected') && $paths->page_protected ) && $paths->namespace != 'Special' && $paths->namespace != 'Admin') 
+    else if($session->get_permissions('view_source') && ( !$session->get_permissions('edit_page') || !$session->get_permissions('even_when_protected') && $paths->page_protected ) && $paths->namespace != 'Special' && $paths->namespace != 'Admin' && $paths->namespace != 'Anonymous') 
     {
       $button->assign_vars(array(
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_viewsource') . '" accesskey="e"',
@@ -1942,9 +1942,9 @@ class template_nodb
     $tpl_strings = Array(
       'PAGE_NAME'=>$this_page,
       'PAGE_URLNAME'=>'Null',
-      'SITE_NAME'=>$lang->get('meta_site_name'),
+      'SITE_NAME'=> ( defined('IN_ENANO_INSTALL') ) ? $lang->get('meta_site_name') : 'Critical error',
       'USERNAME'=>'admin',
-      'SITE_DESC'=>$lang->get('meta_site_desc'),
+      'SITE_DESC'=>( defined('IN_ENANO_INSTALL') ) ? $lang->get('meta_site_desc') : 'This site is experiencing a problem and cannot load.',
       'TOOLBAR'=>$tb,
       'SCRIPTPATH'=>scriptPath,
       'CONTENTPATH'=>contentPath,
@@ -1953,7 +1953,7 @@ class template_nodb
       'ADMIN_SID_AMP_HTML'=>'',
       'ADDITIONAL_HEADERS'=>$this->additional_headers,
       'SIDEBAR_EXTRA'=>'',
-      'COPYRIGHT'=>$lang->get('meta_enano_copyright'),
+      'COPYRIGHT'=>( defined('IN_ENANO_INSTALL') ) ? $lang->get('meta_enano_copyright') : ( defined('ENANO_CONFIG_FETCHED') ? getConfig('copyright_notice') : '' ),
       'TOOLBAR_EXTRAS'=>'',
       'REQUEST_URI'=>( isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '' ).$_SERVER['REQUEST_URI'],
       'STYLE_LINK'=>$slink,

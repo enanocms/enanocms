@@ -324,23 +324,10 @@ class Request_HTTP
   
   function _sock_open(&$connection)
   {
-    if ( $this->debug )
-    {
-      echo '<hr /><div style="white-space: nowrap;">';
-      echo '<p><b>' . __CLASS__ . ': Sending request</b></p><p>Request parameters:</p>';
-      echo "<p><b>Headers:</b></p><pre>$headers</pre>";
-      echo "<p><b>Cookies:</b> $cookies</p>";
-      echo "<p><b>GET URI:</b> " . htmlspecialchars($get) . "</p>";
-      echo "<p><b>POST DATA:</b> " . htmlspecialchars($post) . "</p>";
-    }
-    
     // Open connection
     $connection = fsockopen($this->host, $this->port);
     if ( !$connection )
       die(__CLASS__ . '::' . __METHOD__ . ': Could not make connection');
-    
-    if ( $this->debug )
-      echo '<p>Connection opened. Writing main request to socket. Raw socket data follows.</p><pre>';
     
     // 1 = socket open
     $this->state = 1;
@@ -354,6 +341,20 @@ class Request_HTTP
   function _write_request(&$connection, &$headers, &$cookies, &$get, &$post)
   {
     $newline = "\r\n";
+    
+    if ( $this->debug )
+      echo '<p>Connection opened. Writing main request to socket. Raw socket data follows.</p><pre>';
+    
+    if ( $this->debug )
+    {
+      echo '<hr /><div style="white-space: nowrap;">';
+      echo '<p><b>' . __CLASS__ . ': Sending request</b></p><p>Request parameters:</p>';
+      echo "<p><b>Headers:</b></p><pre>$headers</pre>";
+      echo "<p><b>Cookies:</b> $cookies</p>";
+      echo "<p><b>GET URI:</b> " . htmlspecialchars($this->uri . $get) . "</p>";
+      echo "<p><b>POST DATA:</b> " . htmlspecialchars($post) . "</p>";
+    }
+    echo "<pre>";
     
     $this->_fputs($connection, "{$this->method} {$this->uri}{$get} HTTP/1.1{$newline}");
     $this->_fputs($connection, "Host: {$this->host}{$newline}");
@@ -393,7 +394,7 @@ class Request_HTTP
     if ( $this->debug )
     {
       echo '<p>Response fetched. Closing connection. Response text follows.</p><pre>';
-      echo htmlspecialchars($buffer);
+      echo htmlspecialchars($this->response);
       echo '</pre></div><hr />';
     }
     

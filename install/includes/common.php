@@ -113,6 +113,7 @@ while ( $dh = @readdir($dir) )
     {
       $languages[$meta['lang_code']] = array(
           'name' => $meta['lang_name_native'],
+          'name_eng' => $meta['lang_name_english'],
           'dir' => $dh
         );
     }
