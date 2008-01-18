@@ -297,7 +297,7 @@ class template {
       $tb .= $button->run();
     }
     // Edit button
-    if($session->get_permissions('read') && ($paths->namespace != 'Special' && $paths->namespace != 'Admin') && ( $session->get_permissions('edit_page') && ( ( $paths->page_protected && $session->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
+    if($session->get_permissions('read') && ($paths->namespace != 'Special' && $paths->namespace != 'Admin' && $paths->namespace != 'Anonymous') && ( $session->get_permissions('edit_page') && ( ( $paths->page_protected && $session->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
     {
       $button->assign_vars(array(
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="Edit the contents of this page (alt-e)" accesskey="e"',
