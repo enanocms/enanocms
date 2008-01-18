@@ -112,5 +112,14 @@ run_installer_stage('initlogs', $lang->get('install_stg_initlogs_title'), 'stg_i
 
 close_install_table();
 
+?>
+<form action="install.php?stage=finish" method="post">
+  <input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
+  <div style="text-align: center;">
+    <input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" tabindex="1" />
+  </div>
+</form>
+<?php
+
 $db->close();
 

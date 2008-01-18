@@ -141,6 +141,44 @@ define('AES_BITS', 192);
 // significantly increase encryption strength either.
 define('AES_BLOCKSIZE', 128);
 
+// Our list of tables included in Enano
+$system_table_list = Array(
+    'categories',
+    'comments',
+    'config',
+    'logs',
+    'page_text',
+    'session_keys',
+    'pages',
+    'users',
+    'users_extra',
+    'themes',
+    'buddies',
+    'banlist',
+    'files',
+    'privmsgs',
+    'sidebar',
+    'hits',
+    'groups',
+    'group_members',
+    'acl',
+    'page_groups',
+    'page_group_members',
+    'tags',
+    'language',
+    'language_strings',
+    'lockout',
+    'search_index'
+  );
+
+if ( defined('table_prefix') )
+{
+  foreach ( $system_table_list as $i => $_ )
+  {
+    $system_table_list[$i] = table_prefix . $system_table_list[$i];
+  }
+}
+
 /*
  * MIMETYPES
  *

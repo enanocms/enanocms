@@ -26,14 +26,68 @@ $db_user =& $_POST['db_user'];
 $db_pass =& $_POST['db_pass'];
 $db_name =& $_POST['db_name'];
 $db_prefix =& $_POST['table_prefix'];
+$db_root_user =& $_POST['db_root_user'];
+$db_root_pass =& $_POST['db_root_pass'];
+
+if ( !preg_match('/^[a-z0-9_]*$/', $db_prefix) )
+{
+  $ui->show_header();
+  echo '<p>That table prefix isn\'t going to work.</p>';
+  return true;
+}
 
 $result = $dbal->connect(true, $db_host, $db_user, $db_pass, $db_name);
+
+// If connection failed, we have the root login, AND we're on MySQL, try to force our way in
+if ( !$result && !empty($_POST['db_root_user']) && !empty($_POST['db_root_pass']) && $driver == 'mysql' )
+{
+  // Allow a jump / breakout
+  switch ( 'foo' ) { case 'foo':
+      
+    // Try to connect to the DB as root
+    $result_root = $dbal->connect(true, $db_host, $db_root_user, $db_root_pass, 'mysql');
+    if ( !$result_root )
+      break;
+    
+    $q = $dbal->sql_query('CREATE DATABASE IF NOT EXISTS `' . $dbal->escape($db_name) . '`;');
+    if ( !$q )
+      break;
+    
+    if ( $db_host == 'localhost' || $db_host == '127.0.0.1' )
+    {
+      $q = $dbal->sql_query('GRANT ALL PRIVILEGES ON `' . $dbal->escape($db_name) . '`.* TO \'' . $dbal->escape($db_user) . '\'@\'localhost\'' . "\n" .
+                            '  IDENTIFIED BY \'' . $dbal->escape($db_pass) . '\' WITH GRANT OPTION');
+    }
+    else
+    {
+      $q = $dbal->sql_query('GRANT ALL PRIVILEGES ON `' . $dbal->escape($db_name) . '`.* TO \'' . $dbal->escape($db_user) . '\'@\'%\'' . "\n" .
+                            '  IDENTIFIED BY \'' . $dbal->escape($db_pass) . '\' WITH GRANT OPTION');
+    }
+    
+    if ( !$q )
+      break;
+    
+    $dbal->close();
+    $result = $dbal->connect(true, $db_host, $db_user, $db_pass, $db_name);
+      
+    break;
+  }
+}
 
 $ui->show_header();
 
 if ( $result )
 {
-  // We're good, write out a config file
+  // We're good, do table drop if requested
+  if ( isset($_POST['drop_tables']) )
+  {
+    global $system_table_list;
+    foreach ( $system_table_list as $table )
+    {
+      $dbal->sql_query("DROP TABLE {$db_prefix}$table");
+    }
+  }
+  // Write out a config file
   $ch = @fopen( ENANO_ROOT . '/config.new.php', 'w' );
   if ( !$ch )
   {

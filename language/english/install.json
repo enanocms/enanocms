@@ -273,7 +273,13 @@ var enano_lang_install = {
       stg_writeconfig_title: 'Write configuration files',
       stg_writeconfig_body: 'Enano was unable to write the configuration file with your site\'s database credentials. This is almost always because your configuration file does not have the correct permissions. On Windows servers, you may see this message even if the check on the System Requirements page passed. Temporarily running IIS as the Administrator user may help.',
       stg_rename_title: 'Rename configuration files',
-      stg_rename_body: 'Enano couldn\'t rename the configuration files to their correct production names. Please CHMOD the folder where your Enano files are to 777 and click the retry button below, <b><u>or</u></b> perform the following rename operations and then <a href="install.php?mode=finish">finish the installation</a>.<ul><li>Rename config.new.php to config.php</li><li>Rename .htaccess.new to .htaccess (only if you selected Tiny URLs)</li></ul>',
+      stg_rename_body: 'Enano couldn\'t rename the configuration files to their correct production names. <span style="font-weight: bold; color: red;">Please perform the following rename operations and then follow the instructions to finish the installation below.</span>
+                          <ul>
+                            <li>Rename config.new.php to config.php</li>
+                            <li>Rename .htaccess.new to .htaccess (only if you selected the Rewrite URL scheme)</li>
+                          </ul>
+                        %this.finish_body%
+                        %this.finish_link_mainpage%',
       stg_startapi_title: 'Start the Enano API',
       stg_startapi_body: 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.',
       stg_importlang_title: 'Import default language',
@@ -292,8 +298,7 @@ var enano_lang_install = {
       modetitle: 'Finish',
       modetitle_long: 'Complete installation',
       msg_congratulations: 'Congratulations!',
-      body: '<p>You have finished installing Enano on this server.</p>
-            <h3>Now what?</h3>
+      body: '<h3>Wait... Now what?</h3>
              <p>Click the link below to see the main page for your website. Where to go from here:</p>
              <ul>
                <li>The first thing you should do is log into your site using the Log in link on the sidebar.</li>

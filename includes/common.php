@@ -259,36 +259,6 @@ install_language("eng", "English", "English", ENANO_ROOT . "/language/english/en
   setConfig('default_language', $row['lang_id']);
 }
 
-// Our list of tables included in Enano
-$system_table_list = Array(
-    table_prefix.'categories',
-    table_prefix.'comments',
-    table_prefix.'config',
-    table_prefix.'logs',
-    table_prefix.'page_text',
-    table_prefix.'session_keys',
-    table_prefix.'pages',
-    table_prefix.'users',
-    table_prefix.'users_extra',
-    table_prefix.'themes',
-    table_prefix.'buddies',
-    table_prefix.'banlist',
-    table_prefix.'files',
-    table_prefix.'privmsgs',
-    table_prefix.'sidebar',
-    table_prefix.'hits',
-    table_prefix.'groups',
-    table_prefix.'group_members',
-    table_prefix.'acl',
-    table_prefix.'page_groups',
-    table_prefix.'page_group_members',
-    table_prefix.'tags',
-    table_prefix.'language',
-    table_prefix.'language_strings',
-    table_prefix.'lockout',
-    table_prefix.'search_index'
-  );
-
 // Load plugin manager
 $plugins = new pluginLoader();
 

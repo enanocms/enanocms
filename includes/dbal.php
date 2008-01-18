@@ -199,7 +199,11 @@ class mysql {
     $q = $this->sql_query('USE `'.$dbname.'`;');
     
     if ( !$q )
+    {
+      if ( $manual_credentials )
+        return false;
       $this->_die('The database could not be selected.');
+    }
     
     // We're in!
     $this->disable_errorhandler();

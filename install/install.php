@@ -19,6 +19,7 @@ define('IN_ENANO', 1);
 define('ENANO_DANGEROUS', 1);
 
 require_once('includes/common.php');
+@ini_set('display_errors', 'on');
 
 $stages = array('language', 'license', 'sysreqs', 'database', 'website', 'login', 'confirm', 'install', 'finish');
 $stage_ids = array();
@@ -267,6 +268,9 @@ switch ( $stage )
     break;
   case 'install':
     require( ENANO_ROOT . '/install/includes/stages/install.php' );
+    break;
+  case 'finish':
+    require( ENANO_ROOT . '/install/includes/stages/finish.php' );
     break;
 }
 

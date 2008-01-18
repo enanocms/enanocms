@@ -99,15 +99,18 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
     $key = htmlspecialchars($key);
     $post_data .= "          <input type=\"hidden\" name=\"$key\" value=\"$value\" />\n";
   }
-  echo '<form action="install.php?stage=install&amp;sub=' . $stage_id . '" method="post">
-          ' . $post_data . '
-          <input type="hidden" name="resume_stack" value="' . htmlspecialchars(implode('|', $resume_stack)) . '" />
-          <h3>' . $lang->get('meta_msg_err_stagefailed_title') . '</h3>
-           <p>' . $failure_explanation . '</p>
-           ' . ( !empty($mysql_error) ? "<p>" . $lang->get('meta_msg_err_stagefailed_mysqlerror') . " $mysql_error</p>" : '' ) . '
-           <p>' . $lang->get('meta_msg_err_stagefailed_body') . '</p>
-           <p style="text-align: center;"><input type="submit" value="' . $lang->get('meta_btn_retry_installation') . '" /></p>
-        </form>';
+  if ( $stage_id == 'renameconfig' )
+    echo '<p>' . $failure_explanation . '</p>';
+  else
+    echo '<form action="install.php?stage=install&amp;sub=' . $stage_id . '" method="post">
+            ' . $post_data . '
+            <input type="hidden" name="resume_stack" value="' . htmlspecialchars(implode('|', $resume_stack)) . '" />
+            <h3>' . $lang->get('meta_msg_err_stagefailed_title') . '</h3>
+             <p>' . $failure_explanation . '</p>
+             ' . ( !empty($mysql_error) ? "<p>" . $lang->get('meta_msg_err_stagefailed_mysqlerror') . " $mysql_error</p>" : '' ) . '
+             <p>' . $lang->get('meta_msg_err_stagefailed_body') . '</p>
+             <p style="text-align: center;"><input type="submit" value="' . $lang->get('meta_btn_retry_installation') . '" /></p>
+          </form>';
   global $ui;
   $ui->show_footer();
   exit;
