@@ -21,6 +21,23 @@ $installer_version = array(
   // If type is set to "rc", "beta", or "alpha", optionally another version number can be issued with the key 'sub':
   // 'sub' => '3' will produce Enano 1.1.1a3 / Enano 1.1.1 alpha 3
 );
+
+function installer_enano_version($long = false)
+{
+  global $installer_version;
+  static $keywords = array(
+    'alpha' => 'a',
+    'beta' => 'b',
+    'RC' => 'rc'
+    );
+  $v = $installer_version['version'];
+  if ( isset($installer_version['sub']) )
+  {
+    $v .= ( $short ) ? $keywords[$installer_version['type']] : " {$installer_version['type']} ";
+    $v .= $installer_version['sub'];
+  }
+  return $v;
+}
  
 // Determine Enano root directory
 

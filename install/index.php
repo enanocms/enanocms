@@ -39,14 +39,14 @@ if ( defined('ENANO_INSTALLED') )
 ?>
 
           <div id="installnotice">
-            <?php
+          <?php
             if ( !defined('ENANO_INSTALLED') ):
             ?>
             <div class="info-box-mini">
               <b>Enano hasn't been installed yet!</b><br />
               You'll need to install the Enano database before you can use your site. To get started, click the Install button below.
             </div>
-            <?php
+          <?php
             if ( file_exists('./config.php') )
             {
             ?>
@@ -64,8 +64,7 @@ if ( defined('ENANO_INSTALLED') )
             <?php
             }
             endif;
-            ?>
-          </div>
+            ?></div>
           <table border="0" cellspacing="10" cellpadding="0" width="100%" id="installmenu">
             <tr>
               <td style="text-align: right; width: 50%;">
@@ -99,7 +98,7 @@ if ( defined('ENANO_INSTALLED') )
                     </a>
                   </li>
                   <?php
-                  if ( $version == enano_version(true) )
+                  if ( installer_enano_version() == enano_version(true) )
                   {
                     echo '<li>
                     <a class="upgrade-disabled icon icon-disabled">

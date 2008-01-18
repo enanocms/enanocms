@@ -215,7 +215,7 @@ EOF;
       echo "      <li class=\"$class\">$stage</li>\n    ";
     }
     echo "    </ul>\n      <div style=\"clear: both;\"></div>\n      </div>\n";
-    echo "      <div id=\"enano-fill\">\n        ";
+    echo "      <div id=\"enano-fill\">\n      ";
     echo "  <div id=\"enano-body\">\n            ";
   }
   

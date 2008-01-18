@@ -353,8 +353,8 @@ class Request_HTTP
       echo "<p><b>Cookies:</b> $cookies</p>";
       echo "<p><b>GET URI:</b> " . htmlspecialchars($this->uri . $get) . "</p>";
       echo "<p><b>POST DATA:</b> " . htmlspecialchars($post) . "</p>";
+      echo "<pre>";
     }
-    echo "<pre>";
     
     $this->_fputs($connection, "{$this->method} {$this->uri}{$get} HTTP/1.1{$newline}");
     $this->_fputs($connection, "Host: {$this->host}{$newline}");

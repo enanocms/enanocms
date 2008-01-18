@@ -205,7 +205,7 @@ $db->free_result();
 // Now that we have the config, check the Enano version.
 if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
 {
-  grinding_halt('Version mismatch', '<p>It seems that the Enano release we\'re trying to run ('.$version.') is different from the version specified in your database ('.enano_version().'). Perhaps you need to <a href="'.scriptPath.'/upgrade.php">upgrade</a>?</p>');
+  grinding_halt('Version mismatch', '<p>It seems that the Enano release we\'re trying to run ('.$version.') is different from the version specified in your database ('.enano_version().'). Perhaps you need to <a href="'.scriptPath.'/install/upgrade.php">upgrade</a>?</p>');
 }
 
 //
@@ -239,7 +239,7 @@ else if ( $ks = getConfig('aes_block_size') )
 }
 
 // Is there no default language?
-if ( getConfig('lang_default') === false )
+if ( getConfig('lang_default') === false && !defined('IN_ENANO_MIGRATION') )
 {
   $q = $db->sql_query('SELECT lang_id FROM '.table_prefix.'language LIMIT 1;');
   if ( !$q )
