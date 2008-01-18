@@ -107,6 +107,9 @@ else
 // Import languages
 run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_language_setup', $lang->get('install_stg_importlang_body'));
 
+// Init logs
+run_installer_stage('initlogs', $lang->get('install_stg_initlogs_title'), 'stg_init_logs', $lang->get('install_stg_initlogs_body'));
+
 close_install_table();
 
 $db->close();

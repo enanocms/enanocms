@@ -145,7 +145,7 @@ class pathManager {
       
     }
     $db->free_result();
-    if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') || defined('IN_ENANO_INSTALL') || defined('IN_ENANO_UPGRADE') )
+    if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') || defined('IN_ENANO_UPGRADE') )
     {
       if( isset($_GET['title']) )
       {

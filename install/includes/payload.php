@@ -89,7 +89,7 @@ function stg_make_private_key()
 
 function stg_load_schema()
 {
-  global $db, $dbdriver, $installer_version;
+  global $db, $dbdriver, $installer_version, $lang_id, $languages;
   static $sql_parser = false;
   
   if ( is_object($sql_parser) )
@@ -114,6 +114,18 @@ function stg_load_schema()
     return false;
   }
   
+  $wkt = ENANO_ROOT . "/language/{$languages[$lang_id]['dir']}/install/mainpage-default.wkt";
+  if ( !file_exists( $wkt ) )
+  {
+    echo '<div class="error-box">Error: could not locate wikitext for main page (' . $wkt . ')</div>';
+    return false;
+  }
+  $wkt = @file_get_contents($wkt);
+  if ( empty($wkt) )
+    return false;
+  
+  $wkt = $db->escape($wkt);
+  
   $vars = array(
       'TABLE_PREFIX'         => $_POST['table_prefix'],
       'SITE_NAME'            => $db->escape($_POST['site_name']),
@@ -128,7 +140,8 @@ function stg_load_schema()
       'ADMIN_EMAIL'          => $db->escape($_POST['email']),
       'REAL_NAME'            => '', // This has always been stubbed.
       'ADMIN_EMBED_PHP'      => strval(AUTH_DISALLOW),
-      'UNIX_TIME'            => strval(time())
+      'UNIX_TIME'            => strval(time()),
+      'MAIN_PAGE_CONTENT'    => $wkt
     );
   
   $sql_parser->assign_vars($vars);
@@ -279,7 +292,7 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
 # Main rule - short and sweet
-RewriteRule (.*) index.php?title=\$1
+RewriteRule (.*) index.php?title=\$1 [L,QSA]
 
 EOF;
     fwrite($hh, $hhc);
@@ -310,3 +323,19 @@ function stg_language_setup()
   
   return true;
 }
+
+function stg_init_logs()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $installer_version;
+  
+  $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES(\'security\', \'install_enano\', ' . time() . ', \'' . enano_date('d M Y h:i a') . '\', \'' . $db->escape($_POST['admin_user']) . '\', \'' . $db->escape(enano_version()) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
+  if ( !$q )
+  {
+    echo '<p><tt>MySQL return: ' . $db->sql_error() . '</tt></p>';
+    return false;
+  }
+  
+  return true;
+}
+

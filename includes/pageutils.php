@@ -211,7 +211,7 @@ class PageUtils {
           if ($db->numrows() > 0 )
           {
             $r = $db->fetchrow();
-            echo '<p>This page also appears to have some log entries in the database - it seems that it was deleted on ' . $r['date_string'] . '. You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">roll back</a> the deletion.</p>';
+            echo '<p>This page also appears to have some log entries in the database - it seems that it was deleted on ' . enano_date('d M Y h:i a', intval($r['time_id'])) . '. You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">roll back</a> the deletion.</p>';
           }
           $db->free_result();
         }
@@ -258,7 +258,7 @@ class PageUtils {
         }
         $r = $db->fetchrow();
         $db->free_result();
-        $message = '<div class="info-box" style="margin-left: 0; margin-top: 5px;"><b>Notice:</b><br />The page you are viewing was archived on ' . $r['date_string'] . '.<br /><a href="'.makeUrl($page).'" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="'.makeUrl($page, 'do=rollback&amp;id=' . $hist_id) . '" onclick="ajaxRollback(\'' . $hist_id . '\')">Restore this version</a></div><br />'.RenderMan::render($r['page_text']);
+        $message = '<div class="info-box" style="margin-left: 0; margin-top: 5px;"><b>Notice:</b><br />The page you are viewing was archived on ' . enano_date('d M Y h:i a', intval($r['time_id'])) . '.<br /><a href="'.makeUrl($page).'" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="'.makeUrl($page, 'do=rollback&amp;id=' . $hist_id) . '" onclick="ajaxRollback(\'' . $hist_id . '\')">Restore this version</a></div><br />'.RenderMan::render($r['page_text']);
         
         if( !$paths->pages[$page]['special'] )
         {
@@ -618,7 +618,7 @@ class PageUtils {
         if($ticker < $numrows) echo '<td class="' . $cls . '" style="padding: 0;"><input ' . $s2 . 'name="diff2" type="radio" value="' . $r['time_id'] . '" id="diff2_' . $r['time_id'] . '" class="clsDiff2Radio" onclick="selectDiff2Button(this);" /></td>'."\n"; else echo '<td class="' . $cls . '"></td>';
         
         // Date and time
-        echo '<td class="' . $cls . '">' . $r['date_string'] . '</td class="' . $cls . '">'."\n";
+        echo '<td class="' . $cls . '">' . enano_date('d M Y h:i a', intval($r['time_id'])) . '</td class="' . $cls . '">'."\n";
         
         // User
         if ( $session->get_permissions('mod_misc') && is_valid_ip($r['author']) )
@@ -694,7 +694,7 @@ class PageUtils {
         echo '<tr>';
         
         // Date and time
-        echo '<td class="' . $cls . '">' . $r['date_string'] . '</td class="' . $cls . '">';
+        echo '<td class="' . $cls . '">' . enano_date('d M Y h:i a', intval($r['time_id'])) . '</td class="' . $cls . '">';
         
         // User
         echo '<td class="' . $cls . '"><a href="'.makeUrlNS('User', sanitize_page_id($r['author'])).'" ';
@@ -811,7 +811,7 @@ class PageUtils {
             }
             else
             {
-              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the state it was in on ' . $rb['date_string'] . '.';
+              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the state it was in on ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
             }
             break;
           case "rename":
@@ -825,7 +825,7 @@ class PageUtils {
             }
             else
             {
-              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the name it had ("' . $rb['edit_summary'] . '") before ' . $rb['date_string'] . '.';
+              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the name it had ("' . $rb['edit_summary'] . '") before ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
             }
             break;
           case "prot":
@@ -835,7 +835,7 @@ class PageUtils {
             if ( !$e )
               return "An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
             else
-              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at ' . $rb['date_string'] . '.';
+              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
             break;
           case "semiprot":
             if ( !$perms->get_permissions('protect') )
@@ -844,7 +844,7 @@ class PageUtils {
             if ( !$e )
               return "An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
             else
-              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at ' . $rb['date_string'] . '.';
+              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been unprotected according to the log created at ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
             break;
           case "unprot":
             if ( !$perms->get_permissions('protect') )
@@ -853,7 +853,7 @@ class PageUtils {
             if ( !$e )
               return "An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();
             else
-              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been protected according to the log created at ' . $rb['date_string'] . '.';
+              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been protected according to the log created at ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
             break;
           case "delete":
             if ( !$perms->get_permissions('history_rollback_extra') )
@@ -865,7 +865,7 @@ class PageUtils {
             $e = $db->sql_query('SELECT page_text,char_tag FROM ' . table_prefix.'logs WHERE page_id=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\' AND log_type=\'page\' AND action=\'edit\' ORDER BY time_id DESC;'); if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
             $r = $db->fetchrow();
             $e = $db->sql_query('INSERT INTO ' . table_prefix.'page_text(page_id,namespace,page_text,char_tag) VALUES(\'' . $rb['page_id'] . '\',\'' . $rb['namespace'] . '\',\'' . $db->escape($r['page_text']) . '\',\'' . $r['char_tag'] . '\')'); if(!$e) return("An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            return 'The page "' . $name . '" has been undeleted according to the log created at ' . $rb['date_string'] . '.';
+            return 'The page "' . $name . '" has been undeleted according to the log created at ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
             break;
           case "reupload":
             if ( !$session->get_permissions('history_rollback_extra') )
@@ -1453,7 +1453,7 @@ class PageUtils {
       // This is a special exception for the Enano installer, which doesn't init languages yet.
       $lang = new Language('eng');
     }
-    if(!$session->get_permissions('clear_logs'))
+    if(!$session->get_permissions('clear_logs') && !defined('IN_ENANO_INSTALL'))
     {
       return $lang->get('etc_access_denied');
     }
