@@ -1,0 +1,11 @@
+=== Enano has been successfully installed and is working. ===
+
+If you can see this message, it means that you've finished the Enano setup process and are ready to start building your website. Congratulations!
+
+To edit this front page, click the Log In button to the left, enter the credentials you provided during the installation, and click the Edit This Page button that appears on the blue toolbar just above this text. You can also [http://docs.enanocms.org/Help:2.4 learn more] about editing pages.
+
+To create more pages, use the Create a Page button to the left. If you enabled wiki mode, you don't have to log in first, however your IP address will be shown in the page history.
+
+Visit the [http://docs.enanocms.org/Help:Contents Enano documentation project website] to learn more about administering your site effectively and keeping things secure.
+
+'''NOTE:''' You have just installed an unstable version of Enano. This release is completely unsupported and may contain security issues or serious usability bugs. You should not use this release on a production website. The Enano team will not provide any type of support at all for this experimental release.

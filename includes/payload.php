@@ -89,7 +89,7 @@ function stg_make_private_key()
 
 function stg_load_schema()
 {
-  global $db, $dbdriver, $installer_version, $lang_id, $languages;
+  global $db, $dbdriver, $installer_version;
   static $sql_parser = false;
   
   if ( is_object($sql_parser) )
@@ -114,18 +114,6 @@ function stg_load_schema()
     return false;
   }
   
-  $wkt = ENANO_ROOT . "/language/{$languages[$lang_id]['dir']}/install/mainpage-default.wkt";
-  if ( !file_exists( $wkt ) )
-  {
-    echo '<div class="error-box">Error: could not locate wikitext for main page (' . $wkt . ')</div>';
-    return false;
-  }
-  $wkt = @file_get_contents($wkt);
-  if ( empty($wkt) )
-    return false;
-  
-  $wkt = $db->escape($wkt);
-  
   $vars = array(
       'TABLE_PREFIX'         => $_POST['table_prefix'],
       'SITE_NAME'            => $db->escape($_POST['site_name']),
@@ -140,8 +128,7 @@ function stg_load_schema()
       'ADMIN_EMAIL'          => $db->escape($_POST['email']),
       'REAL_NAME'            => '', // This has always been stubbed.
       'ADMIN_EMBED_PHP'      => strval(AUTH_DISALLOW),
-      'UNIX_TIME'            => strval(time()),
-      'MAIN_PAGE_CONTENT'    => $wkt
+      'UNIX_TIME'            => strval(time())
     );
   
   $sql_parser->assign_vars($vars);
@@ -323,92 +310,3 @@ function stg_language_setup()
   
   return true;
 }
-
-function stg_init_logs()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $installer_version;
-  
-  $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES(\'security\', \'install_enano\', ' . time() . ', \'' . enano_date('d M Y h:i a') . '\', \'' . $db->escape($_POST['admin_user']) . '\', \'' . $db->escape(enano_version()) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
-  if ( !$q )
-  {
-    echo '<p><tt>MySQL return: ' . $db->sql_error() . '</tt></p>';
-    return false;
-  }
-  
-  return true;
-}
-
-function stg_aes_cleanup()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  $q = $db->sql_query('DELETE FROM ' . table_prefix . 'config WHERE config_name = \'install_aes_key\' OR config_name = \'site_aes_key\';');
-  if ( !$q )
-    $db->_die();
-  return true;
-}
-
-function _stg_rename_config_revert()
-{
-  if ( file_exists('./config.php') )
-  {
-    @rename('./config.php', './config.new.php');
-  }
-  
-  $handle = @fopen('./config.php.new', 'w');
-  if ( !$handle )
-    return false;
-  $contents = '<?php $cryptkey = \'' . _INSTRESUME_AES_KEYBACKUP . '\'; ?>';
-  fwrite($handle, $contents);
-  fclose($handle);
-  return true;
-}
-
-function stg_build_index()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  if ( $paths->rebuild_search_index() )
-    return true;
-  return false;
-}
-
-function stg_rename_config()
-{
-  if ( !@rename(ENANO_ROOT . '/config.new.php', ENANO_ROOT . '/config.php') )
-  {
-    echo '<p>Can\'t rename config.php</p>';
-    _stg_rename_config_revert();
-    return false;
-  }
-  
-  if ( filesize(ENANO_ROOT . '/.htaccess.new') > 1 )
-  {
-    // rename/possibly concatenate .htaccess.new
-    $htaccess_base = '';
-    if ( file_exists(ENANO_ROOT . '/.htaccess') )
-      $htaccess_base .= @file_get_contents(ENANO_ROOT . '/.htaccess');
-    if ( strlen($htaccess_base) > 0 && !preg_match("/\n$/", $htaccess_base) )
-      $htaccess_base .= "\n\n";
-    $htaccess_base .= @file_get_contents(ENANO_ROOT . '/.htaccess.new');
-    if ( file_exists(ENANO_ROOT . '/.htaccess') )
-    {
-      $hh = @fopen(ENANO_ROOT . '/.htaccess', 'w');
-      if ( !$hh )
-        return false;
-      fwrite($hh, $htaccess_base);
-      fclose($hh);
-      @unlink(ENANO_ROOT . '/.htaccess.new');
-      return true;
-    }
-    else
-    {
-      return @rename(ENANO_ROOT . '/.htaccess.new', ENANO_ROOT . '/.htaccess');
-    }
-  }
-  else
-  {
-    @unlink(ENANO_ROOT . '/.htaccess.new');
-  }
-  return true;
-}
-

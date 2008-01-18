@@ -181,6 +181,12 @@ CREATE TABLE {{TABLE_PREFIX}}hits(
   PRIMARY KEY ( hit_id ) 
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
+CREATE TABLE {{TABLE_PREFIX}}search_index(
+  word varchar(64) NOT NULL,
+  page_names text,
+  PRIMARY KEY ( word ) 
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+
 CREATE TABLE {{TABLE_PREFIX}}groups(
   group_id mediumint(5) UNSIGNED NOT NULL auto_increment,
   group_name varchar(64),
@@ -300,7 +306,10 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('powered_btn', '1');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
-  ('Main_Page', 'Article', '=== Enano has been successfully installed and is working. ===\n\nIf you can see this message, it means that you\'ve finished the Enano setup process and are ready to start building your website. Congratulations!\n\nTo edit this front page, click the Log In button to the left, enter the credentials you provided during the installation, and click the Edit This Page button that appears on the blue toolbar just above this text. You can also [http://docs.enanocms.org/Help:2.4 learn more] about editing pages.\n\nTo create more pages, use the Create a Page button to the left. If you enabled wiki mode, you don\'t have to log in first, however your IP address will be shown in the page history.\n\nVisit the [http://docs.enanocms.org/Help:Contents Enano documentation project website] to learn more about administering your site effectively and keeping things secure.\n\n\'\'\'NOTE:\'\'\' You have just installed an unstable version of Enano. This release is completely unsupported and may contain security issues or serious usability bugs. You should not use this release on a production website. The Enano team will not provide any type of support at all for this experimental release.', '');
+  ('Main_Page', 'Article', '{{MAIN_PAGE_CONTENT}}', '');
+  
+INSERT INTO {{TABLE_PREFIX}}logs(time_id, date_string, log_type, action, page_id, namespace, author, page_text) VALUES
+  ({{UNIX_TIME}}, 'DEPRECATED', 'page', 'edit', 'Main_Page', 'Article', '{{ADMIN_USER}}', '{{MAIN_PAGE_CONTENT}}');
 
 INSERT INTO {{TABLE_PREFIX}}pages(page_order, name, urlname, namespace, special, visible, comments_on, protected, delvotes, delvote_ips) VALUES
   (NULL, 'Main Page', 'Main_Page', 'Article', 0, 1, 1, 1, 0, '');
