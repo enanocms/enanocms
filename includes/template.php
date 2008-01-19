@@ -1904,7 +1904,7 @@ class template_nodb
     $tplvars = $this->extract_vars('elements.tpl');
     $tb = '';
     // Get the "article" button text (depends on namespace)
-    if(defined('IN_ENANO_INSTALL')) $ns = $lang->get('meta_btn_article');
+    if(defined('IN_ENANO_INSTALL') && is_object($lang)) $ns = $lang->get('meta_btn_article');
     else $ns = 'system error page';
     $t = str_replace('{FLAGS}', 'onclick="return false;" title="Hey! A button that doesn\'t do anything. Clever..." accesskey="a"', $tplvars['toolbar_button']);
     $t = str_replace('{HREF}', '#', $t);
@@ -1942,9 +1942,9 @@ class template_nodb
     $tpl_strings = Array(
       'PAGE_NAME'=>$this_page,
       'PAGE_URLNAME'=>'Null',
-      'SITE_NAME'=> ( defined('IN_ENANO_INSTALL') ) ? $lang->get('meta_site_name') : 'Critical error',
+      'SITE_NAME'=> ( defined('IN_ENANO_INSTALL') && is_object($lang) ) ? $lang->get('meta_site_name') : 'Critical error',
       'USERNAME'=>'admin',
-      'SITE_DESC'=>( defined('IN_ENANO_INSTALL') ) ? $lang->get('meta_site_desc') : 'This site is experiencing a problem and cannot load.',
+      'SITE_DESC'=>( defined('IN_ENANO_INSTALL') && is_object($lang) ) ? $lang->get('meta_site_desc') : 'This site is experiencing a problem and cannot load.',
       'TOOLBAR'=>$tb,
       'SCRIPTPATH'=>scriptPath,
       'CONTENTPATH'=>contentPath,
@@ -1953,7 +1953,7 @@ class template_nodb
       'ADMIN_SID_AMP_HTML'=>'',
       'ADDITIONAL_HEADERS'=>$this->additional_headers,
       'SIDEBAR_EXTRA'=>'',
-      'COPYRIGHT'=>( defined('IN_ENANO_INSTALL') ) ? $lang->get('meta_enano_copyright') : ( defined('ENANO_CONFIG_FETCHED') ? getConfig('copyright_notice') : '' ),
+      'COPYRIGHT'=>( defined('IN_ENANO_INSTALL') && is_object($lang) ) ? $lang->get('meta_enano_copyright') : ( defined('ENANO_CONFIG_FETCHED') ? getConfig('copyright_notice') : '' ),
       'TOOLBAR_EXTRAS'=>'',
       'REQUEST_URI'=>( isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '' ).$_SERVER['REQUEST_URI'],
       'STYLE_LINK'=>$slink,
