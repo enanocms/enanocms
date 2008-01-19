@@ -502,7 +502,8 @@ function page_Special_Usergroups()
       echo '<select name="group_id">';
       foreach ( $session->groups as $id => $group )
       {
-        $taboo[] = $group;
+        $taboo[] = $db->escape($group);
+        $group = htmlspecialchars($group);
         if ( $group != 'Everyone' )
         {
           echo '<option value="' . $id . '">' . $group . '</option>';
