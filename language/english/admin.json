@@ -18,7 +18,7 @@
 var enano_lang = {
   categories: [
     'adm', 'acl', 'adminusers',
-    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug',
+    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug', 'acpcp',
   ],
   strings: {
     meta: {
@@ -35,6 +35,7 @@ var enano_lang = {
       acppg: 'ACP: Page groups',
       acpum: 'ACP: User management',
       acpug: 'ACP: User group management',
+      acpcp: 'ACP: COPPA support',
     },
     adm: {
       cat_general: 'General',
@@ -670,6 +671,18 @@ var enano_lang = {
       msg_name_update_success: 'The group name has been updated.',
       msg_user_added: 'The user "%username%" has been added to this usergroup.',
       err_username_not_exist: '<b>The user "%username%" could not be added.</b><br />This username does not exist.',
+    },
+    acpcp: {
+      heading_main: 'Background information',
+      intro: 'The United States Childrens\' Online Privacy Protection Act (COPPA) was a law passed in 2001 that requires sites oriented towards children under 13 years old or with a significant amount of under-13 children clearly state what information is being collected in a privacy policy and obtain authorization from a parent or legal guardian before allowing children to use the site. Enano provides an easy way to allow you, as the website administrator, to obtain this authorization.',
+      msg_save_success: 'Your changes have been saved.',
+      th_form: 'COPPA support',
+      field_enable_title: 'Enable COPPA support:',
+      field_enable: 'COPPA enabled',
+      field_enable_hint: 'If this is checked, users will be asked if they are under 13 years of age before registering',
+      field_address: 'Your mailing address:',
+      field_address_hint: 'This is the address to which parents will send authorization forms.',
+      
     }
   }
 };

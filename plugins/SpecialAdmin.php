@@ -1668,12 +1668,9 @@ function page_Admin_COPPA()
     return;
   }
   
-  echo '<h2>Background information</h2>';
+  echo '<h2>' . $lang->get('acpcp_heading_main') . '</h2>';
   echo '<p>
-          The United States Childrens\' Online Privacy Protection Act (COPPA) was a law passed in 2001 that requires sites oriented towards
-          children under 13 years old or with a significant amount of under-13 children clearly state what information is being collected
-          in a privacy policy and obtain authorization from a parent or legal guardian before allowing children to use the site. Enano 
-          provides an easy way to allow you, as the website administrator, to obtain this authorization.
+          ' . $lang->get('acpcp_intro') . '
         </p>';
   
   // Start form
@@ -1687,7 +1684,7 @@ function page_Admin_COPPA()
     $address = $_POST['coppa_address']; // RenderMan::preprocess_text($_POST['coppa_address'], true, false);
     setConfig('coppa_address', $address);
     
-    echo '<div class="info-box">Your changes have been saved.</div>';
+    echo '<div class="info-box">' . $lang->get('acpcp_msg_save_success') . '</div>';
   }
   
   echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', (( isset($_GET['sqldbg'])) ? 'sqldbg&amp;' : '') .'module='.$paths->cpage['module']).'" method="post">';
@@ -1696,24 +1693,24 @@ function page_Admin_COPPA()
   echo '<table border="0" cellspacing="1" cellpadding="4">';
   echo '<tr>
           <th colspan="2">
-            COPPA support
+            ' . $lang->get('acpcp_th_form') . '
           </th>
         </tr>';
         
   echo '<tr>
           <td class="row1">
-            Enable COPPA support:
+            ' . $lang->get('acpcp_field_enable_title') . '
           </td>
           <td class="row2">
-            <label><input type="checkbox" name="enable_coppa" ' . ( ( getConfig('enable_coppa') == '1' ) ? 'checked="checked"' : '' ) . ' /> COPPA enabled</label><br />
-            <small>If this is checked, users will be asked if they are under 13 years of age before registering</small>
+            <label><input type="checkbox" name="enable_coppa" ' . ( ( getConfig('enable_coppa') == '1' ) ? 'checked="checked"' : '' ) . ' /> ' . $lang->get('acpcp_field_enable') . '</label><br />
+            <small>' . $lang->get('acpcp_field_enable_hint') . '</small>
           </td>
         </tr>';
         
   echo '<tr>
           <td class="row1">
-            Your mailing address:<br />
-            <small>This is the address to which parents will send authorization forms.</small>
+            ' . $lang->get('acpcp_field_address') . '<br />
+            <small>' . $lang->get('acpcp_field_address_hint') . '</small>
           </td>
           <td class="row2">
             <textarea name="coppa_address" rows="7" cols="40">' . getConfig('coppa_address') . '</textarea>
@@ -1722,7 +1719,7 @@ function page_Admin_COPPA()
         
   echo '<tr>
           <th colspan="2" class="subhead">
-            <input type="submit" value="Save changes" />
+            <input type="submit" value="' . $lang->get('etc_save_changes') . '" />
           </th>
         </tr>';
         
