@@ -18,7 +18,7 @@
 var enano_lang = {
   categories: [
     'adm', 'acl', 'adminusers',
-    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug', 'acpcp',
+    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm',
   ],
   strings: {
     meta: {
@@ -36,6 +36,7 @@ var enano_lang = {
       acpum: 'ACP: User management',
       acpug: 'ACP: User group management',
       acpcp: 'ACP: COPPA support',
+      acpmm: 'ACP: Mass e-mail',
     },
     adm: {
       cat_general: 'General',
@@ -682,8 +683,22 @@ var enano_lang = {
       field_enable_hint: 'If this is checked, users will be asked if they are under 13 years of age before registering',
       field_address: 'Your mailing address:',
       field_address_hint: 'This is the address to which parents will send authorization forms.',
-      
-    }
+    },
+    acpmm: {
+      heading_main: 'Send mass e-mail',
+      err_need_subject: 'Please enter a subject.',
+      err_need_message: 'Please enter a message.',
+      msg_send_success: 'Your message has been sent.',
+      err_send_fail: 'Could not send message for the following reason(s):',
+      err_demo: 'This function is disabled in the demo. You think demo@enanocms.org likes getting "test" mass e-mails?',
+      field_group_to: 'Send message to:',
+      field_group_to_hint: 'By default, this message will be sent to the group selected here. You may instead send the message to a specific list of users by entering them in the second row, with usernames separated by a single comma (no space).',
+      field_username: 'Usernames:',
+      field_subject: 'Subject:',
+      field_message: 'Message:',
+      btn_send: 'Send message',
+      msg_send_takeawhile: 'Please be warned: it may take a LONG time to send this message. <b>Please do not stop the script until the process is finished.</b>',
+    },
   }
 };
 

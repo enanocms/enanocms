@@ -509,7 +509,8 @@ function page_Special_Usergroups()
       echo '<select name="group_id">';
       foreach ( $session->groups as $id => $group )
       {
-        $taboo[] = $group;
+        $taboo[] = $db->escape($group);
+        $group = htmlspecialchars($group);
         if ( $group != 'Everyone' )
         {
           $g_name_local = 'groupcp_grp_' . strtolower($group);
@@ -549,7 +550,7 @@ function page_Special_Usergroups()
       {
         if ( $row['group_name'] != 'Everyone' )
         {
-          echo '<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+          echo '<option value="' . $row['group_id'] . '">' . htmlspecialchars($row['group_name']) . '</option>';
         }
       }
       echo '</select>

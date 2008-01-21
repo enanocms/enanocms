@@ -1729,6 +1729,231 @@ function page_Admin_COPPA()
   
 }
 
+function page_Admin_MassEmail()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
+  {
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+    return;
+  }
+  
+  global $enano_config;
+  if ( isset($_POST['do_send']) && !defined('ENANO_DEMO_MODE') )
+  {
+    $use_smtp = getConfig('smtp_enabled') == '1';
+    
+    //
+    // Let's do some checking to make sure that mass mail functions
+    // are working in win32 versions of php. (copied from phpBB)
+    //
+    if ( preg_match('/[c-z]:\\\.*/i', getenv('PATH')) && !$use_smtp)
+    {
+      $ini_val = ( @phpversion() >= '4.0.0' ) ? 'ini_get' : 'get_cfg_var';
+
+      // We are running on windows, force delivery to use our smtp functions
+      // since php's are broken by default
+      $use_smtp = true;
+      $enano_config['smtp_server'] = @$ini_val('SMTP');
+    }
+    
+    $mail = new emailer( !empty($use_smtp) );
+    
+    // Validate subject/message body
+    $subject = stripslashes(trim($_POST['subject']));
+    $message = stripslashes(trim($_POST['message']));
+    
+    if ( empty($subject) )
+      $errors[] = $lang->get('acpmm_err_need_subject');
+    if ( empty($message) )
+      $errors[] = $lang->get('acpmm_err_need_message');
+    
+    // Get list of members
+    if ( !empty($_POST['userlist']) )
+    {
+      $userlist = str_replace(', ', ',', $_POST['userlist']);
+      $userlist = explode(',', $userlist);
+      foreach ( $userlist as $k => $u )
+      {
+        if ( $u == $session->username )
+        {
+          // Message is automatically sent to the sender
+          unset($userlist[$k]);
+        }
+        else
+        {
+          $userlist[$k] = $db->escape($u);
+        }
+      }
+      $userlist = 'WHERE username=\'' . implode('\' OR username=\'', $userlist) . '\'';
+      
+      $q = $db->sql_query('SELECT email FROM '.table_prefix.'users ' . $userlist . ';');
+      if ( !$q )
+        $db->_die();
+      
+      if ( $row = $db->fetchrow() )
+      {
+        do {
+          $mail->cc($row['email']);
+        } while ( $row = $db->fetchrow() );
+      }
+      
+      $db->free_result();
+      
+    }
+    else
+    {
+      // Sending to a usergroup
+      
+      $group_id = intval($_POST['group_id']);
+      if ( $group_id < 1 )
+      {
+        $errors[] = 'Invalid group ID';
+      }
+      else
+      {
+        $q = $db->sql_query('SELECT u.email FROM '.table_prefix.'group_members AS g
+                               LEFT JOIN '.table_prefix.'users AS u
+                                 ON (u.user_id=g.user_id)
+                               WHERE g.group_id=' . $group_id . ';');
+        if ( !$q )
+          $db->_die();
+        
+        if ( $row = $db->fetchrow() )
+        {
+          do {
+            $mail->cc($row['email']);
+          } while ( $row = $db->fetchrow() );
+        }
+        
+        $db->free_result();
+      }
+    }
+    
+    if ( sizeof($errors) < 1 )
+    {
+    
+      $mail->from(getConfig('contact_email'));
+      $mail->replyto(getConfig('contact_email'));
+      $mail->set_subject($subject);
+      $mail->email_address(getConfig('contact_email'));
+      
+      // Copied/modified from phpBB
+      $email_headers = 'X-AntiAbuse: Website server name - ' . $_SERVER['SERVER_NAME'] . "\n";
+      $email_headers .= 'X-AntiAbuse: User_id - ' . $session->user_id . "\n";
+      $email_headers .= 'X-AntiAbuse: Username - ' . $session->username . "\n";
+      $email_headers .= 'X-AntiAbuse: User IP - ' . $_SERVER['REMOTE_ADDR'] . "\n";
+      
+      $mail->extra_headers($email_headers);
+      
+      // FIXME: how to handle l10n with this?
+      $tpl = 'The following message was mass-mailed by {SENDER}, one of the administrators from {SITE_NAME}. If this message contains spam or any comments which you find abusive or offensive, please contact the administration team at:
+  
+{CONTACT_EMAIL}
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{MESSAGE}
+';
+  
+      $mail->use_template($tpl);
+      
+      $mail->assign_vars(array(
+          'SENDER' => $session->username,
+          'SITE_NAME' => getConfig('site_name'),
+          'CONTACT_EMAIL' => getConfig('contact_email'),
+          'MESSAGE' => $message
+        ));
+      
+      //echo '<pre>'.print_r($mail,true).'</pre>';
+      
+      // All done
+      $mail->send();
+      $mail->reset();
+      
+      echo '<div class="info-box">' . $lang->get('acpmm_msg_send_success') . '</div>';
+      
+    }
+    else
+    {
+      echo '<div class="warning-box">' . $lang->get('acpmm_err_send_fail') . '<ul><li>' . implode('</li><li>', $errors) . '</li></ul></div>';
+    }
+    
+  }
+  else if ( isset($_POST['do_send']) && defined('ENANO_DEMO_MODE') )
+  {
+    echo '<div class="error-box">' . $lang->get('acpmm_err_demo') . '</div>';
+  }
+  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
+  ?>
+  <div class="tblholder">
+    <table border="0" cellspacing="1" cellpadding="4">
+      <tr>
+        <th colspan="2"><?php echo $lang->get('acpmm_heading_main'); ?></th>
+      </tr>
+      <tr>
+        <td class="row2" rowspan="2" style="width: 30%; min-width: 200px;">
+          <?php echo $lang->get('acpmm_field_group_to'); ?><br />
+          <small>
+            <?php echo $lang->get('acpmm_field_group_to_hint'); ?>
+          </small>
+        </td>
+        <td class="row1">
+          <select name="group_id">
+            <?php
+            $q = $db->sql_query('SELECT group_name,group_id FROM '.table_prefix.'groups ORDER BY group_name ASC;');
+            if ( !$q )
+              $db->_die();
+            while ( $row = $db->fetchrow() )
+            {
+              list($g_name) = array_values($row);
+              $g_name_langstr = 'groupcp_grp_' . strtolower($g_name);
+              if ( ($g_langstr = $lang->get($g_name_langstr)) != $g_name_langstr )
+              {
+                $g_name = $g_langstr;
+              }
+              echo '<option value="' . $row['group_id'] . '">' . htmlspecialchars($g_name) . '</option>';
+            }
+            ?>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td class="row1">
+          <?php echo $lang->get('acpmm_field_username'); ?> <input type="text" name="userlist" size="50" />
+        </td>
+      </tr>
+      <tr>
+        <td class="row2" style="width: 30%; min-width: 200px;">
+          <?php echo $lang->get('acpmm_field_subject'); ?>
+        </td>
+        <td class="row1">
+          <input name="subject" type="text" size="50" />
+        </td>
+      </tr>
+      <tr>
+        <td class="row2"  style="width: 30%; min-width: 200px;">
+          <?php echo $lang->get('acpmm_field_message'); ?>
+        </td>
+        <td class="row1">
+          <textarea name="message" rows="30" cols="60" style="width: 100%;"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <th class="subhead" colspan="2" style="text-align: left;" valign="middle">
+          <div style="float: right;"><input type="submit" name="do_send" value="<?php echo $lang->get('acpmm_btn_send'); ?>" /></div>
+          <small style="font-weight: normal;"><?php echo $lang->get('acpmm_msg_send_takeawhile'); ?></small>
+        </th>
+      </tr>
+      
+    </table>
+  </div>
+  <?php
+  echo '</form>';
+}
+
 function page_Admin_BanControl()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1837,225 +2062,6 @@ function page_Admin_BanControl()
   Reason to show to the banned user: <textarea name="reason" rows="7" cols="40"></textarea><br />
   <input type="checkbox" name="regex" id="regex" />  <label for="regex">This rule is a regular expression</label> (advanced users only)<br />
   <input type="submit" style="font-weight: bold;" name="create" value="Create new ban rule" />
-  <?php
-  echo '</form>';
-}
-
-function page_Admin_MassEmail()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  global $enano_config;
-  if ( isset($_POST['do_send']) && !defined('ENANO_DEMO_MODE') )
-  {
-    $use_smtp = getConfig('smtp_enabled') == '1';
-    
-    //
-    // Let's do some checking to make sure that mass mail functions
-    // are working in win32 versions of php. (copied from phpBB)
-    //
-    if ( preg_match('/[c-z]:\\\.*/i', getenv('PATH')) && !$use_smtp)
-    {
-      $ini_val = ( @phpversion() >= '4.0.0' ) ? 'ini_get' : 'get_cfg_var';
-
-      // We are running on windows, force delivery to use our smtp functions
-      // since php's are broken by default
-      $use_smtp = true;
-      $enano_config['smtp_server'] = @$ini_val('SMTP');
-    }
-    
-    $mail = new emailer( !empty($use_smtp) );
-    
-    // Validate subject/message body
-    $subject = stripslashes(trim($_POST['subject']));
-    $message = stripslashes(trim($_POST['message']));
-    
-    if ( empty($subject) )
-      $errors[] = 'Please enter a subject.';
-    if ( empty($message) )
-      $errors[] = 'Please enter a message.';
-    
-    // Get list of members
-    if ( !empty($_POST['userlist']) )
-    {
-      $userlist = str_replace(', ', ',', $_POST['userlist']);
-      $userlist = explode(',', $userlist);
-      foreach ( $userlist as $k => $u )
-      {
-        if ( $u == $session->username )
-        {
-          // Message is automatically sent to the sender
-          unset($userlist[$k]);
-        }
-        else
-        {
-          $userlist[$k] = $db->escape($u);
-        }
-      }
-      $userlist = 'WHERE username=\'' . implode('\' OR username=\'', $userlist) . '\'';
-      
-      $q = $db->sql_query('SELECT email FROM '.table_prefix.'users ' . $userlist . ';');
-      if ( !$q )
-        $db->_die();
-      
-      if ( $row = $db->fetchrow() )
-      {
-        do {
-          $mail->cc($row['email']);
-        } while ( $row = $db->fetchrow() );
-      }
-      
-      $db->free_result();
-      
-    }
-    else
-    {
-      // Sending to a usergroup
-      
-      $group_id = intval($_POST['group_id']);
-      if ( $group_id < 1 )
-      {
-        $errors[] = 'Invalid group ID';
-      }
-      else
-      {
-        $q = $db->sql_query('SELECT u.email FROM '.table_prefix.'group_members AS g
-                               LEFT JOIN '.table_prefix.'users AS u
-                                 ON (u.user_id=g.user_id)
-                               WHERE g.group_id=' . $group_id . ';');
-        if ( !$q )
-          $db->_die();
-        
-        if ( $row = $db->fetchrow() )
-        {
-          do {
-            $mail->cc($row['email']);
-          } while ( $row = $db->fetchrow() );
-        }
-        
-        $db->free_result();
-      }
-    }
-    
-    if ( sizeof($errors) < 1 )
-    {
-    
-      $mail->from(getConfig('contact_email'));
-      $mail->replyto(getConfig('contact_email'));
-      $mail->set_subject($subject);
-      $mail->email_address(getConfig('contact_email'));
-      
-      // Copied/modified from phpBB
-      $email_headers = 'X-AntiAbuse: Website server name - ' . $_SERVER['SERVER_NAME'] . "\n";
-      $email_headers .= 'X-AntiAbuse: User_id - ' . $session->user_id . "\n";
-      $email_headers .= 'X-AntiAbuse: Username - ' . $session->username . "\n";
-      $email_headers .= 'X-AntiAbuse: User IP - ' . $_SERVER['REMOTE_ADDR'] . "\n";
-      
-      $mail->extra_headers($email_headers);
-      
-      $tpl = 'The following message was mass-mailed by {SENDER}, one of the administrators from {SITE_NAME}. If this message contains spam or any comments which you find abusive or offensive, please contact the administration team at:
-  
-{CONTACT_EMAIL}
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{MESSAGE}
-';
-  
-      $mail->use_template($tpl);
-      
-      $mail->assign_vars(array(
-          'SENDER' => $session->username,
-          'SITE_NAME' => getConfig('site_name'),
-          'CONTACT_EMAIL' => getConfig('contact_email'),
-          'MESSAGE' => $message
-        ));
-      
-      //echo '<pre>'.print_r($mail,true).'</pre>';
-      
-      // All done
-      $mail->send();
-      $mail->reset();
-      
-      echo '<div class="info-box">Your message has been sent.</div>';
-      
-    }
-    else
-    {
-      echo '<div class="warning-box">Could not send message for the following reason(s):<ul><li>' . implode('</li><li>', $errors) . '</li></ul></div>';
-    }
-    
-  }
-  else if ( isset($_POST['do_send']) && defined('ENANO_DEMO_MODE') )
-  {
-    echo '<div class="error-box">This function is disabled in the demo. You think demo@enanocms.org likes getting "test" mass e-mails?</div>';
-  }
-  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
-  ?>
-  <div class="tblholder">
-    <table border="0" cellspacing="1" cellpadding="4">
-      <tr>
-        <th colspan="2">Send mass e-mail</th>
-      </tr>
-      <tr>
-        <td class="row2" rowspan="2" style="width: 30%; min-width: 200px;">
-          Send message to:<br />
-          <small>
-            By default, this message will be sent to the group selected here. You may instead send the message to a specific
-            list of users by entering them in the second row, with usernames separated by a single comma (no space).
-          </small>
-        </td>
-        <td class="row1">
-          <select name="group_id">
-            <?php
-            $q = $db->sql_query('SELECT group_name,group_id FROM '.table_prefix.'groups ORDER BY group_name ASC;');
-            if ( !$q )
-              $db->_die();
-            while ( $row = $db->fetchrow() )
-            {
-              echo '<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
-            }
-            ?>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td class="row1">
-          Usernames: <input type="text" name="userlist" size="50" />
-        </td>
-      </tr>
-      <tr>
-        <td class="row2" style="width: 30%; min-width: 200px;">
-          Subject:
-        </td>
-        <td class="row1">
-          <input name="subject" type="text" size="50" />
-        </td>
-      </tr>
-      <tr>
-        <td class="row2"  style="width: 30%; min-width: 200px;">
-          Message:
-        </td>
-        <td class="row1">
-          <textarea name="message" rows="30" cols="60" style="width: 100%;"></textarea>
-        </td>
-      </tr>
-      <tr>
-        <th class="subhead" colspan="2" style="text-align: left;" valign="middle">
-          <div style="float: right;"><input type="submit" name="do_send" value="Send message" /></div>
-          <small style="font-weight: normal;">Please be warned: it may take a LONG time to send this message. <b>Please do not stop the script until the process is finished.</b></small>
-        </th>
-      </tr>
-      
-    </table>
-  </div>
   <?php
   echo '</form>';
 }
