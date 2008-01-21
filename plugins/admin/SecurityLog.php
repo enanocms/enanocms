@@ -15,9 +15,12 @@
 function page_Admin_SecurityLog()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
-    echo '<h3>Error: Not authenticated</h3><p>It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true) . '">re-authenticate</a> to continue.</p>';
+    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
   
@@ -26,7 +29,7 @@ function page_Admin_SecurityLog()
   //   die('Security log is disabled in demo mode.');
   // }
   
-  echo '<h3>System security log</h3>';
+  echo '<h3>' . $lang->get('acpsl_heading_main') . '</h3>';
   
   // Not calling the real fetcher because we have to paginate the results
   $offset = ( isset($_GET['offset']) ) ? intval($_GET['offset']) : 0;
@@ -49,7 +52,12 @@ function page_Admin_SecurityLog()
       50,
       array('time_id' => 'seclog_format_inner'),
       '<div class="tblholder" style="/* max-height: 500px; clip: rect(0px,auto,auto,0px); overflow: auto; */"><table border="0" cellspacing="1" cellpadding="4" width="100%">
-       <tr><th style="width: 60%;">Type</th><th>Date</th><th>Username</th><th>IP Address</th></tr>',
+       <tr>
+         <th style="width: 60%;">' . $lang->get('acpsl_col_type') . '</th>
+         <th>' . $lang->get('acpsl_col_date') . '</th>
+         <th>' . $lang->get('acpsl_col_username') . '</th>
+         <th>' . $lang->get('acpsl_col_ip') . '</th>
+       </tr>',
       '</table></div>'
     );
   
@@ -113,6 +121,7 @@ function seclog_format_inner($r, $f = false)
     $r =& $f;
   }
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   $return = '';
   static $cls = 'row2';
   if ( substr($_SERVER['REMOTE_ADDR'], 0, 8) != '192.168.' && defined('ENANO_DEMO_MODE') )
@@ -135,33 +144,33 @@ function seclog_format_inner($r, $f = false)
   $return .= '<tr><td class="'.$cls.'">';
   switch($r['action'])
   {
-    case "admin_auth_good":  $return .= 'Successful elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); $return .= "<br /><small>Authentication level: $level</small>"; } break;
-    case "admin_auth_bad":   $return .= 'Failed elevated authentication'; if ( !empty($r['page_text']) ) { $level = $session->userlevel_to_string( intval($r['page_text']) ); $return .= "<br /><small>Attempted auth level: $level</small>"; } break;
-    case "activ_good":       $return .= 'Successful account activation'; break;
-    case "auth_good":        $return .= 'Successful regular user logon'; break;
-    case "activ_bad":        $return .= 'Failed account activation'; break;
-    case "auth_bad":         $return .= 'Failed regular user logon'; break;
-    case "sql_inject":       $return .= 'SQL injection attempt<div style="max-width: 90%; clip: rect(0px,auto,auto,0px); overflow: auto; display: block; font-size: smaller;">Offending query: ' . htmlspecialchars($r['page_text']) . '</div>'; break;
-    case "db_backup":        $return .= 'Database backup created<br /><small>Tables: ' . $r['page_text'] . '</small>'; break;
-    case "install_enano":    $return .= "Installed Enano version {$r['page_text']}"; break;
-    case "upgrade_enano":    $return .= "Upgraded Enano to version {$r['page_text']}"; break;
-    case "illegal_page":     $return .= "Unauthorized viewing attempt<br /><small>Page: {$illegal_link}</small>"; break;
-    case "upload_enable":    $return .= "Enabled file uploads"; break;
-    case "upload_disable":   $return .= "Disabled file uploads"; break;
-    case "magick_enable":    $return .= "Enabled ImageMagick for uploaded images"; break;
-    case "magick_disable":   $return .= "Disabled ImageMagick for uploaded images"; break;
-    case "filehist_enable":  $return .= "Enabled revision tracking for uploaded files"; break;
-    case "filehist_disable": $return .= "Disabled revision tracking for uploaded files"; break;
-    case "magick_path":      $return .= "Changed path to ImageMagick executable"; break;
-    case "plugin_disable":   $return .= "Disabled plugin: {$r['page_text']}"; break;
-    case "plugin_enable":    $return .= "Enabled plugin: {$r['page_text']}"; break;
-    case "seclog_unauth":    $return .= "Unauthorized attempt to call security log fetcher"; break;
-    case "u_from_admin":     $return .= "User {$r['page_text']} demoted from Administrators group"; break;
-    case "u_from_mod":       $return .= "User {$r['page_text']} demoted from Moderators group"; break;
-    case "u_to_admin":       $return .= "User {$r['page_text']} added to Administrators group"; break;
-    case "u_to_mod":         $return .= "User {$r['page_text']} added to Moderators group"; break;
+    case "admin_auth_good" : $return .= $lang->get('acpsl_entry_admin_auth_good'  , array('level' => $session->userlevel_to_string( intval($r['page_text']) ))); break;
+    case "admin_auth_bad"  : $return .= $lang->get('acpsl_entry_admin_auth_bad'   , array('level' => $session->userlevel_to_string( intval($r['page_text']) ))); break;
+    case "activ_good"      : $return .= $lang->get('acpsl_entry_activ_good')      ; break;
+    case "auth_good"       : $return .= $lang->get('acpsl_entry_auth_good')       ; break;
+    case "activ_bad"       : $return .= $lang->get('acpsl_entry_activ_bad')       ; break;
+    case "auth_bad"        : $return .= $lang->get('acpsl_entry_auth_bad')        ; break;
+    case "sql_inject"      : $return .= $lang->get('acpsl_entry_sql_inject'       , array('query' => htmlspecialchars($r['page_text']))); break;
+    case "db_backup"       : $return .= $lang->get('acpsl_entry_db_backup'        , array('tables' => $r['page_text']))       ; break;
+    case "install_enano"   : $return .= $lang->get('acpsl_entry_install_enano'    , array('version' => $r['page_text'])); break; // version is in $r['page_text']
+    case "upgrade_enano"   : $return .= $lang->get('acpsl_entry_upgrade_enano'    , array('version' => $r['page_text'])); break; // version is in $r['page_text']
+    case "illegal_page"    : $return .= $lang->get('acpsl_entry_illegal_page'     , array('illegal_link' => $illegal_link))    ; break;
+    case "upload_enable"   : $return .= $lang->get('acpsl_entry_upload_enable')   ; break;
+    case "upload_disable"  : $return .= $lang->get('acpsl_entry_upload_disable')  ; break;
+    case "magick_enable"   : $return .= $lang->get('acpsl_entry_magick_enable')   ; break;
+    case "magick_disable"  : $return .= $lang->get('acpsl_entry_magick_disable')  ; break;
+    case "filehist_enable" : $return .= $lang->get('acpsl_entry_filehist_enable') ; break;
+    case "filehist_disable": $return .= $lang->get('acpsl_entry_filehist_disable'); break;
+    case "magick_path"     : $return .= $lang->get('acpsl_entry_magick_path')     ; break;
+    case "plugin_disable"  : $return .= $lang->get('acpsl_entry_plugin_disable'   , array('plugin' => $r['page_text']))  ; break;
+    case "plugin_enable"   : $return .= $lang->get('acpsl_entry_plugin_enable'    , array('plugin' => $r['page_text']))   ; break;
+    case "seclog_unauth"   : $return .= $lang->get('acpsl_entry_seclog_unauth')   ; break;
+    case "u_from_admin"    : $return .= $lang->get('acpsl_entry_u_from_admin'     , array('username' => $r['page_text']))    ; break;
+    case "u_from_mod"      : $return .= $lang->get('acpsl_entry_u_from_mod'       , array('username' => $r['page_text']))      ; break;
+    case "u_to_admin"      : $return .= $lang->get('acpsl_entry_u_to_admin'       , array('username' => $r['page_text']))      ; break;
+    case "u_to_mod"        : $return .= $lang->get('acpsl_entry_u_to_mod'         , array('username' => $r['page_text']))        ; break;
   }
-  $return .= '</td><td class="'.$cls.'">'.enano_date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="Click for reverse DNS info">'.$r['edit_summary'].'</td></tr>';
+  $return .= '</td><td class="'.$cls.'">'.enano_date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="' . $lang->get('acpsl_tip_reverse_dns') . '">'.$r['edit_summary'].'</td></tr>';
   return $return;
 }
 

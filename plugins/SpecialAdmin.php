@@ -1969,7 +1969,8 @@ function page_Admin_BanControl()
   if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']) && $_GET['id'] != '')
   {
     $e = $db->sql_query('DELETE FROM '.table_prefix.'banlist WHERE ban_id=' . intval($_GET['id']) . '');
-    if(!$e) $db->_die('The ban list entry was not deleted.');
+    if ( !$e )
+      $db->_die('The ban list entry was not deleted.');
   }
   if(isset($_POST['create']) && !defined('ENANO_DEMO_MODE'))
   {
@@ -1981,7 +1982,7 @@ function page_Admin_BanControl()
     }
     else if ( empty($value) )
     {
-      echo '<div class="error-box">Please enter something to ban.</div>';
+      echo '<div class="error-box">' . $lang->get('acpbc_err_empty') . '</div>';
     }
     else
     {
@@ -1993,7 +1994,7 @@ function page_Admin_BanControl()
         $entry = trim($entry);
         if ( empty($entry) )
         {
-          echo '<div class="error-box">Malformed entry.</div>';
+          echo '<div class="error-box">' . $lang->get('acpbc_err_invalid_ip_range') . '</div>';
           $error = true;
           break;
         }
@@ -2033,35 +2034,66 @@ function page_Admin_BanControl()
   }
   else if ( isset($_POST['create']) && defined('ENANO_DEMO_MODE') )
   {
-    echo '<div class="error-box">This function is disabled in the demo. Just because <i>you</i> don\'t like ' . htmlspecialchars($_POST['value']) . ' doesn\'t mean <i>we</i> don\'t like ' . htmlspecialchars($_POST['value']) . '.</div>';
+    echo '<div class="error-box">' . $lang->get('acpbc_err_demo', array('ban_target' => htmlspecialchars($_POST['value']))) . '</div>';
   }
   $q = $db->sql_query('SELECT ban_id,ban_type,ban_value,is_regex FROM '.table_prefix.'banlist ORDER BY ban_type;');
-  if(!$q) $db->_die('The banlist data could not be selected.');
+  if ( !$q )
+    $db->_die('The banlist data could not be selected.');
   echo '<div class="tblholder" style="max-height: 800px; clip: rect(0px,auto,auto,0px); overflow: auto;">
           <table border="0" cellspacing="1" cellpadding="4">';
-  echo '<tr><th>Type</th><th>Value</th><th>Regular Expression</th><th></th></tr>';
-  if($db->numrows() < 1) echo '<td class="row1" colspan="4">No ban rules yet.</td>';
+  echo '<tr>
+          <th>' . $lang->get('acpbc_col_type') . '</th>
+          <th>' . $lang->get('acpbc_col_value') . '</th>
+          <th>' . $lang->get('acpbc_col_regex') . '</th>
+          <th></th>
+        </tr>';
+  if ( $db->numrows() < 1 )
+  {
+    echo '<td class="row1" colspan="4">' . $lang->get('acpbc_msg_no_rules') . '</td>';
+  }
   $cls = 'row2';
-  while($r = $db->fetchrow())
+  while ( $r = $db->fetchrow() )
   {
     $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-    if($r['ban_type']==BAN_IP) $t = 'IP address';
-    elseif($r['ban_type']==BAN_USER) $t = 'Username';
-    elseif($r['ban_type']==BAN_EMAIL) $t = 'E-mail address';
-    if($r['is_regex']) $g = 'Yes'; else $g = 'No';
-    echo '<tr><td class="'.$cls.'">'.$t.'</td><td class="'.$cls.'">'.$r['ban_value'].'</td><td class="'.$cls.'">'.$g.'</td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'BanControl&amp;action=delete&amp;id='.$r['ban_id']).'">Delete</a></td></tr>';
+    if ( $r['ban_type'] == BAN_IP )
+      $t = $lang->get('acpbc_ban_type_ip');
+    else if ( $r['ban_type'] == BAN_USER )
+      $t = $lang->get('acpbc_ban_type_username');
+    else if ( $r['ban_type'] == BAN_EMAIL )
+      $t = $lang->get('acpbc_ban_type_email');
+    $g = ( $r['is_regex'] ) ? '<b>' . $lang->get('acpbc_ban_regex_yes') . '</b>' : $lang->get('acpbc_ban_regex_no');
+    echo '<tr>
+            <td class="'.$cls.'">'.$t.'</td>
+            <td class="'.$cls.'">'.htmlspecialchars($r['ban_value']).'</td>
+            <td class="'.$cls.'">'.$g.'</td>
+            <td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'BanControl&amp;action=delete&amp;id='.$r['ban_id']).'">' . $lang->get('acpbc_btn_delete') . '</a></td>
+          </tr>';
   }
   $db->free_result();
   echo '</table></div>';
-  echo '<h3>Create new ban rule</h3>';
+  echo '<h3>' . $lang->get('acpbc_heading_create_new') . '</h3>';
   echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
   ?>
-  Type: <select name="type"><option value="<?php echo BAN_IP; ?>">IP address</option><option value="<?php echo BAN_USER; ?>">Username</option><option value="<?php echo BAN_EMAIL; ?>">E-mail address</option></select><br />
-  Rule: <input type="text" name="value" size="30" /><br />
-  <small>You can ban multiple IP addresses, users, or e-mail addresses by separating entries with a single comma (User1,User2). Do not put a space after the comma. For IP addresses, you may specify ranges like 172|192.168.4-30|90-167.1-90, which will turn into 172 and 192 . 168 . 4-30 and 90-167 . 1 - 90, which matches 18,899 IP addresses.</small><br />
-  Reason to show to the banned user: <textarea name="reason" rows="7" cols="40"></textarea><br />
-  <input type="checkbox" name="regex" id="regex" />  <label for="regex">This rule is a regular expression</label> (advanced users only)<br />
-  <input type="submit" style="font-weight: bold;" name="create" value="Create new ban rule" />
+  
+  <?php echo $lang->get('acpbc_field_type'); ?>
+    <select name="type">
+      <option value="<?php echo BAN_IP; ?>"><?php echo $lang->get('acpbc_ban_type_ip'); ?></option>
+      <option value="<?php echo BAN_USER; ?>"><?php echo $lang->get('acpbc_ban_type_username'); ?></option>
+      <option value="<?php echo BAN_EMAIL; ?>"><?php echo $lang->get('acpbc_ban_type_email'); ?></option>
+    </select>
+    <br />
+    
+  <?php echo $lang->get('acpbc_field_rule'); ?>
+    <input type="text" name="value" size="30" /><br />
+    <small><?php echo $lang->get('acpbc_field_rule_hint'); ?></small><br />
+    
+  <?php echo $lang->get('acpbc_field_reason'); ?>
+    <textarea name="reason" rows="7" cols="40"></textarea><br />
+    
+  <label><input type="checkbox" name="regex" id="regex" /> <?php echo $lang->get('acpbc_field_regex'); ?></label>
+    <?php echo $lang->get('acpbc_field_regex_hint'); ?><br />
+    
+  <input type="submit" style="font-weight: bold;" name="create" value="<?php echo $lang->get('acpbc_btn_create'); ?>" />
   <?php
   echo '</form>';
 }
@@ -2079,7 +2111,8 @@ function page_Admin_AdminLogout()
   }
   
   $session->logout(USER_LEVEL_ADMIN);
-  echo '<h3>You have now been logged out of the administration panel.</h3><p>You will continue to be logged into the website, but you will need to re-authenticate before you can access the administration panel again.</p><p>Return to the <a href="'.makeUrl(getConfig('main_page')).'">Main Page</a>.</p>';
+  echo '<h3>' . $lang->get('acplo_heading_main') . '</h3>
+         <p>' . $lang->get('acplo_msg_logout_complete', array('mainpage_link' => makeUrl(getConfig('main_page')))) . '</p>';
 }
 
 function page_Special_Administration()

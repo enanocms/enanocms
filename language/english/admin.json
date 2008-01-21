@@ -18,7 +18,8 @@
 var enano_lang = {
   categories: [
     'adm', 'acl', 'adminusers',
-    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm',
+    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl', 'acpbc',
+    'acplo',
   ],
   strings: {
     meta: {
@@ -37,6 +38,9 @@ var enano_lang = {
       acpug: 'ACP: User group management',
       acpcp: 'ACP: COPPA support',
       acpmm: 'ACP: Mass e-mail',
+      acpsl: 'ACP: Security log',
+      acpbc: 'ACP: Ban control',
+      acplo: 'ACP: Logout page',
     },
     adm: {
       cat_general: 'General',
@@ -699,6 +703,69 @@ var enano_lang = {
       btn_send: 'Send message',
       msg_send_takeawhile: 'Please be warned: it may take a LONG time to send this message. <b>Please do not stop the script until the process is finished.</b>',
     },
+    acpsl: {
+      heading_main: 'System security log',
+      col_type: 'Type',
+      col_date: 'Date',
+      col_username: 'Username',
+      col_ip: 'IP Address',
+      entry_admin_auth_good: 'Successful elevated authentication<br /><small>Authentication level: %level%</small>',
+      entry_admin_auth_bad: 'Failed elevated authentication<br /><small>Attempted auth level: %level%</small>',
+      entry_activ_good: 'Successful account activation',
+      entry_auth_good: 'Successful regular user logon',
+      entry_activ_bad: 'Failed account activation',
+      entry_auth_bad: 'Failed regular user logon',
+      entry_sql_inject: 'SQL injection attempt<div style="max-width: 90%; clip: rect(0px,auto,auto,0px); overflow: auto; display: block; font-size: smaller;">Offending query: %query%</div>',
+      entry_db_backup: 'Database backup created<br /><small>Tables: %tables%</small>',
+      entry_install_enano: 'Installed Enano version %version%',
+      entry_upgrade_enano: 'Upgraded Enano to version %version%',
+      entry_illegal_page: 'Unauthorized viewing attempt<br /><small>Page: %illegal_link%</small>',
+      entry_upload_enable: 'Enabled file uploads',
+      entry_upload_disable: 'Disabled file uploads',
+      entry_magick_enable: 'Enabled ImageMagick for uploaded images',
+      entry_magick_disable: 'Disabled ImageMagick for uploaded images',
+      entry_filehist_enable: 'Enabled revision tracking for uploaded files',
+      entry_filehist_disable: 'Disabled revision tracking for uploaded files',
+      entry_magick_path: 'Changed path to ImageMagick executable',
+      entry_plugin_disable: 'Disabled plugin: %plugin%',
+      entry_plugin_enable: 'Enabled plugin:  %plugin%',
+      entry_seclog_unauth: 'Unauthorized attempt to call security log fetcher',
+      entry_u_from_admin: 'User %username% demoted from Administrators group',
+      entry_u_from_mod: 'User %username% demoted from Moderators group',
+      entry_u_to_admin: 'User %username% added to Administrators group',
+      entry_u_to_mod: 'User %username% added to Moderators group',
+      tip_reverse_dns: 'Click for reverse DNS info',
+    },
+    acpbc: {
+      err_empty: 'Please enter something to ban.',
+      err_invalid_ip_range: 'The IP address range you entered is invalid.',
+      err_demo: 'This function is disabled in the demo. Just because <i>you</i> don\'t like %ban_target% doesn\'t mean <i>we</i> don\'t like %ban_target%.',
+      col_type: 'Type',
+      col_value: 'Value',
+      col_regex: 'Regular Expression',
+      msg_no_rules: 'No ban rules yet.',
+      ban_type_ip: 'IP address',
+      ban_type_username: 'Username',
+      ban_type_email: 'E-mail address',
+      btn_delete: 'Delete',
+      // Some languages like Chinese don't literally have the word "yes", so this would be something
+      // along the lines of "This is a regular expression" / "This is not..." in Chinese. Hence the
+      // separation of this from a generic "yes" string.
+      ban_regex_yes: 'Yes',
+      ban_regex_no: 'No',
+      heading_create_new: 'Create new ban rule',
+      field_type: 'Type:',
+      field_rule: 'Rule:',
+      field_rule_hint: 'You can ban multiple IP addresses, users, or e-mail addresses by separating entries with a single comma (User1,User2). Do not put a space after the comma. For IP addresses, you may specify ranges like 172|192.168.4-30|90-167.1-90, which will turn into 172 and 192 . 168 . 4-30 and 90-167 . 1 - 90, which matches 18,899 IP addresses.',
+      field_reason: 'Reason to show to the banned user:',
+      field_regex: 'This rule is a regular expression',
+      field_regex_hint: '(advanced users only)',
+      btn_create: 'Create new ban rule',
+    },
+    acplo: {
+      heading_main: 'You have now been logged out of the administration panel.',
+      msg_logout_complete: 'You will continue to be logged into the website, but you will need to re-authenticate before you can access the administration panel again.</p><p>Return to the <a href="%mainpage_link%">Main Page</a>.',
+    }
   }
 };
 
