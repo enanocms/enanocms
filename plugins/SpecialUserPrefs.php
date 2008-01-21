@@ -67,17 +67,28 @@ function userprefs_menu_html()
 {
   global $userprefs_menu;
   global $userprefs_menu_links;
+  global $lang;
   
   $html = '';
   $quot = '"';
   
   foreach ( $userprefs_menu as $section => $buttons )
   {
-    $html .= ( isset($userprefs_menu_links[$section]) ) ? "<a href={$quot}{$userprefs_menu_links[$section]}{$quot}>{$section}</a>\n        " : "<a>{$section}</a>\n        ";
+    $section_name = $section;
+    if ( preg_match('/^[a-z]+_[a-z_]+$/', $section) )
+    {
+      $section_name = $lang->get($section_name);
+    }
+    $html .= ( isset($userprefs_menu_links[$section]) ) ? "<a href={$quot}{$userprefs_menu_links[$section]}{$quot}>{$section_name}</a>\n        " : "<a>{$section_name}</a>\n        ";
     $html .= "<ul>\n          ";
     foreach ( $buttons as $button )
     {
-      $html .= "  <li><a href={$quot}{$button['link']}{$quot}>{$button['text']}</a></li>\n          ";
+      $buttontext = $button['text'];
+      if ( preg_match('/^[a-z]+_[a-z_]+$/', $buttontext) )
+      {
+        $buttontext = $lang->get($buttontext);
+      }
+      $html .= "  <li><a href={$quot}{$button['link']}{$quot}>{$buttontext}</a></li>\n          ";
     }
     $html .= "</ul>\n        ";
   }
@@ -100,20 +111,22 @@ function userprefs_menu_init()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $userprefs_menu_links;
   
-  userprefs_menu_add('Profile/membership', 'Edit e-mail address and password', makeUrlNS('Special', 'Preferences/EmailPassword') . '" onclick="ajaxLoginNavTo(\'Special\', \'Preferences/EmailPassword\', '.USER_LEVEL_CHPREF.'); return false;');
-  userprefs_menu_add('Profile/membership', 'Edit signature', makeUrlNS('Special', 'Preferences/Signature'));
-  userprefs_menu_add('Profile/membership', 'Edit public profile', makeUrlNS('Special', 'Preferences/Profile'));
-  userprefs_menu_add('Profile/membership', 'Group memberships', makeUrlNS('Special', 'Usergroups'));
+  userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_emailpassword', makeUrlNS('Special', 'Preferences/EmailPassword') . '" onclick="ajaxLoginNavTo(\'Special\', \'Preferences/EmailPassword\', '.USER_LEVEL_CHPREF.'); return false;');
+  userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_signature', makeUrlNS('Special', 'Preferences/Signature'));
+  userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_publicinfo', makeUrlNS('Special', 'Preferences/Profile'));
+  userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_usergroups', makeUrlNS('Special', 'Usergroups'));
   if ( getConfig('avatar_enable') == '1' )
   {
-    userprefs_menu_add('Profile/membership', 'Avatar settings', makeUrlNS('Special', 'Preferences/Avatar'));
+    userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_avatar', makeUrlNS('Special', 'Preferences/Avatar'));
   }
-  userprefs_menu_add('Private messages', 'Inbox', makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'));
-  userprefs_menu_add('Private messages', 'Outbox', makeUrlNS('Special', 'PrivateMessages/Folder/Outbox'));
-  userprefs_menu_add('Private messages', 'Sent items', makeUrlNS('Special', 'PrivateMessages/Folder/Sent'));
-  userprefs_menu_add('Private messages', 'Drafts', makeUrlNS('Special', 'PrivateMessages/Folder/Drafts'));
-  userprefs_menu_add('Private messages', 'Archive', makeUrlNS('Special', 'PrivateMessages/Folder/Archive'));
+  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_inbox', makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'));
+  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_outbox', makeUrlNS('Special', 'PrivateMessages/Folder/Outbox'));
+  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_sent', makeUrlNS('Special', 'PrivateMessages/Folder/Sent'));
+  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_drafts', makeUrlNS('Special', 'PrivateMessages/Folder/Drafts'));
+  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_archive', makeUrlNS('Special', 'PrivateMessages/Folder/Archive'));
+  
   /*
+  // Reserved for Enano's Next Big Innovation.(TM)
   userprefs_menu_add('Private messages', 'Inbox', makeUrlNS('Special',      'Private_Messages#folder:inbox'));
   userprefs_menu_add('Private messages', 'Starred', makeUrlNS('Special',     'Private_Messages#folder:starred'));
   userprefs_menu_add('Private messages', 'Sent items', makeUrlNS('Special', 'Private_Messages#folder:sent'));
@@ -185,7 +198,7 @@ function page_Special_Preferences()
             case 'foo':
               if ( $_POST['newemail'] != $_POST['newemail_conf'] )
               {
-                $errors .= '<div class="error-box">The e-mail addresses you entered did not match.</div>';
+                $errors .= '<div class="error-box">' . $lang->get('usercp_emailpassword_err_email_no_match') . '</div>';
                 break;
               }
           }
@@ -201,9 +214,9 @@ function page_Special_Preferences()
           $result = $session->update_user($session->user_id, false, $old_pass, false, $new_email);
           if ( $result != 'success' )
           {
-            $message = '<p>The following errors were encountered while saving your e-mail address:</p>';
+            $message = '<p>' . $lang->get('usercp_emailpassword_err_list') . '</p>';
             $message .= '<ul><li>' . implode("</li>\n<li>", $result) . '</li></ul>';
-            die_friendly('Error updating e-mail address', $message);
+            die_friendly($lang->get('usercp_emailpassword_err_title'), $message);
           }
           $email_changed = true;
         }
@@ -227,16 +240,15 @@ function page_Special_Preferences()
           if ( strlen($newpass) > 0 )
           {
             if ( defined('ENANO_DEMO_MODE') )
-              $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">You can\'t change your password in demo mode.</div>';
+              $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_demo') . '</div>';
             // Perform checks
             if ( strlen($newpass) < 6 )
-              $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">Password must be at least 6 characters. You hacked my script, darn you!</div>';
+              $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_password_too_short') . '</div>';
             if ( getConfig('pw_strength_enable') == '1' )
             {
               $score_inp = password_score($newpass);
-              $score_min = intval( getConfig('pw_strength_minimum') );
               if ( $score_inp < $score_min )
-                $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">Your password did not meet the complexity score requirement for this site. Your password scored '. $score_inp .', while a score of at least '. $score_min .' is needed.</div>';
+                $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_password_too_weak', array('score' => $score_inp)) . '</div>';
             }
             // Encrypt new password
             if ( empty($errors) )
@@ -253,15 +265,15 @@ function page_Special_Preferences()
               {
                 if ( getConfig('account_activation') == 'user' )
                 {
-                  redirect(makeUrl(getConfig('main_page')), 'Profile changed', 'Your password and e-mail address have been changed. Since e-mail activation is required on this site, you will need to re-activate your account to continue. An e-mail has been sent to the new e-mail address with an activation link. You must click that link in order to log in again.', 19);
+                  redirect(makeUrl(getConfig('main_page')), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
                 }
                 else if ( getConfig('account_activation') == 'admin' )
                 {
-                  redirect(makeUrl(getConfig('main_page')), 'Profile changed', 'Your password and e-mail address have been changed. Since administrative activation is requires on this site, a request has been sent to the administrators to activate your account for you. You will not be able to use your account until it is activated by an administrator.', 19);
+                  redirect(makeUrl(getConfig('main_page')), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
                 }
               }
               $session->login_without_crypto($session->username, $newpass);
-              redirect(makeUrlNS('Special', 'Preferences'), 'Password changed', 'Your password has been changed, and you will now be redirected back to the user control panel.', 4);
+              redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_pass_success'), $lang->get('usercp_emailpassword_msg_password_changed'), 5);
             }
           }
         }
@@ -273,37 +285,39 @@ function page_Special_Preferences()
               $pass = $_POST['newpass'];
               if ( $pass != $_POST['newpass_conf'] )
               {
-                $errors .= '<div class="error-box">The passwords you entered did not match</div>';
+                $errors .= '<div class="error-box">' . $lang->get('usercp_emailpassword_err_password_no_match') . '</div>';
                 break;
               }
               
+              $session->logout();
               if ( $email_changed )
               {
                 if ( getConfig('account_activation') == 'user' )
                 {
-                  redirect(makeUrl(getConfig('main_page')), 'Profile changed', 'Your e-mail address has been changed. Since e-mail activation is required on this site, you will need to re-activate your account to continue. An e-mail has been sent to the new e-mail address with an activation link. You must click that link in order to log in again.', 19);
+                  redirect(makeUrl(getConfig('main_page')), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
                 }
                 else if ( getConfig('account_activation') == 'admin' )
                 {
-                  redirect(makeUrl(getConfig('main_page')), 'Profile changed', 'Your e-mail address has been changed. Since administrative activation is requires on this site, a request has been sent to the administrators to activate your account for you. You will not be able to use your account until it is activated by an administrator.', 19);
+                  redirect(makeUrl(getConfig('main_page')), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
                 }
-                else
-                {
-                  redirect(makeUrlNS('Special', 'Preferences'), 'Password changed', 'Your e-mail address has been changed, and you will now be redirected back to the user control panel.', 4);
-                }
+              }
+              else
+              {
+                $session->login_without_crypto($session->username, $newpass);
+                redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_pass_success'), $lang->get('usercp_emailpassword_msg_password_changed'), 5);
               }
               
               return;
           }
         }
       }
-      $template->tpl_strings['PAGE_NAME'] = 'Change E-mail Address or Password';
+      $template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_emailpassword_title');
       break;
     case 'Signature':
-      $template->tpl_strings['PAGE_NAME'] = 'Editing signature';
+      $template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_signature_title');
       break;
     case 'Profile':
-      $template->tpl_strings['PAGE_NAME'] = 'Editing public profile';
+      $template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_publicinfo_title');
       break;
   }
   
@@ -320,13 +334,14 @@ function page_Special_Preferences()
       global $email;
       $userpage_id = $paths->nslist['User'] . sanitize_page_id($session->username);
       $userpage_exists = ( isPage($userpage_id) ) ? '' : ' class="wikilink-nonexistent"';
-      $user_page = '<a href="' . makeUrlNS('User', sanitize_page_id($session->username)) . '"' . $userpage_exists . '>user page</a> <sup>(<a href="' . makeUrlNS('User', str_replace(' ', '_', $session->username)) . '#do:comments">comments</a>)</sup>';
-      $site_admin = $email->encryptEmail(getConfig('contact_email'), '', '', 'administrator');
-      $make_one_now = '<a href="' . makeUrlNS('User', sanitize_page_id($session->username)) . '">make one now</a>';
-      echo "<h3 style='margin-top: 0;'>$session->username, welcome to your control panel</h3>";
-      echo "<p>Here you can make changes to your profile, view statistics on yourself on this site, and set your preferences.</p>
-            <p>Your $user_page is your free writing space. You can use it to tell the other members of this site a little bit about yourself. If you haven't already made a user page, why not $make_one_now?</p>
-            <p>Use the menu at the top to navigate around. If you have any questions, you may contact the $site_admin.";
+      $user_page = makeUrlNS('User', sanitize_page_id($session->username));
+      $site_admin = $email->encryptEmail(getConfig('contact_email'), '', '', $lang->get('usercp_intro_para3_admin_link'));
+      
+      echo '<h3 style="margin-top: 0;">' . $lang->get('usercp_intro_heading_main', array('username' => $session->username)) . '</h3>';
+      
+      echo '<p>' . $lang->get('usercp_intro_para1') . '</p>
+            <p>' . $lang->get('usercp_intro_para2', array('userpage_link' => $user_page)) . '</p>
+            <p>' . $lang->get('usercp_intro_para3', array('admin_contact_link' => $site_admin)) . '</p>';
       break;
     case 'EmailPassword':
       
@@ -342,30 +357,30 @@ function page_Special_Preferences()
       $pubkey = $session->rijndael_genkey();
       
       echo '<fieldset>
-        <legend>Change password</legend>
-        Type a new password:<br />
+        <legend>' . $lang->get('usercp_emailpassword_grp_chpasswd') . '</legend>
+        ' . $lang->get('usercp_emailpassword_field_newpass') . '<br />
           <input type="password" name="newpass" size="30" tabindex="1" ' . ( getConfig('pw_strength_enable') == '1' ? 'onkeyup="password_score_field(this);" ' : '' ) . '/>' . ( getConfig('pw_strength_enable') == '1' ? '<span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span>' : '' ) . '
         <br />
         <br />
-        Type the password again to confirm:<br />
+        ' . $lang->get('usercp_emailpassword_field_newpass_confirm') . '<br />
         <input type="password" name="newpass_conf" size="30" tabindex="2" />
         ' . ( getConfig('pw_strength_enable') == '1' ? '<br /><br /><div id="pwmeter"></div>
-        <small>Your password needs to score at least <b>'.getConfig('pw_strength_minimum').'</b> in order to be accepted.</small>' : '' ) . '
+        <small>' . $lang->get('usercp_emailpassword_msg_password_min_score') . '</small>' : '' ) . '
       </fieldset><br />
       <fieldset>
-        <legend>Change e-mail address</legend>
-        New e-mail address:<br />
+        <legend>' . $lang->get('usercp_emailpassword_grp_chemail') . '</legend>
+        ' . $lang->get('usercp_emailpassword_field_newemail') . '<br />
           <input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail" size="30" tabindex="3" />
         <br />
         <br />
-        Confirm e-mail address:<br />
+        ' . $lang->get('usercp_emailpassword_field_newemail_confirm') . '<br />
           <input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail_conf" size="30" tabindex="4" />
       </fieldset>
       <input type="hidden" name="use_crypt" value="no" />
       <input type="hidden" name="crypt_key" value="' . $pubkey . '" />
       <input type="hidden" name="crypt_data" value="" />
       <br />
-      <div style="text-align: right;"><input type="submit" name="submit" value="Save Changes" tabindex="5" /></div>';
+      <div style="text-align: right;"><input type="submit" name="submit" value="' . $lang->get('etc_save_changes') . '" tabindex="5" /></div>';
       
       echo '</form>';
       
@@ -455,11 +470,11 @@ function page_Special_Preferences()
         if ( !$q )
           $db->_die();
         $session->signature = $sig;
-        echo '<div class="info-box" style="margin: 0 0 10px 0;">Your signature has been saved.</div>';
+        echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_signature_msg_saved') . '</div>';
       }
       echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
       echo $template->tinymce_textarea('new_sig', htmlspecialchars($session->signature));
-      echo '<input type="submit" value="Save signature" />';
+      echo '<input type="submit" value="' . $lang->get('usercp_signature_btn_save') . '" />';
       echo '</form>';
       break;
     case "Profile":
