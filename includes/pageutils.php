@@ -439,16 +439,20 @@ class PageUtils {
       return 'The prefix "Project:" is reserved for a parser shortcut; if a page was created using this prefix, it would not be possible to link to it.';
     }
     
-    $page_id = dirtify_page_id($page_id);
-    
-    if ( !$name )
-      $name = str_replace('_', ' ', $page_id);
+    /*
+    // Dunno why this was here. Enano can handle more flexible names than this...
     $regex = '#^([A-z0-9 _\-\.\/\!\@\(\)]*)$#is';
     if(!preg_match($regex, $name))
     {
       //echo '<b>Notice:</b> PageUtils::createPage: Name contains invalid characters<br />';
       return 'Name contains invalid characters';
     }
+    */
+    
+    $page_id = dirtify_page_id($page_id);
+    
+    if ( !$name )
+      $name = str_replace('_', ' ', $page_id);
     
     $page_id = sanitize_page_id( $page_id );
     
