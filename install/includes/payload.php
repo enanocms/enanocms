@@ -141,7 +141,8 @@ function stg_load_schema()
       'REAL_NAME'            => '', // This has always been stubbed.
       'ADMIN_EMBED_PHP'      => strval(AUTH_DISALLOW),
       'UNIX_TIME'            => strval(time()),
-      'MAIN_PAGE_CONTENT'    => $wkt
+      'MAIN_PAGE_CONTENT'    => $wkt,
+      'IP_ADDRESS'           => $db->escape($_SERVER['REMOTE_ADDR'])
     );
   
   $sql_parser->assign_vars($vars);

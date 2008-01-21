@@ -423,6 +423,10 @@ function page_Admin_UserManager()
         );
       $form->email_public = ( isset($_POST['email_public']) );
       $form->account_active = ( isset($_POST['account_active']) );
+      // This is SAFE. The smartform calls is_valid_ip() on this value, thus preventing XSS
+      // attempts from making it into the form HTML. Badly coded templates may still be
+      // affected, but if have_reg_ip is checked for, then you're fine.
+      $form->reg_ip_addr = $_POST['user_registration_ip'];
       echo $form->render();
       return false;
     }
@@ -446,7 +450,7 @@ function page_Admin_UserManager()
       echo 'No username provided';
       return false;
     }
-    $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, u.user_has_avatar, u.avatar_type, x.* FROM '.table_prefix.'users AS u
+    $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, u.user_has_avatar, u.avatar_type, u.user_registration_ip, x.* FROM '.table_prefix.'users AS u
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL )
                            WHERE ( ' . ENANO_SQLFUNC_LOWERCASE . '(u.username) = \'' . $db->escape(strtolower($username)) . '\' OR u.username = \'' . $db->escape($username) . '\' ) AND u.user_id != 1;');
@@ -485,6 +489,7 @@ function page_Admin_UserManager()
           'hobbies'  => $row['user_hobbies'],
         );
       $form->email_public = ( $row['email_public'] == 1 );
+      $form->reg_ip_addr = ( $row['user_registration_ip'] ) ? $row['user_registration_ip'] : '';
       $html = $form->render();
       if ( !$html )
       {
@@ -759,6 +764,13 @@ class Admin_UserManager_SmartForm
    */
   
   var $avi_type = 'png';
+  
+  /**
+   * The IP address of the user during registration
+   * @var string
+   */
+  
+  var $reg_ip_addr = '';
   
   /**
    * Constructor.
@@ -1086,6 +1098,20 @@ class Admin_UserManager_SmartForm
                   </td>
                 </tr>
                 
+                <!-- BEGIN have_reg_ip -->
+                <tr>
+                  <td class="row2">
+                    {lang:acpum_field_reg_ip}
+                  </td>
+                  <td class="row1">
+                    {REG_IP_ADDR}
+                    <input type="hidden" name="user_registration_ip" value="{REG_IP_ADDR}" />
+                  </td>
+                </tr>
+                <!-- BEGINELSE have_reg_ip -->
+                <input type="hidden" name="user_registration_ip" value="" />
+                <!-- END have_reg_ip -->
+                
                 <tr>
                   <td class="row2">
                     {lang:acpum_field_deleteaccount_title}
@@ -1180,7 +1206,8 @@ EOF;
         'LOCATION' => $location,
         'JOB' => $job,
         'HOBBIES' => $hobbies,
-        'FORM_ACTION' => $form_action
+        'FORM_ACTION' => $form_action,
+        'REG_IP_ADDR' => $this->reg_ip_addr
       ));
     
     if ( $this->has_avatar )
@@ -1199,7 +1226,8 @@ EOF;
         'account_active' => ( $this->account_active === true ),
         'email_public' => ( $this->email_public === true ),
         'same_user' => ( $this->user_id == $session->user_id ),
-        'user_has_avatar' => ( $this->has_avatar )
+        'user_has_avatar' => ( $this->has_avatar ),
+        'have_reg_ip' => ( intval(@strlen($this->reg_ip_addr)) > 0 && is_valid_ip($this->reg_ip_addr) )
       ));
     
     $parsed = $parser->run();

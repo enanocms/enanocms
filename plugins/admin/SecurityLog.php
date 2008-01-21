@@ -162,13 +162,14 @@ function seclog_format_inner($r, $f = false)
     case "filehist_enable" : $return .= $lang->get('acpsl_entry_filehist_enable') ; break;
     case "filehist_disable": $return .= $lang->get('acpsl_entry_filehist_disable'); break;
     case "magick_path"     : $return .= $lang->get('acpsl_entry_magick_path')     ; break;
-    case "plugin_disable"  : $return .= $lang->get('acpsl_entry_plugin_disable'   , array('plugin' => $r['page_text']))  ; break;
-    case "plugin_enable"   : $return .= $lang->get('acpsl_entry_plugin_enable'    , array('plugin' => $r['page_text']))   ; break;
+    case "plugin_disable"  : $return .= $lang->get('acpsl_entry_plugin_disable'   , array('plugin' => $r['page_text'])); break;
+    case "plugin_enable"   : $return .= $lang->get('acpsl_entry_plugin_enable'    , array('plugin' => $r['page_text'])); break;
     case "seclog_unauth"   : $return .= $lang->get('acpsl_entry_seclog_unauth')   ; break;
-    case "u_from_admin"    : $return .= $lang->get('acpsl_entry_u_from_admin'     , array('username' => $r['page_text']))    ; break;
-    case "u_from_mod"      : $return .= $lang->get('acpsl_entry_u_from_mod'       , array('username' => $r['page_text']))      ; break;
-    case "u_to_admin"      : $return .= $lang->get('acpsl_entry_u_to_admin'       , array('username' => $r['page_text']))      ; break;
-    case "u_to_mod"        : $return .= $lang->get('acpsl_entry_u_to_mod'         , array('username' => $r['page_text']))        ; break;
+    case "u_from_admin"    : $return .= $lang->get('acpsl_entry_u_from_admin'     , array('username' => $r['page_text'])); break;
+    case "u_from_mod"      : $return .= $lang->get('acpsl_entry_u_from_mod'       , array('username' => $r['page_text'])); break;
+    case "u_to_admin"      : $return .= $lang->get('acpsl_entry_u_to_admin'       , array('username' => $r['page_text'])); break;
+    case "u_to_mod"        : $return .= $lang->get('acpsl_entry_u_to_mod'         , array('username' => $r['page_text'])); break;
+    case "view_comment_ip" : $return .= $lang->get('acpsl_entry_view_comment_ip'  , array('username' => htmlspecialchars($r['page_text']))); break;
   }
   $return .= '</td><td class="'.$cls.'">'.enano_date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="' . $lang->get('acpsl_tip_reverse_dns') . '">'.$r['edit_summary'].'</td></tr>';
   return $return;

@@ -14,7 +14,7 @@
  */
  
 // Prepare a string for insertion into a MySQL database
-function filter($str) { return $db->escape($str); }
+function filter($str) { global $db; return $db->escape($str); }
 
 /**
  * Anything and everything related to security and user management. This includes AES encryption, which is illegal in some countries.
@@ -1692,7 +1692,14 @@ class sessionManager {
     // Initialize AES
     $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     
-    if(!preg_match('#^'.$this->valid_username.'$#', $username)) return 'The username you chose contains invalid characters.';
+    // Since we're recording IP addresses, make sure the user's IP is safe.
+    $ip =& $_SERVER['REMOTE_ADDR'];
+    if ( !is_valid_ip($ip) )
+      return 'Invalid IP';
+    
+    if ( !preg_match('#^'.$this->valid_username.'$#', $username) )
+      return 'The username you chose contains invalid characters.';
+    
     $username = str_replace('_', ' ', $username);
     $user_orig = $username;
     $username = $this->prepare_text($username);
@@ -1766,13 +1773,13 @@ class sessionManager {
     $actkey = sha1 ( microtime() . mt_rand() );
 
     // We good, create the user
-    $this->sql('INSERT INTO '.table_prefix.'users ( username, password, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa ) VALUES ( \''.$username.'\', \''.$password.'\', \''.$email.'\', \''.$real_name.'\', \''.$template->default_theme.'\', \''.$template->default_style.'\', '.time().', '.$active.', \''.$actkey.'\', '.USER_LEVEL_CHPREF.', ' . $coppa_col . ' );');
+    $this->sql('INSERT INTO '.table_prefix.'users ( username, password, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa, user_registration_ip ) VALUES ( \''.$username.'\', \''.$password.'\', \''.$email.'\', \''.$real_name.'\', \''.$template->default_theme.'\', \''.$template->default_style.'\', '.time().', '.$active.', \''.$actkey.'\', '.USER_LEVEL_CHPREF.', ' . $coppa_col . ', \'' . $ip . '\' );');
     
     // Get user ID and create users_extra entry
     $q = $this->sql('SELECT user_id FROM '.table_prefix."users WHERE username='$username';");
     if ( $db->numrows() > 0 )
     {
-      $row = $db->fetchrow();
+      list($user_id) = $db->fetchrow_num();
       $db->free_result();
       
       $user_id =& $row['user_id'];

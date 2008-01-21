@@ -49,7 +49,7 @@
     <!-- BEGIN auth_mod -->
     <tr>
       <td class="row1">
-        <b>{lang:comment_lbl_mod_options}</b> {MOD_APPROVE_LINK} {MOD_DELETE_LINK}
+        <b>{lang:comment_lbl_mod_options}</b> {MOD_APPROVE_LINK} {MOD_DELETE_LINK} | {MOD_IP_LINK}
       </td>
     </tr>
     <!-- END auth_mod -->

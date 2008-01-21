@@ -1,5 +1,5 @@
 -- Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
--- Version 1.0.2 (Coblynau)
+-- Version 1.1.1
 -- Copyright (C) 2006-2007 Dan Fuhry
 
 -- This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -8,7 +8,7 @@
 -- This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
 -- warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
 
--- mysql_stage2.sql - MySQL installation schema, main payload
+-- postgresql_stage2.sql - PostgreSQL installation schema, main payload
 
 CREATE TABLE {{TABLE_PREFIX}}categories(
   page_id varchar(64),
@@ -26,6 +26,7 @@ CREATE TABLE {{TABLE_PREFIX}}comments(
   approved smallint default 1,
   user_id int NOT NULL DEFAULT -1,
   time int NOT NULL DEFAULT 0,
+  ip_address varchar(39),
   PRIMARY KEY ( comment_id )
 );
 
@@ -99,6 +100,11 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   temp_password text,
   temp_password_time int NOT NULL DEFAULT 0,
   user_coppa smallint NOT NULL DEFAULT 0,
+  user_lang smallint NOT NULL,
+  user_has_avatar smallint NOT NULL,
+  avatar_type varchar(3) NOT NULL,
+  user_registration_ip varchar(39),
+  CHECK (user_has_avatar IN ('jpg', 'png', 'gif')),
   PRIMARY KEY  (user_id)
 );
 
@@ -300,7 +306,10 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('powered_btn', '1');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
-  ('Main_Page', 'Article', '=== Enano has been successfully installed and is working. ===\n\nIf you can see this message, it means that you\'ve finished the Enano setup process and are ready to start building your website. Congratulations!\n\nTo edit this front page, click the Log In button to the left, enter the credentials you provided during the installation, and click the Edit This Page button that appears on the blue toolbar just above this text. You can also [http://docs.enanocms.org/Help:2.4 learn more] about editing pages.\n\nTo create more pages, use the Create a Page button to the left. If you enabled wiki mode, you don\'t have to log in first, however your IP address will be shown in the page history.\n\nVisit the [http://docs.enanocms.org/Help:Contents Enano documentation project website] to learn more about administering your site effectively and keeping things secure.\n\n\'\'\'NOTE:\'\'\' You\'ve just installed an unstable version of Enano. This release is completely unsupported and may contain security issues or serious usability bugs. You should not use this release on a production website. The Enano team will not provide any type of support at all for this experimental release.', '');
+  ('Main_Page', 'Article', '{{MAIN_PAGE_CONTENT}}', '');
+  
+INSERT INTO {{TABLE_PREFIX}}logs(time_id, date_string, log_type, action, page_id, namespace, author, page_text) VALUES
+  ({{UNIX_TIME}}, 'DEPRECATED', 'page', 'edit', 'Main_Page', 'Article', '{{ADMIN_USER}}', '{{MAIN_PAGE_CONTENT}}');
 
 INSERT INTO {{TABLE_PREFIX}}pages(page_order, name, urlname, namespace, special, visible, comments_on, protected, delvotes, delvote_ips) VALUES
   (NULL, 'Main Page', 'Main_Page', 'Article', 0, 1, 1, 1, 0, '');
@@ -309,9 +318,9 @@ INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_st
   ('oxygen', 'Oxygen', 1, 'bleu.css', 1),
   ('stpatty', 'St. Patty', 2, 'shamrock.css', 1);
 
-INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active) VALUES
+INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active, user_registration_ip) VALUES
   (1, 'Anonymous', 'invalid-pass-hash', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0),
-  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', {{UNIX_TIME}}, 1);
+  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', {{UNIX_TIME}}, 1, '{{IP_ADDRESS}}');
   
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);

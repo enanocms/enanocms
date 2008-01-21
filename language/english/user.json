@@ -10,11 +10,6 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-// This is the main language file for Enano. Feel free to use it as a base for your own translations.
-// All text in this file before the first left curly brace and all text after the last curly brace will
-// be trimmed. So you can use a limited amount of Javascript in this so that the language can be imported
-// via Javascript as well.
-
 var enano_lang = {
   categories: [
     'user', 'usercp', 'groupcp', 'privmsgs', 'userfuncs',

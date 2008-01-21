@@ -1,5 +1,5 @@
 -- Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
--- Version 1.0.2 (Coblynau)
+-- Version 1.1.1
 -- Copyright (C) 2006-2007 Dan Fuhry
 
 -- This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@ CREATE TABLE {{TABLE_PREFIX}}comments(
   approved tinyint(1) default 1,
   user_id mediumint(8) NOT NULL DEFAULT -1,
   time int(12) NOT NULL DEFAULT 0,
+  ip_address varchar(39),
   PRIMARY KEY ( comment_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
@@ -103,6 +104,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_lang smallint(5) NOT NULL,
   user_has_avatar tinyint(1) NOT NULL,
   avatar_type ENUM('jpg', 'png', 'gif') NOT NULL,
+  user_registration_ip varchar(39),
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
@@ -318,9 +320,9 @@ INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_st
   ('oxygen', 'Oxygen', 1, 'bleu.css', 1),
   ('stpatty', 'St. Patty', 2, 'shamrock.css', 1);
 
-INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active) VALUES
+INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active, user_registration_ip) VALUES
   (1, 'Anonymous', 'invalid-pass-hash', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0),
-  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', UNIX_TIMESTAMP(), 1);
+  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', UNIX_TIMESTAMP(), 1, '{{IP_ADDRESS}}');
   
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);

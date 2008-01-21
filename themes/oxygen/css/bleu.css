@@ -173,6 +173,10 @@ div.menu input[type ^="button"], div.menu input[type ^="submit"], div.menu_nojs 
 div.menu a.current, div.menu a.current:hover, div.menu a.selected, div.menu a.selected:hover, div.menu_nojs a.current, div.menu_nojs a.current:hover, div.menu_nojs a.selected, div.menu_nojs a.selected:hover {
   color: #000040;
   background-color: #FFFFFF;
+  /*
+  Some people like this. Most people don't.
+  -moz-border-radius: 5px 5px 0 0;
+  */
 }
 div.menu ul, div.menu_nojs ul {
   display: none;

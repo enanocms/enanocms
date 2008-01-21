@@ -97,14 +97,14 @@ class Comments
         {
           $ret['template'] = file_get_contents(ENANO_ROOT . '/themes/' . $template->theme . '/comment.tpl');
         }
-        $q = $db->sql_query('SELECT c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,u.user_level,u.user_id,u.signature,u.user_has_avatar,u.avatar_type, b.buddy_id IS NOT NULL AS is_buddy, ( b.is_friend IS NOT NULL AND b.is_friend=1 ) AS is_friend FROM '.table_prefix.'comments AS c
+        $q = $db->sql_query('SELECT c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,( c.ip_address IS NOT NULL ) AS have_ip,u.user_level,u.user_id,u.signature,u.user_has_avatar,u.avatar_type, b.buddy_id IS NOT NULL AS is_buddy, ( b.is_friend IS NOT NULL AND b.is_friend=1 ) AS is_friend FROM '.table_prefix.'comments AS c
                                LEFT JOIN '.table_prefix.'users AS u
                                  ON (u.user_id=c.user_id)
                                LEFT JOIN '.table_prefix.'buddies AS b
                                  ON ( ( b.user_id=' . $session->user_id.' AND b.buddy_user_id=c.user_id ) OR b.user_id IS NULL)
                                WHERE page_id=\'' . $this->page_id . '\'
                                  AND namespace=\'' . $this->namespace . '\'
-                               GROUP BY c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,u.user_level,u.user_id,u.signature,u.user_has_avatar,u.avatar_type,b.buddy_id,b.is_friend
+                               GROUP BY c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,c.ip_address,u.user_level,u.user_id,u.signature,u.user_has_avatar,u.avatar_type,b.buddy_id,b.is_friend
                                ORDER BY c.time ASC;');
         $count_appr = 0;
         $count_total = 0;
@@ -146,6 +146,9 @@ class Comments
             
             // Format signature
             $row['signature'] = ( !empty($row['signature']) ) ? RenderMan::render($row['signature']) : '';
+            
+            // Do we have the IP?
+            $row['have_ip'] = ( $row['have_ip'] == 1 );
             
             // Add the comment to the list
             $ret['comments'][] = $row;
@@ -285,10 +288,13 @@ class Comments
           $appr = ( getConfig('approve_comments') == '1' ) ? '0' : '1';
           $time = time();
           $date = enano_date('F d, Y h:i a', $time);
+          $ip = $_SERVER['REMOTE_ADDR'];
+          if ( !is_valid_ip($ip) )
+            die('Hacking attempt');
           
           // Send it to the database
-          $q = $db->sql_query('INSERT INTO '.table_prefix.'comments(page_id,namespace,name,subject,comment_data,approved, time, user_id) VALUES' .
-                              "('$this->page_id', '$this->namespace', '$name', '$subj', '$sql_text', $appr, $time, $session->user_id);");
+          $q = $db->sql_query('INSERT INTO '.table_prefix.'comments(page_id,namespace,name,subject,comment_data,approved, time, user_id, ip_address) VALUES' . "\n  " .
+                             "('$this->page_id', '$this->namespace', '$name', '$subj', '$sql_text', $appr, $time, {$session->user_id}, '$ip');");
           if(!$q)
             $db->die_json();
           
@@ -365,6 +371,45 @@ class Comments
             'approve_updated' => 'yes'
           );
         
+        break;
+      case 'view_ip':
+        if ( !$session->get_permissions('mod_comments') )
+        {
+          return array(
+              'mode' => 'error',
+              'error' => 'Unauthorized'
+            );
+        }
+        // fetch comment info
+        if ( !is_int($data['id']) )
+        {
+          return array(
+              'mode' => 'error',
+              'error' => 'Unauthorized'
+            );
+        }
+        $id =& $data['id'];
+        $q = $db->sql_query('SELECT ip_address, name FROM ' . table_prefix . 'comments WHERE comment_id = ' . $id . ';');
+        if ( !$q || $db->numrows() < 1 )
+        {
+          $db->die_json();
+        }
+        list($ip_addr, $name) = $db->fetchrow_num($q);
+        $db->free_result();
+        $name = $db->escape($name);
+        $username = $db->escape($session->username);
+        // log this action
+        $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs(time_id, log_type, action, page_text, author, edit_summary) VALUES\n  "
+                            . "( " . time() . ", 'security', 'view_comment_ip', '$name', '$username', '{$_SERVER['REMOTE_ADDR']}' );");
+        if ( !$q )
+          $db->die_json();
+        
+        // send packet
+        $ret = array(
+            'mode' => 'redraw',
+            'ip_addr' => $ip_addr,
+            'local_id' => $data['local_id']
+          );
         break;
       default:
         $ret = Array(

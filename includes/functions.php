@@ -2079,6 +2079,8 @@ function htmlalternatives($string)
 function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage = 10, $callers = Array(), $header = '', $footer = '')
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
   $parser = $template->makeParserText($tpl_text);
   $num_pages = ceil ( $num_results / $perpage );
   $out = '';
@@ -2093,7 +2095,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
             'display: table; margin: 10px 0 0 auto;';
   $begin = '<div class="tblholder" style="'. $pg_css . '">
     <table border="0" cellspacing="1" cellpadding="4">
-      <tr><th>Page:</th>';
+      <tr><th>' . $lang->get('paginate_lbl_page') . '</th>';
   $block = '<td class="row1" style="text-align: center;">{LINK}</td>';
   $end = '</tr></table></div>';
   $blk = $template->makeParserText($block);
@@ -2140,7 +2142,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
       }
     }
     $url = sprintf($result_url, '0');
-    $link = ( 0 == $start ) ? "<b>First</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; First</a>";
+    $link = ( 0 == $start ) ? "<b>" . $lang->get('pagination_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('pagination_btn_first') . "</a>";
     $blk->assign_vars(array(
       'CLASS'=>$cls,
       'LINK'=>$link
@@ -2182,7 +2184,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
       $offset = strval($total);
       $url = sprintf($result_url, $offset);
       $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>Last</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>Last &raquo;</a>";
+      $link = ( $offset == strval($start) ) ? "<b>" . $lang->get('pagination_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('pagination_btn_last') . " &raquo;</a>";
       $blk->assign_vars(array(
         'CLASS'=>$cls,
         'LINK'=>$link
@@ -2271,7 +2273,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
   if ( $start > 0 )
   {
     $url = sprintf($result_url, abs($start - $perpage));
-    $link = "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; Prev</a>";
+    $link = "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('paginate_btn_prev') . "</a>";
     $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
     $blk->assign_vars(array(
       'CLASS'=>$cls,
@@ -2320,7 +2322,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       }
     }
     $url = sprintf($result_url, '0');
-    $link = ( 0 == $start ) ? "<b>First</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; First</a>";
+    $link = ( 0 == $start ) ? "<b>" . $lang->get('pagination_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('pagination_btn_first') . "</a>";
     $blk->assign_vars(array(
       'CLASS'=>$cls,
       'LINK'=>$link
@@ -2360,7 +2362,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       $offset = strval($total);
       $url = sprintf($result_url, $offset);
       $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>Last</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>Last &raquo;</a>";
+      $link = ( $offset == strval($start) ) ? "<b>" . $lang->get('pagination_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('pagination_btn_last') . " &raquo;</a>";
       $blk->assign_vars(array(
         'CLASS'=>$cls,
         'LINK'=>$link
@@ -2374,7 +2376,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
   {
     $link_offset = abs($start + $perpage);
     $url = htmlspecialchars(sprintf($result_url, strval($link_offset)));
-    $link = "<a href=".'"'."$url".'"'." style='text-decoration: none;'>Next &raquo;</a>";
+    $link = "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('paginate_btn_next') . " &raquo;</a>";
     $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
     $blk->assign_vars(array(
       'CLASS'=>$cls,

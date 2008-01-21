@@ -218,6 +218,16 @@ var _render_comment = function(this_comment, data)
   // Moderation: Delete post link
   tplvars.MOD_DELETE_LINK='<a href="#mod_del_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">' + $lang.get('comment_btn_mod_delete') + '</a>';
   
+  // Moderation: IP address link
+  if ( this_comment.have_ip )
+  {
+    tplvars.MOD_IP_LINK = '<span id="comment_ip_' + i + '"><a href="#mod_ip_' + i + '" onclick="viewCommentIP(' + this_comment.comment_id + ', ' + i + '); return false;">' + $lang.get('comment_btn_mod_ip_logged') + '</a></span>';
+  }
+  else
+  {
+    tplvars.MOD_IP_LINK = $lang.get('comment_btn_mod_ip_missing');
+  }
+  
   var tplbool = new Object();
   
   tplbool.signature = ( this_comment.signature == '' ) ? false : true;
@@ -376,6 +386,13 @@ function redrawComment(data)
   {
     document.getElementById('comment_source_' + data.id).value = data.src;
   }
+  if ( data.ip_addr )
+  {
+    var span = $('comment_ip_' + data.local_id).object;
+    if ( !span )
+      return false;
+    span.innerHTML = $lang.get('comment_msg_ip_address') + ' <a href="#rdns" onclick="ajaxReverseDNS(this); return false;">' + data.ip_addr + '</a>';
+  }
 }
 
 function approveComment(id)
@@ -480,6 +497,9 @@ function materializeComment(data)
   // Moderation: Delete post link
   tplvars.MOD_DELETE_LINK='<a href="#mod_del_'+i+'" onclick="deleteComment(\''+i+'\'); return false;">' + $lang.get('comment_btn_mod_delete') + '</a>';
   
+  // Moderation: IP address link
+  tplvars.MOD_IP_LINK = '<span id="comment_ip_' + i + '"><a href="#mod_ip_' + i + '" onclick="viewCommentIP(' + data.comment_id + ', ' + i + '); return false;">' + $lang.get('comment_btn_mod_ip_logged') + '</a></span>';
+  
   var tplbool = new Object();
   
   tplbool.signature = ( data.signature == '' ) ? false : true;
@@ -580,6 +600,22 @@ function comment_increment_unapproval()
     span.innerHTML = count_msg;
     status.appendChild(span);
   }
+}
+
+function viewCommentIP(id, local_id)
+{
+  // set "loading" indicator on IP button
+  var span = $('comment_ip_' + local_id).object;
+  if ( !span )
+    return false;
+  span.innerHTML = '<img alt="..." src="' + ajax_load_icon + '" />';
+  
+  var parms = {
+    mode: 'view_ip',
+    id: id,
+    local_id: local_id
+  }
+  ajaxComments(parms);
 }
 
 function htmlspecialchars(text)

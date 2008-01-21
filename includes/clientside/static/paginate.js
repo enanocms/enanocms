@@ -68,7 +68,7 @@ function paginator(data, callback, offset, perpage, passer)
 function _build_paginator(this_page)
 {
   var div_styling = ( IE ) ? 'width: 1px; margin: 10px auto 10px 0;' : 'display: table; margin: 10px 0 0 auto;';
-  var begin = '<div class="tblholder" style="'+div_styling+'"><table border="0" cellspacing="1" cellpadding="4"><tr><th>Page:</th>';
+  var begin = '<div class="tblholder" style="'+div_styling+'"><table border="0" cellspacing="1" cellpadding="4"><tr><th>' + $lang.get('paginate_lbl_page') + '</th>';
   var block = '<td class="row1" style="text-align: center; white-space: nowrap;">{LINK}</td>';
   var end = '</tr></table></div>';
   var blk = new templateParser(block);
@@ -78,7 +78,7 @@ function _build_paginator(this_page)
   if ( this_page > 0 )
   {
     var url = '#page_'+(this_page);
-    var link = "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this_page-1)+"); return false;\" style='text-decoration: none;'>&laquo; Prev</a>";
+    var link = "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this_page-1)+"); return false;\" style='text-decoration: none;'>&laquo; " + $lang.get('paginate_btn_prev') + "</a>";
     cls = ( cls == 'row1' ) ? 'row2' : 'row1';
     blk.assign_vars({
         CLASS: cls,
@@ -126,7 +126,7 @@ function _build_paginator(this_page)
       }
     }
     var url = '#page_1';
-    var link = ( 0 == this_page ) ? "<b>First</b>" : "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', 0); return false;\" style='text-decoration: none;'>&laquo; First</a>";
+    var link = ( 0 == this_page ) ? "<b>" + $lang.get('paginate_btn_first') + "</b>" : "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', 0); return false;\" style='text-decoration: none;'>&laquo; " + $lang.get('paginate_btn_first') + "</a>";
     blk.assign_vars({
         CLASS: cls,
         LINK: link
@@ -164,7 +164,7 @@ function _build_paginator(this_page)
 
       cls = ( cls == 'row1' ) ? 'row2' : 'row1';
       var url = '#page_' + String( this.num_pages-1 );
-      var link = ( ( this.num_pages - 1 ) == this_page ) ? "<b>Last</b>" : "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this.num_pages-1)+"); return false;\" style='text-decoration: none;'>Last &raquo;</a>";
+      var link = ( ( this.num_pages - 1 ) == this_page ) ? "<b>" + $lang.get('paginate_btn_last') + "</b>" : "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this.num_pages-1)+"); return false;\" style='text-decoration: none;'>" + $lang.get('paginate_btn_last') + " &raquo;</a>";
       blk.assign_vars({
           CLASS: cls,
           LINK: link
@@ -177,7 +177,7 @@ function _build_paginator(this_page)
   if ( this_page < ( this.num_pages - 1 ) )
   {
     var url = '#page_' + String(this_page + 2);
-    var link = "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this_page+1)+"); return false;\" style='text-decoration: none;'>Next &raquo;</a>";
+    var link = "<a href=\""+url+"\" onclick=\"jspaginator_goto('"+this.random_id+"', "+(this_page+1)+"); return false;\" style='text-decoration: none;'>" + $lang.get('paginate_btn_next') + " &raquo;</a>";
     cls = ( cls == 'row1' ) ? 'row2' : 'row1';
     blk.assign_vars({
           CLASS: cls,
@@ -284,14 +284,18 @@ function paginator_goto(parentobj, this_page, num_pages, perpage, url_string)
   var regex = new RegExp('\"', 'g');
   var submit_target = ( typeof(url_string) == 'object' ) ? ( toJSONString(url_string) ).replace(regex, '\'') : 'unescape(\'' + escape(url_string) + '\')';
   var onclick = 'paginator_submit(this, '+num_pages+', '+perpage+', '+submit_target+'); return false;';
-  div.innerHTML = 'Go to page:<br /><input type="text" size="2" style="padding: 1px; font-size: 8pt;" value="'+(parseInt(this_page)+1)+'" id="'+vtmp+'" />&emsp;<a href="#" onclick="'+onclick+'" style="font-size: 14pt; text-decoration: none;">&raquo;</a>&emsp;<a href="#" onclick="fly_out_top(this.parentNode, false, true); return false;" style="font-size: 14pt; text-decoration: none;">&times;</a>';
+  div.innerHTML = $lang.get('paginate_lbl_goto_page') + '<br /><input type="text" size="2" style="padding: 1px; font-size: 8pt;" value="'+(parseInt(this_page)+1)+'" id="'+vtmp+'" />&emsp;<a href="#" onclick="'+onclick+'" style="font-size: 14pt; text-decoration: none;">&raquo;</a>&emsp;<a href="#" onclick="fly_out_top(this.parentNode, false, true); return false;" style="font-size: 14pt; text-decoration: none;">&times;</a>';
   
   var body = document.getElementsByTagName('body')[0];
   domObjChangeOpac(0, div);
   
   body.appendChild(div);
   
-  document.getElementById(vtmp).onkeypress = function(e){if(e.keyCode==13)this.nextSibling.nextSibling.onclick();};
+  document.getElementById(vtmp).onkeypress = function(e)
+    {
+      if ( e.keyCode == 13 )
+        this.nextSibling.nextSibling.onclick();
+    };
   document.getElementById(vtmp).focus();
   
   // fade the div
@@ -315,7 +319,7 @@ function paginator_submit(obj, max, perpage, formatstring)
   var offset = ( userinput - 1 ) * perpage;
   if ( userinput > max || isNaN(userinput) || userinput < 1 )
   {
-    new messagebox(MB_OK|MB_ICONSTOP, 'Invalid entry', 'Please enter a page number between 1 and ' + max + '.');
+    new messagebox(MB_OK|MB_ICONSTOP, $lang.get('paginate_err_bad_page_title'), $lang.get('paginate_err_bad_page_body', { max: max }));
     return false;
   }
   if ( typeof(formatstring) == 'object' )
