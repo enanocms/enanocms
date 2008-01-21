@@ -415,6 +415,20 @@ function page_Special_Preferences()
           var frm = document.forms.empwform;
           if ( frm.newpass.value.length < 1 )
             return true;
+          
+          pass1 = frm.newpass.value;
+          pass2 = frm.newpass_conf.value;
+          if ( pass1 != pass2 )
+          {
+            alert($lang.get('usercp_emailpassword_err_password_no_match'));
+            return false;
+          }
+          if ( pass1.length < 6 && pass1.length > 0 )
+          {
+            alert($lang.get('usercp_emailpassword_err_password_too_short'));
+            return false;
+          }
+          
           if(aes_testpassed)
           {
             frm.use_crypt.value = 'yes';
@@ -427,21 +441,6 @@ function page_Special_Preferences()
               len = ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ? '\nLen: '+cryptkey.length : '';
               alert('The key is messed up\nType: '+typeof(cryptkey)+len);
             }
-          }
-          pass1 = frm.newpass.value;
-          pass2 = frm.newpass_conf.value;
-          if ( pass1 != pass2 )
-          {
-            alert('The passwords you entered do not match.');
-            return false;
-          }
-          if ( pass1.length < 6 && pass1.length > 0 )
-          {
-            alert('The new password must be 6 characters or greater in length.');
-            return false;
-          }
-          if(aes_testpassed)
-          {
             pass = frm.newpass.value;
             pass = stringToByteArray(pass);
             cryptstring = rijndaelEncrypt(pass, cryptkey, 'ECB');
@@ -548,74 +547,74 @@ function page_Special_Preferences()
         if ( !$q )
           $db->_die();
         
-        echo '<div class="info-box" style="margin: 0 0 10px 0;">Your profile has been updated.</div>';
+        echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_publicinfo_msg_save_success') . '</div>';
       }
       echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
       ?>
       <div class="tblholder">
         <table border="0" cellspacing="1" cellpadding="4">
           <tr>
-            <th colspan="2">Your public profile</th>
+            <th colspan="2"><?php echo $lang->get('usercp_publicinfo_heading_main'); ?></th>
           </tr>
           <tr>
-            <td colspan="2" class="row3">Please note that all of the information you enter here will be <b>publicly viewable.</b> All of the fields on this page are optional and may be left blank if you so desire.</td>
+            <td colspan="2" class="row3"><?php echo $lang->get('usercp_publicinfo_note_optional'); ?></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;">Real name:</td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_realname'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="real_name" value="<?php echo $session->real_name; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2">Change theme:</td>
-            <td class="row1">If you don't like the look of the site, need a visual break, or are just curious, we might have some different themes for you to try out! <a href="<?php echo makeUrlNS('Special', 'ChangeStyle/' . $paths->page); ?>" onclick="ajaxChangeStyle(); return false;">Change my theme...</a></td>
+            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_changetheme_title'); ?></td>
+            <td class="row1"><?php echo $lang->get('usercp_publicinfo_field_changetheme_hint'); ?> <a href="<?php echo makeUrlNS('Special', 'ChangeStyle/' . $paths->page); ?>" onclick="ajaxChangeStyle(); return false;"><?php echo $lang->get('usercp_publicinfo_field_changetheme'); ?></a></td>
           </tr>
           <tr>
             <th class="subhead" colspan="2">
-              Instant messenger contact information
+              <?php echo $lang->get('usercp_publicinfo_th_im'); ?>
             </th>
           <tr>
-            <td class="row2" style="width: 50%;">AIM handle:</td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_aim'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="imaddr_aim" value="<?php echo $session->user_extra['user_aim']; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;"><acronym title="Windows&trade; Live Messenger">WLM</acronym> handle:<br /><small>If you don't specify the domain (@whatever.com), "@hotmail.com" will be assumed.</small></td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_wlm'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="imaddr_msn" value="<?php echo $session->user_extra['user_msn']; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;">Yahoo! IM handle:</td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_yim'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="imaddr_yahoo" value="<?php echo $session->user_extra['user_yahoo']; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;">Jabber/XMPP handle:</td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_xmpp'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="imaddr_xmpp" value="<?php echo $session->user_extra['user_xmpp']; ?>" size="30" /></td>
           </tr>
           <tr>
             <th class="subhead" colspan="2">
-              Extra contact information
+              <?php echo $lang->get('usercp_publicinfo_th_contact'); ?>
             </th>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;">Your homepage:<br /><small>Please remember the http:// prefix.</small></td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_homepage'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="homepage" value="<?php echo $session->user_extra['user_homepage']; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;">Your location:</td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_location'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="location" value="<?php echo $session->user_extra['user_location']; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;">Your job:</td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_job'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="occupation" value="<?php echo $session->user_extra['user_job']; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;">Your hobbies:</td>
+            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_hobbies'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="hobbies" value="<?php echo $session->user_extra['user_hobbies']; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;"><label for="chk_email_public">E-mail address is public</label><br /><small>If this is checked, your e-mail address will be displayed on your user page. To protect your address from spambots, your e-mail address will be encrypted.</small></td>
+            <td class="row2" style="width: 50%;"><label for="chk_email_public"><?php echo $lang->get('usercp_publicinfo_field_email_public'); ?></label><br /><small><?php echo $lang->get('usercp_publicinfo_field_email_public_hint'); ?></small></td>
             <td class="row1" style="width: 50%;"><input type="checkbox" id="chk_email_public" name="email_public" <?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?> size="30" /></td>
           </tr>
           <tr>
             <th class="subhead" colspan="2">
-              <input type="submit" name="submit" value="Save profile" />
+              <input type="submit" name="submit" value="<?php echo $lang->get('usercp_publicinfo_btn_save'); ?>" />
             </th>
           </tr>
         </table>
