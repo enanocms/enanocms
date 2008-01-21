@@ -71,7 +71,7 @@ function ajaxEditBlock(id, oElm)
         thediv.style.margin = '0';
         if(ajax.responseText == 'HOUSTON_WE_HAVE_A_PLUGIN')
         {
-          thediv.innerHTML = '<h3>This block cannot be edited.</h3><p>This is a plugin block, and cannot be edited.</p><p><a href="#" onclick="this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode); return false;">close</a></p>';
+          thediv.innerHTML = '<h3>' + $lang.get('sbedit_msg_cant_edit_plugin_title') + '</h3><p>' + $lang.get('sbedit_msg_cant_edit_plugin_body', { close_link: 'a href="#" onclick="this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode); return false;"' }) + '</p>';
         }
         else
         {
@@ -82,7 +82,7 @@ function ajaxEditBlock(id, oElm)
           thediv.appendChild(ta);
           b = document.createElement('br');
           thediv.appendChild(b);
-          thediv.innerHTML += '<a href="#" onclick="ajaxSaveBlock(this, \''+id+'\'); return false;">save</a>  |  <a href="#" onclick="if(confirm(\'Do you really want to discard your changes?\')) this.parentNode.parentNode.removeChild(this.parentNode); return false;">cancel</a>';
+          thediv.innerHTML += '<a href="#" onclick="ajaxSaveBlock(this, \''+id+'\'); return false;">' + $lang.get('sbedit_btn_edit_save') + '</a>  |  <a href="#" onclick="if(confirm(\'' + $lang.get('sbedit_msg_discard_confirm') + '\')) this.parentNode.parentNode.removeChild(this.parentNode); return false;">' + $lang.get('sbedit_btn_edit_cancel') + '</a>';
         }
         body = document.getElementsByTagName('body');
         body = body[0];

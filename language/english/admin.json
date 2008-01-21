@@ -14,7 +14,7 @@ var enano_lang = {
   categories: [
     'adm', 'acl', 'adminusers',
     'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl', 'acpbc',
-    'acplo',
+    'acplo', 'sbedit',
   ],
   strings: {
     meta: {
@@ -36,6 +36,7 @@ var enano_lang = {
       acpsl: 'ACP: Security log',
       acpbc: 'ACP: Ban control',
       acplo: 'ACP: Logout page',
+      sbedit: 'Sidebar editor',
     },
     adm: {
       cat_general: 'General',
@@ -762,6 +763,67 @@ var enano_lang = {
     acplo: {
       heading_main: 'You have now been logged out of the administration panel.',
       msg_logout_complete: 'You will continue to be logged into the website, but you will need to re-authenticate before you can access the administration panel again.</p><p>Return to the <a href="%mainpage_link%">Main Page</a>.',
+    },
+    sbedit: {
+      msg_order_update_success: 'The sidebar order information was updated successfully.',
+      err_demo_php_disable: 'Adding PHP code blocks in the Enano administration demo has been disabled for security reasons.',
+      msg_item_added: 'The item was added.',
+      
+      create_intro: 'What type of block should this be?',
+      block_type_wiki: 'Wiki-formatted block',
+      block_type_tpl: 'Template-formatted block (old pre-beta 3 behavior)',
+      block_type_html: 'Raw HTML block',
+      block_type_php: 'PHP code block (danger, Will Robinson!)',
+      block_type_plugin: 'Use code from a plugin',
+      field_block_title: 'Block title:',
+      field_block_sidebar: 'Which sidebar:',
+      field_block_sidebar_left: 'Left',
+      field_block_sidebar_right: 'Right',
+      field_wikitext: 'Wikitext:',
+      field_tplcode: 'Template code:',
+      field_html: 'HTML to place inside the sidebar:',
+      field_php_disabled: 'Creating PHP blocks in demo mode is disabled for security reasons.',
+      field_php: '<p>
+                    <b>WARNING:</b> If you don\'t know what you\'re doing, or if you are not fluent in PHP, stop now and choose a different block type. You will brick your Enano installation if you are not careful here.
+                    ALWAYS remember to write secure code! The Enano team is not responsible if someone drops all your tables because of an SQL injection vulnerability in your sidebar code. You are probably better off using the template-formatted block type.
+                  </p>
+                  <p>
+                    <span style="color: red;">
+                      It is especially important to note that this code is NOT checked for errors! If there is a syntax error in your code here, it will prevent any pages from loading AT ALL. So you need to use an external PHP editor (like <a href="http://www.jedit.org">jEdit</a>) to check your syntax before you hit save.
+                    </span> You have been warned.
+                  </p>
+                  <p>
+                    Also, you should avoid using output buffering functions (ob_[start|end|get_contents|clean]) here, because Enano uses those to track output from this script.
+                  </p>
+                  <p>
+                    The standard &lt;?php and ?&gt; tags work here. Don\'t use an initial "&lt;?php" or it will cause a parse error.
+                  </p>
+                  <p>
+                    PHP code:
+                  </p>',
+      field_plugin: 'Plugin:',
+      btn_create_block: 'Create new block',
+      
+      msg_block_moved: 'Item moved.',
+      msg_block_deleted: 'Item deleted.',
+      msg_plugin_not_loaded: 'Plugin isn\'t loaded',
+      note_block_unnamed: 'Unnamed',
+      hint_rename: 'Double-click to rename this block',
+      note_block_disabled: '(disabled)',
+      tip_disenable: 'Enable or disable this block',
+      tip_edit: 'Edit the contents of this block',
+      tip_delete: 'Permanently delete this block',
+      tip_move: 'Move this block to the other sidebar',
+      msg_delete_confirm: 'Do you really want to delete this block?',
+      btn_revert: 'Revert',
+      btn_create_new_stage1: 'Create new block',
+      btn_main_page: 'Main Page',
+      msg_cant_edit_plugin_title: 'This block cannot be edited.',
+      msg_cant_edit_plugin_body: 'This is a plugin block, and cannot be edited. <%close_link%>Close</a>',
+      btn_edit_save: 'save',
+      btn_edit_cancel: 'cancel',
+      msg_discard_confirm: 'Do you really want to discard your changes?',
+      msg_discard_order_confirm: 'Do you really want to revert your changes?\nNote: this does not revert edits or deletions, those are saved as soon as you confirm the action.',
     }
   }
 };

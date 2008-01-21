@@ -2296,10 +2296,6 @@ function page_Special_EditSidebar()
     $template->add_header('<script type="text/javascript" src="'.scriptPath.'/includes/clientside/sbedit.js"></script>');
     $template->add_header('<link rel="stylesheet" type="text/css" href="'.scriptPath.'/includes/clientside/dbx.css" />');
     
-    // Knock the sidebars dead to keep javascript in plugins from interfering
-    $template->tpl_strings['SIDEBAR_LEFT']  = '';
-    $template->tpl_strings['SIDEBAR_RIGHT'] = '';
-    
     $template->load_theme('oxygen', 'bleu');
     $template->init_vars();
     
@@ -2334,7 +2330,7 @@ function page_Special_EditSidebar()
       $queries = Array();
       foreach($orders as $k => $v)
       {
-        $queries[] = 'UPDATE '.table_prefix.'sidebar SET item_order='.$om[$k].' WHERE item_id='.$v[1].';';
+        $queries[] = 'UPDATE '.table_prefix.'sidebar SET item_order='.intval($om[$k]).' WHERE item_id='.intval($v[1]).';';
       }
       foreach($queries as $sql)
       {
@@ -2347,7 +2343,7 @@ function page_Special_EditSidebar()
           exit;
         }
       }
-      echo '<div class="info-box" style="margin: 10px 0;">The sidebar order information was updated successfully.</div>';
+      echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_order_update_success') . '</div>';
     }
     elseif(isset($_POST['create']))
     {
@@ -2378,14 +2374,14 @@ function page_Special_EditSidebar()
       
       if ( defined('ENANO_DEMO_MODE') && intval($_POST['type']) == BLOCK_PHP )
       {
-        echo '<div class="error-box" style="margin: 10px 0 10px 0;">Adding PHP code blocks in the Enano administration demo has been disabled for security reasons.</div>';
+        echo '<div class="error-box" style="margin: 10px 0 10px 0;">' . $lang->get('sbedit_err_demo_php_disable') . '</div>';
         $_POST['php_content'] = '?>&lt;Nulled&gt;';
         $content = $_POST['php_content'];
       }
       
       // Get the value of item_order
       
-      $q = $db->sql_query('SELECT * FROM '.table_prefix.'sidebar WHERE sidebar_id='.$db->escape($_POST['sidebar_id']).';');
+      $q = $db->sql_query('SELECT * FROM '.table_prefix.'sidebar WHERE sidebar_id='.intval($_POST['sidebar_id']).';');
       if(!$q) $db->_die('The order number could not be selected');
       $io = $db->numrows();
       
@@ -2400,7 +2396,7 @@ function page_Special_EditSidebar()
         exit;
       }
       
-      echo '<div class="info-box" style="margin: 10px 0;">The item was added.</div>';
+      echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_item_added') . '</div>';
       
     }
     
@@ -2434,28 +2430,32 @@ function page_Special_EditSidebar()
           <form action="<?php echo makeUrl($paths->page); ?>" method="post">
           
             <p>
-              What type of block should this be?
+              <?php echo $lang->get('sbedit_create_intro'); ?>
             </p>
             <p>
               <select name="type" onchange="setType(this)"> <?php /* (NOT WORKING, at least in firefox 2) onload="var thingy = this; setTimeout('setType(thingy)', 500);" */ ?>
-                <option value="<?php echo BLOCK_WIKIFORMAT; ?>">Wiki-formatted block</option>
-                <option value="<?php echo BLOCK_TEMPLATEFORMAT; ?>">Template-formatted block (old pre-beta 3 behavior)</option>
-                <option value="<?php echo BLOCK_HTML; ?>">Raw HTML block</option>
-                <option value="<?php echo BLOCK_PHP; ?>">PHP code block (danger, Will Robinson!)</option>
-                <option value="<?php echo BLOCK_PLUGIN; ?>">Use code from a plugin</option>
+                <option value="<?php echo BLOCK_WIKIFORMAT; ?>"><?php echo $lang->get('sbedit_block_type_wiki'); ?></option>
+                <option value="<?php echo BLOCK_TEMPLATEFORMAT; ?>"><?php echo $lang->get('sbedit_block_type_tpl'); ?></option>
+                <option value="<?php echo BLOCK_HTML; ?>"><?php echo $lang->get('sbedit_block_type_html'); ?></option>
+                <option value="<?php echo BLOCK_PHP; ?>"><?php echo $lang->get('sbedit_block_type_php'); ?></option>
+                <option value="<?php echo BLOCK_PLUGIN; ?>"><?php echo $lang->get('sbedit_block_type_plugin'); ?></option>
               </select>
             </p>
             
             <p>
             
-              Block title: <input name="title" type="text" size="40" /><br />
-              Which sidebar: <select name="sidebar_id"><option value="<?php echo SIDEBAR_LEFT; ?>">Left</option><option value="<?php echo SIDEBAR_RIGHT; ?>">Right</option></select>
+              <?php echo $lang->get('sbedit_field_block_title'); ?> <input name="title" type="text" size="40" /><br />
+              <?php echo $lang->get('sbedit_field_block_sidebar'); ?>
+                <select name="sidebar_id">
+                  <option value="<?php echo SIDEBAR_LEFT; ?>"><?php echo $lang->get('sbedit_field_block_sidebar_left'); ?></option>
+                  <option value="<?php echo SIDEBAR_RIGHT; ?>"><?php echo $lang->get('sbedit_field_block_sidebar_right'); ?></option>
+                </select>
             
             </p>
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_WIKIFORMAT; ?>">
               <p>
-                Wikitext:
+                <?php echo $lang->get('sbedit_field_wikitext'); ?>
               </p>
               <p>
                 <textarea style="width: 98%;" name="wikiformat_content" rows="15" cols="50"></textarea>
@@ -2464,7 +2464,7 @@ function page_Special_EditSidebar()
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_TEMPLATEFORMAT; ?>">
               <p>
-                Template code:
+                <?php echo $lang->get('sbedit_field_tplcode'); ?>
               </p>
               <p>
                 <textarea style="width: 98%;" name="templateformat_content" rows="15" cols="50"></textarea>
@@ -2473,7 +2473,7 @@ function page_Special_EditSidebar()
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_HTML; ?>">
               <p>
-                HTML to place inside the sidebar:
+                <?php echo $lang->get('sbedit_field_html'); ?>
               </p>
               <p>
                 <textarea style="width: 98%;" name="html_content" rows="15" cols="50"></textarea>
@@ -2482,26 +2482,10 @@ function page_Special_EditSidebar()
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_PHP; ?>">
               <?php if ( defined('ENANO_DEMO_MODE') ) { ?>
-                <p>Creating PHP blocks in demo mode is disabled for security reasons.</p>
+                <p><?php echo $lang->get('sbedit_field_php_disabled'); ?></p>
               <?php } else { ?>
-              <p>
-                <b>WARNING:</b> If you don't know what you're doing, or if you are not fluent in PHP, stop now and choose a different block type. You will brick your Enano installation if you are not careful here.
-                ALWAYS remember to write secure code! The Enano team is not responsible if someone drops all your tables because of an SQL injection vulnerability in your sidebar code. You are probably better off using the template-formatted block type.
-              </p>
-              <p>
-                <span style="color: red;">
-                  It is especially important to note that this code is NOT checked for errors! If there is a syntax error in your code here, it will prevent any pages from loading AT ALL. So you need to use an external PHP editor (like <a href="http://www.jedit.org">jEdit</a>) to check your syntax before you hit save.
-                </span> You have been warned.
-              </p>
-              <p>
-                Also, you should avoid using output buffering functions (ob_[start|end|get_contents|clean]) here, because Enano uses those to track output from this script.
-              </p>
-              <p>
-                The standard &lt;?php and ?&gt; tags work here. Don't use an initial "&lt;?php" or it will cause a parse error.
-              </p>
-              <p>
-                PHP code:
-              </p>
+              <?php echo $lang->get('sbedit_field_php'); ?>
+              
               <p>
                 <textarea style="width: 98%;" name="php_content" rows="15" cols="50"></textarea>
               </p>
@@ -2510,7 +2494,7 @@ function page_Special_EditSidebar()
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_PLUGIN; ?>">
               <p>
-                Plugin:
+                <?php echo $lang->get('sbedit_field_plugin'); ?>
               </p>
               <p>
                 <select name="plugin_id">
@@ -2526,8 +2510,8 @@ function page_Special_EditSidebar()
             
             <p>
             
-              <input type="submit" name="create" value="Create new block" style="font-weight: bold;" />&nbsp;
-              <input type="submit" name="cancel" value="Cancel" />
+              <input type="submit" name="create" value="<?php echo $lang->get('sbedit_btn_create_block'); ?>" style="font-weight: bold;" />&nbsp;
+              <input type="submit" name="cancel" value="<?php echo $lang->get('etc_cancel'); ?>" />
             
             </p>
             
@@ -2558,7 +2542,7 @@ function page_Special_EditSidebar()
             $template->footer();
             exit;
           }
-          echo '<div class="info-box" style="margin: 10px 0;">Item moved.</div>';
+          echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_block_moved') . '</div>';
           break;
         case 'delete':
           $query = $db->sql_query('DELETE FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';'); // Already checked for injection attempts ;-)
@@ -2573,7 +2557,7 @@ function page_Special_EditSidebar()
             ob_end_clean();
             die('GOOD');
           }
-          echo '<div class="error-box" style="margin: 10px 0;">Item deleted.</div>';
+          echo '<div class="error-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_block_deleted') . '</div>';
           break;
         case 'disenable';
           $q = $db->sql_query('SELECT item_enabled FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
@@ -2683,7 +2667,7 @@ function page_Special_EditSidebar()
               $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
               break;
             case BLOCK_PLUGIN:
-              $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : 'Can\'t find plugin block';
+              $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : $lang->get('sbedit_msg_plugin_not_loaded');
               break;
           }
           die('var status = \'GOOD\'; var content = unescape(\''.hexencode($c).'\');');
@@ -2700,11 +2684,11 @@ function page_Special_EditSidebar()
     $parser->assign_vars(Array(
         'HREF'=>'#',
         'FLAGS'=>'onclick="return false;"',
-        'TEXT'=>'Change theme'
+        'TEXT' => $lang->get('sidebar_btn_changestyle')
       ));
     $template->tpl_strings['THEME_LINK'] = $parser->run();
     $parser->assign_vars(Array(
-        'TEXT'=>'Log out',
+        'TEXT' => $lang->get('sidebar_btn_logout'),
       ));
     $template->tpl_strings['LOGOUT_LINK'] = $parser->run();
     
@@ -2763,20 +2747,20 @@ function page_Special_EditSidebar()
           break;
         case BLOCK_PLUGIN:
           $parser = $template->makeParserText($vars['sidebar_section_raw']);
-          $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : 'Can\'t find plugin block';
+          $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : $lang->get('sbedit_msg_plugin_not_loaded');
           break;
       }
       $block_name = $row['block_name']; // $template->tplWikiFormat($row['block_name']);
       if ( empty($block_name) )
-        $block_name = '&lt;Unnamed&gt;';
-      $t = '<span title="Double-click to rename this block" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $block_name . '</span>';
-      if($row['item_enabled'] == 0) $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red;">(disabled)</span>';
-      else           $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red; display: none;">(disabled)</span>';
+        $block_name = '&lt;' . $lang->get('sbedit_note_block_unnamed') . '&gt;';
+      $t = '<span title="' . $lang->get('sbedit_hint_rename') . '" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $block_name . '</span>';
+      if($row['item_enabled'] == 0) $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red;">' . $lang->get('sbedit_note_block_disabled') . '</span>';
+      else           $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red; display: none;">' . $lang->get('sbedit_note_block_disabled') . '</span>';
       $side = ( $row['sidebar_id'] == SIDEBAR_LEFT ) ? SIDEBAR_RIGHT : SIDEBAR_LEFT;
-      $tb = '<a title="Enable or disable this block"    href="'.makeUrl($paths->page, 'action=disenable&id='.$row['item_id'].''       , true).'" onclick="ajaxDisenableBlock(\''.$row['item_id'].'\'); return false;"   ><img alt="Enable/disable this block" style="border-width: 0;" src="'.scriptPath.'/images/disenable.png" /></a>
-             <a title="Edit the contents of this block" href="'.makeUrl($paths->page, 'action=edit&id='.$row['item_id'].''            , true).'" onclick="ajaxEditBlock(\''.$row['item_id'].'\', this); return false;"><img alt="Edit this block" style="border-width: 0;" src="'.scriptPath.'/images/edit.png" /></a>
-             <a title="Permanently delete this block"   href="'.makeUrl($paths->page, 'action=delete&id='.$row['item_id'].''          , true).'" onclick="if(confirm(\'Do you really want to delete this block?\')) { ajaxDeleteBlock(\''.$row['item_id'].'\', this); } return false;"><img alt="Delete this block" style="border-width: 0;" src="'.scriptPath.'/images/delete.png" /></a>
-             <a title="Move this block to the other sidebar" href="'.makeUrl($paths->page, 'action=move&id='.$row['item_id'].'&side='.$side, true).'"><img alt="Move this block" style="border-width: 0;" src="'.scriptPath.'/images/move.png" /></a>';
+      $tb = '<a title="' . $lang->get('sbedit_tip_disenable') . '" href="'.makeUrl($paths->page, 'action=disenable&id='.$row['item_id'].''       , true).'" onclick="ajaxDisenableBlock(\''.$row['item_id'].'\'); return false;"   ><img alt="' . $lang->get('sbedit_tip_disenable') . '" style="border-width: 0;" src="'.scriptPath.'/images/disenable.png" /></a>
+             <a title="' . $lang->get('sbedit_tip_edit') . '"      href="'.makeUrl($paths->page, 'action=edit&id='.$row['item_id'].''            , true).'" onclick="ajaxEditBlock(\''.$row['item_id'].'\', this); return false;"><img alt="' . $lang->get('sbedit_tip_edit') . '" style="border-width: 0;" src="'.scriptPath.'/images/edit.png" /></a>
+             <a title="' . $lang->get('sbedit_tip_delete') . '"    href="'.makeUrl($paths->page, 'action=delete&id='.$row['item_id'].''          , true).'" onclick="if(confirm(\'' . $lang->get('sbedit_msg_delete_confirm') . '\')) { ajaxDeleteBlock(\''.$row['item_id'].'\', this); } return false;"><img alt="' . $lang->get('sbedit_tip_delete') . '" style="border-width: 0;" src="'.scriptPath.'/images/delete.png" /></a>
+             <a title="' . $lang->get('sbedit_tip_move') . '"      href="'.makeUrl($paths->page, 'action=move&id='.$row['item_id'].'&side='.$side, true).'"><img alt="' . $lang->get('sbedit_tip_move') . '" style="border-width: 0;" src="'.scriptPath.'/images/move.png" /></a>';
       $as = '';
       $ae = '&nbsp;&nbsp;'.$tb;
       $parser->assign_vars(Array('CONTENT'=>$c,'TITLE'=>$t,'ADMIN_START'=>$as,'ADMIN_END'=>$ae));
@@ -2794,10 +2778,10 @@ function page_Special_EditSidebar()
     echo "<input type='hidden' id='divOrder_Right' name='order_right' value='{$order}' />";
     echo '
           <div style="margin: 0 auto 0 auto; text-align: center;">
-            <input type="submit" name="save" style="font-weight: bold;" value="Save changes" />
-            <input type="submit" name="revert" style="font-weight: normal;" value="Revert" onclick="return confirm(\'Do you really want to revert your changes?\nNote: this does not revert edits or deletions, those are saved as soon as you confirm the action.\')" />
+            <input type="submit" name="save" style="font-weight: bold;" value="' . $lang->get('etc_save_changes') . '" />
+            <input type="submit" name="revert" style="font-weight: normal;" value="' . $lang->get('sbedit_btn_revert') . '" onclick="return confirm($lang.get(\'sbedit_msg_discard_order_confirm\'))" />
             <br />
-            <a href="'.makeUrl($paths->page, 'action=new&id=0', true).'">Create new block</a>  |  <a href="'.makeUrl(getConfig('main_page'), false, true).'">Main Page</a>
+            <a href="'.makeUrl($paths->page, 'action=new&id=0', true).'">' . $lang->get('sbedit_btn_create_new_stage1') . '</a>  |  <a href="'.makeUrl(getConfig('main_page'), false, true).'">' . $lang->get('sbedit_btn_main_page') . '</a>
           </div>
         </form>
          ';
