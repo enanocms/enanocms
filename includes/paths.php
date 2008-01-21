@@ -482,6 +482,11 @@ class pathManager {
         exit;
       }
       $ret = $_GET['title'];
+      if ( substr($ret, 0, strlen($this->nslist['Special'])) === $this->nslist['Special'] ||
+           substr($ret, 0, strlen($this->nslist['Admin'])) === $this->nslist['Admin'] )
+      {
+        list($ret) = explode('/', $ret);
+      }
     }
     elseif(isset($_SERVER['PATH_INFO']))
     {

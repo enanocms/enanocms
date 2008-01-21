@@ -30,6 +30,9 @@ function initSliders()
         // use cookies to toggle whether to display it or not
         var id = ( divs[i].parentNode.firstChild.nextSibling ) ? divs[i].parentNode.firstChild.nextSibling.firstChild : divs[i].parentNode.parentNode.firstChild.nextSibling.firstChild;
         
+        if ( !id.nextSibling )
+          return;
+        
         if(id.innerHTML || id.nextSibling.length < 1) id = id.innerHTML;
         else id = id.nextSibling.innerHTML; // Gecko fix
         

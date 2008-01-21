@@ -181,9 +181,9 @@ function password_score(password)
     debug_txt += debug[i] + "\n";
   }
   
-  if ( window.console )
-    window.console.info(debug_txt);
-  else if ( document.getElementById('passdebug') )
+  // For users that really want to know why their password sucks.
+  // Not localized because the feature is really only used for debugging the algorithm.
+  if ( document.getElementById('passdebug') )
     document.getElementById('passdebug').innerHTML = debug_txt;
   
   return score;
@@ -191,36 +191,53 @@ function password_score(password)
 
 function password_score_draw(score)
 {
+  if ( !$lang )
+  {
+    // $lang isn't initted yet, this happens sometimes on the usercp/emailpassword form.
+    // Try to init it if we have ENANO_LANG_ID and enano_lang; if not, report an error.
+    if ( typeof(enano_lang) == 'object' && typeof(ENANO_LANG_ID) == 'number' )
+    {
+      language_onload();
+    }
+    else
+    {
+      return {
+        color: '#000000',
+        fgcolor: '#666666',
+        str: 'Language init failed',
+      };
+    }
+  }
   // some colors are from the Gmail sign-up form
   if ( score >= 10 )
   {
     var color = '#000000';
     var fgcolor = '#666666';
-    var str = 'Very strong (score: '+score+')';
+    var str = $lang.get('usercp_pwstrength_score_verystrong', { score: score });
   }
   else if ( score > 3 )
   {
     var color = '#008000';
     var fgcolor = '#004000';
-    var str = 'Strong (score: '+score+')';
+    var str = $lang.get('usercp_pwstrength_score_strong', { score: score });
   }
   else if ( score >= 1 )
   {
     var color = '#6699cc';
     var fgcolor = '#4477aa';
-    var str = 'Good (score: '+score+')';
+    var str = $lang.get('usercp_pwstrength_score_good', { score: score });
   }
   else if ( score >= -3 )
   {
     var color = '#f5ac00';
     var fgcolor = '#ffcc33';
-    var str = 'Fair (score: '+score+')';
+    var str = $lang.get('usercp_pwstrength_score_fair', { score: score });
   }
   else
   {
     var color = '#aa0033';
     var fgcolor = '#FF6060';
-    var str = 'Weak (score: '+score+')';
+    var str = $lang.get('usercp_pwstrength_score_weak', { score: score });
   }
   return {
     color: color,

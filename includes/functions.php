@@ -2142,7 +2142,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
       }
     }
     $url = sprintf($result_url, '0');
-    $link = ( 0 == $start ) ? "<b>" . $lang->get('pagination_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('pagination_btn_first') . "</a>";
+    $link = ( 0 == $start ) ? "<b>" . $lang->get('paginate_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('paginate_btn_first') . "</a>";
     $blk->assign_vars(array(
       'CLASS'=>$cls,
       'LINK'=>$link
@@ -2184,7 +2184,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
       $offset = strval($total);
       $url = sprintf($result_url, $offset);
       $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>" . $lang->get('pagination_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('pagination_btn_last') . " &raquo;</a>";
+      $link = ( $offset == strval($start) ) ? "<b>" . $lang->get('paginate_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('paginate_btn_last') . " &raquo;</a>";
       $blk->assign_vars(array(
         'CLASS'=>$cls,
         'LINK'=>$link
@@ -2255,6 +2255,8 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
 function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10, $header = '', $footer = '')
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
   $num_pages = ceil ( $num_results / $perpage );
   $out = '';
   $i = 0;
@@ -2263,13 +2265,14 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
   // Build paginator
   $begin = '<div class="tblholder" style="display: table; margin: 10px 0 0 auto;">
     <table border="0" cellspacing="1" cellpadding="4">
-      <tr><th>Page:</th>';
+      <tr><th>' . $lang->get('paginate_lbl_page') . '</th>';
   $block = '<td class="row1" style="text-align: center;">{LINK}</td>';
   $end = '</tr></table></div>';
   $blk = $template->makeParserText($block);
   $inner = '';
   $cls = 'row2';
   $total = $num_pages * $perpage - $perpage;
+  /*
   if ( $start > 0 )
   {
     $url = sprintf($result_url, abs($start - $perpage));
@@ -2281,6 +2284,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       ));
     $inner .= $blk->run();
   }
+  */
   if ( $num_pages < 5 )
   {
     for ( $i = 0; $i < $num_pages; $i++ )
@@ -2322,7 +2326,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       }
     }
     $url = sprintf($result_url, '0');
-    $link = ( 0 == $start ) ? "<b>" . $lang->get('pagination_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('pagination_btn_first') . "</a>";
+    $link = ( 0 == $start ) ? "<b>" . $lang->get('paginate_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('paginate_btn_first') . "</a>";
     $blk->assign_vars(array(
       'CLASS'=>$cls,
       'LINK'=>$link
@@ -2362,7 +2366,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       $offset = strval($total);
       $url = sprintf($result_url, $offset);
       $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>" . $lang->get('pagination_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('pagination_btn_last') . " &raquo;</a>";
+      $link = ( $offset == strval($start) ) ? "<b>" . $lang->get('paginate_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('paginate_btn_last') . " &raquo;</a>";
       $blk->assign_vars(array(
         'CLASS'=>$cls,
         'LINK'=>$link
@@ -2372,6 +2376,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
 
   }
 
+  /*
   if ( $start < $total )
   {
     $link_offset = abs($start + $perpage);
@@ -2384,6 +2389,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
       ));
     $inner .= $blk->run();
   }
+  */
 
   $inner .= '<td class="row2" style="cursor: pointer;" onclick="paginator_goto(this, '.$this_page.', '.$num_pages.', '.$perpage.', unescape(\'' . rawurlencode($result_url) . '\'));">&darr;</td>';
 

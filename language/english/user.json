@@ -133,6 +133,62 @@ var enano_lang = {
       reg_coppa_link_not13: 'I was born <b>after</b> %yo13_date% and am <b>less than</b> 13 years of age',
     },
     usercp: {
+      // Meta
+      sec_profile: 'Profile/membership',
+      sec_pm: 'Private messages',
+      
+      sec_profile_emailpassword: 'Edit e-mail address and password',
+      sec_profile_signature: 'Edit signature',
+      sec_profile_publicinfo: 'Edit public profile',
+      sec_profile_usergroups: 'Group memberships',
+      sec_profile_avatar: 'Avatar settings',
+      
+      sec_pm_inbox: 'Inbox',
+      sec_pm_outbox: 'Outbox',
+      sec_pm_sent: 'Sent items',
+      sec_pm_drafts: 'Drafts',
+      sec_pm_archive: 'Archive',
+      
+      // CP home
+      intro_heading_main: '%username%, welcome to your control panel',
+      intro_para1: 'Here you can make changes to your profile, view statistics on yourself on this site, and set your preferences.',
+      intro_para2: 'Your <a href="%userpage_link%">user page</a> <sup>(<a href="%userpage_link%#do:comments">comments</a>)</sup> is your free writing space. You can use it to tell the other members of this site a little bit about yourself. If you haven\'t already made a user page, why not <a href="%userpage_link%#do:edit">make one now</a>?',
+      intro_para3: 'Use the menu at the top to navigate around. If you have any questions, you may contact the %admin_contact_link%.',
+      intro_para3_admin_link: 'administrator',
+      
+      // E-mail / password change form
+      emailpassword_title: 'Change E-mail Address or Password',
+      emailpassword_err_email_no_match: 'The e-mail addresses you entered did not match.',
+      emailpassword_err_list: 'The following errors were encountered while saving your e-mail address:',
+      emailpassword_err_title: 'Error updating e-mail address',
+      emailpassword_err_demo: 'You can\'t change your password in demo mode.',
+      // This is an in-joke.
+      emailpassword_err_password_too_short: 'Password must be at least 6 characters. You hacked my script, darn you!',
+      emailpassword_err_password_too_weak: 'Your password did not meet the complexity score requirement for this site. Your password scored %score%, while a score of at least %config.pw_strength_minimum% is needed.',
+      emailpassword_msg_profile_success: 'Profile changed',
+      emailpassword_msg_pass_success: 'Password changed',
+      emailpassword_msg_need_activ_user: 'Your password and e-mail address have been changed. Since e-mail activation is required on this site, you will need to re-activate your account to continue. An e-mail has been sent to the new e-mail address with an activation link. You must click that link in order to log in again.',
+      emailpassword_msg_need_activ_admin: 'Your password and e-mail address have been changed. Since administrative activation is requires on this site, a request has been sent to the administrators to activate your account for you. You will not be able to use your account until it is activated by an administrator.',
+      emailpassword_msg_password_changed: 'Your password has been changed, and you will now be redirected back to the user control panel.',
+      emailpassword_err_password_no_match: 'The passwords you entered did not match',
+      emailpassword_grp_chpasswd: 'Change password',
+      emailpassword_field_newpass: 'Type a new password:',
+      emailpassword_field_newpass_confirm: 'Type the password again to confirm:',
+      emailpassword_msg_password_min_score: 'Your password needs to score at least <b>%config.pw_strength_minimum%</b> in order to be accepted.',
+      // The following is NOT an in-joke. ;-)
+      emailpassword_grp_chemail: 'Change e-mail address',
+      emailpassword_field_newemail: 'New e-mail address:',
+      emailpassword_field_newemail_confirm: 'Confirm e-mail address:',
+      
+      // Signature editor
+      signature_title: 'Editing signature',
+      signature_msg_saved: 'Your signature has been saved.',
+      signature_btn_save: 'Save signature',
+      
+      // Additional profile info
+      publicinfo_title: 'Editing public profile',
+      
+      // Avatar management
       avatar_err_disabled_title: 'Avatar support is disabled.',
       avatar_err_disabled_body: 'The administrator has not enabled avatar support for this site.',
       avatar_table_title: 'Avatar settings',
@@ -158,6 +214,13 @@ var enano_lang = {
       avatar_move_failed: 'Your image was accepted, but there was a problem moving the image file to the correct location.',
       avatar_upload_success: 'Your avatar has been updated.',
       avatar_file_too_large: 'The image you uploaded exceeds the maximum file size allowed for avatars on this site.',
+      
+      // Password strength widget
+      pwstrength_score_verystrong: 'Very strong (score: %score%)',
+      pwstrength_score_strong: 'Strong (score: %score%)',
+      pwstrength_score_good: 'Good (score: %score%)',
+      pwstrength_score_fair: 'Fair (score: %score%)',
+      pwstrength_score_weak: 'Weak (score: %score%)',
     },
     groupcp: {
       status_mod: 'You are a moderator of this group.',

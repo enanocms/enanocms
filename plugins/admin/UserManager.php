@@ -902,8 +902,7 @@ class Admin_UserManager_SmartForm
                         </tr>
                         <tr>
                           <td>{lang:acpum_field_newpassword}</td>
-                          <!-- FIXME: localize password strength widget -->
-                          <td><input type="password" name="new_password" value="" <!-- BEGIN password_meter -->onkeyup="password_score_field(this);" /><span class="password-checker" style="font-weight: bold; color: #AA0000"> Weak (score: -10)</span><!-- BEGINELSE password_meter --> /><!-- END password_meter -->
+                          <td><input type="password" name="new_password" value="" <!-- BEGIN password_meter -->onkeyup="password_score_field(this);" /><span class="password-checker" style="font-weight: bold; color: #A0A0A0"> Waiting for l10n init</span><!-- BEGINELSE password_meter --> /><!-- END password_meter -->
                             <!-- BEGIN password_meter -->
                               <div id="pwmeter" style="margin: 4px 0; height: 8px;"></div>
                             <!-- END password_meter -->
@@ -1141,6 +1140,11 @@ class Admin_UserManager_SmartForm
           </div>
         
         </form>
+        
+        <script type="text/javascript">
+        password_score_field(document.forms['useredit_{UUID}'].new_password);
+        </script>
+        
         {AES_JAVASCRIPT}
       <!-- Conclusion of user edit form -->
 EOF;
