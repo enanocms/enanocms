@@ -1005,7 +1005,7 @@ class PageUtils {
     if(!$e) $db->_die('The comment text data could not be selected.');
     $num_app = $db->numrows();
     $db->free_result();
-    $lq = $db->sql_query('SELECT c.comment_id,c.subject,c.name,c.comment_data,c.approved,c.time,c.user_id,u.user_level,u.signature,u.user_has_avatar,u.avatar_type
+    $lq = $db->sql_query('SELECT c.comment_id,c.subject,c.name,c.comment_data,c.approved,c.time,c.user_id,c.ip_address,u.user_level,u.signature,u.user_has_avatar,u.avatar_type
                   FROM ' . table_prefix.'comments AS c
                   LEFT JOIN ' . table_prefix.'users AS u
                     ON c.user_id=u.user_id
@@ -1118,6 +1118,7 @@ class PageUtils {
         $applink .= '</a>';
         $strings['MOD_APPROVE_LINK'] = $applink; unset($applink);
         $strings['MOD_DELETE_LINK'] = '<a href="'.makeUrlNS($namespace, $page_id, 'do=comments&amp;sub=admin&amp;action=delete&amp;id=' . $row['comment_id']) . '">' . $lang->get('comment_btn_mod_delete') . '</a>';
+        $strings['MOD_IP_LINK'] = '<span style="opacity: 0.5; filter: alpha(opacity=50);">' . ( ( empty($row['ip_address']) ) ? $lang->get('comment_btn_mod_ip_missing') : $lang->get('comment_btn_mod_ip_notimplemented') ) . '</span>';
         
         // Signature
         $strings['SIGNATURE'] = '';

@@ -123,6 +123,7 @@ var enano_lang = {
       btn_mod_delete: 'Delete',
       btn_mod_ip_logged: 'View IP',
       btn_mod_ip_missing: 'IP not logged',
+      btn_mod_ip_notimplemented: 'Use AJAX interface to view IPs',
       btn_save: 'save',
       
       msg_comment_posted: 'Your comment has been posted. If it does not appear right away, it is probably awaiting approval.',
