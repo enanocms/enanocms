@@ -1294,7 +1294,7 @@ class PageProcessor
         $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$this->namespace] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $this->page_id ) ) );
         $b = '<a href="' . $url . '">' . $title . '</a>';
         
-        $ob .= '<small>(Redirected to ' . $b . ' from ' . $a . ')<br /></small>';
+        $ob .= '<small>' . $lang->get('page_msg_redirected_from_to', array('from' => $a, 'to' => $b)) . '<br /></small>';
       }
     }
     
@@ -1318,12 +1318,15 @@ class PageProcessor
   function err_wrong_password()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $title = 'Password required';
-    $message = ( empty($this->password) ) ? '<p>Access to this page requires a password. Please enter the password for this page below:</p>' : '<p>The password you entered for this page was incorrect. Please enter the password for this page below:</p>';
+    $message = ( empty($this->password) ) ?
+                 '<p>' . $lang->get('page_msg_passrequired') . '</p>' :
+                 '<p>' . $lang->get('page_msg_pass_wrong') . '</p>';
     $message .= '<form action="' . makeUrlNS($this->namespace, $this->page_id) . '" method="post">
                    <p>
-                     <label>Password: <input name="pagepass" type="password" /></label>&nbsp;&nbsp;<input type="submit" value="Submit" />
+                     <label>' . $lang->get('page_lbl_password') . ' <input name="pagepass" type="password" /></label>&nbsp;&nbsp;<input type="submit" value="Submit" />
                    </p>
                  </form>';
     if ( $this->send_headers )
@@ -1373,6 +1376,7 @@ class PageProcessor
   function err_page_not_existent($userpage = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     header('HTTP/1.1 404 Not Found');
     
@@ -1389,22 +1393,28 @@ class PageProcessor
     {
       if ( $userpage )
       {
-        echo '<h3>There is no page with this title yet.</h3>
-               <p>This user has not created his or her user page yet.';
+        echo '<h3>' . $lang->get('page_msg_404_title') . '</h3>
+               <p>' . $lang->get('page_msg_404_body_userpage');
       }
       else
       {
-        echo '<h3>There is no page with this title yet.</h3>
-               <p>You have requested a page that doesn\'t exist yet.';
+        echo '<h3>' . $lang->get('page_msg_404_title') . '</h3>
+               <p>' . $lang->get('page_msg_404_body');
       }
       if ( $session->get_permissions('create_page') )
       {
-        echo ' You can <a href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;">create this page</a>, or return to the <a href="'.makeUrl(getConfig('main_page')).'">homepage</a>.';
+        echo ' ' . $lang->get('page_msg_404_create', array(
+            'create_flags' => 'href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;"',
+            'mainpage_link' => makeUrl(getConfig('main_page'), false, true)
+          ));
       }
       else
       {
-        echo ' Return to the <a href="'.makeUrl(getConfig('main_page')).'">homepage</a>.</p>';
+        echo ' ' . $lang->get('page_msg_404_gohome', array(
+            'mainpage_link' => makeUrl(getConfig('main_page'), false, true)
+          ));
       }
+      echo '</p>';
       if ( $session->get_permissions('history_rollback') )
       {
         $e = $db->sql_query('SELECT * FROM ' . table_prefix . 'logs WHERE action=\'delete\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' ORDER BY time_id DESC;');
@@ -1415,16 +1425,24 @@ class PageProcessor
         if ( $db->numrows() > 0 )
         {
           $r = $db->fetchrow();
-          echo '<p><b>This page was deleted on ' . $r['date_string'] . '.</b> The stated reason was:</p><blockquote>' . $r['edit_summary'] . '</blockquote><p>You can probably <a href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">roll back</a> the deletion.</p>';
+          echo '<p>' . $lang->get('page_msg_404_was_deleted', array(
+                    'delete_time' => enano_date('d M Y h:i a', $r['time_id']),
+                    'delete_reason' => htmlspecialchars($r['edit_summary']),
+                    'rollback_flags' => 'href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;"'
+                  ))
+                . '</p>';
           if ( $session->user_level >= USER_LEVEL_ADMIN )
           {
-            echo '<p>Additional admin options: <a href="' . makeUrl($paths->page, 'do=detag', true) . '" title="Remove any tags on this page">detag page</a></p>';
+            echo '<p>' . $lang->get('page_msg_404_admin_opts', array(
+                      'detag_link' => makeUrl($paths->page, 'do=detag', true)
+                    ))
+                  . '</p>';
           }
         }
         $db->free_result();
       }
       echo '<p>
-              HTTP Error: 404 Not Found
+              ' . $lang->get('page_msg_404_http_response') . '
             </p>';
     }
     $this->footer();
@@ -1491,9 +1509,10 @@ class PageProcessor
   function send_error($message, $sql = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $content = "<p>$message</p>";
-    $template->tpl_strings['PAGE_NAME'] = 'General error in page fetcher';
+    $template->tpl_strings['PAGE_NAME'] = $lang->get('page_msg_general_error');
     
     if ( $this->debug['works'] )
     {

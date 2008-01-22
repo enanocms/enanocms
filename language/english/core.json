@@ -111,9 +111,25 @@ var enano_lang = {
                     Enano <a href="http://enanocms.org/Help:Wiki_formatting" onclick="window.open(this.href); return false;">Wiki formatting guide</a>.<br /><br />
                     This page redirects to %redirect_target%.',
       msg_redirected_from: '(Redirected from %from%)',
+      msg_redirected_from_to: '(Redirected from %from% to %to%)',
+      
+      msg_passrequired: 'Access to this page requires a password. Please enter the password for this page below:',
+      msg_pass_wrong: 'The password you entered for this page was incorrect. Please enter the password for this page below:',
+      lbl_password: 'Password:',
+      
+      msg_404_title: 'There is no page with this title yet.',
+      msg_404_body_userpage: 'This user has not created his or her user page yet.',
+      msg_404_body: 'You have requested a page that doesn\'t exist yet.',
+      msg_404_create: 'You can <a %create_flags%>create this page</a>, or return to the <a href="%mainpage_link%">homepage</a>.',
+      msg_404_gohome: 'Return to the <a href="%mainpage_link%">homepage</a>.',
+      msg_404_was_deleted: '<b>This page was deleted on %delete_time%.</b> The stated reason was:</p><blockquote>%delete_reason%</blockquote><p>You can probably <a %rollback_flags%>roll back</a> the deletion.',
+      msg_404_admin_opts: 'Additional admin options: <a href="%detag_link%" title="Remove any tags on this page">detag page</a>',
+      msg_404_http_response: 'HTTP Error: 404 Not Found',
       
       msg_archived_title: 'Notice:',
       msg_archived_body: 'The page you are viewing was archived on %archive_date% at %archive_time%.<br /><a href="%current_link%" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="%restore_link%" onclick="%restore_onclick%">Restore this version</a>',
+      
+      msg_general_error: 'General error in page fetcher',
                     
       autosuggest_heading: 'Page name matches',
       autosuggest_col_name: 'Page title',
