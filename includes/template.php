@@ -1576,25 +1576,28 @@ EOF;
   
   function tinymce_textarea($name, $content = '', $rows = 20, $cols = 60)
   {
+    global $lang;
     $randomid = md5(microtime() . mt_rand());
     $html = '';
     $html .= '<textarea name="' . $name . '" rows="'.$rows.'" cols="'.$cols.'" style="width: 100%;" id="toggleMCEroot_'.$randomid.'">' . $content . '</textarea>';
-    $html .= '<div style="float: right; display: table;" id="mceSwitchAgent_' . $randomid . '">text editor&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">graphical editor</a></div>';
+    $html .= '<div style="float: right; display: table;" id="mceSwitchAgent_' . $randomid . '">' . $lang->get('etc_tinymce_btn_text') . '&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">' . $lang->get('etc_tinymce_btn_graphical') . '</a></div>';
     $html .= '<script type="text/javascript">
                 // <![CDATA[
                 function toggleMCE_'.$randomid.'()
                 {
                   var the_obj = document.getElementById(\'toggleMCEroot_' . $randomid . '\');
                   var panel = document.getElementById(\'mceSwitchAgent_' . $randomid . '\');
+                  var text_editor = $lang.get("etc_tinymce_btn_text");
+                  var graphical_editor = $lang.get("etc_tinymce_btn_graphical");
                   if ( the_obj.dnIsMCE == "yes" )
                   {
                     $dynano(the_obj).destroyMCE();
-                    panel.innerHTML = \'text editor&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">graphical editor</a>\';
+                    panel.innerHTML = text_editor + \'&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">\' + graphical_editor + \'</a>\';
                   }
                   else
                   {
                     $dynano(the_obj).switchToMCE();
-                    panel.innerHTML = \'<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">text editor</a>&nbsp;&nbsp;|&nbsp;&nbsp;graphical editor\';
+                    panel.innerHTML = \'<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">\' + text_editor + \'</a>&nbsp;&nbsp;|&nbsp;&nbsp;\' + graphical_editor;
                   }
                 }
                 // ]]>

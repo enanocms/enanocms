@@ -95,6 +95,15 @@ var enano_lang = {
       reg_err_alert_password_nomatch: 'The passwords you entered do not match.',
       reg_err_missing_key: 'Couldn\'t look up public encryption key',
       reg_err_accept_tou: 'Please read and accept the Terms of Use before creating your account.',
+      reg_err_username_banned_chars: 'The username you chose contains invalid characters.',
+      reg_err_dupe_username: 'The username you selected is already in use by another user.',
+      reg_err_dupe_username_email: 'The username and e-mail address you selected are already in use by another user.',
+      reg_err_dupe_username_email_realname: 'The username, e-mail address, and real name you selected are already in use by another user.',
+      reg_err_dupe_email: 'The e-mail address you selected is already in use by another user.',
+      reg_err_dupe_email_realname: 'The e-mail address and real name you selected are already in use by another user.',
+      reg_err_dupe_realname: 'The real name you selected is already in use by another user.',
+      reg_err_password_too_weak: 'The password you entered did not meet the complexity requirements for this site. Please choose a stronger password.',
+      reg_err_actmail_failed: 'The activation e-mail could not be sent due to an internal error. This could possibly be due to an incorrect SMTP configuration. A request has been sent to the administrator to activate your account for you.',
       
       reg_msg_greatercontrol: 'A user account enables you to have greater control over your browsing experience.',
       reg_msg_table_title: 'Create a user account',
@@ -132,6 +141,45 @@ var enano_lang = {
       reg_coppa_title: 'Before you can register, please tell us your age.',
       reg_coppa_link_atleast13: 'I was born <b>on or before</b> %yo13_date% and am <b>at least</b> 13 years of age',
       reg_coppa_link_not13: 'I was born <b>after</b> %yo13_date% and am <b>less than</b> 13 years of age',
+      
+      reg_activation_email_subject: '%config.site_name% website account activation',
+      reg_activation_email: 'Dear %username%,
+Thank you for registering on %config.site_name%. Your account creation is almost complete. To complete the registration process, please click the following link or paste it into your web browser:
+
+  %activation_link%
+  
+Sincerely yours,
+%admin_user% and the %config.site_name% administration team',
+
+      reg_activation_email_coppa: 'Dear parent or legal guardian,
+A child under the username %username% recently registered on our website. The child provided your e-mail address as the one of his or her authorized parent or legal guardian, and to comply with the United States Childrens\' Online Privacy Protection act, we ask that all parents of children ages 13 or under please mail us a written form authorizing their child\'s use of our website.
+
+If you wish for your child to be allowed access to our website, please print and fill out the form below, and mail it to this address:
+
+%config.coppa_address%
+
+If you do NOT wish for your child to be allowed access to our site, you do not need to do anything - your child will not be able to access our site as a registered user unless you authorize their account activation.
+
+Authorization form:
+-------------------------------- Cut here --------------------------------
+
+I, _______________________________________, the legal parent or guardian of the child registered on the website "%config.site_name%" as %username%, hereby give my authorization for the child\'s e-mail address, instant messaging information, location, and real name, to be collected and stored in a database owned and maintained by %config.site_name% at the child\'s option, and for the administrators of this website to use this information according to the privacy policy displayed on their website <%site_link%>.
+
+Child\'s name:               _____________________________________
+
+Child\'s e-mail address:     _____________________________________
+(optional - if you don\'t provide this, we\'ll just send site-related e-mails to your e-mail address)
+
+Signature of parent or guardian:
+
+____________________________________________________
+
+Date (YYYY-MM-DD): ______ / _____ / _____
+
+-------------------------------- Cut here --------------------------------
+
+Sincerely yours,
+%admin_user% and the %config.site_name% administration team',
       
       autofill_heading_suggestions: 'Username suggestions',
       autofill_msg_no_suggestions: 'No suggestions',

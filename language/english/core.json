@@ -509,6 +509,9 @@ var enano_lang = {
       wizard_next: 'Next >',
       wizard_back: '< Back',
       wizard_previous: '< Previous',
+      // Generic switchable editor buttons
+      tinymce_btn_text: 'text editor',
+      tinymce_btn_graphical: 'graphical editor',
       // Generic "Notice:" label
       lbl_notice: 'Notice:',
       // Generic "Access denied"

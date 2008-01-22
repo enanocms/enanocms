@@ -1688,6 +1688,7 @@ class sessionManager {
   function create_user($username, $password, $email, $real_name = '', $coppa = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     // Initialize AES
     $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
@@ -1698,7 +1699,7 @@ class sessionManager {
       return 'Invalid IP';
     
     if ( !preg_match('#^'.$this->valid_username.'$#', $username) )
-      return 'The username you chose contains invalid characters.';
+      return $lang->get('user_reg_err_username_banned_chars');
     
     $username = str_replace('_', ' ', $username);
     $user_orig = $username;
@@ -1710,31 +1711,23 @@ class sessionManager {
     $q = $this->sql('SELECT * FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username)=\''.strtolower($username).'\' OR email=\''.$email.'\''.$nameclause.';');
     if($db->numrows() > 0)
     {
-      $r = 'The ';
-      $i=0;
       $row = $db->fetchrow();
-      // Wow! An error checker that actually speaks English with the properest grammar! :-P
+      $str = 'user_reg_err_dupe';
+      
       if ( $row['username'] == $username )
       {
-        $r .= 'username';
-        $i++;
+        $str .= '_username';
       }
       if ( $row['email'] == $email )
       {
-        if($i) $r.=', ';
-        $r .= 'e-mail address';
-        $i++;
+        $str .= '_email';
       }
       if ( $row['real_name'] == $real_name && $real_name != '' )
       {
-        if($i) $r.=', and ';
-        $r .= 'real name';
-        $i++;
+        $str .= '_realname';
       }
-      $r .= ' that you entered ';
-      $r .= ( $i == 1 ) ? 'is' : 'are';
-      $r .= ' already in use by another user.';
-      return $r;
+      
+      return $lang->get($r);
     }
     
     // Is the password strong enough?
@@ -1744,7 +1737,7 @@ class sessionManager {
       $pass_score = password_score($password);
       if ( $pass_score < $min_score )
       {
-        return 'The password you entered did not meet the complexity requirements for this site. Please choose a stronger password.';
+        return $lang->get('user_reg_err_password_too_weak');
       }
     }
     
@@ -1828,7 +1821,7 @@ class sessionManager {
           if(!$a)
           {
             $this->admin_activation_request($username);
-            return 'The activation e-mail could not be sent due to an internal error. This could possibly be due to an incorrect SMTP configuration. A request has been sent to the administrator to activate your account for you. ' . $a;
+            return $lang->get('user_reg_err_actmail_failed') . ' ' . $a;
           }
           break;
         case 'admin':
@@ -1857,6 +1850,7 @@ class sessionManager {
   function send_activation_mail($u, $actkey = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     $q = $this->sql('SELECT username,email FROM '.table_prefix.'users WHERE user_id=2 OR user_level=' . USER_LEVEL_ADMIN . ' ORDER BY user_id ASC;');
     $un = $db->fetchrow();
     $admin_user = $un['username'];
@@ -1864,32 +1858,22 @@ class sessionManager {
     $r = $db->fetchrow();
     if ( empty($r['email']) )
       $db->_die('BUG: $session->send_activation_mail(): no e-mail address in row');
-    $message = 'Dear '.$u.',
-Thank you for registering on '.getConfig('site_name').'. Your account creation is almost complete. To complete the registration process, please click the following link or paste it into your web browser:
     
-';
-    if(isset($_SERVER['HTTPS'])) $prot = 'https';
-    else $prot = 'http';                                                                           
-    if($_SERVER['SERVER_PORT'] == '80') $p = '';
-    else $p = ':'.$_SERVER['SERVER_PORT'];
-    $sidbak = false;
-    if($this->sid_super)
-      $sidbak = $this->sid_super;
-    $this->sid_super = false;
-    $aklink = makeUrlNS('Special', 'ActivateAccount/'.str_replace(' ', '_', $u).'/'. ( ( is_string($actkey) ) ? $actkey : $r['activation_key'] ) );
-    if($sidbak)
-      $this->sid_super = $sidbak;
-    unset($sidbak);
-    $message .= "$prot://".$_SERVER['HTTP_HOST'].$p.$aklink;
-      $message .= "\n\nSincerely yours, \n$admin_user and the ".$_SERVER['HTTP_HOST']." administration team";
+    $aklink = makeUrlComplete('Special', 'ActivateAccount/'.str_replace(' ', '_', $u).'/'. ( ( is_string($actkey) ) ? $actkey : $r['activation_key'] ) );
+    $message = $lang->get('user_reg_activation_email', array(
+        'activation_link' => $aklink,
+        'admin_user' => $admin_user,
+        'username' => $u
+      ));
+      
     error_reporting(E_ALL);
     if(getConfig('smtp_enabled') == '1')
     {
-      $result = smtp_send_email($r['email'], getConfig('site_name').' website account activation', preg_replace("#(?<!\r)\n#s", "\n", $message), getConfig('contact_email'));
+      $result = smtp_send_email($r['email'], $lang->get('user_reg_activation_email_subject'), preg_replace("#(?<!\r)\n#s", "\n", $message), getConfig('contact_email'));
       if($result == 'success') $result = true;
       else { echo $result; $result = false; }
     } else {
-      $result = mail($r['email'], getConfig('site_name').' website account activation', preg_replace("#(?<!\r)\n#s", "\n", $message), 'From: '.getConfig('contact_email'));
+      $result = mail($r['email'], $lang->get('user_reg_activation_email_subject'), preg_replace("#(?<!\r)\n#s", "\n", $message), 'From: '.getConfig('contact_email'));
     }
     return $result;
   }
@@ -1902,8 +1886,8 @@ Thank you for registering on '.getConfig('site_name').'. Your account creation i
    
   function send_coppa_mail($u, $actkey = false)
   {
-    
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $q = $this->sql('SELECT username,email FROM '.table_prefix.'users WHERE user_id=2 OR user_level=' . USER_LEVEL_ADMIN . ' ORDER BY user_id ASC;');
     $un = $db->fetchrow();
@@ -1927,33 +1911,14 @@ Thank you for registering on '.getConfig('site_name').'. Your account creation i
     unset($sidbak);
     $link = "$prot://".$_SERVER['HTTP_HOST'].scriptPath;
     
-    $message = 'Dear parent or legal guardian,
-A child under the username ' . $u . ' recently registered on our website. The child provided your e-mail address as the one of his or her authorized parent or legal guardian, and to comply with the United States Childrens\' Online Privacy Protection act, we ask that all parents of children ages 13 or under please mail us a written form authorizing their child\'s use of our website.
-
-If you wish for your child to be allowed access to our website, please print and fill out the form below, and mail it to this address:
-
-' . getConfig('coppa_address') . '
-
-If you do NOT wish for your child to be allowed access to our site, you do not need to do anything - your child will not be able to access our site as a registered user unless you authorize their account activation.
-
-Authorization form:
--------------------------------- Cut here --------------------------------
-
-I, _______________________________________, the legal parent or guardian of the child registered on the website "' . getConfig('site_name') . '" as ' . $u . ', hereby give my authorization for the child\'s e-mail address, instant messaging information, location, and real name, to be collected and stored in a database owned and maintained by ' . getConfig('site_name') . ' at the child\'s option, and for the administrators of this website to use this information according to the privacy policy displayed on their website <' . $link . '>.
-
-Child\'s name:               _____________________________________
-
-Child\'s e-mail address:     _____________________________________
-(optional - if you don\'t provide this, we\'ll just send site-related e-mails to your e-mail address)
-
-Signature of parent or guardian:
-
-____________________________________________________
-
-Date (YYYY-MM-DD): ______ / _____ / _____
-
--------------------------------- Cut here --------------------------------';
-    $message .= "\n\nSincerely yours, \n$admin_user and the ".$_SERVER['HTTP_HOST']." administration team";
+    $message = $lang->get(
+        'user_reg_activation_email_coppa',
+        array(
+          'username' => $u,
+          'admin_user' => $admin_user,
+          'site_link' => $link
+        )
+      );
     
     error_reporting(E_ALL);
     
