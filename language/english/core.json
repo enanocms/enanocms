@@ -109,7 +109,11 @@ var enano_lang = {
                     This means that this page will not show its own content by default. Instead it will display the contents of the page it redirects to.<br /><br />
                     To create a redirect page, make the <i>first characters</i> in the page content <tt>#redirect [[Page_ID]]</tt>. For more information, see the
                     Enano <a href="http://enanocms.org/Help:Wiki_formatting" onclick="window.open(this.href); return false;">Wiki formatting guide</a>.<br /><br />
-                    This page redirects to %redirect_target%.'
+                    This page redirects to %redirect_target%.',
+                    
+      autosuggest_heading: 'Page name matches',
+      autosuggest_col_name: 'Page title',
+      autosuggest_col_page_id: 'Page ID',
     },
     comment: {
       lbl_subject: 'Subject',

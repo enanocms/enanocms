@@ -116,7 +116,7 @@ function AutofillUsername(parent, event, allowanon)
     
     var tr = document.createElement('tr');
     var th = document.createElement('th');
-    th.appendChild(document.createTextNode('Username suggestions'));
+    th.appendChild(document.createTextNode($lang.get('user_autofill_heading_suggestions')));
     tr.appendChild(th);
     table.appendChild(tr);
     
@@ -125,7 +125,7 @@ function AutofillUsername(parent, event, allowanon)
       var tr = document.createElement('tr');
       var td = document.createElement('td');
       td.className = 'row1';
-      td.appendChild(document.createTextNode('No suggestions'));
+      td.appendChild(document.createTextNode($lang.get('user_autofill_msg_no_suggestions')));
       td.afobj = autofill;
       tr.appendChild(td);
       table.appendChild(tr);
@@ -315,9 +315,9 @@ function AutofillUsername(parent, event, allowanon)
     if ( state_td.parentNode.nextSibling )
     {
       // Ooh boy, DOM stuff can be so complicated...
-      // <tr>  -->  <tr>
-      // <td>       <td>
-      // user       user
+      //   <tr>   →   <tr>
+      // ↑ <td>       <td> ↓
+      //   user       user
       
       var newstate = state_td.parentNode.nextSibling.firstChild.firstChild.nodeValue;
       if ( !newstate )
@@ -368,9 +368,9 @@ function AutofillUsername(parent, event, allowanon)
     if ( state_td.parentNode.previousSibling && state_td.parentNode.previousSibling.firstChild.tagName != 'TH' )
     {
       // Ooh boy, DOM stuff can be so complicated...
-      // <tr>  <--  <tr>
-      // <td>       <td>
-      // user       user
+      //   <tr>   ←   <tr>
+      // ↓ <td>       <td> ↑
+      //   user       user
       
       var newstate = state_td.parentNode.previousSibling.firstChild.firstChild.nodeValue;
       if ( !newstate )

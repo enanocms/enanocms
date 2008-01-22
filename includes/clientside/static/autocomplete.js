@@ -185,7 +185,7 @@ function ajaxUserNameComplete(o)
         }
         else
         {
-          html = '<table border="0" cellspacing="1" cellpadding="3" style="width: auto;"><tr><th><small>Username matches</small></th></tr>';
+          html = '<table border="0" cellspacing="1" cellpadding="3" style="width: auto;"><tr><th><small>' + $lang.get('user_autofill_heading_suggestions') + '</small></th></tr>';
           cls = 'row2';
           unObjCurrentSelection = userlist[0];
           for(i=0;i<userlist.length;i++)
@@ -251,7 +251,7 @@ function ajaxPageNameComplete(o)
         }
         else
         {
-          html = '<table border="0" cellspacing="1" cellpadding="3" style="width: auto;"><tr><th colspan="2">Page name matches</th></tr><tr><th><small>Page title</small></th><th><small>Page ID</small></th></tr>';
+          html = '<table border="0" cellspacing="1" cellpadding="3" style="width: auto;"><tr><th colspan="2">' + $lang.get('page_autosuggest_heading') + '</th></tr><tr><th><small>' + $lang.get('page_autosuggest_col_name') + '</small></th><th><small>' + $lang.get('page_autosuggest_col_page_id') + '</small></th></tr>';
           cls = 'row2';
           unObjCurrentSelection = userlist[0];
           for(i=0;i<userlist.length;i++)

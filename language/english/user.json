@@ -131,6 +131,9 @@ var enano_lang = {
       reg_coppa_title: 'Before you can register, please tell us your age.',
       reg_coppa_link_atleast13: 'I was born <b>on or before</b> %yo13_date% and am <b>at least</b> 13 years of age',
       reg_coppa_link_not13: 'I was born <b>after</b> %yo13_date% and am <b>less than</b> 13 years of age',
+      
+      autofill_heading_suggestions: 'Username suggestions',
+      autofill_msg_no_suggestions: 'No suggestions',
     },
     usercp: {
       // Meta
