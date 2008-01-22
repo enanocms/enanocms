@@ -43,11 +43,12 @@ $plugins->attachHook('session_started', '
 function page_Special_UploadFile()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   global $mime_types;
-  if(getConfig('enable_uploads')!='1') { die_friendly('Access denied', '<p>File uploads are disabled this website.</p>'); }
+  if(getConfig('enable_uploads')!='1') { die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('upload_err_disabled_site') . '</p>'); }
   if ( !$session->get_permissions('upload_files') )
   {
-    die_friendly('Access denied', '<p>File uploads are disabled for your user account or group.<p>');
+    die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('upload_err_disabled_acl') . '</p>');
   }
   if(isset($_POST['doit']))
   {
@@ -61,42 +62,18 @@ function page_Special_UploadFile()
     }
     if ( !is_array($file) )
     {
-      die_friendly('Upload failed', '<p>The server could not retrieve the array $_FILES[\'data\'].</p>');
+      die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_cant_get_file_meta') . '</p>');
     }
     if ( $file['size'] == 0 || $file['size'] > (int)getConfig('max_file_size') )
     {
-      die_friendly('Upload failed', '<p>The file you uploaded is either too large or 0 bytes in length.</p>');
+      die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_too_big_or_small') . '</p>');
     }
-    /*
-    $allowed_mime_types = Array(
-        'text/plain',
-        'image/png',
-        'image/jpeg',
-        'image/tiff',
-        'image/gif',
-        'text/html', // Safe because the file is stashed in the database
-        'application/x-bzip2',
-        'application/x-gzip',
-        'text/x-c++'
-      );
-    if(function_exists('finfo_open') && $fi = finfo_open(FILEINFO_MIME, ENANO_ROOT.'/includes/magic')) // First try to use the fileinfo extension, this is the best way to determine the mimetype
-    {
-      if(!$fi) die_friendly('Upload failed', '<p>Enano was unable to determine the format of the uploaded file.</p><p>'.@finfo_file($fi, $file['tmp_name']).'</p>');
-      $type = @finfo_file($fi, $file['tmp_name']);
-      @finfo_close($fi);
-    }
-    elseif(function_exists('mime_content_type'))
-      $type = mime_content_type($file['tmp_name']); // OK, no fileinfo function. Use a (usually) built-in PHP function
-    elseif(isset($file['type']))
-      $type = $file['type']; // LAST RESORT: use the mimetype the browser sent us, though this is likely to be spoofed
-    else // DANG! Not even the browser told us. Bail out.
-      die_friendly('Upload failed', '<p>Enano was unable to determine the format of the uploaded file.</p>');
-    */
+    
     $types = fetch_allowed_extensions();
     $ext = substr($file['name'], strrpos($file['name'], '.')+1, strlen($file['name']));
     if ( !isset($types[$ext]) || ( isset($types[$ext]) && !$types[$ext] ) )
     {
-      die_friendly('Upload failed', '<p>The file type ".'.$ext.'" is not allowed.</p>');
+      die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_banned_ext', array('ext' => htmlspecialchars($ext))) . '</p>');
     }
     $type = $mime_types[$ext];
     //$type = explode(';', $type); $type = $type[0];
@@ -112,12 +89,16 @@ function page_Special_UploadFile()
     $bad_chars = Array(':', '\\', '/', '<', '>', '|', '*', '?', '"', '#', '+');
     foreach($bad_chars as $ch)
     {
-      if(strstr($filename, $ch) || preg_match('/^([ ]+)$/is', $filename)) die_friendly('Upload failed', '<p>The filename contains invalid characters.</p>');
+      if(strstr($filename, $ch) || preg_match('/^([ ]+)$/is', $filename))
+      {
+        die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_banned_chars') . '</p>');
+      }
     }
     
     if ( isset ( $paths->pages[ $paths->nslist['File'] . $filename ] ) && !isset ( $_POST['update'] ) )
     {
-      die_friendly('Upload failed', '<p>The file already exists. You can <a href="'.makeUrlNS('Special', 'UploadFile/'.$filename).'">upload a new version of this file</a>.</p>');
+      $upload_link = makeUrlNS('Special', 'UploadFile/'.$filename);
+      die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_already_exists', array('upload_link' => $upload_link)) . '</p>');
     }
     else if ( isset($_POST['update']) && 
             ( !isset($paths->pages[$paths->nslist['File'].$filename]) ||
@@ -126,7 +107,7 @@ function page_Special_UploadFile()
              )
            )
     {
-      die_friendly('Upload failed', '<p>Either the file does not exist (and therefore cannot be updated) or the file is protected.</p>');
+      die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_replace_protected') . '</p>');
     }
     
     $utime = time();
@@ -144,7 +125,7 @@ function page_Special_UploadFile()
     
     if(!@move_uploaded_file($file['tmp_name'], $targetname))
     {
-      die_friendly('Upload failed', '<p>Could not move uploaded file to the new location.</p>');
+      die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_move_failed') . '</p>');
     }
     
     if(getConfig('file_history') != '1')
@@ -162,7 +143,7 @@ function page_Special_UploadFile()
     {
       if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.$utime.', \''.enano_date('d M Y h:i a').'\', \'page\', \'reupload\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\', \''.$comments.'\');')) $db->_die('The page log could not be updated.');
     }
-    die_friendly('Upload complete', '<p>Your file has been uploaded successfully. View the <a href="'.makeUrlNS('File', $filename).'">file\'s page</a>.</p>');
+    die_friendly($lang->get('upload_success_title'), '<p>' . $lang->get('upload_success_body', array('file_link' => makeUrlNS('File', $filename))) . '</p>');
   }
   else
   {
@@ -170,40 +151,44 @@ function page_Special_UploadFile()
     $fn = $paths->getParam(0);
     if ( $fn && !$session->get_permissions('upload_new_version') )
     {
-      die_friendly('Access denied', '<p>Uploading new versions of files has been disabled for your user account or group.<p>');
+      die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('upload_err_replace_denied') . '<p>');
     }
     ?>
-    <p>Using this form you can upload a file to the <?php echo getConfig('site_name'); ?> site.</p>
-    <p>The maximum file size is <?php 
+    <p><?php echo $lang->get('upload_intro'); ?></p>
+    <p><?php 
       // Get the max file size, and format it in a way that is user-friendly
+      
       $fs = getConfig('max_file_size');
-      echo commatize($fs).' bytes';
       $fs = (int)$fs;
       if($fs >= 1048576)
       {
         $fs = round($fs / 1048576, 1);
-        echo ' ('.$fs.' MB)';
+        $unitized = $fs . ' ' . $lang->get('etc_unit_megabytes_short');
       }
       elseif($fs >= 1024)
       {
         $fs = round($fs / 1024, 1);
-        echo ' ('.$fs.' KB)';
+        $unitized = $fs . ' ' . $lang->get('etc_unit_kilobytes_short');
       }
-    ?>.</p>
+      
+      echo $lang->get('upload_max_filesize', array(
+          'size' => $unitized
+        ));
+    ?></p>
     <form action="<?php echo makeUrl($paths->page); ?>" method="post" enctype="multipart/form-data">
       <table border="0" cellspacing="1" cellpadding="4">
-        <tr><td>File:</td><td><input name="data" type="file" size="40" /></td></tr>
-        <tr><td>Rename to:</td><td><input name="rename" type="text" size="40"<?php if($fn) echo ' value="'.$fn.'" readonly="readonly"'; ?> /></td></tr>
+        <tr><td><?php echo $lang->get('upload_field_file'); ?></td><td><input name="data" type="file" size="40" /></td></tr>
+        <tr><td><?php echo $lang->get('upload_field_renameto'); ?></td><td><input name="rename" type="text" size="40"<?php if($fn) echo ' value="'.$fn.'" readonly="readonly"'; ?> /></td></tr>
         <?php
-        if(!$fn) echo '<tr><td>Comments:<br />(can be wiki-formatted)</td><td><textarea name="comments" rows="20" cols="60"></textarea></td></tr>';
-        else echo '<tr><td>Reason for uploading the new version: </td><td><input name="comments" size="50" /></td></tr>';
+        if(!$fn) echo '<tr><td>' . $lang->get('upload_field_comments') . '</td><td><textarea name="comments" rows="20" cols="60"></textarea></td></tr>';
+        else echo '<tr><td>' . $lang->get('upload_field_reason') . '</td><td><input name="comments" size="50" /></td></tr>';
         ?>
         <tr><td colspan="2" style="text-align: center">
           <?php
           if($fn)
             echo '<input type="hidden" name="update" value="true" />';
           ?>
-          <input type="submit" name="doit" value="Upload file" />
+          <input type="submit" name="doit" value="<?php echo $lang->get('upload_btn_upload'); ?>" />
         </td></tr>
       </table>
     </form>
@@ -215,6 +200,7 @@ function page_Special_UploadFile()
 function page_Special_DownloadFile()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   global $do_gzip;
   $filename = rawurldecode($paths->getParam(0));
   $timeid = $paths->getParam(1);
@@ -235,7 +221,7 @@ function page_Special_DownloadFile()
   if ( $db->numrows() < 1 )
   {
     header('HTTP/1.1 404 Not Found');
-    die_friendly('File not found', '<p>The file "'.htmlspecialchars($filename).'" cannot be found.</p>');
+    die_friendly($lang->get('upload_err_not_found_title'), '<p>' . $lang->get('upload_err_not_found_body', array('filename' => htmlspecialchars($filename))) . '</p>');
   }
   $row = $db->fetchrow();
   $db->free_result();
@@ -244,7 +230,7 @@ function page_Special_DownloadFile()
   $perms = $session->fetch_page_acl($row['page_id'], 'File');
   if ( !$perms->get_permissions('read') )
   {
-    die_friendly('Access denied', '<p>Access to the specified file is denied.</p>');
+    die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
   }
   
   $fname = ENANO_ROOT . '/files/' . $row['file_key'] . '_' . $row['time_id'] . $row['file_extension'];
