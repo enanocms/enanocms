@@ -673,7 +673,7 @@ class PageProcessor
           $page_data = $paths->pages[$page_id_key];
           $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
           $a = '<a href="' . $url . '">' . $title . '</a>';
-          echo '<small>(Redirected from ' . $a . ')<br /></small>';
+          echo '<small>' . $lang->get('page_msg_redirected_from', array('from' => $a)) . '<br /></small>';
         }
       }
       display_page_headers();
@@ -681,7 +681,17 @@ class PageProcessor
     
     if ( $this->revision_id )
     {
-      echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;"><b>Notice:</b><br />The page you are viewing was archived on '.enano_date('F d, Y \a\t h:i a', $this->revision_id).'.<br /><a href="'.makeUrlNS($this->namespace, $this->page_id).'" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="'.makeUrlNS($this->namespace, $this->page_id, 'do=rollback&amp;id='.$this->revision_id).'" onclick="ajaxRollback(\''.$this->revision_id.'\')">Restore this version</a></div><br />';
+      echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;">
+              <b>' . $lang->get('page_msg_archived_title') . '</b><br />
+              ' . $lang->get('page_msg_archived_body', array(
+                  'archive_date' => enano_date('F d, Y', $this->revision_id),
+                  'archive_time' => enano_date('h:i a', $this->revision_id),
+                  'current_link' => makeUrlNS($this->namespace, $this->page_id),
+                  'restore_link' => makeUrlNS($this->namespace, $this->page_id, 'do=rollback&amp;id='.$this->revision_id),
+                  'restore_onclick' => 'ajaxRollback(\''.$this->revision_id.'\'); return false;',
+                )) . '
+            </div>
+            <br />';
     }
     
     if ( $redir_enabled )
@@ -948,29 +958,29 @@ class PageProcessor
     
     // Basic user info
     
-    echo '<tr><th class="subhead">All about ' . htmlspecialchars($target_username) . '</th></tr>';
+    echo '<tr><th class="subhead">' . $lang->get('userpage_heading_basics', array('username' => htmlspecialchars($target_username))) . '</th></tr>';
     if ( $userdata['user_has_avatar'] == '1' )
     {
       echo '<tr><td class="row1" style="text-align: center;"><img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $userdata['username'])) . '" src="' . make_avatar_url(intval($userdata['authoritative_uid']), $userdata['avatar_type']) . '" /></td></tr>';
     }
-    echo '<tr><td class="row3">Joined: ' . enano_date('F d, Y h:i a', $userdata['reg_time']) . '</td></tr>';
-    echo '<tr><td class="row1">Total comments: ' . $userdata['n_comments'] . '</td></tr>';
+    echo '<tr><td class="row3">' . $lang->get('userpage_lbl_joined') . ' ' . enano_date('F d, Y h:i a', $userdata['reg_time']) . '</td></tr>';
+    echo '<tr><td class="row1">' . $lang->get('userpage_lbl_num_comments') . ' ' . $userdata['n_comments'] . '</td></tr>';
     
     if ( !empty($userdata['real_name']) )
     {
-      echo '<tr><td class="row3">Real name: ' . $userdata['real_name'] . '</td></tr>';
+      echo '<tr><td class="row3">' . $lang->get('userpage_lbl_real_name') . ' ' . $userdata['real_name'] . '</td></tr>';
     }
     
     // Administer user button
     
     if ( $session->user_level >= USER_LEVEL_ADMIN )
     {
-      echo '<tr><td class="row1"><a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&user=' . urlencode($target_username), true) . '" onclick="ajaxAdminUser(\'' . addslashes($target_username) . '\'); return false;">Administer user</a></td></tr>';
+      echo '<tr><td class="row1"><a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&user=' . urlencode($target_username), true) . '" onclick="ajaxAdminUser(\'' . addslashes($target_username) . '\'); return false;">' . $lang->get('userpage_btn_administer_user') . '</a></td></tr>';
     }
     
     // Comments
     
-    echo '<tr><th class="subhead">' . htmlspecialchars($target_username) . '\'s latest comments</th></tr>';
+    echo '<tr><th class="subhead">' . $lang->get('userpage_heading_comments', array('username' => htmlspecialchars($target_username))) . '</th></tr>';
     $q = $db->sql_query('SELECT page_id, namespace, subject, time FROM '.table_prefix.'comments WHERE name=\'' . $db->escape($target_username) . '\' AND user_id=' . $userdata['authoritative_uid'] . ' AND approved=1 ORDER BY time DESC LIMIT 5;');
     if ( !$q )
       $db->_die();
@@ -1001,7 +1011,7 @@ class PageProcessor
     $tpl = '<tr>
               <td class="{CLASS}">
                 <a href="{PAGE_LINK}" <!-- BEGINNOT page_exists -->class="wikilink-nonexistent"<!-- END page_exists -->>{PAGE}</a><br />
-                <small>Posted {DATE}<br /></small>
+                <small>{lang:userpage_comments_lbl_posted} {DATE}<br /></small>
                 <b><a href="{COMMENT_LINK}">{SUBJECT}</a></b>
               </td>
             </tr>';
@@ -1040,7 +1050,7 @@ class PageProcessor
     }
     else
     {
-      echo '<tr><td class="' . $class . '">This user has not posted any comments.</td></tr>';
+      echo '<tr><td class="' . $class . '">' . $lang->get('userpage_msg_no_comments') . '</td></tr>';
     }
     echo '</table>';
     
@@ -1093,7 +1103,7 @@ class PageProcessor
     
     // Contact information
     
-    echo '<tr><th class="subhead">Get in touch</th></tr>';
+    echo '<tr><th class="subhead">' . $lang->get('userpage_heading_contact') . '</th></tr>';
     
     $class = 'row3';
     
@@ -1101,71 +1111,71 @@ class PageProcessor
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
       $email_link = $email->encryptEmail($userdata['email']);
-      echo '<tr><td class="'.$class.'">E-mail address: ' . $email_link . '</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_email') . ' ' . $email_link . '</td></tr>';
     }
     
     $class = ( $class == 'row1' ) ? 'row3' : 'row1';
     if ( $session->user_logged_in )
     {
-      echo '<tr><td class="'.$class.'">Send ' . htmlspecialchars($target_username) . ' a <a href="' . makeUrlNS('Special', 'PrivateMessages/Compose/to/' . $this->page_id, false, true) . '">Private Message</a>!</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_btn_send_pm', array('username' => htmlspecialchars($target_username), 'pm_link' => makeUrlNS('Special', 'PrivateMessages/Compose/to/' . $this->page_id, false, true))) . '</td></tr>';
     }
     else
     {
-      echo '<tr><td class="'.$class.'">You could send ' . htmlspecialchars($target_username) . ' a private message if you were <a href="' . makeUrlNS('Special', 'Login/' . $paths->nslist[$this->namespace] . $this->page_id) . '">logged in</a>.</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_btn_send_pm_guest', array('username' => htmlspecialchars($target_username), 'login_flags' => 'href="' . makeUrlNS('Special', 'Login/' . $paths->nslist[$this->namespace] . $this->page_id) . '" onclick="ajaxStartLogin(); return false;"')) . '</td></tr>';
     }
     
     if ( !empty($userdata['user_aim']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">AIM: ' . $userdata['user_aim'] . '</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_aim') . ' ' . $userdata['user_aim'] . '</td></tr>';
     }
     
     if ( !empty($userdata['user_yahoo']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">Yahoo! IM: ' . $userdata['user_yahoo'] . '</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_yim') . ' ' . $userdata['user_yahoo'] . '</td></tr>';
     }
     
     if ( !empty($userdata['user_msn']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
       $email_link = $email->encryptEmail($userdata['user_msn']);
-      echo '<tr><td class="'.$class.'">WLM: ' . $email_link . '</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_wlm') . ' ' . $email_link . '</td></tr>';
     }
     
     if ( !empty($userdata['user_xmpp']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
       $email_link = $email->encryptEmail($userdata['user_xmpp']);
-      echo '<tr><td class="'.$class.'">XMPP/Jabber: ' . $email_link . '</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_xmpp') . ' ' . $email_link . '</td></tr>';
     }
     
     // Real life
     
-    echo '<tr><th class="subhead">' . htmlspecialchars($target_username) . ' in real life</th></tr>';
+    echo '<tr><th class="subhead">' . $lang->get('userpage_heading_real_life', array('username' => htmlspecialchars($target_username))) . '</th></tr>';
     
     if ( !empty($userdata['user_location']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">Location: ' . $userdata['user_location'] . '</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_location') . ' ' . $userdata['user_location'] . '</td></tr>';
     }
     
     if ( !empty($userdata['user_job']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">Job/occupation: ' . $userdata['user_job'] . '</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_job') . ' ' . $userdata['user_job'] . '</td></tr>';
     }
     
     if ( !empty($userdata['user_hobbies']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">Enjoys: ' . $userdata['user_hobbies'] . '</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_hobbies') . ' ' . $userdata['user_hobbies'] . '</td></tr>';
     }
     
     if ( empty($userdata['user_location']) && empty($userdata['user_job']) && empty($userdata['user_hobbies']) )
     {
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      echo '<tr><td class="'.$class.'">' . htmlspecialchars($target_username) . ' hasn\'t posted any real-life contact information.</td></tr>';
+      echo '<tr><td class="'.$class.'">' . $lang->get('userpage_msg_no_contact_info', array('username' => htmlspecialchars($target_username))) . '</td></tr>';
     }
     
     $code = $plugins->setHook('userpage_sidebar_right');
@@ -1181,7 +1191,10 @@ class PageProcessor
     
     else:
     
-    echo '<p>Additional information: user "' . htmlspecialchars($target_username) . '" does not exist.</p>';
+    if ( !is_valid_ip($target_username) )
+    {
+      echo '<p>' . $lang->get('userpage_msg_user_not_exist', array('username' => htmlspecialchars($target_username))) . '</p>';
+    }
     
     endif;
     

@@ -12,7 +12,7 @@
 
 var enano_lang = {
   categories: [
-    'user', 'usercp', 'groupcp', 'privmsgs', 'userfuncs',
+    'user', 'usercp', 'groupcp', 'privmsgs', 'userfuncs', 'userpage',
   ],
   strings: {
     meta: {
@@ -21,6 +21,7 @@ var enano_lang = {
       groupcp: 'Group control panel',
       privmsgs: 'Private message and buddy list CP',
       userfuncs: 'User management pages',
+      userpage: 'User pages',
     },
     user: {
       login_message_short: 'Please enter your username and password to log in.',
@@ -475,6 +476,30 @@ The %site_name% administration team
       ml_msg_matches_zero: 'Search returned no matches',
       ml_msg_matches_one: 'Search returned 1 match',
       ml_msg_matches: 'Search returned %matches% matches',
+    },
+    userpage: {
+      heading_basics: 'All about %username%',
+      lbl_joined: 'Joined:',
+      lbl_num_comments: 'Total comments:',
+      lbl_real_name: 'Real name:',
+      btn_administer_user: 'Administer user',
+      heading_comments: '%username%\'s latest comments',
+      comments_lbl_posted: 'Posted',
+      msg_no_comments: 'This user has not posted any comments.',
+      heading_contact: 'Get in touch',
+      lbl_email: 'E-mail address:',
+      btn_send_pm: 'Send %username% a <a href="%pm_link%">Private Message!</a>',
+      btn_send_pm_guest: 'You could send %username% a Private Message if you were <a %login_flags%>logged in</a>.',
+      lbl_aim: 'AIM:',
+      lbl_yim: 'Yahoo! IM:',
+      lbl_wlm: 'WLM:',
+      lbl_xmpp: 'XMPP/Jabber&trade;:',
+      heading_real_life: '%username% in real life',
+      lbl_location: 'Location:',
+      lbl_job: 'Job/occupation:',
+      lbl_hobbies: 'Enjoys:',
+      msg_no_contact_info: '%username% hasn\'t posted any real-life contact information.',
+      msg_user_not_exist: 'Additional information: user "%username%" does not exist.',
     }
   }
 };

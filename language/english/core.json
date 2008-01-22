@@ -110,6 +110,10 @@ var enano_lang = {
                     To create a redirect page, make the <i>first characters</i> in the page content <tt>#redirect [[Page_ID]]</tt>. For more information, see the
                     Enano <a href="http://enanocms.org/Help:Wiki_formatting" onclick="window.open(this.href); return false;">Wiki formatting guide</a>.<br /><br />
                     This page redirects to %redirect_target%.',
+      msg_redirected_from: '(Redirected from %from%)',
+      
+      msg_archived_title: 'Notice:',
+      msg_archived_body: 'The page you are viewing was archived on %archive_date% at %archive_time%.<br /><a href="%current_link%" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="%restore_link%" onclick="%restore_onclick%">Restore this version</a>',
                     
       autosuggest_heading: 'Page name matches',
       autosuggest_col_name: 'Page title',
