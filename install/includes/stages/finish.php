@@ -29,9 +29,6 @@ if ( !in_array($dbdriver, $supported_drivers) )
   return true;
 }
 
-$db = new $dbdriver();
-$db->connect();
-
 $ui->show_header();
 flush();
 

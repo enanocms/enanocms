@@ -119,11 +119,11 @@ class Text_Wiki {
 
     }
 
-    function &singleton($parser = 'Default', $rules = null)
+    public static function singleton($parser = 'Default', $rules = null)
     {
         static $only = array();
         if (!isset($only[$parser])) {
-            $ret =& Text_Wiki::factory($parser, $rules);
+            $ret = Text_Wiki::factory($parser, $rules);
             if (!$ret) {
                 return $ret;
             }
@@ -132,7 +132,7 @@ class Text_Wiki {
         return $only[$parser];
     }
 
-    function &factory($parser = 'Default', $rules = null)
+    public static function factory($parser = 'Default', $rules = null)
     {
         $d=getcwd();
         chdir(ENANO_ROOT);
@@ -613,7 +613,7 @@ class Text_Wiki {
 
     function isError(&$obj)
     {
-        return is_a($obj, 'PEAR_Error');
+        return ( @get_class($obj) == 'PEAR_Error' );
     }
 }
 

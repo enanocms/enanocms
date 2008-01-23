@@ -752,7 +752,7 @@ function page_Special_Register()
                 </div>
                 <p style="text-align: center;">
                   <label>
-                    <input type="checkbox" name="tou_agreed" />
+                    <input tabindex="7" type="checkbox" name="tou_agreed" />
                     <b><?php echo $lang->get('user_reg_lbl_field_tou'); ?></b>
                   </label>
                 </p>
@@ -766,7 +766,7 @@ function page_Special_Register()
             <!-- FIELD: submit button -->
             <tr>
               <th class="subhead" colspan="3" style="text-align: center;">
-                <input tabindex="7" type="submit" name="submit" value="<?php echo $lang->get('user_reg_btn_create_account'); ?>" />
+                <input tabindex="8" type="submit" name="submit" value="<?php echo $lang->get('user_reg_btn_create_account'); ?>" />
               </td>
             </tr>
             

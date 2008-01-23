@@ -12,7 +12,7 @@
 
 var enano_lang = {
   categories: [
-    'user', 'usercp', 'groupcp', 'privmsgs', 'userfuncs', 'userpage',
+    'meta', 'user', 'usercp', 'groupcp', 'privmsgs', 'userfuncs', 'userpage',
   ],
   strings: {
     meta: {

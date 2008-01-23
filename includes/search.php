@@ -75,7 +75,7 @@ class Searcher
       $words = explode(' ', $letters);
       foreach($words as $c => $w)
       {
-        if(strlen($w) < 2 || in_array($w, $stopwords) || strlen($w) > 63)
+        if(strlen($w) < 2 || in_array($w, $stopwords) || strlen($w) > 63 || preg_match('/[\']{2,}/', $w))
           unset($words[$c]);
         else
           $words[$c] = $w;

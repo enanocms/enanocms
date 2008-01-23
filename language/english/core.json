@@ -17,7 +17,7 @@
 
 var enano_lang = {
   categories: [
-    'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar', 'perm', 'plugin', 'paginate', 'upload',
+    'meta', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar', 'perm', 'plugin', 'paginate', 'upload',
   ],
   strings: {
     meta: {
@@ -45,6 +45,7 @@ var enano_lang = {
       enano_about_lbl_serverplatform: 'Server platform:',
       enano_about_lbl_phpversion: '<a href="http://www.php.net/">PHP</a> version:',
       enano_about_lbl_mysqlversion: '<a href="http://www.mysql.com/">MySQL</a> version:',
+      enano_about_lbl_pgsqlversion: '<a href="http://www.postgresql.org/">PostgreSQL</a> version:',
     },
     page: {
       protect_lbl_success_title: 'Page protected',

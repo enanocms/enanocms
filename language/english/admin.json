@@ -12,7 +12,7 @@
 
 var enano_lang = {
   categories: [
-    'adm', 'acl', 'adminusers',
+    'meta', 'adm', 'acl', 'adminusers',
     'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl', 'acpbc',
     'acplo', 'sbedit',
   ],

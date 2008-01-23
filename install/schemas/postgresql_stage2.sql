@@ -104,7 +104,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_has_avatar smallint NOT NULL,
   avatar_type varchar(3) NOT NULL,
   user_registration_ip varchar(39),
-  CHECK (user_has_avatar IN ('jpg', 'png', 'gif')),
+  CHECK (avatar_type IN ('jpg', 'png', 'gif')),
   PRIMARY KEY  (user_id)
 );
 
@@ -318,9 +318,9 @@ INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_st
   ('oxygen', 'Oxygen', 1, 'bleu.css', 1),
   ('stpatty', 'St. Patty', 2, 'shamrock.css', 1);
 
-INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active, user_registration_ip) VALUES
-  (1, 'Anonymous', 'invalid-pass-hash', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0),
-  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', {{UNIX_TIME}}, 1, '{{IP_ADDRESS}}');
+INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active, user_registration_ip, user_lang, user_has_avatar, avatar_type) VALUES
+  (1, 'Anonymous', 'invalid-pass-hash', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0, '', 0, 0, 'png'),
+  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', {{UNIX_TIME}}, 1, '{{IP_ADDRESS}}', 0, 0, 'png');
   
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);

@@ -12,7 +12,7 @@
 
 var enano_lang = {
   categories: [
-    'search', 'specialpage', 'pagetools'
+    'meta', 'search', 'specialpage', 'pagetools'
   ],
   strings: {
     meta: {

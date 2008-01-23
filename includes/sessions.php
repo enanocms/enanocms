@@ -1201,7 +1201,7 @@ class sessionManager {
     $salt = $db->escape($keydata[3]);
     // using a normal call to $db->sql_query to avoid failing on errors here
     $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,' . "\n"
-                             . '    u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,' . "\n"
+                             . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,' . "\n"
                              . '    x.* FROM '.table_prefix.'session_keys AS k' . "\n"
                              . '  LEFT JOIN '.table_prefix.'users AS u' . "\n"
                              . '    ON ( u.user_id=k.user_id )' . "\n"
@@ -1211,7 +1211,7 @@ class sessionManager {
                              . '    ON ( p.message_to=u.username AND p.message_read=0 )' . "\n"
                              . '  WHERE k.session_key=\''.$keyhash.'\'' . "\n"
                              . '    AND k.salt=\''.$salt.'\'' . "\n"
-                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
+                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
     
     if ( !$query )
     {
@@ -1727,7 +1727,7 @@ class sessionManager {
         $str .= '_realname';
       }
       
-      return $lang->get($r);
+      return $lang->get($str);
     }
     
     // Is the password strong enough?

@@ -15,7 +15,7 @@
  
 class RenderMan {
   
-  function strToPageID($string)
+  public static function strToPageID($string)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $k = array_keys($paths->nslist);
@@ -38,7 +38,7 @@ class RenderMan {
     return Array($pg, $ns);
   }
   
-  function getPage($page_id, $namespace, $wiki = 1, $smilies = true, $filter_links = true, $redir = true, $render = true)
+  public static function getPage($page_id, $namespace, $wiki = 1, $smilies = true, $filter_links = true, $redir = true, $render = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -112,7 +112,7 @@ class RenderMan {
     return ($render) ? RenderMan::render($message, $wiki, $smilies, $filter_links) : $message;
   }
   
-  function getTemplate($id, $parms)
+  public static function getTemplate($id, $parms)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!isset($paths->pages[$paths->nslist['Template'].$id])) 
@@ -150,7 +150,7 @@ class RenderMan {
     return $text;
   }
   
-  function fetch_template_text($id)
+  public static function fetch_template_text($id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!isset($paths->pages[$paths->nslist['Template'].$id])) 
@@ -176,7 +176,7 @@ class RenderMan {
     return $text;
   }
   
-  function render($text, $wiki = 1, $smilies = true, $filter_links = true)
+  public static function render($text, $wiki = 1, $smilies = true, $filter_links = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if($smilies)
@@ -194,7 +194,7 @@ class RenderMan {
     return $text;
   }
   
-  function PlainTextRender($text, $wiki = 1, $smilies = false, $filter_links = true)
+  public static function PlainTextRender($text, $wiki = 1, $smilies = false, $filter_links = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if($smilies)
@@ -212,7 +212,7 @@ class RenderMan {
     return $text;
   }
   
-  function next_gen_wiki_format($text, $plaintext = false, $filter_links = true, $do_params = false)
+  public static function next_gen_wiki_format($text, $plaintext = false, $filter_links = true, $do_params = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $random_id = md5( time() . mt_rand() );
@@ -278,7 +278,7 @@ class RenderMan {
     $text = process_tables($text);
     $text = RenderMan::parse_internal_links($text);
     
-    $wiki =& Text_Wiki::singleton('Mediawiki');
+    $wiki = Text_Wiki::singleton('Mediawiki');
     if($plaintext)
     {
       $wiki->setRenderConf('Plain', 'wikilink', 'view_url', contentPath);
@@ -328,7 +328,7 @@ class RenderMan {
     
   }
   
-  function wikiFormat($message, $filter_links = true, $do_params = false, $plaintext = false)
+  public static function wikiFormat($message, $filter_links = true, $do_params = false, $plaintext = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -411,7 +411,7 @@ class RenderMan {
     return $result;
   }
   
-  function destroy_javascript($message, $_php = false)
+  public static function destroy_javascript($message, $_php = false)
   {
     $message = preg_replace('#<(script|object|applet|embed|iframe|frame|form|input|select)(.*?)>#is', '&lt;\\1\\2&gt;', $message);
     $message = preg_replace('#</(script|object|applet|embed|iframe|frame|form|input|select)(.*?)>#is', '&lt;/\\1\\2&gt;', $message);
@@ -428,12 +428,12 @@ class RenderMan {
     return $message;
   }
   
-  function strip_php($message)
+  public static function strip_php($message)
   {
     return RenderMan::destroy_javascript($message, true);
   }
   
-  function sanitize_html($text)
+  public static function sanitize_html($text)
   {
     $text = htmlspecialchars($text);
     $allowed_tags = Array('b', 'i', 'u', 'pre', 'code', 'tt', 'br', 'p', 'nowiki', '!--([\w\W]+)--');
@@ -452,7 +452,7 @@ class RenderMan {
    * @return string
    */
   
-  function parse_internal_links($text)
+  public static function parse_internal_links($text)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -506,7 +506,7 @@ class RenderMan {
    * [bar] => dolor sit amet
    */
   
-  function parse_template_vars($input)
+  public static function parse_template_vars($input)
   {
     if ( !preg_match('/^(\|[ ]*([A-z0-9_]+)([ ]*)=([ ]*)(.+?))*$/is', trim($input)) )
     {
@@ -573,7 +573,7 @@ class RenderMan {
    * </code>
    */
   
-  function include_templates($text)
+  public static function include_templates($text)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     // $template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
@@ -612,7 +612,7 @@ class RenderMan {
    * @param string $text
    * @param bool $strip_all_php - if true, strips all PHP regardless of user permissions. Else, strips PHP only if user level < USER_LEVEL_ADMIN.
    */
-  function preprocess_text($text, $strip_all_php = true, $sqlescape = true)
+  public static function preprocess_text($text, $strip_all_php = true, $sqlescape = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $random_id = md5( time() . mt_rand() );
@@ -667,7 +667,7 @@ class RenderMan {
     return $text;
   }
   
-  function smilieyize($text, $complete_urls = false)
+  public static function smilieyize($text, $complete_urls = false)
   {
     
     $random_id = md5( time() . mt_rand() );
@@ -767,7 +767,7 @@ class RenderMan {
    * @return array key 0 is the escaped text, key 1 is the character tag
    * /
    
-  function escape_page_text($text)
+  public static function escape_page_text($text)
   {
     $char_tag = md5(microtime() . mt_rand());
     $text = str_replace("'",  "{APOS:$char_tag}",  $text);
@@ -784,7 +784,7 @@ class RenderMan {
    * @return string
    * /
    
-  function unescape_page_text($text, $char_tag)
+  public static function unescape_page_text($text, $char_tag)
   {
     $text = str_replace("{APOS:$char_tag}",  "'",  $text);
     $text = str_replace("{QUOT:$char_tag}",  '"',  $text);
@@ -799,7 +799,7 @@ class RenderMan {
    * @param $str2 string the second block of text
    * @return string
    */
-  function diff($str1, $str2)
+  public static function diff($str1, $str2)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $str1 = explode("\n", $str1);
@@ -816,7 +816,7 @@ class RenderMan {
    * @return string
    */
   
-  function process_image_tags($text, &$taglist)
+  public static function process_image_tags($text, &$taglist)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -968,7 +968,7 @@ class RenderMan {
    * @param array The list of image tags created by RenderMan::process_image_tags()
    */
    
-  function process_imgtags_stage2($text, $taglist)
+  public static function process_imgtags_stage2($text, $taglist)
   {
     $s_delim = "\xFF";
     $f_delim = "\xFF";

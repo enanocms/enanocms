@@ -3232,7 +3232,7 @@ function install_language($lang_code, $lang_name_neutral, $lang_name_local, $lan
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   
-  $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'language WHERE lang_code = "' . $db->escape($lang_code) . '";');
+  $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'language WHERE lang_code = \'' . $db->escape($lang_code) . '\';');
   if ( !$q )
     $db->_die('functions.php - checking for language existence');
   
@@ -3242,17 +3242,27 @@ function install_language($lang_code, $lang_name_neutral, $lang_name_local, $lan
   
   $q = $db->sql_query('INSERT INTO ' . table_prefix . 'language(lang_code, lang_name_default, lang_name_native) 
                          VALUES(
-                           "' . $db->escape($lang_code) . '",
-                           "' . $db->escape($lang_name_neutral) . '",
-                           "' . $db->escape($lang_name_native) . '"
+                           \'' . $db->escape($lang_code) . '\',
+                           \'' . $db->escape($lang_name_neutral) . '\',
+                           \'' . $db->escape($lang_name_native) . '\'
                          );');
   if ( !$q )
     $db->_die('functions.php - installing language');
   
-  $lang_id = $db->insert_id();
-  if ( empty($lang_id) || $lang_id == 0 )
+  if ( ENANO_DBLAYER == 'PGSQL' )
   {
-    $db->_die('functions.php - invalid returned lang_id');
+    // exception for Postgres, which doesn't support insert IDs
+    // This will cause the Language class to just load by lang code
+    // instead of by numeric ID
+    $lang_id = $lang_code;
+  }
+  else
+  {
+    $lang_id = $db->insert_id();
+    if ( empty($lang_id) || $lang_id == 0 )
+    {
+      $db->_die('functions.php - invalid returned lang_id');
+    }
   }
   
   // Do we also need to install a language file?

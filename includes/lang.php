@@ -77,7 +77,7 @@ class Language
     }
     if ( is_string($lang) )
     {
-      $sql_col = 'lang_code="' . $db->escape($lang) . '"';
+      $sql_col = 'lang_code=\'' . $db->escape($lang) . '\'';
     }
     else if ( is_int($lang) )
     {
@@ -132,7 +132,7 @@ class Language
         do
         {
           $cat =& $row['string_category'];
-          if ( !is_array($strings[$cat]) )
+          if ( !is_array(@$strings[$cat]) )
           {
             $strings[$cat] = array();
           }

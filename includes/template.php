@@ -42,7 +42,7 @@ class template {
     $this->theme_loaded = false;
     
     $this->fading_button = '<div style="background-image: url('.scriptPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
-                              <a href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
+                              <a style="background-image: none; padding-right: 0;" href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
                             </div>';
     
     $this->theme_list = Array();
