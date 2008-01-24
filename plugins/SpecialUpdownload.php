@@ -93,7 +93,7 @@ function page_Special_UploadFile()
       die_friendly('Upload failed', '<p>Enano was unable to determine the format of the uploaded file.</p>');
     */
     $types = fetch_allowed_extensions();
-    $ext = substr($file['name'], strrpos($file['name'], '.')+1, strlen($file['name']));
+    $ext = strtolower(substr($file['name'], strrpos($file['name'], '.')+1, strlen($file['name'])));
     if ( !isset($types[$ext]) || ( isset($types[$ext]) && !$types[$ext] ) )
     {
       die_friendly('Upload failed', '<p>The file type ".'.$ext.'" is not allowed.</p>');
