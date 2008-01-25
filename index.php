@@ -17,6 +17,9 @@
  */
  
   define('ENANO_INTERFACE_INDEX', '');
+  
+  // For the mighty and brave.
+  define('ENANO_DEBUG', '');
  
   // Set up gzip encoding before any output is sent
   
@@ -33,15 +36,6 @@
     $aggressive_optimize_html = false;
   
   error_reporting(E_ALL);
-  
-  // if(!strstr($v, 'CSS') && !strstr($v, 'UploadFile') && !strstr($v, 'DownloadFile')) // These pages are blacklisted because we can't have debugConsole's HTML output disrupting the flow of header() calls and whatnot
-  // {
-  //   $do_gzip = ( function_exists('gzcompress') && ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) && strstr($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ) ? true : false;
-  //   // Uncomment the following line to enable debugConsole (requires PHP 5 or later)
-  //   // define('ENANO_DEBUG', '');
-  // }
-  
-  if(defined('ENANO_DEBUG')) $do_gzip = false;
   
   if($aggressive_optimize_html || $do_gzip)
   {

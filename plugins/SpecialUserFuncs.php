@@ -373,14 +373,6 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     $captcha_code = ( isset($data['captcha_code']) ) ? $data['captcha_code'] : false;
     $level = ( isset($data['level']) ) ? intval($data['level']) : USER_LEVEL_MEMBER;
     $result = $session->login_with_crypto($data['username'], $data['crypt_data'], $data['crypt_key'], $data['challenge'], $level, $captcha_hash, $captcha_code);
-    $session->start();
-    
-    // Run the session_started hook to establish special pages
-    $code = $plugins->setHook('session_started');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
     
     if ( $result['success'] )
     {
@@ -419,18 +411,11 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     {
       $result = $session->login_without_crypto($_POST['username'], $_POST['pass'], false, intval($_POST['auth_level']), $captcha_hash, $captcha_code);
     }
-    $session->start();
-    
-    // Run the session_started hook to establish special pages
-    $code = $plugins->setHook('session_started');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    
-    $paths->init();
+   
     if($result['success'])
     {
+      $session->start();
+      
       $template->load_theme($session->theme, $session->style);
       if(isset($_POST['return_to']))
       {

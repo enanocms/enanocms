@@ -21,7 +21,7 @@ class PageUtils {
    * @return string
    */
   
-  function checkusername($name)
+  public static function checkusername($name)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $name = str_replace('_', ' ', $name);
@@ -47,7 +47,7 @@ class PageUtils {
    * @todo (DONE) Make it require a password (just for security purposes)
    */
    
-  function getsource($page, $password = false)
+  public static function getsource($page, $password = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!isset($paths->pages[$page]))
@@ -95,7 +95,7 @@ class PageUtils {
    * @return string
    */
   
-  function getpage($page, $send_headers = false, $hist_id = false)
+  public static function getpage($page, $send_headers = false, $hist_id = false)
   {
     die('PageUtils->getpage is deprecated.');
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -328,7 +328,7 @@ class PageUtils {
    * @return string
    */
    
-  function savepage($page_id, $namespace, $message, $summary = 'No edit summary given', $minor = false)
+  public static function savepage($page_id, $namespace, $message, $summary = 'No edit summary given', $minor = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $uid = sha1(microtime());
@@ -399,7 +399,7 @@ class PageUtils {
    * @return bool true on success, false on failure
    */
   
-  function createPage($page_id, $namespace, $name = false, $visible = 1)
+  public static function createPage($page_id, $namespace, $name = false, $visible = 1)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(in_array($namespace, Array('Special', 'Admin')))
@@ -494,7 +494,7 @@ class PageUtils {
    * @param $reason string why the page is being (un)protected
    * @return string - "good" on success, in all other cases, an error string (on query failure, calls $db->_die() )
    */
-  function protect($page_id, $namespace, $level, $reason)
+  public static function protect($page_id, $namespace, $level, $reason)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -548,7 +548,7 @@ class PageUtils {
    * @return string
    */
   
-  function histlist($page_id, $namespace)
+  public static function histlist($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -741,7 +741,7 @@ class PageUtils {
    * @return string
    */
    
-  function rollback($id)
+  public static function rollback($id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if ( !$session->get_permissions('history_rollback') )
@@ -908,7 +908,7 @@ class PageUtils {
    * @return string javascript code
    */
    
-  function addcomment($page_id, $namespace, $name, $subject, $text, $captcha_code = false, $captcha_id = false)
+  public static function addcomment($page_id, $namespace, $name, $subject, $text, $captcha_code = false, $captcha_id = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $_ob = '';
@@ -943,7 +943,7 @@ class PageUtils {
    * @access private
    */
    
-  function comments_raw($page_id, $namespace, $action = false, $flags = Array(), $_ob = '')
+  public static function comments_raw($page_id, $namespace, $action = false, $flags = Array(), $_ob = '')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1202,7 +1202,7 @@ class PageUtils {
    * @return string
    */
    
-  function comments($page_id, $namespace, $action = false, $id = -1, $_ob = '')
+  public static function comments($page_id, $namespace, $action = false, $id = -1, $_ob = '')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $r = PageUtils::comments_raw($page_id, $namespace, $action, $id, $_ob);
@@ -1219,7 +1219,7 @@ class PageUtils {
    * @return string
    */
   
-  function comments_html($page_id, $namespace, $action = false, $id = -1, $_ob = '')
+  public static function comments_html($page_id, $namespace, $action = false, $id = -1, $_ob = '')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $r = PageUtils::comments_raw($page_id, $namespace, $action, $id, $_ob);
@@ -1238,7 +1238,7 @@ class PageUtils {
    * @return string
    */
   
-  function savecomment($page_id, $namespace, $subject, $text, $old_subject, $old_text, $id = -1)
+  public static function savecomment($page_id, $namespace, $subject, $text, $old_subject, $old_text, $id = -1)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!$session->get_permissions('edit_comments'))
@@ -1289,7 +1289,7 @@ class PageUtils {
    * @return string
    */
   
-  function savecomment_neater($page_id, $namespace, $subject, $text, $id)
+  public static function savecomment_neater($page_id, $namespace, $subject, $text, $id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!is_int($id)) die('PageUtils::savecomment: $id is not an integer, aborting for safety');
@@ -1330,7 +1330,7 @@ class PageUtils {
    * @return string
    */
   
-  function deletecomment($page_id, $namespace, $name, $subj, $text, $id)
+  public static function deletecomment($page_id, $namespace, $name, $subj, $text, $id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -1367,7 +1367,7 @@ class PageUtils {
    * @return string
    */
   
-  function deletecomment_neater($page_id, $namespace, $id)
+  public static function deletecomment_neater($page_id, $namespace, $id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -1401,7 +1401,7 @@ class PageUtils {
    * @return string error string or success message
    */
    
-  function rename($page_id, $namespace, $name)
+  public static function rename($page_id, $namespace, $name)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1449,7 +1449,7 @@ class PageUtils {
    * @return string error/success string
    */
    
-  function flushlogs($page_id, $namespace)
+  public static function flushlogs($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1488,7 +1488,7 @@ class PageUtils {
    * @return string
    */
    
-  function deletepage($page_id, $namespace, $reason)
+  public static function deletepage($page_id, $namespace, $reason)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1521,7 +1521,7 @@ class PageUtils {
    * @return string
    */
    
-  function delvote($page_id, $namespace)
+  public static function delvote($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1588,7 +1588,7 @@ class PageUtils {
    * @return string
    */
   
-  function resetdelvotes($page_id, $namespace)
+  public static function resetdelvotes($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1611,7 +1611,7 @@ class PageUtils {
    * @return string JSON string with an array containing a list of themes
    */
    
-  function getstyles()
+  public static function getstyles()
   {
     
     if ( !preg_match('/^([a-z0-9_-]+)$/', $_GET['id']) )
@@ -1648,7 +1648,7 @@ class PageUtils {
    * @return string Javascript code
    */
    
-  function catedit($page_id, $namespace)
+  public static function catedit($page_id, $namespace)
   {
     $d = PageUtils::catedit_raw($page_id, $namespace);
     return $d[0] . ' /* BEGIN CONTENT */ document.getElementById("ajaxEditContainer").innerHTML = unescape(\''.rawurlencode($d[1]).'\');';
@@ -1659,7 +1659,7 @@ class PageUtils {
    * @access private
    */
    
-  function catedit_raw($page_id, $namespace)
+  public static function catedit_raw($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1742,7 +1742,7 @@ class PageUtils {
    * @return string "GOOD" on success, error string on failure
    */
   
-  function catsave($page_id, $namespace, $which_cats)
+  public static function catsave($page_id, $namespace, $which_cats)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!$session->get_permissions('edit_cat')) return('Insufficient privileges to change category information');
@@ -1814,7 +1814,7 @@ class PageUtils {
    * @return string "GOOD" on success, error string on failure
    */
   
-  function setwikimode($page_id, $namespace, $level)
+  public static function setwikimode($page_id, $namespace, $level)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!$session->get_permissions('set_wiki_mode')) return('Insufficient access rights');
@@ -1838,7 +1838,7 @@ class PageUtils {
    * @return string
    */
   
-  function setpass($page_id, $namespace, $pass)
+  public static function setpass($page_id, $namespace, $pass)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1880,7 +1880,7 @@ class PageUtils {
    * @return string
    */
    
-  function genPreview($text)
+  public static function genPreview($text)
   {
     global $lang;
     $ret = '<div class="info-box">' . $lang->get('editor_preview_blurb') . '</div><div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: 250px; overflow: auto; margin: 10px 0;">';
@@ -1901,7 +1901,7 @@ class PageUtils {
    * @return string
    */
    
-  function scrollBox($text, $height = 250)
+  public static function scrollBox($text, $height = 250)
   {
     return '<div style="background-color: #F8F8F8; padding: 10px; border: 1px dashed #406080; max-height: '.(string)intval($height).'px; overflow: auto; margin: 1em 0 1em 1em;">' . $text . '</div>';
   }
@@ -1915,7 +1915,7 @@ class PageUtils {
    * @return string XHTML-formatted diff
    */
    
-  function pagediff($page_id, $namespace, $id1, $id2)
+  public static function pagediff($page_id, $namespace, $id1, $id2)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -1952,7 +1952,7 @@ class PageUtils {
    * @return array
    */
    
-  function acl_editor($parms = Array())
+  public static function acl_editor($parms = Array())
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -2194,7 +2194,7 @@ class PageUtils {
    * @return string
    */
    
-  function acl_json($parms = '{ }')
+  public static function acl_json($parms = '{ }')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $parms = enano_json_decode($parms);
@@ -2208,7 +2208,7 @@ class PageUtils {
    * @param array The request data, if any, this should be in the format required by PageUtils::acl_editor()
    */
    
-  function aclmanager($parms)
+  public static function aclmanager($parms)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -2400,7 +2400,7 @@ class PageUtils {
    * @access private
    */
    
-  function acl_preprocess($parms)
+  public static function acl_preprocess($parms)
   {
     if ( !isset($parms['mode']) )
       // Nothing to do
@@ -2445,7 +2445,7 @@ class PageUtils {
     return $parms;
   }
   
-  function acl_postprocess($response)
+  public static function acl_postprocess($response)
   {
     if(!isset($response['mode']))
     {

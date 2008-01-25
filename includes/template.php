@@ -132,6 +132,8 @@ class template {
     global $email;
     global $lang;
     
+    profiler_log("template: starting var init");
+    
     if(!$this->theme || !$this->style)
     {
       $this->load_theme();
@@ -791,6 +793,8 @@ class template {
     {
       eval($cmd);
     }
+    
+    profiler_log("template: finished var init");
   }
   
   function header($simple = false) 
@@ -834,10 +838,12 @@ class template {
             </div>';
     }
   }
+  
   function footer($simple = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$this->no_headers) {
+    if ( !$this->no_headers )
+    {
       
       if(!defined('ENANO_HEADERS_SENT'))
         $this->header();
@@ -858,12 +864,20 @@ class template {
       $t = str_replace('[[Stats]]', $dbg, $t);
       $t = str_replace('[[NumQueries]]', (string)$db->num_queries, $t);
       $t = str_replace('[[GenTime]]', (string)$f, $t);
+      
+      if ( defined('ENANO_DEBUG') )
+        $t = str_replace('</body>', '<div id="profile" style="margin: 10px;">' . profiler_make_html() . '</div></body>', $t);
+      
       echo $t;
       
       ob_end_flush();
     }
-    else return '';
+    else
+    {
+      return '';
+    }
   }
+  
   function getHeader()
   {
     $headers_sent = true;

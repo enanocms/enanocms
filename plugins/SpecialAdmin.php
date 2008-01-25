@@ -46,6 +46,7 @@ require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
 require(ENANO_ROOT . '/plugins/admin/GroupManager.php');
 require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
 require(ENANO_ROOT . '/plugins/admin/UserManager.php');
+require(ENANO_ROOT . '/plugins/admin/LangManager.php');
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 

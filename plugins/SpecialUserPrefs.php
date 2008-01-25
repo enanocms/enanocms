@@ -547,8 +547,50 @@ function page_Special_Preferences()
         if ( !$q )
           $db->_die();
         
+        // verify language id
+        $lang_id = strval(intval($_POST['lang_id']));
+        $q = $db->sql_query('SELECT 1 FROM ' . table_prefix . 'language WHERE lang_id = ' . $lang_id . ';');
+        if ( !$q )
+          $db->_die();
+        
+        if ( $db->numrows() > 0 )
+        {
+          $db->free_result();
+          
+          // unload / reload $lang, this verifies that the selected language works
+          unset($GLOBALS['lang']);
+          unset($lang);
+          $lang_id = intval($lang_id);
+          $GLOBALS['lang'] = new Language($lang_id);
+          global $lang;
+          
+          $q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_lang = ' . $lang_id . " WHERE user_id = {$session->user_id};");
+          if ( !$q )
+            $db->_die();
+        }
+        else
+        {
+          $db->free_result();
+        }
+        
         echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_publicinfo_msg_save_success') . '</div>';
       }
+      
+      $lang_box = '<select name="lang_id">';
+      $q = $db->sql_query('SELECT lang_id, lang_name_native FROM ' . table_prefix . "language;");
+      if ( !$q )
+        $db->_die();
+      
+      while ( $row = $db->fetchrow_num() )
+      {
+        list($lang_id, $lang_name) = $row;
+        $lang_name = htmlspecialchars($lang_name);
+        $selected = ( $lang->lang_id == $lang_id ) ? ' selected="selected"' : '';
+        $lang_box .= "<option value=\"$lang_id\"$selected>$lang_name</option>";
+      }
+      
+      $lang_box .= '</select>';
+      
       echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
       ?>
       <div class="tblholder">
@@ -562,6 +604,10 @@ function page_Special_Preferences()
           <tr>
             <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_realname'); ?></td>
             <td class="row1" style="width: 50%;"><input type="text" name="real_name" value="<?php echo $session->real_name; ?>" size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_language') . '<br /><small>' . $lang->get('usercp_publicinfo_field_language_hint') . '</small>'; ?></td>
+            <td class="row1"><?php echo $lang_box; ?></td>
           </tr>
           <tr>
             <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_changetheme_title'); ?></td>

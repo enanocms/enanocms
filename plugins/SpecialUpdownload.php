@@ -70,7 +70,7 @@ function page_Special_UploadFile()
     }
     
     $types = fetch_allowed_extensions();
-    $ext = substr($file['name'], strrpos($file['name'], '.')+1, strlen($file['name']));
+    $ext = strtolower(substr($file['name'], strrpos($file['name'], '.')+1, strlen($file['name'])));
     if ( !isset($types[$ext]) || ( isset($types[$ext]) && !$types[$ext] ) )
     {
       die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_banned_ext', array('ext' => htmlspecialchars($ext))) . '</p>');

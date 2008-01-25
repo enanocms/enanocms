@@ -89,7 +89,8 @@ class Language
     }
     
     $lang_default = ( $x = getConfig('default_language') ) ? intval($x) : '\'def\'';
-    $q = $db->sql_query("SELECT lang_id, lang_code, last_changed, ( lang_id = $lang_default ) AS is_default FROM " . table_prefix . "language WHERE $sql_col OR lang_id = $lang_default ORDER BY is_default DESC LIMIT 1;");
+    
+    $q = $db->sql_query("SELECT lang_id, lang_code, last_changed, ( lang_id = $lang_default ) AS is_default FROM " . table_prefix . "language WHERE $sql_col OR lang_id = $lang_default ORDER BY is_default ASC LIMIT 1;");
     
     if ( !$q )
       $db->_die('lang.php - main select query');
@@ -320,18 +321,7 @@ $lang_cache = ');
     $contents = preg_replace('/\}([^}]+)$/', '}', $contents);
     
     // Correct syntax to be nice to the json parser
-    
-    // eliminate comments
-    $contents = preg_replace(array(
-            // eliminate single line comments in '// ...' form
-            '#^\s*//(.+)$#m',
-            // eliminate multi-line comments in '/* ... */' form, at start of string
-            '#^\s*/\*(.+)\*/#Us',
-            // eliminate multi-line comments in '/* ... */' form, at end of string
-            '#/\*(.+)\*/\s*$#Us'
-          ), '', $contents);
-    
-    $contents = preg_replace('/([,\{\[])([\s]*?)([a-z0-9_]+)([\s]*?):/', '\\1\\2"\\3" :', $contents);
+    $contents = enano_clean_json($contents);
     
     try
     {

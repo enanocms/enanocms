@@ -1292,7 +1292,8 @@ function hex2bin($text)
 function enano_debug_print_backtrace($return = false)
 {
   ob_start();
-  echo '<pre>';
+  if ( !$return )
+    echo '<pre>';
   if ( function_exists('debug_print_backtrace') )
   {
     debug_print_backtrace();
@@ -1301,7 +1302,8 @@ function enano_debug_print_backtrace($return = false)
   {
     echo '<b>Warning:</b> No debug_print_backtrace() support!';
   }
-  echo '</pre>';
+  if ( !$return )
+    echo '</pre>';
   $c = ob_get_contents();
   ob_end_clean();
   if($return) return $c;
@@ -3244,7 +3246,7 @@ function install_language($lang_code, $lang_name_neutral, $lang_name_local, $lan
                          VALUES(
                            \'' . $db->escape($lang_code) . '\',
                            \'' . $db->escape($lang_name_neutral) . '\',
-                           \'' . $db->escape($lang_name_native) . '\'
+                           \'' . $db->escape($lang_name_local) . '\'
                          );');
   if ( !$q )
     $db->_die('functions.php - installing language');
@@ -3277,6 +3279,52 @@ function install_language($lang_code, $lang_name_neutral, $lang_name_local, $lan
     return false;
   }
   return true;
+}
+
+/**
+ * Lists available languages.
+ * @return array Multi-depth. Associative, with children associative containing keys name, name_eng, and dir.
+ */
+
+function list_available_languages()
+{
+  // Pulled from install/includes/common.php
+  
+  // Build a list of available languages
+  $dir = @opendir( ENANO_ROOT . '/language' );
+  if ( !$dir )
+    die('CRITICAL: could not open language directory');
+  
+  $languages = array();
+  
+  while ( $dh = @readdir($dir) )
+  {
+    if ( $dh == '.' || $dh == '..' )
+      continue;
+    if ( file_exists( ENANO_ROOT . "/language/$dh/meta.json" ) )
+    {
+      // Found a language directory, determine metadata
+      $meta = @file_get_contents( ENANO_ROOT . "/language/$dh/meta.json" );
+      if ( empty($meta) )
+        // Could not read metadata file, continue silently
+        continue;
+        
+      // Do some syntax correction on the metadata
+      $meta = enano_clean_json($meta);
+        
+      $meta = enano_json_decode($meta);
+      if ( isset($meta['lang_name_english']) && isset($meta['lang_name_native']) && isset($meta['lang_code']) )
+      {
+        $languages[$meta['lang_code']] = array(
+            'name' => $meta['lang_name_native'],
+            'name_eng' => $meta['lang_name_english'],
+            'dir' => $dh
+          );
+      }
+    }
+  }
+  
+  return $languages;
 }
 
 /**
@@ -3892,6 +3940,140 @@ function enano_json_decode($data)
   
   return Zend_Json::decode($data, Zend_Json::TYPE_ARRAY);
 }
+
+/**
+ * Cleans a snippet of JSON for closer standards compliance (shuts up the picky Zend parser)
+ * @param string Dirty JSON
+ * @return string Clean JSON
+ */
+
+function enano_clean_json($json)
+{
+  // eliminate comments
+  $json = preg_replace(array(
+          // eliminate single line comments in '// ...' form
+          '#^\s*//(.+)$#m',
+          // eliminate multi-line comments in '/* ... */' form, at start of string
+          '#^\s*/\*(.+)\*/#Us',
+          // eliminate multi-line comments in '/* ... */' form, at end of string
+          '#/\*(.+)\*/\s*$#Us'
+        ), '', $json);
+    
+  $json = preg_replace('/([,\{\[])([\s]*?)([a-z0-9_]+)([\s]*?):/', '\\1\\2"\\3" :', $json);
+  
+  return $json;
+}
+
+/**
+ * Starts the profiler.
+ */
+
+function profiler_start()
+{
+  global $_profiler;
+  $_profiler = array();
+  
+  if ( !defined('ENANO_DEBUG') )
+    return false;
+  
+  $_profiler[] = array(
+      'point' => 'Profiling started',
+      'time' => microtime_float(),
+      'backtrace' => false
+    );
+}
+
+/**
+ * Logs something in the profiler.
+ * @param string Point name or message
+ * @param bool Optional. If true (default), a backtrace will be generated and added to the profiler data. False disables this, often for security reasons.
+ */
+
+function profiler_log($point, $allow_backtrace = true)
+{
+  if ( !defined('ENANO_DEBUG') )
+    return false;
+  
+  global $_profiler;
+  $backtrace = false;
+  if ( $allow_backtrace && function_exists('debug_print_backtrace') )
+  {
+    list(, $backtrace) = explode("\n", enano_debug_print_backtrace(true));
+  }
+  $_profiler[] = array(
+      'point' => $point,
+      'time' => microtime_float(),
+      'backtrace' => $backtrace
+    );
+}
+
+/**
+ * Returns the profiler's data (so far).
+ * @return array
+ */
+
+function profiler_dump()
+{
+  return $GLOBALS['_profiler'];
+}
+
+/**
+ * Generates an HTML version of the performance profile. Not localized because only used as a debugging tool.
+ * @return string
+ */
+
+function profiler_make_html()
+{
+  if ( !defined('ENANO_DEBUG') )
+    return '';
+    
+  $profile = profiler_dump();
+  
+  $html = '<div class="tblholder">';
+  $html .= '<table border="0" cellspacing="1" cellpadding="4">';
+  
+  $time_start = $time_last = $profile[0]['time'];
+  
+  foreach ( $profile as $i => $entry )
+  {
+    $html .= "<tr><th colspan=\"2\">Event $i</th></tr>";
+    
+    $html .= '<tr>';
+    $html .= '<td class="row2">Event:</td>';
+    $html .= '<td class="row1">' . htmlspecialchars($entry['point']) . '</td>';
+    $html .= '</tr>';
+    
+    $time = $entry['time'] - $time_start;
+    
+    $html .= '<tr>';
+    $html .= '<td class="row2">Time since start:</td>';
+    $html .= '<td class="row1">' . $time . 's</td>';
+    $html .= '</tr>';
+    
+    $time = $entry['time'] - $time_last;
+    
+    $html .= '<tr>';
+    $html .= '<td class="row2">Time since last event:</td>';
+    $html .= '<td class="row1">' . $time . 's</td>';
+    $html .= '</tr>';
+    
+    if ( $entry['backtrace'] )
+    {
+      $html .= '<tr>';
+      $html .= '<td class="row2">Called from:</td>';
+      $html .= '<td class="row1">' . htmlspecialchars($entry['backtrace']) . '</td>';
+      $html .= '</tr>';
+    }
+    
+    $time_last = $entry['time'];
+  }
+  $html .= '</table></div>';
+  
+  return $html;
+}
+
+// Might as well start the profiler, it has no external dependencies except from this file.
+profiler_start();
 
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 

@@ -131,6 +131,8 @@ class PageProcessor
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
+    profiler_log("PageProcessor [{$namespace}:{$page_id}]: Started constructor");
+    
     // See if we can get some debug info
     if ( function_exists('debug_backtrace') && $this->debug['enable'] )
     {
@@ -148,8 +150,9 @@ class PageProcessor
     if ( !is_int($revision_id) )
       $revision_id = 0;
     
-    $this->_setup( $page_id, $namespace, $revision_id );
+    profiler_log("PageProcessor [{$namespace}:{$page_id}]: Ran initial checks");
     
+    $this->_setup( $page_id, $namespace, $revision_id );
   }
   
   /**
@@ -162,9 +165,12 @@ class PageProcessor
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
+    profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Started send process");
+    
     if ( !$this->perms->get_permissions('read') )
     {
       $this->err_access_denied();
+      profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
       return false;
     }
     $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
@@ -193,6 +199,7 @@ class PageProcessor
           if ( $this->password != $password )
           {
             $this->err_wrong_password();
+            profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
             return false;
           }
         }
@@ -211,7 +218,10 @@ class PageProcessor
       $func_name = "page_{$this->namespace}_{$this->page_id}";
       if ( function_exists($func_name) )
       {
-        return @call_user_func($func_name);
+        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Calling special/admin page");
+        $result = @call_user_func($func_name);
+        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
+        return $result;
       }
       else
       {
@@ -230,6 +240,7 @@ class PageProcessor
           echo "<h2>$title</h2>
                 <p>$message</p>";
         }
+        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
         return false;
       }
     }
@@ -297,6 +308,7 @@ class PageProcessor
       if ( $text == 'err_no_text_rows' )
       {
         $this->err_no_rows();
+        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
         return false;
       }
       else
@@ -327,6 +339,7 @@ class PageProcessor
         }
       }
     }
+    profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
   }
   
   /**
@@ -596,6 +609,7 @@ class PageProcessor
     
     $this->title = get_page_title_ns($this->page_id, $this->namespace);
     
+    profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Ran _setup()");
   }
   
   /**

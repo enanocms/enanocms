@@ -81,6 +81,7 @@ class pathManager {
     $this->addAdminNode('adm_cat_general',    'adm_page_file_types',     'UploadAllowedMimeTypes');
     $this->addAdminNode('adm_cat_general',    'adm_page_plugins',        'PluginManager');
     $this->addAdminNode('adm_cat_general',    'adm_page_db_backup',      'DBBackup');
+    $this->addAdminNode('adm_cat_general',    'adm_page_lang_manager',   'LangManager');
     $this->addAdminNode('adm_cat_content',    'adm_page_manager',        'PageManager');
     $this->addAdminNode('adm_cat_content',    'adm_page_editor',         'PageEditor');
     $this->addAdminNode('adm_cat_content',    'adm_page_pg_groups',      'PageGroups');
@@ -410,6 +411,7 @@ class pathManager {
     }
     
     $session->init_permissions();
+    profiler_log('Paths and CMS core initted');
   }
   
   function add_page($flags)

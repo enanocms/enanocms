@@ -560,6 +560,7 @@ class sessionManager {
       $this->style = 'default';
     }
     
+    profiler_log('Sessions started');
   }
   
   # Logins
@@ -678,7 +679,7 @@ class sessionManager {
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', UNIX_TIMESTAMP(), \'credential\');');
+        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
         $fails++;
         // ooh boy, somebody's in trouble ;-)
         return array(
@@ -791,7 +792,7 @@ class sessionManager {
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', UNIX_TIMESTAMP(), \'credential\');');
+        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
         $fails++;
         return array(
             'success' => false,
@@ -897,7 +898,7 @@ class sessionManager {
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', UNIX_TIMESTAMP(), \'credential\');');
+        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
         $fails++;
         return array(
             'success' => false,
@@ -1002,7 +1003,7 @@ class sessionManager {
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', UNIX_TIMESTAMP(), \'credential\');');
+        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
         $fails++;
         return array(
             'success' => false,

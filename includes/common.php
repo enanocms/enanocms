@@ -121,6 +121,8 @@ require_once(ENANO_ROOT.'/includes/tagcloud.php');
 
 strip_magic_quotes_gpc();
 
+profiler_log('Files included and magic_quotes_gpc reversed if applicable');
+
 // Enano has five main components: the database abstraction layer (DBAL), the session manager,
 // the path/URL manager, the template engine, and the plugin manager.
 // Each part has its own class and a global object; nearly all Enano functions are handled by one of these five components.
@@ -163,6 +165,8 @@ if ( !isset($dbdriver) )
 $db = new $dbdriver();
 $db->connect();
 
+profiler_log('Database connected');
+
 // The URL separator is the character appended to contentPath + url_title type strings.
 // If the contentPath has a ? in it, this should be an ampersand; else, it should be a
 // question mark.
@@ -203,6 +207,8 @@ while($r = $db->fetchrow())
 
 $db->free_result();
 
+profiler_log('Config fetched');
+
 // Now that we have the config, check the Enano version.
 if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
 {
@@ -240,7 +246,7 @@ else if ( $ks = getConfig('aes_block_size') )
 }
 
 // Is there no default language?
-if ( getConfig('lang_default') === false && !defined('IN_ENANO_MIGRATION') )
+if ( getConfig('default_language') === false && !defined('IN_ENANO_MIGRATION') )
 {
   $q = $db->sql_query('SELECT lang_id FROM '.table_prefix.'language LIMIT 1;');
   if ( !$q )
@@ -260,6 +266,8 @@ install_language("eng", "English", "English", ENANO_ROOT . "/language/english/en
   setConfig('default_language', $row['lang_id']);
 }
 
+profiler_log('Ran checks');
+
 // Load plugin manager
 $plugins = new pluginLoader();
 
@@ -278,11 +286,15 @@ foreach ( $plugins->load_list as $f )
   include_once $f;
 }
 
+profiler_log('Loaded plugins');
+
 // Three fifths of the Enano API gets the breath of life right here.
 $session = new sessionManager();
 $paths = new pathManager();
 $template = new template();
 $email = new EmailEncryptor();
+
+profiler_log('Instanciated important singletons');
 
 // We've got the five main objects - flick on the switch so if a problem occurs, we can have a "friendly" UI
 define('ENANO_BASE_CLASSES_INITIALIZED', '');
@@ -301,6 +313,8 @@ if ( !defined('IN_ENANO_INSTALL') )
     eval($cmd);
   }
   
+  profiler_log('Finished base_classes_initted hook');
+  
   // For special and administration pages, sometimes there is a "preloader" function that must be run
   // before the session manager and/or path manager get the init signal. Call it here.  
   $p = RenderMan::strToPageId($paths->get_pageid_from_url());
@@ -308,6 +322,8 @@ if ( !defined('IN_ENANO_INSTALL') )
   {
     @call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
   }
+  
+  profiler_log('Checked for preloader');
   
   // One quick security check...
   if ( !is_valid_ip($_SERVER['REMOTE_ADDR']) )
@@ -327,6 +343,8 @@ if ( !defined('IN_ENANO_INSTALL') )
   {
     eval($cmd);
   }
+  
+  profiler_log('Ran session_started hook');
   
   $paths->init();
   
@@ -369,9 +387,13 @@ if ( !defined('IN_ENANO_INSTALL') )
     eval($cmd);
   }
   
+  profiler_log('Ran disabled-site checks and common_post');
+  
   if ( isset($_GET['noheaders']) )
     $template->no_headers = true;
 }
+
+profiler_log('common finished');
 
 // That's the end. Enano should be loaded now :-)
 

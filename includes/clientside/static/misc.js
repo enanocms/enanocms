@@ -325,7 +325,7 @@ function ajaxAuthErrorToString($data)
     case 'invalid_credentials':
       $errstring = $lang.get('user_err_invalid_credentials');
       var subst = {
-        lockout_fails: $data.lockout_fails,
+        fails: $data.lockout_fails,
         lockout_threshold: $data.lockout_threshold,
         lockout_duration: $data.lockout_duration
       }

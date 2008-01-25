@@ -13,8 +13,8 @@
 var enano_lang = {
   categories: [
     'meta', 'adm', 'acl', 'adminusers',
-    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl', 'acpbc',
-    'acplo', 'sbedit',
+    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acplm', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl',
+    'acpbc', 'acplo', 'sbedit',
   ],
   strings: {
     meta: {
@@ -26,6 +26,7 @@ var enano_lang = {
       acpft: 'ACP: Allowed file types',
       acppl: 'ACP: Manage plugins',
       acpdb: 'ACP: Database backup',
+      acplm: 'ACP: Language manager',
       acppm: 'ACP: Manage pages',
       acped: 'ACP: Edit page content',
       acppg: 'ACP: Page groups',
@@ -51,6 +52,7 @@ var enano_lang = {
       page_file_types: 'Allowed file types',
       page_plugins: 'Manage plugins',
       page_db_backup: 'Backup database',
+      page_lang_manager: 'Language manager',
       
       page_manager: 'Manage pages',
       page_editor: 'Edit page content',
@@ -439,6 +441,14 @@ var enano_lang = {
       lbl_include_structure: 'Include table structure',
       lbl_include_data: 'Include table data',
       btn_create_backup: 'Create backup',
+    },
+    acplm: {
+      heading_install: 'Languages available for installation',
+      col_lang_code: 'ID',
+      col_lang_name: 'Language name (native)',
+      col_lang_name_eng: 'Language name (English)',
+      btn_install_language: 'Install',
+      msg_lang_install_success: 'The language pack %lang_name% has been installed.',
     },
     acppg: {
       // Main menu
