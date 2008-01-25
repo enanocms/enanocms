@@ -1276,7 +1276,8 @@ class sessionManager {
     $user_extra = array();
     foreach ( array('user_aim', 'user_yahoo', 'user_msn', 'user_xmpp', 'user_homepage', 'user_location', 'user_job', 'user_hobbies', 'email_public') as $column )
     {
-      $user_extra[$column] = $row[$column];
+      if ( isset($row[$column]) )
+        $user_extra[$column] = $row[$column];
     }
     
     $this->user_extra = $user_extra;
