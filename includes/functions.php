@@ -2739,7 +2739,7 @@ function gzip_output()
     $gzip_contents = ob_get_contents();
     ob_end_clean();
     
-    $return = ob_gzhandler($gzip_contents);
+    $return = @ob_gzhandler($gzip_contents);
     if ( $return )
     {
       header('Content-encoding: gzip');
