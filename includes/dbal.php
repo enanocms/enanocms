@@ -462,7 +462,7 @@ class mysql {
       $this->disable_errorhandler();
       return null;
     }
-    mysql_free_result($result);
+    @mysql_free_result($result);
     $this->disable_errorhandler();
     return null;
   }
@@ -482,7 +482,7 @@ class mysql {
     if(!$this->_conn) return false;
     if(!$r) $r = $this->latest_result;
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
-    mysql_free_result($r);
+    @mysql_free_result($r);
   }
   function sql_numrows($r = false)
   {
@@ -1208,7 +1208,7 @@ class postgresql {
       $this->disable_errorhandler();
       return null;
     }
-    pg_free_result($result);
+    @pg_free_result($result);
     $this->disable_errorhandler();
     return null;
   }
