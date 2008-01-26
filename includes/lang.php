@@ -360,26 +360,33 @@ $lang_cache = ');
     }
     
     $delete_list = implode(" OR\n  ", $delete_list);
-    $sql = "DELETE FROM " . table_prefix . "language_strings WHERE $delete_list;";
     
-    // Free some memory
-    unset($delete_list);
+    if ( !empty($delete_list) )
+    {
+      $sql = "DELETE FROM " . table_prefix . "language_strings WHERE $delete_list;";
+      
+      // Free some memory
+      unset($delete_list);
+      
+      // Run the query
+      $q = $db->sql_query($sql);
+      if ( !$q )
+        $db->_die('lang.php - couldn\'t kill off them old strings');
+    }
     
-    // Run the query
-    $q = $db->sql_query($sql);
-    if ( !$q )
-      $db->_die('lang.php - couldn\'t kill off them old strings');
-    
-    $insert_list = implode(",\n  ", $insert_list);
-    $sql = "INSERT INTO " . table_prefix . "language_strings(lang_id, string_category, string_name, string_content) VALUES\n  $insert_list;";
-    
-    // Free some memory
-    unset($insert_list);
-    
-    // Run the query
-    $q = $db->sql_query($sql);
-    if ( !$q )
-      $db->_die('lang.php - couldn\'t insert strings in import()');
+    if ( !empty($insert_list) )
+    {
+      $insert_list = implode(",\n  ", $insert_list);
+      $sql = "INSERT INTO " . table_prefix . "language_strings(lang_id, string_category, string_name, string_content) VALUES\n  $insert_list;";
+      
+      // Free some memory
+      unset($insert_list);
+      
+      // Run the query
+      $q = $db->sql_query($sql);
+      if ( !$q )
+        $db->_die('lang.php - couldn\'t insert strings in import()');
+    }
     
     // YAY! done!
     // This will regenerate the cache file if possible.

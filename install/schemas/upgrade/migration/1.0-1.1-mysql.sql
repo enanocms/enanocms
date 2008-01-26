@@ -13,6 +13,8 @@
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_lang smallint(5) NOT NULL;
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_has_avatar tinyint(1) NOT NULL;
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN avatar_type ENUM('jpg', 'png', 'gif') NOT NULL;
+ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_registration_ip varchar(39);
+ALTER TABLE {{TABLE_PREFIX}}comments ADD COLUMN ip_address varchar(39);
 
 CREATE TABLE {{TABLE_PREFIX}}lockout(
   id int(12) NOT NULL auto_increment,

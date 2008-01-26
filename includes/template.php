@@ -1981,7 +1981,8 @@ class template_nodb
       'STYLE_ID'=>$this->style,
       'JS_DYNAMIC_VARS'=>$js_dynamic,
       'SIDEBAR_RIGHT'=>'',
-      'REPORT_URI' => ''
+      'REPORT_URI' => '',
+      'URL_ABOUT_ENANO' => 'http://enanocms.org/'
       );
     $this->tpl_strings = array_merge($tpl_strings, $this->tpl_strings);
     

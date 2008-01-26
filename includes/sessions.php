@@ -894,7 +894,7 @@ class sessionManager {
         $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
       
       // Do we also need to increment the lockout countdown?
-      if ( $policy != 'disable' && !defined('IN_ENANO_INSTALL') )
+      if ( @$policy != 'disable' && !defined('IN_ENANO_INSTALL') )
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
@@ -1166,10 +1166,10 @@ class sessionManager {
       $this->style = ( isset($_GET['style']) && file_exists(ENANO_ROOT.'/themes/'.$this->theme . '/css/'.$_GET['style'].'.css' )) ? $_GET['style'] : substr($template->named_theme_list[$this->theme]['default_style'], 0, strlen($template->named_theme_list[$this->theme]['default_style'])-4);
     }
     $this->user_id = 1;
+    // This is a VERY special case we are allowing. It lets the installer create languages using the Enano API.
     if ( !defined('ENANO_ALLOW_LOAD_NOLANG') )
     {
-      // This is a VERY special case we are allowing. It lets the installer create languages using the Enano API.
-      $language = intval(getConfig('default_language'));
+      $language = ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) ) ? $_GET['lang'] : intval(getConfig('default_language'));
       $lang = new Language($language);
     }
   }
@@ -3120,7 +3120,7 @@ class Session_ACLPageInfo {
     {
       if ( isset($perm[$i]) )
       {
-        if ( $is_everyone && !$this->acl_defaults_used[$i] )
+        if ( $is_everyone && !@$this->acl_defaults_used[$i] )
           continue;
         // Decide precedence
         if ( isset($this->acl_defaults_used[$i]) )

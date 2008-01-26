@@ -435,12 +435,12 @@ function __aclJSONSubmitAjaxHandler(params)
             note.appendChild(document.createElement('br'));
             var a = document.createElement('a');
             a.href = '#';
-            a.onclick = function(e) { alert('ONCLICK'); return false; };
+            a.onclick = function(e) { this.parentNode.parentNode.removeChild(this.parentNode); return false; };
             a.appendChild(document.createTextNode('[ ' + $lang.get('acl_btn_success_dismiss') + ' :'));
             note.appendChild(a);
             var a2 = document.createElement('a');
             a2.href = '#';
-            a2.onclick = function(e) { alert('ONCLICK'); return false; };
+            a2.onclick = function(e) { killACLManager(); return false; };
             a2.appendChild(document.createTextNode(': ' + $lang.get('acl_btn_success_close') + ' ]'));
             note.appendChild(a2);
             document.getElementById(aclManagerID + '_main').insertBefore(note, document.getElementById(aclManagerID + '_main').firstChild);

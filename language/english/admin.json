@@ -40,6 +40,8 @@ var enano_lang = {
       sbedit: 'Sidebar editor',
     },
     adm: {
+      page_tagline: 'Administer your Enano website.',
+      
       cat_general: 'General',
       cat_content: 'Content',
       cat_appearance: 'Appearance',
@@ -487,7 +489,7 @@ var enano_lang = {
       
       // Backup interface
       heading_backup: 'Backup language',
-      backup_intro: 'You can back up this language to make preserving custom strings easier if you ever migrate your Enano installation or re-install. Backed-up language files can be restored by using FTP or equivalent to copy the backup file to the language\'s folder and renaming it to "backup.json".',
+      backup_intro: 'You can back up this language to make preserving custom strings easier if you ever migrate your Enano installation or re-install. Backed-up language files can be restored by using FTP or equivalent to copy the backup file to the language\'s folder, renaming it to "backup.json", and re-importing the language.',
       btn_create_backup: 'Download backup',
       
       // Uninstaller

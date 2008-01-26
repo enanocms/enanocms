@@ -438,6 +438,7 @@ var enano_lang = {
       upload_files: 'Upload files',
       upload_new_version: 'Upload new versions of files',
       create_page: 'Create pages',
+      html_in_pages: 'Embed unrestricted HTML in pages',
       php_in_pages: 'Embed PHP code in pages',
       edit_acl: 'Edit access control lists',
     },
@@ -511,6 +512,8 @@ var enano_lang = {
       wizard_next: 'Next >',
       wizard_back: '< Back',
       wizard_previous: '< Previous',
+      // Generic link to main page
+      btn_main_page: 'Main page',
       // Generic switchable editor buttons
       tinymce_btn_text: 'text editor',
       tinymce_btn_graphical: 'graphical editor',

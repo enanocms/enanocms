@@ -574,6 +574,7 @@
       'nowiki'     => array(),
       'noinclude'  => array(),
       'nodisplay'  => array(),
+      'lang'       => array('code'),
       
       # XHTML stuff
       'acronym'    => $common

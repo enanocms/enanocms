@@ -59,7 +59,7 @@ var enano_lang = {
       err_too_big_for_britches: 'You are trying to authenticate at a level that your user account does not permit.',
       err_invalid_credentials: 'You have entered an invalid username or password. Please enter your login details again.',
       err_invalid_credentials_lockout: ' You have used up %fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will be locked out from logging in for %config.lockout_duration% minutes.',
-      err_invalid_credentials_lockout_captcha: ' You have used up %lockout_fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will have to enter a visual confirmation code while logging in, effective for %config.lockout_duration% minutes.',
+      err_invalid_credentials_lockout_captcha: ' You have used up %fails% out of %config.lockout_threshold% login attempts. After you have used up all %config.lockout_threshold% login attempts, you will have to enter a visual confirmation code while logging in, effective for %config.lockout_duration% minutes.',
       err_backend_fail: 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.',
       err_locked_out: 'You have used up all %config.lockout_threshold% allowed login attempts. Please wait %time_rem% minute%plural% before attempting to log in again%captcha_blurb%.',
       err_locked_out_captcha_blurb: ', or enter the visual confirmation code shown above in the appropriate box',
@@ -528,6 +528,7 @@ The %site_name% administration team
       ml_msg_matches: 'Search returned %matches% matches',
     },
     userpage: {
+      page_title: '%username%\'s user page',
       heading_basics: 'All about %username%',
       lbl_joined: 'Joined:',
       lbl_num_comments: 'Total comments:',

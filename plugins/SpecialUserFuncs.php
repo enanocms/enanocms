@@ -1071,7 +1071,7 @@ function page_Special_Contributions() {
       echo '    <th>' . $lang->get('history_col_actions') . '</th>
               </tr>';
     }
-    ++$$current;
+    $$current++;
     $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
     
     echo '<tr>';
@@ -1162,7 +1162,10 @@ function page_Special_Contributions() {
   if ( $current == 'cnt_edits' )
   {
     // no "other" edits, close the table
-    echo '</table></div>';
+    if ( $cnt_edits > 0 )
+      echo '</table></div>';
+    else
+      echo '<p>' . $lang->get('userfuncs_contribs_msg_no_edits') . '</p>';
     echo '<h3>' . $lang->get('userfuncs_contribs_heading_other') . '</h3>';
     echo '<p>' . $lang->get('userfuncs_contribs_msg_no_other') . '</p>';
   }

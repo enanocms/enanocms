@@ -215,6 +215,8 @@ class RenderMan {
   public static function next_gen_wiki_format($text, $plaintext = false, $filter_links = true, $do_params = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     $random_id = md5( time() . mt_rand() );
     
     // Strip out <nowiki> sections and PHP code
@@ -237,6 +239,19 @@ class RenderMan {
     if ( $paths->namespace == 'Template' )
     {
       $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
+    }
+    
+    preg_match_all('/<lang code="([a-z0-9_]+)">([\w\W]+?)<\/lang>/', $text, $langmatch);
+    foreach ( $langmatch[0] as $i => $match )
+    {
+      if ( $langmatch[1][$i] == $lang->lang_code )
+      {
+        $text = str_replace_once($match, $langmatch[2][$i], $text);
+      }
+      else
+      {
+        $text = str_replace_once($match, '', $text);
+      }
     }
     
     $code = $plugins->setHook('render_wikiformat_pre');
@@ -618,8 +633,13 @@ class RenderMan {
     $random_id = md5( time() . mt_rand() );
     
     $can_do_php = ( $session->get_permissions('php_in_pages') && !$strip_all_php );
+    $can_do_html = $session->get_permissions('html_in_pages');
     
-    if ( !$can_do_php )
+    if ( $can_do_html && !$can_do_php )
+    {
+      $text = preg_replace('#<(\?|\?php|%)(.*?)(\?|%)>#is', '&lt;\\1\\2\\3&gt;', $text);
+    }
+    else if ( !$can_do_html && !$can_do_php )
     {
       $text = sanitize_html($text, true);
       // If we can't do PHP, we can't do Javascript either.
@@ -825,7 +845,7 @@ class RenderMan {
     $taglist = array();
     
     // Wicked huh?
-    $regex = '/\[\[:' . $paths->nslist['File'] . '([\w\s0-9_\(\)!@%\^\+\|\.-]+?)((\|thumb)|(\|([0-9]+)x([0-9]+)))?(\|left|\|right)?(\|raw|\|(.+))?\]\]/i';
+    $regex = '/\[\[:' . str_replace('/', '\\/', preg_quote($paths->nslist['File'])) . '([\w\s0-9_\(\)!@%\^\+\|\.-]+?)((\|thumb)|(\|([0-9]+)x([0-9]+)))?(\|left|\|right)?(\|raw|\|(.+))?\]\]/i';
     
     preg_match_all($regex, $text, $matches);
     

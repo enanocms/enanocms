@@ -905,13 +905,12 @@ class PageProcessor
         '>' => '&gt;'
         ));
     
-    $target_username = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $target_username);
-    $target_username = explode('/', $target_username);
-    $target_username = $target_username[0];
+    $target_username = preg_replace('/^' . str_replace('/', '\\/', preg_quote($paths->nslist['User'])) . '/', '', $target_username);
+    list($target_username) = explode('/', $target_username);
     
     if ( ( $page_name == str_replace('_', ' ', $this->page_id) || $page_name == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) ) || !$this->page_exists )
     {
-      $page_name = "$target_username's user page";
+      $page_name = $lang->get('userpage_page_title', array('username' => htmlspecialchars($target_username)));
     }
     else
     {

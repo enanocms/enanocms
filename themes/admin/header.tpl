@@ -17,10 +17,10 @@
     <div id="header">
       <div class="sitename">{SITE_NAME}</div>
       <!-- div class="menulink"><a href="#" onclick="adminOpenMenu('sidebar', this); return false;">expand menu</a></div -->
-      [&nbsp;<a href="{SCRIPTPATH}/{ADMIN_SID_QUES}">Main page &#0187;</a>&nbsp;]
+      [&nbsp;<a href="{SCRIPTPATH}/{ADMIN_SID_QUES}">{lang:etc_btn_main_page} &#0187;</a>&nbsp;]
     </div>
     <div class="menu_nojs" id="pagebar_main">
-      <div class="label">Page tools</div>
+      <div class="label">{lang:onpage_lbl_pagetools}</div>
       {TOOLBAR}
       <ul>
         {TOOLBAR_EXTRAS}

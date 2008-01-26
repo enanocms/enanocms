@@ -72,7 +72,8 @@ class pathManager {
     $session->register_acl_type('upload_files',           AUTH_DISALLOW, 'perm_upload_files',           Array('create_page'),                                     'Article|User|Project|Template|File|Help|System|Category|Special');
     $session->register_acl_type('upload_new_version',     AUTH_WIKIMODE, 'perm_upload_new_version',     Array('upload_files'),                                    'Article|User|Project|Template|File|Help|System|Category|Special');
     $session->register_acl_type('create_page',            AUTH_WIKIMODE, 'perm_create_page',            Array(),                                                  'Article|User|Project|Template|File|Help|System|Category|Special');
-    $session->register_acl_type('php_in_pages',           AUTH_DISALLOW, 'perm_php_in_pages',           Array('edit_page'),                                       'Article|User|Project|Template|File|Help|System|Category|Admin');
+    $session->register_acl_type('html_in_pages',          AUTH_DISALLOW, 'perm_html_in_pages',          Array('edit_page'),                                       'Article|User|Project|Template|File|Help|System|Category|Admin');
+    $session->register_acl_type('php_in_pages',           AUTH_DISALLOW, 'perm_php_in_pages',           Array('edit_page', 'html_in_pages'),                      'Article|User|Project|Template|File|Help|System|Category|Admin');
     $session->register_acl_type('edit_acl',               AUTH_DISALLOW, 'perm_edit_acl',               Array('read', 'post_comments', 'edit_comments', 'edit_page', 'view_source', 'mod_comments', 'history_view', 'history_rollback', 'history_rollback_extra', 'protect', 'rename', 'clear_logs', 'vote_delete', 'vote_reset', 'delete_page', 'set_wiki_mode', 'password_set', 'password_reset', 'mod_misc', 'edit_cat', 'even_when_protected', 'upload_files', 'upload_new_version', 'create_page', 'php_in_pages'));
     
     // DO NOT add new admin pages here! Use a plugin to call $paths->addAdminNode();
@@ -101,6 +102,32 @@ class pathManager {
     
     $this->wiki_mode = (int)getConfig('wiki_mode')=='1';
     $this->template_cache = Array();
+  }
+  function parse_url($sanitize = true)
+  {
+    $title = '';
+    if( isset($_GET['title']) )
+    {
+      $title = $_GET['title'];
+    }
+    elseif( isset($_SERVER['PATH_INFO']) )
+    {
+      $title = substr($_SERVER['PATH_INFO'], ( strpos($_SERVER['PATH_INFO'], '/') ) + 1 );
+    }
+    else
+    {
+      // This method really isn't supported because apache has a habit of passing dots as underscores, thus corrupting the request
+      // If you really want to try it, the URI format is yoursite.com/?/Page_title
+      if ( count($_GET) > 0 )
+      {
+        list($getkey) = array_keys($_GET);
+        if ( substr($getkey, 0, 1) == '/' )
+        {
+          $title = substr($getkey, 1);
+        }
+      }
+    }
+    return ( $sanitize ) ? sanitize_page_id($title) : $title;
   }
   function init()
   {
@@ -148,105 +175,38 @@ class pathManager {
     $db->free_result();
     if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') || defined('IN_ENANO_UPGRADE') )
     {
-      if( isset($_GET['title']) )
+      $title = $this->parse_url(false);
+      if ( empty($title) )
       {
-        if ( $_GET['title'] == '' && getConfig('main_page') != '' )
-        {
-          $this->main_page();
-        }
-        if(strstr($_GET['title'], ' '))
-        {
-          $loc = urldecode(rawurldecode($_SERVER['REQUEST_URI']));
-          $loc = str_replace(' ', '_', $loc);
-          $loc = str_replace('+', '_', $loc);
-          $loc = str_replace('%20', '_', $loc);
-          redirect($loc, 'Redirecting...', 'Space detected in the URL, please wait whilst you are redirected', 0);
-          exit;
-        }
-        $url_namespace_special = substr($_GET['title'], 0, strlen($this->nslist['Special']) );
-        $url_namespace_template = substr($_GET['title'], 0, strlen($this->nslist['Template']) );
-        if($url_namespace_special == $this->nslist['Special'] || $url_namespace_template == $this->nslist['Template'] )
-        {
-          $ex = explode('/', $_GET['title']);
-          $this->page = $ex[0];
-        }
-        else
-        {
-          $this->page = $_GET['title'];
-        }
-        $this->fullpage = $_GET['title'];
+        $this->main_page();
       }
-      elseif( isset($_SERVER['PATH_INFO']) )
+      if ( strstr($title, ' ') || strstr($title, '+') || strstr($title, '%20') )
       {
-        $pi = explode('/', $_SERVER['PATH_INFO']);
-        
-        if( !isset($pi[1]) || (isset($pi[1]) && $pi[1] == '' && getConfig('main_page') != '') )
-        {
-          $this->main_page();
-        }
-        if( strstr($pi[1], ' ') )
-        {
-          $loc = str_replace(' ', '_', urldecode(rawurldecode($_SERVER['REQUEST_URI'])));
-          $loc = str_replace('+', '_', $loc);
-          $loc = str_replace('%20', '_', $loc);
-          redirect($loc, 'Redirecting...', 'Please wait whilst you are redirected', 3);
-          exit;
-        }
-        unset($pi[0]);
-        if( substr($pi[1], 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] || substr($pi[1], 0, strlen($this->nslist['Template'])) == $this->nslist['Template'] )
-        {
-          $pi2 = $pi[1];
-        }
-        else
-        {
-          $pi2 = implode('/', $pi);
-        }
-        $this->page = $pi2;
-        $this->fullpage = implode('/', $pi);
+        $title = sanitize_page_id($title);
+        redirect(makeUrl($title), '', '', 0);
       }
-      else
+      $title = sanitize_page_id($title);
+      // We've got the title, pull the namespace from it
+      $namespace = 'Article';
+      $page_id = $title;
+      foreach ( $this->nslist as $ns => $prefix )
       {
-        $k = array_keys($_GET);
-        foreach($k as $c)
+        $prefix_len = strlen($prefix);
+        if ( substr($title, 0, $prefix_len) == $prefix )
         {
-          if(substr($c, 0, 1) == '/')
-          {
-            $this->page = substr($c, 1, strlen($c));
-            
-            // Bugfix for apache somehow passing dots as underscores
-            global $mime_types;
-            
-            $exts = array_keys($mime_types);
-            $exts = '(' . implode('|', $exts) . ')';
-            
-            if ( preg_match( '#_'.$exts.'#i', $this->page ) )
-            {
-              $this->page = preg_replace( '#_'.$exts.'#i', '.\\1', $this->page );
-            }
-            
-            $this->fullpage = $this->page;
-            
-            if(substr($this->page, 0, strlen($this->nslist['Special']))==$this->nslist['Special'] || substr($this->page, 0, strlen($this->nslist['Template']))==$this->nslist['Template'])
-            {
-              $ex = explode('/', $this->page);
-              $this->page = $ex[0];
-            }
-            if(strstr($this->page, ' '))
-            {
-              $loc = str_replace(' ', '_', urldecode(rawurldecode($_SERVER['REQUEST_URI'])));
-              $loc = str_replace('+', '_', $loc);
-              $loc = str_replace('%20', '_', $loc);
-              redirect($loc, 'Redirecting...', 'Space in the URL detected, please wait whilst you are redirected', 0);
-              exit;
-            }
-            break;
-          }
-        }
-        if(!$this->page && !($this->page == '' && getConfig('main_page') == ''))
-        {
-          $this->main_page();
+          $page_id = substr($title, $prefix_len);
+          $namespace = $ns;
         }
       }
+      $this->namespace = $namespace;
+      $this->fullpage = $title;
+      if ( $namespace == 'Special' || $namespace == 'Admin' )
+      {
+        list($page_id) = explode('/', $page_id);
+      }
+      $this->page = $this->nslist[$namespace] . $page_id;
+      $this->page_id = $page_id;
+      // die("All done setting parameters. What we've got:<br/>namespace: $namespace<br/>fullpage: $this->fullpage<br/>page: $this->page<br/>page_id: $this->page_id");
     }
     else
     {
@@ -469,71 +429,7 @@ class pathManager {
   }
   function get_pageid_from_url()
   {
-    if(isset($_GET['title']))
-    {
-      if( $_GET['title'] == '' && getConfig('main_page') != '' )
-      {
-        $this->main_page();
-      }
-      if(strstr($_GET['title'], ' '))
-      {
-        $loc = urldecode(rawurldecode($_SERVER['REQUEST_URI']));
-        $loc = str_replace(' ', '_', $loc);
-        $loc = str_replace('+', '_', $loc);
-        header('Location: '.$loc);
-        exit;
-      }
-      $ret = $_GET['title'];
-      if ( substr($ret, 0, strlen($this->nslist['Special'])) === $this->nslist['Special'] ||
-           substr($ret, 0, strlen($this->nslist['Admin'])) === $this->nslist['Admin'] )
-      {
-        list($ret) = explode('/', $ret);
-      }
-    }
-    elseif(isset($_SERVER['PATH_INFO']))
-    {
-      $pi = explode('/', $_SERVER['PATH_INFO']);
-      
-      if(!isset($pi[1]) || (isset($pi[1]) && $pi[1] == ''))
-      {
-        return false;
-      }
-      
-      if(strstr($pi[1], ' '))
-      {
-        $loc = urldecode(rawurldecode($_SERVER['REQUEST_URI']));
-        $loc = str_replace(' ', '_', $loc);
-        $loc = str_replace('+', '_', $loc);
-        header('Location: '.$loc);
-        exit;
-      }
-      if( !( substr($pi[1], 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] ) )
-      {
-        unset($pi[0]);
-        $pi[1] = implode('/', $pi);
-      }
-      $ret = $pi[1];
-    }
-    else
-    {
-      $k = array_keys($_GET);
-      foreach($k as $c)
-      {
-        if(substr($c, 0, 1) == '/')
-        {
-          $ret = substr($c, 1, strlen($c));
-          if(substr($ret, 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] ||
-             substr($ret, 0, strlen($this->nslist['Admin'])) == $this->nslist['Admin'])
-          {
-            $ret = explode('/', $ret);
-            $ret = $ret[0];
-          }
-          break;
-        }
-      }
-    }
-    
-    return ( isset($ret) ) ? $ret : false;
+    return $this->parse_url();
   }
   // Parses a (very carefully formed) array into Javascript code compatible with the Tigra Tree Menu used in the admin menu
   function parseAdminTree() 
@@ -580,80 +476,22 @@ class pathManager {
   }
   function getParam($id = 0)
   {
-    // using !empty here is a bugfix for IIS 5.x on Windows 2000 Server
-    // It may affect other IIS versions as well
-    if(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO']))
-    {
-      $pi = explode('/', $_SERVER['PATH_INFO']);
-      $id = $id + 2;
-      return isset($pi[$id]) ? $pi[$id] : false;
-    }
-    else if( isset($_GET['title']) )
-    {
-      $pi = explode('/', $_GET['title']);
-      $id = $id + 1;
-      return isset($pi[$id]) ? $pi[$id] : false;
-    }
-    else
-    {
-      $k = array_keys($_GET);
-      foreach($k as $c)
-      {
-        if(substr($c, 0, 1) == '/')
-        {
-          // Bugfix for apache somehow passing dots as underscores
-          global $mime_types;
-          $exts = array_keys($mime_types);
-          $exts = '(' . implode('|', $exts) . ')';
-          if ( preg_match( '#_'.$exts.'#i', $c ) )
-            $c = preg_replace( '#_'.$exts.'#i', '.\\1', $c );
-          
-          $pi = explode('/', $c);
-          $id = $id + 2;
-          return isset($pi[$id]) ? $pi[$id] : false;
-        }
-      }
-      return false;
-    }
+    $title = $this->parse_url(false);
+    $regex = '/^' . str_replace('/', '\\/', preg_quote($this->nslist[$this->namespace])) . '\\/?/';
+    $title = preg_replace($regex, '', $title);
+    $title = explode('/', $title);
+    $id = $id + 1;
+    return ( isset($title[$id]) ) ? $title[$id] : false;
   }
   
   function getAllParams()
   {
-    // using !empty here is a bugfix for IIS 5.x on Windows 2000 Server
-    // It may affect other IIS versions as well
-    if(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO']))
-    {
-      $pi = explode('/', $_SERVER['PATH_INFO']);
-      unset($pi[0], $pi[1]);
-      return implode('/', $pi);
-    }
-    else if( isset($_GET['title']) )
-    {
-      $pi = explode('/', $_GET['title']);
-      unset($pi[0]);
-      return implode('/', $pi);
-    }
-    else
-    {
-      $k = array_keys($_GET);
-      foreach($k as $c)
-      {
-        if(substr($c, 0, 1) == '/')
-        {
-          // Bugfix for apache somehow passing dots as underscores
-          global $mime_types;
-          $exts = array_keys($mime_types);
-          $exts = '(' . implode('|', $exts) . ')';
-          if ( preg_match( '#_'.$exts.'#i', $c ) )
-            $c = preg_replace( '#_'.$exts.'#i', '.\\1', $c );
-          
-          $pi = explode('/', $c);
-          unset($pi[0], $pi[1]);
-          return implode('/', $pi);
-        }
-      }
-      return false;
-    }
+    $title = $this->parse_url(false);
+    $regex = '/^' . str_replace('/', '\\/', preg_quote($this->nslist[$this->namespace])) . '\\/?/';
+    $title = preg_replace($regex, '', $title);
+    $title = explode('/', $title);
+    unset($title[0]);
+    return implode('/', $title);
   }
   
   /**

@@ -159,7 +159,13 @@
           <td id="mdg-bl"></td>
           <td class="menu_bg">
           <div class="menu_nojs" id="pagebar_main">
-            <div class="label">{lang:onpage_lbl_pagetools}</div>
+            <div class="label">
+              <!-- BEGIN stupid_mode -->
+              Page tools
+              <!-- BEGINELSE stupid_mode -->
+              {lang:onpage_lbl_pagetools}
+              <!-- END stupid_mode -->
+            </div>
             {TOOLBAR}
             <ul>
               {TOOLBAR_EXTRAS}

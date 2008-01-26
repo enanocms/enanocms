@@ -16,6 +16,16 @@
 
 define('IN_ENANO', 1);
 
+// Turn on every imaginable API hack to make common load on older databases
+define('IN_ENANO_UPGRADE', 1);
+define('IN_ENANO_MIGRATION', 1);
+define('ENANO_ALLOW_LOAD_NOLANG', 1);
+@ini_set('display_errors', 'on');
+
+require('includes/sql_parse.php');
+
+require_once('includes/common.php');
+// when the installer's common is loaded, it runs chdir() to the ENANO_ROOT, thus making this Enano's common.php
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');
 
@@ -70,6 +80,83 @@ if ( version_compare(PHP_VERSION, '5.0.0', '<') || isset($_GET['debug_warn_php4'
   exit(0);
 }
 
+// Version check
+if ( enano_version() == installer_enano_version() )
+{
+  $ui->show_header();
+  echo '<h3>Already upgraded</h3>' . '<p>You don\'t need to migrate, you\'re already on <del>crack</del> the 1.1 platform.</p>';
+  $ui->show_footer();
+  exit();
+}
+
+// Start session manager
+$session->start();
+if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_level < USER_LEVEL_ADMIN ) )
+{
+  if ( isset($_POST['do_login']) )
+  {
+    if ( !$session->user_logged_in )
+    {
+      $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_MEMBER);
+    }
+    $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_ADMIN);
+    if ( $result['success'] )
+    {
+      header('HTTP/1.1 302 Some kind of redirect with implied no content');
+      header('Location: ' . scriptPath . '/install/' . $session->append_sid('upgrade.php'));
+      exit();
+    }
+  }
+  
+  $ui->show_header();
+  
+  ?>
+  <h3>Authentication needed</h3>
+  <?php
+  
+  echo '<form action="upgrade.php" method="post">';
+  
+  if ( isset($result) )
+  {
+    echo '<b>Session manager returned error: ' . $result['error'] . '</b>';
+  }
+  
+  ?>
+  <p>You need an active admin session to continue.</p>
+  <p>
+    Username:&nbsp;&nbsp;&nbsp;<input type="text" name="username" /><br />
+    Password:&nbsp;&nbsp;&nbsp;<input type="password" name="password" /><br />
+    <input type="submit" name="do_login" value="Log in" />
+  </p>
+  <?php
+  
+  echo '</form>';
+  
+  $ui->show_footer();
+  exit();
+}
+
+// The real migration code
 $ui->show_header();
+
+if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
+{
+  require('install/schemas/upgrade/migration/1.0-1.1.php');
+  if ( MIGRATE() )
+  {
+    echo '<p>Enano survived the migration. Congratulations, you\'re one of the lucky ones, <a href="' . scriptPath . '/index.php">check out the alpha</a>.</p>';
+  }
+  else
+  {
+    echo '<p>Something went wrong, you should have gotten an error message.</p>';
+  }
+}
+else
+{
+  ?>
+  <p>Nothing's really implemented for now except the actual migration code, which is not very smart. Just <a href="<?php echo $session->append_sid('upgrade.php?stage=pimpmyenano'); ?>">do the upgrade and get it over with</a>.</p>
+  <?php
+}
+
 $ui->show_footer();
 

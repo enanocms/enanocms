@@ -540,7 +540,10 @@ function page_Admin_LangManager()
   echo '</table></div>';
   
   // Reset the result pointer to zero so we can fetch that list of languages again
-  $db->sql_data_seek(0, $q);
+  if ( !$db->sql_data_seek(0, $q) )
+  {
+    $db->_die('LangManager doing seek back to zero for installation blacklist');
+  }
   
   // $lang_list is fetched by the posthandler sometimes
   if ( !isset($lang_list) )
@@ -550,7 +553,7 @@ function page_Admin_LangManager()
     $lang_list = list_available_languages();
   }
   
-  while ( $row = $db->fetchrow() )
+  while ( $row = $db->fetchrow($q) )
   {
     $lang_code =& $row['lang_code'];
     if ( isset($lang_list[$lang_code]) )

@@ -82,8 +82,14 @@ function makeUrl($t, $query = false, $escape = false)
     $flags .= $sep . 'theme='.$session->theme;
     $sep = '&';
   }
-  if ( isset($_GET['style'] ) ) {
+  if ( isset($_GET['style'] ) )
+  {
     $flags .= $sep . 'style='.$session->style;
+    $sep = '&';
+  }
+  if ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) )
+  {
+    $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
     $sep = '&';
   }
 
@@ -131,6 +137,11 @@ function makeUrlNS($n, $t, $query = false, $escape = false)
   if ( isset( $_GET['style'] ) )
   {
     $flags .= $sep . 'style='.$session->style;
+    $sep = '&';
+  }
+  if ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) )
+  {
+    $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
     $sep = '&';
   }
 
@@ -199,6 +210,11 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
   if ( isset( $_GET['style'] ) )
   {
     $flags .= $sep . 'style='.$session->style;
+    $sep = '&';
+  }
+  if ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) )
+  {
+    $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
     $sep = '&';
   }
 
@@ -2453,9 +2469,9 @@ function sanitize_page_id($page_id)
   
   if ( isset($paths->nslist['User']) )
   {
-    if ( preg_match('/^' . preg_quote($paths->nslist['User']) . '/', $page_id) )
+    if ( preg_match('/^' . str_replace('/', '\\/', preg_quote($paths->nslist['User'])) . '/', $page_id) )
     {
-      $ip = preg_replace('/^' . preg_quote($paths->nslist['User']) . '/', '', $page_id);
+      $ip = preg_replace('/^' . str_replace('/', '\\/', preg_quote($paths->nslist['User'])) . '/', '', $page_id);
       if ( is_valid_ip($ip) )
       {
         return $page_id;

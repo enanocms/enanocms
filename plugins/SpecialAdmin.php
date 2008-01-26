@@ -2140,7 +2140,7 @@ function page_Special_Administration()
     {
       $template->header();
     }
-    echo 'Administer your Enano website.';
+    echo $lang->get('adm_page_tagline');
     ?>
     <script type="text/javascript">
     function ajaxPage(t)
