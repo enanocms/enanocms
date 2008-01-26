@@ -21,6 +21,7 @@ var enano_lang = {
   ],
   strings: {
     meta: {
+      meta: 'Category names and basic metadata',
       page: 'Page creation and control',
       comment: 'Comment display',
       onpage: 'On-page buttons and controls',

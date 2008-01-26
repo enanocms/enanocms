@@ -196,21 +196,7 @@ var enano_lang_install = {
       modetitle_long: 'Website information',
       header_blurb: 'The next step is to enter some information about your website. You can always change this information later, using the administration panel.',
       
-      field_name_title: 'Website name',
-      field_name_body: 'The display name of your website. Allowed characters are uppercase and lowercase letters, numerals, and spaces. This must not be blank or "Enano".',
-      field_desc_title: 'Website description',
-      field_desc_body: 'This text will be shown below the name of your website.',
-      field_copyright_title: 'Copyright info',
-      field_copyright_body: 'This should be a one-line legal notice that will appear at the bottom of all your pages.',
-      field_wikimode_title: 'Wiki mode',
-      field_wikimode_body: 'This feature allows people to create and edit pages on your site. Enano keeps a history of all page modifications, and you can protect pages to prevent editing.',
-      field_wikimode_checkbox: 'Yes, make my website a wiki.',
-      field_urlscheme_title: 'URL scheme',
-      field_urlscheme_body: 'Choose how the page URLs will look. Depending on your server configuration, you may need to select the first option. If you don\'t know, select the first option, and you can always change it later.',
-      field_urlscheme_ugly: 'Standard URLs - compatible with any web server (www.example.com/index.php?title=Page_name)',
-      field_urlscheme_short: 'Short URLs - requires Apache with a PHP module (www.example.com/index.php/Page_name)',
-      field_urlscheme_tiny: 'Tiny URLs - requires Apache on Linux/Unix/BSD with PHP module and mod_rewrite enabled (www.example.com/Page_name)',
-      field_urlscheme_helplink: 'Which URL scheme should I choose?',
+      // Need l10n 
       
       objective_verify: 'Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.',
     },
@@ -219,16 +205,7 @@ var enano_lang_install = {
       header_blurb: 'Next, enter your desired username and password. The account you create here will be used to administer your site.',
       modetitle_long: 'Administration login',
       
-      field_username_title: 'Administration username',
-      field_username_body: 'The administration username you will use to log into your site.<br />This cannot be "anonymous" or in the form of an IP address.',
-      field_password_title: 'Administration password:',
-      field_password_confirm: 'Enter it again to confirm:',
-      field_email_title: 'Your e-mail address:',
-      field_allowphp_title: 'Allow administrators to embed PHP code into pages:',
-      field_allowphp_body: 'Do not under any circumstances enable this option without reading these %important_notes%.',
-      field_allowphp_isi: 'important security implications',
-      field_allowphp_disabled: 'Disabled',
-      field_allowphp_enabled: 'Enabled',
+      // Need l10n
       
       aes_blurb: 'If your browser supports Javascript, the password you enter here will be encrypted with AES before it is sent to the server.',
       

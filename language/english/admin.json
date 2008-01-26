@@ -443,12 +443,60 @@ var enano_lang = {
       btn_create_backup: 'Create backup',
     },
     acplm: {
+      // Language installation
       heading_install: 'Languages available for installation',
-      col_lang_code: 'ID',
+      col_lang_id: 'ID',
+      col_lang_code: 'Shorthand code',
       col_lang_name: 'Language name (native)',
       col_lang_name_eng: 'Language name (English)',
       btn_install_language: 'Install',
       msg_lang_install_success: 'The language pack %lang_name% has been installed.',
+      
+      // Editor portal
+      heading_editor_portal: 'Edit installed languages',
+      portal_btn_edit: 'Modify',
+      portal_btn_unin: 'Uninstall',
+      
+      // Properties table
+      heading_modify: 'Edit language info',
+      th_lang_basic: 'Basic language properties',
+      field_lang_name_native: 'Language name (native):',
+      field_lang_name_english: 'Language name (in English):',
+      field_lang_code: 'Shorthand code:',
+      field_lang_code_hint: 'You can\'t change this because it needs to be compliant with <a onclick="window.open(this.href); return false;" href="http://en.wikipedia.org/wiki/ISO_639-3">ISO 639-3</a>.',
+      msg_basic_save_success: 'Changes saved.',
+      
+      // String editor portal
+      heading_edit_strings_portal: 'Edit strings',
+      msg_edit_strings_portal_intro: 'You can edit the actual language strings used in this language. Be sure to preserve any variables (in the format of %variable_name%) even if you\'re translating a language. If you\'re translating all of Enano into a new language, you should edit the JSON files instead of using this console, so that comments in the language files can be preserved.',
+      btn_edit_strings_portal: 'Edit strings &raquo;',
+      
+      // Re-import button and explanation
+      heading_reimport_portal: 'Re-import this language',
+      msg_reimport_portal_intro: 'If you accidentally changed a lot of strings, you can re-import this language from the original language files. This will <b>destroy</b> any modifications you have made to the default set of strings, but any strings you\'ve added will be preserved. This is almost the same effect as re-installing the language. Don\'t stop this process while it\'s running, the re-import can take a long time.',
+      btn_reimport: 'Re-import language',
+      msg_reimport_success: 'The language was re-imported successfully. All Enano preset strings for this language have been restored.',
+      
+      // String editor
+      editor_heading: 'Editing category: %cat_name%',
+      editor_col_string_name: 'String name',
+      editor_col_string_content: 'String',
+      editor_btn_revert: 'Revert',
+      editor_btn_cancel: 'Cancel',
+      msg_string_save_success: 'Your changes have been saved.',
+      
+      // Backup interface
+      heading_backup: 'Backup language',
+      backup_intro: 'You can back up this language to make preserving custom strings easier if you ever migrate your Enano installation or re-install. Backed-up language files can be restored by using FTP or equivalent to copy the backup file to the language\'s folder and renaming it to "backup.json".',
+      btn_create_backup: 'Download backup',
+      
+      // Uninstaller
+      uninstall_confirm_title: 'Confirm uninstallation of language',
+      uninstall_confirm_body: 'Do you really want to uninstall this language? If you continue, all users that have selected this language will be reset to use the default. It is recommended that you create a backup of this language before you uninstall it if you have changed any strings.',
+      btn_uninstall_confirm: 'Confirm uninstallation',
+      btn_uninstall_cancel: 'Cancel',
+      err_cant_uninstall_default: 'You cannot uninstall the default language.',
+      msg_uninstall_success: 'The language has been uninstalled.',
     },
     acppg: {
       // Main menu

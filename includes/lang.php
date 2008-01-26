@@ -456,6 +456,22 @@ $lang_cache = ');
   
   function get($string_id, $substitutions = false)
   {
+    if ( !is_array($substitutions) )
+      $substitutions = array();
+    return $this->substitute($this->get_uncensored($string_id), $substitutions);
+  }
+  
+  /**
+   * The same as get(), but does not perform any substitution or filtering. Used in get() (of course) and in the admin panel, where
+   * strings are updated only if they were changed.
+   *
+   * @param string ID of the string to fetch. This will always be in the format of category_stringid.
+   * @param array Optional. Associative array of substitutions.
+   * @return string
+   */
+  
+  function get_uncensored($string_id, $substitutions = false)
+  {
     // Extract the category and string ID
     $category = substr($string_id, 0, ( strpos($string_id, '_') ));
     $string_name = substr($string_id, ( strpos($string_id, '_') + 1 ));
@@ -486,7 +502,7 @@ $lang_cache = ');
         {
           if ( !is_object($this->default) )
             $this->default = new Language($lang_default);
-          return $this->default->get($string_id, $substitutions);
+          return $this->default->get_uncensored($string_id);
         }
       }
     }
@@ -496,12 +512,7 @@ $lang_cache = ');
       return $string_id;
     }
     // Found it!
-    // Perform substitutions.
-    // if ( is_array($substitutions) )
-    //   die('<pre>' . print_r($substitutions, true) . '</pre>');
-    if ( !is_array($substitutions) )
-      $substitutions = array();
-    return $this->substitute($string, $substitutions);
+    return $string;
   }
   
   /**

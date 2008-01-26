@@ -48,6 +48,13 @@ require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
 require(ENANO_ROOT . '/plugins/admin/UserManager.php');
 require(ENANO_ROOT . '/plugins/admin/LangManager.php');
 
+// For convenience and nothing more.
+function acp_start_form()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', ( isset($_GET['sqldbg']) ? 'sqldbg&' : '' ) . ( isset($_GET['nocompress']) ? 'nocompress&' : '' ) . 'module='.$paths->cpage['module']).'" method="post" enctype="multipart/form-data">';
+}
+
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 
 function page_Admin_Home() {
@@ -951,7 +958,7 @@ function page_Admin_UploadConfig()
       setConfig('max_file_size', $max_upload.'');
     }
   }
-  echo '<form name="main" action="'.htmlspecialchars(makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module'])).'" method="post">';
+  acp_start_form();
   ?>
   <h3><?php echo $lang->get('acpup_heading_main'); ?></h3>
   
@@ -1051,7 +1058,7 @@ function page_Admin_UploadAllowedMimeTypes()
   <h3><?php echo $lang->get('acpft_heading_main'); ?></h3>
    <p><?php echo $lang->get('acpft_hint'); ?></p>
   <?php
-  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', (( isset($_GET['sqldbg'])) ? 'sqldbg&amp;' : '') .'module='.$paths->cpage['module']).'" method="post">';
+  acp_start_form();
     $c = -1;
     $t = -1;
     $cl = 'row1';
@@ -1458,7 +1465,7 @@ function page_Admin_ThemeManager()
     if(!$s) die('Error selecting name value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
     $r = $db->fetchrow_num($s);
     $db->free_result();
-    echo('<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">');
+    acp_start_form();
     echo('<div class="question-box">
           Theme name displayed to users: <input type="text" name="name" value="'.$r[0].'" /><br /><br />
           Default stylesheet: <select name="defaultcss">');
@@ -1688,7 +1695,7 @@ function page_Admin_COPPA()
     echo '<div class="info-box">' . $lang->get('acpcp_msg_save_success') . '</div>';
   }
   
-  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', (( isset($_GET['sqldbg'])) ? 'sqldbg&amp;' : '') .'module='.$paths->cpage['module']).'" method="post">';
+  acp_start_form();
   
   echo '<div class="tblholder">';
   echo '<table border="0" cellspacing="1" cellpadding="4">';
@@ -1887,7 +1894,7 @@ function page_Admin_MassEmail()
   {
     echo '<div class="error-box">' . $lang->get('acpmm_err_demo') . '</div>';
   }
-  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
+  acp_start_form();
   ?>
   <div class="tblholder">
     <table border="0" cellspacing="1" cellpadding="4">
@@ -2073,7 +2080,7 @@ function page_Admin_BanControl()
   $db->free_result();
   echo '</table></div>';
   echo '<h3>' . $lang->get('acpbc_heading_create_new') . '</h3>';
-  echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">';
+  acp_start_form();
   ?>
   
   <?php echo $lang->get('acpbc_field_type'); ?>

@@ -4075,6 +4075,36 @@ function profiler_make_html()
 // Might as well start the profiler, it has no external dependencies except from this file.
 profiler_start();
 
+/**
+ * Returns the number of times a character occurs in a given string.
+ * @param string Haystack
+ * @param string Needle
+ * @return int
+ */
+
+function get_char_count($string, $char)
+{
+  $char = substr($char, 0, 1);
+  $count = 0;
+  for ( $i = 0; $i < strlen($string); $i++ )
+  {
+    if ( $string{$i} == $char )
+      $count++;
+  }
+  return $count;
+}
+
+/**
+ * Returns the number of lines in a string.
+ * @param string String to check
+ * @return int
+ */
+
+function get_line_count($string)
+{
+  return ( get_char_count($string, "\n") ) + 1;
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>
