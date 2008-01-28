@@ -4051,34 +4051,40 @@ function profiler_make_html()
   
   foreach ( $profile as $i => $entry )
   {
-    $html .= "<tr><th colspan=\"2\">Event $i</th></tr>";
+    $html .= "<!-- ########################################################## -->\n<tr>\n  <th colspan=\"2\">Event $i</th>\n</tr>";
     
-    $html .= '<tr>';
-    $html .= '<td class="row2">Event:</td>';
-    $html .= '<td class="row1">' . htmlspecialchars($entry['point']) . '</td>';
-    $html .= '</tr>';
+    $html .= '<tr>' . "\n";
+    $html .= '  <td class="row2">Event:</td>' . "\n";
+    $html .= '  <td class="row1">' . htmlspecialchars($entry['point']) . '</td>' . "\n";
+    $html .= '</tr>' . "\n";
     
     $time = $entry['time'] - $time_start;
     
-    $html .= '<tr>';
-    $html .= '<td class="row2">Time since start:</td>';
-    $html .= '<td class="row1">' . $time . 's</td>';
-    $html .= '</tr>';
+    $html .= '<tr>' . "\n";
+    $html .= '  <td class="row2">Time since start:</td>' . "\n";
+    $html .= '  <td class="row1">' . $time . 's</td>' . "\n";
+    $html .= '</tr>' . "\n";
     
     $time = $entry['time'] - $time_last;
+    if ( $time < 0.0001 )
+      $time = 'Marginal';
+    else
+      $time = "{$time}s";
     
-    $html .= '<tr>';
-    $html .= '<td class="row2">Time since last event:</td>';
-    $html .= '<td class="row1">' . $time . 's</td>';
-    $html .= '</tr>';
+    $html .= '<tr>' . "\n";
+    $html .= '  <td class="row2">Time since last event:</td>' . "\n";
+    $html .= '  <td class="row1">' . $time . '</td>' . "\n";
+    $html .= '</tr>' . "\n";
     
     if ( $entry['backtrace'] )
     {
-      $html .= '<tr>';
-      $html .= '<td class="row2">Called from:</td>';
-      $html .= '<td class="row1">' . htmlspecialchars($entry['backtrace']) . '</td>';
-      $html .= '</tr>';
+      $html .= '<tr>' . "\n";
+      $html .= '  <td class="row2">Called from:</td>' . "\n";
+      $html .= '  <td class="row1">' . htmlspecialchars($entry['backtrace']) . '</td>' . "\n";
+      $html .= '</tr>' . "\n";
     }
+    
+    $html .= "\n";
     
     $time_last = $entry['time'];
   }

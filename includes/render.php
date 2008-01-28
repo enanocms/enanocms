@@ -217,6 +217,8 @@ class RenderMan {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
+    profiler_log("RenderMan: starting wikitext render");
+    
     $random_id = md5( time() . mt_rand() );
     
     // Strip out <nowiki> sections and PHP code
@@ -338,6 +340,8 @@ class RenderMan {
     {
       $result = str_replace('{PHP:'.$random_id.':'.$i.'}', '<?php'.$phpsec[1][$i].'?>', $result);
     }
+    
+    profiler_log("RenderMan: finished wikitext render");
     
     return $result;
     
