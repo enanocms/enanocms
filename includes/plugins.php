@@ -80,7 +80,7 @@ class pluginLoader {
     */
     if(isset($this->hook_list[$name]) && is_array($this->hook_list[$name]))
     {
-      return $this->hook_list[$name];
+      return array(implode("\n", $this->hook_list[$name]));
     }
     else
     {
