@@ -149,7 +149,15 @@ class pathManager {
     {
       
       $r['urlname_nons'] = $r['urlname'];
-      $r['urlname'] = $this->nslist[$r['namespace']] . $r['urlname']; // Applies the User:/File:/etc prefixes to the URL names
+      if ( isset($this->nslist[$r['namespace']]) )
+      {
+        $r['urlname'] = $this->nslist[$r['namespace']] . $r['urlname']; // Applies the User:/File:/etc prefixes to the URL names
+      }
+      else
+      {
+        $ns_char = substr($this->nslist['Special'], -1);
+        $r['urlname'] = $r['namespace'] . $ns_char . $r['urlname'];
+      }
       
       if ( $r['delvotes'] == null)
       {

@@ -1225,7 +1225,7 @@ function page_Admin_PluginManager()
     {
       $cls = ( $cls == 'row2' ) ? 'row3' : 'row2';
       $this_plugin = ( isset($system[$plugin_files[$i]]) ) ? $system[$plugin_files[$i]] : $plugin_list[$plugin_files[$i]];
-      $is_system = ( $system[$plugin_files[$i]] );
+      $is_system = ( @$system[$plugin_files[$i]] );
       $bgcolor = '';
       if ( $is_system && $cls == 'row2' )
         $bgcolor = ' style="background-color: #FFD8D8;"';
