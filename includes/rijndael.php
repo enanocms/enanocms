@@ -128,7 +128,7 @@ class AESCrypt {
   
   public static function singleton($key_size, $block_size)
   {
-    global $_aes_objcache;
+    static $_aes_objcache;
     if ( isset($_aes_objcache["$key_size,$block_size"]) )
     {
       return $_aes_objcache["$key_size,$block_size"];
@@ -779,7 +779,9 @@ class AESCrypt {
     {
       $key = $this->prepare_string($key);
       $text = $this->prepare_string($text);
+      profiler_log('AES: Started encryption of a string');
       $cryptext = $this->rijndaelEncrypt($text, $key, 'ECB');
+      profiler_log('AES: Finished encryption of a string');
       if(!is_array($cryptext))
       {
         echo 'Warning: encryption failed for string: '.print_r($text,true).'<br />';
@@ -814,14 +816,7 @@ class AESCrypt {
   {
     if ( $text == '' )
       return '';
-    $text_orig = $text;
-    if ( isset($this->decrypt_cache[$key]) && is_array($this->decrypt_cache[$key]) )
-    {
-      if ( isset($this->decrypt_cache[$key][$text]) )
-      {
-        return $this->decrypt_cache[$key][$text];
-      }
-    }
+    
     switch($input_encoding)
     {
       case ENC_BINARY:
@@ -834,9 +829,24 @@ class AESCrypt {
         $text = base64_decode($text);
         break;
     }
-    //$mod = strlen($text) % $this->blockSizeInBits;
-    //if($mod != 96)
-      //die('modulus check failed: '.$mod);
+    
+    // Run memory-cache check
+    if ( isset($this->decrypt_cache[$key]) && is_array($this->decrypt_cache[$key]) )
+    {
+      if ( isset($this->decrypt_cache[$key][$text]) )
+      {
+        return $this->decrypt_cache[$key][$text];
+      }
+    }
+    
+    // Run disk-cache check
+    $hash = sha1($text . '::' . $key);
+    if ( $dypt = aes_decrypt_cache_fetch($hash) )
+      return $dypt;
+    
+    $text_bin = $text;
+    $key_bin = $key;
+    
     if ( $this->mcrypt )
     {
       $iv_size = mcrypt_get_iv_size($this->mcrypt, MCRYPT_MODE_ECB);
@@ -848,7 +858,9 @@ class AESCrypt {
       $etext = $this->prepare_string($text);
       $ekey  = $this->prepare_string($key);
       $mod = count($etext) % $this->blockSizeInBits;
+      profiler_log('AES: Started decryption of a string');
       $dypt = $this->rijndaelDecrypt($etext, $ekey, 'ECB');
+      profiler_log('AES: Finished decryption of a string');
       if(!$dypt)
       {
         echo '<pre>'.print_r($dypt, true).'</pre>';
@@ -856,10 +868,12 @@ class AESCrypt {
       }
       $dypt = $this->byteArrayToString($dypt);
     }
-    if ( !isset($this->decrypt_cache[$key]) )
-      $this->decrypt_cache[$key] = array();
+    if ( !isset($this->decrypt_cache[$key_bin]) )
+      $this->decrypt_cache[$key_bin] = array();
     
-    $this->decrypt_cache[$key][$text_orig] = $dypt;
+    $this->decrypt_cache[$key_bin][$text_bin] = $dypt;
+    
+    aes_decrypt_cache_store($text_bin, $dypt, $key_bin);
     
     return $dypt;
   }
@@ -977,118 +991,96 @@ class AESCrypt {
   }
 }
 
-/**
- * XXTEA encryption arithmetic library.
- *
- * Copyright (C) 2006 Ma Bingyao <andot@ujn.edu.cn>
- * Version:      1.5
- * LastModified: Dec 5, 2006
- * This library is free.  You can redistribute it and/or modify it.
- * 
- * From dandaman32: I am treating this code as GPL, as implied by the license statement above.
- */
-class TEACrypt extends AESCrypt {
-  function long2str($v, $w) {
-      $len = count($v);
-      $n = ($len - 1) << 2;
-      if ($w) {
-          $m = $v[$len - 1];
-          if (($m < $n - 3) || ($m > $n)) return false;
-          $n = $m;
-      }
-      $s = array();
-      for ($i = 0; $i < $len; $i++) {
-          $s[$i] = pack("V", $v[$i]);
-      }
-      if ($w) {
-          return substr(join('', $s), 0, $n);
-      }
-      else {
-          return join('', $s);
-      }
+function aes_decrypt_cache_store($encrypted, $decrypted, $key)
+{
+  $cache_file = ENANO_ROOT . '/cache/aes_decrypt.php';
+  // only cache if $decrypted is long enough to actually warrant caching
+  if ( strlen($decrypted) < 32 )
+  {
+    profiler_log("AES: Skipped caching a string (probably a password, we dunno) because it's too short");
+    return false;
   }
-   
-  function str2long($s, $w) {
-      $v = unpack("V*", $s. str_repeat("\0", (4 - strlen($s) % 4) & 3));
-      $v = array_values($v);
-      if ($w) {
-          $v[count($v)] = strlen($s);
-      }
-      return $v;
-  }
-   
-  function int32($n) {
-      while ($n >= 2147483648) $n -= 4294967296;
-      while ($n <= -2147483649) $n += 4294967296;
-      return (int)$n;
-  }
-   
-  function encrypt($str, $key, $return_encoding = ENC_HEX) {
-      if ($str == "")
+  if ( file_exists($cache_file) )
+  {
+    require_once($cache_file);
+    global $aes_decrypt_cache;
+    $cachekey = sha1($encrypted . '::' . $key);
+    $aes_decrypt_cache[$cachekey] = $decrypted;
+    
+    if ( count($aes_decrypt_cache) > 5000 )
+    {
+      // we've got a lot of strings in the cache, clear out a few
+      $keys = array_keys($aes_decrypt_cache);
+      for ( $i = 0; $i < 2500; $i++ )
       {
-          return "";
+        unset($aes_decrypt_cache[$keys[$i]]);
+        unset($aes_decrypt_cache[$keys[$i]]);
       }
-      $v = $this->str2long($str, true);
-      $k = $this->str2long($key, false);
-      if (count($k) < 4) {
-          for ($i = count($k); $i < 4; $i++) {
-              $k[$i] = 0;
-          }
-      }
-      $n = count($v) - 1;
-   
-      $z = $v[$n];
-      $y = $v[0];
-      $delta = 0x9E3779B9;
-      $q = floor(6 + 52 / ($n + 1));
-      $sum = 0;
-      while (0 < $q--) {
-          $sum = $this->int32($sum + $delta);
-          $e = $sum >> 2 & 3;
-          for ($p = 0; $p < $n; $p++) {
-              $y = $v[$p + 1];
-              $mx = $this->int32((($z >> 5 & 0x07ffffff) ^ $y << 2) + (($y >> 3 & 0x1fffffff) ^ $z << 4)) ^ $this->int32(($sum ^ $y) + ($k[$p & 3 ^ $e] ^ $z));
-              $z = $v[$p] = $this->int32($v[$p] + $mx);
-          }
-          $y = $v[0];
-          $mx = $this->int32((($z >> 5 & 0x07ffffff) ^ $y << 2) + (($y >> 3 & 0x1fffffff) ^ $z << 4)) ^ $this->int32(($sum ^ $y) + ($k[$p & 3 ^ $e] ^ $z));
-          $z = $v[$n] = $this->int32($v[$n] + $mx);
-      }
-      return $this->long2str($v, false);
+    }
   }
-   
-  function decrypt($str, $key, $encoding = ENC_HEX) {
-      if ($str == "") {
-          return "";
-      }
-      $v = $this->str2long($str, false);
-      $k = $this->str2long($key, false);
-      if (count($k) < 4) {
-          for ($i = count($k); $i < 4; $i++) {
-              $k[$i] = 0;
-          }
-      }
-      $n = count($v) - 1;
-   
-      $z = $v[$n];
-      $y = $v[0];
-      $delta = 0x9E3779B9;
-      $q = floor(6 + 52 / ($n + 1));
-      $sum = $this->int32($q * $delta);
-      while ($sum != 0) {
-          $e = $sum >> 2 & 3;
-          for ($p = $n; $p > 0; $p--) {
-              $z = $v[$p - 1];
-              $mx = $this->int32((($z >> 5 & 0x07ffffff) ^ $y << 2) + (($y >> 3 & 0x1fffffff) ^ $z << 4)) ^ $this->int32(($sum ^ $y) + ($k[$p & 3 ^ $e] ^ $z));
-              $y = $v[$p] = $this->int32($v[$p] - $mx);
-          }
-          $z = $v[$n];
-          $mx = $this->int32((($z >> 5 & 0x07ffffff) ^ $y << 2) + (($y >> 3 & 0x1fffffff) ^ $z << 4)) ^ $this->int32(($sum ^ $y) + ($k[$p & 3 ^ $e] ^ $z));
-          $y = $v[0] = $this->int32($v[0] - $mx);
-          $sum = $this->int32($sum - $delta);
-      }
-      return $this->long2str($v, true);
+  else
+  {
+    $aes_decrypt_cache = array(
+      sha1($encrypted . '::' . $key) => $decrypted
+    );
   }
+  // call var_export and collect contents
+  ob_start();
+  var_export($aes_decrypt_cache);
+  $dec_cache_string = ob_get_contents();
+  ob_end_clean();
+  $f = @fopen($cache_file, 'w');
+  if ( !$f )
+    return false;
+  fwrite($f, "<?php
+\$GLOBALS['aes_decrypt_cache'] = $dec_cache_string;
+");
+  fclose($f);
+  return true;
+}
+
+function aes_decrypt_cache_fetch($hash)
+{
+  $cache_file = ENANO_ROOT . '/cache/aes_decrypt.php';
+  if ( !file_exists($cache_file) )
+    return false;
+  
+  require_once($cache_file);
+  global $aes_decrypt_cache;
+  if ( isset($aes_decrypt_cache[$hash]) )
+  {
+    profiler_log("AES: Loaded cached decrypted string, hash is $hash");
+    return $aes_decrypt_cache[$hash];
+  }
+  
+  return false;
+}
+
+function aes_decrypt_cache_destroy($hash)
+{
+  $cache_file = ENANO_ROOT . '/cache/aes_decrypt.php';
+  if ( !file_exists($cache_file) )
+    return false;
+  
+  require_once($cache_file);
+  global $aes_decrypt_cache;
+  
+  if ( isset($aes_decrypt_cache[$hash]) )
+    unset($aes_decrypt_cache[$hash]);
+  
+  // call var_export and collect contents
+  ob_start();
+  var_export($aes_decrypt_cache);
+  $dec_cache_string = ob_get_contents();
+  ob_end_clean();
+  $f = @fopen($cache_file, 'w');
+  if ( !$f )
+    return false;
+  fwrite($f, "<?php
+\$GLOBALS['aes_decrypt_cache'] = $dec_cache_string;
+");
+  fclose($f);
+  return true;
 }
 
 ?>

@@ -291,7 +291,7 @@
     case "deletepage":
       $reason = ( isset($_POST['reason']) ) ? $_POST['reason'] : false;
       if ( empty($reason) )
-        die('Please enter a reason for deleting this page.');
+        die($lang->get('page_err_need_reason'));
       echo PageUtils::deletepage($paths->page_id, $paths->namespace, $reason);
       break;
     case "delvote":

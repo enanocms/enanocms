@@ -39,7 +39,9 @@ class pluginLoader {
             {
               $this->load_list[] = $dir . $file;
               $plugid = substr($file, 0, strlen($file)-4);
-              $f = file_get_contents($dir . $file);
+              $f = @file_get_contents($dir . $file);
+              if ( empty($f) )
+                continue;
               $f = explode("\n", $f);
               $f = array_slice($f, 2, 7);
               $f[0] = substr($f[0], 13);

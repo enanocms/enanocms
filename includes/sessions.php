@@ -13,9 +13,6 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
  
-// Prepare a string for insertion into a MySQL database
-function filter($str) { global $db; return $db->escape($str); }
-
 /**
  * Anything and everything related to security and user management. This includes AES encryption, which is illegal in some countries.
  * Documenting the API was not easy - I hope you folks enjoy it.
@@ -1183,7 +1180,8 @@ class sessionManager {
   function validate_session($key)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $aes = new AESCrypt(AES_BITS, AES_BLOCKSIZE, true);
+    profiler_log("SessionManager: checking session: " . sha1($key));
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $decrypted_key = $aes->decrypt($key, $this->private_key, ENC_HEX);
     
     if ( !$decrypted_key )
@@ -1284,6 +1282,9 @@ class sessionManager {
     // Leave the rest to PHP's automatic garbage collector ;-)
     
     $row['password'] = md5($real_pass);
+    
+    profiler_log("SessionManager: finished session check");
+    
     return $row;
   }
   
@@ -1360,10 +1361,14 @@ class sessionManager {
     if($level > USER_LEVEL_CHPREF)
     {
       $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-      if(!$this->user_logged_in || $this->auth_level < USER_LEVEL_MOD)
+      if(!$this->user_logged_in || $this->auth_level < ( USER_LEVEL_MEMBER + 1))
       {
         return 'success';
       }
+      // See if we can get rid of the cached decrypted session key
+      $key_bin = $aes->hextostring(strrev($this->sid_super));
+      $key_hash = sha1($key_bin . '::' . $this->private_key);
+      aes_decrypt_cache_destroy($key_hash);
       // Destroy elevated privileges
       $keyhash = md5(strrev($this->sid_super));
       $this->sql('DELETE FROM '.table_prefix.'session_keys WHERE session_key=\''.$keyhash.'\' AND user_id=\'' . $this->user_id . '\';');
@@ -1374,6 +1379,11 @@ class sessionManager {
     {
       if($this->user_logged_in)
       {
+        $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+        // See if we can get rid of the cached decrypted session key
+        $key_bin = $aes->hextostring($this->sid);
+        $key_hash = sha1($key_bin . '::' . $this->private_key);
+        aes_decrypt_cache_destroy($key_hash);
         // Completely destroy our session
         if($this->auth_level > USER_LEVEL_CHPREF)
         {

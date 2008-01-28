@@ -19,7 +19,7 @@
   define('ENANO_INTERFACE_INDEX', '');
   
   // For the mighty and brave.
-  // define('ENANO_DEBUG', '');
+  define('ENANO_DEBUG', '');
  
   // Set up gzip encoding before any output is sent
   

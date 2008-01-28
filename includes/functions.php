@@ -1910,7 +1910,6 @@ function sanitize_html($html, $filter_php = true)
   }
 
   return $html;
-
 }
 
 /**
