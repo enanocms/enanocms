@@ -1831,7 +1831,7 @@ function sanitize_html($html, $filter_php = true)
       // Debugging message
       // echo htmlspecialchars($full_tag) . '<br />';
 
-      if ( !in_array($tag_name, $tag_whitelist) )
+      if ( !in_array($tag_name, $tag_whitelist) && substr($tag_name, 0, 3) != '!--' )
       {
         // Illegal tag
         //echo $tag_name . ' ';
