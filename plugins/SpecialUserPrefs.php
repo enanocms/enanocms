@@ -46,6 +46,7 @@ $plugins->attachHook('compile_template', 'userprefs_jbox_setup($button, $tb, $me
 function userprefs_jbox_setup(&$button, &$tb, &$menubtn)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
   
   if ( $paths->namespace != 'Special' || $paths->page_id != 'Preferences' )
     return false;
@@ -54,7 +55,7 @@ function userprefs_jbox_setup(&$button, &$tb, &$menubtn)
   $template->toolbar_menu = '';
   
   $button->assign_vars(array(
-      'TEXT' => 'list of registered members',
+      'TEXT' => $lang->get('usercp_btn_memberlist'),
       'FLAGS' => '',
       'PARENTFLAGS' => '',
       'HREF' => makeUrlNS('Special', 'Memberlist')

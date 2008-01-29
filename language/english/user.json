@@ -201,6 +201,8 @@ Sincerely yours,
       sec_pm_drafts: 'Drafts',
       sec_pm_archive: 'Archive',
       
+      btn_memberlist: 'list of registered members',
+      
       // CP home
       intro_heading_main: '%username%, welcome to your control panel',
       intro_para1: 'Here you can make changes to your profile, view statistics on yourself on this site, and set your preferences.',
