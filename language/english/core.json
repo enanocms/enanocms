@@ -417,6 +417,7 @@ var enano_lang = {
       edit_comments: 'Edit own comments',
       edit_page: 'Edit page',
       view_source: 'View source',
+      edit_wysiwyg: 'Use graphical editor (<a href="http://docs.enanocms.org/Help:4.1#toc4">WEAK</a>)',
       mod_comments: 'Moderate comments',
       history_view: 'View history/diffs',
       history_rollback: 'Rollback history',

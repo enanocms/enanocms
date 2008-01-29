@@ -4,7 +4,7 @@ Plugin Name: plugin_specialsearch_title
 Plugin URI: http://enanocms.org/
 Description: plugin_specialsearch_desc
 Author: Dan Fuhry
-Version: 1.0.3
+Version: 1.1.1
 Author URI: http://enanocms.org/
 */
 

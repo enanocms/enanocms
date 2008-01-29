@@ -4,7 +4,7 @@ Plugin Name: plugin_specialadmin_title
 Plugin URI: http://enanocms.org/
 Description: plugin_specialadmin_desc
 Author: Dan Fuhry
-Version: 1.0.3
+Version: 1.1.1
 Author URI: http://enanocms.org/
 */
 
@@ -1108,7 +1108,7 @@ function page_Admin_PluginManager()
     {
       echo '<div class="error-box">No plugin specified.</div>';
     }
-    else if ( !preg_match('/^[A-z0-9_-]+\.php$/', $_GET['plugin']) )
+    else if ( !preg_match('/^[A-z0-9_\.-]+\.php$/', $_GET['plugin']) )
     {
       echo '<div class="error-box">Hacking attempt</div>';
     }
