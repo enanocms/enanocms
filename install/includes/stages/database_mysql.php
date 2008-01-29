@@ -322,6 +322,10 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
             return false;
           }
           response = parseJSON(response);
+          if ( response.mode == 'error' )
+          {
+            return false;
+          }
           document.getElementById('e_db_host').innerHTML = '';
           document.getElementById('e_db_name').innerHTML = '';
           document.getElementById('e_db_auth').innerHTML = '';

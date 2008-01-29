@@ -105,6 +105,8 @@ if ( version_compare(PHP_VERSION, '5.0.0', '>=') )
   require(ENANO_ROOT . '/includes/json2.php');
 }
 
+strip_magic_quotes_gpc();
+
 // Build a list of available languages
 $dir = @opendir( ENANO_ROOT . '/language' );
 if ( !$dir )
