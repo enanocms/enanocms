@@ -127,7 +127,7 @@ function stg_load_schema()
   $wkt = $db->escape($wkt);
   
   $vars = array(
-      'TABLE_PREFIX'         => $_POST['table_prefix'],
+      'TABLE_PREFIX'         => table_prefix,
       'SITE_NAME'            => $db->escape($_POST['site_name']),
       'SITE_DESC'            => $db->escape($_POST['site_desc']),
       'COPYRIGHT'            => $db->escape($_POST['copyright']),
