@@ -116,6 +116,7 @@
       }
       
       $auth_edit = ( $session->get_permissions('edit_page') && ( $session->get_permissions('even_when_protected') || !$paths->page_protected ) );
+      $auth_wysiwyg = ( $session->get_permissions('edit_wysiwyg') );
       
       $return = array(
           'mode' => 'editor',
@@ -124,6 +125,7 @@
           'auth_edit' => $auth_edit,
           'time' => time(),
           'require_captcha' => false,
+          'allow_wysiwyg' => $auth_wysiwyg
         );
       
       if ( $auth_edit && !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )

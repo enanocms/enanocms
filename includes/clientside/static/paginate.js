@@ -284,7 +284,7 @@ function paginator_goto(parentobj, this_page, num_pages, perpage, url_string)
   var regex = new RegExp('\"', 'g');
   var submit_target = ( typeof(url_string) == 'object' ) ? ( toJSONString(url_string) ).replace(regex, '\'') : 'unescape(\'' + escape(url_string) + '\')';
   var onclick = 'paginator_submit(this, '+num_pages+', '+perpage+', '+submit_target+'); return false;';
-  div.innerHTML = $lang.get('paginate_lbl_goto_page') + '<br /><input type="text" size="2" style="padding: 1px; font-size: 8pt;" value="'+(parseInt(this_page)+1)+'" id="'+vtmp+'" />&emsp;<a href="#" onclick="'+onclick+'" style="font-size: 14pt; text-decoration: none;">&raquo;</a>&emsp;<a href="#" onclick="fly_out_top(this.parentNode, false, true); return false;" style="font-size: 14pt; text-decoration: none;">&times;</a>';
+  div.innerHTML = $lang.get('paginate_lbl_goto_page') + '<br /><input type="text" size="2" style="padding: 1px; font-size: 8pt;" value="'+(parseInt(this_page)+1)+'" id="'+vtmp+'" />&emsp;<a href="#" onclick="'+onclick+'" style="font-size: 14pt; text-decoration: none;">&raquo;</a>&emsp;<a href="#" onclick="var _pn = this.parentNode; setTimeout(function() { _pn.parentNode.removeChild(_pn); }, 2000); fly_out_top(this.parentNode, false, true); return false;" style="font-size: 14pt; text-decoration: none;">&times;</a>';
   
   var body = document.getElementsByTagName('body')[0];
   domObjChangeOpac(0, div);

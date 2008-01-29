@@ -83,12 +83,12 @@ function ajaxEditor()
         // do we need to enter a captcha before saving the page?
         var captcha_hash = ( response.require_captcha ) ? response.captcha_id : false;
         
-        ajaxBuildEditor(response.src, (!response.auth_edit), response.time, captcha_hash);
+        ajaxBuildEditor(response.src, (!response.auth_edit), response.time, response.allow_wysiwyg, captcha_hash);
       }
     });
 }
 
-function ajaxBuildEditor(content, readonly, timestamp, captcha_hash)
+function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_hash)
 {
   // Set flags
   // We don't want the fancy confirmation framework to trigger if the user is only viewing the page source
@@ -110,45 +110,50 @@ function ajaxBuildEditor(content, readonly, timestamp, captcha_hash)
   //
   
   // Plaintext/wikitext toggler
+  // Only build the editor if using TinyMCE is allowed. THIS IS WEAK
+  // AND CANNOT BE MADE ANY STRONGER.
   
-  var toggler = document.createElement('p');
-  toggler.style.marginLeft = '0';
-  
-  var span_wiki = document.createElement('span');
-  var span_mce  = document.createElement('span');
-  span_wiki.id  = 'enano_edit_btn_pt';
-  span_mce.id   = 'enano_edit_btn_mce';
-  if ( readCookie('enano_editor_mode') == 'tinymce' )
+  if ( allow_wysiwyg )
   {
-    // Current selection is TinyMCE - make span_wiki have the link and span_mce be plaintext
-    var a = document.createElement('a');
-    a.href = '#';
-    a.onclick = function() {
-      ajaxSetEditorPlain();
-      return false;
-    };
-    a.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
-    span_wiki.appendChild(a);
-    toggler.appendChild(span_wiki);
-    toggler.appendChild(document.createTextNode(' | '));
-    span_mce.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
-    toggler.appendChild(span_mce);
-  }
-  else
-  {
-    // Current selection is wikitext - set span_wiki to plaintext and span_mce to link
-    span_wiki.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
-    toggler.appendChild(span_wiki);
-    toggler.appendChild(document.createTextNode(' | '));
-    var a = document.createElement('a');
-    a.href = '#';
-    a.onclick = function() {
-      ajaxSetEditorMCE();
-      return false;
-    };
-    a.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
-    span_mce.appendChild(a);
-    toggler.appendChild(span_mce);
+    var toggler = document.createElement('p');
+    toggler.style.marginLeft = '0';
+    
+    var span_wiki = document.createElement('span');
+    var span_mce  = document.createElement('span');
+    span_wiki.id  = 'enano_edit_btn_pt';
+    span_mce.id   = 'enano_edit_btn_mce';
+    if ( readCookie('enano_editor_mode') == 'tinymce' )
+    {
+      // Current selection is TinyMCE - make span_wiki have the link and span_mce be plaintext
+      var a = document.createElement('a');
+      a.href = '#';
+      a.onclick = function() {
+        ajaxSetEditorPlain();
+        return false;
+      };
+      a.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
+      span_wiki.appendChild(a);
+      toggler.appendChild(span_wiki);
+      toggler.appendChild(document.createTextNode(' | '));
+      span_mce.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
+      toggler.appendChild(span_mce);
+    }
+    else
+    {
+      // Current selection is wikitext - set span_wiki to plaintext and span_mce to link
+      span_wiki.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
+      toggler.appendChild(span_wiki);
+      toggler.appendChild(document.createTextNode(' | '));
+      var a = document.createElement('a');
+      a.href = '#';
+      a.onclick = function() {
+        ajaxSetEditorMCE();
+        return false;
+      };
+      a.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
+      span_mce.appendChild(a);
+      toggler.appendChild(span_mce);
+    }
   }
   
   // Form (to allow submits from MCE to trigger a real save)
@@ -364,7 +369,8 @@ function ajaxBuildEditor(content, readonly, timestamp, captcha_hash)
   }
   
   // Put it all together...
-  form.appendChild(toggler);
+  if ( allow_wysiwyg )
+    form.appendChild(toggler);
   form.appendChild(preview_anchor);
   form.appendChild(preview_container);
   form.appendChild(ta_wrapper);
@@ -377,7 +383,7 @@ function ajaxBuildEditor(content, readonly, timestamp, captcha_hash)
   }
   
   // If the editor preference is tinymce, switch the editor to TinyMCE now
-  if ( readCookie('enano_editor_mode') == 'tinymce' )
+  if ( readCookie('enano_editor_mode') == 'tinymce' && allow_wysiwyg )
   {
     $dynano('ajaxEditArea').switchToMCE();
   }
