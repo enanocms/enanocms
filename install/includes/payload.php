@@ -184,10 +184,10 @@ function stg_write_config()
   {
     case 'standard':
     default:
-      $sp_append = 'index.php?title=';
+      $sp_append = '/index.php?title=';
       break;
     case 'shortened':
-      $sp_append = 'index.php/';
+      $sp_append = '/index.php/';
       break;
     case 'rewrite':
       $sp_append = '/';
