@@ -322,6 +322,14 @@ function stg_language_setup()
   $lang_local->import( ENANO_ROOT . "/language/{$lang_info['dir']}/tools.json" );
   $lang_local->import( ENANO_ROOT . "/language/{$lang_info['dir']}/admin.json" );
   
+  $q = $db->sql_query('SELECT lang_id FROM ' . table_prefix . 'language ORDER BY lang_id DESC LIMIT 1;');
+  if ( !$q )
+    $db->_die();
+  
+  list($lang_id_int) = $db->fetchrow_num();
+  $db->free_result();
+  setConfig('default_language', $lang_id_int);
+  
   return true;
 }
 
