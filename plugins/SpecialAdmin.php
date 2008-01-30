@@ -946,7 +946,7 @@ function page_Admin_UploadConfig()
     }
     else if ( $_POST['imagemagick_path'] != getConfig('imagemagick_path') )
     {
-      echo '<span style="color: red"><b>Warning:</b> the file "'.htmlspecialchars($_POST['imagemagick_path']).'" was not found, and the ImageMagick file path was not updated.</span>';
+      echo '<span style="color: red">' . $lang->get('acpup_err_magick_not_found', array('magick_path' => htmlspecialchars($_POST['imagemagick_path']))) . '</span>';
     }
     $max_upload = floor((float)$_POST['max_file_size'] * (int)$_POST['fs_units']);
     if ( $max_upload > 1048576 && defined('ENANO_DEMO_MODE') )

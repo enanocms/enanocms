@@ -554,7 +554,7 @@ $lang_cache = ');
       $subs[$key] = strval($value);
       $string = str_replace("%{$key}%", "{$subs[$key]}", $string);
     }
-    return "$string*";
+    return $string;
   }
   
 } // class Language

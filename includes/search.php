@@ -168,7 +168,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
   if ( count($query['any']) < 1 && count($query['req']) < 1 && count($query_phrase['any']) < 1 && count($query_phrase['req']) < 1 )
   {
     // This is both because of technical restrictions and devastation that would occur on shared servers/large sites.
-    $warnings[] = 'You need to have at least one keyword in your search query. Searching only for pages not containing a term is not allowed.';
+    $warnings[] = $lang->get('search_err_query_no_positive');
     return array();
   }
 

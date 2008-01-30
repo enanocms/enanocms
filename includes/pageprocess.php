@@ -213,7 +213,8 @@ class PageProcessor
     {
       if ( !$this->page_exists )
       {
-        die_semicritical('Exception in PageProcessor', '<p>Special page not existent but exception not previously caught by path manager.</p>');
+        $func_name = "page_{$this->namespace}_{$this->page_id}";
+        die_semicritical($lang->get('page_msg_admin_404_title'), $lang->get('page_msg_admin_404_body', array('func_name' => $func_name)));
       }
       $func_name = "page_{$this->namespace}_{$this->page_id}";
       if ( function_exists($func_name) )

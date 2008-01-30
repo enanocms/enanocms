@@ -116,6 +116,19 @@ var enano_lang_install = {
       
       objective_test: 'Check your MySQL connection using the "Test Connection" button.',
       objective_uncrypt: 'Be aware that your database information will be transmitted unencrypted several times.',
+      
+      // database_post module
+      btn_go_back: 'Go back',
+      msg_success_title: 'Connection successful',
+      msg_success_body: 'The database has been contacted and initial tables created successfully. Redirecting...',
+      msg_success_redirect: 'Click if you\'re not redirected within 2 seconds',
+      
+      msg_post_fail_title: 'Database connection failed',
+      msg_post_fail_body: 'The installer couldn\'t connect to the database because something went wrong while the connection attempt was being made. Please press your browser\'s back button and correct your database information.',
+      msg_post_fail_desc: 'Error description:',
+      
+      msg_sql_fail_title: 'Database operation failed',
+      msg_sql_fail_body: 'The installer couldn\'t create one of the tables used for installation.',
     },
     dbmysql: {
       msg_err_mysql_connect: '<b>Error:</b> The database server "%db_host%" couldn\'t be contacted.<br />%mysql_error%',
@@ -196,7 +209,28 @@ var enano_lang_install = {
       modetitle_long: 'Website information',
       header_blurb: 'The next step is to enter some information about your website. You can always change this information later, using the administration panel.',
       
-      // Need l10n 
+      msg_ajax_test_fail_title: 'All tests failed',
+      msg_ajax_test_fail_body: 'None of the URL handling tests worked; you may have problems using Enano on your server.',
+      msg_bestmethod_rewrite: 'The installer has detected that using rewritten URLs is the best level that will work.',
+      msg_bestmethod_shortened: 'The installer has detected that using shortened URLs is the best level that will work.',
+      msg_bestmethod_standard: 'The installer has detected that using standard URLs is the only level that will work.',
+      
+      field_name: 'Pick a name',
+      field_name_hint: 'Now for the fun part - it\'s time to name your website. Try to pick something that doesn\'t include any special characters, since this can make project-page URLs look botched.',
+      field_desc: 'Enter a short description',
+      field_desc_hint: 'Here you should enter a very short description of your site. Sometimes this is a slogan or, depending on the theme you\'ve chosen, a set of keywords that can go into a META description tag.',
+      field_copyright: 'Copyright info',
+      field_copyright_hint: 'The text you enter here will be shown at the bottom of most pages. Typically this is where a copyright notice would go. Keep it short and sweet; you can use <a href="http://docs.enanocms.org/Help:3.1">internal links</a> to link to project pages you\'ll create later.',
+      field_urlscheme: 'URL formatting',
+      field_urlscheme_hint: 'This lets you choose how URLs within your site will be formatted. If the setting you pick doesn\'t work, you can change it by editing config.php after installation.',
+      field_urlscheme_lbl_example: 'Example:',
+      field_urlscheme_opt_standard: 'Standard URLs',
+      field_urlscheme_opt_standard_hint: 'Compatible with all servers. This is the default option and should be used unless you\'re sure that one of the other options below will work.',
+      field_urlscheme_opt_shortened: 'Shortened URLs',
+      field_urlscheme_opt_shortened_hint: 'This eliminates the "?title=" portion of your URL, and instead uses a slash. This is occasionally more friendly to search engines.',
+      field_urlscheme_opt_rewrite: 'Rewritten URLs',
+      field_urlscheme_opt_rewrite_hint: 'Using this option, you can completely eliminate the "index.php" from URLs. This is the most friendly option to search engines and looks very professional, but requires support for URL rewriting on your server. If you\'re running Apache and have the right permissions, Enano can configure this automatically. Otherwise, you\'ll need to configure your server manually and have a knowledge of regular expressions for this option to work.',
+      btn_urlscheme_detect: 'Auto-detect the best formatting scheme',
       
       objective_verify: 'Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.',
     },
@@ -205,9 +239,16 @@ var enano_lang_install = {
       header_blurb: 'Next, enter your desired username and password. The account you create here will be used to administer your site.',
       modetitle_long: 'Administration login',
       
-      // Need l10n
-      
-      aes_blurb: 'If your browser supports Javascript, the password you enter here will be encrypted with AES before it is sent to the server.',
+      welcome_title: 'Administration account',
+      welcome_body: '<p>Now it\'s time to create the account you\'ll use to administer your site. The e-mail address you enter here will also be used for the global contact address; you can change this after installation is finished if need be.</p>
+                     <p>Do not forget the information you enter here. Otherwise you will be unable to administer your site.</p>',
+      err_verify_failure: 'One or more of the form fields contains an incorrect value. Please correct any fields that have an X next to them.',
+      err_rijndael_failed: 'Received a bad response from rijndaelEncrypt(). Shift-click "reload" or "refresh" (depending on your browser) and try again.',
+      field_username: 'Username',
+      field_password: 'Password',
+      aes_blurb: 'This will be encrypted with AES before it\'s sent to the server.',
+      field_password_confirm: '(confirm)',
+      field_email: 'E-mail',
       
       objective_remember: 'Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.',
     },
@@ -215,40 +256,46 @@ var enano_lang_install = {
       modetitle: 'Review',
       modetitle_long: 'Confirm installation',
       
-      header_blurb_title: 'Enano is ready to install.',
-      header_blurb_body: 'The wizard has finished collecting information and is ready to install the database schema. Please review the information below, and then click the button below to install the database.',
+      title: 'Enano is ready to install.',
+      body: 'Almost there! You\'ve entered all the information we need for now. Click the button below to install the Enano database.',
+      info_aes_title: 'A note on AES encryption:',
+      info_aes_body: 'Enano is currently configured to use %aes_bits%-bit AES encryption. While the default value of 192 bits is perfectly acceptable for most sites, those in need of extreme security will want to change this value to 256 bits (the maximum available strength). If you need to change the cipher strength, please edit the file includes/constants.php and then <u>restart</u> this installation. Do not click Continue below until you redo the installation process up until this point, or you will experience severe problems with logging into your site.',
       
-      lbl_db_host: 'Database hostname:',
-      lbl_db_name: 'Database name:',
-      lbl_db_user: 'Database user:',
-      lbl_db_pass: 'Database password: &lt;hidden&gt;',
-      lbl_sitename: 'Site name:',
-      lbl_sitedesc: 'Site description:',
-      lbl_adminuser: 'Administration username:',
-      lbl_aesbits: 'Cipher strength:',
-      lbl_aes_strength: '%aes_bits%-bit AES',
-      lbl_aes_change: 'Cipher strength is defined in the file constants.php; if you desire to change the cipher strength, you may do so and then restart installation. Unless your site is mission-critical, changing the cipher strength is not necessary.',
-      
-      objective_pray: 'Pray.',
       btn_install_enano: 'Install Enano!',
     },
     install: {
       modetitle: 'Install',
       modetitle_long: 'Database installation',
       
-      stg_connect_title: 'Connect to MySQL',
-      stg_connect_body: 'MySQL denied our attempt to connect to the database. This is most likely because your login information was incorrect. You will most likely need to <a href="install.php?mode=license">restart the installation</a>.',
-      stg_drop_title: 'Drop existing Enano tables',
-      stg_decrypt_title: 'Decrypt administration password',
-      stg_decrypt_body: 'The administration password you entered couldn\'t be decrypted. It is possible that your server did not properly store the encryption key in the configuration file. Please check the file permissions on config.new.php. You may have to return to the login stage of the installation, clear your browser cache, and then rerun this installation.',
-      stg_genkey_title: 'Generate %aes_bits%-bit AES private key',
-      stg_genkey_body: 'Enano encountered an internal error while generating the site encryption key. Please contact the Enano team for support.',
-      stg_parse_title: 'Prepare to execute schema file',
-      stg_parse_body: 'Enano encountered an internal error while parsing the SQL file that contains the database structure and initial data. Please contact the Enano team for support.',
-      stg_sql_title: 'Execute installer schema',
-      stg_sql_body: 'The installation failed because an SQL query wasn\'t quite correct. It is possible that you entered malformed data into a form field, or there may be a bug in Enano with your version of MySQL. Please contact the Enano team for support.',
+      title: 'Installing Enano',
+      body: 'Please wait while Enano creates its database and initial content on your server.',
+      heading_progress: 'Installation progress',
+      
+      stg_load_title: 'Load installer files',
+      stg_load_body: 'One of the files needed for installation couldn\'t be loaded. Please check your Enano directory.',
+      stg_setpass_title: 'Retrieve administrator password',
+      stg_setpass_body: 'The administrator password couldn\'t be decrypted. This really shouldn\'t happen.',
+      stg_genaes_title: 'Generate private key',
+      stg_genaes_body: 'Couldn\'t generate a private key for the site. This really shouldn\'t happen.',
+      stg_sqlparse_title: 'Prepare database schema',
+      stg_sqlparse_body: 'Couldn\'t load or parse the schema file. This really shouldn\'t happen.',
+      stg_payload_title: 'Install database',
+      stg_payload_body: 'There was a problem with an SQL query. Details are above.',
       stg_writeconfig_title: 'Write configuration files',
       stg_writeconfig_body: 'Enano was unable to write the configuration file with your site\'s database credentials. This is almost always because your configuration file does not have the correct permissions. On Windows servers, you may see this message even if the check on the System Requirements page passed. Temporarily running IIS as the Administrator user may help.',
+      
+      stg_startapi_title: 'Start the Enano API',
+      stg_startapi_body: 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.',
+      stg_importlang_title: 'Import default language',
+      stg_importlang_body: 'Enano couldn\'t import the English language file.',
+      stg_initlogs_title: 'Initialize logs',
+      stg_initlogs_body: '<b>The session manager denied the request to flush logs for the main page.</b><br />
+                           While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
+                           properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
+                           to finish the installation, please be aware that you may be unable to log into your site.',
+      
+      stg_cleanup_title: 'Clean up encryption keys',
+      stg_cleanup_body: 'There was a database error while removing the temporary encryption keys from the database. For maximum site security you should delete the config entries install_aes_key and site_aes_key manually.',
       stg_rename_title: 'Rename configuration files',
       stg_rename_body: 'Enano couldn\'t rename the configuration files to their correct production names. <span style="font-weight: bold; color: red;">Please perform the following rename operations and then follow the instructions to finish the installation below.</span>
                           <ul>
@@ -257,24 +304,18 @@ var enano_lang_install = {
                           </ul>
                         %this.finish_body%
                         %this.finish_link_mainpage%',
-      stg_startapi_title: 'Start the Enano API',
-      stg_startapi_body: 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.',
-      stg_importlang_title: 'Import default language',
-      stg_importlang_body: 'Enano couldn\'t import the English language file.',
       stg_buildindex_title: 'Initialize search index',
       stg_buildindex_body: 'Something went wrong while the page manager was attempting to build a search index.',
-      stg_initlogs_title: 'Initialize logs',
-      stg_initlogs_body: '<b>The session manager denied the request to flush logs for the main page.</b><br />
-                           While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
-                           properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
-                           to finish the installation, please be aware that you may be unable to log into your site.',
-      msg_complete_title: 'Installation of Enano is complete.',
-      msg_complete_body: 'Review any warnings above, and then <a href="%finish_link%">click here to finish the installation</a>.',
     },
     finish: {
       modetitle: 'Finish',
       modetitle_long: 'Complete installation',
-      msg_congratulations: 'Congratulations!',
+      
+      heading_progress: 'Performing final installation steps',
+      msg_progress: 'Enano is cleaning up and performing some final installation tasks. Please wait...',
+      msg_success_title: 'Congratulations! You\'ve finished installing Enano.',
+      msg_success_body: 'Enano has finished setting up on your server. Now you can go to your <a href="%mainpage_link%">new website</a> and start creating content!',
+      
       body: '<h3>Wait... Now what?</h3>
              <p>Click the link below to see the main page for your website. Where to go from here:</p>
              <ul>

@@ -49,6 +49,25 @@ var enano_lang = {
       enano_about_lbl_pgsqlversion: '<a href="http://www.postgresql.org/">PostgreSQL</a> version:',
     },
     page: {
+      sitedisabled_admin_msg_title: 'The site is currently disabled and thus is only accessible to administrators.',
+      sitedisabled_admin_msg_body: 'You can re-enable the site through the <a href="%admin_link%">administration panel</a>.',
+      
+      heading_sql_list: 'Query list as requested on URI',
+      
+      msg_stats_gentime_long: 'Generated in %time%sec',
+      msg_stats_gentime_short: 'Time: %time%s',
+      msg_stats_sql: '%nq% SQL',
+      
+      w3c_valid_html32: 'Valid HTML 3.2',
+      w3c_valid_html40: 'Valid HTML 4.0',
+      w3c_valid_html401: 'Valid HTML 4.01',
+      w3c_valid_html50: 'Valid HTML 5.0',
+      w3c_valid_xhtml10: 'Valid XHTML 1.0',
+      w3c_valid_xhtml11: 'Valid XHTML 1.1',
+      w3c_valid_css: 'Valid CSS',
+      enano_powered: 'Powered by <a href="%about_uri%">Enano</a>',
+      enano_powered_long: 'Website engine powered by <a href="%about_uri%">Enano</a>',
+      
       protect_lbl_success_title: 'Page protected',
       protect_lbl_success_body: 'The protection setting has been applied. <a href="%page_link%">Return to the page</a>.',
       protect_err_need_reason: 'Error: you must enter a reason for protecting this page.',
@@ -131,6 +150,15 @@ var enano_lang = {
       
       msg_archived_title: 'Notice:',
       msg_archived_body: 'The page you are viewing was archived on %archive_date% at %archive_time%.<br /><a href="%current_link%" onclick="ajaxReset(); return false;">View current version</a>  |  <a href="%restore_link%" onclick="%restore_onclick%">Restore this version</a>',
+      
+      msg_special_404_title: 'Can\'t load special page',
+      msg_special_404_body: 'The special page you requested could not be found. This may be due to a plugin failing to load. A list of all special pages on this website can be viewed <a href="%sp_link%">here</a>. You will be redirected to the main page in 15 seconds.',
+      msg_admin_404_title: 'Administration page not found',
+      msg_admin_404_body: '<p>You\'ve requested an administration page, but the function <tt>%func_name%</tt> doesn\'t exist, so the page can\'t be loaded.</p>
+                             <h3>Plugin developer?</h3>
+                              <p>Create a function called <tt>%func_name%</tt> - it should be loaded when you refresh this page.</p>
+                             <h3>Otherwise...</h3>
+                              <p>If you\'re trying to use a plugin\'s administration page, contact the developer of the plugin. If you\'re trying to use a function that is built into Enano (not added by a plugin), then please contact the Enano development team.</p>',
       
       msg_general_error: 'General error in page fetcher',
                     
@@ -246,6 +274,24 @@ var enano_lang = {
       tip_moreoptions: 'Additional options for working with this page',
       tip_password: 'Require a password in order for this page to be viewed',
       tip_aclmanager: 'Manage who can do what with this page (alt-m)',
+      
+      cat_heading_subcategories: 'Subcategories',
+      cat_msg_no_subcategories: 'No subcategories.',
+      cat_heading_pages: 'Pages',
+      cat_msg_no_pages: 'No pages in this category.',
+      
+      filebox_heading: 'Uploaded file',
+      filebox_msg_not_found: 'There are no files uploaded with this name yet. <a href="%upload_link%">Upload a file...</a>',
+      filebox_lbl_type: 'Type:',
+      filebox_lbl_size: 'Size: %size%',
+      filebox_lbl_uploaded: 'Uploaded:',
+      filebox_msg_virus_warning: 'This file type may contain viruses or other code that could harm your computer. You should exercise caution if you download it.',
+      filebox_btn_download: 'Download this file',
+      filebox_btn_upload_new: 'Upload new version',
+      filebox_heading_history: 'File history',
+      filebox_btn_this_version: 'this ver',
+      filebox_btn_revert: 'revert',
+      
     },
     editor: {
       err_server: 'There was a problem starting the editor',

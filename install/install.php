@@ -164,6 +164,7 @@ if ( isset($_GET['do']) )
       $lang = new Language($lang_id);
       $lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/install.json');
       $lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/core.json');
+      $lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/user.json');
       
       $time_now = microtime_float();
       $test = "if ( typeof(enano_lang) != 'object' )

@@ -57,6 +57,7 @@ var enano_lang = {
       err_query_has_stopwords: 'One or more of your search terms was excluded because either it was less than 2 characters in length or is a common word (a stopword) that is typically found on a large number of pages. Examples of stopwords include "the", "this", "which", "with", etc.',
       err_query_dup_terms: 'One or more of your search terms was excluded because duplicate terms were encountered.',
       err_query_term_too_short: 'One or more of your search terms was excluded because terms must be at least 4 characters in length.',
+      err_query_no_positive: 'You need to have at least one keyword in your search query. Searching only for pages not containing a term is not allowed.',
       
       btn_search: 'Search',
       // note the case difference with th_advanced_search
@@ -122,6 +123,8 @@ var enano_lang = {
       tagcloud_instructions: 'Hover your mouse over a tag to see how many pages have the tag. Click on a tag to see a list of the pages that have it.',
       tagcloud_sidebar_title: 'Tag cloud',
       tagcloud_sidebar_btn_larger: 'Larger version',
+      tagcloug_tip_popularity_one: '1 page',
+      tagcloug_tip_popularity_plural: '%popularity% pages',
     },
   }
 };

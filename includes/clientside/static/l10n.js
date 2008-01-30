@@ -9,9 +9,18 @@ var Language = function(lang_id)
   if ( typeof(enano_lang[lang_id]) != 'object' )
     return false;
   this.strings = enano_lang[lang_id];
+  this.lang_id = lang_id;
   
   this.get = function(string_id, subst)
   {
+    if ( window.console )
+    {
+      try {
+        window.console.log('$lang(' + this.lang_id + '): requested string: ' + string_id);
+      }
+      catch(e)
+      {}
+    }
     var catname = string_id.substr(0, string_id.indexOf('_'));
     var string_name = string_id.substr(string_id.indexOf('_') + 1);
     if ( typeof(this.strings[catname]) != 'object' )

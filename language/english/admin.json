@@ -330,6 +330,7 @@ var enano_lang = {
       info_magick: 'You can allow Enano to generate thumbnails of images automatically. This feature requires ImageMagick to work properly. If your server does not have ImageMagick on it, Enano will try to use the GD library (if available) to scale images. This can be slower, but it works on a wider range of servers. If even that does not work, Enano will simply make your users\' browsers scale the images. In most cases this is fine, but if you are uploading large (>100KB) images and embedding them inside of pages, you should try to enable ImageMagick or configure GD because transferring these large images many times can cost you quite a lot of bandwidth.',
       field_magick_enable: 'Use ImageMagick to scale images',
       field_magick_path: 'Path to ImageMagick:',
+      err_magick_not_found: '<b>Warning:</b> the file "%magick_path%" was not found, and the ImageMagick file path was not updated.',
       // Translators: for the path here, please be sure to use a double-backslash in the Windows path. Avoid translating the file paths
       // anyway since they're generally the same even on non-English Windows systems.
       field_magick_path_hint: 'On Linux and Unix servers, the most likely options here are /usr/bin/convert and /usr/local/bin/convert. If you server runs Windows, then ImageMagick is most likely to be C:\\Windows\\Convert.exe or C:\\Windows\\System32\\Convert.exe.',

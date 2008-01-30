@@ -44,6 +44,19 @@ var enano_lang = {
       login_success_body_mainpage: 'the main page',
       login_success_short: 'Success.',
       
+      login_noact_title: 'Account error',
+      login_noact_msg_intro: 'It appears that your user account has not yet been activated.',
+      login_noact_solution_none: 'Your account was most likely deactivated by an administrator. Please contact the site administration for further assistance.',
+      login_noact_solution_user: 'Please check your e-mail; you should have been sent a message with instructions on how to activate your account. If you do not receive an e-mail from this site within 24 hours, please contact the site administration for further assistance.',
+      login_noact_solution_admin: 'This website has been configured so that all user accounts must be activated by the administrator before they can be used, so your account will most likely be activated the next time an administrator visits the site.',
+      login_noact_msg_logout_success_title: 'Logged out',
+      login_noact_msg_logout_success_body: 'You have successfully been logged out. All cookies cleared.',
+      login_noact_msg_ask_admins: 'If you are having trouble or did not receive the e-mail, you can request account activation from the administrators of this site.',
+      login_noact_msg_admins_just_asked: 'A request has just been sent to the administrators of this site. They will be able to activate your account or send you another activation e-mail if needed.',
+      login_noact_msg_admins_asked: 'There is an active request in the administrators\' control panel for your account to be activated.',
+      login_noact_btn_request_activation: 'Request account activation',
+      login_noact_btn_log_out: 'Log out',
+      
       login_ajax_fetching_key: 'Fetching an encryption key...',
       login_ajax_prompt_title: 'Please enter your username and password to continue.',
       login_ajax_prompt_title_elev: 'You are requesting a sensitive operation.',
@@ -73,6 +86,22 @@ var enano_lang = {
       logout_err_title: 'An error occurred during the logout process.',
       // Unused at this point
       logout_err_not_loggedin: 'You don\'t seem to be logged in.',
+      
+      // User levels
+      level_short_guest: 'Guest',
+      level_short_member: 'Member',
+      level_short_chpref: 'Sensitive preferences changeable',
+      level_short_mod: 'Moderator',
+      level_short_admin: 'Administrative',
+      level_long_guest: 'Low - guest privileges',
+      level_long_member: 'Standard - normal member level',
+      level_long_chpref: 'Medium - user can change his/her own e-mail address and password',
+      level_long_mod: 'High - moderator privileges',
+      level_long_admin: 'Highest - administrative privileges',
+      
+      ban_msg_title: 'Ban notice',
+      ban_msg_body: 'You have been banned from this website. Please contact the site administrator for more information.',
+      ban_lbl_reason: 'Reason:',
       
       keepalive_info_title: 'About the keep-alive feature',
       keepalive_info_body: 'Keep-alive is a new Enano feature that keeps your administrative session from timing out while you are using the administration panel. This feature can be useful if you are editing a large page or doing something in the administration interface that will take longer than 15 minutes.<br /><br />For security reasons, Enano mandates that high-privilege logins last only 15 minutes, with the time being reset each time a page is loaded (or, more specifically, each time the session API is started). The consequence of this is that if you are performing an action in the administration panel that takes more than 15 minutes, your session may be terminated. The keep-alive feature attempts to relieve this by sending a "ping" to the server every 10 minutes.<br /><br />Please note that keep-alive state is determined by a cookie. Thus, if you log out and then back in as a different administrator, keep-alive will use the same setting that was used when you were logged in as the first administrative user. In the same way, if you log into the administration panel under your account from another computer, keep-alive will be set to "off".<br /><br /><b>For more information:</b><br /><a href="http://docs.enanocms.org/Help:Appendix_B" onclick="window.open(this.href); return false;">Overview of Enano\'s security model</a>',
@@ -410,7 +439,21 @@ Sincerely yours,
       folder_th_date: 'Date',
       folder_th_mark: 'Mark',
       
-      // AJAX interface
+      // Buddy / foe lists
+      th_buddy_list: 'Buddy list for %username%',
+      msg_no_buddies: 'No buddies in your list.',
+      btn_pm_all_buddies: 'Send a PM to all buddies',
+      heading_add_buddy: 'Add a new friend',
+      btn_add: 'Add',
+      lbl_username: 'Username:',
+      btn_buddy_remove: 'Remove',
+      btn_buddy_send_pm: 'Send private message',
+      
+      th_foe_list: 'Foe list for %username%',
+      msg_no_foes: 'No foes in your list.',
+      heading_add_foe: 'Add a new foe',
+      
+      // AJAX interface (up and coming)
       ajax_err_need_js: 'It looks like your browser doesn\'t have support for Javascript. You\'ll need to have Javascript support in order to use the new Private Message interface. You can also switch to the <a href="%basic_link%">old interface</a>, which doesn\'t require Javascript support.',
       ajax_err_json: 'The server had a problem processing your request.',
       

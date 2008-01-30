@@ -719,14 +719,14 @@ function page_Special_PrivateMessages()
           $r = $db->fetchrow();
           $db->free_result();
           $q = $db->sql_query('INSERT INTO '.table_prefix.'buddies(user_id,buddy_user_id,is_friend) VALUES('.$session->user_id.', '.$r['user_id'].', 1);');
-          if(!$q) echo '<h3>Warning:</h3><p>Buddy could not be added: '.mysql_error().'</p>';
+          if(!$q) echo '<h3>Warning:</h3><p>Buddy could not be added: '.$db->get_error().'</p>';
           $db->free_result();
         }
       } elseif($argv[1] == 'Remove' && preg_match('#^([0-9]+)$#', $argv[2])) {
         // Using WHERE user_id prevents users from deleting others' buddies
         $q = $db->sql_query('DELETE FROM '.table_prefix.'buddies WHERE user_id='.$session->user_id.' AND buddy_id='.$argv[2].';');
         $db->free_result();
-        if(!$q) echo '<h3>Warning:</h3><p>Buddy could not be deleted: '.mysql_error().'</p>';
+        if(!$q) echo '<h3>Warning:</h3><p>Buddy could not be deleted: '.$db->get_error().'</p>';
         if(mysql_affected_rows() < 1) echo '<h3>Warning:</h3><p>No rows were affected. Either the selected buddy ID does not exist or you tried to delete someone else\'s buddy.</p>';
       }
       $template->header();
@@ -736,15 +736,15 @@ function page_Special_PrivateMessages()
           <tr>
           <td style="padding: 0px; width: 120px;" valign="top"  >
           <div class="tblholder" style="width: 120px;"><table border="0" width="120" cellspacing="1" cellpadding="4">
-          <tr><th><small>Private messages</small></th></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Inbox'); ?>">Inbox</a>    </small></td></tr>
-          <tr><td class="row2"><small><a href="<?php echo $session->append_sid('Outbox'); ?>">Outbox</a>  </small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Sent'); ?>">Sent Items</a></small></td></tr>
-          <tr><td class="row2"><small><a href="<?php echo $session->append_sid('Drafts'); ?>">Drafts</a>  </small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Archive'); ?>">Archive</a></small></td></tr>
-          <tr><th><small>Buddies</small></th></tr>
-          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FriendList'); ?>">Friend list</a></small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FoeList'); ?>">Foe list</a></small></td></tr>
+          <tr><th><small><?php echo $lang->get('privmsgs_sidebar_th_privmsgs'); ?></small></th></tr>
+          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'); ?>"><?php echo $lang->get('privmsgs_folder_inbox'); ?></a></small></td></tr>
+          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Outbox'); ?>"><?php echo $lang->get('privmsgs_folder_outbox'); ?></a></small></td></tr>
+          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Sent'); ?>"><?php echo $lang->get('privmsgs_folder_sent'); ?></a></small></td></tr>
+          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Drafts'); ?>"><?php echo $lang->get('privmsgs_folder_drafts'); ?></a></small></td></tr>
+          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Archive'); ?>"><?php echo $lang->get('privmsgs_folder_archive'); ?></a></small></td></tr>
+          <tr><th><small><?php echo $lang->get('privmsgs_sidebar_th_buddies'); ?></small></th></tr>
+          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FriendList'); ?>"><?php echo $lang->get('privmsgs_sidebar_friend_list'); ?></a></small></td></tr>
+          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FoeList'); ?>"><?php echo $lang->get('privmsgs_sidebar_foe_list'); ?></a></small></td></tr>
           </table></div>
           </td>
           <td valign="top">
@@ -754,26 +754,26 @@ function page_Special_PrivateMessages()
         else 
         {
           $allbuds = '';
-          echo '<br /><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th colspan="3">Buddy list for '.$session->username.'</th></tr>';
-          if($db->numrows() < 1) echo '<tr><td class="row3">No buddies in your list.</td></tr>';
+          echo '<br /><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th colspan="3">' . $lang->get('privmsgs_th_buddy_list', array('username' => htmlspecialchars($session->username))) . '</th></tr>';
+          if($db->numrows() < 1) echo '<tr><td class="row3">' . $lang->get('privmsgs_msg_no_buddies') . '</td></tr>';
           $cls = 'row2';
           while ( $row = $db->fetchrow() )
           {
             if($cls=='row2') $cls = 'row1';
             else $cls = 'row2';
-            echo '<tr><td class="'.$cls.'"><a href="'.makeUrlNS('User', str_replace(' ', '_', $row['username'])).'" '. ( isPage($paths->nslist['User'].str_replace(' ', '_', $row['username'])) ? '' : 'class="wikilink-nonexistent" ' ) .'>'.$row['username'].'</a></td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/to/'.str_replace(' ', '_', $row['username'])).'">Send private message</a></td><td class="'.$cls.'"><a onclick="return confirm(\'Are you sure you want to delete this user from your buddy list?\')" href="'.makeUrlNS('Special', 'PrivateMessages/FriendList/Remove/'.$row['buddy_id']).'">Remove</a></td></tr>';
+            echo '<tr><td class="'.$cls.'"><a href="'.makeUrlNS('User', str_replace(' ', '_', $row['username'])).'" '. ( isPage($paths->nslist['User'].str_replace(' ', '_', $row['username'])) ? '' : 'class="wikilink-nonexistent" ' ) .'>'.$row['username'].'</a></td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/to/'.str_replace(' ', '_', $row['username'])).'">' . $lang->get('privmsgs_btn_buddy_send_pm') . '</a></td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'PrivateMessages/FriendList/Remove/'.$row['buddy_id']).'">' . $lang->get('privmsgs_btn_buddy_remove') . '</a></td></tr>';
             $allbuds .= str_replace(' ', '_', $row['username']).',';
           }
           $db->free_result();
           $allbuds = substr($allbuds, 0, strlen($allbuds)-1);
           if($cls=='row2') $cls = 'row1';
           else $cls = 'row2';
-          echo '<tr><td colspan="3" class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/to/'.$allbuds).'">Send a PM to all buddies</a></td></tr>';
+          echo '<tr><td colspan="3" class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/to/'.$allbuds).'">' . $lang->get('privmsgs_btn_pm_all_buddies') . '</a></td></tr>';
           echo '</table></div>';
         }
         echo '<form action="'.makeUrlNS('Special', 'PrivateMessages/FriendList/Add').'" method="post" onsubmit="if(!submitAuthorized) return false;">
-              <h3>Add a new friend</h3>';
-        echo '<p>Username: '.$template->username_field('buddyname').'  <input type="submit" name="_go" value="Add" /></p>';
+              <h3>' . $lang->get('privmsgs_heading_add_buddy') . '</h3>';
+        echo '<p>' . $lang->get('privmsgs_lbl_username') . ' '.$template->username_field('buddyname').'  <input type="submit" name="_go" value="' . $lang->get('privmsgs_btn_add') . '" /></p>';
         echo '</form>';
         ?>
         </td>
@@ -791,61 +791,60 @@ function page_Special_PrivateMessages()
         {
           $r = $db->fetchrow();
           $q = $db->sql_query('INSERT INTO '.table_prefix.'buddies(user_id,buddy_user_id,is_friend) VALUES('.$session->user_id.', '.$r['user_id'].', 0);');
-          if(!$q) echo '<h3>Warning:</h3><p>Buddy could not be added: '.mysql_error().'</p>';
+          if(!$q) echo '<h3>Warning:</h3><p>Buddy could not be added: '.$db->get_error().'</p>';
         }
         $db->free_result();
       } elseif($argv[1] == 'Remove' && preg_match('#^([0-9]+)$#', $argv[2])) {
         // Using WHERE user_id prevents users from deleting others' buddies
         $q = $db->sql_query('DELETE FROM '.table_prefix.'buddies WHERE user_id='.$session->user_id.' AND buddy_id='.$argv[2].';');
         $db->free_result();
-        if(!$q) echo '<h3>Warning:</h3><p>Buddy could not be deleted: '.mysql_error().'</p>';
+        if(!$q) echo '<h3>Warning:</h3><p>Buddy could not be deleted: '.$db->get_error().'</p>';
         if(mysql_affected_rows() < 1) echo '<h3>Warning:</h3><p>No rows were affected. Either the selected buddy ID does not exist or you tried to delete someone else\'s buddy.</p>';
       }
       $template->header();
       userprefs_show_menu();
       ?>
-      <table border="0" width="100%" cellspacing="10" cellpadding="0">
-          <tr>
-          <td style="padding: 0px; width: 120px;" valign="top"  >
-          <div class="tblholder" style="width: 120px;"><table border="0" width="120" cellspacing="1" cellpadding="4">
-          <tr><th><small>Private messages</small></th></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Inbox'); ?>">Inbox</a>    </small></td></tr>
-          <tr><td class="row2"><small><a href="<?php echo $session->append_sid('Outbox'); ?>">Outbox</a>  </small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Sent'); ?>">Sent Items</a></small></td></tr>
-          <tr><td class="row2"><small><a href="<?php echo $session->append_sid('Drafts'); ?>">Drafts</a>  </small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo $session->append_sid('Archive'); ?>">Archive</a></small></td></tr>
-          <tr><th><small>Buddies</small></th></tr>
-          <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FriendList'); ?>">Friend list</a></small></td></tr>
-          <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FoeList'); ?>">Foe list</a></small></td></tr>
-          </table></div>
-          </td>
-          <td valign="top">
+        <table border="0" width="100%" cellspacing="10" cellpadding="0">
+        <tr>
+        <td style="padding: 0px; width: 120px;" valign="top"  >
+        <div class="tblholder" style="width: 120px;"><table border="0" width="120" cellspacing="1" cellpadding="4">
+        <tr><th><small><?php echo $lang->get('privmsgs_sidebar_th_privmsgs'); ?></small></th></tr>
+        <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'); ?>"><?php echo $lang->get('privmsgs_folder_inbox'); ?></a></small></td></tr>
+        <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Outbox'); ?>"><?php echo $lang->get('privmsgs_folder_outbox'); ?></a></small></td></tr>
+        <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Sent'); ?>"><?php echo $lang->get('privmsgs_folder_sent'); ?></a></small></td></tr>
+        <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Drafts'); ?>"><?php echo $lang->get('privmsgs_folder_drafts'); ?></a></small></td></tr>
+        <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/Folder/Archive'); ?>"><?php echo $lang->get('privmsgs_folder_archive'); ?></a></small></td></tr>
+        <tr><th><small><?php echo $lang->get('privmsgs_sidebar_th_buddies'); ?></small></th></tr>
+        <tr><td class="row2"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FriendList'); ?>"><?php echo $lang->get('privmsgs_sidebar_friend_list'); ?></a></small></td></tr>
+        <tr><td class="row1"><small><a href="<?php echo makeUrlNS('Special', 'PrivateMessages/FoeList'); ?>"><?php echo $lang->get('privmsgs_sidebar_foe_list'); ?></a></small></td></tr>
+        </table></div>
+        </td>
+        <td valign="top">
         <?php
         $q = $db->sql_query('SELECT u.username,b.buddy_id FROM '.table_prefix.'buddies AS b LEFT JOIN '.table_prefix.'users AS u ON ( u.user_id=b.buddy_user_id ) WHERE b.user_id='.$session->user_id.' AND is_friend=0;');
         if(!$q) $db->_die('The buddy list could not be selected.');
         else 
         {
           $allbuds = '';
-          echo '<br /><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th colspan="3">Foe list for '.$session->username.'</th></tr>';
-          if($db->numrows() < 1) echo '<tr><td class="row2">No foes in your list.</td></tr>';
+          echo '<br /><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th colspan="3">' . $lang->get('privmsgs_th_foe_list', array('username' => htmlspecialchars($session->username))) . '</th></tr>';
+          if($db->numrows() < 1) echo '<tr><td class="row3">' . $lang->get('privmsgs_msg_no_foes') . '</td></tr>';
           $cls = 'row2';
           while ( $row = $db->fetchrow() )
           {
             if($cls=='row2') $cls = 'row1';
             else $cls = 'row2';
-            echo '<tr><td class="'.$cls.'"><a href="'.makeUrlNS('User', str_replace(' ', '_', $row['username'])).'" '. ( isPage($paths->nslist['User'].str_replace(' ', '_', $row['username'])) ? '' : 'class="wikilink-nonexistent" ' ) .'>'.$row['username'].'</a></td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/to/'.str_replace(' ', '_', $row['username'])).'">Send private message</a></td><td class="'.$cls.'"><a onclick="return confirm(\'Are you sure you want to delete this user from your buddy list?\')" href="'.makeUrlNS('Special', 'PrivateMessages/FriendList/Remove/'.$row['buddy_id']).'">Remove</a></td></tr>';
+            echo '<tr><td class="'.$cls.'"><a href="'.makeUrlNS('User', str_replace(' ', '_', $row['username'])).'" '. ( isPage($paths->nslist['User'].str_replace(' ', '_', $row['username'])) ? '' : 'class="wikilink-nonexistent" ' ) .'>'.$row['username'].'</a></td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/to/'.str_replace(' ', '_', $row['username'])).'">' . $lang->get('privmsgs_btn_buddy_send_pm') . '</a></td><td class="'.$cls.'"><a href="'.makeUrlNS('Special', 'PrivateMessages/FoeList/Remove/'.$row['buddy_id']).'">' . $lang->get('privmsgs_btn_buddy_remove') . '</a></td></tr>';
             $allbuds .= str_replace(' ', '_', $row['username']).',';
           }
+          $db->free_result();
           $allbuds = substr($allbuds, 0, strlen($allbuds)-1);
           if($cls=='row2') $cls = 'row1';
           else $cls = 'row2';
-          //echo '<tr><td colspan="3" class="'.$cls.'" style="text-align: center;"><a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/to/'.$allbuds).'">Send a PM to all buddies</a></td></tr>';
           echo '</table></div>';
         }
-        $db->free_result();
         echo '<form action="'.makeUrlNS('Special', 'PrivateMessages/FoeList/Add').'" method="post" onsubmit="if(!submitAuthorized) return false;">
-              <h3>Add a new foe</h3>';
-        echo '<p>Username: '.$template->username_field('buddyname').'  <input type="submit" name="_go" value="Add" /></p>';
+              <h3>' . $lang->get('privmsgs_heading_add_foe') . '</h3>';
+        echo '<p>' . $lang->get('privmsgs_lbl_username') . ' '.$template->username_field('buddyname').'  <input type="submit" name="_go" value="' . $lang->get('privmsgs_btn_add') . '" /></p>';
         echo '</form>';
         ?>
         </td>

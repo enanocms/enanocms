@@ -96,7 +96,7 @@ if ( $result )
       <h3>Configuration file generation failed.</h3>
       <p>Couldn't open the configuration file to write out database settings. Check your file permissions.</p>
       <p>
-        <input type="submit" name="_cont" value="Go back" />
+        <input type="submit" name="_cont" value="<?php echo $lang->get('database_btn_go_back'); ?>" />
       </p>
     </form>
     <?php
@@ -155,15 +155,15 @@ if ( $result )
         <form action="install.php?stage=database" method="post" name="database_info">
           <input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
           <input type="hidden" name="driver" value="<?php echo $driver; ?>" />
-          <h3>Database operation failed</h3>
-          <p>The installer couldn't create one of the tables used for installation.</p>
-          <p>Error description:
+          <h3><?php echo $lang->get('database_msg_sql_fail_title'); ?></h3>
+          <p><?php echo $lang->get('database_msg_sql_fail_body'); ?></p>
+          <p><?php echo $lang->get('database_msg_post_fail_desc'); ?>
             <?php
             echo $dbal->sql_error();
             ?>
           </p>
           <p>
-            <input type="submit" name="_cont" value="Go back" />
+            <input type="submit" name="_cont" value="<?php echo $lang->get('database_btn_go_back'); ?>" />
           </p>
         </form>
         <?php
@@ -186,9 +186,9 @@ if ( $result )
   <?php
   // FIXME: l10n
   ?>
-  <h3>Connection successful</h3>
-  <p>The database has been contacted and initial tables created successfully. Redirecting...</p>
-  <p><input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" />  Click if you're not redirected within 2 seconds</p>
+  <h3><?php echo $lang->get('database_msg_success_title'); ?></h3>
+  <p><?php echo $lang->get('database_msg_success_body'); ?></p>
+  <p><input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" />  <?php echo $lang->get('database_msg_success_redirect'); ?></p>
   </form>
   <script type="text/javascript">
     setTimeout(function()
@@ -206,15 +206,15 @@ else
   <form action="install.php?stage=database" method="post" name="database_info">
     <input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
     <input type="hidden" name="driver" value="<?php echo $driver; ?>" />
-    <h3>Database connection failed</h3>
-    <p>The installer couldn't connect to the database because something went wrong while the connection attempt was being made. Please press your browser's back button and correct your database information.</p>
-    <p>Error description:
+    <h3><?php echo $lang->get('database_msg_post_fail_title'); ?></h3>
+    <p><?php echo $lang->get('database_msg_post_fail_body'); ?></p>
+    <p><?php echo $lang->get('database_msg_post_fail_desc'); ?>
       <?php
       echo $dbal->sql_error();
       ?>
     </p>
     <p>
-      <input type="submit" name="_cont" value="Go back" />
+      <input type="submit" name="_cont" value="<?php echo $lang->get('database_btn_go_back'); ?>" />
     </p>
   </form>
   <?php

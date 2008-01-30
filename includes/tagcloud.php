@@ -132,6 +132,7 @@ class TagCloud
    
   function make_html($span_class = 'normal', $div_align = 'center')
   {
+    global $lang;
     $html = array();
     $max  = max($this->words);
     $size = $this->get_cloud_size();
@@ -147,8 +148,8 @@ class TagCloud
         $newline = ( $inc == 5 ) ? "<br />" : '';
         ( $inc == 5 ) ? $inc = 0 : null;
         $url = makeUrlNS('Special', 'TagCloud/' . htmlspecialchars($word));
-        $s = ( $popularity != 1 ) ? 's' : '';
-        $html[] = "<span class='tc_word_{$span_class} tc_{$span_class}_index_{$index}'><a href='$url' title='$popularity page$s'>$word</a></span>"; // $newline";
+        $popstring = ( $popularity == 1 ) ? $lang->get('pagetools_tagcloug_tip_popularity_one') : $lang->get('pagetools_tagcloug_tip_popularity_plural', array('popularity' => $popularity));
+        $html[] = "<span class='tc_word_{$span_class} tc_{$span_class}_index_{$index}'><a href='$url' title='$popstring'>$word</a></span>"; // $newline";
       }
     }
     $html = '<div style="text-align: ' . $div_align . '; margin: 0 auto; max-width: 400px;">' . implode("\n", $html) . '</div>';

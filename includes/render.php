@@ -763,7 +763,8 @@ class RenderMan {
     $keys = array_keys($smileys);
     foreach($keys as $k)
     {
-      $t = str_hex($k);
+      $t = hexencode($k, ' ', '');
+      $t = trim($t);
       $t = explode(' ', $t);
       $s = '';
       foreach($t as $b)

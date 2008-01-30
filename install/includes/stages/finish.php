@@ -33,8 +33,8 @@ $ui->show_header();
 flush();
 
 ?>
-<h3>Performing final installation steps</h3>
-<p>Enano is cleaning up and performing some final installation tasks. Please wait...</p>
+<h3><?php echo $lang->get('finish_heading_progress'); ?></h3>
+<p><?php echo $lang->get('finish_msg_progress'); ?></p>
 
 <?php
 
@@ -52,17 +52,16 @@ function stg_load_files()
 // FIXME: l10n
 start_install_table();
 
-run_installer_stage('load', 'Load installer files', 'stg_load_files', 'One of the files needed for installation couldn\'t be loaded. Please check your Enano directory.', false);
-run_installer_stage('cleanup', 'Clean up encryption keys', 'stg_aes_cleanup', 'There was a database error while removing the temporary encryption keys from the database. For maximum site security you should delete the config entries install_aes_key and site_aes_key manually.', false);
+run_installer_stage('load', $lang->get('install_stg_load_title'), 'stg_load_files', $lang->get('install_stg_load_body'), false);
+run_installer_stage('cleanup', $lang->get('install_stg_cleanup_title'), 'stg_aes_cleanup', $lang->get('install_stg_cleanup_body'), false);
 run_installer_stage('buildindex', $lang->get('install_stg_buildindex_title'), 'stg_build_index', $lang->get('install_stg_buildindex_body'));
 run_installer_stage('renameconfig', $lang->get('install_stg_rename_title'), 'stg_rename_config', $lang->get('install_stg_rename_body', array('mainpage_link' => scriptPath . '/index.php')));
 
 close_install_table();
 
 ?>
-<h3>Congratulations! You've finished installing Enano.</h3>
-<p>Enano has finished setting up on your server. Now you can go to your <a href="<?php echo makeUrlNS('Article', 'Main_Page');?>">new
-   website</a> and start creating content!</p>
+<h3><?php echo $lang->get('finish_msg_success_title'); ?></h3>
+<p><?php echo $lang->get('finish_msg_success_body', array('mainpage_link' => makeUrlNS('Article', 'Main_Page'))); ?></p>
 <?php 
   echo $lang->get('finish_body');
   echo '<p>' . $lang->get('finish_link_mainpage', array('mainpage_link' => scriptPath . '/index.php')) . '</p>';

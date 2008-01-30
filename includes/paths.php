@@ -133,6 +133,7 @@ class pathManager {
   function init()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $code = $plugins->setHook('paths_init_before');
     foreach ( $code as $cmd )
@@ -359,8 +360,7 @@ class pathManager {
         {
           $main_page = makeUrl($this->pages[0]['urlname']);
         }
-        $sp_link = '<a href="' . makeUrlNS('Special', 'SpecialPages') . '">here</a>';
-        redirect($main_page, 'Can\'t load special page', 'The special page you requested could not be found. This may be due to a plugin failing to load. A list of all special pages on this website can be viewed '.$sp_link.'. You will be redirected to the main page in 15 seconds.', 14);
+        redirect($main_page, $lang->get('page_msg_special_404_title'), $lang->get('page_msg_special_404_body', array('sp_link' => makeUrlNS('Special', 'SpecialPages'))), 15);
         exit;
       }
       // Allow the user to create/modify his user page uncondtionally (admins can still protect the page)

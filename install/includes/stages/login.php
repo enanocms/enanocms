@@ -56,9 +56,8 @@ $ui->show_header();
 
 // FIXME: l10n
 ?>
-<h3>Administration account</h3>
-<p>Now it's time to create the account you'll use to administer your site. The e-mail address you enter here will also be used for the global contact address; you can change this after installation is finished if need be.</p>
-<p>Do not forget the information you enter here. Otherwise you will be unable to administer your site.</p>
+<h3><?php echo $lang->get('login_welcome_title'); ?></h3>
+<?php echo $lang->get('login_welcome_body'); ?>
 
 <script type="text/javascript">
 
@@ -111,7 +110,8 @@ $ui->show_header();
   {
     if ( verify() )
       return true;
-    alert("One or more of the form fields contains an incorrect value. Please correct any fields that have an X next to them.");
+    alert($lang.get('login_err_verify_failure'));
+    return false;
   }
   
   function submit_encrypt()
@@ -141,7 +141,7 @@ $ui->show_header();
     
     if ( !crypt_data )
     {
-      alert('Received a bad response from rijndaelEncrypt(). Shift-click "reload" or "refresh" (depending on your browser) and try again.');
+      alert($lang.get('login_err_rijndael_failed'));
       return false;
     }
   
@@ -181,7 +181,7 @@ $ui->show_header();
   
     <tr>
       <td style="width: 50%;">
-        <b>Username</b>
+        <b><?php echo $lang->get('login_field_username'); ?></b>
       </td>
       <td style="width: 50%;">
         <input type="text" tabindex="1" name="username" size="15" onkeyup="verify(this);" />
@@ -193,15 +193,15 @@ $ui->show_header();
     
     <tr>
       <td>
-        <b>Password</b><br />
-        This will be encrypted with AES before it's sent to the server.
+        <b><?php echo $lang->get('login_field_password'); ?></b><br />
+        <?php echo $lang->get('login_aes_blurb'); ?>
       </td>
       <td>
         <input type="password" tabindex="2" name="password" size="15" onkeyup="password_score_field(this); verify(this);" /><br />
         <br />
         <div id="pwmeter"></div>
         <br />
-        <input type="password" tabindex="3" name="password_confirm" size="15" onkeyup="verify(this);" /> <small>(confirm)</small>
+        <input type="password" tabindex="3" name="password_confirm" size="15" onkeyup="verify(this);" /> <small><?php echo $lang->get('login_field_password_confirm'); ?></small>
       </td>
       <td>
         <img id="s_password" alt="Good/bad icon" src="../images/bad.gif" />
@@ -210,7 +210,7 @@ $ui->show_header();
     
     <tr>
       <td style="width: 50%;">
-        <b>E-mail</b>
+        <b><?php echo $lang->get('login_field_email'); ?></b>
       </td>
       <td style="width: 50%;">
         <input type="text" tabindex="4" name="email" size="30" onkeyup="verify(this);" />

@@ -398,13 +398,13 @@ class sessionManager {
           {
             case 'none':
             default:
-              $solution = 'Your account was most likely deactivated by an administrator. Please contact the site administration for further assistance.';
+              $solution = $lang->get('user_login_noact_solution_none');
               break;
             case 'user':
-              $solution = 'Please check your e-mail; you should have been sent a message with instructions on how to activate your account. If you do not receive an e-mail from this site within 24 hours, please contact the site administration for further assistance.';
+              $solution = $lang->get('user_login_noact_solution_user');
               break;
             case 'admin':
-              $solution = 'This website has been configured so that all user accounts must be activated by the administrator before they can be used, so your account will most likely be activated the next time an administrator visits the site.';
+              $solution = $lang->get('user_login_noact_solution_admin');
               break;
           }
           
@@ -425,14 +425,14 @@ class sessionManager {
             $this->auth_level =    USER_LEVEL_MEMBER;
             $this->user_level =    USER_LEVEL_MEMBER;
             $this->logout();
-            redirect(scriptPath . '/', 'Logged out', 'You have successfully been logged out. All cookies cleared.', 4);
+            redirect(scriptPath . '/', $lang->get('user_login_noact_msg_logout_success_title'), $lang->get('user_login_noact_msg_logout_success_body'), 5);
           }
           
           if ( $can_request && !isset($_POST['activation_request']) )
           {
-            $form = '<p>If you are having trouble or did not receive the e-mail, you can request account activation from the administrators of this site.</p>
+            $form = '<p>' . $lang->get('user_login_noact_msg_ask_admins') . '</p>
                      <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
-                       <p><input type="submit" name="activation_request" value="Request account activation" /> <input type="submit" name="logout" value="Log out" /></p>
+                       <p><input type="submit" name="activation_request" value="' . $lang->get('user_login_noact_btn_request_activation') . '" /> <input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
                      </form>';
           }
           else
@@ -440,21 +440,21 @@ class sessionManager {
             if ( $can_request && isset($_POST['activation_request']) )
             {
               $this->admin_activation_request($userdata['username']);
-              $form = '<p>A request has just been sent to the administrators of this site. They will be able to activate your account or send you another activation e-mail if needed.</p>
+              $form = '<p>' . $lang->get('user_login_noact_msg_admins_just_asked') . '</p>
                        <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
-                         <p><input type="submit" name="logout" value="Log out" /></p>
+                         <p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
                        </form>';
             }
             else
             {
-              $form = '<p>There is an active request in the administrators\' control panel for your account to be activated.</p>
+              $form = '<p>' . $lang->get('user_login_noact_msg_admins_asked') . '</p>
                        <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
-                         <p><input type="submit" name="logout" value="Log out" /></p>
+                         <p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
                        </form>';
             }
           }
           
-          die_semicritical('Account error', '<p>It appears that your user account has not yet been activated. '.$solution.'</p>' . $form);
+          die_semicritical($lang->get('user_login_noact_title'), '<p>' . $lang->get('user_login_noact_msg_intro') . ' '.$solution.'</p>' . $form);
         }
         
         $this->sid = $_COOKIE['sid'];
@@ -712,7 +712,7 @@ class sessionManager {
           eval($cmd);
         }
         
-        redirect($url, 'Login sucessful', 'Please wait while you are transferred to the Password Reset form.');
+        redirect($url, '', '', 0);
         exit;
       }
     }
@@ -1582,6 +1582,8 @@ class sessionManager {
   function check_banlist()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     $col_reason = ( $this->compat ) ? '"No reason entered (session manager is in compatibility mode)" AS reason' : 'reason';
     $banned = false;
     if ( $this->user_logged_in )
@@ -1612,7 +1614,7 @@ class sessionManager {
       $q = $this->sql($sql);
       if ( $db->numrows() > 0 )
       {
-        while ( list($reason, $ban_value, $ban_type, $is_regex) = $db->fetchrow_num() )
+        while ( list($reason_temp, $ban_value, $ban_type, $is_regex) = $db->fetchrow_num() )
         {
           if ( $ban_type == BAN_IP && $row['is_regex'] != 1 )
           {
@@ -1624,6 +1626,7 @@ class sessionManager {
             }
             if ( preg_match("/$regexp/", $_SERVER['REMOTE_ADDR']) )
             {
+              $reason = $reason_temp;
               $banned = true;
             }
           }
@@ -1631,6 +1634,7 @@ class sessionManager {
           {
             // User is banned
             $banned = true;
+            $reason = $reason_temp;
           }
         }
       }
@@ -1656,7 +1660,7 @@ class sessionManager {
       $q = $this->sql($sql);
       if ( $db->numrows() > 0 )
       {
-        while ( list($reason, $ban_value, $ban_type, $is_regex) = $db->fetchrow_num() )
+        while ( list($reason_temp, $ban_value, $ban_type, $is_regex) = $db->fetchrow_num() )
         {
           if ( $ban_type == BAN_IP && $row['is_regex'] != 1 )
           {
@@ -1666,12 +1670,14 @@ class sessionManager {
               continue;
             if ( preg_match("/$regexp/", $_SERVER['REMOTE_ADDR']) )
             {
+              $reason = $reason_temp;
               $banned = true;
             }
           }
           else
           {
             // User is banned
+            $reason = $reason_temp;
             $banned = true;
           }
         }
@@ -1681,7 +1687,7 @@ class sessionManager {
     if ( $banned && $paths->get_pageid_from_url() != $paths->nslist['Special'].'CSS' )
     {
       // This guy is banned - kill the session, kill the database connection, bail out, and be pretty about it
-      die_semicritical('Ban notice', '<div class="error-box">You have been banned from this website. Please contact the site administrator for more information.<br /><br />Reason:<br />'.$reason.'</div>');
+      die_semicritical($lang->get('user_ban_msg_title'), '<p>' . $lang->get('user_ban_msg_body') . '</p><div class="error-box"><b>' . $lang->get('user_ban_lbl_reason') . '</b><br />' . $reason . '</div>');
       exit;
     }
   }
@@ -2066,46 +2072,71 @@ class sessionManager {
   
   function userlevel_to_string($user_level, $short = false)
   {
-    if ( $short )
+    global $lang;
+    
+    static $levels = array(
+        'short' => array(
+            USER_LEVEL_GUEST => 'Guest',
+            USER_LEVEL_MEMBER => 'Member',
+            USER_LEVEL_CHPREF => 'Sensitive preferences changeable',
+            USER_LEVEL_MOD => 'Moderator',
+            USER_LEVEL_ADMIN => 'Administrative'
+          ),
+        'long' => array(
+            USER_LEVEL_GUEST => 'Low - guest privileges',
+            USER_LEVEL_MEMBER => 'Standard - normal member level',
+            USER_LEVEL_CHPREF => 'Medium - user can change his/her own e-mail address and password',
+            USER_LEVEL_MOD => 'High - moderator privileges',
+            USER_LEVEL_ADMIN => 'Highest - administrative privileges'
+          ),
+        'l10n' => false
+      );
+    
+    if ( is_object($lang) && !$levels['l10n'] )
     {
-      switch ( $user_level )
-      {
-        case USER_LEVEL_GUEST:
-          return 'Guest';
-        case USER_LEVEL_MEMBER:
-          return 'Member';
-        case USER_LEVEL_CHPREF:
-          return 'Sensitive preferences changeable';
-        case USER_LEVEL_MOD:
-          return 'Moderator';
-        case USER_LEVEL_ADMIN:
-          return 'Administrative';
-        default:
-          return "Level $user_level";
-      }
+      $levels = array(
+          'short' => array(
+              USER_LEVEL_GUEST => $lang->get('user_level_short_guest'),
+              USER_LEVEL_MEMBER => $lang->get('user_level_short_member'),
+              USER_LEVEL_CHPREF => $lang->get('user_level_short_chpref'),
+              USER_LEVEL_MOD => $lang->get('user_level_short_mod'),
+              USER_LEVEL_ADMIN => $lang->get('user_level_short_admin')
+            ),
+          'long' => array(
+              USER_LEVEL_GUEST => $lang->get('user_level_long_guest'),
+              USER_LEVEL_MEMBER => $lang->get('user_level_long_member'),
+              USER_LEVEL_CHPREF => $lang->get('user_level_long_chpref'),
+              USER_LEVEL_MOD => $lang->get('user_level_long_mod'),
+              USER_LEVEL_ADMIN => $lang->get('user_level_long_admin')
+            ),
+          'l10n' => true
+        );
+    }
+    
+    $key = ( $short ) ? 'short' : 'long';
+    if ( isset($levels[$key][$user_level]) )
+    {
+      return $levels[$key][$user_level];
     }
     else
     {
-      switch ( $user_level )
+      if ( $short )
       {
-        case USER_LEVEL_GUEST:
-          return 'Low - guest privileges';
-        case USER_LEVEL_MEMBER:
-          return 'Standard - normal member level';
-        case USER_LEVEL_CHPREF:
-          return 'Medium - user can change his/her own e-mail address and password';
-        case USER_LEVEL_MOD:
-          return 'High - moderator privileges';
-        case USER_LEVEL_ADMIN:
-          return 'Highest - administrative privileges';
-        default:
-          return "Unknown ($user_level)";
+        return ( is_object($lang) ) ? $lang->get('user_level_short_unknown', array('user_level' => $user_level)) : "Unknown - $user_level";
+      }
+      else
+      {
+        return ( is_object($lang) ) ? $lang->get('user_level_long_unknown', array('user_level' => $user_level)) : "Unknown level ($user_level)";
       }
     }
+    
+    return 'Linux rocks!';
+    
   }
   
   /**
    * Updates a user's information in the database. Note that any of the values except $user_id can be false if you want to preserve the old values.
+   * Not localized because this really isn't used a whole lot anymore.
    * @param int $user_id The user ID of the user to update - this cannot be changed
    * @param string $username The new username
    * @param string $old_pass The current password - only required if sessionManager::$user_level < USER_LEVEL_ADMIN. This should usually be an UNENCRYPTED string. This can also be an array - if it is, key 0 is treated as data AES-encrypted with key 1

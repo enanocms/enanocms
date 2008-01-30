@@ -198,6 +198,7 @@
     case 'viewsource':
       $template->header();
       $text = RenderMan::getPage($paths->page_id, $paths->namespace, 0, false, false, false, false);
+      $text = htmlspecialchars($text);
       echo '
         <form action="'.makeUrl($paths->page, 'do=edit').'" method="post">
         <br />

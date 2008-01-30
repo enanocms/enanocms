@@ -833,49 +833,16 @@ class template {
     if ( $this->site_disabled && $session->user_level >= USER_LEVEL_ADMIN && ( $paths->page != $paths->nslist['Special'] . 'Administration' ) )
     {
       $admin_link = makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'GeneralConfig', true);
-      echo '<div class="usermessage"><b>The site is currently disabled and thus is only accessible to administrators.</b><br />
-            You can re-enable the site through the <a href="' . $admin_link . '">administration panel</a>.
+      echo '<div class="usermessage"><b>' . $lang->get('page_sitedisabled_admin_msg_title') . '</b><br />
+            ' . $lang->get('page_sitedisabled_admin_msg_body', array('admin_link' => $admin_link)) . '
             </div>';
     }
   }
   
   function footer($simple = false)
   {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    if ( !$this->no_headers )
-    {
-      
-      if(!defined('ENANO_HEADERS_SENT'))
-        $this->header();
-      
-      global $_starttime;
-      if(isset($_GET['sqldbg']) && $session->get_permissions('mod_misc'))
-      {
-        echo '<h3>Query list as requested on URI</h3><pre style="margin-left: 1em">';
-        echo htmlspecialchars($db->sql_backtrace());
-        echo '</pre>';
-      }
-      
-      $f = microtime_float();
-      $f = $f - $_starttime;
-      $f = round($f, 4);
-      $dbg = 'Time: '.$f.'s  |  Queries: '.$db->num_queries;
-      $t = ( $simple ) ? $this->process_template('simple-footer.tpl') : $this->process_template('footer.tpl');
-      $t = str_replace('[[Stats]]', $dbg, $t);
-      $t = str_replace('[[NumQueries]]', (string)$db->num_queries, $t);
-      $t = str_replace('[[GenTime]]', (string)$f, $t);
-      
-      if ( defined('ENANO_DEBUG') )
-        $t = str_replace('</body>', '<div id="profile" style="margin: 10px;">' . profiler_make_html() . '</div></body>', $t);
-      
-      echo $t;
-      
-      ob_end_flush();
-    }
-    else
-    {
-      return '';
-    }
+    echo $this->getFooter();
+    ob_end_flush();
   }
   
   function getHeader()
@@ -888,28 +855,56 @@ class template {
   function getFooter()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!$this->no_headers) {
-      global $_starttime;
-      $t = '';
+    global $lang;
+    if ( !$this->no_headers )
+    {
       
+      if(!defined('ENANO_HEADERS_SENT'))
+        $this->header();
+      
+      global $_starttime;
       if(isset($_GET['sqldbg']) && $session->get_permissions('mod_misc'))
       {
-        $t .= '<h3>Query list as requested on URI</h3><pre style="margin-left: 1em">';
-        $t .= $db->sql_backtrace();
-        $t .= '</pre>';
+        echo '<h3>' . $lang->get('page_heading_sql_list') . '</h3><pre style="margin-left: 1em">';
+        echo htmlspecialchars($db->sql_backtrace());
+        echo '</pre>';
       }
+      
+      $t = ( $simple ) ? $this->process_template('simple-footer.tpl') : $this->process_template('footer.tpl');
       
       $f = microtime_float();
       $f = $f - $_starttime;
       $f = round($f, 4);
-      $dbg = 'Time: '.$f.'s  |  Queries: '.$db->num_queries;
-      $t.= $this->process_template('footer.tpl');
+      
+      $t_loc = $lang->get('page_msg_stats_gentime_short', array('time' => $f));
+      $t_loc_long = $lang->get('page_msg_stats_gentime_long', array('time' => $f));
+      $q_loc = '<a href="' . $this->tpl_strings['REPORT_URI'] . '">' . $lang->get('page_msg_stats_sql', array('nq' => $db->num_queries)) . '</a>';
+      $dbg = $t_loc;
+      $dbg_long = $t_loc_long;
+      if ( $session->user_level >= USER_LEVEL_ADMIN )
+      {
+        $dbg .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+        $dbg_long .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+      }
+      
       $t = str_replace('[[Stats]]', $dbg, $t);
+      $t = str_replace('[[StatsLong]]', $dbg_long, $t);
       $t = str_replace('[[NumQueries]]', (string)$db->num_queries, $t);
       $t = str_replace('[[GenTime]]', (string)$f, $t);
+      $t = str_replace('[[NumQueriesLoc]]', $q_loc, $t);
+      $t = str_replace('[[GenTimeLoc]]', $t_loc, $t);
+      $t = str_replace('[[EnanoPoweredLink]]', $lang->get('page_enano_powered', array('about_uri' => $this->tpl_strings['URL_ABOUT_ENANO'])), $t);
+      $t = str_replace('[[EnanoPoweredLinkLong]]', $lang->get('page_enano_powered_long', array('about_uri' => $this->tpl_strings['URL_ABOUT_ENANO'])), $t);
+      
+      if ( defined('ENANO_DEBUG') )
+        $t = str_replace('</body>', '<div id="profile" style="margin: 10px;">' . profiler_make_html() . '</div></body>', $t);
+      
       return $t;
     }
-    else return '';
+    else
+    {
+      return '';
+    }
   }
   
   /**
@@ -1033,7 +1028,7 @@ class template {
     $keywords = implode('|', $keywords);
     
     // Matches
-    //          1     2                               3                 4   56                       7     8
+    //          1     2                 3                 4   56                       7     8
     $regexp = '/(<!-- ('. $keywords .') ([A-z0-9_-]+) -->)(.*)((<!-- BEGINELSE \\3 -->)(.*))?(<!-- END \\3 -->)/isU';
     
     /*
@@ -2029,28 +2024,55 @@ class template_nodb
   function footer($simple = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     if(!$this->no_headers) {
       global $_starttime;
       
-      $f = microtime(true);
-      $f = $f - $_starttime;
-      $f = round($f, 4);
-      if(defined('IN_ENANO_INSTALL')) $nq = 'N/A';
-      else $nq = $db->num_queries;
-      if($nq == 0) $nq = 'N/A';
-      $dbg = 'Time: '.$f.'s  |  Queries: '.$nq;
       $filename = ( $simple ) ? 'simple-footer.tpl' : 'footer.tpl';
       $t = $this->process_template($filename);
-      $t = str_replace('[[Stats]]', $dbg, $t);
-      if ( is_object($db) )
+      
+      $f = microtime_float();
+      $f = $f - $_starttime;
+      $f = round($f, 4);
+      
+      if ( is_object($lang) )
       {
-        $t = str_replace('[[NumQueries]]', (string)$db->num_queries, $t);
+        $t_loc = $lang->get('page_msg_stats_gentime_short', array('time' => $f));
+        $t_loc_long = $lang->get('page_msg_stats_gentime_long', array('time' => $f));
+        $q_loc = '<a href="' . $this->tpl_strings['REPORT_URI'] . '">' . $lang->get('page_msg_stats_sql', array('nq' => ( is_object($db) ? $db->num_queries : 'N/A' ))) . '</a>';
+        $dbg = $t_loc;
+        $dbg_long = $t_loc_long;
+        if ( $session->user_level >= USER_LEVEL_ADMIN )
+        {
+          $dbg .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+          $dbg_long .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+        }
+        $t = str_replace('[[EnanoPoweredLink]]', $lang->get('page_enano_powered', array('about_uri' => $this->tpl_strings['URL_ABOUT_ENANO'])), $t);
+        $t = str_replace('[[EnanoPoweredLinkLong]]', $lang->get('page_enano_powered_long', array('about_uri' => $this->tpl_strings['URL_ABOUT_ENANO'])), $t);
       }
       else
       {
-        $t = str_replace('[[NumQueries]]', '0', $t);
+        $t_loc = "Time: {$f}s";
+        $t_loc_long = "Generated in {$f}sec";
+        $q_loc = '<a href="' . $this->tpl_strings['REPORT_URI'] . '">' . ( is_object($db) ? "{$db->num_queries} SQL" : 'Queries: N/A' ) . '</a>';
+        $dbg = $t_loc;
+        $dbg_long = $t_loc_long;
+        if ( $session->user_level >= USER_LEVEL_ADMIN )
+        {
+          $dbg .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+          $dbg_long .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+        }
+        $t = str_replace('[[EnanoPoweredLink]]', 'Powered by <a href="http://enanocms.org/" onclick="window.open(this.href); return false;">Enano</a>', $t);
+        $t = str_replace('[[EnanoPoweredLinkLong]]', 'Website engine powered by <a href="http://enanocms.org/" onclick="window.open(this.href); return false;">Enano</a>', $t);
       }
+      
+      $t = str_replace('[[Stats]]', $dbg, $t);
+      $t = str_replace('[[StatsLong]]', $dbg_long, $t);
+      $t = str_replace('[[NumQueries]]', ( is_object($db) ? (string)$db->num_queries : '0' ), $t);
       $t = str_replace('[[GenTime]]', (string)$f, $t);
+      $t = str_replace('[[NumQueriesLoc]]', $q_loc, $t);
+      $t = str_replace('[[GenTimeLoc]]', $t_loc, $t);
       
       echo $t;
     }

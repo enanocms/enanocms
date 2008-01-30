@@ -70,9 +70,8 @@ $ui->show_header();
       }
       else
       {
-        // FIXME: l10n
         install_unset_ajax_loading();
-        new messagebox(MB_OK | MB_ICONSTOP, 'All tests failed', 'None of the URL handling tests worked; you may have problems using Enano on your server.');
+        new messagebox(MB_OK | MB_ICONSTOP, $lang.get('website_msg_ajax_test_fail_title'), $lang.get('website_msg_ajax_test_fail_body'));
       }
     }
   }
@@ -88,17 +87,16 @@ $ui->show_header();
     document.getElementById('url_radio_' + level).checked = true;
     document.getElementById('url_radio_' + level).focus();
     
-    // FIXME: l10n
     switch ( level )
     {
       case 'rewrite':
-        var str = 'The installer has detected that using rewritten URLs is the best level that will work.';
+        var str = $lang.get('website_msg_bestmethod_rewrite');
         break;
       case 'shortened':
-        var str = 'The installer has detected that using shortened URLs is the best level that will work.';
+        var str = $lang.get('website_msg_bestmethod_shortened');
         break;
       case 'standard':
-        var str = 'The installer has detected that using standard URLs is the only level that will work.';
+        var str = $lang.get('website_msg_bestmethod_standard');
         break;
     }
     document.getElementById('mrw_report').className = 'info-box-mini';
@@ -153,8 +151,8 @@ $ui->show_header();
   
     <tr>
       <td>
-        <b>Pick a name</b><br />
-        <span id="hint_site_name" class="fieldtip">Now for the fun part - it's time to name your website. Try to pick something that doesn't include any special characters, since this can make project-page URLs look botched.</span>
+        <b><?php echo $lang->get('website_field_name'); ?></b><br />
+        <span id="hint_site_name" class="fieldtip"><?php echo $lang->get('website_field_name_hint'); ?></span>
       </td>
       <td style="width: 50%;">
         <input type="text" name="site_name" size="50" tabindex="1" />
@@ -163,8 +161,8 @@ $ui->show_header();
     
     <tr>
       <td>
-        <b>Enter a short description</b><br />
-        <span id="hint_site_desc" class="fieldtip">Here you should enter a very short description of your site. Sometimes this is a slogan or, depending on the theme you've chosen, a set of keywords that can go into a META description tag.</span>
+        <b><?php echo $lang->get('website_field_desc'); ?></b><br />
+        <span id="hint_site_desc" class="fieldtip"><?php echo $lang->get('website_field_desc_hint'); ?></span>
       </td>
       <td>
         <input type="text" name="site_desc" size="50" tabindex="2" />
@@ -173,8 +171,8 @@ $ui->show_header();
     
     <tr>
       <td>
-        <b>Copyright info</b><br />
-        <span id="hint_copyright" class="fieldtip">The text you enter here will be shown at the bottom of most pages. Typically this is where a copyright notice would go. Keep it short and sweet; you can use <a href="http://docs.enanocms.org/Help:3.1">internal links</a> to link to project pages you'll create later.</span>
+        <b><?php echo $lang->get('website_field_copyright'); ?></b><br />
+        <span id="hint_copyright" class="fieldtip"><?php echo $lang->get('website_field_copyright_hint'); ?></span>
       </td>
       <td>
         <input type="text" name="copyright" size="50" tabindex="3" />
@@ -183,8 +181,8 @@ $ui->show_header();
     
     <tr>
       <td valign="top">
-        <b>URL formatting</b><br />
-        This lets you choose how URLs within your site will be formatted. If the setting you pick doesn't work, you can change it by editing config.php after installation.
+        <b><?php echo $lang->get('website_field_urlscheme'); ?></b><br />
+        <?php echo $lang->get('website_field_urlscheme_hint'); ?>
       </td>
       <td>
       
@@ -195,11 +193,11 @@ $ui->show_header();
             </td>
             <td>
               <label for="url_radio_standard">
-                <b>Standard URLs</b>
+                <b><?php echo $lang->get('website_field_urlscheme_opt_standard'); ?></b>
               </label>
               <span class="fieldtip" id="hint_url_scheme_standard">
-                <p>Compatible with all servers. This is the default option and should be used unless you're sure that one of the other options below.</p>
-                <p><small><b>Example:</b> <tt><?php echo $scriptpath_full . 'index.php?title=Page'; ?></tt></small></p>
+                <p><?php echo $lang->get('website_field_urlscheme_opt_standard_hint'); ?></p>
+                <p><small><b><?php echo $lang->get('website_field_urlscheme_lbl_example'); ?></b> <tt><?php echo $scriptpath_full . 'index.php?title=Page'; ?></tt></small></p>
               </span>
             </td>
           </tr>
@@ -212,11 +210,11 @@ $ui->show_header();
             </td>
             <td>
               <label for="url_radio_shortened">
-                <b>Shortened URLs</b>
+                <b><?php echo $lang->get('website_field_urlscheme_opt_shortened'); ?></b>
               </label>
               <span class="fieldtip" id="hint_url_scheme_shortened">
-                <p>This eliminates the "?title=" portion of your URL, and instead uses a slash. This is occasionally more friendly to search engines.</p>
-                <p><small><b>Example:</b> <tt><?php echo $scriptpath_full . 'index.php/Page'; ?></tt></small></p>
+                <p><?php echo $lang->get('website_field_urlscheme_opt_shortened_hint'); ?></p>
+                <p><small><b><?php echo $lang->get('website_field_urlscheme_lbl_example'); ?></b> <tt><?php echo $scriptpath_full . 'index.php/Page'; ?></tt></small></p>
               </span>
             </td>
           </tr>
@@ -229,18 +227,18 @@ $ui->show_header();
             </td>
             <td>
               <label for="url_radio_rewrite">
-                <b>Rewritten URLs</b>
+                <b><?php echo $lang->get('website_field_urlscheme_opt_rewrite'); ?></b>
               </label>
               <span id="hint_url_scheme_rewrite" class="fieldtip">
-                <p>Using this option, you can completely eliminate the "index.php" from URLs. This is the most friendly option to search engines and looks very professional, but requires support for URL rewriting on your server. If you're running Apache and have the right permissions, Enano can configure this automatically. Otherwise, you'll need to configure your server manually and have a knowledge of regular expressions for this option to work.</p>
-                <p><small><b>Example:</b> <tt><?php echo $scriptpath_full . 'Page'; ?></tt></small></p>
+                <p><?php echo $lang->get('website_field_urlscheme_opt_rewrite_hint'); ?></p>
+                <p><small><b><?php echo $lang->get('website_field_urlscheme_lbl_example'); ?></b> <tt><?php echo $scriptpath_full . 'Page'; ?></tt></small></p>
               </span>
             </td>
           </tr>
         </table>
         
         <p>
-          <a href="#mrw_scan" onclick="ajaxMrwTest(); return false;" tabindex="4">Auto-detect the best formatting scheme</a>
+          <a href="#mrw_scan" onclick="ajaxMrwTest(); return false;" tabindex="4"><?php echo $lang->get('website_btn_urlscheme_detect'); ?></a>
         </p>
         
         <div id="mrw_report"></div>

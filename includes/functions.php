@@ -321,7 +321,11 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
   if ( $timeout == 0 && empty($_POST) )
   {
     header('Location: ' . $url);
+    header('Content-length: 0');
     header('HTTP/1.1 307 Temporary Redirect');
+    
+    // with 3xx codes HTTP clients expect a response of 0 bytes, so just die here
+    exit();
   }
   
   if ( !is_object($template) )
@@ -330,7 +334,7 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
     $template->load_theme('oxygen', 'bleu', false);
     $template->tpl_strings['SITE_NAME'] = 'Enano';
     $template->tpl_strings['SITE_DESC'] = 'This site is experiencing a critical error and cannot load.';
-    $template->tpl_strings['COPYRIGHT'] = 'Powered by Enano CMS - &copy; 2007 Dan Fuhry. This program is Free Software; see the <a href="' . scriptPath . '/install.php?mode=license">GPL file</a> included with this package for details.';
+    $template->tpl_strings['COPYRIGHT'] = 'Powered by Enano CMS - &copy; 2006-2008 Dan Fuhry. This program is Free Software; see the <a href="' . scriptPath . '/install.php?mode=license">GPL file</a> included with this package for details.';
     $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($title);
   }
 
@@ -435,10 +439,6 @@ function arrayItemTop($arr, $keyname) {
     // echo 'Keyname: '.$keylist[$idx] . '<br />'; flush(); ob_flush(); // Debugger
     if($idx < 0) return $arr;
     if($keylist[$idx] == '' || $keylist[$idx] < 0 || !$keylist[$idx]) {
-      /* echo 'Infinite loop caught in arrayItemTop(<br /><pre>';
-      print_r($arr);
-      echo '</pre><br />, '.$keyname.');<br /><br />EnanoCMS: Critical error during function call, exiting to prevent excessive server load.';
-      exit; */
       return $arr;
     }
     $arr = arrayItemUp($arr, $keylist[$idx]);
@@ -613,7 +613,7 @@ function show_category_info()
     {
       $db->_die();
     }
-    echo '<h3>Subcategories</h3>';
+    echo '<h3>' . $lang->get('onpage_cat_heading_subcategories') . '</h3>';
     echo '<div class="tblholder">';
     echo '<table border="0" cellspacing="1" cellpadding="4">';
     echo '<tr>';
@@ -636,10 +636,10 @@ function show_category_info()
         }
         else
         {
-          echo '<td class="' . $class . '">No subcategories.</td>';
+          echo '<td class="' . $class . '">' . $lang->get('onpage_cat_msg_no_subcategories') . '</td>';
         }
         echo '</tr></table></div>' . "\n\n";
-        echo '<h3>Pages</h3>';
+        echo '<h3>' . $lang->get('onpage_cat_heading_pages') . '</h3>';
         echo '<div class="tblholder">';
         echo '<table border="0" cellspacing="1" cellpadding="4">';
         echo '<tr>';
@@ -684,10 +684,10 @@ function show_category_info()
       }
       else
       {
-        echo '<td class="' . $class . '">No subcategories.</td>';
+        echo '<td class="' . $class . '">' . $lang->get('onpage_cat_msg_no_subcategories') . '</td>';
       }
       echo '</tr></table></div>' . "\n\n";
-      echo '<h3>Pages</h3>';
+      echo '<h3>' . $lang->get('onpage_cat_heading_pages') . '</h3>';
       echo '<div class="tblholder">';
       echo '<table border="0" cellspacing="1" cellpadding="4">';
       echo '<tr>';
@@ -706,7 +706,7 @@ function show_category_info()
     }
     else
     {
-      echo '<td class="' . $class . '">No pages in this category.</td>';
+      echo '<td class="' . $class . '">' . $lang->get('onpage_cat_msg_no_pages') . '</td>';
     }
     echo '</tr></table></div>' . "\n\n";
   }
@@ -770,65 +770,111 @@ EOF;
 function show_file_info()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if($paths->namespace != 'File') return null; // Prevent unnecessary work
-  $selfn = $paths->page_id; // substr($paths->page, strlen($paths->nslist['File']), strlen($paths->cpage));
-  if(substr($paths->cpage['name'], 0, strlen($paths->nslist['File']))==$paths->nslist['File']) $selfn = substr($paths->page_id, strlen($paths->nslist['File']), strlen($paths->page_id));
+  global $lang;
+  
+  // Prevent unnecessary work
+  if ( $paths->namespace != 'File' )
+    return null;
+  
+  $selfn = $paths->page_id;
+  if ( substr($paths->cpage['name'], 0, strlen($paths->nslist['File'])) == $paths->nslist['File'])
+  {
+    $selfn = substr($paths->page_id, strlen($paths->nslist['File']), strlen($paths->page_id));
+  }
   $q = $db->sql_query('SELECT mimetype,time_id,size FROM '.table_prefix.'files WHERE page_id=\''.$selfn.'\' ORDER BY time_id DESC;');
-  if(!$q) $db->_die('The file type could not be fetched.');
-  if($db->numrows() < 1) { echo '<div class="mdg-comment" style="margin-left: 0;"><h3>Uploaded file</h3><p>There are no files uploaded with this name yet. <a href="'.makeUrlNS('Special', 'UploadFile/'.$paths->page_id).'">Upload a file...</a></p></div><br />'; return; }
+  if ( !$q )
+  {
+    $db->_die('The file type could not be fetched.');
+  }
+  
+  if ( $db->numrows() < 1 )
+  {
+    echo '<div class="mdg-comment" style="margin-left: 0;">
+            <h3>' . $lang->get('onpage_filebox_heading') . '</h3>
+            <p>' . $lang->get('onpage_filebox_msg_not_found', array('upload_link' => makeUrlNS('Special', 'UploadFile/'.$paths->page_id))) . '</p>
+          </div>
+          <br />';
+    return;
+  }
   $r = $db->fetchrow();
   $mimetype = $r['mimetype'];
   $datestring = enano_date('F d, Y h:i a', (int)$r['time_id']);
-  echo '<div class="mdg-comment" style="margin-left: 0;"><p><h3>Uploaded file</h3></p><p>Type: '.$r['mimetype'].'<br />Size: ';
-  $fs = $r['size'];
-  echo $fs.' bytes';
-  $fs = (int)$fs;
-  if($fs >= 1048576)
+  echo '<div class="mdg-comment" style="margin-left: 0;">
+          <h3>' . $lang->get('onpage_filebox_heading') . '</h3>
+          <p>' . $lang->get('onpage_filebox_lbl_type') . ' '.$r['mimetype'].'<br />';
+  
+  $size = $r['size'] . ' ' . $lang->get('etc_unit_bytes');
+  if ( $r['size'] >= 1048576 )
   {
-    $fs = round($fs / 1048576, 1);
-    echo ' ('.$fs.' MB)';
-  } elseif($fs >= 1024) {
-    $fs = round($fs / 1024, 1);
-    echo ' ('.$fs.' KB)';
+    $size .= ' (' . ( round($r['size'] / 1048576, 1) ) . ' ' . $lang->get('etc_unit_megabytes_short') . ')';
   }
-  echo '<br />Uploaded: '.$datestring.'</p>';
-  if(substr($mimetype, 0, 6)!='image/' && ( substr($mimetype, 0, 5) != 'text/' || $mimetype == 'text/html' || $mimetype == 'text/javascript' ))
+  else if ( $r['size'] >= 1024 )
   {
-    echo '<div class="warning-box">This file type may contain viruses or other code that could harm your computer. You should exercise caution if you download it.</div>';
+    $size .= ' (' . ( round($r['size'] / 1024, 1) ) . ' ' . $lang->get('etc_unit_kilobytes_short') . ')';
   }
-  if(substr($mimetype, 0, 6)=='image/')
+          
+  echo $lang->get('onpage_filebox_lbl_size', array('size' => $size));
+  
+  echo '<br />' . $lang->get('onpage_filebox_lbl_uploaded') . ' ' . $datestring . '</p>';
+  if ( substr($mimetype, 0, 6) != 'image/' && ( substr($mimetype, 0, 5) != 'text/' || $mimetype == 'text/html' || $mimetype == 'text/javascript' ) )
   {
-    echo '<p><a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn).'"><img style="border: 0;" alt="'.$paths->page.'" src="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.htmlspecialchars(urlSeparator).'preview').'" /></a></p>';
+    echo '<div class="warning-box">
+            ' . $lang->get('onpage_filebox_msg_virus_warning') . '
+          </div>';
   }
-  echo '<p><a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">Download this file</a>';
+  if ( substr($mimetype, 0, 6) == 'image/' )
+  {
+    echo '<p>
+            <a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn).'">
+              <img style="border: 0;" alt="'.$paths->page.'" src="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.htmlspecialchars(urlSeparator).'preview').'" />
+            </a>
+          </p>';
+  }
+  echo '<p>
+          <a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">
+            ' . $lang->get('onpage_filebox_btn_download') . '
+          </a>';
   if(!$paths->page_protected && ( $paths->wiki_mode || $session->get_permissions('upload_new_version') ))
   {
-    echo '  |  <a href="'.makeUrlNS('Special', 'UploadFile'.'/'.$selfn).'">Upload new version</a>';
+    echo '  |  <a href="'.makeUrlNS('Special', 'UploadFile'.'/'.$selfn).'">
+            ' . $lang->get('onpage_filebox_btn_upload_new') . '
+          </a>';
   }
   echo '</p>';
-  if($db->numrows() > 1)
+  if ( $db->numrows() > 1 )
   {
-    echo '<h3>File history</h3><p>';
-    while($r = $db->fetchrow())
+    echo '<h3>' . $lang->get('onpage_filebox_heading_history') . '</h3><p>';
+    while ( $r = $db->fetchrow() )
     {
-      echo '(<a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">this ver</a>) ';
-      if($session->get_permissions('history_rollback'))
-        echo ' (<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">revert</a>) ';
+      echo '(<a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">' . $lang->get('onpage_filebox_btn_this_version') . '</a>) ';
+      if ( $session->get_permissions('history_rollback') )
+        echo ' (<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">' . $lang->get('onpage_filebox_btn_revert') . '</a>) ';
       $mimetype = $r['mimetype'];
       $datestring = enano_date('F d, Y h:i a', (int)$r['time_id']);
+      
       echo $datestring.': '.$r['mimetype'].', ';
+      
       $fs = $r['size'];
       $fs = (int)$fs;
+      
       if($fs >= 1048576)
       {
         $fs = round($fs / 1048576, 1);
-        echo ' '.$fs.' MB';
-      } elseif($fs >= 1024) {
-        $fs = round($fs / 1024, 1);
-        echo ' '.$fs.' KB';
-      } else {
-        echo ' '.$fs.' bytes';
+        $size = $fs . ' ' . $lang->get('etc_unit_megabytes_short');
       }
+      else
+      if ( $fs >= 1024 )
+      {
+        $fs = round($fs / 1024, 1);
+        $size = $fs . ' ' . $lang->get('etc_unit_kilobytes_short');
+      }
+      else
+      {
+        $size = $fs . ' ' . $lang->get('etc_unit_bytes');
+      }
+      
+      echo $size;
+      
       echo '<br />';
     }
     echo '</p>';
@@ -876,37 +922,6 @@ function display_page_footers()
   }
   show_file_info();
   show_category_info();
-}
-
-/**
- * Deprecated, do not use.
- */
-
-function password_prompt($id = false)
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  if(!$id) $id = $paths->page;
-  if(isset($paths->pages[$id]['password']) && strlen($paths->pages[$id]['password']) == 40 && !isset($_REQUEST['pagepass']))
-  {
-    die_friendly('Password required', '<p>You must supply a password to access this page.</p><form action="'.makeUrl($paths->pages[$id]['urlname']).'" method="post"><p>Password: <input name="pagepass" type="password" /></p><p><input type="submit" value="Submit" /></p>');
-  } elseif(isset($_REQUEST['pagepass'])) {
-    $p = (preg_match('#^([a-f0-9]*){40}$#', $_REQUEST['pagepass'])) ? $_REQUEST['pagepass'] : sha1($_REQUEST['pagepass']);
-    if($p != $paths->pages[$id]['password']) die_friendly('Password required', '<p style="color: red;">The password you entered is incorrect.</p><form action="'.makeUrl($paths->page).'" method="post"><p>Password: <input name="pagepass" type="password" /></p><p><input type="submit" value="Submit" /></p>');
-  }
-}
-
-/**
- * Some sort of primitive hex converter from back in the day. Deprecated, do not use.
- * @param string Text to encode
- * @return string
- */
-
-function str_hex($string){
-    $hex='';
-    for ($i=0; $i < strlen($string); $i++){
-        $hex .= ' '.dechex(ord($string[$i]));
-    }
-    return substr($hex, 1, strlen($hex));
 }
 
 /**
@@ -1184,14 +1199,6 @@ function enano_codename()
     return $names[$version];
   }
   return 'Anonymous build';
-}
-
-/**
- * What kinda sh** was I thinking when I wrote this. Deprecated.
- */
-
-function _dualurlenc($t) {
-  return rawurlencode(rawurlencode($t));
 }
 
 /**

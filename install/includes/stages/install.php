@@ -40,9 +40,9 @@ if ( !$result )
   <form action="install.php?stage=database" method="post" name="database_info">
     <input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
     <input type="hidden" name="driver" value="<?php echo $dbdriver; ?>" />
-    <h3>Database connection failed</h3>
-    <p>The installer couldn't connect to the database because something went wrong while the connection attempt was being made. Please press your browser's back button and correct your database information.</p>
-    <p>Error description:
+    <h3><?php echo $lang->get('database_msg_post_fail_title'); ?></h3>
+    <p><?php echo $lang->get('database_msg_post_fail_body'); ?></p>
+    <p><?php echo $lang->get('database_msg_post_fail_desc'); ?>
       <?php
       echo $db->sql_error();
       ?>
@@ -61,10 +61,10 @@ $ui->show_header();
 flush();
 
 ?>
-<h3>Installing Enano</h3>
-<p>Please wait while Enano creates its database and initial content on your server.</p>
+<h3><?php echo $lang->get('install_title'); ?></h3>
+<p><?php echo $lang->get('install_body'); ?></p>
 
-<h3>Installation progress</h3>
+<h3><?php echo $lang->get('install_heading_progress'); ?></h3>
 
 <?php
 
@@ -82,11 +82,11 @@ function stg_load_files()
 // FIXME: l10n
 start_install_table();
 
-run_installer_stage('load', 'Load installer files', 'stg_load_files', 'One of the files needed for installation couldn\'t be loaded. Please check your Enano directory.', false);
-run_installer_stage('setpass', 'Retrieve administrator password', 'stg_password_decode', 'The administrator password couldn\'t be decrypted. This really shouldn\'t happen.');
-run_installer_stage('genaes', 'Generate private key', 'stg_make_private_key', 'Couldn\'t generate a private key for the site. This really shouldn\'t happen.');
-run_installer_stage('sqlparse', 'Prepare database schema', 'stg_load_schema', 'Couldn\'t load or parse the schema file. This really shouldn\'t happen.');
-run_installer_stage('payload', 'Install database', 'stg_deliver_payload', 'There was a problem with an SQL query.');
+run_installer_stage('load', $lang->get('install_stg_load_title'), 'stg_load_files', $lang->get('install_stg_load_body'), false);
+run_installer_stage('setpass', $lang->get('install_stg_setpass_title'), 'stg_password_decode', $lang->get('install_stg_setpass_body'));
+run_installer_stage('genaes', $lang->get('install_stg_genaes_title'), 'stg_make_private_key', $lang->get('install_stg_genaes_body'));
+run_installer_stage('sqlparse', $lang->get('install_stg_sqlparse_title'), 'stg_load_schema', $lang->get('install_stg_sqlparse_body'));
+run_installer_stage('payload', $lang->get('install_stg_payload_title'), 'stg_deliver_payload', $lang->get('install_stg_payload_body'));
 run_installer_stage('writeconfig', $lang->get('install_stg_writeconfig_title'), 'stg_write_config', $lang->get('install_stg_writeconfig_body'));
 
 // Now that the config is written, shutdown our primitive API and startup the full Enano API
