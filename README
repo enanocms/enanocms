@@ -1,5 +1,5 @@
 Enano CMS
-Version 1.0.3
+Version 1.1.1
 -----------------------------
 
 Thanks for downloading Enano! If you're looking for an installation guide,
@@ -9,7 +9,7 @@ COPYRIGHT
 -----------------------------
 
 Enano CMS
-Copyright (C) 2006-2007 Dan Fuhry. All rights except those explicitly granted
+Copyright (C) 2006-2008 Dan Fuhry. All rights except those explicitly granted
 by the included license agreement reserved.
 
 PHILOSOPHY
@@ -74,16 +74,26 @@ or any modified version.
 CHANGES IN THIS RELEASE
 -----------------------------
 
-Please see <http://enanocms.org/Release_notes/1.0.3> for a list of changes in
+Please see <http://enanocms.org/Release_notes/1.1.1> for a list of changes in
 this release.
 
 UPGRADING FROM PREVIOUS RELEASES
 -----------------------------
 
-This tarball includes an upgrade script that can migrate any previous version
-of Enano to this one. Before you upload the contents of this tarball to your
-server, you might want to delete the files config.new.php and .htaccess.new,
-neither of which are needed if you are performing an upgrade.
+This tarball includes a very basic migration script that you can use to change
+a 1.0.x installation into a 1.1.x one. Make sure you're using the latest 1.0.x
+release (1.0.3 at the time of this writing) BEFORE you run the migration
+script. DO NOT UPGRADE A PRODUCTION SITE.
+
+TRANSLATING ENANO
+-----------------------------
+
+This is the first formal release of Enano that is localized. Right now since
+this is an alpha, you probably don't want to do any translation because you'll
+be doing a TON more strings at every release. HOWEVER, we're looking for people
+to sign up and volunteer for translation efforts later on. If you have a native
+or very good knowledge of a language, drop us an e-mail and we'll get you onto
+the translator list and eventually onto a mailing list specifically for l10n.
 
 EXPANDING YOUR SITE'S CAPABILITIES
 -----------------------------
@@ -91,7 +101,10 @@ EXPANDING YOUR SITE'S CAPABILITIES
 There is a gallery of plugins for Enano at
 <http://enanocms.org/Category:Plugins>. It's not very full right now because
 not every plugin has a page on the website yet, and some plugins still have
-yet to be ported to work with some of the newer API changes.
+yet to be ported to work with some of the newer API changes. Being an alpha
+release you'll probably need to look in the Mercurial repositories at
+<http://hg.enanocms.org/> for the latest versions of plugins that are designed
+to work under both 1.0.x and 1.1.x.
 
 GIVING YOUR SITE A NEW LOOK
 -----------------------------
@@ -100,20 +113,19 @@ You can find more themes for Enano at <http://enanocms.org/Category:Themes>.
 Again, we're still working on packaging up themes and creating pages for them,
 so try to be patient. We have quite a few themes in the works. You can create
 your own themes too; for more information, see Chapter V of the Enano
-Administrator's handbook, at <http://docs.enanocms.org/Help:5>.
+Administrator's handbook, at <http://docs.enanocms.org/Help:5>. Unless
+specifically marked, themes on the Enano website are compatible with 1.0.x.
+While you can use 1.0.x themes under 1.1.x, some features (namely viewing IPs
+on comments and the default "Inherit" option in the ACL editor) will be missing
+unless you copy over comment.tpl and acledit.tpl respectively from Oxygen or
+one of the other themes included with this 1.1.x package.
 
 GETTING SUPPORT
 -----------------------------
 
-Before contacting support, have a look at the Enano Documentation at
-<http://docs.enanocms.org/>. Most of Enano's features are documented with
-step-by-step guides at this site; if you encounter a problem, then please
-contact the Enano team as instructed below.
-
-Support for Enano is available via the Enano forums at
-<http://forum.enanocms.org>. You can also use our IRC channel
-(irc.freenode.net #enano) or purchase paid one-on-one support via instant
-messaging for US$20 an hour.
+This is an alpha release. No support of any kind will be provided, but proper
+bug reports are appreciated. See the Enano forums at
+<http://forum.enanocms.org/> for more information.
 
 Have fun with Enano!
 
