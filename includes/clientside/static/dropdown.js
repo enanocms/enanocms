@@ -351,12 +351,14 @@ function isOverObj(obj, bias, event)
   fieldUL['right'] = off['left'] + dim['w'];
   fieldUL['bottom'] = off['top'] + dim['h'];
   
-  //document.getElementById('debug').innerHTML = '<br /><br /><br /><br /><br />Mouse: x: '+mouseX+', y:' + mouseY + '<br />'; // + document.getElementById('debug').innerHTML;
+  var mouseY_local = mouseY + getScrollOffset();
+  
+  // document.getElementById('debug').innerHTML = '<br />Mouse: x: '+mouseX+', y:' + mouseY + '<br />' + document.getElementById('debug').innerHTML;
   
   if(bias)
   {
     if ( ( mouseX < fieldUL['left'] + 2 || mouseX > fieldUL['right']  - 5 ) ||
-         ( mouseY < fieldUL['top']  - 2 || mouseY > fieldUL['bottom'] - 2 ) )
+         ( mouseY_local < fieldUL['top']  - 2 || mouseY_local > fieldUL['bottom'] - 2 ) )
     {
        return false;
     }
@@ -364,23 +366,11 @@ function isOverObj(obj, bias, event)
   else
   {
     if ( ( mouseX < fieldUL['left'] || mouseX > fieldUL['right']  ) ||
-         ( mouseY < fieldUL['top']  || mouseY > fieldUL['bottom'] ) )
+         ( mouseY_local < fieldUL['top']  || mouseY_local > fieldUL['bottom'] ) )
        return false;
   }
      
   return true;
-  
-  /*
-  var tgt = event.target;
-  if ( !tgt )
-    return false;
-  do {
-    if ( tgt == obj )
-      return true;
-    tgt = tgt.parentNode;
-  } while (tgt.tagName.toLowerCase() != 'body' );
-  return false;
-  */
 }
 
 function jBoxGarbageCollection(e)
