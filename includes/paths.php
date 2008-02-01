@@ -495,11 +495,8 @@ class pathManager {
         header('Location: '.$loc);
         exit;
       }
-      if( !( substr($pi[1], 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] ) )
-      {
-        unset($pi[0]);
-        $pi[1] = implode('/', $pi);
-      }
+      unset($pi[0]);
+      $pi[1] = implode('/', $pi);
       $ret = $pi[1];
     }
     else
@@ -518,6 +515,14 @@ class pathManager {
           }
           break;
         }
+      }
+    }
+    
+    if ( isset($ret) )
+    {
+      if ( substr($ret, 0, ( strlen($this->nslist['Special']) )) == $this->nslist['Special'] && strstr($ret, '/') )
+      {
+        list ( $ret ) = explode('/', $ret);
       }
     }
     
