@@ -2,7 +2,7 @@
  * $Id: editor_plugin_src.js 201 2007-02-12 15:56:56Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -14,7 +14,7 @@
 
 			// Register commands
 			ed.addCommand('mceNonBreaking', function() {
-				ed.execCommand('mceInsertContent', false, (ed.plugins.visualchars && ed.plugins.visualchars.state) ? '<span class="mceItemHiddenVisualChar">&middot;</span>' : '&nbsp;');
+				ed.execCommand('mceInsertContent', false, (ed.plugins.visualchars && ed.plugins.visualchars.state) ? '<span class="mceItemHidden mceVisualNbsp">&middot;</span>' : '&nbsp;');
 			});
 
 			// Register buttons

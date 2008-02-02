@@ -2,7 +2,7 @@
  * $Id: editor_plugin_src.js 201 2007-02-12 15:56:56Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -12,8 +12,8 @@
 			ed.addCommand('mceCite', function() {
 				ed.windowManager.open({
 					file : url + '/cite.htm',
-					width : 350 + ed.getLang('xhtmlxtras.cite_delta_width', 0),
-					height : 250 + ed.getLang('xhtmlxtras.cite_delta_height', 0),
+					width : 350 + parseInt(ed.getLang('xhtmlxtras.cite_delta_width', 0)),
+					height : 250 + parseInt(ed.getLang('xhtmlxtras.cite_delta_height', 0)),
 					inline : 1
 				}, {
 					plugin_url : url
@@ -23,8 +23,8 @@
 			ed.addCommand('mceAcronym', function() {
 				ed.windowManager.open({
 					file : url + '/acronym.htm',
-					width : 350 + ed.getLang('xhtmlxtras.acronym_delta_width', 0),
-					height : 250 + ed.getLang('xhtmlxtras.acronym_delta_width', 0),
+					width : 350 + parseInt(ed.getLang('xhtmlxtras.acronym_delta_width', 0)),
+					height : 250 + parseInt(ed.getLang('xhtmlxtras.acronym_delta_width', 0)),
 					inline : 1
 				}, {
 					plugin_url : url
@@ -34,8 +34,8 @@
 			ed.addCommand('mceAbbr', function() {
 				ed.windowManager.open({
 					file : url + '/abbr.htm',
-					width : 350 + ed.getLang('xhtmlxtras.abbr_delta_width', 0),
-					height : 250 + ed.getLang('xhtmlxtras.abbr_delta_width', 0),
+					width : 350 + parseInt(ed.getLang('xhtmlxtras.abbr_delta_width', 0)),
+					height : 250 + parseInt(ed.getLang('xhtmlxtras.abbr_delta_width', 0)),
 					inline : 1
 				}, {
 					plugin_url : url
@@ -45,8 +45,8 @@
 			ed.addCommand('mceDel', function() {
 				ed.windowManager.open({
 					file : url + '/del.htm',
-					width : 340 + ed.getLang('xhtmlxtras.del_delta_width', 0),
-					height : 310 + ed.getLang('xhtmlxtras.del_delta_width', 0),
+					width : 340 + parseInt(ed.getLang('xhtmlxtras.del_delta_width', 0)),
+					height : 310 + parseInt(ed.getLang('xhtmlxtras.del_delta_width', 0)),
 					inline : 1
 				}, {
 					plugin_url : url
@@ -56,8 +56,8 @@
 			ed.addCommand('mceIns', function() {
 				ed.windowManager.open({
 					file : url + '/ins.htm',
-					width : 340 + ed.getLang('xhtmlxtras.ins_delta_width', 0),
-					height : 310 + ed.getLang('xhtmlxtras.ins_delta_width', 0),
+					width : 340 + parseInt(ed.getLang('xhtmlxtras.ins_delta_width', 0)),
+					height : 310 + parseInt(ed.getLang('xhtmlxtras.ins_delta_width', 0)),
 					inline : 1
 				}, {
 					plugin_url : url
@@ -86,8 +86,8 @@
 			if (tinymce.isIE) {
 				function fix(ed, o) {
 					if (o.set) {
-						o.content = o.content.replace(/<abbr([^>]+)>/gi, '<mce:abbr $1>');
-						o.content = o.content.replace(/<\/abbr>/gi, '</mce:abbr>');
+						o.content = o.content.replace(/<abbr([^>]+)>/gi, '<html:abbr $1>');
+						o.content = o.content.replace(/<\/abbr>/gi, '</html:abbr>');
 					}
 				};
 

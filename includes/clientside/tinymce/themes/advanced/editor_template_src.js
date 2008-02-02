@@ -1,8 +1,8 @@
 /**
- * $Id: editor_template_src.js 492 2007-12-13 14:11:51Z spocke $
+ * $Id: editor_template_src.js 555 2008-01-19 19:08:37Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -77,6 +77,12 @@
 				theme_advanced_resize_horizontal : 1,
 				theme_advanced_resizing_use_cookie : 1
 			}, ed.settings);
+
+			if (s.theme_advanced_path_location)
+				s.theme_advanced_statusbar_location = s.theme_advanced_path_location;
+
+			if (s.theme_advanced_statusbar_location == 'none')
+				s.theme_advanced_statusbar_location = 0;
 
 			// Init editor
 			ed.onInit.add(function() {
@@ -375,6 +381,10 @@
 				});
 			}
 */
+
+			if (!ed.getParam('accessibility_focus') || ed.getParam('tab_focus'))
+				Event.add(DOM.add(p, 'a', {href : '#'}, '<!-- IE -->'), 'focus', function() {tinyMCE.get(ed.id).focus();});
+
 			if (s.theme_advanced_toolbar_location == 'external')
 				o.deltaHeight = 0;
 
@@ -471,9 +481,9 @@
 			da = s.theme_advanced_containers_default_align || 'center';
 
 			each((s.theme_advanced_containers || '').split(','), function(c, i) {
-				var v = s['theme_advanced_container_' + c].toLowerCase();
+				var v = s['theme_advanced_container_' + c] || '';
 
-				switch (v) {
+				switch (c.toLowerCase()) {
 					case 'mceeditor':
 						n = DOM.add(tb, 'tr');
 						n = ic = DOM.add(n, 'td', {'class' : 'mceIframeContainer'});
@@ -491,7 +501,7 @@
 
 						to = cf.createToolbar("toolbar" + i);
 						t._addControls(v, to);
-						n.innerHTML = to.renderHTML();
+						DOM.setHTML(n, to.renderHTML());
 						o.deltaHeight -= s.theme_advanced_row_height;
 				}
 			});
@@ -550,7 +560,7 @@
 
 			// Create toolbar and add the controls
 			for (i=1; (v = s['theme_advanced_buttons' + i]); i++) {
-				tb = cf.createToolbar("toolbar" + i);
+				tb = cf.createToolbar("toolbar" + i, {'class' : 'mceToolbarRow' + i});
 
 				if (s['theme_advanced_buttons' + i + '_add'])
 					v += ',' + s['theme_advanced_buttons' + i + '_add'];
@@ -558,7 +568,7 @@
 				if (s['theme_advanced_buttons' + i + '_add_before'])
 					v = s['theme_advanced_buttons' + i + '_add_before'] + ',' + v;
 
-				t._addControls(v, tb, di);
+				t._addControls(v, tb);
 
 				//n.appendChild(n = tb.render());
 				h.push(tb.renderHTML());
@@ -567,8 +577,7 @@
 			}
 
 			h.push(DOM.createHTML('a', {href : '#', accesskey : 'z', title : ed.getLang("advanced.toolbar_focus"), onfocus : 'tinyMCE.getInstanceById(\'' + ed.id + '\').focus();'}, '<!-- IE -->'));
-
-			n.innerHTML = h.join('');
+			DOM.setHTML(n, h.join(''));
 		},
 
 		_addStatusBar : function(tb, o) {
@@ -751,7 +760,7 @@
 
 			if (s.theme_advanced_path && s.theme_advanced_statusbar_location) {
 				p = DOM.get(ed.id + '_path') || DOM.add(ed.id + '_path_row', 'span', {id : ed.id + '_path'});
-				p.innerHTML = '';
+				DOM.setHTML(p, '');
 
 				ed.dom.getParent(n, function(n) {
 					var na = n.nodeName.toLowerCase(), u, pi, ti = '';
@@ -863,8 +872,8 @@
 
 			ed.windowManager.open({
 				url : tinymce.baseURL + '/themes/advanced/anchor.htm',
-				width : 320 + Number(ed.getLang('advanced.anchor_delta_width', 0)),
-				height : 90 + Number(ed.getLang('advanced.anchor_delta_height', 0)),
+				width : 320 + parseInt(ed.getLang('advanced.anchor_delta_width', 0)),
+				height : 90 + parseInt(ed.getLang('advanced.anchor_delta_height', 0)),
 				inline : true
 			}, {
 				theme_url : this.url
@@ -876,8 +885,8 @@
 
 			ed.windowManager.open({
 				url : tinymce.baseURL + '/themes/advanced/charmap.htm',
-				width : 550 + Number(ed.getLang('advanced.charmap_delta_width', 0)),
-				height : 250 + Number(ed.getLang('advanced.charmap_delta_height', 0)),
+				width : 550 + parseInt(ed.getLang('advanced.charmap_delta_width', 0)),
+				height : 250 + parseInt(ed.getLang('advanced.charmap_delta_height', 0)),
 				inline : true
 			}, {
 				theme_url : this.url
@@ -904,8 +913,8 @@
 
 			ed.windowManager.open({
 				url : tinymce.baseURL + '/themes/advanced/color_picker.htm',
-				width : 375 + Number(ed.getLang('advanced.colorpicker_delta_width', 0)),
-				height : 250 + Number(ed.getLang('advanced.colorpicker_delta_height', 0)),
+				width : 375 + parseInt(ed.getLang('advanced.colorpicker_delta_width', 0)),
+				height : 250 + parseInt(ed.getLang('advanced.colorpicker_delta_height', 0)),
 				close_previous : false,
 				inline : true
 			}, {
@@ -935,8 +944,8 @@
 
 			ed.windowManager.open({
 				url : tinymce.baseURL + '/themes/advanced/image.htm',
-				width : 355 + Number(ed.getLang('advanced.image_delta_width', 0)),
-				height : 275 + Number(ed.getLang('advanced.image_delta_height', 0)),
+				width : 355 + parseInt(ed.getLang('advanced.image_delta_width', 0)),
+				height : 275 + parseInt(ed.getLang('advanced.image_delta_height', 0)),
 				inline : true
 			}, {
 				theme_url : this.url
@@ -948,8 +957,8 @@
 
 			ed.windowManager.open({
 				url : tinymce.baseURL + '/themes/advanced/link.htm',
-				width : 310 + Number(ed.getLang('advanced.link_delta_width', 0)),
-				height : 200 + Number(ed.getLang('advanced.link_delta_height', 0)),
+				width : 310 + parseInt(ed.getLang('advanced.link_delta_width', 0)),
+				height : 200 + parseInt(ed.getLang('advanced.link_delta_height', 0)),
 				inline : true
 			}, {
 				theme_url : this.url

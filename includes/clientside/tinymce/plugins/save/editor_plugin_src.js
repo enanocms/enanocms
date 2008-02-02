@@ -1,8 +1,8 @@
 /**
- * $Id: editor_plugin_src.js 372 2007-11-11 18:38:50Z spocke $
+ * $Id: editor_plugin_src.js 531 2008-01-14 13:34:28Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -53,7 +53,7 @@
 			if (ed.getParam("fullscreen_is_enabled"))
 				return true;
 
-			formObj = tinymce.DOM.get(ed.id).form;
+			formObj = tinymce.DOM.get(ed.id).form || tinymce.DOM.getParent(ed.id, 'form');
 
 			if (ed.getParam("save_enablewhendirty") && !ed.isDirty())
 				return true;
@@ -74,7 +74,7 @@
 				ed.isNotDirty = true;
 
 				if (formObj.onsubmit == null || formObj.onsubmit() != false)
-					tinymce.DOM.get(ed.id).form.submit();
+					formObj.submit();
 
 				ed.nodeChanged();
 			} else

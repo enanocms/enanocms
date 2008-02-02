@@ -1,8 +1,8 @@
 /**
- * $Id: editor_plugin_src.js 432 2007-11-23 16:07:16Z spocke $
+ * $Id: editor_plugin_src.js 520 2008-01-07 16:30:32Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -154,6 +154,8 @@
 		},
 
 		_insertWordContent : function(content) { 
+			var t = this, ed = t.editor;
+
 			if (content && content.length > 0) {
 				// Cleanup Word content
 				var bull = String.fromCharCode(8226);
@@ -220,8 +222,7 @@
 
 				// Convert all middlot lists to UL lists
 				if (this.editor.getParam("paste_convert_middot_lists", true)) {
-					var div = document.createElement("div");
-					div.innerHTML = content;
+					var div = ed.dom.create("div", null, content);
 
 					// Convert all middot paragraphs to li elements
 					var className = this.editor.getParam("paste_unindented_list_class", "unIndentedList");

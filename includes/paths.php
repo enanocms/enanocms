@@ -438,7 +438,13 @@ class pathManager {
   }
   function get_pageid_from_url()
   {
-    return $this->parse_url();
+    $url = $this->parse_url();
+    if ( substr($url, 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] ||
+         substr($url, 0, strlen($this->nslist['Admin']))   == $this->nslist['Admin'])
+    {
+      list($url) = explode('/', $url);
+    }
+    return $url;
   }
   // Parses a (very carefully formed) array into Javascript code compatible with the Tigra Tree Menu used in the admin menu
   function parseAdminTree() 

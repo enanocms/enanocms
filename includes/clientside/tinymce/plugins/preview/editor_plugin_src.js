@@ -1,8 +1,8 @@
 /**
- * $Id: editor_plugin_src.js 444 2007-11-26 16:17:54Z spocke $
+ * $Id: editor_plugin_src.js 537 2008-01-14 16:38:33Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -38,12 +38,9 @@
 					width : w,
 					height : h
 				}, {
-					editor_id : editor_id,
 					resizable : "yes",
 					scrollbars : "yes",
-					inline : 1,
-					content : ed.getContent(),
-					content_css : ed.getParam("content_css")
+					inline : 1
 				});
 			} else {
 				win = window.open("", "mcePreview", "menubar=no,toolbar=no,scrollbars=yes,resizable=yes,left=20,top=20,width=" + w + ",height="  + h);

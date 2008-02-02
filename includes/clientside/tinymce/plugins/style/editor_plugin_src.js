@@ -1,8 +1,8 @@
 /**
- * $Id: editor_plugin_src.js 402 2007-11-17 15:48:49Z spocke $
+ * $Id: editor_plugin_src.js 520 2008-01-07 16:30:32Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -12,11 +12,12 @@
 			ed.addCommand('mceStyleProps', function() {
 				ed.windowManager.open({
 					file : url + '/props.htm',
-					width : 480 + ed.getLang('style.delta_width', 0),
-					height : 320 + ed.getLang('style.delta_height', 0),
+					width : 480 + parseInt(ed.getLang('style.delta_width', 0)),
+					height : 320 + parseInt(ed.getLang('style.delta_height', 0)),
 					inline : 1
 				}, {
-					plugin_url : url
+					plugin_url : url,
+					style_text : ed.selection.getNode().style.cssText
 				});
 			});
 

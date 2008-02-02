@@ -1,11 +1,11 @@
 /**
- * $Id: editor_template_src.js 382 2007-11-13 14:48:38Z spocke $
+ * $Id: editor_template_src.js 520 2008-01-07 16:30:32Z spocke $
  *
  * This file is meant to showcase how to create a simple theme. The advanced
  * theme is more suitable for production use.
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -36,7 +36,7 @@
 		renderUI : function(o) {
 			var t = this, n = o.targetNode, ic, tb, ed = t.editor, cf = ed.controlManager, sc;
 
-			n = DOM.insertAfter(DOM.create('div', {id : ed.id + '_container', 'class' : 'mceEditor ' + ed.settings.skin + 'Skin'}), n);
+			n = DOM.insertAfter(DOM.create('div', {id : ed.id + '_container', 'class' : 'mceEditor ' + ed.settings.skin + 'SimpleSkin'}), n);
 			n = sc = DOM.add(n, 'table', {cellPadding : 0, cellSpacing : 0, 'class' : 'mceLayout'});
 			n = tb = DOM.add(n, 'tbody');
 

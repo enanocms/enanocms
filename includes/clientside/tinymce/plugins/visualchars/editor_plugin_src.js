@@ -2,7 +2,7 @@
  * $Id: editor_plugin_src.js 201 2007-02-12 15:56:56Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -53,13 +53,13 @@
 
 				for (i=0; i<nl.length; i++) {
 					nv = nl[i].nodeValue;
-					nv = nv.replace(/(\u00a0+)/g, '<span class="mceItemHiddenVisualChar">$1</span>');
+					nv = nv.replace(/(\u00a0+)/g, '<span class="mceItemHidden mceVisualNbsp">$1</span>');
 					nv = nv.replace(/\u00a0/g, '\u00b7');
 					ed.dom.setOuterHTML(nl[i], nv, d);
 				}
 			} else {
 				nl = tinymce.grep(ed.dom.select('span', b), function(n) {
-					return ed.dom.hasClass(n, 'mceItemHiddenVisualChar');
+					return ed.dom.hasClass(n, 'mceVisualNbsp');
 				});
 
 				for (i=0; i<nl.length; i++)

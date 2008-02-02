@@ -1,8 +1,8 @@
 /**
- * $Id: editor_plugin_src.js 372 2007-11-11 18:38:50Z spocke $
+ * $Id: editor_plugin_src.js 520 2008-01-07 16:30:32Z spocke $
  *
  * @author Moxiecode
- * @copyright Copyright © 2004-2007, Moxiecode Systems AB, All rights reserved.
+ * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
@@ -11,8 +11,8 @@
 			function open(m) {
 				ed.windowManager.open({
 					file : url + '/searchreplace.htm',
-					width : 400 + ed.getLang('searchreplace.delta_width', 0),
-					height : 160 + ed.getLang('searchreplace.delta_height', 0),
+					width : 400 + parseInt(ed.getLang('searchreplace.delta_width', 0)),
+					height : 160 + parseInt(ed.getLang('searchreplace.delta_height', 0)),
 					inline : 1
 				}, {
 					mode : m,
