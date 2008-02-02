@@ -895,7 +895,7 @@ class PageUtils {
     {
       if(!$captcha_code || !$captcha_id) _die('BUG: PageUtils::addcomment: no CAPTCHA data passed to method');
       $result = $session->get_captcha($captcha_id);
-      if($captcha_code != $result) _die('The confirmation code you entered was incorrect.');
+      if(strtolower($captcha_code) != strtolower($result)) _die('The confirmation code you entered was incorrect.');
     }
     $text = RenderMan::preprocess_text($text);
     $name = $session->user_logged_in ? RenderMan::preprocess_text($session->username) : RenderMan::preprocess_text($name);

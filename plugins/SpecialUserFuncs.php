@@ -361,7 +361,7 @@ function page_Special_Register()
     
     $captcharesult = $session->get_captcha($_POST['captchahash']);
     $session->kill_captcha();
-    if($captcharesult != $_POST['captchacode'])
+    if(strtolower($captcharesult) != strtolower($_POST['captchacode']))
     {
       $s = 'The confirmation code you entered was incorrect.';
     }

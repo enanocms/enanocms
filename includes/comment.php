@@ -268,7 +268,7 @@ class Comments
         if ( getConfig('comments_need_login') == '1' && !$session->user_logged_in )
         {
           $real_code = $session->get_captcha($data['captcha_id']);
-          if ( $real_code != $data['captcha_code'] )
+          if ( strtolower($real_code) != strtolower($data['captcha_code']) )
             $errors[] = 'The confirmation code you entered was incorrect.';
           $session->kill_captcha();
         }
