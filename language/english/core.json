@@ -311,6 +311,7 @@ var enano_lang = {
       err_page_protected: 'This page is protected, and you do not have permission to edit protected pages.',
       err_captcha_wrong: 'The confirmation code you entered is incorrect.',
       
+      msg_editor_heading: 'Editing page',
       msg_saved: 'Your changes to this page have been saved.',
       msg_revert_confirm: 'Do you really want to revert your changes?',
       msg_discard_confirm: 'Do you really want to discard your changes?',

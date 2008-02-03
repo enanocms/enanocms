@@ -39,6 +39,6 @@ $ui->show_header();
 ?>
 
               <div style="text-align: center;">
-                <input type="submit" name="_cont" value="<?= $lang->get('confirm_btn_install_enano'); ?>" />
+                <input type="submit" name="_cont" value="<?php echo $lang->get('confirm_btn_install_enano'); ?>" />
               </div>
             </form>

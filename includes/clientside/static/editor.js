@@ -109,6 +109,9 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   // BUILD EDITOR
   //
   
+  var heading = document.createElement('h3');
+  heading.appendChild(document.createTextNode($lang.get('editor_msg_editor_heading')));
+  
   // Plaintext/wikitext toggler
   // Only build the editor if using TinyMCE is allowed. THIS IS WEAK
   // AND CANNOT BE MADE ANY STRONGER.
@@ -369,6 +372,7 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   }
   
   // Put it all together...
+  form.appendChild(heading);
   if ( allow_wysiwyg )
     form.appendChild(toggler);
   form.appendChild(preview_anchor);

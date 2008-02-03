@@ -223,6 +223,6 @@ $ui->show_header();
   </table>
   
   <div style="text-align: center;">
-    <input type="submit" name="_cont" value="<?= $lang->get('meta_btn_continue'); ?>" />
+    <input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" />
   </div>
 </form>
