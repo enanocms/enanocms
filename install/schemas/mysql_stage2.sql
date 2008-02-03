@@ -33,7 +33,7 @@ CREATE TABLE {{TABLE_PREFIX}}comments(
 CREATE TABLE {{TABLE_PREFIX}}logs(
   log_type varchar(16),
   action varchar(16),
-  time_id int(12) NOT NULL default '0',
+  time_id int(12) NOT NULL DEFAULT '0',
   date_string varchar(63),
   page_id text,
   namespace text,
@@ -46,7 +46,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(
   page_id varchar(255),
-  namespace varchar(16) NOT NULL default 'Article',
+  namespace varchar(16) NOT NULL DEFAULT 'Article',
   page_text text,
   char_tag varchar(63),
   FULLTEXT KEY {{TABLE_PREFIX}}page_search_idx (page_id, namespace, page_text)
@@ -56,13 +56,13 @@ CREATE TABLE {{TABLE_PREFIX}}pages(
   page_order int(8),
   name varchar(255),
   urlname varchar(255),
-  namespace varchar(16) NOT NULL default 'Article',
+  namespace varchar(16) NOT NULL DEFAULT 'Article',
   special tinyint(1) default '0',
   visible tinyint(1) default '1',
   comments_on tinyint(1) default '1',
   protected tinyint(1) NOT NULL DEFAULT 0,
   wiki_mode tinyint(1) NOT NULL DEFAULT 2,
-  delvotes int(10) NOT NULL default 0,
+  delvotes int(10) NOT NULL DEFAULT 0,
   password varchar(40) NOT NULL DEFAULT '',
   delvote_ips text DEFAULT NULL
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
@@ -71,7 +71,7 @@ CREATE TABLE {{TABLE_PREFIX}}session_keys(
   session_key varchar(32),
   salt varchar(32),
   user_id mediumint(8),
-  auth_level tinyint(1) NOT NULL default '0',
+  auth_level tinyint(1) NOT NULL DEFAULT '0',
   source_ip varchar(10) default '0x7f000001',
   time bigint(15) default '0'
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
@@ -79,9 +79,9 @@ CREATE TABLE {{TABLE_PREFIX}}session_keys(
 CREATE TABLE {{TABLE_PREFIX}}themes(
   theme_id varchar(63),
   theme_name text,
-  theme_order smallint(5) NOT NULL default '1',
+  theme_order smallint(5) NOT NULL DEFAULT '1',
   default_style varchar(63) NOT NULL DEFAULT '',
-  enabled tinyint(1) NOT NULL default '1'
+  enabled tinyint(1) NOT NULL DEFAULT '1'
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}users(
@@ -90,9 +90,9 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   password varchar(255),
   email text,
   real_name text,
-  user_level tinyint(1) NOT NULL default 2,
-  theme varchar(64) NOT NULL default 'bleu.css',
-  style varchar(64) NOT NULL default 'default',
+  user_level tinyint(1) NOT NULL DEFAULT 2,
+  theme varchar(64) NOT NULL DEFAULT 'bleu.css',
+  style varchar(64) NOT NULL DEFAULT 'default',
   signature text,
   reg_time int(11) NOT NULL DEFAULT 0,
   account_active tinyint(1) NOT NULL DEFAULT 0,
@@ -101,9 +101,9 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   temp_password text,
   temp_password_time int(12) NOT NULL DEFAULT 0,
   user_coppa tinyint(1) NOT NULL DEFAULT 0,
-  user_lang smallint(5) NOT NULL,
-  user_has_avatar tinyint(1) NOT NULL,
-  avatar_type ENUM('jpg', 'png', 'gif') NOT NULL,
+  user_lang smallint(5) NOT NULL DEFAULT 1,
+  user_has_avatar tinyint(1) NOT NULL DEFAULT 0,
+  avatar_type ENUM('jpg', 'png', 'gif') NOT NULL DEFAULT 'png',
   user_registration_ip varchar(39),
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
@@ -147,7 +147,7 @@ CREATE TABLE {{TABLE_PREFIX}}buddies(
   buddy_id int(15) NOT NULL auto_increment,
   user_id mediumint(8),
   buddy_user_id mediumint(8),
-  is_friend tinyint(1) NOT NULL default '1',
+  is_friend tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY  (buddy_id) 
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
