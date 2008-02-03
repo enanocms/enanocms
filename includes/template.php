@@ -841,7 +841,7 @@ class template {
   
   function footer($simple = false)
   {
-    echo $this->getFooter();
+    echo $this->getFooter($simple);
     ob_end_flush();
   }
   
@@ -852,7 +852,7 @@ class template {
       define('ENANO_HEADERS_SENT', '');
     if(!$this->no_headers) return $this->process_template('header.tpl');
   }
-  function getFooter()
+  function getFooter($simple = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;

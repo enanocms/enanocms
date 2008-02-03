@@ -20,6 +20,7 @@ if ( !defined('IN_ENANO_INSTALL') )
 function show_license($fb = false)
 {
   global $lang;
+  global $installer_version;
   ?>
   <div class="scroller">
   <?php
@@ -28,7 +29,7 @@ function show_license($fb = false)
       echo 'Cannot find the license files.';
     }
     echo file_get_contents('./language/english/install/license-deed.html');
-    if ( defined('ENANO_BETA_VERSION') || $branch == 'unstable' )
+    if ( $installer_version['type'] != 'stable' )
     {
       ?>
       <h3><?php echo $lang->get('license_info_unstable_title'); ?></h3>
@@ -58,7 +59,7 @@ function wikiFormat($message, $filter_links = true)
 {
   $wiki = & Text_Wiki::singleton('Mediawiki');
   $wiki->setRenderConf('Xhtml', 'code', 'css_filename', 'codefilename');
-  $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', contentPath);
+  $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', scriptPath . '/index.php?title=');
   $result = $wiki->transform($message, 'Xhtml');
   
   // HTML fixes
