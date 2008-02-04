@@ -95,12 +95,6 @@ function page_Admin_LangManager()
         break;
       case 'modify_language':
         
-        if ( defined('ENANO_DEMO_MODE') )
-        {
-          echo '<div class="error-box">' . $lang->get('acplm_err_lang_install_demo') . '</div>';
-          break;
-        }
-        
         $lang_id =& $parms['lang_id'];
         if ( !is_int($lang_id) )
         {
@@ -108,7 +102,7 @@ function page_Admin_LangManager()
           break;
         }
         
-        if ( isset($parms['finish']) && !empty($_POST['lang_name_native']) && !empty($_POST['lang_name_english']) )
+        if ( isset($parms['finish']) && !empty($_POST['lang_name_native']) && !empty($_POST['lang_name_english']) && !defined('ENANO_DEMO_MODE') )
         {
           // We just did validation above, it's safe to save.
           $name_native = $db->escape($_POST['lang_name_native']);
@@ -119,6 +113,10 @@ function page_Admin_LangManager()
             $db->_die();
           
           echo '<div class="info-box">' . $lang->get('acplm_msg_basic_save_success') . '</div>';
+        }
+        else if ( isset($parms['finish']) && defined('ENANO_DEMO_MODE') )
+        {
+          echo '<div class="error-box">' . $lang->get('acplm_err_lang_install_demo') . '</div>';
         }
         
         // Select language data
@@ -303,7 +301,6 @@ function page_Admin_LangManager()
         else if ( isset($parms['save']) && defined('ENANO_DEMO_MODE') )
         {
           echo '<div class="error-box">' . $lang->get('acplm_err_lang_install_demo') . '</div>';
-          break;
         }
         
         acp_start_form();

@@ -41,18 +41,21 @@ function installer_enano_version($long = false)
  
 // Determine Enano root directory
 
-$enano_root = dirname(dirname(dirname(__FILE__)));
-if ( preg_match('#/repo$#', $enano_root) && file_exists("$enano_root/../.enanodev") )
+if ( !defined('ENANO_ROOT') )
 {
-  $enano_root = preg_replace('#/repo$#', '', $enano_root);
+  $enano_root = dirname(dirname(dirname(__FILE__)));
+  if ( preg_match('#/repo$#', $enano_root) && file_exists("$enano_root/../.enanodev") )
+  {
+    $enano_root = preg_replace('#/repo$#', '', $enano_root);
+  }
+  
+  define('ENANO_ROOT', $enano_root);
 }
-
-define('ENANO_ROOT', $enano_root);
 
 chdir(ENANO_ROOT);
 
 // Determine our scriptPath
-if ( isset($_SERVER['REQUEST_URI']) )
+if ( isset($_SERVER['REQUEST_URI']) && !defined('scriptPath') )
 {
   // Use reverse-matching to determine where the REQUEST_URI overlaps the Enano root.
   $requri = $_SERVER['REQUEST_URI'];
@@ -86,23 +89,27 @@ if ( defined('ENANO_INSTALLED') && defined('ENANO_DANGEROUS') )
   exit();
 }
 
-function microtime_float()
+if ( !function_exists('microtime_float') )
 {
-  list($usec, $sec) = explode(" ", microtime());
-  return ((float)$usec + (float)$sec);
+  function microtime_float()
+  {
+    list($usec, $sec) = explode(" ", microtime());
+    return ((float)$usec + (float)$sec);
+  }
 }
 
 define('IN_ENANO_INSTALL', 1);
 
-require(ENANO_ROOT . '/install/includes/ui.php');
-require(ENANO_ROOT . '/includes/functions.php');
-require(ENANO_ROOT . '/includes/json.php');
-require(ENANO_ROOT . '/includes/constants.php');
-require(ENANO_ROOT . '/includes/rijndael.php');
+require_once(ENANO_ROOT . '/install/includes/ui.php');
+require_once(ENANO_ROOT . '/includes/functions.php');
+require_once(ENANO_ROOT . '/includes/json.php');
+require_once(ENANO_ROOT . '/includes/constants.php');
+require_once(ENANO_ROOT . '/includes/rijndael.php');
+
 // If we have at least PHP 5, load json2
 if ( version_compare(PHP_VERSION, '5.0.0', '>=') )
 {
-  require(ENANO_ROOT . '/includes/json2.php');
+  require_once(ENANO_ROOT . '/includes/json2.php');
 }
 
 strip_magic_quotes_gpc();

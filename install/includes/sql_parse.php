@@ -54,7 +54,7 @@ class SQL_Parser
   
   public function __construct($sql)
   {
-    if ( strpos("\n", $sql) )
+    if ( strpos($sql, "\n") )
     {
       $this->sql_string = $sql;
     }
