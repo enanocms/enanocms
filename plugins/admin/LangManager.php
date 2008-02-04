@@ -56,6 +56,13 @@ function page_Admin_LangManager()
     switch ( $action )
     {
       case 'install_language':
+        
+        if ( defined('ENANO_DEMO_MODE') )
+        {
+          echo '<div class="error-box">' . $lang->get('acplm_err_lang_install_demo') . '</div>';
+          break;
+        }
+        
         $lang_list = list_available_languages();
         // Verify that we have this language's metadata
         if ( isset($lang_list[@$parms['iso639']]) )
@@ -87,6 +94,13 @@ function page_Admin_LangManager()
         }
         break;
       case 'modify_language':
+        
+        if ( defined('ENANO_DEMO_MODE') )
+        {
+          echo '<div class="error-box">' . $lang->get('acplm_err_lang_install_demo') . '</div>';
+          break;
+        }
+        
         $lang_id =& $parms['lang_id'];
         if ( !is_int($lang_id) )
         {
@@ -246,7 +260,7 @@ function page_Admin_LangManager()
         
         $lang_id =& $parms['lang_id'];
         
-        if ( isset($parms['save']) )
+        if ( isset($parms['save']) && !defined('ENANO_DEMO_MODE') )
         {
           // Grab a Language object
           if ( $lang->lang_id == $lang_id )
@@ -285,6 +299,11 @@ function page_Admin_LangManager()
           }
           
           echo '<div class="info-box">' . $lang->get('acplm_msg_string_save_success') . '</div>';
+        }
+        else if ( isset($parms['save']) && defined('ENANO_DEMO_MODE') )
+        {
+          echo '<div class="error-box">' . $lang->get('acplm_err_lang_install_demo') . '</div>';
+          break;
         }
         
         acp_start_form();
@@ -362,6 +381,12 @@ function page_Admin_LangManager()
       case 'reimport':
         if ( !isset($parms['iso639']) || !is_int(@$parms['lang_id']) )
           break;
+        
+        if ( defined('ENANO_DEMO_MODE') )
+        {
+          echo '<div class="error-box">' . $lang->get('acplm_err_lang_install_demo') . '</div>';
+          break;
+        }
         
         $lang_code =& $parms['iso639'];
         $lang_id =& $parms['lang_id'];
@@ -441,6 +466,12 @@ function page_Admin_LangManager()
       case 'uninstall_language':
         if ( !is_int(@$parms['lang_id']) )
           break;
+        
+        if ( defined('ENANO_DEMO_MODE') )
+        {
+          echo '<div class="error-box">' . $lang->get('acplm_err_lang_install_demo') . '</div>';
+          break;
+        }
         
         $lang_id =& $parms['lang_id'];
         

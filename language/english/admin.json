@@ -453,6 +453,7 @@ var enano_lang = {
       col_lang_name: 'Language name (native)',
       col_lang_name_eng: 'Language name (English)',
       btn_install_language: 'Install',
+      err_lang_install_demo: 'Modifying, installing, and uninstalling languages is disabled in the demo for security reasons.',
       msg_lang_install_success: 'The language pack %lang_name% has been installed.',
       
       // Editor portal
