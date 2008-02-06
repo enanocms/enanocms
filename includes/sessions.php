@@ -1793,7 +1793,6 @@ class sessionManager {
       list($user_id) = $db->fetchrow_num();
       $db->free_result();
       
-      $user_id =& $row['user_id'];
       $this->sql('INSERT INTO '.table_prefix.'users_extra(user_id) VALUES(' . $user_id . ');');
     }
     
@@ -2744,27 +2743,75 @@ class sessionManager {
   
   function make_captcha($len = 7)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
     $code = $this->generate_captcha_code($len);
     $hash = md5(microtime() . mt_rand());
-    $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key,salt,auth_level,source_ip,user_id) VALUES(\''.$hash.'\', \'\', -1, \''.ip2hex($_SERVER['REMOTE_ADDR']).'\', -2);');
+    $session_data = $db->escape(serialize(array()));
+    
+    // sanity check
+    if ( !is_valid_ip(@$_SERVER['REMOTE_ADDR']) || !is_int($this->user_id) )
+      return false;
+    
+    $this->sql('INSERT INTO '.table_prefix.'captcha(session_id, code, session_data, source_ip, user_id)' . " VALUES('$hash', '$code', '$session_data', '{$_SERVER['REMOTE_ADDR']}', {$this->user_id});");
     return $hash;
   }
   
   /**
-   * Generates the actual confirmation code text.
-   * @param int String length
+   * Generates a "pronouncable" or "human-friendly" word using various phonics rules
+   * @param int Optional. The length of the word.
    * @return string
    */
   
   function generate_captcha_code($len = 7)
   {
-    $chars = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9');
-    $s = '';
+    // don't use k and x, they get mixed up a lot
+    $consonants = 'bcdfghmnpqrsvwyz';
+    $vowels = 'aeiou';
+    $prev = 'vowel';
+    $prev_l = '';
+    $word = '';
+    $allow_next_vowel = true;
     for ( $i = 0; $i < $len; $i++ )
     {
-      $s .= $chars[mt_rand(0, count($chars)-1)];
+      if ( $prev == 'vowel' )
+      {
+        $allow_next_vowel = false;
+        if ( $prev_l == 'o' && mt_rand(0, 3) == 3 && $allow_next_vowel )
+          $word .= 'i';
+        else if ( $prev_l == 'q' && mt_rand(0, 3) != 1 && $allow_next_vowel )
+          $word .= 'u';
+        else if ( $prev_l == 'o' && mt_rand(0, 3) == 2 && $allow_next_vowel )
+          $word .= 'u';
+        else if ( $prev_l == 'a' && mt_rand(0, 3) == 3 && $allow_next_vowel )
+          $word .= 'i';
+        else if ( $prev_l == 'a' && mt_rand(0, 10) == 7 && $allow_next_vowel )
+          $word .= 'o';
+        else if ( $prev_l == 'a' && mt_rand(0, 7) == 2 && $allow_next_vowel )
+          $word .= 'u';
+        else
+        {
+          $allow_next_vowel = true;
+          $word .= $consonants{mt_rand(0, (strlen($consonants)-1))};
+        }
+      }
+      else if ( $prev == 'consonant' )
+      {
+        if ( $prev_l == 'p' && mt_rand(0, 7) == 4 )
+          $word .= 't';
+        else if ( $prev_l == 'p' && mt_rand(0, 5) == 1 )
+          $word .= 'h';
+        else
+          $word .= $vowels{mt_rand(0, (strlen($vowels)-1))};
+      }
+      $prev_l = substr($word, -1);
+      $l = ( mt_rand(0, 1) == 1 ) ? strtoupper($prev_l) : strtolower($prev_l);
+      $word = substr($word, 0, -1) . $l;
+      if ( strstr('aeiou', $prev_l) )
+        $prev = 'vowel';
+      else
+        $prev = 'consonant';
     }
-    return $s;
+    return $word;
   }
   
   /**
@@ -2776,15 +2823,20 @@ class sessionManager {
   function get_captcha($hash)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $s = $this->sql('SELECT salt FROM '.table_prefix.'session_keys WHERE session_key=\''.$db->escape($hash).'\' AND source_ip=\''.ip2hex($_SERVER['REMOTE_ADDR']).'\';');
-    if ( $db->numrows() < 1 )
+    
+    if ( !preg_match('/^[a-f0-9]{32}([a-z0-9]{8})?$/', $hash) )
     {
       return false;
     }
-    $r = $db->fetchrow();
+    
+    $q = $this->sql('SELECT code_id, code FROM ' . table_prefix . "captcha WHERE session_id = '$hash';");
+    if ( $db->numrows() < 1 )
+      return false;
+    
+    list($code_id, $code) = $db->fetchrow_num();
     $db->free_result();
-    $this->sql('DELETE FROM ' . table_prefix . 'session_keys WHERE salt=\'' . $db->escape($r['salt']) . '\';');
-    return $r['salt'];
+    $this->sql('DELETE FROM ' . table_prefix . "captcha WHERE code_id = $code_id;");
+    return $code;
   }
   
   /**
@@ -2793,7 +2845,6 @@ class sessionManager {
   
   function kill_captcha()
   {
-    // $this->sql('DELETE FROM '.table_prefix.'session_keys WHERE user_id=-2 AND source_ip=\''.ip2hex($_SERVER['REMOTE_ADDR']).'\';');
     return true;
   }
   

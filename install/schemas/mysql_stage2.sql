@@ -105,6 +105,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_has_avatar tinyint(1) NOT NULL DEFAULT 0,
   avatar_type ENUM('jpg', 'png', 'gif') NOT NULL DEFAULT 'png',
   user_registration_ip varchar(39),
+  user_rank int(12) UNSIGNED NOT NULL DEFAULT 1,
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
@@ -255,7 +256,7 @@ CREATE TABLE {{TABLE_PREFIX}}lockout(
   action ENUM('credential', 'level') NOT NULL DEFAULT 'credential',
   timestamp int(12) NOT NULL DEFAULT 0,
   PRIMARY KEY ( id )
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 -- Added in 1.1.1
 
@@ -266,7 +267,7 @@ CREATE TABLE {{TABLE_PREFIX}}language(
   lang_name_native varchar(64) NOT NULL,
   last_changed int(12) NOT NULL DEFAULT 0,
   PRIMARY KEY ( lang_id )
-) CHARACTER SET `utf8`;
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 -- Added in 1.1.1
 
@@ -277,7 +278,28 @@ CREATE TABLE {{TABLE_PREFIX}}language_strings(
   string_name varchar(64) NOT NULL,
   string_content longtext NOT NULL,
   PRIMARY KEY ( string_id )
-);
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}ranks(
+  rank_id int(12) NOT NULL auto_increment,
+  rank_title varchar(63) NOT NULL DEFAULT '',
+  rank_style varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY ( rank_id )
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+
+-- Added in 1.1.1
+
+CREATE TABLE {{TABLE_PREFIX}}captcha(
+  code_id int(12) NOT NULL auto_increment,
+  session_id varchar(40) NOT NULL DEFAULT '',
+  code varchar(64) NOT NULL DEFAULT '',
+  session_data text,
+  source_ip varchar(39),
+  user_id int(12),
+  PRIMARY KEY ( code_id )
+) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
@@ -326,6 +348,11 @@ INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name,
   
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);
+  
+INSERT INTO {{TABLE_PREFIX}}ranks(rank_id, rank_title, rank_style) VALUES
+  (1, 'user_rank_member', ''),
+  (2, 'user_rank_mod', 'font-weight: bold; color: #00AA00;'),
+  (3, 'user_rank_admin', 'font-weight: bold; color: #AA0000;');
 
 INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(1, 'Everyone', 3, 1),
   (2,'Administrators',3,1),

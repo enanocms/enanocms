@@ -402,7 +402,7 @@ class PageUtils {
         if($ticker < $numrows) echo '<td class="' . $cls . '" style="padding: 0;"><input ' . $s2 . 'name="diff2" type="radio" value="' . $r['time_id'] . '" id="diff2_' . $r['time_id'] . '" class="clsDiff2Radio" onclick="selectDiff2Button(this);" /></td>'."\n"; else echo '<td class="' . $cls . '"></td>';
         
         // Date and time
-        echo '<td class="' . $cls . '">' . enano_date('d M Y h:i a', intval($r['time_id'])) . '</td class="' . $cls . '">'."\n";
+        echo '<td class="' . $cls . '" style="white-space: nowrap;">' . enano_date('d M Y h:i a', intval($r['time_id'])) . '</td class="' . $cls . '">'."\n";
         
         // User
         if ( $session->get_permissions('mod_misc') && is_valid_ip($r['author']) )
