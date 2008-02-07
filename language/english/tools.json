@@ -47,6 +47,7 @@ var enano_lang = {
       member_list: 'Member list',
       language_export: 'Language exporter',
       private_messages: 'Private Messages',
+      recent_changes: 'Recent changes',
     },
     search: {
       th_advanced_search: 'Advanced Search',
@@ -125,6 +126,12 @@ var enano_lang = {
       tagcloud_sidebar_btn_larger: 'Larger version',
       tagcloug_tip_popularity_one: '1 page',
       tagcloug_tip_popularity_plural: '%popularity% pages',
+      
+      // Recent changes
+      rc_btn_diff: 'diff',
+      rc_btn_hist: 'hist',
+      rc_btn_pm: 'PM',
+      rc_btn_usertalk: 'comment',
     },
   }
 };

@@ -457,6 +457,7 @@ var enano_lang = {
       btn_login: 'Log in',
       btn_logout: 'Log out',
       btn_changestyle: 'Change theme',
+      btn_recent_changes: 'Recent edits',
     },
     perm: {
       read: 'Read page(s)',

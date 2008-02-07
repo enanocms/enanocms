@@ -16,7 +16,7 @@ class pluginLoader {
   var $hook_list;
   var $load_list;
   var $loaded_plugins;
-  var $system_plugins = Array('SpecialUserFuncs.php','SpecialUserPrefs.php','SpecialPageFuncs.php','SpecialAdmin.php','SpecialCSS.php','SpecialUpdownload.php','SpecialSearch.php','PrivateMessages.php','SpecialGroups.php');
+  var $system_plugins = Array('SpecialUserFuncs.php','SpecialUserPrefs.php','SpecialPageFuncs.php','SpecialAdmin.php','SpecialCSS.php','SpecialUpdownload.php','SpecialSearch.php','PrivateMessages.php','SpecialGroups.php', 'SpecialRecentChanges.php');
   function loadAll() 
   {
     $dir = ENANO_ROOT.'/plugins/';
