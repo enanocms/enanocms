@@ -2738,21 +2738,24 @@ class sessionManager {
   /**
    * Makes a CAPTCHA code and caches the code in the database
    * @param int $len The length of the code, in bytes
+   * @param string Optional, the hash to reuse
    * @return string A unique identifier assigned to the code. This hash should be passed to sessionManager::getCaptcha() to retrieve the code.
    */
   
-  function make_captcha($len = 7)
+  function make_captcha($len = 7, $hash = '')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $code = $this->generate_captcha_code($len);
-    $hash = md5(microtime() . mt_rand());
+    if ( !preg_match('/^[a-f0-9]{32}([a-z0-9]{8})?$/', $hash) )
+      $hash = md5(microtime() . mt_rand());
     $session_data = $db->escape(serialize(array()));
     
     // sanity check
     if ( !is_valid_ip(@$_SERVER['REMOTE_ADDR']) || !is_int($this->user_id) )
       return false;
     
-    $this->sql('INSERT INTO '.table_prefix.'captcha(session_id, code, session_data, source_ip, user_id)' . " VALUES('$hash', '$code', '$session_data', '{$_SERVER['REMOTE_ADDR']}', {$this->user_id});");
+    $this->sql('DELETE FROM ' . table_prefix . "captcha WHERE session_id = '$hash';");
+    $this->sql('INSERT INTO ' . table_prefix . 'captcha(session_id, code, session_data, source_ip, user_id)' . " VALUES('$hash', '$code', '$session_data', '{$_SERVER['REMOTE_ADDR']}', {$this->user_id});");
     return $hash;
   }
   
@@ -2829,7 +2832,11 @@ class sessionManager {
       return false;
     }
     
-    $q = $this->sql('SELECT code_id, code FROM ' . table_prefix . "captcha WHERE session_id = '$hash';");
+    // sanity check
+    if ( !is_valid_ip(@$_SERVER['REMOTE_ADDR']) || !is_int($this->user_id) )
+      return false;
+    
+    $q = $this->sql('SELECT code_id, code FROM ' . table_prefix . "captcha WHERE session_id = '$hash' AND source_ip = '{$_SERVER['REMOTE_ADDR']};");
     if ( $db->numrows() < 1 )
       return false;
     

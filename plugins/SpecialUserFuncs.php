@@ -1323,7 +1323,8 @@ function page_Special_Captcha()
   {
     $paths->main_page();
   }
-  
+
+  $session->make_captcha(7, $hash);  
   $code = $session->generate_captcha_code();
   $q = $db->sql_query('UPDATE ' . table_prefix . "captcha SET code = '$code' WHERE session_id = '$hash';");
   if ( !$q )
