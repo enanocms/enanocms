@@ -397,7 +397,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <input onkeyup="verify(this);" tabindex="1" name="db_host" size="30" type="text" />
     </td>
     <td>
-      <img id="s_db_host" alt="Good/bad icon" src="../images/bad.gif" />
+      <img id="s_db_host" alt="Good/bad icon" src="../images/checkbad.png" />
     </td>
   </tr>
   <tr>
@@ -410,7 +410,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <input onkeyup="verify(this);" tabindex="2" name="db_name" size="30" type="text" />
     </td>
     <td>
-      <img id="s_db_name" alt="Good/bad icon" src="../images/bad.gif" />
+      <img id="s_db_name" alt="Good/bad icon" src="../images/checkbad.png" />
     </td>
   </tr>
   <tr>
@@ -425,7 +425,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <input name="db_pass" tabindex="4" size="30" type="password" />
     </td>
     <td>
-      <img id="s_db_auth" alt="Good/bad icon" src="../images/bad.gif" />
+      <img id="s_db_auth" alt="Good/bad icon" src="../images/checkbad.png" />
     </td>
   </tr>
   <tr>
@@ -442,7 +442,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <input onkeyup="verify(this);" tabindex="5" name="table_prefix" size="30" type="text" />
     </td>
     <td>
-      <img id="s_table_prefix" alt="Good/bad icon" src="../images/good.gif" />
+      <img id="s_table_prefix" alt="Good/bad icon" src="../images/check.png" />
     </td>
   </tr>
   <tr>
@@ -457,7 +457,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <input onkeyup="verify(this);" tabindex="7" name="db_root_pass" size="30" type="password" />
     </td>
     <td>
-      <img id="s_db_root" alt="Good/bad icon" src="../images/good.gif" />
+      <img id="s_db_root" alt="Good/bad icon" src="../images/check.png" />
     </td>
   </tr>
   <tr>
@@ -468,7 +468,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <?php echo $lang->get('dbmysql_field_mysqlversion_blurb_willbechecked'); ?>
     </td>
     <td>
-      <img id="s_mysql_version" alt="Good/bad icon" src="../images/unknown.gif" />
+      <img id="s_mysql_version" alt="Good/bad icon" src="../images/checkunk.png" />
     </td>
   </tr>
   <tr>

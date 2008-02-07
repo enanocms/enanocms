@@ -43,14 +43,14 @@ function run_test($code, $desc, $extended_desc, $warn = false)
   if($val)
   {
     if($cv) $color='CCFFCC'; else $color='AAFFAA';
-    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc</td><td style='padding-left: 10px;'><img alt='Test passed' src='../images/good.gif' /></td></tr>";
+    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc</td><td style='padding-left: 10px;'><img alt='Test passed' src='../images/check.png' /></td></tr>";
   } elseif(!$val && $warn) {
     if($cv) $color='FFFFCC'; else $color='FFFFAA';
-    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc<br /><b>$extended_desc</b></td><td style='padding-left: 10px;'><img alt='Test passed with warning' src='../images/unknown.gif' /></td></tr>";
+    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc<br /><b>$extended_desc</b></td><td style='padding-left: 10px;'><img alt='Test passed with warning' src='../images/checkunk.png' /></td></tr>";
     $warned = true;
   } else {
     if($cv) $color='FFCCCC'; else $color='FFAAAA';
-    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc<br /><b>$extended_desc</b></td><td style='padding-left: 10px;'><img alt='Test failed' src='../images/bad.gif' /></td></tr>";
+    echo "<tr><td style='background-color: #$color; width: 500px; padding: 5px;'>$desc<br /><b>$extended_desc</b></td><td style='padding-left: 10px;'><img alt='Test failed' src='../images/checkbad.png' /></td></tr>";
     $failed = true;
   }
 }

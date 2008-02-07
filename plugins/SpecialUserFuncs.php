@@ -611,8 +611,8 @@ function page_Special_Register()
               <td class="row1" style="width: 50%;">
                 <input tabindex="1" type="text" name="username" size="30" value="<?php echo $username; ?>" onkeyup="namegood = false; validateForm(this);" onblur="checkUsername();" />
               </td>
-              <td class="row1" style="max-width: 24px;">
-                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_username" />
+              <td class="row1" style="width: 1px;">
+                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/checkbad.png" id="s_username" />
               </td>
             </tr>
             
@@ -629,7 +629,7 @@ function page_Special_Register()
                 <input tabindex="2" type="password" name="password" size="15" onkeyup="<?php if ( getConfig('pw_strength_enable') == '1' ): ?>password_score_field(this); <?php endif; ?>validateForm(this);" /><?php if ( getConfig('pw_strength_enable') == '1' ): ?><span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span><?php endif; ?>
               </td>
               <td rowspan="<?php echo ( getConfig('pw_strength_enable') == '1' ) ? '3' : '2'; ?>" class="row3" style="max-width: 24px;">
-                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_password" />
+                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/checkbad.png" id="s_password" />
               </td>
             </tr>
             
@@ -674,7 +674,7 @@ function page_Special_Register()
                 <input tabindex="4" type="text" name="email" size="30" value="<?php echo $email; ?>" onkeyup="validateForm(this);" />
               </td>
               <td class="row1" style="max-width: 24px;">
-                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/bad.gif" id="s_email" />
+                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/checkbad.png" id="s_email" />
               </td>
             </tr>
             
@@ -862,11 +862,11 @@ function page_Special_Register()
               var regex = new RegExp('^([^<>&\?]+){2,}$', 'ig');
               if ( frm.username.value.match(regex) )
               {
-                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/checkunk.png';
                 document.getElementById('e_username').innerHTML = '&nbsp;';
               } else {
                 failed = true;
-                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/checkbad.png';
                 document.getElementById('e_username').innerHTML = '<br /><small>' + $lang.get('user_reg_err_username_invalid') + '</small>';
               }
             }
@@ -881,7 +881,7 @@ function page_Special_Register()
             {
               if(frm.password.value.match(/^(.+){6,}$/ig) && frm.password_confirm.value.match(/^(.+){6,}$/ig) && frm.password.value == frm.password_confirm.value )
               {
-                document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/good.gif';
+                document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/check.png';
                 document.getElementById('e_password').innerHTML = '<br /><small>' + $lang.get('user_reg_err_password_good') + '</small>';
               } else {
                 failed = true;
@@ -897,7 +897,7 @@ function page_Special_Register()
                 {
                   document.getElementById('e_password').innerHTML = '';
                 }
-                document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/bad.gif';
+                document.getElementById('s_password').src='<?php echo scriptPath; ?>/images/checkbad.png';
               }
             }
             
@@ -906,10 +906,10 @@ function page_Special_Register()
             // workaround for idiot jEdit bug
             if ( validateEmail(frm.email.value) && ( field.name == 'email' || field.name == '_nil' ) )
             {
-              document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/good.gif';
+              document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/check.png';
             } else {
               failed = true;
-              document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/bad.gif';
+              document.getElementById('s_email').src='<?php echo scriptPath; ?>/images/checkbad.png';
             }
             if(failed)
             {
@@ -927,10 +927,10 @@ function page_Special_Register()
               var regex = new RegExp('^([^<>&\?]+){2,}$', 'ig');
               if ( frm.username.value.match(regex) )
               {
-                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/unknown.gif';
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/checkunk.png';
                 document.getElementById('e_username').innerHTML = '&nbsp;';
               } else {
-                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+                document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/checkbad.png';
                 document.getElementById('e_username').innerHTML = '<br /><small>' + $lang.get('user_reg_err_username_invalid') + '</small>';
                 return false;
               }
@@ -941,11 +941,11 @@ function page_Special_Register()
               if(ajax.readyState == 4)
                 if(ajax.responseText == 'good')
                 {
-                  document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/good.gif';
+                  document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/check.png';
                   document.getElementById('e_username').innerHTML = '<br /><small><b>' + $lang.get('user_reg_msg_username_available') + '</b></small>';
                   namegood = true;
                 } else if(ajax.responseText == 'bad') {
-                  document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/bad.gif';
+                  document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/checkbad.png';
                   document.getElementById('e_username').innerHTML = '<br /><small><b>' + $lang.get('user_reg_msg_username_unavailable') + '</b></small>';
                   namegood = false;
                 } else {

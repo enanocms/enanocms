@@ -112,6 +112,8 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   var heading = document.createElement('h3');
   heading.style.cssFloat = 'left';
   heading.style.styleFloat = 'left';
+  heading.style.marginTop = '0px';
+  heading.style.marginBottom = '0px';
   heading.appendChild(document.createTextNode($lang.get('editor_msg_editor_heading')));
   
   // Plaintext/wikitext toggler
@@ -122,9 +124,7 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   {
     var toggler = document.createElement('p');
     toggler.style.marginLeft = '0';
-    toggler.style.cssFloat = 'right';
-    toggler.style.styleFloat = 'right';
-    toggler.style.paddingTop = '4pt';
+    toggler.style.textAlign = 'right';
     
     var span_wiki = document.createElement('span');
     var span_mce  = document.createElement('span');
@@ -167,7 +167,6 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   // Form (to allow submits from MCE to trigger a real save)
   var form = document.createElement('form');
   form.action = 'javascript:void(0);';
-  form.style.clear = 'both';
   form.onsubmit = function()
   {
     ajaxEditorSave();
@@ -180,12 +179,12 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   preview_anchor.id = 'ajax_preview';
   var preview_container = document.createElement('div');
   preview_container.id = 'enano_editor_preview';
-  preview_container.style.clear = 'both';
+  preview_container.style.clear = 'left';
   
   // Textarea containing the content
   var ta_wrapper = document.createElement('div');
   ta_wrapper.style.margin = '10px 0';
-  ta_wrapper.style.clear = 'both';
+  // ta_wrapper.style.clear = 'both';
   var textarea = document.createElement('textarea');
   textarea.value = content;
   textarea._edTimestamp = timestamp;

@@ -187,7 +187,7 @@ $ui->show_header();
         <input type="text" tabindex="1" name="username" size="15" onkeyup="verify(this);" />
       </td>
       <td>
-        <img id="s_username" alt="Good/bad icon" src="../images/bad.gif" />
+        <img id="s_username" alt="Good/bad icon" src="../images/checkbad.png" />
       </td>
     </tr>
     
@@ -204,7 +204,7 @@ $ui->show_header();
         <input type="password" tabindex="3" name="password_confirm" size="15" onkeyup="verify(this);" /> <small><?php echo $lang->get('login_field_password_confirm'); ?></small>
       </td>
       <td>
-        <img id="s_password" alt="Good/bad icon" src="../images/bad.gif" />
+        <img id="s_password" alt="Good/bad icon" src="../images/checkbad.png" />
       </td>
     </tr>
     
@@ -216,7 +216,7 @@ $ui->show_header();
         <input type="text" tabindex="4" name="email" size="30" onkeyup="verify(this);" />
       </td>
       <td>
-        <img id="s_email" alt="Good/bad icon" src="../images/bad.gif" />
+        <img id="s_email" alt="Good/bad icon" src="../images/checkbad.png" />
       </td>
     </tr>
   

@@ -77,7 +77,7 @@ function echo_stage_success($stage_id, $stage_name)
 {
   global $neutral_color;
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
-  echo '<tr><td style="width: 500px; background-color: #' . "{$neutral_color}{$neutral_color}FF{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Done" src="../images/good.gif" /></td></tr>' . "\n";
+  echo '<tr><td style="width: 500px; background-color: #' . "{$neutral_color}{$neutral_color}FF{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Done" src="../images/check.png" /></td></tr>' . "\n";
   flush();
 }
 
@@ -87,7 +87,7 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   global $lang;
   
   $neutral_color = ( $neutral_color == 'A' ) ? 'C' : 'A';
-  echo '<tr><td style="width: 500px; background-color: #' . "FF{$neutral_color}{$neutral_color}{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Failed" src="../images/bad.gif" /></td></tr>' . "\n";
+  echo '<tr><td style="width: 500px; background-color: #' . "FF{$neutral_color}{$neutral_color}{$neutral_color}{$neutral_color}" . '; padding: 0 5px;">' . htmlspecialchars($stage_name) . '</td><td style="padding: 0 5px;"><img alt="Failed" src="../images/checkbad.png" /></td></tr>' . "\n";
   flush();
   close_install_table();
   $post_data = '';
