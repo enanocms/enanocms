@@ -398,6 +398,7 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   {
     $dynano('ajaxEditArea').switchToMCE();
   }
+  $dynano('ajaxEditArea').object.focus();
 }
 
 function ajaxEditorSave()
