@@ -152,6 +152,7 @@ function page_Special_Preferences()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $timezone;
   
   // We need a login to continue
   if ( !$session->user_logged_in )
@@ -483,6 +484,9 @@ function page_Special_Preferences()
         $real_name = htmlspecialchars($_POST['real_name']);
         $real_name = $db->escape($real_name);
         
+        $timezone = intval($_POST['timezone']);
+        $tz_local = $timezone + 1440;
+        
         $imaddr_aim = htmlspecialchars($_POST['imaddr_aim']);
         $imaddr_aim = $db->escape($imaddr_aim);
         
@@ -536,7 +540,7 @@ function page_Special_Preferences()
         $session->user_extra['user_hobbies'] = $hobbies;
         $session->user_extra['email_public'] = intval($email_public);
         
-        $q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name' WHERE user_id=$session->user_id;");
+        $q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name', user_timezone = $tz_local WHERE user_id=$session->user_id;");
         if ( !$q )
           $db->_die();
         
@@ -592,6 +596,26 @@ function page_Special_Preferences()
       
       $lang_box .= '</select>';
       
+      $tz_select = '<select name="timezone">';
+      $tz_list = $lang->get('tz_list');
+      try
+      {
+        $tz_list = enano_json_decode($tz_list);
+      }
+      catch(Exception $e)
+      {
+        die("Caught exception decoding timezone data: <pre>$e</pre>");
+      }
+      foreach ( $tz_list as $key => $i )
+      {
+        $i = ($i * 60);
+        $title = $lang->get("tz_title_{$key}");
+        $hrs = $lang->get("tz_hrs_{$key}");
+        $selected = ( $i == $timezone ) ? ' selected="selected"' : '';
+        $tz_select .= "<option value=\"$i\"$selected>$title</option>";
+      }
+      $tz_select .= '</select>';
+      
       echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
       ?>
       <div class="tblholder">
@@ -613,6 +637,10 @@ function page_Special_Preferences()
           <tr>
             <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_changetheme_title'); ?></td>
             <td class="row1"><?php echo $lang->get('usercp_publicinfo_field_changetheme_hint'); ?> <a href="<?php echo makeUrlNS('Special', 'ChangeStyle/' . $paths->page); ?>" onclick="ajaxChangeStyle(); return false;"><?php echo $lang->get('usercp_publicinfo_field_changetheme'); ?></a></td>
+          </tr>
+          <tr>
+            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_timezone'); ?><br /><small><?php echo $lang->get('usercp_publicinfo_field_timezone_hint'); ?></small></td>
+            <td class="row1"><?php echo $tz_select; ?></td>
           </tr>
           <tr>
             <th class="subhead" colspan="2">

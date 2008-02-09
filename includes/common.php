@@ -139,6 +139,10 @@ global $email;
 // Language object
 global $lang;
 
+// Timezone offset
+global $timezone;
+$timezone = 0;
+
 // Because Enano sends out complete URLs in several occasions, we need to know what hostname the user is requesting the page from.
 // In future versions we may include a fallback "safety" host to use, but that's too much to worry about now
 if ( !isset($_SERVER['HTTP_HOST']) )

@@ -106,6 +106,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   avatar_type ENUM('jpg', 'png', 'gif') NOT NULL DEFAULT 'png',
   user_registration_ip varchar(39),
   user_rank int(12) UNSIGNED NOT NULL DEFAULT 1,
+  user_timezone int(12) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 

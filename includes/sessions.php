@@ -370,6 +370,7 @@ class sessionManager {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    global $timezone;
     if($this->started) return;
     $this->started = true;
     $user = false;
@@ -391,6 +392,7 @@ class sessionManager {
         {
           $language = intval(getConfig('default_language'));
           $lang = new Language($language);
+          @setlocale(LC_ALL, $lang->lang_code);
           
           $this->logout();
           $a = getConfig('account_activation');
@@ -490,12 +492,14 @@ class sessionManager {
           }
         }
         $user = true;
+        $GLOBALS['timezone'] = $userdata['user_timezone'];
         
         // Set language
         if ( !defined('ENANO_ALLOW_LOAD_NOLANG') )
         {
           $lang_id = intval($userdata['user_lang']);
           $lang = new Language($lang_id);
+          @setlocale(LC_ALL, $lang->lang_code);
         }
         
         if(isset($_REQUEST['auth']) && !$this->sid_super)
@@ -1168,6 +1172,7 @@ class sessionManager {
     {
       $language = ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) ) ? $_GET['lang'] : intval(getConfig('default_language'));
       $lang = new Language($language);
+      @setlocale(LC_ALL, $lang->lang_code);
     }
   }
   
@@ -1201,7 +1206,7 @@ class sessionManager {
     // using a normal call to $db->sql_query to avoid failing on errors here
     $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,' . "\n"
                              . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,' . "\n"
-                             . '    x.* FROM '.table_prefix.'session_keys AS k' . "\n"
+                             . '    u.user_timezone, x.* FROM '.table_prefix.'session_keys AS k' . "\n"
                              . '  LEFT JOIN '.table_prefix.'users AS u' . "\n"
                              . '    ON ( u.user_id=k.user_id )' . "\n"
                              . '  LEFT JOIN '.table_prefix.'users_extra AS x' . "\n"
@@ -1214,7 +1219,7 @@ class sessionManager {
     
     if ( !$query )
     {
-      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms FROM '.table_prefix.'session_keys AS k
+      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone FROM '.table_prefix.'session_keys AS k
                              LEFT JOIN '.table_prefix.'users AS u
                                ON ( u.user_id=k.user_id )
                              LEFT JOIN '.table_prefix.'privmsgs AS p
@@ -1282,6 +1287,7 @@ class sessionManager {
     // Leave the rest to PHP's automatic garbage collector ;-)
     
     $row['password'] = md5($real_pass);
+    $row['user_timezone'] = intval($row['user_timezone']) - 1440;
     
     profiler_log("SessionManager: finished session check");
     
@@ -1299,7 +1305,7 @@ class sessionManager {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $key = $db->escape($key);
     
-    $query = $this->sql('SELECT u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,k.source_ip,k.salt,k.time,k.auth_level FROM '.table_prefix.'session_keys AS k
+    $query = $this->sql('SELECT u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,k.source_ip,k.salt,k.time,k.auth_level,1440 AS user_timezone FROM '.table_prefix.'session_keys AS k
                            LEFT JOIN '.table_prefix.'users AS u
                              ON u.user_id=k.user_id
                            WHERE k.session_key=\''.$key.'\';');
@@ -1343,6 +1349,8 @@ class sessionManager {
       // echo '(debug) $session->validate_session: super session timed out<br />';
       return false;
     }
+    
+    $row['user_timezone'] = intval($row['user_timezone']) - 1440;
     
     return $row;
   }

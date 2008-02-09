@@ -251,8 +251,29 @@ function enano_date($string, $timestamp = false)
 {
   if ( !is_int($timestamp) && !is_double($timestamp) && strval(intval($timestamp)) !== $timestamp )
     $timestamp = time();
-  // FIXME: Offset $timestamp by user's timezone
-  return gmdate($string, $timestamp);
+  
+  /*
+  // List of valid characters for date()
+  $date_chars = 'dDjlNSwzWFmMntLoYyaABgGhHisueIOPTZFcrU';
+  // Split them into an array
+  $date_chars = enano_str_split($date_chars);
+  // Emulate date() formatting by replacing date characters with their
+  // percentage-signed counterparts, but not escaped characters which
+  // shouldn't be parsed.
+  foreach ( $date_chars as $char )
+  {
+    $string = str_replace($char, "%$char", $string);
+    $string = str_replace("\\%$char", $char, $string);
+  }
+  */
+  
+  // perform timestamp offset
+  global $timezone;
+  // it's gonna be in minutes, so multiply by 60 to offset the unix timestamp
+  $timestamp = $timestamp + ( $timezone * 60 );
+  
+  // Let PHP do the work for us =)
+  return date($string, $timestamp);
 }
 
 /**

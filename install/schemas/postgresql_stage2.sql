@@ -105,6 +105,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   avatar_type varchar(3) NOT NULL,
   user_registration_ip varchar(39),
   user_rank int NOT NULL DEFAULT 1,
+  user_timezone int NOT NULL DEFAULT 0,
   CHECK (avatar_type IN ('jpg', 'png', 'gif')),
   PRIMARY KEY  (user_id)
 );
