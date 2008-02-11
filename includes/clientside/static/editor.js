@@ -43,16 +43,17 @@ addOnloadHook(initTinyMCE);
 
 var editor_open = false;
 
-function ajaxEditor()
+function ajaxEditor(revid)
 {
   if ( KILL_SWITCH )
     return true;
   if ( editor_open )
     return true;
+  var rev_id_uri = ( revid ) ? '&revid=' + revid : '';
   selectButtonMinor('edit');
   selectButtonMajor('article');
   setAjaxLoading();
-  ajaxGet(stdAjaxPrefix + '&_mode=getsource', function()
+  ajaxGet(stdAjaxPrefix + '&_mode=getsource' + rev_id_uri, function()
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -83,12 +84,12 @@ function ajaxEditor()
         // do we need to enter a captcha before saving the page?
         var captcha_hash = ( response.require_captcha ) ? response.captcha_id : false;
         
-        ajaxBuildEditor(response.src, (!response.auth_edit), response.time, response.allow_wysiwyg, captcha_hash);
+        ajaxBuildEditor(response.src, (!response.auth_edit), response.time, response.allow_wysiwyg, captcha_hash, response.revid, response.undo_info);
       }
     });
 }
 
-function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_hash)
+function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_hash, revid, undo_info)
 {
   // Set flags
   // We don't want the fancy confirmation framework to trigger if the user is only viewing the page source
@@ -173,6 +174,15 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
     return false;
   }
   
+  // Old-revision notice
+  if ( revid > 0 )
+  {
+    var oldrev_box = document.createElement('div');
+    oldrev_box.className = 'usermessage';
+    oldrev_box.appendChild(document.createTextNode($lang.get('editor_msg_editing_old_revision')));
+    form.appendChild(oldrev_box);
+  }
+  
   // Preview holder
   var preview_anchor = document.createElement('a');
   preview_anchor.name = 'ajax_preview';
@@ -244,6 +254,13 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
     field_es.type = 'text';
     field_es.size = '40';
     field_es.style.width = '96%';
+    
+    if ( revid > 0 )
+    {
+      undo_info.last_rev_id = revid;
+      field_es.value = $lang.get('editor_reversion_edit_summary', undo_info);
+    }
+    
     td1_2.appendChild(field_es);
     
     tr1.appendChild(td1_1);

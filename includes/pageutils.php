@@ -433,7 +433,7 @@ class PageUtils {
         // Actions!
         echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['time_id']) . '" onclick="ajaxHistView(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_view') . '</a></td>'."\n";
         echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>'."\n";
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_restore') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=edit&amp;revid=' . $r['time_id']) . '" onclick="ajaxEditor(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_restore') . '</a></td>'."\n";
         
         echo '</tr>'."\n"."\n";
         
@@ -524,6 +524,10 @@ class PageUtils {
   public static function rollback($id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    // FIXME: l10n
+    
     if ( !$session->get_permissions('history_rollback') )
     {
       return('You are not authorized to perform rollbacks.');
@@ -584,25 +588,22 @@ class PageUtils {
       case "page":
         switch($rb['action'])
         {
-          case "edit":
-            if ( !$perms->get_permissions('edit_page') )
-              return "You don't have permission to edit pages, so rolling back edits can't be allowed either.";
-            $t = $db->escape($rb['page_text']);
-            $e = $db->sql_query('UPDATE ' . table_prefix.'page_text SET page_text=\'' . $t . '\',char_tag=\'' . $rb['char_tag'] . '\' WHERE page_id=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\'');
-            if ( !$e )
-            {
-              return("An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace());
-            }
-            else
-            {
-              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the state it was in on ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
-            }
-            break;
+          // Support for rolling back edits removed in 1.1.2 - moved to page editor system
           case "rename":
             if ( !$perms->get_permissions('rename') )
               return "You don't have permission to rename pages, so rolling back renames can't be allowed either.";
-            $t = $db->escape($rb['edit_summary']);
-            $e = $db->sql_query('UPDATE ' . table_prefix.'pages SET name=\'' . $t . '\' WHERE urlname=\'' . $rb['page_id'] . '\' AND namespace=\'' . $rb['namespace'] . '\'');
+            
+            $t = $rb['edit_summary'];
+            // result prediction
+            $subst = array(
+              'page_name_old' => get_page_title_ns($rb['page_id'], $rb['namespace']),
+              'page_name_new' => $t
+              );
+            
+            $e = PageUtils::rename($rb['page_id'], $rb['namespace'], $t);
+            
+            $e = ( $e == $lang->get('ajax_rename_success', $subst) );
+            
             if ( !$e )
             {
               return "An error occurred during the rollback operation.\nMySQL said: ".$db->get_error()."\n\nSQL backtrace:\n".$db->sql_backtrace();

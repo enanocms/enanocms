@@ -98,7 +98,8 @@
     case "getsource":
       header('Content-type: application/json');
       $password = ( isset($_GET['pagepass']) ) ? $_GET['pagepass'] : false;
-      $page = new PageProcessor($paths->page_id, $paths->namespace);
+      $revid = ( isset($_GET['revid']) ) ? intval($_GET['revid']) : 0;
+      $page = new PageProcessor($paths->page_id, $paths->namespace, $revid);
       $page->password = $password;
       if ( $src = $page->fetch_source() )
       {
@@ -125,8 +126,38 @@
           'auth_edit' => $auth_edit,
           'time' => time(),
           'require_captcha' => false,
-          'allow_wysiwyg' => $auth_wysiwyg
+          'allow_wysiwyg' => $auth_wysiwyg,
+          'revid' => $revid
         );
+      
+      if ( $revid > 0 )
+      {
+        // Retrieve information about this revision and the current one
+        $q = $db->sql_query('SELECT l1.author AS currentrev_author, l2.author AS oldrev_author FROM ' . table_prefix . 'logs AS l1
+  LEFT JOIN ' . table_prefix . 'logs AS l2
+    ON ( l2.time_id = ' . $revid . '
+         AND l2.log_type  = \'page\'
+         AND l2.action    = \'edit\'
+         AND l2.page_id   = \'ACL_Tests\'
+         AND l2.namespace = \'Article\'
+        )
+  WHERE l1.log_type  = \'page\'
+    AND l1.action    = \'edit\'
+    AND l1.page_id   = \'ACL_Tests\'
+    AND l1.namespace = \'Article\'
+    AND l1.time_id >= ' . $revid . '
+  ORDER BY l1.time_id DESC;');
+        if ( !$q )
+          $db->die_json();
+        
+        $rev_count = $db->numrows() - 1;
+        $row = $db->fetchrow();
+        $return['undo_info'] = array(
+          'old_author'     => $row['oldrev_author'],
+          'current_author' => $row['currentrev_author'],
+          'undo_count'     => $rev_count
+        );
+      }
       
       if ( $auth_edit && !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
       {

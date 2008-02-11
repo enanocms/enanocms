@@ -324,6 +324,7 @@ var enano_lang = {
       msg_cancel_confirm_body: 'Are you sure you want to discard the changes you made? If you continue, your changes cannot be recovered.',
       msg_diff: 'Below is a summarization of the differences between the current revision of the page (left), and your version (right).',
       msg_diff_empty: 'There are no differences between the text in the editor and the current revision of the page.',
+      msg_editing_old_revision: 'You are editing an old revision of this page. If you click Save, newer revisions of this page will be undone.',
       btn_graphical: 'graphical editor',
       btn_wikitext: 'wikitext editor',
       lbl_edit_summary: 'Brief summary of your changes:',
@@ -340,6 +341,7 @@ var enano_lang = {
       preview_blurb: '<b>Reminder:</b> This is only a preview - your changes to this page have not yet been saved.',
       msg_save_success_title: 'Changes saved',
       msg_save_success_body: 'Your changes to this page have been saved. Redirecting...',
+      reversion_edit_summary: 'Undid %undo_count% revision(s) by %current_author% to revision %last_rev_id% by %old_author%',
       
       msg_captcha_pleaseenter: 'Please enter the code shown in the image to the right into the text box. This process helps to ensure that this page is not being edited by an automated bot. If the image to the right is illegible, you can regenerate it by clicking on the image (only works if your browser supports Javascript).',
       msg_captcha_blind: 'If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will be able to make your requested edits.',

@@ -153,12 +153,49 @@
       if(isset($_POST['_preview']))
       {
         $text = $_POST['page_text'];
+        $edsumm = $_POST['edit_summary'];
         echo PageUtils::genPreview($_POST['page_text']);
         $text = htmlspecialchars($text);
+        $revid = 0;
       }
       else
       {
-        $text = RenderMan::getPage($paths->cpage['urlname_nons'], $paths->namespace, 0, false, false, false, false);
+        $revid = ( isset($_GET['revid']) ) ? intval($_GET['revid']) : 0;
+        $page = new PageProcessor($paths->page_id, $paths->namespace, $revid);
+        $text = $page->fetch_source();
+        $edsumm = '';
+        // $text = RenderMan::getPage($paths->cpage['urlname_nons'], $paths->namespace, 0, false, false, false, false);
+      }
+      if ( $revid > 0 )
+      {
+        echo '<div class="usermessage">' . $lang->get('editor_msg_editing_old_revision') . '</div>';
+        // Retrieve information about this revision and the current one
+        $q = $db->sql_query('SELECT l1.author AS currentrev_author, l2.author AS oldrev_author FROM ' . table_prefix . 'logs AS l1
+  LEFT JOIN ' . table_prefix . 'logs AS l2
+    ON ( l2.time_id = ' . $revid . '
+         AND l2.log_type  = \'page\'
+         AND l2.action    = \'edit\'
+         AND l2.page_id   = \'ACL_Tests\'
+         AND l2.namespace = \'Article\'
+        )
+  WHERE l1.log_type  = \'page\'
+    AND l1.action    = \'edit\'
+    AND l1.page_id   = \'ACL_Tests\'
+    AND l1.namespace = \'Article\'
+    AND l1.time_id >= ' . $revid . '
+  ORDER BY l1.time_id DESC;');
+        if ( !$q )
+          $db->die_json();
+        
+        $rev_count = $db->numrows() - 1;
+        $row = $db->fetchrow();
+        $undo_info = array(
+          'old_author'     => $row['oldrev_author'],
+          'current_author' => $row['currentrev_author'],
+          'undo_count'     => $rev_count,
+          'last_rev_id'    => $revid
+        );
+        $db->free_result();
       }
       echo '
         <form action="'.makeUrl($paths->page, 'do=edit').'" method="post" enctype="multipart/form-data">
@@ -166,7 +203,8 @@
         <textarea name="page_text" rows="20" cols="60" style="width: 97%;">'.$text.'</textarea><br />
         <br />
         ';
-      echo $lang->get('editor_lbl_edit_summary') . ' <input name="edit_summary" type="text" size="40" /><br /><label><input type="checkbox" name="minor" /> ' . $lang->get('editor_lbl_minor_edit_field') . '</label><br />';
+      $edsumm = ( $revid > 0 ) ? $lang->get('editor_reversion_edit_summary', $undo_info) : $edsumm;
+      echo $lang->get('editor_lbl_edit_summary') . ' <input name="edit_summary" type="text" size="40" value="' . htmlspecialchars($edsumm) . '" /><br /><label><input type="checkbox" name="minor" /> ' . $lang->get('editor_lbl_minor_edit_field') . '</label><br />';
       if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
       {
         echo '<br /><table border="0"><tr><td>';
