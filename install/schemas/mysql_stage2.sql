@@ -31,6 +31,7 @@ CREATE TABLE {{TABLE_PREFIX}}comments(
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}logs(
+  log_id int(15) NOT NULL auto_increment,
   log_type varchar(16),
   action varchar(16),
   time_id int(12) NOT NULL DEFAULT '0',
@@ -41,7 +42,8 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   char_tag varchar(40),
   author varchar(63),
   edit_summary text,
-  minor_edit tinyint(1)
+  minor_edit tinyint(1),
+  PRIMARY KEY ( log_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(

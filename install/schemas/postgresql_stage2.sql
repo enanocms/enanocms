@@ -31,6 +31,7 @@ CREATE TABLE {{TABLE_PREFIX}}comments(
 );
 
 CREATE TABLE {{TABLE_PREFIX}}logs(
+  log_id SERIAL,
   log_type varchar(16),
   action varchar(16),
   time_id int NOT NULL default '0',
@@ -41,7 +42,8 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   char_tag varchar(40),
   author varchar(63),
   edit_summary text,
-  minor_edit smallint
+  minor_edit smallint,
+  PRIMARY KEY ( log_id )
 );
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(
