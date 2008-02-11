@@ -2186,7 +2186,7 @@ function page_Special_Administration()
       }
       document.getElementById('ajaxPageContainer').innerHTML = '<div class="wait-box">Loading page...</div>';
       ajaxGet('<?php echo scriptPath; ?>/ajax.php?title='+t+'&_mode=getpage&noheaders&auth=<?php echo $session->sid_super; ?>', function() {
-          if(ajax.readyState == 4) {
+          if ( ajax.readyState == 4 && ajax.status == 200 ) {
             document.getElementById('ajaxPageContainer').innerHTML = ajax.responseText;
             fadeInfoBoxes();
           }

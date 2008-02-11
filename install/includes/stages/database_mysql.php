@@ -311,7 +311,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
     
     ajaxPost(scriptPath + '/install/install.php?stage=database', connection_info + '&driver=mysql&ajax_test=on&language=' + enano_lang_code[ENANO_LANG_ID], function()
       {
-        if ( ajax.readyState == 4 )
+        if ( ajax.readyState == 4 && ajax.status == 200 )
         {
           setTimeout('install_unset_ajax_loading();', 750);
           // Process response

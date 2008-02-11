@@ -185,7 +185,7 @@ function ajaxReset()
   enableUnload();
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=getpage&noheaders', function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       document.getElementById('ajaxEditContainer').innerHTML = ajax.responseText;
       selectButtonMajor('article');
@@ -212,7 +212,7 @@ function ajaxProtect(l) {
   document.getElementById('protbtn_2').style.textDecoration = 'none';
   document.getElementById('protbtn_'+l).style.textDecoration = 'underline';
   ajaxPost(stdAjaxPrefix+'&_mode=protect', 'reason='+ajaxEscape(r)+'&level='+l, function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       if(ajax.responseText != 'good')
         alert(ajax.responseText);
@@ -229,7 +229,7 @@ function ajaxRename()
   if(!r || r=='') return;
   setAjaxLoading();
   ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+ajaxEscape(r), function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       alert(ajax.responseText);
     }
@@ -243,7 +243,7 @@ function ajaxMakePage()
     return true;
   setAjaxLoading();
   ajaxPost(ENANO_SPECIAL_CREATEPAGE, ENANO_CREATEPAGE_PARAMS, function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       window.location.reload();
     }
@@ -267,7 +267,7 @@ function ajaxDeletePage()
   }
   setAjaxLoading();
   ajaxPost(stdAjaxPrefix+'&_mode=deletepage', 'reason=' + ajaxEscape(reason), function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       alert(ajax.responseText);
       window.location.reload();                                                                           
@@ -284,7 +284,7 @@ function ajaxDelVote()
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=delvote', function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       alert(ajax.responseText);
     }
@@ -300,7 +300,7 @@ function ajaxResetDelVotes()
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=resetdelvotes', function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       alert(ajax.responseText);
       item = document.getElementById('mdgDeleteVoteNoticeBox');
@@ -323,7 +323,7 @@ function ajaxSetWikiMode(val) {
   document.getElementById('wikibtn_2').style.textDecoration = 'none';
   document.getElementById('wikibtn_'+val).style.textDecoration = 'underline';
   ajaxGet(stdAjaxPrefix+'&_mode=setwikimode&mode='+val, function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       if(ajax.responseText!='GOOD')
       {
@@ -344,7 +344,7 @@ function ajaxCatEdit()
     return true;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=catedit', function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       edit_open = false;
       eval(ajax.responseText);
@@ -372,7 +372,7 @@ function ajaxCatSave()
   setAjaxLoading();
   query = query.substring(1, query.length);
   ajaxPost(stdAjaxPrefix+'&_mode=catsave', query, function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       edit_open = false;
       if(ajax.responseText != 'GOOD') alert(ajax.responseText);
@@ -390,7 +390,7 @@ function ajaxHistory()
     return true;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=histlist', function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       edit_open = false;
       selectButtonMajor('article');
@@ -408,7 +408,7 @@ function ajaxHistView(oldid, tit) {
   if(!tit) tit=title;
   setAjaxLoading();
   ajaxGet(append_sid(scriptPath+'/ajax.php?title='+tit+'&_mode=getpage&oldid='+oldid), function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       edit_open = false;
       document.getElementById('ajaxEditContainer').innerHTML = ajax.responseText;
@@ -422,7 +422,7 @@ function ajaxRollback(id) {
     return true;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=rollback&id='+id, function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       alert(ajax.responseText);
     }
@@ -440,7 +440,7 @@ function ajaxClearLogs()
   if(!c) return;
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=flushlogs', function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       alert(ajax.responseText);
       window.location.reload();
@@ -524,7 +524,7 @@ function ajaxHistDiff()
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=pagediff&diff1='+id1+'&diff2='+id2, function()
     {
-      if(ajax.readyState==4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         unsetAjaxLoading();
         document.getElementById('ajaxEditContainer').innerHTML = ajax.responseText;
@@ -565,7 +565,7 @@ function ajaxGetStyles(id)
     return null;
   }
   ajaxGet(stdAjaxPrefix + '&_mode=getstyles&id=' + id, function() {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         // IE doesn't like substr() on ajax.responseText
         var response = String(ajax.responseText + ' ');
@@ -640,7 +640,7 @@ function ajaxChangeStyleComplete()
   
   ajaxPost(stdAjaxPrefix + '&_mode=change_theme', 'theme_id=' + ajaxEscape(theme_id) + '&style_id=' + ajaxEscape(style_id), function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         if ( ajax.responseText == 'GOOD' )
         {
@@ -696,7 +696,7 @@ function ajaxChangeStyle()
 function ajaxGetStyles(id) {
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix+'&_mode=getstyles&id='+id, function() {
-    if(ajax.readyState == 4) {
+    if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       eval(ajax.responseText);
       html = '<h3>And a style...</h3><select id="mdgStyleID" name="style">';
@@ -739,7 +739,7 @@ function ajaxSetPassword()
   ajaxPost(stdAjaxPrefix+'&_mode=setpass', 'password='+pass, function()
     {
       unsetAjaxLoading();
-      if(ajax.readyState==4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         alert(ajax.responseText);
       }
@@ -863,7 +863,7 @@ function ajaxDisableEmbeddedPHP()
   $killdiv.object.innerHTML = '<img alt="Loading..." src="' + scriptPath + '/images/loading-big.gif" /><br />Making request...';
   var url = makeUrlNS('Admin', 'Home', 'src=ajax');
   ajaxPost(url, 'act=kill_php', function() {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         if ( ajax.responseText == '1' )
         {
@@ -895,7 +895,7 @@ function ajaxCatToTag()
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix + '&_mode=get_tags', function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         unsetAjaxLoading();
         var resptext = String(ajax.responseText + ' ');
@@ -993,7 +993,7 @@ function ajaxAddTagStage2(tag, nukeme)
   setAjaxLoading();
   ajaxPost(stdAjaxPrefix + '&_mode=addtag', 'tag=' + tag, function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         unsetAjaxLoading();
         var nukeme = addtag_nukeme;
@@ -1065,7 +1065,7 @@ function ajaxDeleteTag(parentobj, tag_id)
     
   ajaxPost(stdAjaxPrefix + '&_mode=deltag', 'tag_id=' + String(tag_id), function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         if ( ajax.responseText == 'success' )
         {
@@ -1205,7 +1205,7 @@ function ajaxUpdateCheck(targetelement)
   target.appendChild(img);
   ajaxGet(makeUrlNS('Admin', 'Home/updates.xml'), function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var releases = new Array();
         var update_available = false;

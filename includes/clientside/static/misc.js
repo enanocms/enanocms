@@ -38,7 +38,7 @@ function ajaxReverseDNS(o, text)
   rDnsObj = o;
   rDnsBannerObj = bannerOn('Retrieving reverse DNS info...');
   ajaxGet(stdAjaxPrefix+'&_mode=rdns&ip='+ipaddr, function() {
-      if(ajax.readyState == 4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         off = fetch_offset(rDnsObj);
         dim = fetch_dimensions(rDnsObj);
@@ -400,7 +400,7 @@ function ajaxAuthLoginInnerSetup()
   _.src = scriptPath + "/images/good.gif";
   
   ajaxGet(makeUrlNS('Special', 'Login', 'act=getkey'), function() {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText);
         if ( response.substr(0,1) != '{' )
@@ -611,7 +611,7 @@ function ajaxValidateLogin()
   ajax_auth_mb_cache.updateContent(loading_win);
   
   ajaxPost(makeUrlNS('Special', 'Login', 'act=ajaxlogin'), 'params=' + json_data, function() {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = ajax.responseText;
         if ( response.substr(0,1) != '{' )

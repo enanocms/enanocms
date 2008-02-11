@@ -54,7 +54,7 @@ function ajaxEditor()
   setAjaxLoading();
   ajaxGet(stdAjaxPrefix + '&_mode=getsource', function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         unsetAjaxLoading();
         
@@ -443,7 +443,7 @@ function ajaxEditorSave()
   json_packet = ajaxEscape(toJSONString(json_packet));
   ajaxPost(stdAjaxPrefix + '&_mode=savepage_json', 'r=' + json_packet, function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         ajaxUnSetEditorLoading();
         var response = String(ajax.responseText + '');
@@ -499,7 +499,7 @@ function ajaxEditorSave()
           changeOpac(0, 'ajaxEditContainer');
           ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function()
             {
-              if ( ajax.readyState == 4 )
+              if ( ajax.readyState == 4 && ajax.status == 200 )
               {
                 unsetAjaxLoading();
                 selectButtonMajor('article');
@@ -526,7 +526,7 @@ function ajaxEditorGenPreview()
   }
   ajaxPost(stdAjaxPrefix + '&_mode=preview', 'text=' + ta_content, function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         ajaxUnSetEditorLoading();
         changeOpac(0, 'enano_editor_preview');
@@ -551,7 +551,7 @@ function ajaxEditorRevertToLatestReal()
   ajaxSetEditorLoading();
   ajaxGet(stdAjaxPrefix + '&_mode=getsource', function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         ajaxUnSetEditorLoading();
         
@@ -601,7 +601,7 @@ function ajaxEditorShowDiffs()
   }
   ajaxPost(stdAjaxPrefix + '&_mode=diff_cur', 'text=' + ta_content, function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         ajaxUnSetEditorLoading();
         changeOpac(0, 'enano_editor_preview');

@@ -137,7 +137,7 @@ function ajaxUserNameComplete(o)
   val = escape(o.value).replace('+', '%2B');
   ajaxGet(stdAjaxPrefix+'&_mode=fillusername&name='+val, function()
     {
-      if(ajax.readyState==4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         // Determine the appropriate left/top positions, then create a div to use for the drop-down list
         // The trick here is to be able to make the div dynamically destroy itself depending on how far the user's mouse is from it
@@ -224,7 +224,7 @@ function ajaxPageNameComplete(o)
   ajaxGet(stdAjaxPrefix+'&_mode=fillpagename&name='+val, function()
     {
       if(!ajax) return;
-      if(ajax.readyState==4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         // Determine the appropriate left/top positions, then create a div to use for the drop-down list
         // The trick here is to be able to make the div dynamically destroy itself depending on how far the user's mouse is from it

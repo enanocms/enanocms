@@ -25,7 +25,7 @@ function ajaxOpenACLManager(page_id, namespace)
   params = toJSONString(params);
   params = ajaxEscape(params);
   ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
-      if(ajax.readyState == 4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
         if ( response.substr(0, 1) != '{' )
@@ -66,7 +66,7 @@ function ajaxACLSwitchToSelector()
   params = toJSONString(params);
   params = ajaxEscape(params);
   ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
-      if(ajax.readyState == 4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         document.getElementById(aclManagerID+'_main').innerHTML = '';
         document.getElementById(aclManagerID + '_back').style.display = 'none';
@@ -316,7 +316,7 @@ function __aclJSONSubmitAjaxHandler(params)
   params = toJSONString(params);
   params = ajaxEscape(params);
   ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
-      if(ajax.readyState == 4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
         if ( response.substr(0, 1) != '{' )
@@ -459,7 +459,7 @@ function __aclJSONSubmitAjaxHandler(params)
           params = toJSONString(params);
           params = ajaxEscape(params);
           ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
-              if(ajax.readyState == 4)
+              if ( ajax.readyState == 4 && ajax.status == 200 )
               {
                 document.getElementById(aclManagerID+'_main').innerHTML = '';
                 document.getElementById(aclManagerID + '_back').style.display = 'none';

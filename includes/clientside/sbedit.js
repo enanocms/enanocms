@@ -4,7 +4,7 @@ function ajaxDisenableBlock(id)
   disenable_currentBlock = document.getElementById('disabled_'+id);
   ajaxGet(makeUrlNS('Special', 'EditSidebar', 'action=disenable&ajax=true&noheaders&id='+id), function()
     {
-      if(ajax.readyState == 4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         if(ajax.responseText == 'GOOD')
         {
@@ -31,7 +31,7 @@ function ajaxDeleteBlock(id, oElm)
   delete_currentBlock = { 0 : id, 1 : oElm };
   ajaxGet(makeUrlNS('Special', 'EditSidebar', 'action=delete&ajax=true&noheaders&id='+id), function()
     {
-      if(ajax.readyState == 4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         if(ajax.responseText == 'GOOD')
         {
@@ -53,7 +53,7 @@ function ajaxEditBlock(id, oElm)
   blockEdit_current = { 0 : id, 1 : oElm };
   ajaxGet(makeUrlNS('Special', 'EditSidebar', 'action=getsource&noheaders&id='+id), function()
     {
-      if(ajax.readyState == 4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         id = blockEdit_current[0];
         oElm = blockEdit_current[1];
@@ -100,7 +100,7 @@ function ajaxSaveBlock(oElm, id)
   blockSave_current = { 0 : id, 1 : oElm };
   ajaxPost(makeUrlNS('Special', 'EditSidebar', 'noheaders&action=save&id='+id), 'content='+taContent, function()
     {
-      if(ajax.readyState == 4)
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         id   = blockSave_current[0];
         oElm = blockSave_current[1];
@@ -172,7 +172,7 @@ function ajaxRenameSidebarStage2(input)
   newname = ajaxEscape(newname);
   ajaxPost(makeUrlNS('Special', 'EditSidebar', 'ajax&noheaders&action=rename&id='+id), 'newname=' +newname, function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         parent.removeChild(img);
         if ( ajax.responseText != 'GOOD' )

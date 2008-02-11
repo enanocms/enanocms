@@ -223,18 +223,24 @@ class RenderMan {
     
     // Strip out <nowiki> sections and PHP code
     
-    $php = preg_match_all('#<\?php(.*?)\?>#is', $text, $phpsec);
-    
-    for($i=0;$i<sizeof($phpsec[1]);$i++)
-    {
-      $text = str_replace('<?php'.$phpsec[1][$i].'?>', '{PHP:'.$random_id.':'.$i.'}', $text);
-    }
-    
     $nw = preg_match_all('#<nowiki>(.*?)<\/nowiki>#is', $text, $nowiki);
     
     for($i=0;$i<sizeof($nowiki[1]);$i++)
     {
       $text = str_replace('<nowiki>'.$nowiki[1][$i].'</nowiki>', '{NOWIKI:'.$random_id.':'.$i.'}', $text);
+    }
+    
+    $code = $plugins->setHook('render_wikiformat_veryearly');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
+    $php = preg_match_all('#<\?php(.*?)\?>#is', $text, $phpsec);
+    
+    for($i=0;$i<sizeof($phpsec[1]);$i++)
+    {
+      $text = str_replace('<?php'.$phpsec[1][$i].'?>', '{PHP:'.$random_id.':'.$i.'}', $text);
     }
     
     $text = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '\\1', $text);
@@ -636,6 +642,12 @@ class RenderMan {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $random_id = md5( time() . mt_rand() );
     
+    $code = $plugins->setHook('render_sanitize_pre');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     $can_do_php = ( $session->get_permissions('php_in_pages') && !$strip_all_php );
     $can_do_html = $session->get_permissions('html_in_pages');
     
@@ -671,6 +683,12 @@ class RenderMan {
     $text = str_replace('~~~~~', enano_date('G:i, j F Y (T)'), $text);
     $text = str_replace('~~~~', "[[User:$session->username|$session->username]] ".enano_date('G:i, j F Y (T)'), $text);
     $text = str_replace('~~~', "[[User:$session->username|$session->username]] ", $text);
+    
+    $code = $plugins->setHook('render_sanitize_post');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
     
     // Reinsert <nowiki> sections
     for($i=0;$i<$nw;$i++)

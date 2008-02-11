@@ -182,7 +182,7 @@ function AutofillUsername(parent, event, allowanon)
     af_current = this;
     var processResponse = function()
     {
-      if ( ajax.readyState == 4 )
+      if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var afobj = af_current;
         af_current = false;

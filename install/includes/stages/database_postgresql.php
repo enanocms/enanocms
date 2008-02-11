@@ -252,7 +252,7 @@ $ui->show_header();
     
     ajaxPost(scriptPath + '/install/install.php?stage=database', connection_info + '&driver=postgresql&ajax_test=on&language=' + enano_lang_code[ENANO_LANG_ID], function()
       {
-        if ( ajax.readyState == 4 )
+        if ( ajax.readyState == 4 && ajax.status == 200 )
         {
           setTimeout('install_unset_ajax_loading();', 750);
           // Process response

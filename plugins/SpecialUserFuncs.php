@@ -938,7 +938,7 @@ function page_Special_Register()
             
             document.getElementById('e_username').innerHTML = '<br /><small><b>' + $lang.get('user_reg_msg_username_checking') + '</b></small>';
             ajaxGet('<?php echo scriptPath; ?>/ajax.php?title=null&_mode=checkusername&name='+escape(frm.username.value), function() {
-              if(ajax.readyState == 4)
+              if ( ajax.readyState == 4 && ajax.status == 200 )
                 if(ajax.responseText == 'good')
                 {
                   document.getElementById('s_username').src='<?php echo scriptPath; ?>/images/check.png';

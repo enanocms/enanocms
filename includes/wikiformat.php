@@ -107,6 +107,13 @@ class Text_Wiki {
         if (is_array($rules)) {
             $this->rules = $rules;
         }
+        
+        global $plugins;
+        $code = $plugins->setHook('text_wiki_construct');
+        foreach ( $code as $cmd )
+        {
+            eval($cmd);
+        }
 
         $this->addPath(
             'parse',
