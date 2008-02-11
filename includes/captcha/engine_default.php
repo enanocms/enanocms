@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1 (Caoineag alpha 1)
+ * Version 1.1.2 (Caoineag alpha 2)
  * Copyright (C) 2006-2007 Dan Fuhry
  * captcha.php - visual confirmation system used during registration
  *

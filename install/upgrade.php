@@ -16,6 +16,9 @@
 
 define('IN_ENANO', 1);
 
+// The list of versions in THIS BRANCH, in chronological order.
+$enano_versions = array('1.1.1', '1.1.2');
+
 // Turn on every imaginable API hack to make common load on older databases
 define('IN_ENANO_UPGRADE', 1);
 define('IN_ENANO_MIGRATION', 1);
@@ -34,10 +37,10 @@ if ( version_compare(PHP_VERSION, '5.0.0', '<') )
 {
   $ui->__construct('Enano upgrader', false);
 }
-$ui->add_stage('Welcome', true);
-$ui->add_stage('Select version', true);
-$ui->add_stage('Perform upgrade', true);
-$ui->add_stage('Finish', true);
+$stg_welcome = $ui->add_stage('Welcome', true);
+$stg_confirm = $ui->add_stage('Confirmation', true);
+$stg_upgrade = $ui->add_stage('Perform upgrade', true);
+$stg_finish  = $ui->add_stage('Finish', true);
 $stg_php4 = $ui->add_stage('PHP4 compatibility notice', false);
 
 if ( version_compare(PHP_VERSION, '5.0.0', '<') || isset($_GET['debug_warn_php4']) )
@@ -136,20 +139,104 @@ if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_l
   exit();
 }
 
+if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
+{
+  $ui->set_visible_stage($stg_upgrade);
+}
+else
+{
+  $ui->set_visible_stage($stg_confirm);
+}
+
 // The real migration code
 $ui->show_header();
 
 if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
 {
-  require('install/schemas/upgrade/migration/1.0-1.1.php');
-  if ( MIGRATE() )
+  // Do we need to run the migration first?
+  if ( substr(enano_version(), 0, 4) != '1.1.' )
   {
-    echo '<p>Enano survived the migration. Congratulations, you\'re one of the lucky ones, <a href="' . scriptPath . '/index.php">check out the alpha</a>.</p>';
+    require(ENANO_ROOT . '/install/upgrade/migration/1.0-1.1.php');
+    $result = MIGRATE();
+    if ( !$result )
+    {
+      echo 'Migration failed, there should be an error message above.';
+      $ui->show_footer();
+      exit;
+    }
   }
-  else
+  // Main upgrade stage
+  
+  // Init vars
+  $version_flipped = array_flip($enano_versions);
+  $version_curr = enano_version();
+  $version_target = installer_enano_version();
+  
+  // Calculate which scripts to run
+  if ( !isset($version_flipped[$version_curr]) )
   {
-    echo '<p>Something went wrong, you should have gotten an error message.</p>';
+    echo '<p>ERROR: Unsupported version</p>';
+    $ui->show_footer();
+    exit;
   }
+  if ( !isset($version_flipped[$version_target]) )
+  {
+    echo '<p>ERROR: Upgrader doesn\'t support its own version</p>';
+    $ui->show_footer();
+    exit;
+  }
+  $upg_queue = array();
+  for ( $i = $version_flipped[$version_curr]; $i < $version_flipped[$version_target]; $i++ )
+  {
+    if ( !isset($enano_versions[$i + 1]) )
+    {
+      echo '<p>ERROR: Unsupported intermediate version</p>';
+      $ui->show_footer();
+      exit;
+    }
+    $ver_this = $enano_versions[$i];
+    $ver_next = $enano_versions[$i + 1];
+    $upg_queue[] = array($ver_this, $ver_next);
+  }
+  
+  // Verify that all upgrade scripts are usable
+  foreach ( $upg_queue as $verset )
+  {
+    $file = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}-$dbdriver.sql";
+    if ( !file_exists($file) )
+    {
+      echo "<p>ERROR: Couldn't find required schema file: $file</p>";
+      $ui->show_footer();
+      exit;
+    }
+  }
+  // Perform upgrade
+  foreach ( $upg_queue as $verset )
+  {
+    $file = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}-$dbdriver.sql";
+    try
+    {
+      $parser = new SQL_Parser($file);
+    }
+    catch(Exception $e)
+    {
+      die("<pre>$e</pre>");
+    }
+    
+    $parser->assign_vars(array(
+      'TABLE_PREFIX' => table_prefix
+    ));
+  
+    $sql_list = $parser->parse();
+  
+    foreach ( $sql_list as $sql )
+    {
+      if ( !$db->sql_query($sql) )
+        $db->_die();
+    }
+    setConfig('enano_version', $verset[1]);
+  }
+  echo '<p>All done!</p>';
 }
 else
 {

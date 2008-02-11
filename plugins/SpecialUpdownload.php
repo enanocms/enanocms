@@ -10,7 +10,7 @@ Author URI: http://enanocms.org/
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.0.3
+ * Version 1.1.1
  * Copyright (C) 2006-2007 Dan Fuhry
  * SpecialUpdownload.php - handles uploading and downloading of user-uploaded files - possibly the most rigorously security-enforcing script in all of Enano, although sessions.php comes in a close second
  *
