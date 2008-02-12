@@ -279,7 +279,7 @@
       else
       {
         // Verify that no edits have been made since the editor was requested
-        $q = $db->sql_query('SELECT time_id, author FROM ' . table_prefix . "logs WHERE log_type = 'page' AND action = 'edit' AND page_id = '{$paths->page_id}' AND namespace = '{$paths->namespace}' ORDER BY time_id DESC LIMIT 1;");
+        $q = $db->sql_query('SELECT time_id, author FROM ' . table_prefix . "logs WHERE log_type = 'page' AND action = 'edit' AND page_id = '{$paths->page_id}' AND namespace = '{$paths->namespace}' AND is_draft != 1 ORDER BY time_id DESC LIMIT 1;");
         if ( !$q )
           $db->die_json();
         
