@@ -234,6 +234,19 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
       if ( !$db->sql_query($sql) )
         $db->_die();
     }
+    
+    // Is there an additional script (logic) to be run after the schema?
+    $postscript = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}.php";
+    if ( file_exists($postscript) )
+      @include($postscript);
+    
+    // The advantage of calling setConfig on the system version here?
+    // Simple. If the upgrade fails, it will pick up from the last
+    // version, not try to start again from the beginning. This will
+    // still cause errors in most cases though. Eventually we probably
+    // need some sort of query-numbering system that tracks in-progress
+    // upgrades.
+    
     setConfig('enano_version', $verset[1]);
   }
   echo '<p>All done!</p>';
