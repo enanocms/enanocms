@@ -342,7 +342,7 @@ class PageUtils {
     $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
     $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
     
-    $q = 'SELECT time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' ORDER BY time_id DESC;';
+    $q = 'SELECT time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND is_draft != 1 ORDER BY time_id DESC;';
     if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
     echo $lang->get('history_page_subtitle') . '
           <h3>' . $lang->get('history_heading_edits') . '</h3>';

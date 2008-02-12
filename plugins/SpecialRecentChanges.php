@@ -73,8 +73,9 @@ function page_Special_RecentChanges()
     l1.time_id AS currev_time, l2.time_id AS oldrev_time
   FROM ' . table_prefix . 'logs AS l1
   LEFT JOIN ' . table_prefix . 'logs AS l2                                                    
-    ON ( l1.log_type = l2.log_type AND l1.action = \'edit\' AND l1.action = l2.action AND l2.time_id < l1.time_id AND l1.page_id = l2.page_id AND l1.namespace = l2.namespace )
+    ON ( l1.log_type = l2.log_type AND l1.action = \'edit\' AND l1.action = l2.action AND l2.time_id < l1.time_id AND l1.page_id = l2.page_id AND l1.namespace = l2.namespace AND l2.is_draft != 1 )
   WHERE l2.time_id IS NOT NULL' . $where_extra . '
+        AND l1.is_draft != 1
   GROUP BY oldrev_time
   ORDER BY l1.time_id DESC, l2.time_id DESC;';
   }

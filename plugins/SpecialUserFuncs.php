@@ -1021,7 +1021,7 @@ function page_Special_Contributions() {
   }
   
   $user = $db->escape($user);
-  $q = 'SELECT log_type, time_id, action, date_string, page_id, namespace, author, edit_summary, minor_edit, page_id, namespace, ( action = \'edit\' ) AS is_edit FROM '.table_prefix.'logs WHERE author=\''.$user.'\' AND log_type=\'page\' ORDER BY is_edit DESC, time_id DESC;';
+  $q = 'SELECT log_type, time_id, action, date_string, page_id, namespace, author, edit_summary, minor_edit, page_id, namespace, ( action = \'edit\' ) AS is_edit FROM '.table_prefix.'logs WHERE author=\''.$user.'\' AND log_type=\'page\' AND is_draft != 1 ORDER BY is_edit DESC, time_id DESC;';
   $q = $db->sql_query($q);
   if ( !$q )
     $db->_die('SpecialUserFuncs selecting contribution data');
