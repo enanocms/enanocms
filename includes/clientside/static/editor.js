@@ -910,6 +910,12 @@ function ajaxEditorUseDraft()
         $('ajaxEditArea').setContent(response.src);
         $('ajaxEditArea').object.used_draft = true;
         
+        var es = document.getElementById('enano_editor_field_summary');
+        if ( es.value == '' )
+        {
+          es.value = response.edit_summary;
+        }
+        
         var dn = $('ajax_edit_draft_notice').object;
         dn.parentNode.removeChild(dn);
       }

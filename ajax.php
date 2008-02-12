@@ -105,7 +105,7 @@
       if ( $src = $page->fetch_source() )
       {
         $allowed = true;
-        $q = $db->sql_query('SELECT author, time_id, page_text FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
+        $q = $db->sql_query('SELECT author, time_id, page_text, edit_summary FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
                                AND page_id = \'' . $db->escape($paths->page_id) . '\'
                                AND namespace = \'' . $db->escape($paths->namespace) . '\'
                                AND is_draft = 1;');
@@ -152,6 +152,7 @@
         if ( isset($_GET['get_draft']) && @$_GET['get_draft'] === '1' )
         {
           $return['src'] = $row['page_text'];
+          $return['edit_summary'] = $row['edit_summary'];
         }
       }
       
