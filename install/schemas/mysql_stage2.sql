@@ -43,6 +43,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   author varchar(63),
   edit_summary text,
   minor_edit tinyint(1),
+  is_draft tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY ( log_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 

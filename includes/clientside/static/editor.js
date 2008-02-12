@@ -11,6 +11,11 @@ else
 
 var do_popups = ( is_Safari ) ? '' : ',inlinepopups';
 var _skin = ( typeof(tinymce_skin) == 'string' ) ? tinymce_skin : 'default';
+var editor_img_path = scriptPath + '/images/editor';
+
+// Idle time required for autosave, in seconds
+var AUTOSAVE_TIMEOUT = 15;
+var AutosaveTimeoutObj = null;
 
 var enano_tinymce_options = {
   mode : "none",
@@ -84,12 +89,12 @@ function ajaxEditor(revid)
         // do we need to enter a captcha before saving the page?
         var captcha_hash = ( response.require_captcha ) ? response.captcha_id : false;
         
-        ajaxBuildEditor(response.src, (!response.auth_edit), response.time, response.allow_wysiwyg, captcha_hash, response.revid, response.undo_info);
+        ajaxBuildEditor((!response.auth_edit), response.time, response.allow_wysiwyg, captcha_hash, response.revid, response.undo_info, response);
       }
     });
 }
 
-function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_hash, revid, undo_info)
+function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid, undo_info, response)
 {
   // Set flags
   // We don't want the fancy confirmation framework to trigger if the user is only viewing the page source
@@ -97,7 +102,7 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   {
     editor_open = true;
     disableUnload();
-  }  
+  }
   
   // Destroy existing contents of page container
   var edcon = document.getElementById('ajaxEditContainer');
@@ -105,6 +110,8 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   {
     edcon.removeChild(edcon.childNodes[i]);
   }
+  
+  var content = response.src;
   
   //
   // BUILD EDITOR
@@ -174,13 +181,22 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
     return false;
   }
   
+  // Draft notice
+  if ( response.have_draft )
+  {
+    var dn = document.createElement('div');
+    dn.className = 'warning-box';
+    dn.id = 'ajax_edit_draft_notice';
+    dn.innerHTML = '<b>' + $lang.get('editor_msg_have_draft_title') + '</b><br />';
+    dn.innerHTML += $lang.get('editor_msg_have_draft_body', { author: response.draft_author, time: response.draft_time });
+  }
+  
   // Old-revision notice
   if ( revid > 0 )
   {
     var oldrev_box = document.createElement('div');
     oldrev_box.className = 'usermessage';
     oldrev_box.appendChild(document.createTextNode($lang.get('editor_msg_editing_old_revision')));
-    form.appendChild(oldrev_box);
   }
   
   // Preview holder
@@ -196,18 +212,12 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   ta_wrapper.style.margin = '10px 0';
   // ta_wrapper.style.clear = 'both';
   var textarea = document.createElement('textarea');
-  textarea.value = content;
-  textarea._edTimestamp = timestamp;
+  ta_wrapper.appendChild(textarea);
+  
   textarea.id = 'ajaxEditArea';
   textarea.rows = '20';
   textarea.cols = '60';
   textarea.style.width = '98.7%';
-  if ( readonly )
-  {
-    textarea.className = 'mce_readonly';
-    textarea.setAttribute('readonly', 'readonly');
-  }
-  ta_wrapper.appendChild(textarea);
   
   // Revision metadata controls
   var tblholder = document.createElement('div');
@@ -220,19 +230,22 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   if ( readonly )
   {
     // Close Viewer button
-    var tr3 = document.createElement('tr');
-    var td3 = document.createElement('th');
-    td3.setAttribute('colspan', '2');
-    td3.className = 'subhead';
+    var toolbar = '';
+    var head = new templateParser(response.toolbar_templates.toolbar_start);
+    var button = new templateParser(response.toolbar_templates.toolbar_button);
+    var tail = new templateParser(response.toolbar_templates.toolbar_end);
     
-    var btn_cancel = document.createElement('input');
-    btn_cancel.type = 'button';
-    btn_cancel.value = $lang.get('editor_btn_closeviewer');
-    btn_cancel.onclick = function() { ajaxReset(true); return false; };
-    td3.appendChild(btn_cancel);
-    tr3.appendChild(td3);
+    button.assign_bool({
+        show_title: true
+      });
     
-    metatable.appendChild(tr3);
+    // Button: close
+    button.assign_vars({
+        TITLE: $lang.get('editor_btn_closeviewer'),
+        IMAGE: editor_img_path + '/discard.gif',
+        FLAGS: 'href="#" onclick="ajaxReset(true); return false;"'
+      });
+    toolbar += button.run();
   }
   else
   {
@@ -332,49 +345,74 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
     }
     
     // Third row: controls
-    var tr3 = document.createElement('tr');
-    var td3 = document.createElement('th');
-    td3.setAttribute('colspan', '2');
-    td3.className = 'subhead';
     
-    var btn_save = document.createElement('input');
-    btn_save.type = 'button';
-    btn_save.value = $lang.get('editor_btn_save');
-    btn_save.onclick = function() { ajaxEditorSave(); return false; };
-    td3.appendChild(btn_save);
+    var toolbar = '';
+    var head = new templateParser(response.toolbar_templates.toolbar_start);
+    var button = new templateParser(response.toolbar_templates.toolbar_button);
+    var label = new templateParser(response.toolbar_templates.toolbar_label);
+    var tail = new templateParser(response.toolbar_templates.toolbar_end);
     
-    td3.appendChild(document.createTextNode(' '));
+    button.assign_bool({
+        show_title: true
+      });
     
-    var btn_preview = document.createElement('input');
-    btn_preview.type = 'button';
-    btn_preview.value = $lang.get('editor_btn_preview');
-    btn_preview.onclick = function() { ajaxEditorGenPreview(); return false; };
-    td3.appendChild(btn_preview);
+    toolbar += head.run();
     
-    td3.appendChild(document.createTextNode(' '));
+    // Button: Save
+    button.assign_vars({
+        TITLE: $lang.get('editor_btn_save'),
+        IMAGE: editor_img_path + '/save.gif',
+        FLAGS: 'href="#" onclick="ajaxEditorSave(); return false;"'
+      });
+    toolbar += button.run();
     
-    var btn_revert = document.createElement('input');
-    btn_revert.type = 'button';
-    btn_revert.value = $lang.get('editor_btn_revert');
-    btn_revert.onclick = function() { ajaxEditorRevertToLatest(); return false; };
-    td3.appendChild(btn_revert);
+    // Button: preview
+    button.assign_vars({
+        TITLE: $lang.get('editor_btn_preview'),
+        IMAGE: editor_img_path + '/preview.gif',
+        FLAGS: 'href="#" onclick="ajaxEditorGenPreview(); return false;"'
+      });
+    toolbar += button.run();
     
-    td3.appendChild(document.createTextNode(' '));
+    // Button: revert
+    button.assign_vars({
+        TITLE: $lang.get('editor_btn_revert'),
+          IMAGE: editor_img_path + '/revert.gif',
+        FLAGS: 'href="#" onclick="ajaxEditorRevertToLatest(); return false;"'
+      });
+    toolbar += button.run();
     
-    var btn_diff = document.createElement('input');
-    btn_diff.type = 'button';
-    btn_diff.value = $lang.get('editor_btn_diff');
-    btn_diff.onclick = function() { ajaxEditorShowDiffs(); return false; };
-    td3.appendChild(btn_diff);
+    // Button: diff
+    button.assign_vars({
+        TITLE: $lang.get('editor_btn_diff'),
+        IMAGE: editor_img_path + '/diff.gif',
+        FLAGS: 'href="#" onclick="ajaxEditorShowDiffs(); return false;"'
+      });
+    toolbar += button.run();
     
-    td3.appendChild(document.createTextNode(' '));
+    // Button: cancel
+    button.assign_vars({
+        TITLE: $lang.get('editor_btn_cancel'),
+        IMAGE: editor_img_path + '/discard.gif',
+        FLAGS: 'href="#" onclick="ajaxEditorCancel(); return false;"'
+      });
+    toolbar += button.run();
     
-    var btn_cancel = document.createElement('input');
-    btn_cancel.type = 'button';
-    btn_cancel.value = $lang.get('editor_btn_cancel');
-    btn_cancel.onclick = function() { ajaxEditorCancel(); return false; };
-    td3.appendChild(btn_cancel);
-    tr3.appendChild(td3);
+    // Separator
+    label.assign_vars({
+        TITLE: ' '
+      });
+    toolbar += label.run();
+    
+    // Button: Save draft
+    button.assign_vars({
+        TITLE: $lang.get('editor_btn_savedraft'),
+        IMAGE: editor_img_path + '/savedraft.gif',
+        FLAGS: 'href="#" onclick="ajaxPerformAutosave(); return false;" id="ajax_edit_savedraft_btn"'
+      });
+    toolbar += button.run();
+    
+    toolbar += tail.run();
     
     metatable.appendChild(tr1);
     metatable.appendChild(tr2);
@@ -382,7 +420,7 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
     {
       metatable.appendChild(tr4);
     }
-    metatable.appendChild(tr3);
+    // metatable.appendChild(tr3);
   }
   tblholder.appendChild(metatable);
   
@@ -399,15 +437,48 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
   form.appendChild(heading);
   if ( allow_wysiwyg )
     form.appendChild(toggler);
+  
+  if ( dn )
+    form.appendChild(dn);
+  
+  if ( oldrev_box )
+    form.appendChild(oldrev_box);
+  
   form.appendChild(preview_anchor);
   form.appendChild(preview_container);
   form.appendChild(ta_wrapper);
   form.appendChild(tblholder);
+  form.innerHTML += '<div style="margin: 10px 0 0 0;">' + toolbar + '</div>';
   edcon.appendChild(form);
   
   if ( editNotice && !readonly )
   {
     edcon.appendChild(en_div);
+  }
+  
+  // more textarea attribs/init
+  var textarea = document.getElementById('ajaxEditArea');
+  textarea.as_last_save = 0;
+  textarea.content_orig = content;
+  textarea.used_draft = false;
+  textarea.onkeyup = function()
+  {
+    if ( this.needReset )
+    {
+      var img = $('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
+      var lbl = $('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
+      img.src = editor_img_path + '/savedraft.gif';
+      lbl.innerHTML = $lang.get('editor_btn_savedraft');
+    }
+    if ( AutosaveTimeoutObj )
+      clearTimeout(AutosaveTimeoutObj);
+    AutosaveTimeoutObj = setTimeout('ajaxAutosaveDraft();', ( AUTOSAVE_TIMEOUT * 1000 ));
+  }
+  
+  if ( readonly )
+  {
+    textarea.className = 'mce_readonly';
+    textarea.setAttribute('readonly', 'readonly');
   }
   
   // If the editor preference is tinymce, switch the editor to TinyMCE now
@@ -416,18 +487,38 @@ function ajaxBuildEditor(content, readonly, timestamp, allow_wysiwyg, captcha_ha
     $dynano('ajaxEditArea').switchToMCE();
   }
   $dynano('ajaxEditArea').object.focus();
+  $dynano('ajaxEditArea').object._edTimestamp = timestamp;
+  $dynano('ajaxEditArea').setContent(content);
+  
+  // Autosave every 5 minutes           (m  *  s  *  ms)
+  setInterval('ajaxPerformAutosave();', ( 5 * 60 * 1000 ));
 }
 
-function ajaxEditorSave()
+function ajaxEditorSave(is_draft)
 {
-  ajaxSetEditorLoading();
+  if ( !is_draft )
+    ajaxSetEditorLoading();
   var ta_content = $('ajaxEditArea').getContent();
   
-  if ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' )
+  if ( !is_draft && ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' ) )
   {
     new messagebox(MB_OK|MB_ICONSTOP, $lang.get('editor_err_no_text_title'), $lang.get('editor_err_no_text_body'));
     ajaxUnSetEditorLoading();
     return false;
+  }
+  
+  if ( is_draft )
+  {
+    // ajaxSetEditorLoading();
+    var img = $('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
+    var lbl = $('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
+    img.src = scriptPath + '/images/loading.gif';
+    var d = new Date();
+    var m = String(d.getMinutes());
+    if ( m.length < 2 )
+      m = '0' + m;
+    var time = d.getHours() + ':' + m;
+    lbl.innerHTML = $lang.get('editor_msg_draft_saving');
   }
   
   var edit_summ = $('enano_editor_field_summary').object.value;
@@ -435,12 +526,15 @@ function ajaxEditorSave()
     edit_summ = '';
   var is_minor = ( $('enano_editor_field_minor').object.checked ) ? 1 : 0;
   var timestamp = $('ajaxEditArea').object._edTimestamp;
+  var used_draft = $('ajaxEditArea').object.used_draft;
   
   var json_packet = {
     src: ta_content,
     summary: edit_summ,
     minor_edit: is_minor,
-    time: timestamp
+    time: timestamp,
+    draft: ( is_draft == true ),
+    used_draft: used_draft
   };
   
   // Do we need to add captcha info?
@@ -462,7 +556,6 @@ function ajaxEditorSave()
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
-        ajaxUnSetEditorLoading();
         var response = String(ajax.responseText + '');
         if ( response.substr(0, 1) != '{' )
         {
@@ -509,27 +602,44 @@ function ajaxEditorSave()
         }
         if ( response.mode == 'success' )
         {
-          // The save was successful; reset flags and make another request for the new page content
-          setAjaxLoading();
-          editor_open = false;
-          enableUnload();
-          changeOpac(0, 'ajaxEditContainer');
-          ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function()
-            {
-              if ( ajax.readyState == 4 && ajax.status == 200 )
+          if ( response.is_draft )
+          {
+            document.getElementById('ajaxEditArea').used_draft = true;
+            document.getElementById('ajaxEditArea').needReset = true;
+            var img = $('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
+            var lbl = $('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
+            img.src = scriptPath + '/images/mini-info.png';
+            var d = new Date();
+            var m = String(d.getMinutes());
+            if ( m.length < 2 )
+              m = '0' + m;
+            var time = d.getHours() + ':' + m;
+            lbl.innerHTML = $lang.get('editor_msg_draft_saved', { time: time });
+          }
+          else
+          {
+            // The save was successful; reset flags and make another request for the new page content
+            ajaxUnSetEditorLoading();
+            setAjaxLoading();
+            editor_open = false;
+            enableUnload();
+            changeOpac(0, 'ajaxEditContainer');
+            ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function()
               {
-                unsetAjaxLoading();
-                selectButtonMajor('article');
-                unselectAllButtonsMinor();
-                
-                document.getElementById('ajaxEditContainer').innerHTML = '<div class="usermessage">' + $lang.get('editor_msg_saved') + '</div>' + ajax.responseText;
-                opacity('ajaxEditContainer', 0, 100, 1000);
-              }
-            });
+                if ( ajax.readyState == 4 && ajax.status == 200 )
+                {
+                  unsetAjaxLoading();
+                  selectButtonMajor('article');
+                  unselectAllButtonsMinor();
+                  
+                  document.getElementById('ajaxEditContainer').innerHTML = '<div class="usermessage">' + $lang.get('editor_msg_saved') + '</div>' + ajax.responseText;
+                  opacity('ajaxEditContainer', 0, 100, 1000);
+                }
+              });
+          }
         }
       }
     }, true);
-  
 }
 
 function ajaxEditorGenPreview()
@@ -594,15 +704,7 @@ function ajaxEditorRevertToLatestReal()
           return false;
         }
         
-        var ed = tinyMCE.get('ajaxEditArea');
-        if ( ed )
-        {
-          ed.setContent(response.src);
-        }
-        else
-        {
-          $('ajaxEditArea').object.value = response.src;
-        }
+        $('ajaxEditArea').setContent(response.src);
       }
     }, true);
 }
@@ -745,5 +847,72 @@ function ajaxUnSetEditorLoading()
     var body = document.getElementsByTagName('body')[0];
     body.removeChild(blackout);
   }
+}
+
+function ajaxAutosaveDraft()
+{
+  var aed = document.getElementById('ajaxEditArea');
+  if ( !aed )
+    return false;
+  var last_save = aed.as_last_save;
+  var now = unix_time();
+  if ( ( last_save + 120 ) < now && aed.value != aed.content_orig )
+  {
+    ajaxPerformAutosave();
+  }
+}
+
+function ajaxPerformAutosave()
+{
+  var aed = document.getElementById('ajaxEditArea');
+  if ( !aed )
+    return false;
+  var now = unix_time();
+  aed.as_last_save = now;
+  
+  var ta_content = $('ajaxEditArea').getContent();
+  
+  if ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' )
+  {
+    return false;
+  }
+  
+  ajaxEditorSave(true);
+}
+
+function ajaxEditorUseDraft()
+{
+  var aed = document.getElementById('ajaxEditArea');
+  if ( !aed )
+    return false;
+  ajaxSetEditorLoading();
+  ajaxGet(stdAjaxPrefix + '&_mode=getsource&get_draft=1', function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        ajaxUnSetEditorLoading();
+        
+        var response = String(ajax.responseText + '');
+        if ( response.substr(0, 1) != '{' )
+        {
+          handle_invalid_json(response);
+          return false;
+        }
+        
+        response = parseJSON(response);
+        if ( response.mode == 'error' )
+        {
+          unselectAllButtonsMinor();
+          new messagebox(MB_OK | MB_ICONSTOP, $lang.get('editor_err_server'), response.error);
+          return false;
+        }
+        
+        $('ajaxEditArea').setContent(response.src);
+        $('ajaxEditArea').object.used_draft = true;
+        
+        var dn = $('ajax_edit_draft_notice').object;
+        dn.parentNode.removeChild(dn);
+      }
+    }, true);
 }
 

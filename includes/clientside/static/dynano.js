@@ -22,6 +22,7 @@ function DNobj(id)
     this.switchToMCE = DN_switchToMCE;
     this.destroyMCE = DN_destroyMCE;
     this.getContent = DN_mceFetchContent;
+    this.setContent = DN_mceSetContent;
   }
 }
 function __DNObjGetHeight(o) {
@@ -145,6 +146,23 @@ function DN_mceFetchContent()
   else
   {
     return this.object.value;
+  }
+}
+
+function DN_mceSetContent(text)
+{
+  if ( this.object.name )
+  {
+    this.object.value = text;
+    if ( tinyMCE.get(this.object.id) )
+    {
+      var editor = tinyMCE.get(this.object.id);
+      editor.setContent(text);
+    }
+  }
+  else
+  {
+    this.object.value = text;
   }
 }
 

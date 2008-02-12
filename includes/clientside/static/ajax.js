@@ -97,7 +97,7 @@ function handle_invalid_json(response, customerror)
   else
   {
     customerror  = 'We unexpectedly received the following response from the server. The response should have been in the JSON ';
-    customerror += 'serialization format, but the response wasn\'t composed only of the JSON response. There are three possible triggers';
+    customerror += 'serialization format, but the response wasn\'t composed only of the JSON response. There are three possible triggers ';
     customerror += 'for this problem:';
     var el = document.createElement('p');
     el.appendChild(document.createTextNode(customerror));

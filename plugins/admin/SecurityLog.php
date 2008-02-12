@@ -102,7 +102,7 @@ function get_security_log($num = false)
       $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;';
     }
     $q = $db->sql_query($l);
-    while($r = $db->fetchrow())
+    while($r = $db->fetchrow($q))
     {
       $return .= seclog_format_inner($r);
     }

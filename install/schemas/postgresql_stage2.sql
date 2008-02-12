@@ -23,7 +23,7 @@ CREATE TABLE {{TABLE_PREFIX}}comments(
   subject text,
   comment_data text,
   name text,
-  approved smallint default 1,
+  approved smallint DEFAULT 1,
   user_id int NOT NULL DEFAULT -1,
   time int NOT NULL DEFAULT 0,
   ip_address varchar(39),
@@ -34,7 +34,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   log_id SERIAL,
   log_type varchar(16),
   action varchar(16),
-  time_id int NOT NULL default '0',
+  time_id int NOT NULL DEFAULT '0',
   date_string varchar(63),
   page_id text,
   namespace text,
@@ -43,12 +43,13 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   author varchar(63),
   edit_summary text,
   minor_edit smallint,
+  is_draft smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ( log_id )
 );
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(
   page_id varchar(255),
-  namespace varchar(16) NOT NULL default 'Article',
+  namespace varchar(16) NOT NULL DEFAULT 'Article',
   page_text text,
   char_tag varchar(63)
 );
@@ -57,13 +58,13 @@ CREATE TABLE {{TABLE_PREFIX}}pages(
   page_order int,
   name varchar(255),
   urlname varchar(255),
-  namespace varchar(16) NOT NULL default 'Article',
-  special smallint default '0',
-  visible smallint default '1',
-  comments_on smallint default '1',
+  namespace varchar(16) NOT NULL DEFAULT 'Article',
+  special smallint DEFAULT '0',
+  visible smallint DEFAULT '1',
+  comments_on smallint DEFAULT '1',
   protected smallint NOT NULL DEFAULT 0,
   wiki_mode smallint NOT NULL DEFAULT 2,
-  delvotes int NOT NULL default 0,
+  delvotes int NOT NULL DEFAULT 0,
   password varchar(40) NOT NULL DEFAULT '',
   delvote_ips text DEFAULT NULL
 );
@@ -72,17 +73,17 @@ CREATE TABLE {{TABLE_PREFIX}}session_keys(
   session_key varchar(32),
   salt varchar(32),
   user_id int,
-  auth_level smallint NOT NULL default '0',
-  source_ip varchar(10) default '0x7f000001',
-  time bigint default '0'
+  auth_level smallint NOT NULL DEFAULT '0',
+  source_ip varchar(10) DEFAULT '0x7f000001',
+  time bigint DEFAULT '0'
 );
 
 CREATE TABLE {{TABLE_PREFIX}}themes(
   theme_id varchar(63),
   theme_name text,
-  theme_order smallint NOT NULL default '1',
-  default_style varchar(63) NOT NULL DEFAULT '',
-  enabled smallint NOT NULL default '1'
+  theme_order smallint NOT NULL DEFAULT '1',
+  DEFAULT_style varchar(63) NOT NULL DEFAULT '',
+  enabled smallint NOT NULL DEFAULT '1'
 );
 
 CREATE TABLE {{TABLE_PREFIX}}users(
@@ -91,9 +92,9 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   password varchar(255),
   email text,
   real_name text,
-  user_level smallint NOT NULL default 2,
-  theme varchar(64) NOT NULL default 'bleu.css',
-  style varchar(64) NOT NULL default 'default',
+  user_level smallint NOT NULL DEFAULT 2,
+  theme varchar(64) NOT NULL DEFAULT 'bleu.css',
+  style varchar(64) NOT NULL DEFAULT 'DEFAULT',
   signature text,
   reg_time int NOT NULL DEFAULT 0,
   account_active smallint NOT NULL DEFAULT 0,
@@ -139,10 +140,10 @@ CREATE TABLE {{TABLE_PREFIX}}files(
   file_id SERIAL,
   time_id int NOT NULL,
   page_id varchar(63) NOT NULL,
-  filename varchar(127) default NULL,
+  filename varchar(127) DEFAULT NULL,
   size bigint NOT NULL,
-  mimetype varchar(63) default NULL,
-  file_extension varchar(8) default NULL,
+  mimetype varchar(63) DEFAULT NULL,
+  file_extension varchar(8) DEFAULT NULL,
   file_key varchar(32) NOT NULL,
   PRIMARY KEY (file_id) 
 );
@@ -151,7 +152,7 @@ CREATE TABLE {{TABLE_PREFIX}}buddies(
   buddy_id SERIAL,
   user_id int,
   buddy_user_id int,
-  is_friend smallint NOT NULL default '1',
+  is_friend smallint NOT NULL DEFAULT '1',
   PRIMARY KEY  (buddy_id) 
 );
 
@@ -266,7 +267,7 @@ CREATE TABLE {{TABLE_PREFIX}}lockout(
 CREATE TABLE {{TABLE_PREFIX}}language(
   lang_id SERIAL,
   lang_code varchar(16) NOT NULL,
-  lang_name_default varchar(64) NOT NULL,
+  lang_name_DEFAULT varchar(64) NOT NULL,
   lang_name_native varchar(64) NOT NULL,
   last_changed int NOT NULL DEFAULT 0
 );
@@ -337,7 +338,7 @@ INSERT INTO {{TABLE_PREFIX}}logs(time_id, date_string, log_type, action, page_id
 INSERT INTO {{TABLE_PREFIX}}pages(page_order, name, urlname, namespace, special, visible, comments_on, protected, delvotes, delvote_ips) VALUES
   (NULL, 'Main Page', 'Main_Page', 'Article', 0, 1, 1, 1, 0, '');
 
-INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_style, enabled) VALUES
+INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, DEFAULT_style, enabled) VALUES
   ('oxygen', 'Oxygen', 1, 'bleu.css', 1),
   ('stpatty', 'St. Patty', 2, 'shamrock.css', 1);
 

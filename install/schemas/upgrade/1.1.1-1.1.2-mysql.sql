@@ -2,6 +2,7 @@
 -- Upgrade schema - Enano 1.1.1 - 1.1.2
 
 ALTER TABLE {{TABLE_PREFIX}}logs ADD COLUMN log_id int(15) NOT NULL auto_increment, ADD PRIMARY KEY ( log_id );
+ALTER TABLE {{TABLE_PREFIX}}logs ADD COLUMN is_draft tinyint(1) NOT NULL DEFAULT 0;
 
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_rank int(12) UNSIGNED NOT NULL DEFAULT 1,
                                   ADD COLUMN user_timezone int(12) UNSIGNED NOT NULL DEFAULT 0;

@@ -96,14 +96,26 @@
       echo PageUtils::checkusername($_GET['name']);
       break;
     case "getsource":
-      header('Content-type: application/json');
+      header('Content-type: text/plain');
       $password = ( isset($_GET['pagepass']) ) ? $_GET['pagepass'] : false;
       $revid = ( isset($_GET['revid']) ) ? intval($_GET['revid']) : 0;
       $page = new PageProcessor($paths->page_id, $paths->namespace, $revid);
       $page->password = $password;
+      $have_draft = false;
       if ( $src = $page->fetch_source() )
       {
         $allowed = true;
+        $q = $db->sql_query('SELECT author, time_id, page_text FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
+                               AND page_id = \'' . $db->escape($paths->page_id) . '\'
+                               AND namespace = \'' . $db->escape($paths->namespace) . '\'
+                               AND is_draft = 1;');
+        if ( !$q )
+          $db->die_json();
+        
+        if ( $db->numrows() > 0 )
+        {
+          $have_draft = true;
+        }
       }
       else if ( $src !== false )
       {
@@ -127,8 +139,21 @@
           'time' => time(),
           'require_captcha' => false,
           'allow_wysiwyg' => $auth_wysiwyg,
-          'revid' => $revid
+          'revid' => $revid,
+          'have_draft' => false
         );
+      
+      if ( $have_draft )
+      {
+        $row = $db->fetchrow($q);
+        $return['have_draft'] = true;
+        $return['draft_author'] = $row['author'];
+        $return['draft_time'] = enano_date('d M Y h:i a', intval($row['time_id']));
+        if ( isset($_GET['get_draft']) && @$_GET['get_draft'] === '1' )
+        {
+          $return['src'] = $row['page_text'];
+        }
+      }
       
       if ( $revid > 0 )
       {
@@ -138,25 +163,35 @@
     ON ( l2.time_id = ' . $revid . '
          AND l2.log_type  = \'page\'
          AND l2.action    = \'edit\'
-         AND l2.page_id   = \'ACL_Tests\'
-         AND l2.namespace = \'Article\'
+         AND l2.page_id   = \'' . $db->escape($paths->page_id)   . '\'
+         AND l2.namespace = \'' . $db->escape($paths->namespace) . '\'
         )
   WHERE l1.log_type  = \'page\'
     AND l1.action    = \'edit\'
-    AND l1.page_id   = \'ACL_Tests\'
-    AND l1.namespace = \'Article\'
+    AND l1.page_id   = \'' . $db->escape($paths->page_id)   . '\'
+    AND l1.namespace = \'' . $db->escape($paths->namespace) . '\'
     AND l1.time_id >= ' . $revid . '
   ORDER BY l1.time_id DESC;');
         if ( !$q )
           $db->die_json();
         
         $rev_count = $db->numrows() - 1;
-        $row = $db->fetchrow();
-        $return['undo_info'] = array(
-          'old_author'     => $row['oldrev_author'],
-          'current_author' => $row['currentrev_author'],
-          'undo_count'     => $rev_count
-        );
+        if ( $rev_count == -1 )
+        {
+          $return = array(
+              'mode' => 'error',
+              'error' => '[Internal] No rows returned by revision info query. SQL:<pre>' . $db->latest_query . '</pre>'
+            );
+        }
+        else
+        {
+          $row = $db->fetchrow();
+          $return['undo_info'] = array(
+            'old_author'     => $row['oldrev_author'],
+            'current_author' => $row['currentrev_author'],
+            'undo_count'     => $rev_count
+          );
+        }
       }
       
       if ( $auth_edit && !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
@@ -164,6 +199,9 @@
         $return['require_captcha'] = true;
         $return['captcha_id'] = $session->make_captcha();
       }
+      
+      $template->load_theme();
+      $return['toolbar_templates'] = $template->extract_vars('toolbar.tpl');
       
       echo enano_json_encode($return);
       break;
@@ -181,7 +219,7 @@
       $summ = ( isset($_POST['summary']) ) ? $_POST['summary'] : '';
       $minor = isset($_POST['minor']);
       $e = PageUtils::savepage($paths->page_id, $paths->namespace, $_POST['text'], $summ, $minor);
-      if($e=='good')
+      if ( $e == 'good' )
       {
         $page = new PageProcessor($paths->page_id, $paths->namespace);
         $page->send();
@@ -194,77 +232,126 @@
     case "savepage_json":
       header('Content-type: application/json');
       if ( !isset($_POST['r']) )
-        die('Invalid request');
+        die('Invalid request [1]');
       
       $request = enano_json_decode($_POST['r']);
-      if ( !isset($request['src']) || !isset($request['summary']) || !isset($request['minor_edit']) || !isset($request['time']) )
-        die('Invalid request');
+      if ( !isset($request['src']) || !isset($request['summary']) || !isset($request['minor_edit']) || !isset($request['time']) || !isset($request['draft']) )
+        die('Invalid request [2]<pre>' . htmlspecialchars(print_r($request, true)) . '</pre>');
       
       $time = intval($request['time']);
       
-      // Verify that no edits have been made since the editor was requested
-      $q = $db->sql_query('SELECT time_id, author FROM ' . table_prefix . "logs WHERE log_type = 'page' AND action = 'edit' AND page_id = '{$paths->page_id}' AND namespace = '{$paths->namespace}' ORDER BY time_id DESC LIMIT 1;");
-      if ( !$q )
-        $db->die_json();
-      
-      $row = $db->fetchrow();
-      $db->free_result();
-      
-      if ( $row['time_id'] > $time )
+      if ( $request['draft'] )
       {
+        //
+        // The user wants to save a draft version of the page.
+        //
+        
+        // Delete any draft copies if they exist
+        $q = $db->sql_query('DELETE FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
+                               AND page_id = \'' . $db->escape($paths->page_id) . '\'
+                               AND namespace = \'' . $db->escape($paths->namespace) . '\'
+                               AND is_draft = 1;');
+        if ( !$q )
+          $db->die_json();
+        
+        $src = RenderMan::preprocess_text($request['src'], false, false);
+        
+        // Save the draft
+        $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs ( log_type, action, page_id, namespace, author, edit_summary, page_text, is_draft, time_id )
+                               VALUES (
+                                 \'page\',
+                                 \'edit\',
+                                 \'' . $db->escape($paths->page_id) . '\',
+                                 \'' . $db->escape($paths->namespace) . '\',
+                                 \'' . $db->escape($session->username) . '\',
+                                 \'' . $db->escape($request['summary']) . '\',
+                                 \'' . $db->escape($src) . '\',
+                                 1,
+                                 ' . time() . '
+                               );');
+        
+        // Done!
         $return = array(
-          'mode' => 'obsolete',
-          'author' => $row['author'],
-          'date_string' => enano_date('d M Y h:i a', $row['time_id']),
-          'time' => $row['time_id'] // time() ???
-          );
-        echo enano_json_encode($return);
-        break;
-      }
-      
-      // Verify captcha, if needed
-      if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
-      {
-        if ( !isset($request['captcha_id']) || !isset($request['captcha_code']) )
-        {
-          die('Invalid request, need captcha metadata');
-        }
-        $code_correct = strtolower($session->get_captcha($request['captcha_id']));
-        $code_input = strtolower($request['captcha_code']);
-        if ( $code_correct !== $code_input )
-        {
-          $return = array(
-            'mode' => 'errors',
-            'errors' => array($lang->get('editor_err_captcha_wrong')),
-            'new_captcha' => $session->make_captcha()
-          );
-          echo enano_json_encode($return);
-          break;
-        }
-      }
-      
-      // Verification complete. Start the PageProcessor and let it do the dirty work for us.
-      $page = new PageProcessor($paths->page_id, $paths->namespace);
-      if ( $page->update_page($request['src'], $request['summary'], ( $request['minor_edit'] == 1 )) )
-      {
-        $return = array(
-            'mode' => 'success'
+            'mode' => 'success',
+            'is_draft' => true
           );
       }
       else
       {
-        $errors = array();
-        while ( $err = $page->pop_error() )
+        // Verify that no edits have been made since the editor was requested
+        $q = $db->sql_query('SELECT time_id, author FROM ' . table_prefix . "logs WHERE log_type = 'page' AND action = 'edit' AND page_id = '{$paths->page_id}' AND namespace = '{$paths->namespace}' ORDER BY time_id DESC LIMIT 1;");
+        if ( !$q )
+          $db->die_json();
+        
+        $row = $db->fetchrow();
+        $db->free_result();
+        
+        if ( $row['time_id'] > $time )
         {
-          $errors[] = $err;
+          $return = array(
+            'mode' => 'obsolete',
+            'author' => $row['author'],
+            'date_string' => enano_date('d M Y h:i a', $row['time_id']),
+            'time' => $row['time_id'] // time() ???
+            );
+          echo enano_json_encode($return);
+          break;
         }
-        $return = array(
-          'mode' => 'errors',
-          'errors' => array_values($errors)
-          );
+        
+        // Verify captcha, if needed
         if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
         {
-          $return['new_captcha'] = $session->make_captcha();
+          if ( !isset($request['captcha_id']) || !isset($request['captcha_code']) )
+          {
+            die('Invalid request, need captcha metadata');
+          }
+          $code_correct = strtolower($session->get_captcha($request['captcha_id']));
+          $code_input = strtolower($request['captcha_code']);
+          if ( $code_correct !== $code_input )
+          {
+            $return = array(
+              'mode' => 'errors',
+              'errors' => array($lang->get('editor_err_captcha_wrong')),
+              'new_captcha' => $session->make_captcha()
+            );
+            echo enano_json_encode($return);
+            break;
+          }
+        }
+        
+        // Verification complete. Start the PageProcessor and let it do the dirty work for us.
+        $page = new PageProcessor($paths->page_id, $paths->namespace);
+        if ( $page->update_page($request['src'], $request['summary'], ( $request['minor_edit'] == 1 )) )
+        {
+          $return = array(
+              'mode' => 'success',
+              'is_draft' => false
+            );
+        }
+        else
+        {
+          $errors = array();
+          while ( $err = $page->pop_error() )
+          {
+            $errors[] = $err;
+          }
+          $return = array(
+            'mode' => 'errors',
+            'errors' => array_values($errors)
+            );
+          if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
+          {
+            $return['new_captcha'] = $session->make_captcha();
+          }
+        }
+        
+        // If this is based on a draft version, delete the draft - we no longer need it.
+        if ( @$request['used_draft'] )
+        {
+          $q = $db->sql_query('DELETE FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
+                                 AND page_id = \'' . $db->escape($paths->page_id) . '\'
+                                 AND namespace = \'' . $db->escape($paths->namespace) . '\'
+                                 AND is_draft = 1;');
         }
       }
       

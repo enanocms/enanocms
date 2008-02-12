@@ -397,7 +397,7 @@ function ajaxAuthLoginInnerSetup()
 {
   // let's hope this gets the image cached
   var _ = new Image(32, 32); 
-  _.src = scriptPath + "/images/good.gif";
+  _.src = scriptPath + "/images/check.png";
   
   ajaxGet(makeUrlNS('Special', 'Login', 'act=getkey'), function() {
       if ( ajax.readyState == 4 && ajax.status == 200 )
@@ -626,7 +626,7 @@ function ajaxValidateLogin()
           case 'success':
             var success_win = '<div align="center" style="text-align: center;"> \
                   <p>' + $lang.get('user_login_success_short') + '</p> \
-                  <p><img alt=" " src="'+scriptPath+'/images/good.gif" /></p> \
+                  <p><img alt=" " src="'+scriptPath+'/images/check.png" /></p> \
                 </div>';
             ajax_auth_mb_cache.updateContent(success_win);
             if ( typeof(ajax_auth_prompt_cache) == 'function' )

@@ -431,9 +431,9 @@ class PageUtils {
         echo '<td class="' . $cls . '" style="text-align: center;">'. (( $r['minor_edit'] ) ? 'M' : '' ) .'</td>'."\n";
         
         // Actions!
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['time_id']) . '" onclick="ajaxHistView(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_view') . '</a></td>'."\n";
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>'."\n";
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=edit&amp;revid=' . $r['time_id']) . '" onclick="ajaxEditor(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_restore') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['time_id']) . '" onclick="ajaxHistView(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_view') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'do=edit&amp;revid=' . $r['time_id']) . '" onclick="ajaxEditor(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_restore') . '</a></td>'."\n";
         
         echo '</tr>'."\n"."\n";
         
@@ -502,8 +502,8 @@ class PageUtils {
         echo '</td>';
         
         // Actions!
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>';
-        echo '<td class="' . $cls . '" style="text-align: center;"><a href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_revert') . '</a></td>';
+        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>';
+        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_revert') . '</a></td>';
         
         echo '</tr>';
       }
