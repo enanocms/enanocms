@@ -143,10 +143,6 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
       // Current selection is TinyMCE - make span_wiki have the link and span_mce be plaintext
       var a = document.createElement('a');
       a.href = '#';
-      a.onclick = function() {
-        ajaxSetEditorPlain();
-        return false;
-      };
       a.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
       span_wiki.appendChild(a);
       toggler.appendChild(span_wiki);
@@ -162,10 +158,6 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
       toggler.appendChild(document.createTextNode(' | '));
       var a = document.createElement('a');
       a.href = '#';
-      a.onclick = function() {
-        ajaxSetEditorMCE();
-        return false;
-      };
       a.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
       span_mce.appendChild(a);
       toggler.appendChild(span_mce);
@@ -489,6 +481,26 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
   $dynano('ajaxEditArea').object.focus();
   $dynano('ajaxEditArea').object._edTimestamp = timestamp;
   $dynano('ajaxEditArea').setContent(content);
+  
+  if ( allow_wysiwyg )
+  {
+    if ( readCookie('enano_editor_mode') == 'tinymce' )
+    {
+      var a = document.getElementById('enano_edit_btn_pt').getElementsByTagName('a')[0];
+      a.onclick = function() {
+        ajaxSetEditorPlain();
+        return false;
+      };
+    }
+    else
+    {
+      var a = document.getElementById('enano_edit_btn_mce').getElementsByTagName('a')[0];
+      a.onclick = function() {
+        ajaxSetEditorMCE();
+        return false;
+      };
+    }
+  }
   
   // Autosave every 5 minutes           (m  *  s  *  ms)
   setInterval('ajaxPerformAutosave();', ( 5 * 60 * 1000 ));

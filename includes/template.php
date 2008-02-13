@@ -81,7 +81,7 @@ class template {
     $this->style_list = $list;
     
   }
-  function sidebar_widget($t, $h)
+  function sidebar_widget($t, $h, $use_normal_section = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     if(!defined('ENANO_TEMPLATE_LOADED'))
@@ -91,9 +91,18 @@ class template {
     if(!$this->sidebar_widgets)
       $this->sidebar_widgets = '';
     $tplvars = $this->extract_vars('elements.tpl');
-    $parser = $this->makeParserText($tplvars['sidebar_section_raw']);
-    $parser->assign_vars(Array('TITLE'=>$t,'CONTENT'=>$h));
-    $this->plugin_blocks[$t] = $h;
+    
+    if ( $use_normal_section )
+    {
+      $parser = $this->makeParserText($tplvars['sidebar_section']);
+    }
+    else
+    {
+      $parser = $this->makeParserText($tplvars['sidebar_section_raw']);
+    }
+    
+    $parser->assign_vars(Array('TITLE' => '{TITLE}','CONTENT' => $h));
+    $this->plugin_blocks[$t] = $parser->run();
     $this->sidebar_widgets .= $parser->run();
   }
   function add_header($html)
@@ -1707,13 +1716,18 @@ EOF;
           ob_end_clean();
           break;
         case BLOCK_PLUGIN:
-          $parser = $this->makeParserText($vars['sidebar_section_raw']);
+          $parser = $this->makeParserText('{CONTENT}');
           $c = (gettype($this->fetch_block($row['block_content'])) == 'string') ? $this->fetch_block($row['block_content']) : 'Can\'t find plugin block';
           break;
       }
       $parser->assign_vars(Array( 'TITLE'=>$this->tplWikiFormat($row['block_name']), 'CONTENT'=>$c ));
-      if    ($row['sidebar_id'] == SIDEBAR_LEFT ) $left  .= $parser->run();
-      elseif($row['sidebar_id'] == SIDEBAR_RIGHT) $right .= $parser->run();
+      $run = $parser->run();
+      if ( $row['block_type'] == BLOCK_PLUGIN )
+      {
+        $run = str_replace('{TITLE}', $this->tplWikiFormat($row['block_name']), $run);
+      }
+      if    ($row['sidebar_id'] == SIDEBAR_LEFT ) $left  .= $run;
+      elseif($row['sidebar_id'] == SIDEBAR_RIGHT) $right .= $run;
       unset($parser);
     }
     $db->free_result();

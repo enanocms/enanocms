@@ -368,6 +368,8 @@ function fadeInfoBoxes()
   j = 0;
   for(var i in d)
   {
+    if ( !d[i] )
+      continue;
     if ( !d[i].tagName )
       continue;
     if(d[i].className=='info-box' || d[i].className=='error-box' || d[i].className=='warning-box' || d[i].className=='question-box')

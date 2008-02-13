@@ -435,12 +435,12 @@ function __aclJSONSubmitAjaxHandler(params)
             note.appendChild(document.createElement('br'));
             var a = document.createElement('a');
             a.href = '#';
-            a.onclick = function(e) { this.parentNode.parentNode.removeChild(this.parentNode); return false; };
+            a.id = aclManagerID + '_btn_dismiss';
             a.appendChild(document.createTextNode('[ ' + $lang.get('acl_btn_success_dismiss') + ' :'));
             note.appendChild(a);
             var a2 = document.createElement('a');
             a2.href = '#';
-            a2.onclick = function(e) { killACLManager(); return false; };
+            a.id = aclManagerID + '_btn_close';
             a2.appendChild(document.createTextNode(': ' + $lang.get('acl_btn_success_close') + ' ]'));
             note.appendChild(a2);
             document.getElementById(aclManagerID + '_main').insertBefore(note, document.getElementById(aclManagerID + '_main').firstChild);
@@ -448,6 +448,12 @@ function __aclJSONSubmitAjaxHandler(params)
               document.getElementById(aclManagerID + '_main').innerHTML += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'' + $lang.get('acl_msg_deleterule_confirm') + '\')) __aclDeleteRule(); return false;" style="color: red;">' + $lang.get('acl_lbl_deleterule') + '</a></p>';
             //fadeInfoBoxes();
             document.getElementById(aclManagerID+'_main').scrollTop = 0;
+            
+            var a = document.getElementById(aclManagerID + '_btn_dismiss');
+            var a2 = document.getElementById(aclManagerID + '_btn_close');
+            
+            a.setAttribute('onclick', function(e) { this.parentNode.parentNode.removeChild(this.parentNode); return false; });
+            a2.setAttribute('onclick', function(e) { killACLManager(); return false; });
             
             aclDataCache.mode = 'save_edit';
             break;

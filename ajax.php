@@ -115,6 +115,7 @@
         if ( $db->numrows() > 0 )
         {
           $have_draft = true;
+          $draft_row = $db->fetchrow($q);
         }
       }
       else if ( $src !== false )
@@ -145,7 +146,7 @@
       
       if ( $have_draft )
       {
-        $row = $db->fetchrow($q);
+        $row =& $draft_row;
         $return['have_draft'] = true;
         $return['draft_author'] = $row['author'];
         $return['draft_time'] = enano_date('d M Y h:i a', intval($row['time_id']));
