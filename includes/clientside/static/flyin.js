@@ -83,8 +83,8 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
   // setup element
   element.style.position = 'absolute';
   
-  dim = [ $(element).Height(), $(element).Width() ];
-  off = [ $(element).Top(), $(element).Left() ];
+  dim = [ $dynano(element).Height(), $dynano(element).Width() ];
+  off = [ $dynano(element).Top(), $dynano(element).Left() ];
   
   if ( height_taken_care_of )
   {

@@ -58,7 +58,7 @@ function AutofillUsername(parent, event, allowanon)
         if ( autofill.event.keyCode == autofill.KEY_ENTER && autofill.boxes.length < 1 && !autofill.box_id )
         {
           // user hit enter after accepting a suggestion - submit the form
-          var frm = findParentForm($(autofill.field_id).object);
+          var frm = findParentForm($dynano(autofill.field_id).object);
           frm._af_acting = false;
           frm.submit();
           // window.console.info('Submitting form');
@@ -86,7 +86,7 @@ function AutofillUsername(parent, event, allowanon)
       try
       {
         var user = resp_json.users_real[i].toLowerCase();
-        var inp  = $(autofill.field_id).object.value;
+        var inp  = $dynano(autofill.field_id).object.value;
         inp = inp.toLowerCase();
         if ( user.indexOf(inp) > -1 )
         {
@@ -150,10 +150,10 @@ function AutofillUsername(parent, event, allowanon)
       }
       
     // Finalize div
-    var tb_top    = $(autofill.field_id).Top();
-    var tb_height = $(autofill.field_id).Height();
+    var tb_top    = $dynano(autofill.field_id).Top();
+    var tb_height = $dynano(autofill.field_id).Height();
     var af_top    = tb_top + tb_height - 9;
-    var tb_left   = $(autofill.field_id).Left();
+    var tb_left   = $dynano(autofill.field_id).Left();
     var af_left   = tb_left;
     
     div.style.position = 'absolute';
@@ -193,15 +193,15 @@ function AutofillUsername(parent, event, allowanon)
           new messagebox(MB_OK|MB_ICONSTOP, 'Invalid response', 'Invalid or unexpected JSON response from server:<pre>' + ajax.responseText + '</pre>');
           return false;
         }
-        if ( $(afobj.field_id).object.value.length < 3 )
+        if ( $dynano(afobj.field_id).object.value.length < 3 )
           return false;
         var resp_json = parseJSON(response);
-        var resp_code = $(afobj.field_id).object.value.toLowerCase().substr(0, 3);
+        var resp_code = $dynano(afobj.field_id).object.value.toLowerCase().substr(0, 3);
         afobj.responses[resp_code] = resp_json;
         afobj.process_dataset(resp_json);
       }
     }
-    var usernamefragment = ajaxEscape($(this.field_id).object.value);
+    var usernamefragment = ajaxEscape($dynano(this.field_id).object.value);
     ajaxGet(stdAjaxPrefix + '&_mode=fillusername&name=' + usernamefragment + '&allowanon=' + ( this.allowanon ? '1' : '0' ), processResponse);
   }
   
@@ -216,7 +216,7 @@ function AutofillUsername(parent, event, allowanon)
     if ( af_current )
       return false;
     
-    var resp_code = $(this.field_id).object.value.toLowerCase().substr(0, 3);
+    var resp_code = $dynano(this.field_id).object.value.toLowerCase().substr(0, 3);
     if ( this.responses.length < 1 || ! this.responses[ resp_code ] )
     {
       // window.console.info('Cannot find dataset ' + resp_code + ' in cache, sending AJAX request');
@@ -261,7 +261,7 @@ function AutofillUsername(parent, event, allowanon)
     if ( key == this.KEY_ENTER && !this.repeat )
     {
       submitAuthorized = true;
-      var form = findParentForm($(this.field_id).object);
+      var form = findParentForm($dynano(this.field_id).object);
       form._af_acting = false;
       return true;
     }
@@ -284,7 +284,7 @@ function AutofillUsername(parent, event, allowanon)
         break;
     }
     
-    var form = findParentForm($(this.field_id).object);
+    var form = findParentForm($dynano(this.field_id).object);
       form._af_acting = false;
   }
   
@@ -327,19 +327,19 @@ function AutofillUsername(parent, event, allowanon)
       state_td.parentNode.nextSibling.firstChild.className = 'row2';
       
       // Exception - automatically scroll around if the item is off-screen
-      var height = $(this.box_id).Height();
-      var top = $(this.box_id).object.scrollTop;
+      var height = $dynano(this.box_id).Height();
+      var top = $dynano(this.box_id).object.scrollTop;
       var scroll_bottom = height + top;
       
-      var td_top = $(state_td.parentNode.nextSibling.firstChild).Top() - $(this.box_id).Top();
-      var td_height = $(state_td.parentNode.nextSibling.firstChild).Height();
+      var td_top = $dynano(state_td.parentNode.nextSibling.firstChild).Top() - $dynano(this.box_id).Top();
+      var td_height = $dynano(state_td.parentNode.nextSibling.firstChild).Height();
       var td_bottom = td_top + td_height;
       
       if ( td_bottom > scroll_bottom )
       {
         var scrollY = td_top - height + 2*td_height - 7;
         // window.console.debug(scrollY);
-        $(this.box_id).object.scrollTop = scrollY;
+        $dynano(this.box_id).object.scrollTop = scrollY;
         /*
         var newtd = state_td.parentNode.nextSibling.firstChild;
         var a = document.createElement('a');
@@ -351,7 +351,7 @@ function AutofillUsername(parent, event, allowanon)
         */
         
         // In firefox, scrolling like that makes the field get unfocused
-        $(this.field_id).object.focus();
+        $dynano(this.field_id).object.focus();
       }
     }
     else
@@ -382,13 +382,13 @@ function AutofillUsername(parent, event, allowanon)
       state_td.parentNode.previousSibling.firstChild.className = 'row2';
       
       // Exception - automatically scroll around if the item is off-screen
-      var top = $(this.box_id).object.scrollTop;
+      var top = $dynano(this.box_id).object.scrollTop;
       
-      var td_top = $(state_td.parentNode.previousSibling.firstChild).Top() - $(this.box_id).Top();
+      var td_top = $dynano(state_td.parentNode.previousSibling.firstChild).Top() - $dynano(this.box_id).Top();
       
       if ( td_top < top )
       {
-        $(this.box_id).object.scrollTop = td_top - 10;
+        $dynano(this.box_id).object.scrollTop = td_top - 10;
         /*
         var newtd = state_td.parentNode.previousSibling.firstChild;
         var a = document.createElement('a');
@@ -400,12 +400,12 @@ function AutofillUsername(parent, event, allowanon)
         */
         
         // In firefox, scrolling like that makes the field get unfocused
-        $(this.field_id).object.focus();
+        $dynano(this.field_id).object.focus();
       }
     }
     else
     {
-      $(this.box_id).object.scrollTop = 0;
+      $dynano(this.box_id).object.scrollTop = 0;
       return false;
     }
   }
@@ -439,7 +439,7 @@ function AutofillUsername(parent, event, allowanon)
     else if ( this.state )
       ta.value = this.state;
     this.destroy();
-    findParentForm($(this.field_id.object))._af_acting = false;
+    findParentForm($dynano(this.field_id.object))._af_acting = false;
   }
   
   this.sleep = function()
@@ -449,7 +449,7 @@ function AutofillUsername(parent, event, allowanon)
       var div = document.getElementById(this.box_id);
       div.style.display = 'none';
     }
-    var el = $(this.field_id).object;
+    var el = $dynano(this.field_id).object;
     var fr = findParentForm(el);
     el._af_acting = false;
   }

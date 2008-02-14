@@ -107,7 +107,7 @@ class JavaScriptCompressor {
 	 * public constructor
          * 	creates a new BaseConvert class variable (base 36)
 	 */
-	function JavaScriptCompressor() {
+	function __construct() {
 		$this->__SourceMap = new SourceMap();
 		$this->__BC = new BaseConvert('0123456789abcdefghijklmnopqrstuvwxyz');
 		$this->__delimeter = array(
@@ -493,4 +493,35 @@ class SourceMap {
         return (($next - 1) % 2 === 0);
     }
 }
+
+/**
+ * Wrapper for the JavaScriptCompressor class.
+ * @param string Javascript code to compact. If this doesn't contain any newline characters, will be treated as a filename.
+ * @param bool If true, aggressively compresses the code. Otherwise, just strips comments and some whitespace.
+ * @return string Compressed JS
+ */
+
+function perform_js_compress($text_or_file, $aggressive = false)
+{
+  static $compressor = false;
+  
+  if ( !is_object($compressor) )
+    $compressor = new JavaScriptCompressor();
+  
+  if ( strpos($text_or_file, "\n") )
+  {
+    $text =& $text_or_file;
+  }
+  else if ( file_exists($text_or_file) )
+  {
+    $text = file_get_contents($text_or_file);
+  }
+  else
+  {
+    $text =& $text_or_file;
+  }
+  
+  return ( $aggressive ) ? $compressor->getPacked($text) : $compressor->getClean($text);
+}
+
 ?>

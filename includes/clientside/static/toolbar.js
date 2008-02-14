@@ -9,7 +9,7 @@ function unselectAllButtonsMajor()
   {
     if(obj.id == 'mdgToolbar_article' || obj.id == 'mdgToolbar_discussion')
     {
-      $(obj).rmClass('selected');
+      $dynano(obj).rmClass('selected');
     }
     obj = obj.nextSibling;
   }
@@ -22,7 +22,7 @@ function unselectAllButtonsMinor()
   obj = document.getElementById('pagebar_main').firstChild.nextSibling;
   while(obj)
   {
-    if ( !$(obj).hasClass('selected') )
+    if ( !$dynano(obj).hasClass('selected') )
     {
       obj = obj.nextSibling;
       continue;
@@ -30,7 +30,7 @@ function unselectAllButtonsMinor()
     if(obj.id != 'mdgToolbar_article' && obj.id != 'mdgToolbar_discussion')
     {
       if ( obj.className )
-        $(obj).rmClass('selected');
+        $dynano(obj).rmClass('selected');
     }
     obj = obj.nextSibling;
   }
@@ -46,7 +46,7 @@ function selectButtonMajor(which)
   if(typeof(dom) == 'object')
   {
     unselectAllButtonsMajor();
-    $('mdgToolbar_'+which).addClass('selected');
+    $dynano('mdgToolbar_'+which).addClass('selected');
   }
 }
 
@@ -57,7 +57,7 @@ function selectButtonMinor(which)
   if(typeof(document.getElementById('mdgToolbar_'+which)) == 'object')
   {
     unselectAllButtonsMinor();
-    $('mdgToolbar_'+which).addClass('selected');
+    $dynano('mdgToolbar_'+which).addClass('selected');
   }
 }
 

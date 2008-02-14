@@ -477,17 +477,17 @@ function ajaxAuthLoginInnerSetup()
             <input type="hidden" id="ajaxlogin_crypt_challenge" value="' + response.challenge + '" /> \
           </form>';
         ajax_auth_mb_cache.updateContent(form_html);
-        $('messageBox').object.nextSibling.firstChild.tabindex = '3';
+        $dynano('messageBox').object.nextSibling.firstChild.tabindex = '3';
         if ( typeof(response.username) == 'string' )
         {
-          $('ajaxlogin_user').object.value = response.username;
+          $dynano('ajaxlogin_user').object.value = response.username;
           if ( IE )
           {
             setTimeout("document.forms['ajax_login_form'].password.focus();", 200);
           }
           else
           {
-            $('ajaxlogin_pass').object.focus();
+            $dynano('ajaxlogin_pass').object.focus();
           }
         }
         else
@@ -498,12 +498,12 @@ function ajaxAuthLoginInnerSetup()
           }
           else
           {
-            $('ajaxlogin_user').object.focus();
+            $dynano('ajaxlogin_user').object.focus();
           }
         }
         var enter_obj = ( ajax_auth_show_captcha ) ? 'ajaxlogin_captcha_code' : 'ajaxlogin_pass';
-        $(enter_obj).object.onblur = function(e) { if ( !shift ) $('messageBox').object.nextSibling.firstChild.focus(); };
-        $(enter_obj).object.onkeypress = function(e)
+        $dynano(enter_obj).object.onblur = function(e) { if ( !shift ) $dynano('messageBox').object.nextSibling.firstChild.focus(); };
+        $dynano(enter_obj).object.onkeypress = function(e)
         {
           // Trigger a form submit when the password field is focused and the user presses enter
           
@@ -793,3 +793,82 @@ function unix_time()
   return parseInt((new Date()).getTime()/1000);
 }
 
+/*
+ * Utility functions, moved from windows.js
+ */
+ 
+// getElementWidth() and getElementHeight()
+// Source: http://www.aspandjavascript.co.uk/javascript/javascript_api/get_element_width_height.asp
+
+function getElementHeight(Elem) {
+  if (ns4) 
+  {
+    var elem = getObjNN4(document, Elem);
+    return elem.clip.height;
+  } 
+  else
+  {
+    if(document.getElementById) 
+    {
+      var elem = document.getElementById(Elem);
+    }
+    else if (document.all)
+    {
+      var elem = document.all[Elem];
+    }
+    if (op5) 
+    { 
+      xPos = elem.style.pixelHeight;
+    }
+    else
+    {
+      xPos = elem.offsetHeight;
+    }
+    return xPos;
+  } 
+}
+
+function getElementWidth(Elem) {
+  if (ns4) {
+    var elem = getObjNN4(document, Elem);
+    return elem.clip.width;
+  } else {
+    if(document.getElementById) {
+      var elem = document.getElementById(Elem);
+    } else if (document.all){
+      var elem = document.all[Elem];
+    }
+    if (op5) {
+      xPos = elem.style.pixelWidth;
+    } else {
+      xPos = elem.offsetWidth;
+    }
+    return xPos;
+  }
+}
+
+function getHeight() {
+  var myHeight = 0;
+  if( typeof( window.innerWidth ) == 'number' ) {
+    myHeight = window.innerHeight;
+  } else if( document.documentElement &&
+      ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+    myHeight = document.documentElement.clientHeight;
+  } else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+    myHeight = document.body.clientHeight;
+  }
+  return myHeight;
+}
+
+function getWidth() {
+  var myWidth = 0;
+  if( typeof( window.innerWidth ) == 'number' ) {
+    myWidth = window.innerWidth;
+  } else if( document.documentElement &&
+      ( document.documentElement.clientWidth || document.documentElement.clientWidth ) ) {
+    myWidth = document.documentElement.clientWidth;
+  } else if( document.body && ( document.body.clientWidth || document.body.clientWidth ) ) {
+    myWidth = document.body.clientWidth;
+  }
+  return myWidth;
+}

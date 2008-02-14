@@ -57,7 +57,7 @@ function jBoxBatchSetup()
 // Initializes a div with a jBox menu in it.
 function jBoxSetup(obj)
 {
-  $(obj).addClass('menu');
+  $dynano(obj).addClass('menu');
   removeTextNodes(obj);
   
   for ( var i = 0; i < obj.childNodes.length; i++ )
@@ -123,7 +123,7 @@ function jBoxOverHandlerBin(obj)
     if(typeof(others[i]) == 'object')
     {
       others[i].style.display = 'none';
-      $(others[i].previousSibling).rmClass('liteselected');
+      $dynano(others[i].previousSibling).rmClass('liteselected');
     }
   }
   var others = obj.parentNode.getElementsByTagName('div');
@@ -134,13 +134,13 @@ function jBoxOverHandlerBin(obj)
       if ( others[i].className == 'submenu' )
       {
         others[i].style.display = 'none';
-        $(others[i].previousSibling).rmClass('liteselected');
+        $dynano(others[i].previousSibling).rmClass('liteselected');
       }
     }
   }
   if(obj.nextSibling.tagName.toLowerCase() == 'ul' || ( obj.nextSibling.tagName.toLowerCase() == 'div' && obj.nextSibling.className == 'submenu' ))
   {
-    $(a).addClass('liteselected');
+    $dynano(a).addClass('liteselected');
     //obj.className = 'liteselected';
     var ul = obj.nextSibling;
     var dim = fetch_dimensions(obj);
@@ -198,7 +198,7 @@ function jBoxOutHandlerBin(obj, event)
   
   if (!isOverObj(a, false, event) && !isOverObj(ul, true, event))
   {
-    $(a).rmClass('liteselected');
+    $dynano(a).rmClass('liteselected');
     
     if ( jBox_slide_enable )
     {
@@ -390,7 +390,7 @@ function jBoxGarbageCollection(e)
         {
           if ( !isOverObj(uls[j], false, e) )
           {
-            $(uls[j].previousSibling).rmClass('liteselected');
+            $dynano(uls[j].previousSibling).rmClass('liteselected');
             //uls[j].style.display = 'none';
             slideIn(uls[j]);
           }
@@ -403,7 +403,7 @@ function jBoxGarbageCollection(e)
         {
           if ( !isOverObj(uls[j], false, e) )
           {
-            $(uls[j].previousSibling).rmClass('liteselected');
+            $dynano(uls[j].previousSibling).rmClass('liteselected');
             //uls[j].style.display = 'none';
             slideIn(uls[j]);
           }
@@ -528,5 +528,23 @@ function domObjChangeOpac(opacity, id) {
     object.MozOpacity = (opacity / 100);
     object.KhtmlOpacity = (opacity / 100);
     object.filter = "alpha(opacity=" + opacity + ")";
+}
+
+function getScrollOffset()
+{
+  var position;
+  if (self.pageYOffset)
+  {
+    position = self.pageYOffset;
+  }
+  else if (document.documentElement && document.documentElement.scrollTop)
+  {
+    position = document.documentElement.scrollTop;
+  }
+  else if (document.body)
+  {
+    position = document.body.scrollTop;
+  }
+  return position;
 }
 

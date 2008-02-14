@@ -6,8 +6,8 @@
     {JS_DYNAMIC_VARS}
     <link rel="stylesheet" type="text/css" href="{SCRIPTPATH}/includes/clientside/css/enano-shared.css" />
     <link id="mdgCss" rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
-    <!-- This script automatically loads the other 15 JS files -->
-    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/static/enano-lib-basic.js"></script>
+    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
+    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php"></script>
     <!--[if lt IE 7]>
     <link rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css-extra/ie-fixes-{STYLE_ID}.css" />
     <![endif]-->

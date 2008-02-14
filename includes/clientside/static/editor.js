@@ -457,8 +457,8 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
   {
     if ( this.needReset )
     {
-      var img = $('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
-      var lbl = $('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
+      var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
+      var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
       img.src = editor_img_path + '/savedraft.gif';
       lbl.innerHTML = $lang.get('editor_btn_savedraft');
     }
@@ -510,7 +510,7 @@ function ajaxEditorSave(is_draft)
 {
   if ( !is_draft )
     ajaxSetEditorLoading();
-  var ta_content = $('ajaxEditArea').getContent();
+  var ta_content = $dynano('ajaxEditArea').getContent();
   
   if ( !is_draft && ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' ) )
   {
@@ -522,8 +522,8 @@ function ajaxEditorSave(is_draft)
   if ( is_draft )
   {
     // ajaxSetEditorLoading();
-    var img = $('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
-    var lbl = $('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
+    var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
+    var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
     img.src = scriptPath + '/images/loading.gif';
     var d = new Date();
     var m = String(d.getMinutes());
@@ -533,12 +533,12 @@ function ajaxEditorSave(is_draft)
     lbl.innerHTML = $lang.get('editor_msg_draft_saving');
   }
   
-  var edit_summ = $('enano_editor_field_summary').object.value;
+  var edit_summ = $dynano('enano_editor_field_summary').object.value;
   if ( !edit_summ )
     edit_summ = '';
-  var is_minor = ( $('enano_editor_field_minor').object.checked ) ? 1 : 0;
-  var timestamp = $('ajaxEditArea').object._edTimestamp;
-  var used_draft = $('ajaxEditArea').object.used_draft;
+  var is_minor = ( $dynano('enano_editor_field_minor').object.checked ) ? 1 : 0;
+  var timestamp = $dynano('ajaxEditArea').object._edTimestamp;
+  var used_draft = $dynano('ajaxEditArea').object.used_draft;
   
   var json_packet = {
     src: ta_content,
@@ -608,7 +608,7 @@ function ajaxEditorSave(is_draft)
         if ( response.mode == 'obsolete' )
         {
           // Update the local timestamp to allow override
-          $('ajaxEditArea').object._edTimestamp = response.time;
+          $dynano('ajaxEditArea').object._edTimestamp = response.time;
           new messagebox(MB_OK | MB_ICONEXCLAMATION, $lang.get('editor_err_obsolete_title'), $lang.get('editor_err_obsolete_body', { author: response.author, timestamp: response.date_string, page_url: makeUrl(title, false, true) }));
           return false;
         }
@@ -618,8 +618,8 @@ function ajaxEditorSave(is_draft)
           {
             document.getElementById('ajaxEditArea').used_draft = true;
             document.getElementById('ajaxEditArea').needReset = true;
-            var img = $('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
-            var lbl = $('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
+            var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
+            var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
             img.src = scriptPath + '/images/mini-info.png';
             var d = new Date();
             var m = String(d.getMinutes());
@@ -657,9 +657,9 @@ function ajaxEditorSave(is_draft)
 function ajaxEditorGenPreview()
 {
   ajaxSetEditorLoading();
-  var ta_content = $('ajaxEditArea').getContent();
+  var ta_content = $dynano('ajaxEditArea').getContent();
   ta_content = ajaxEscape(ta_content);
-  if ( $('enano_editor_preview').object.innerHTML != '' )
+  if ( $dynano('enano_editor_preview').object.innerHTML != '' )
   {
     opacity('enano_editor_preview', 100, 0, 500);
   }
@@ -669,7 +669,7 @@ function ajaxEditorGenPreview()
       {
         ajaxUnSetEditorLoading();
         changeOpac(0, 'enano_editor_preview');
-        $('enano_editor_preview').object.innerHTML = ajax.responseText;
+        $dynano('enano_editor_preview').object.innerHTML = ajax.responseText;
         window.location.hash = '#ajax_preview';
         opacity('enano_editor_preview', 0, 100, 500);
       }
@@ -716,7 +716,7 @@ function ajaxEditorRevertToLatestReal()
           return false;
         }
         
-        $('ajaxEditArea').setContent(response.src);
+        $dynano('ajaxEditArea').setContent(response.src);
       }
     }, true);
 }
@@ -724,9 +724,9 @@ function ajaxEditorRevertToLatestReal()
 function ajaxEditorShowDiffs()
 {
   ajaxSetEditorLoading();
-  var ta_content = $('ajaxEditArea').getContent();
+  var ta_content = $dynano('ajaxEditArea').getContent();
   ta_content = ajaxEscape(ta_content);
-  if ( $('enano_editor_preview').object.innerHTML != '' )
+  if ( $dynano('enano_editor_preview').object.innerHTML != '' )
   {
     opacity('enano_editor_preview', 100, 0, 500);
   }
@@ -736,7 +736,7 @@ function ajaxEditorShowDiffs()
       {
         ajaxUnSetEditorLoading();
         changeOpac(0, 'enano_editor_preview');
-        $('enano_editor_preview').object.innerHTML = ajax.responseText;
+        $dynano('enano_editor_preview').object.innerHTML = ajax.responseText;
         window.location.hash = '#ajax_preview';
         opacity('enano_editor_preview', 0, 100, 500);
       }
@@ -828,10 +828,10 @@ function ajaxSetEditorLoading()
     ed = document.getElementById('ajaxEditArea');
     var blackout = document.createElement('div');
     blackout.style.position = 'absolute';
-    blackout.style.top = $('ajaxEditArea').Top() + 'px';
-    blackout.style.left = $('ajaxEditArea').Left() + 'px';
-    blackout.style.width = $('ajaxEditArea').Width() + 'px';
-    blackout.style.height = $('ajaxEditArea').Height() + 'px';
+    blackout.style.top = $dynano('ajaxEditArea').Top() + 'px';
+    blackout.style.left = $dynano('ajaxEditArea').Left() + 'px';
+    blackout.style.width = $dynano('ajaxEditArea').Width() + 'px';
+    blackout.style.height = $dynano('ajaxEditArea').Height() + 'px';
     blackout.style.backgroundColor = '#FFFFFF';
     domObjChangeOpac(60, blackout);
     blackout.style.backgroundImage = 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
@@ -882,7 +882,7 @@ function ajaxPerformAutosave()
   var now = unix_time();
   aed.as_last_save = now;
   
-  var ta_content = $('ajaxEditArea').getContent();
+  var ta_content = $dynano('ajaxEditArea').getContent();
   
   if ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' )
   {
@@ -919,8 +919,8 @@ function ajaxEditorUseDraft()
           return false;
         }
         
-        $('ajaxEditArea').setContent(response.src);
-        $('ajaxEditArea').object.used_draft = true;
+        $dynano('ajaxEditArea').setContent(response.src);
+        $dynano('ajaxEditArea').object.used_draft = true;
         
         var es = document.getElementById('enano_editor_field_summary');
         if ( es.value == '' )
@@ -928,7 +928,7 @@ function ajaxEditorUseDraft()
           es.value = response.edit_summary;
         }
         
-        var dn = $('ajax_edit_draft_notice').object;
+        var dn = $dynano('ajax_edit_draft_notice').object;
         dn.parentNode.removeChild(dn);
       }
     }, true);

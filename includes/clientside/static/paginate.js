@@ -269,10 +269,10 @@ function jspaginator_goto(pagin_id, jump_to)
 
 function paginator_goto(parentobj, this_page, num_pages, perpage, url_string)
 {
-  var height = $(parentobj).Height();
-  var width  = $(parentobj).Width();
-  var left   = $(parentobj).Left();
-  var top    = $(parentobj).Top();
+  var height = $dynano(parentobj).Height();
+  var width  = $dynano(parentobj).Width();
+  var left   = $dynano(parentobj).Left();
+  var top    = $dynano(parentobj).Top();
   var left_pos = left + width ;
   var top_pos = height + top;
   var div = document.createElement('div');
@@ -307,7 +307,7 @@ function paginator_goto(parentobj, this_page, num_pages, perpage, url_string)
   
   fly_in_bottom(div, false, true);
   
-  var divh = $(div).Width();
+  var divh = $dynano(div).Width();
   left_pos = left_pos - divh;
   div.style.left = left_pos + 'px';
 }

@@ -9,7 +9,8 @@
     <link id="mdgCss" rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css-ie/iefixes.css" />
     <![endif]-->
     {JS_DYNAMIC_VARS}
-    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/static/enano-lib-basic.js"></script>
+    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
+    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php"></script>
     <script type="text/javascript" src="{SCRIPTPATH}/themes/admin/js/menu.js"></script>
     {ADDITIONAL_HEADERS}
     </head>

@@ -6,23 +6,6 @@
  */
 
   var position;
-  function getScrollOffset()
-  {
-    var position;
-    if (self.pageYOffset)
-    {
-      position = self.pageYOffset;
-    }
-    else if (document.documentElement && document.documentElement.scrollTop)
-    {
-      position = document.documentElement.scrollTop;
-    }
-    else if (document.body)
-    {
-      position = document.body.scrollTop;
-    }
-    return position;
-  }
   position = getScrollOffset();
   
   var jws = {
@@ -149,86 +132,6 @@
   } // class jws
 
 //window.onscroll=jws['scrollHandler'];
-
-/*
- * Utility functions
- */
- 
-// getElementWidth() and getElementHeight()
-// Source: http://www.aspandjavascript.co.uk/javascript/javascript_api/get_element_width_height.asp
-
-function getElementHeight(Elem) {
-  if (ns4) 
-  {
-    var elem = getObjNN4(document, Elem);
-    return elem.clip.height;
-  } 
-  else
-  {
-    if(document.getElementById) 
-    {
-      var elem = document.getElementById(Elem);
-    }
-    else if (document.all)
-    {
-      var elem = document.all[Elem];
-    }
-    if (op5) 
-    { 
-      xPos = elem.style.pixelHeight;
-    }
-    else
-    {
-      xPos = elem.offsetHeight;
-    }
-    return xPos;
-  } 
-}
-
-function getElementWidth(Elem) {
-  if (ns4) {
-    var elem = getObjNN4(document, Elem);
-    return elem.clip.width;
-  } else {
-    if(document.getElementById) {
-      var elem = document.getElementById(Elem);
-    } else if (document.all){
-      var elem = document.all[Elem];
-    }
-    if (op5) {
-      xPos = elem.style.pixelWidth;
-    } else {
-      xPos = elem.offsetWidth;
-    }
-    return xPos;
-  }
-}
-
-function getHeight() {
-  var myHeight = 0;
-  if( typeof( window.innerWidth ) == 'number' ) {
-    myHeight = window.innerHeight;
-  } else if( document.documentElement &&
-      ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-    myHeight = document.documentElement.clientHeight;
-  } else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
-    myHeight = document.body.clientHeight;
-  }
-  return myHeight;
-}
-
-function getWidth() {
-  var myWidth = 0;
-  if( typeof( window.innerWidth ) == 'number' ) {
-    myWidth = window.innerWidth;
-  } else if( document.documentElement &&
-      ( document.documentElement.clientWidth || document.documentElement.clientWidth ) ) {
-    myWidth = document.documentElement.clientWidth;
-  } else if( document.body && ( document.body.clientWidth || document.body.clientWidth ) ) {
-    myWidth = document.body.clientWidth;
-  }
-  return myWidth;
-}
 
 /**************************************************
  * dom-drag.js

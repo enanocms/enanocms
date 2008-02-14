@@ -10,8 +10,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  *
  * For more information about Enano, please visit http://enanocms.org/.
- * All of the code in these script files may be used freely so long as the above license block is displayed and your
- * modified code is distributed under the GPL. See the page Special:About_Enano on this website for more information.
+ * Unless otherwise noted, all of the code in these script files may be used freely so long as the above license block
+ * is displayed and your modified code is distributed in compliance with the GPL. See the special page "About Enano" on
+ * this website for more information.
  */
 
 if(typeof title != 'string')
@@ -264,8 +265,13 @@ if ( !KILL_SWITCH && !DISABLE_MCE )
   head.appendChild(script);
 }
 
+// Do not remove the following comments, they are used by jsres.php.
+/*!START_INCLUDER*/
+
 // Start loading files
+// The string from the [ to the ] needs to be valid JSON, it's parsed by jsres.php.
 var thefiles = [
+  'dynano.js',
   'misc.js',
   'admin-menu.js',
   'ajax.js',
@@ -280,14 +286,12 @@ var thefiles = [
   'md5.js',
   'sliders.js',
   'toolbar.js',
-  'windows.js',
   'rijndael.js',
   'l10n.js',
   'template-compiler.js',
   'acl.js',
   'comments.js',
   'editor.js',
-  'dynano.js',
   'flyin.js',
   'paginate.js',
   'pwstrength.js',
@@ -314,6 +318,9 @@ for(var f in thefiles)
   script.src=scriptPath+"/includes/clientside/static/"+thefiles[f];
   head.appendChild(script);
 }
+
+// Do not remove the following comment, it is used by jsres.php.
+/*!END_INCLUDER*/
 
 addOnloadHook(function() {
   if ( $_REQUEST['do'] )

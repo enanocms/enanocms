@@ -2,7 +2,6 @@
 
 function mdgInnerLoader(e)
 {
-  jws.startup();
   if(window.location.hash == '#comments') ajaxComments();
   window.onkeydown=isKeyPressed;
   window.onkeyup=function(e) { isKeyPressed(e); };
@@ -18,10 +17,14 @@ function mdgInnerLoader(e)
   initSliders();
   runOnloadHooks(e);
 }
-if(window.onload) var ld = window.onload;
-else var ld = function() {return;};
+var ld;
+if(window.onload) ld = window.onload;
+else ld = function() {return;};
 function enano_init(e) {
-  ld(e);
+  if ( typeof(ld) == 'function' )
+  {
+    ld(e);
+  }
   mdgInnerLoader(e);
 }
 

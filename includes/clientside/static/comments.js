@@ -74,7 +74,7 @@ function renderComments(data)
     
     var ns = ENANO_PAGE_TYPE;
   
-    // Counters
+  // Counters
     if ( data.auth_mod_comments )
     {
       var cnt = ( data.auth_mod_comments ) ? data.count_total : data.count_appr;
@@ -122,7 +122,6 @@ function renderComments(data)
   
   if ( data.auth_post_comments )
   {
-    
     // Posting form
   
     html += '<h3>' + $lang.get('comment_postform_title') + '</h3>';
@@ -149,7 +148,6 @@ function renderComments(data)
     html += '    <tr><td colspan="2" style="text-align: center;"><input type="button" onclick="submitComment();" value="' + $lang.get('comment_postform_btn_submit') + '" /></td></tr>';
     html += '  </table>';
     html += '</div>';
-    
   }
     
   document.getElementById('ajaxEditContainer').innerHTML = html;
@@ -245,7 +243,12 @@ var _render_comment = function(this_comment, data)
   parser.assign_vars(tplvars);
   parser.assign_bool(tplbool);
   
-  return '<div id="comment_holder_' + i + '"><input type="hidden" value="'+this_comment.comment_id+'" /><input type="hidden" id="comment_source_'+i+'" />' + parser.run() + '</div>';
+  var ret = '<div id="comment_holder_' + i + '">';
+  ret += '<input type="hidden" value="'+this_comment.comment_id+'" />';
+  ret += '<input type="hidden" id="comment_source_'+i+'" />';
+  ret += parser.run();
+  ret += '</div>';
+  return ret;
 }
 
 function displayCommentForm()
@@ -388,7 +391,7 @@ function redrawComment(data)
   }
   if ( data.ip_addr )
   {
-    var span = $('comment_ip_' + data.local_id).object;
+    var span = $dynano('comment_ip_' + data.local_id).object;
     if ( !span )
       return false;
     span.innerHTML = $lang.get('comment_msg_ip_address') + ' <a href="#rdns" onclick="ajaxReverseDNS(this); return false;">' + data.ip_addr + '</a>';
@@ -605,7 +608,7 @@ function comment_increment_unapproval()
 function viewCommentIP(id, local_id)
 {
   // set "loading" indicator on IP button
-  var span = $('comment_ip_' + local_id).object;
+  var span = $dynano('comment_ip_' + local_id).object;
   if ( !span )
     return false;
   span.innerHTML = '<img alt="..." src="' + ajax_load_icon + '" />';

@@ -80,7 +80,7 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
 
 function handle_invalid_json(response, customerror)
 {
-  var mainwin = $('ajaxEditContainer').object;
+  var mainwin = $dynano('ajaxEditContainer').object;
   mainwin.innerHTML = '';
   
   // Title
@@ -136,7 +136,7 @@ function handle_invalid_json(response, customerror)
     var mb = new messagebox(MB_YESNO | MB_ICONEXCLAMATION, 'Do you really want to view this response as HTML?', 'If the response was changed during transmission to include malicious code, you may be allowing that malicious code to run by viewing the response as HTML. Only do this if you have reviewed the response text and have found no suspicious code in it.');
     mb.onclick['Yes'] = function()
     {
-      var html = $('invalidjson_link').object._resp;
+      var html = $dynano('invalidjson_link').object._resp;
       var win = window.open('about:blank', 'invalidjson_htmlwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes');
       win.document.write(html);
     }
@@ -616,8 +616,8 @@ function ajaxChangeStyleComplete()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  var theme = $('chtheme_sel_theme');
-  var style = $('chtheme_sel_style');
+  var theme = $dynano('chtheme_sel_theme');
+  var style = $dynano('chtheme_sel_style');
   if ( !theme.object || !style.object )
   {
     alert($lang.get('ajax_changestyle_pleaseselect_theme'));
@@ -1176,7 +1176,7 @@ function ajaxShowCaptcha(code)
       return true;
     var mydiv = document.getElementById('autoCaptcha');
     var width = getWidth();
-    var divw = $(mydiv).Width();
+    var divw = $dynano(mydiv).Width();
     var left = ( width / 2 ) - ( divw / 2 );
     mydiv.style.left = left + 'px';
     fly_in_top(mydiv, false, true);
