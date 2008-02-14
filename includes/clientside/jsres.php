@@ -44,10 +44,26 @@ chdir(ENANO_ROOT);
 // CONFIG
 
 // Files safe to run full (aggressive) compression on
-$full_compress_safe = array('ajax.js', 'editor.js', 'acl.js', 'rijndael.js', 'admin-menu.js', 'autofill.js', 'comments.js', 'misc.js', 'faders.js', 'dropdown.js');
+$full_compress_safe = array(
+  // Sorted by file size, descending (du -b *.js | sort -n)
+  'ajax.js',
+  'editor.js',
+  'acl.js',
+  'misc.js',
+  'comments.js',
+  'rijndael.js',
+  'autofill.js',
+  'dropdown.js',
+  'paginate.js',
+  'autocomplete.js',
+  'md5.js',
+  'flyin.js',
+  'template-compiler.js',
+  'toolbar.js'
+);
 
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code
-$compress_unsafe = array('SpryEffects.js', 'json.js', 'fat.js');
+$compress_unsafe = array('SpryEffects.js', 'json.js', 'fat.js', 'admin-menu.js');
 
 require('includes/functions.php');
 require('includes/json2.php');
