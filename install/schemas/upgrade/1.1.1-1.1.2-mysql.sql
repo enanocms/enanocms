@@ -7,6 +7,8 @@ ALTER TABLE {{TABLE_PREFIX}}logs ADD COLUMN is_draft tinyint(1) NOT NULL DEFAULT
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_rank int(12) UNSIGNED NOT NULL DEFAULT 1,
                                   ADD COLUMN user_timezone int(12) UNSIGNED NOT NULL DEFAULT 0;
 
+ALTER TABLE {{TABLE_PREFIX}}tags CHANGE user user_id mediumint(8) NOT NULL DEFAULT 1;
+
 CREATE TABLE {{TABLE_PREFIX}}ranks(
   rank_id int(12) NOT NULL auto_increment,
   rank_title varchar(63) NOT NULL DEFAULT '',
