@@ -248,7 +248,7 @@ CREATE TABLE {{TABLE_PREFIX}}tags(
   tag_name varchar(63) NOT NULL DEFAULT 'bla',
   page_id varchar(255) NOT NULL,
   namespace varchar(255) NOT NULL,
-  user mediumint(8) NOT NULL DEFAULT 1,
+  user_id mediumint(8) NOT NULL DEFAULT 1,
   PRIMARY KEY ( tag_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
