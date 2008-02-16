@@ -4024,8 +4024,13 @@ function profiler_start()
   $_profiler[] = array(
       'point' => 'Profiling started',
       'time' => microtime_float(),
-      'backtrace' => false
+      'backtrace' => false,
+      'mem' => false
     );
+  if ( function_exists('memory_get_usage') )
+  {
+    $_profiler[ count($_profiler) - 1 ]['mem'] = memory_get_usage();
+  }
 }
 
 /**
@@ -4048,8 +4053,13 @@ function profiler_log($point, $allow_backtrace = true)
   $_profiler[] = array(
       'point' => $point,
       'time' => microtime_float(),
-      'backtrace' => $backtrace
+      'backtrace' => $backtrace,
+      'mem' => false
     );
+  if ( function_exists('memory_get_usage') )
+  {
+    $_profiler[ count($_profiler) - 1 ]['mem'] = memory_get_usage();
+  }
 }
 
 /**
@@ -4111,6 +4121,14 @@ function profiler_make_html()
       $html .= '<tr>' . "\n";
       $html .= '  <td class="row2">Called from:</td>' . "\n";
       $html .= '  <td class="row1">' . htmlspecialchars($entry['backtrace']) . '</td>' . "\n";
+      $html .= '</tr>' . "\n";
+    }
+    
+    if ( $entry['mem'] )
+    {
+      $html .= '<tr>' . "\n";
+      $html .= '  <td class="row2">Total mem usage:</td>' . "\n";
+      $html .= '  <td class="row1">' . htmlspecialchars($entry['mem']) . ' (bytes)</td>' . "\n";
       $html .= '</tr>' . "\n";
     }
     

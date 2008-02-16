@@ -41,6 +41,8 @@ class mysql {
   
   function enable_errorhandler()
   {
+    if ( !defined('ENANO_DEBUG') )
+      return true;
     // echo "DBAL: enabling error handler<br />";
     if ( function_exists('debug_backtrace') )
     {
@@ -50,6 +52,8 @@ class mysql {
   
   function disable_errorhandler()
   {
+    if ( !defined('ENANO_DEBUG') )
+      return true;
     // echo "DBAL: disabling error handler<br />";
     if ( $this->errhandler )
     {
@@ -210,9 +214,10 @@ class mysql {
     return true;
   }
   
-  function sql_query($q)
+  function sql_query($q, $log_query = true)
   {
-    $this->enable_errorhandler();
+    if ( $log_query || defined('ENANO_DEBUG') )
+      $this->enable_errorhandler();
     
     if ( $this->debug && function_exists('debug_backtrace') )
     {
@@ -233,34 +238,48 @@ class mysql {
     }
     
     $this->num_queries++;
-    $this->query_backtrace[] = $q;
-    $this->latest_query = $q;
+    if ( $log_query || defined('ENANO_DEBUG') )
+    {
+      $this->query_backtrace[] = $q;
+      $this->latest_query = $q;
+    }
     // First make sure we have a connection
     if ( !$this->_conn )
     {
       $this->_die('A database connection has not yet been established.');
     }
+    // Start the timer
+    if ( $log_query || defined('ENANO_DEBUG') )
+      $time_start = microtime_float();
     // Does this query look malicious?
-    if ( !$this->check_query($q) )
+    if ( $log_query || defined('ENANO_DEBUG') )
     {
-      $this->report_query($q);
-      grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
+      if ( !$this->check_query($q) )
+      {
+        $this->report_query($q);
+        grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
+      }
     }
     
-    $time_start = microtime_float();
     $r = mysql_query($q, $this->_conn);
-    $this->query_times[$q] = microtime_float() - $time_start;
+    
+    if ( $log_query )
+      $this->query_times[$q] = microtime_float() - $time_start;
+    
     $this->latest_result = $r;
-    $this->disable_errorhandler();
+    
+    if ( $log_query )
+      $this->disable_errorhandler();
     return $r;
   }
   
-  function sql_unbuffered_query($q)
+  function sql_unbuffered_query($q, $log_query = true)
   {
     $this->enable_errorhandler();
     
     $this->num_queries++;
-    $this->query_backtrace[] = '(UNBUFFERED) ' . $q;
+    if ( $log_query || defined('ENANO_DEBUG') )
+      $this->query_backtrace[] = '(UNBUFFERED) ' . $q;
     $this->latest_query = $q;
     // First make sure we have a connection
     if ( !$this->_conn )
