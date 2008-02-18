@@ -471,24 +471,26 @@ class PageProcessor
   
   /**
    * Creates the page if it doesn't already exist.
+   * @param string Optional page title.
    * @return bool True on success, false on failure.
    */
   
-  function create_page()
+  function create_page($title = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     // Do we have permission to create the page?
     if ( !$this->perms->get_permissions('create_page') )
     {
-      $this->raise_error('You do not have permission to create this page.');
+      $this->raise_error($lang->get('pagetools_create_err_no_permission'));
       return false;
     }
     
     // Does it already exist?
     if ( $this->page_exists )
     {
-      $this->raise_error('The page already exists.');
+      $this->raise_error($lang->get('pagetools_create_err_already_exists'));
       return false;
     }
     
@@ -497,17 +499,17 @@ class PageProcessor
     // We can't create special, admin, or external pages.
     if ( $this->namespace == 'Special' || $this->namespace == 'Admin' || $this->namespace == 'Anonymous' )
     {
-      $this->raise_error('You cannot create Special or Admin pages - they can\'t be stored in the database.');
+      $this->raise_error($lang->get('pagetools_create_err_nodb_namespace'));
       return false;
     }
     
     // Guess the proper title
-    $name = dirtify_page_id($this->page_id);
+    $name = ( !empty($title) ) ? $title : dirtify_page_id($this->page_id);
     
     // Check for the restricted Project: prefix
     if ( substr($this->page_id, 0, 8) == 'Project:' )
     {
-      $this->raise_error('The prefix "Project:" is reserved for internal links and can\'t be used on a page name.');
+      $this->raise_error($lang->get('pagetools_create_err_reserved_prefix'));
       return false;
     }
     
@@ -546,6 +548,13 @@ class PageProcessor
     if ( !$q )
       $db->_die('PageProcessor page creation - text stage');
     
+    // Query 3: Log entry
+    $db->sql_query('INSERT INTO ' . table_prefix."logs(time_id, date_string, log_type, action, author, page_id, namespace)\n"
+                   . "  VALUES ( " . time() . ", '" . enano_date('d M Y h:i a') . "', 'page', 'create', \n"
+                   . "          '" . $db->escape($session->username) . "', '" . $db->escape($this->page_id) . "', '" . $this->namespace . "');");
+    if ( !$q )
+      $db->_die('PageProcessor page creation - logging stage');
+    
     // Page created. We're good!
     return true;
   }
@@ -575,11 +584,13 @@ class PageProcessor
     }
     
     // Does the page "exist"?
+    $pathskey = $paths->nslist[$namespace] . $page_id_cleaned;
+    
     if ( $paths->page_id == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
     {
       $this->page_exists = false;
     }
-    else if ( !isset( $paths->pages[ $paths->nslist[$namespace] . $page_id ] ) && ( $this->namespace == 'Admin' && !function_exists($fname) ) )
+    else if ( !isset( $paths->pages[ $pathskey ] ) && ( ( $this->namespace == 'Admin' && !function_exists($fname) ) || ( $this->namespace != 'Admin' ) ) )
     {
       $this->page_exists = false;
     }

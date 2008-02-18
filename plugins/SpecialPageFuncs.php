@@ -10,7 +10,7 @@ Author URI: http://enanocms.org/
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.1.2 (Caoineag alpha 2)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -70,6 +70,183 @@ $plugins->attachHook('session_started', '
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 
 function page_Special_CreatePage()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  $whitelist_ns = array('Article', 'User', 'Help', 'Template', 'Category', 'Project');
+  $code = $plugins->setHook('page_create_ns_whitelist');
+  foreach ( $code as $cmd )
+  {
+    eval($cmd);
+  }
+  
+  $errors = array();
+  
+  switch ( isset($_POST['page_title']) )
+  {
+    case true:
+      // "Create page" was clicked
+      
+      //
+      // VALIDATION CODE
+      //
+      
+      // Check namespace
+      $namespace = ( isset($_POST['namespace']) ) ? $_POST['namespace'] : 'Article';
+      if ( !in_array($namespace, $whitelist_ns) )
+      {
+        $errors[] = $lang->get('pagetools_create_err_invalid_namespace');
+      }
+      
+      // Check title and figure out urlname
+      $title = $_POST['page_title'];
+      $urlname = $_POST['page_title'];
+      if ( @$_POST['custom_url'] === 'yes' && isset($_POST['urlname']) )
+      {
+        $urlname = $_POST['urlname'];
+      }
+      $urlname = sanitize_page_id($urlname);
+      if ( $urlname == '.00' || empty($urlname) )
+      {
+        $errors[] = $lang->get('pagetools_create_err_invalid_urlname');
+      }
+      
+      // Validate page existence
+      $pathskey = $paths->nslist[$namespace] . $urlname;
+      if ( isPage($pathskey) )
+      {
+        $errors[] = $lang->get('pagetools_create_err_already_exists');
+      }
+      
+      // Validate permissions
+      $perms = $session->fetch_page_acl($urlname, $namespace);
+      if ( !$perms->get_permissions('create_page') )
+      {
+        $errors[] = $lang->get('pagetools_create_err_no_permission');
+      }
+      
+      // Run hooks
+      $code = $plugins->setHook('page_create_request');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      
+      // Create the page
+      if ( count($errors) < 1 )
+      {
+        $page = new PageProcessor($urlname, $namespace);
+        $page->create_page($title);
+        if ( $error = $page->pop_error() )
+        {
+          do
+          {
+            $errors[] = $error;
+          }
+          while ( $error = $page->pop_error() );
+        }
+        else
+        {
+          redirect(makeUrlNS($namespace, $urlname) . '#do:edit', '', '', 0);
+          return true;
+        }
+      }
+      
+      break;
+  }
+  
+  $template->header();
+  
+  echo $lang->get('pagetools_create_blurb');
+  
+  if ( count($errors) > 0 )
+  {
+    echo '<div class="error-box">' . implode("<br />\n        ", $errors) . '</div>';
+  }
+  
+  ?>
+  <enano:no-opt>
+  <script type="text/javascript">
+    function cpGenPreviewUrl()
+    {
+      var frm = document.forms['create_form'];
+      var radio_custom = frm.getElementsByTagName('input')[2];
+      var use_custom_url = radio_custom.checked;
+      if ( use_custom_url )
+      {
+        var title_src = frm.urlname.value;
+      }
+      else
+      {
+        var title_src = frm.page_title.value;
+      }
+      var url = window.location.protocol + '//' + window.location.hostname + contentPath + namespace_list[frm.namespace.value] + sanitize_page_id(title_src);
+      document.getElementById('createpage_url_preview').firstChild.nodeValue = url;
+    }
+  </script>
+  </enano:no-opt>
+  <?php
+  
+  echo '<form action="' . makeUrlNS('Special', 'CreatePage') . '" method="post" name="create_form">';
+  
+  echo '<p>';
+    echo $lang->get('pagetools_create_field_title');
+    echo ' <input onkeyup="cpGenPreviewUrl();" type="text" name="page_title" size="40" tabindex="1" />';
+    echo '</p>';
+    
+  echo '<p>';
+    echo $lang->get('pagetools_create_field_namespace');
+    echo ' <select onchange="cpGenPreviewUrl();" name="namespace" tabindex="2">';
+    foreach ( $paths->nslist as $ns => $ns_prefix )
+    {
+      if ( !in_array($ns, $whitelist_ns) )
+        continue;
+      $lang_string = 'onpage_lbl_page_' . strtolower($ns);
+      $str = $lang->get($lang_string);
+      if ( $str == $lang_string )
+        $str = $ns;
+      
+      echo '<option value="' . $ns . '">' . ucwords($str) . '</option>';
+    }
+    echo '</select>';
+    echo '</p>';
+    
+  echo '<fieldset>';
+  echo '<legend>' . $lang->get('pagetools_create_group_advanced') . '</legend>';
+  
+  echo '<p>';
+    echo '<label><input tabindex="3" type="radio" name="custom_url" value="no" checked="checked" onclick="cpGenPreviewUrl(); document.getElementById(\'createpage_custom_url\').style.display = \'none\';" /> ' . $lang->get('pagetools_create_field_url_auto') . '</label>';
+    echo '</p>';
+  
+  echo '<p>';
+    echo '<label><input tabindex="3" type="radio" name="custom_url" value="yes" onclick="cpGenPreviewUrl(); document.getElementById(\'createpage_custom_url\').style.display = \'block\';" /> ' . $lang->get('pagetools_create_field_url_manual') . '</label>';
+    echo '</p>';
+  
+  echo '<p id="createpage_custom_url" style="display: none; margin-left: 2em;">';
+    echo $lang->get('pagetools_create_field_url');
+    echo ' <input onkeyup="cpGenPreviewUrl();" tabindex="4" type="text" name="urlname" value="" size="40" />';
+    echo '</p>';
+    
+  echo '<p>';
+    echo $lang->get('pagetools_create_field_preview') . ' <tt id="createpage_url_preview"> </tt><br />';
+    echo '<small>' . $lang->get('pagetools_create_field_preview_hint') . '</small>';
+    echo '</p>';
+  
+  echo '</fieldset>';
+  
+  echo '<p>';
+    echo '<input tabindex="5" type="submit" value="' . $lang->get('pagetools_create_btn_create') . '" />';
+    echo '</p>';
+    
+  echo '</form>';
+  
+  echo '<script type="text/javascript">cpGenPreviewUrl();</script>';
+  
+  $template->footer();
+}
+
+function page_Special_CreatePage_Old()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;

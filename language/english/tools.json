@@ -88,14 +88,23 @@ var enano_lang = {
     pagetools: {
       
       // Create a page
-      create_err_title: 'The page could not be created.',
-      create_err_name_invalid: 'The name "%page_name%" is invalid.',
-      create_err_project_shortcut: 'The page title can\'t start with "Project:" because this prefix is reserved for a parser shortcut.',
-      create_err_already_exist: 'The page already exists.',
+      create_err_invalid_namespace: 'You have selected an invalid page type.',
+      create_err_invalid_urlname: 'Please enter a title for your page and a custom URL if desired.',
+      create_err_already_exists: 'A page with that URL already exists. Please enter another title or enter a custom URL. (You can have two pages with the same name, but not two pages with the same URL.)',
+      create_err_no_permission: 'You don\'t have permission to create this page. Try another URL or title; if that does not work, please contact the site administration for permission to create pages.',
+      create_err_nodb_namespace: 'You cannot create Special or Admin pages - they can\'t be stored in the database.',
+      create_err_reserved_prefix: 'The prefix "Project:" is reserved for internal links and can\'t be used on a page name.',
       
-      create_blurb: 'Using the form below you can create a page.',
-      create_namespace_none: '[No prefix]',
-      create_btn_create: 'Create Page',
+      create_blurb: 'Add a new page to the site.',
+      create_field_title: 'Page title:',
+      create_field_namespace: 'Page type:',
+      create_group_advanced: 'Advanced options',
+      create_field_url_auto: 'Generate a URL based on the title',
+      create_field_url_manual: 'Enter a custom page URL',
+      create_field_url: 'Page ID:',
+      create_field_preview: 'Preview of URL:',
+      create_field_preview_hint: '(Requires Javascript support)',
+      create_btn_create: 'Create page',
       
       // All pages
       allpages_blurb: 'Below is a list of all of the pages on this website.',
