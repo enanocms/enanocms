@@ -1624,7 +1624,7 @@ class sessionManager {
       {
         while ( list($reason_temp, $ban_value, $ban_type, $is_regex) = $db->fetchrow_num() )
         {
-          if ( $ban_type == BAN_IP && $row['is_regex'] != 1 )
+          if ( $ban_type == BAN_IP && $is_regex != 1 )
           {
             // check range
             $regexp = parse_ip_range_regex($ban_value);
