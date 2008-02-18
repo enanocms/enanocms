@@ -13,6 +13,14 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
+// Disable for IE, it causes problems.
+if ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') )
+{
+  header('HTTP/1.1 302 Redirect');
+  header('Location: static/enano-lib-basic.js');
+  exit();
+}
+
 // Setup Enano
 
 //

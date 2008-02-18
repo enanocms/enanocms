@@ -8,6 +8,9 @@ ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_rank int(12) UNSIGNED NOT NULL
                                   ADD COLUMN user_timezone int(12) UNSIGNED NOT NULL DEFAULT 0;
 
 ALTER TABLE {{TABLE_PREFIX}}tags CHANGE user user_id mediumint(8) NOT NULL DEFAULT 1;
+ALTER TABLE {{TABLE_PREFIX}}themes
+  ADD COLUMN group_list text DEFAULT NULL,
+  ADD COLUMN group_policy ENUM('allow', 'deny') NOT NULL DEFAULT 'deny';
 
 CREATE TABLE {{TABLE_PREFIX}}ranks(
   rank_id int(12) NOT NULL auto_increment,

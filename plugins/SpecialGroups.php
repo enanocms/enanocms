@@ -10,7 +10,7 @@ Author URI: http://enanocms.org/
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.1.2 (Caoineag alpha 2)
  * Copyright (C) 2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License

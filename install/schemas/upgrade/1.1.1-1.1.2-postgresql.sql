@@ -6,6 +6,10 @@ ALTER TABLE {{TABLE_PREFIX}}logs ADD COLUMN is_draft smallint NOT NULL DEFAULT 0
 
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_rank int NOT NULL DEFAULT 1,
                                   ADD COLUMN user_timezone int NOT NULL DEFAULT 0;
+ALTER TABLE {{TABLE_PREFIX}}themes
+  ADD COLUMN group_list text DEFAULT NULL,
+  ADD COLUMN group_policy varchar(5) NOT NULL DEFAULT 'deny',
+  ADD CHECK (group_policy IN ('allow', 'deny'));
 
 CREATE TABLE {{TABLE_PREFIX}}ranks(
   rank_id SERIAL,

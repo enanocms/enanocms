@@ -295,6 +295,7 @@ var thefiles = [
   'flyin.js',
   'paginate.js',
   'pwstrength.js',
+  'theme-manager.js',
   'SpryEffects.js',
   'loader.js'
 ];

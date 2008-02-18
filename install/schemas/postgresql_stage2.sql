@@ -82,8 +82,11 @@ CREATE TABLE {{TABLE_PREFIX}}themes(
   theme_id varchar(63),
   theme_name text,
   theme_order smallint NOT NULL DEFAULT '1',
-  DEFAULT_style varchar(63) NOT NULL DEFAULT '',
-  enabled smallint NOT NULL DEFAULT '1'
+  default_style varchar(63) NOT NULL DEFAULT '',
+  enabled smallint NOT NULL DEFAULT '1',
+  group_list text DEFAULT NULL,
+  group_policy varchar(5) NOT NULL DEFAULT 'deny',
+  CHECK (group_policy IN ('allow', 'deny'))
 );
 
 CREATE TABLE {{TABLE_PREFIX}}users(

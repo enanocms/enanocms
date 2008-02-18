@@ -84,7 +84,9 @@ CREATE TABLE {{TABLE_PREFIX}}themes(
   theme_name text,
   theme_order smallint(5) NOT NULL DEFAULT '1',
   default_style varchar(63) NOT NULL DEFAULT '',
-  enabled tinyint(1) NOT NULL DEFAULT '1'
+  enabled tinyint(1) NOT NULL DEFAULT '1',
+  group_list text DEFAULT NULL,
+  group_policy ENUM('allow', 'deny') NOT NULL DEFAULT 'deny'
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}users(

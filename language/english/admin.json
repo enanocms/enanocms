@@ -14,7 +14,7 @@ var enano_lang = {
   categories: [
     'meta', 'adm', 'acl', 'adminusers',
     'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acplm', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl',
-    'acpbc', 'acplo', 'sbedit',
+    'acpbc', 'acplo', 'acptm', 'sbedit',
   ],
   strings: {
     meta: {
@@ -29,6 +29,7 @@ var enano_lang = {
       acplm: 'ACP: Language manager',
       acppm: 'ACP: Manage pages',
       acped: 'ACP: Edit page content',
+      acptm: 'ACP: Theme manager',
       acppg: 'ACP: Page groups',
       acpum: 'ACP: User management',
       acpug: 'ACP: User group management',
@@ -431,6 +432,24 @@ var enano_lang = {
       lbl_field_search: 'Search for a page title or URL string:',
       heading_select_page_from_list: 'Select page from a list',
       hint_select_page_from_list: 'You can also select the page you want to edit from the list below. The list is broken into sections of 100 pages, so if you have a lot of pages on your site, you can click the pagination control below to view more pages.',
+    },
+    acptm: {
+      heading_edit_themes: 'Installed themes',
+      btn_system_themes_show: '&raquo; Show system themes',
+      btn_system_themes_hide: '&raquo; Hide system themes',
+      btn_theme_edit: 'Edit',
+      btn_theme_system: 'System theme',
+      heading_install_themes: 'Themes available for installation',
+      btn_theme_install: 'Install',
+      
+      // Editor
+      heading_theme_edit: 'Editing theme: %theme_name%',
+      field_theme_name: 'Theme name:',
+      field_default_style: 'Select a default style:',
+      field_default_theme: 'Site-wide default theme:',
+      field_default_msg_current: 'This is the current default',
+      field_default_btn_make_default: 'Make this the default theme when I click Save',
+      heading_theme_groups: 'User and group policy',
     },
     acpdb: {
       err_not_supported_title: 'Not supported',
