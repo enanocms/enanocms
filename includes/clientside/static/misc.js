@@ -872,3 +872,80 @@ function getWidth() {
   }
   return myWidth;
 }
+
+/**
+ * Sanitizes a page URL string so that it can safely be stored in the database.
+ * @param string Page ID to sanitize
+ * @return string Cleaned text
+ */
+
+function sanitize_page_id(page_id)
+{
+  // Remove character escapes
+  page_id = dirtify_page_id(page_id);
+
+  var regex = new RegExp('[A-Za-z0-9\\[\\]\./:;\(\)@_-]', 'g');
+  pid_clean = page_id.replace(regex, 'X');
+  var pid_dirty = [];
+  for ( var i = 0; i < pid_clean.length; i++ )
+    pid_dirty[i] = pid_clean.substr(i, 1);
+
+  for ( var i = 0; i < pid_dirty.length; i++ )
+  {
+    var char = pid_dirty[i];
+    if ( char == 'X' )
+      continue;
+    var cid = char.charCodeAt(0);
+    cid = cid.toString(16).toUpperCase();
+    if ( cid.length < 2 )
+    {
+      cid = '0' + cid;
+    }
+    pid_dirty[i] = "." + cid;
+  }
+  
+  var pid_chars = [];
+  for ( var i = 0; i < page_id.length; i++ )
+    pid_chars[i] = page_id.substr(i, 1);
+  
+  var page_id_cleaned = '';
+
+  for ( var id in pid_chars )
+  {
+    var char = pid_chars[id];
+    if ( pid_dirty[id] == 'X' )
+      page_id_cleaned += char;
+    else
+      page_id_cleaned += pid_dirty[id];
+  }
+  
+  return page_id_cleaned;
+}
+
+/**
+ * Removes character escapes in a page ID string
+ * @param string Page ID string to dirty up
+ * @return string
+ */
+
+function dirtify_page_id(page_id)
+{
+  // First, replace spaces with underscores
+  page_id = page_id.replace(/ /g, '_');
+
+  var matches = page_id.match(/\.[A-Fa-f0-9][A-Fa-f0-9]/g);
+  
+  if ( matches != null )
+  {
+    for ( var i = 0; i < matches.length; i++ )
+    {
+      var match = matches[i];
+      var byt = (match.substr(1)).toUpperCase();
+      var code = eval("0x" + byt);
+      var regex = new RegExp('\\.' + byt, 'g');
+      page_id = page_id.replace(regex, String.fromCharCode(code));
+    }
+  }
+  
+  return page_id;
+}
