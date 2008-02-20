@@ -750,12 +750,7 @@ function ajaxSetPassword()
 
 function ajaxStartLogin()
 {
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  ajaxPromptAdminAuth(function(k) {
-      window.location.reload();
-    }, USER_LEVEL_MEMBER);
+  ajaxLogonToMember();
 }
 
 function ajaxStartAdminLogin()
@@ -765,7 +760,7 @@ function ajaxStartAdminLogin()
     return true;
   if ( auth_level < USER_LEVEL_ADMIN )
   {
-    ajaxPromptAdminAuth(function(k) {
+    ajaxLoginInit(function(k) {
       ENANO_SID = k;
       auth_level = USER_LEVEL_ADMIN;
       var loc = makeUrlNS('Special', 'Administration');

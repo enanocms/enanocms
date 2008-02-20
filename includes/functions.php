@@ -1214,6 +1214,7 @@ function enano_codename()
       '1.0.3'  => 'Dyrad',
       '1.1.1'  => 'Caoineag alpha 1',
       '1.1.2'  => 'Caoineag alpha 2',
+      '1.1.3'  => 'Caoineag alpha 3',
     );
   $version = enano_version();
   if ( isset($names[$version]) )

@@ -17,7 +17,7 @@
 define('IN_ENANO', 1);
 
 // The list of versions in THIS BRANCH, in chronological order.
-$enano_versions = array('1.1.1', '1.1.2');
+$enano_versions = array('1.1.1', '1.1.2', '1.1.3');
 
 // Turn on every imaginable API hack to make common load on older databases
 define('IN_ENANO_UPGRADE', 1);

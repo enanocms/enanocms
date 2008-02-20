@@ -54,6 +54,7 @@ chdir(ENANO_ROOT);
 // Files safe to run full (aggressive) compression on
 $full_compress_safe = array(
   // Sorted by file size, descending (du -b *.js | sort -n)
+  'libbigint.js',
   'ajax.js',
   'editor.js',
   'acl.js',
@@ -65,9 +66,12 @@ $full_compress_safe = array(
   'paginate.js',
   'autocomplete.js',
   'md5.js',
+  'sha256.js',
   'flyin.js',
   'template-compiler.js',
-  'toolbar.js'
+  'toolbar.js',
+  'diffiehellman.js',
+  'enanomath.js'
 );
 
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code

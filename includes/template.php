@@ -717,6 +717,7 @@ class template {
       var scriptPath=\''. scriptPath .'\';
       var contentPath=\''.contentPath.'\';
       var ENANO_SID =\'' . $SID . '\';
+      var user_level=' . $session->user_level . ';
       var auth_level=' . $session->auth_level . ';
       var USER_LEVEL_GUEST = ' . USER_LEVEL_GUEST . ';
       var USER_LEVEL_MEMBER = ' . USER_LEVEL_MEMBER . ';

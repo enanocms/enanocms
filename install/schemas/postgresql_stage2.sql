@@ -304,6 +304,16 @@ CREATE TABLE {{TABLE_PREFIX}}captcha(
   user_id int
 );
 
+-- Added in 1.1.3
+-- Storing obscenely huge integers as strings since that's how php processes them.
+
+CREATE TABLE {{TABLE_PREFIX}}diffiehellman (
+  key_id SERIAL,
+  private_key text,
+  public_key text,
+  PRIMARY KEY ( key_id )
+);
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),

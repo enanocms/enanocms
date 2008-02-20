@@ -150,7 +150,7 @@ function page_Special_Login()
   
   if ( isset($_GET['act']) && $_GET['act'] == 'getkey' )
   {
-    header('Content-type: application/json');
+    header('Content-type: text/javascript');
     $username = ( $session->user_logged_in ) ? $session->username : false;
     $response = Array(
       'username' => $username,
@@ -166,6 +166,23 @@ function page_Special_Login()
         $response[$x] = $y;
       }
       unset($x, $y);
+    }
+    
+    // 1.1.3: generate diffie hellman key
+    global $dh_supported, $_math;
+    
+    $response['dh_supported'] = $dh_supported;
+    if ( $dh_supported )
+    {
+      $dh_key_priv = dh_gen_private();
+      $dh_key_pub = dh_gen_public($dh_key_priv);
+      $dh_key_priv = $_math->str($dh_key_priv);
+      $dh_key_pub = $_math->str($dh_key_pub);
+      $response['dh_public_key'] = $dh_key_pub;
+      // store the keys in the DB
+      $q = $db->sql_query('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+      if ( !$q )
+        $db->die_json();
     }
     
     $response = enano_json_encode($response);
@@ -365,6 +382,29 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $__login_status;
   global $lang;
+  if ( $paths->getParam(0) === 'action.json' )
+  {
+    if ( !isset($_POST['r']) )
+      die('No request.');
+    
+    $request = $_POST['r'];
+    try
+    {
+      $request = enano_json_decode($request);
+    }
+    catch ( Exception $e )
+    {
+      die(enano_json_encode(array(
+          'mode' => 'error',
+          'error' => 'ERR_JSON_PARSE_FAILED'
+        )));
+    }
+    
+    echo enano_json_encode($session->process_login_request($request));
+    
+    $db->close();
+    exit;
+  }
   if ( isset($_GET['act']) && $_GET['act'] == 'ajaxlogin' )
   {
     $plugins->attachHook('login_password_reset', 'SpecialLogin_SendResponse_PasswordReset($row[\'user_id\'], $row[\'temp_password\']);');
@@ -372,7 +412,65 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     $captcha_hash = ( isset($data['captcha_hash']) ) ? $data['captcha_hash'] : false;
     $captcha_code = ( isset($data['captcha_code']) ) ? $data['captcha_code'] : false;
     $level = ( isset($data['level']) ) ? intval($data['level']) : USER_LEVEL_MEMBER;
-    $result = $session->login_with_crypto($data['username'], $data['crypt_data'], $data['crypt_key'], $data['challenge'], $level, $captcha_hash, $captcha_code);
+    
+    // 1.1.3: Diffie Hellman
+    global $dh_supported;
+    global $_math;
+    if ( $data['diffiehellman'] && isset($data['publickey_client']) && isset($data['publickey_server']) && isset($data['crypt_key_check']) )
+    {
+      if ( !$dh_supported )
+      {
+        die('Special:Login: Illegal request for Diffie Hellman exchange');
+      }
+      // retrieve our public key
+      if ( !preg_match('/^[0-9]+$/', $data['publickey_server']) )
+      {
+        die('Special:Login: Illegal request for Diffie Hellman exchange');
+      }
+      $pubkey_server =& $data['publickey_server'];
+      
+      // retrieve our private key
+      $q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$pubkey_server';");
+      if ( !$q )
+        $db->die_json();
+      
+      if ( $db->numrows() < 1 )
+      {
+        die('Special:Login: Couldn\'t lookup Diffie Hellman key: ' . $pubkey_server);
+      }
+      list($privkey_server, $key_id) = $db->fetchrow_num();
+      $db->free_result();
+      
+      // get shared secret
+      $dh_secret = dh_gen_shared_secret($privkey_server, $data['publickey_client']);
+      $dh_secret = $_math->str($dh_secret);
+      $secret_check = sha1($dh_secret);
+      if ( $secret_check !== $data['crypt_key_check'] )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => 'Diffie Hellman redundancy check failed, couldn\'t rebuild the AES key.',
+            'debug' => array(
+              'server private key' => $privkey_server,
+              'client public key' => $data['publickey_client'],
+              'expected sha1' => $data['crypt_key_check'],
+              'actual sha1' => $secret_check
+              )
+          )));
+      }
+      // we have the secret, now get the sha256 hash
+      $crypt_key = substr(sha256($dh_secret), 0, ( AES_BITS / 4 ));
+    }
+    else if ( !$data['diffiehellman'] && isset($data['crypt_key']) && isset($data['crypt_data']) )
+    {
+      $crypt_key = $data['crypt_key'];
+    }
+    else
+    {
+      die('Special:Login: Illegal request');
+    }
+    
+    $result = $session->login_with_crypto($data['username'], $data['crypt_data'], $crypt_key, $data['challenge'], $level, $captcha_hash, $captcha_code, !$dh_supported);
     
     if ( $result['success'] )
     {
@@ -468,8 +566,17 @@ function page_Special_Logout() {
   $l = $session->logout();
   if ( $l == 'success' )
   {
-    
-    redirect(makeUrl(getConfig('main_page'), false, true), $lang->get('user_logout_success_title'), $lang->get('user_logout_success_body'), 4);
+    $url = makeUrl(getConfig('main_page'), false, true);
+    if ( $pi = $paths->getAllParams() )
+    {
+      list($pid, $ns) = RenderMan::strToPageID($pi);
+      $perms = $session->fetch_page_acl($pid, $ns);
+      if ( $perms->get_permissions('read') )
+      {
+        $url = makeUrl($pi, false, true);
+      }
+    }
+    redirect($url, $lang->get('user_logout_success_title'), $lang->get('user_logout_success_body'), 4);
   }
   $template->header();
   echo '<h3>' . $lang->get('user_logout_err_title') . '</h3>';

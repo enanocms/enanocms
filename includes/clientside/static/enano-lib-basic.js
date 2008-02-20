@@ -273,6 +273,7 @@ if ( !KILL_SWITCH && !DISABLE_MCE )
 var thefiles = [
   'dynano.js',
   'misc.js',
+  'login.js',
   'admin-menu.js',
   'ajax.js',
   'autocomplete.js',
@@ -284,6 +285,10 @@ var thefiles = [
   'grippy.js',
   'json.js',
   'md5.js',
+  'libbigint.js',
+  'enanomath.js',
+  'diffiehellman.js',
+  'sha256.js',
   'sliders.js',
   'toolbar.js',
   'rijndael.js',
