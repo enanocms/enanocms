@@ -66,6 +66,7 @@ $full_compress_safe = array(
   'paginate.js',
   'autocomplete.js',
   'md5.js',
+  'pwstrength.js',
   'sha256.js',
   'flyin.js',
   'template-compiler.js',
