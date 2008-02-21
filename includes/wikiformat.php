@@ -109,10 +109,15 @@ class Text_Wiki {
         }
         
         global $plugins;
-        $code = $plugins->setHook('text_wiki_construct');
-        foreach ( $code as $cmd )
+        // This code can be run from the installer, so in some cases $plugins
+        // isn't initted. (Bug in 1.1.2, fixed for 1.1.3)
+        if ( is_object($plugins) )
         {
-            eval($cmd);
+          $code = $plugins->setHook('text_wiki_construct');
+          foreach ( $code as $cmd )
+          {
+              eval($cmd);
+          }
         }
 
         $this->addPath(
