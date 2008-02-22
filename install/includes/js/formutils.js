@@ -5,9 +5,9 @@
  * @var string img_neu: Shown when a field's value matches known good regexp but still needs testing (e.g. DB info)
  */
 
-var img_bad = '../images/bad.gif';
-var img_good = '../images/good.gif';
-var img_neu = '../images/unknown.gif';
+var img_bad = '../images/checkbad.png';
+var img_good = '../images/check.png';
+var img_neu = '../images/checkunk.png';
 
 /**
  * Highlights the background of the next-up <tr> tag.
