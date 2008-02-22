@@ -280,11 +280,24 @@
     
     // In Enano 1.0.3, added this cheapo hack to keep ampersands
     // from being double-sanitized. Thanks to markybob from #deluge.
+    
+    // htmlspecialchars() the "manual" way
     $encValue = strtr( $text, array(
-      '&amp;' => '&'
+      '&amp;'  => '&',
+      '&quot;' => '"',
+      '&lt;'   => '<',
+      '&gt;'   => '>',
+      '&#039;' => "'"
     ) );
     
-		$encValue = htmlspecialchars( $text );
+    $encValue = strtr( $text, array(
+      '&' => '&amp;',
+      '"' => '&quot;',
+      '<' => '&lt;',
+      '>' => '&gt;',
+      "'" => '&#039;'
+    ) );
+    
 		
 		// Whitespace is normalized during attribute decoding,
 		// so if we've been passed non-spaces we must encode them

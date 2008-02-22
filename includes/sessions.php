@@ -1906,7 +1906,6 @@ class sessionManager {
         'username' => $u
       ));
       
-    error_reporting(E_ALL);
     if(getConfig('smtp_enabled') == '1')
     {
       $result = smtp_send_email($r['email'], $lang->get('user_reg_activation_email_subject'), preg_replace("#(?<!\r)\n#s", "\n", $message), getConfig('contact_email'));
@@ -1960,7 +1959,6 @@ class sessionManager {
         )
       );
     
-    error_reporting(E_ALL);
     
     if(getConfig('smtp_enabled') == '1')
     {

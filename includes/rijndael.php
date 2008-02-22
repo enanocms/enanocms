@@ -10,9 +10,6 @@
  * @license BSD-style license
  */
 
-error_reporting(E_ALL);
-
-define ('ENC_HEX', 201);
 define ('ENC_BASE64', 202);
 define ('ENC_BINARY', 203);
 

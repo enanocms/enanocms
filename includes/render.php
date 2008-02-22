@@ -54,7 +54,7 @@ class RenderMan {
     if(!$perms->get_permissions('read'))
       return 'Access denied ('.$paths->nslist[$namespace].$page_id.')';
     
-    if($wiki == 0 || $render == false)
+    if($namespace != 'Template' && ($wiki == 0 || $render == false))
     {
       if(!$perms->get_permissions('view_source'))
       {

@@ -45,6 +45,7 @@ $version = '1.1.3';
  * @return float
  */
 
+// First check to see if something already declared this function.... it happens often.
 if ( !function_exists('microtime_float') )
 {
   function microtime_float()
@@ -59,7 +60,16 @@ global $_starttime;
 $_starttime = microtime_float();
 
 // Verbose error reporting
-error_reporting(E_ALL);
+if ( defined('E_STRICT') )
+{
+  // PHP5, PHP6
+  error_reporting(E_ALL & ~E_STRICT);
+}
+else
+{
+  // PHP4
+  error_reporting(E_ALL);
+}
 
 //
 // Determine the location of Enano as an absolute path.
