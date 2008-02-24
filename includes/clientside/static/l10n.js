@@ -60,9 +60,25 @@ var $lang;
 
 var language_onload = function()
 {
+  if ( typeof(enano_lang) != 'object' )
+  {
+    language_onload_resched();
+    return true;
+  }
+  if ( !enano_lang[ENANO_LANG_ID] )
+  {
+    language_onload_resched();
+    return true;
+  }
   $lang = new Language(ENANO_LANG_ID);
-  // for debugging :-)
-  // alert( $lang.get('user_err_invalid_credentials_lockout_captcha', { lockout_fails: '3', lockout_threshold: '5', lockout_duration: '15' }) );
+}
+
+// Rescheduler for language onload - allows delaying init if the string list
+// isn't ready yet
+function language_onload_resched()
+{
+  alert('delaying language init by 0.2s');
+  setTimeout('language_onload();', 200);
 }
 
 addOnloadHook(language_onload);

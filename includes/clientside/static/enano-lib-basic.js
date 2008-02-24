@@ -259,10 +259,17 @@ function runOnloadHooks(e)
 var head = document.getElementsByTagName('head')[0];
 if ( !KILL_SWITCH && !DISABLE_MCE )
 {
-  var script = document.createElement('script');
-  script.type="text/javascript";
-  script.src=scriptPath+"/includes/clientside/tinymce/tiny_mce.js";
-  head.appendChild(script);
+  if ( IE )
+  {
+    document.write('<script type="text/javascript" src="' + scriptPath + '/includes/clientside/tinymce/tiny_mce.js"></script>');
+  }
+  else
+  {
+    var script = document.createElement('script');
+    script.type="text/javascript";
+    script.src=scriptPath+"/includes/clientside/tinymce/tiny_mce.js";
+    head.appendChild(script);
+  }
 }
 
 // Do not remove the following comments, they are used by jsres.php.

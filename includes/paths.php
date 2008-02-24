@@ -583,81 +583,168 @@ class pathManager {
   }
   
   /**
-   * Rebuilds the search index
-   * @param bool If true, prints out status messages
+   * Builds a word list for search indexing.
+   * @param string Text to index
+   * @param string Page ID of the page being indexed
+   * @param string Title of the page being indexed
+   * @return array List of words
    */
-   
-  function rebuild_search_index($verbose = false)
+  
+  function calculate_word_list($text, $page_id, $page_name)
+  {
+    $page_id = dirtify_page_id($page_id);
+    $text = preg_replace('/[^a-z0-9\']/i', ' ', $text);
+    $page_id = preg_replace('/[^a-z0-9\']/i', ' ', $page_id);
+    $page_name = preg_replace('/[^a-z0-9\']/i', ' ', $page_name);
+    $text .= " $page_id $page_name";
+    $text = explode(' ', $text);
+    foreach ( $text as $i => &$word )
+    {
+      if ( strstr($word, "''") )
+        $word = preg_replace("/[']{2,}/", '', $word);
+      if ( strlen($word) < 2 )
+        unset($text[$i]);
+    }
+    $text = array_unique(array_values($text));
+    return $text;
+  }
+  
+  /**
+   * Rebuilds the site's entire search index. Considerably more exciting if run from the command line.
+   * @param bool If true, verbose output.
+   * @param bool If true, verbose + debugging output.
+   */
+  
+  function rebuild_search_index($verbose = false, $debug = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $search = new Searcher();
-    if ( $verbose )
+    
+    @set_time_limit(0);
+    
+    $q = $db->sql_query('DELETE FROM search_index;');
+    if ( !$q )
+      $db->_die();
+    
+    $sha1_blank = sha1('');
+    $query_func = ( ENANO_DBLAYER == 'MYSQL' ) ? 'mysql_query' : 'pg_query';
+    
+    //
+    // Index $pages_in_batch pages at a time
+    //
+    $pages_in_batch = 15;
+    
+    // First find out how many pages there are
+    $q = $db->sql_query('SELECT COUNT(p.urlname) AS num_pages FROM ' . table_prefix . "page_text AS t\n"
+                      . "  LEFT JOIN " . table_prefix . "pages AS p\n"
+                      . "    ON ( p.urlname = t.page_id AND p.namespace = t.namespace )\n"
+                      . "  WHERE ( p.password = '' OR p.password = '$sha1_blank' )\n"
+                      . "    AND ( p.visible = 1 );");
+    if ( !$q )
+      $db->_die();
+    
+    list($num_pages) = $db->fetchrow_num();
+    $num_pages = intval($num_pages);
+    $loops = ceil($num_pages / $pages_in_batch);
+    $master_word_list = array();
+    $stopwords = get_stopwords();
+    
+    for ( $j = 0; $j < $loops; )
     {
-      echo '<p>';
-    }
-    $texts = Array();
-    $textq = $db->sql_unbuffered_query($this->fetch_page_search_resource());
-    if(!$textq) $db->_die('');
-    while($row = $db->fetchrow())
-    {
-      if ( $verbose )
+      $offset = $j * $pages_in_batch;
+      
+      $j++;
+      
+      if ( $verbose && $debug )
       {
-        ob_start();
-        echo "Indexing page " . $this->nslist[$row['namespace']] . sanitize_page_id($row['page_id']) . "<br />";
-        ob_flush();
-        while (@ob_end_flush());
-        flush();
+        echo "Running indexing round $j of $loops (offset $offset)\n" . ( isset($_SERVER['REQUEST_URI']) ? '<br />' : '' );
       }
-      if ( isset($this->nslist[$row['namespace']]) )
+      
+      $texts = $db->sql_query('SELECT p.name, t.page_id, t.namespace, t.page_text FROM ' . table_prefix . "page_text AS t\n"
+                            . "  LEFT JOIN " . table_prefix . "pages AS p\n"
+                            . "    ON ( p.urlname = t.page_id AND p.namespace = t.namespace )\n"
+                            . "  WHERE ( p.password = '' OR p.password = '$sha1_blank' )\n"
+                            . "    AND ( p.visible = 1 )\n"
+                            . "  LIMIT $offset, $pages_in_batch;", false);
+      if ( !$texts )
+        $db->_die();
+      
+      $k = $offset;
+      
+      if ( $row = $db->fetchrow($texts) )
       {
-        $idstring = $this->nslist[$row['namespace']] . sanitize_page_id($row['page_id']);
-        if ( isset($this->pages[$idstring]) )
+        do
         {
-          $page = $this->pages[$idstring];
+          $k++;
+          if ( $verbose )
+          {
+            $mu = memory_get_usage();
+            echo "  Indexing page $k of $num_pages: {$row['namespace']}:{$row['page_id']}";
+            if ( $debug )
+              echo ", mem = $mu...";
+            flush();
+          }
+          
+          // Indexing identifier for the page in the DB
+          $page_uniqid = "ns={$row['namespace']};pid=" . sanitize_page_id($row['page_id']);
+          $page_uniqid = $db->escape($page_uniqid);
+          
+          // List of words on the page
+          $wordlist = $this->calculate_word_list($row['page_text'], $row['page_id'], $row['name']);
+          
+          // Index calculation complete -- run inserts
+          $inserts = array();
+          foreach ( $wordlist as $word )
+          {
+            if ( in_array($word, $stopwords) || strval(intval($word)) === $word || strlen($word) < 3 )
+              continue;
+            $word_db = $db->escape($word);
+            if ( !in_array($word, $master_word_list) )
+            {
+              $inserts[] = "( '$word_db', '$page_uniqid' )";
+            }
+            else
+            {
+              if ( $verbose && $debug )
+                echo '.';
+              $pid_col = ( ENANO_DBLAYER == 'MYSQL' ) ?
+                          "CONCAT( page_names, ',$page_uniqid' )":
+                          "page_names || ',$page_uniqid'";
+              $q = $db->sql_query('UPDATE ' . table_prefix . "search_index SET page_names = $pid_col WHERE word = '$word_db';", false);
+              if ( !$q )
+                $db->_die();
+            }
+          }
+          if ( count($inserts) > 0 )
+          {
+            if ( $verbose && $debug )
+              echo 'i';
+            $inserts = implode(",\n  ", $inserts);
+            $q = $db->sql_query('INSERT INTO ' . table_prefix . "search_index(word, page_names) VALUES\n  $inserts;", false);
+            if ( !$q )
+              $db->_die();
+          }
+          
+          $master_word_list = array_unique(array_merge($master_word_list, $wordlist));
+          if ( $verbose )
+          {
+            if ( isset($_SERVER['REQUEST_URI']) )
+              echo '<br />';
+            echo "\n";
+          }
+          unset($inserts, $wordlist, $page_uniqid, $word_db, $q, $word, $row);
         }
-        else
-        {
-          $page = array('name' => dirtify_page_id($row['page_id']));
-        }
+        while ( $row = $db->fetchrow($texts) );
       }
-      else
-      {
-        $page = array('name' => dirtify_page_id($row['page_id']));
-      }
-      $texts[(string)$row['page_idstring']] = $row['page_text'] . ' ' . $page['name'];
+      $db->free_result($texts);
     }
     if ( $verbose )
     {
-      ob_start();
-      echo "Calculating word list...";
-      ob_flush();
-      while (@ob_end_flush());
-      flush();
+      echo "Indexing complete.";
+      if ( isset($_SERVER['REQUEST_URI']) )
+        echo '<br />';
+      echo "\n";
     }
-    $search->buildIndex($texts);
-    if ( $verbose )
-    {
-      echo '</p>';
-    }
-    // echo '<pre>'.print_r($search->index, true).'</pre>';
-    // return;
-    $q = $db->sql_query('DELETE FROM '.table_prefix.'search_index');
-    if(!$q) return false;
-    $secs = Array();
-    $q = 'INSERT INTO '.table_prefix.'search_index(word,page_names) VALUES';
-    foreach($search->index as $word => $pages)
-    {
-      $secs[] = '(\''.$db->escape($word).'\', \''.$db->escape($pages).'\')';
-    }
-    $q .= implode(',', $secs);
-    unset($secs);
-    $q .= ';';
-    $result = $db->sql_query($q);
-    $db->free_result();
-    if($result)
-      return true;
-    else
-      $db->_die('The search index was trying to rebuild itself when the error occured.');
+    return true;
   }
   
   /**

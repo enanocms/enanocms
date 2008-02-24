@@ -24,7 +24,15 @@ function darken(nofade)
       thediv.style.position = 'absolute';
     else
       thediv.style.position = 'fixed';
-    thediv.style.top = '0px';
+    if ( IE )
+    {
+      var top = getScrollOffset();
+      thediv.style.top = String(top) + 'px';
+    }
+    else
+    {
+      thediv.style.top = '0px';
+    }
     thediv.style.left = '0px';
     thediv.style.opacity = '0';
     thediv.style.filter = 'alpha(opacity=0)';

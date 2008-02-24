@@ -327,10 +327,6 @@ function ajaxLoginProcessResponse(response)
   }
   // Rid ourselves of any loading windows
   ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
-  if ( IE )
-  {
-    alert('Login: got AJAX response');
-  }
   // Main mode switch
   switch ( response.mode )
   {
@@ -434,9 +430,9 @@ function ajaxLoginBuildForm(data)
   {
     f_password.onkeyup = function(e)
     {
-      if ( !e.keyCode )
+      if ( !e )
         e = window.event;
-      if ( !e.keyCode )
+      if ( !e && IE )
         return true;
       if ( e.keyCode == 13 )
       {

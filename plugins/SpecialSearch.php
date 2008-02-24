@@ -46,8 +46,9 @@ function page_Special_SearchRebuild()
   }
   $template->header();
   @set_time_limit(0);
+  echo '<p>';
   if($paths->rebuild_search_index(true))
-    echo '<p>Index rebuilt!</p>';
+    echo '</p><p>Index rebuilt!</p>';
   else
     echo '<p>Index was not rebuilt due to an error.';
   $template->footer();

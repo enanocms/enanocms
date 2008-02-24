@@ -34,12 +34,29 @@ var enano_tinymce_options = {
   content_css : css_url
 };
 
+// Check tinyMCE to make sure its init is finished
+function tinymce_init_check()
+{
+  if ( typeof(tinyMCE.init) != 'function' )
+    return false;
+  if ( typeof(tinymce.DOM) != 'object' )
+    return false;
+  if ( typeof(tinymce.DOM.get) != 'function' )
+    return false;
+  return true;
+}
+
 var initTinyMCE = function(e)
 {
   if ( typeof(tinyMCE) == 'object' )
   {
     if ( !KILL_SWITCH && !DISABLE_MCE )
     {
+      if ( !tinymce_init_check() )
+      {
+        setTimeout('initTinyMCE();', 200);
+        return false;
+      }
       tinyMCE.init(enano_tinymce_options);
     }
   }

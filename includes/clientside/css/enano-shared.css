@@ -1,6 +1,10 @@
 /*
  * Shared stuff that all Enano themes (should) use
  */
+
+/* IE-only stylesheet */
+@import url("./enano-shared-ie.css");
+/* End IE-only stylesheet */
  
 /* Information, warning, question, error, and wait boxes */
 div.error-box                     { background-image: url(../../../images/error.png);    background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFF4F4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
@@ -8,10 +12,6 @@ div.info-box                      { background-image: url(../../../images/info.p
 div.warning-box                   { background-image: url(../../../images/warning.png);  background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFFFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
 div.question-box                  { background-image: url(../../../images/question.png); background-position: 8px 8px; background-repeat: no-repeat; background-color: #F4FFF4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
 div.wait-box                      { background-image: url(../../../images/wait.png);     background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFF4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
-
-/* IE-only stylesheet \*/
-@import url("./enano-shared-ie.css");
-/* End IE-only stylesheet */
 
 div.error-box-mini                { background-image: url(../../../images/mini-error.png);    background-position: 5px center; background-repeat: no-repeat; background-color: #FFF4F4; border: 1px solid #406080; padding: 4px 4px 4px 26px; margin: 1em 0; min-height: 17px; }
 div.info-box-mini                 { background-image: url(../../../images/mini-info.png);     background-position: 5px center; background-repeat: no-repeat; background-color: #F4F4FF; border: 1px solid #406080; padding: 4px 4px 4px 26px; margin: 1em 0; min-height: 17px; }
