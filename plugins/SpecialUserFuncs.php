@@ -950,7 +950,7 @@ function page_Special_Register()
             {
               field = {
                 name: '_nil',
-                value: '_nil',
+                value: '_nil'
               }
             }
             // wait until $lang is initted

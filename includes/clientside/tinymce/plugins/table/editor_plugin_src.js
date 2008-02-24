@@ -1,5 +1,5 @@
 /**
- * $Id: editor_plugin_src.js 520 2008-01-07 16:30:32Z spocke $
+ * $Id: editor_plugin_src.js 612 2008-02-19 12:33:44Z spocke $
  *
  * @author Moxiecode
  * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
@@ -72,6 +72,12 @@
 							m.add({title : 'table.desc', icon : 'table', cmd : 'mceInsertTable', ui : true});
 					});
 				}
+			});
+
+			// Add undo level when new rows are created using the tab key
+			ed.onKeyDown.add(function(ed, e) {
+				if (e.keyCode == 9 && ed.dom.getParent(ed.selection.getNode(), 'TABLE'))
+					ed.undoManager.add();
 			});
 
 			ed.onNodeChange.add(function(ed, cm, n) {

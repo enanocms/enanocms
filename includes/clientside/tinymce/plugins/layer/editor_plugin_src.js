@@ -1,5 +1,5 @@
 /**
- * $Id: editor_plugin_src.js 520 2008-01-07 16:30:32Z spocke $
+ * $Id: editor_plugin_src.js 592 2008-02-12 18:09:06Z spocke $
  *
  * @author Moxiecode
  * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
@@ -35,7 +35,7 @@
 
 			ed.onInit.add(function() {
 				if (tinymce.isIE)
-					ed.execCommand('2D-Position');
+					ed.getDoc().execCommand('2D-Position', false, true);
 			});
 
 			ed.onNodeChange.add(t._nodeChange, t);

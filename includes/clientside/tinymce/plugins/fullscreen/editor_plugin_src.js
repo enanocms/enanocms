@@ -1,5 +1,5 @@
 /**
- * $Id: editor_plugin_src.js 544 2008-01-17 13:07:00Z spocke $
+ * $Id: editor_plugin_src.js 609 2008-02-18 16:19:27Z spocke $
  *
  * @author Moxiecode
  * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
@@ -81,6 +81,10 @@
 					s.fullscreen_is_enabled = true;
 					s.fullscreen_editor_id = ed.id;
 					s.theme_advanced_resizing = false;
+					s.save_onsavecallback = function() {
+						ed.setContent(tinyMCE.get(s.id).getContent({format : 'raw'}), {format : 'raw'});
+						ed.execCommand('mceSave');
+					};
 
 					tinymce.each(ed.getParam('fullscreen_settings'), function(v, k) {
 						s[k] = v;
@@ -91,7 +95,7 @@
 
 					t.fullscreenEditor = new tinymce.Editor('mce_fullscreen', s);
 					t.fullscreenEditor.onInit.add(function() {
-						t.fullscreenEditor.setContent(ed.getContent({format : 'raw', no_events : 1}), {format : 'raw', no_events : 1});
+						t.fullscreenEditor.setContent(ed.getContent());
 					});
 
 					t.fullscreenEditor.render();
