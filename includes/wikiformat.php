@@ -150,8 +150,8 @@ class Text_Wiki {
         chdir(ENANO_ROOT);
         
         $class = 'Text_Wiki_' . $parser;
-        $c2 = '._includes_wikiengine_' . $parser;
-        $file = str_replace('_', '/', $c2).'.php';
+        $c2 = $parser;
+        $file = ENANO_ROOT . '/includes/wikiengine/' . str_replace('_', '/', $c2).'.php';
         if (!class_exists($class)) {
             $fp = @fopen($file, 'r', true);
             if ($fp === false) {

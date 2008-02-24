@@ -55,7 +55,9 @@
       // This initializes the Javascript runtime when the DOM is ready - not when the page is
       // done loading, because enano-lib-basic still has to load some 15 other script files
       // check for the init function - this is a KHTML fix
-      if ( typeof ( enano_init ) == 'function' )
+      // This doesn't seem to work properly in IE in 1.1.x - there are some problems with
+      // tinyMCE and l10n.
+      if ( typeof ( enano_init ) == 'function' && !IE )
       {
         enano_init();
         window.onload = function(e) {  };

@@ -2864,7 +2864,6 @@ class sessionManager {
     $q = $this->sql('SELECT code_id, code FROM ' . table_prefix . "captcha WHERE session_id = '$hash' AND source_ip = '{$_SERVER['REMOTE_ADDR']}';");
     if ( $db->numrows() < 1 )
     {
-      die("session manager: no rows for captcha_code $hash");
       return false;
     }
     

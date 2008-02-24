@@ -200,11 +200,11 @@ function password_score_draw(score)
       language_onload();
     }
     else
-    {
+    {      
       return {
-        color: '#000000',
-        fgcolor: '#666666',
-        str: 'Language init failed',
+        'color' : '#000000',
+        'fgcolor' : '#666666',
+        'str' : 'Language init failed'
       };
     }
   }

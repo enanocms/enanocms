@@ -68,6 +68,7 @@ var enano_lang = {
       login_ajax_loggingin: 'Logging in...',
       login_ajax_msg_used_temp_pass: 'You have logged in using a temporary password. Before you can log in, you must finish resetting your password. Do you want to reset your real password now?',
       login_ajax_check_dh: 'Enable strong encryption during logon? <a href="http://docs.enanocms.org/Help:Appendix_B#dh" onclick="window.open(this.href); return false;">Learn more</a>',
+      login_ajax_check_dh_ie: 'Use a standards-compliant browser to help protect your password. <a href="http://docs.enanocms.org/Help:Appendix_B#dh" onclick="window.open(this.href); return false;">Learn more</a>',
       
       err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',
       err_key_not_found_cleared: 'It seems that the list of encryption keys used for login information has reached its maximum length, thus preventing new keys from being inserted. The list has been automatically cleared. Please try logging in again; if you are still unable to log in, please contact the site administration.',

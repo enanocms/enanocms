@@ -327,6 +327,10 @@ function ajaxLoginProcessResponse(response)
   }
   // Rid ourselves of any loading windows
   ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
+  if ( IE )
+  {
+    alert('Login: got AJAX response');
+  }
   // Main mode switch
   switch ( response.mode )
   {
@@ -385,6 +389,10 @@ function ajaxLoginBuildForm(data)
   {
     ajaxLoginSubmitForm();
     return false;
+  }
+  if ( IE )
+  {
+    form.style.marginTop = '-20px';
   }
   
   // Using tables to wrap form elements because it results in a
@@ -473,22 +481,41 @@ function ajaxLoginBuildForm(data)
   form.appendChild(table);
   
   // Field: enable Diffie Hellman
-  var lbl_dh = document.createElement('label');
-  lbl_dh.style.fontSize = 'smaller';
-  lbl_dh.style.display = 'block';
-  lbl_dh.style.textAlign = 'center';
-  var check_dh = document.createElement('input');
-  check_dh.type = 'checkbox';
-  // this onclick attribute changes the cookie whenever the checkbox or label is clicked
-  check_dh.setAttribute('onclick', 'var ck = ( this.checked ) ? "enable" : "disable"; createCookie("diffiehellman_login", ck, 3650);');
-  if ( readCookie('diffiehellman_login') != 'disable' )
-    check_dh.setAttribute('checked', 'checked');
-  check_dh.id = 'ajax_login_field_dh';
-  lbl_dh.appendChild(check_dh);
-  lbl_dh.innerHTML += $lang.get('user_login_ajax_check_dh');
-  form.appendChild(lbl_dh);
+  if ( IE )
+  {
+    var lbl_dh = document.createElement('span');
+    lbl_dh.style.fontSize = 'smaller';
+    lbl_dh.style.display = 'block';
+    lbl_dh.style.textAlign = 'center';
+    lbl_dh.innerHTML = $lang.get('user_login_ajax_check_dh_ie');
+    form.appendChild(lbl_dh);
+  }
+  else
+  {
+    var lbl_dh = document.createElement('label');
+    lbl_dh.style.fontSize = 'smaller';
+    lbl_dh.style.display = 'block';
+    lbl_dh.style.textAlign = 'center';
+    var check_dh = document.createElement('input');
+    check_dh.type = 'checkbox';
+    // this onclick attribute changes the cookie whenever the checkbox or label is clicked
+    check_dh.setAttribute('onclick', 'var ck = ( this.checked ) ? "enable" : "disable"; createCookie("diffiehellman_login", ck, 3650);');
+    if ( readCookie('diffiehellman_login') != 'disable' )
+      check_dh.setAttribute('checked', 'checked');
+    check_dh.id = 'ajax_login_field_dh';
+    lbl_dh.appendChild(check_dh);
+    lbl_dh.innerHTML += $lang.get('user_login_ajax_check_dh');
+    form.appendChild(lbl_dh);
+  }
   
-  div.appendChild(form);
+  if ( IE )
+  {
+    div.innerHTML += form.outerHTML;
+  }
+  else
+  {
+    div.appendChild(form);
+  }
   
   // Diagnostic / help links
   // (only displayed in login, not in re-auth)
@@ -513,10 +540,24 @@ function ajaxLoginBuildForm(data)
   logindata.mb_inner.appendChild(div);
   
   // Post operations: field focus
-  if ( data.username )
-    f_password.focus();
+  if ( IE )
+  {
+    setTimeout(
+      function()
+      {
+        if ( logindata.loggedin_username )
+          document.getElementById('ajax_login_field_password').focus();
+        else
+          document.getElementById('ajax_login_field_username').focus();
+      }, 200);        
+  }
   else
-    f_username.focus();
+  {
+    if ( data.username )
+      f_password.focus();
+    else
+      f_username.focus();
+  }
   
   // Post operations: show captcha window
   if ( show_captcha )
@@ -526,6 +567,7 @@ function ajaxLoginBuildForm(data)
   logindata.key_aes = data.aes_key;
   logindata.key_dh = data.dh_public_key;
   logindata.captcha_hash = show_captcha;
+  logindata.loggedin_username = data.username
   
   // Are we locked out? If so simulate an error and disable the controls
   if ( data.lockout_info.lockout_policy == 'lockout' && data.locked_out )
@@ -573,8 +615,20 @@ function ajaxLoginSubmitForm(real, username, password, captcha)
   }
   else
   {
-    // The user probably clicked ok when the form wasn't in there.
-    return false;
+    if ( IE )
+    {
+      // IE doesn't have this control, continue silently IF the rest
+      // of the login form is there
+      if ( !document.getElementById('ajax_login_field_username') )
+      {
+        return false;
+      }
+    }
+    else
+    {
+      // The user probably clicked ok when the form wasn't in there.
+      return false;
+    }
   }
   if ( !username )
   {
