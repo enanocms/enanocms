@@ -356,8 +356,10 @@ class Request_HTTP
       echo "<pre>";
     }
     
+    $portline = ( $this->port == 80 ) ? '' : ":$this->port";
+    
     $this->_fputs($connection, "{$this->method} {$this->uri}{$get} HTTP/1.1{$newline}");
-    $this->_fputs($connection, "Host: {$this->host}{$newline}");
+    $this->_fputs($connection, "Host: {$this->host}$portline{$newline}");
     $this->_fputs($connection, $headers);
     $this->_fputs($connection, $cookies);
     
@@ -767,7 +769,7 @@ class Request_HTTP
         if ( $i > 1 )
           $get .= '&';
         $value = urlencode($value);
-        if ( !empty($value) )
+        if ( !empty($value) || is_string($value) )
           $get .= "$name=$value";
         else
           $get .= "$name";
