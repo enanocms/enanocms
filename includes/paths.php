@@ -442,7 +442,10 @@ class pathManager {
     if ( substr($url, 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] ||
          substr($url, 0, strlen($this->nslist['Admin']))   == $this->nslist['Admin'])
     {
-      list($url) = explode('/', $url);
+      list(, $ns) = RenderMan::strToPageID($url);
+      $upart = substr($url, strlen($this->nslist[$ns]));
+      list($upart) = explode('/', $upart);
+      $url = $this->nslist[$ns] . $upart;
     }
     return $url;
   }
@@ -492,6 +495,8 @@ class pathManager {
   function getParam($id = 0)
   {
     $title = $this->parse_url(false);
+    list(, $ns) = RenderMan::strToPageID($title);
+    $title = substr($title, strlen($this->nslist[$ns]));
     $regex = '/^' . str_replace('/', '\\/', preg_quote($this->nslist[$this->namespace])) . '\\/?/';
     $title = preg_replace($regex, '', $title);
     $title = explode('/', $title);
