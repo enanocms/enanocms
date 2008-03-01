@@ -275,6 +275,10 @@ function page_Admin_GeneralConfig() {
       setConfig('pw_strength_minimum', $strength);
     }
     
+    // Default theme
+    $default_theme = ( isset($template->named_theme_list[@$_POST['default_theme']]) ) ? $_POST['default_theme'] : $template->theme_list[0]['theme_id'];
+    setConfig('theme_default', $default_theme);
+    
     setConfig('register_tou', RenderMan::preprocess_text($_POST['register_tou'], true, false));
     
     // Account lockout policy
@@ -492,6 +496,28 @@ function page_Admin_GeneralConfig() {
             <?php echo $lang->get('acpgc_field_disablesite_message'); ?><br />
             <textarea name="site_disabled_notice" rows="7" cols="30"><?php echo getConfig('site_disabled_notice'); ?></textarea>
           </div>
+        </td>
+      </tr>
+      
+    <!-- Default theme -->
+    
+      <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_default_theme'); ?></th></tr>
+      
+      <tr>
+        <td class="row2">
+          <?php echo $lang->get('acpgc_field_defualt_theme'); ?>
+        </td>
+        <td class="row2">
+          <select name="default_theme">
+          <?php
+              foreach ( $template->named_theme_list as $theme_id => $theme_data )
+              {
+                $theme_name = htmlspecialchars($theme_data['theme_name']);
+                $selected = ( $theme_id === getConfig('theme_default') ) ? ' selected="selected"' : '';
+                echo "  <option value=\"$theme_id\"$selected>$theme_name</option>\n          ";
+              }
+            ?>
+          </select>
         </td>
       </tr>
       

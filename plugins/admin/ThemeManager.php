@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-function page_Admin_ThemeManager()
+function page_Admin_ThemeManager($force_no_json = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
@@ -83,7 +83,7 @@ function page_Admin_ThemeManager()
   $installable = array_flip($installable);
   
   // AJAX code
-  if ( $paths->getParam(0) === 'action.json' )
+  if ( $paths->getParam(0) === 'action.json' && !$force_no_json )
   {
     return ajaxServlet_Admin_ThemeManager($themes);
   }
@@ -209,290 +209,211 @@ function ajaxServlet_Admin_ThemeManager(&$themes)
       
       // Build a list of group names
       $row['group_names'] = array();
-      foreach ( $row['group_list'] as $group_id )
+      $q = $db->sql_query('SELECT group_id, group_name FROM ' . table_prefix . 'groups;');
+      if ( !$q )
+        $db->die_json();
+      while ( $gr = $db->fetchrow() )
       {
-        $row['group_names'][$group_id] = '';
+        $row['group_names'][ intval($gr['group_id']) ] = $gr['group_name'];
       }
-      if ( count($row['group_names']) > 0 )
+      $db->free_result();
+      
+      // Build a list of usernames
+      $row['usernames'] = array();
+      foreach ( $row['group_list'] as $el )
       {
-        $idlist = 'group_id = ' . implode(' OR group_id = ', array_keys($row['group_names']));
-        $q = $db->sql_query('SELECT group_id, group_name FROM ' . table_prefix . "groups WHERE $idlist;");
+        if ( !preg_match('/^u:([0-9]+)$/', $el, $match) )
+          continue;
+        $uid =& $match[1];
+        $q = $db->sql_query('SELECT username FROM ' . table_prefix . "users WHERE user_id = $uid;");
         if ( !$q )
           $db->die_json();
-        while ( $gr = $db->fetchrow_num() )
+        if ( $db->numrows() < 1 )
         {
-          list($group_id, $group_name) = $gr;
-          $row['group_names'][$group_id] = $group_name;
+          $db->free_result();
+          continue;
         }
+        list($username) = $db->fetchrow_num();
+        $row['usernames'][$uid] = $username;
+        $db->free_result();
       }
       
       echo enano_json_encode($row);
       break;
+    case 'uid_lookup':
+      $username = @$request['username'];
+      if ( empty($username) )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => $lang->get('acptm_err_invalid_username')
+          )));
+      }
+      $username = $db->escape(strtolower($username));
+      $q = $db->sql_query('SELECT user_id, username FROM ' . table_prefix . "users WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username';");
+      if ( !$q )
+        $db->die_json();
+      
+      if ( $db->numrows() < 1 )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => $lang->get('acptm_err_username_not_found')
+          )));
+      }
+      
+      list($uid, $username_real) = $db->fetchrow_num();
+      $db->free_result();
+      
+      echo enano_json_encode(array(
+          'uid' => $uid,
+          'username' => $username_real
+        ));
+      break;
+    case 'save_theme':
+      if ( !isset($request['theme_data']) )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => 'No theme data in request'
+          )));
+      }
+      $theme_data =& $request['theme_data'];
+      // Perform integrity check on theme data
+      $chk_theme_exists = isset($themes[@$theme_data['theme_id']]);
+      $theme_data['theme_name'] = trim(@$theme_data['theme_name']);
+      $chk_name_good = !empty($theme_data['theme_name']);
+      $chk_policy_good = in_array(@$theme_data['group_policy'], array('allow_all', 'whitelist', 'blacklist'));
+      $chk_grouplist_good = true;
+      foreach ( $theme_data['group_list'] as $acl_entry )
+      {
+        if ( !preg_match('/^(u|g):[0-9]+$/', $acl_entry) )
+        {
+          $chk_grouplist_good = false;
+          break;
+        }
+      }
+      $chk_style_good = @in_array(@$theme_data['default_style'], @$themes[@$theme_data['theme_id']]['css']);
+      if ( !$chk_theme_exists || !$chk_name_good || !$chk_policy_good || !$chk_grouplist_good || !$chk_style_good )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => $lang->get('acptm_err_save_validation_failed')
+          )));
+      }
+      
+      $enable = ( $theme_data['enabled'] ) ? '1' : '0';
+      $theme_default = getConfig('theme_default');
+      $warn_default = ( $theme_default === $theme_data['theme_id'] || $theme_data['make_default'] ) ?
+                        ' ' . $lang->get('acptm_warn_access_with_default') . ' ' :
+                        ' ';
+      if ( $enable == 0 && ( $theme_default === $theme_data['theme_id'] || $theme_data['make_default'] ) )
+      {
+        $enable = '1';
+        $warn_default .= $lang->get('acptm_warn_cant_disable_default');
+      }
+      
+      // We're good. Update the theme...
+      $q = $db->sql_query('UPDATE ' . table_prefix . 'themes SET
+                               theme_name = \'' . $db->escape($theme_data['theme_name']) . '\',
+                               default_style = \'' . $db->escape($theme_data['default_style']) . '\',
+                               group_list = \'' . $db->escape(enano_json_encode($theme_data['group_list'])) . '\',
+                               group_policy = \'' . $db->escape($theme_data['group_policy']) . '\',
+                               enabled = ' . $enable . '
+                             WHERE theme_id = \'' . $db->escape($theme_data['theme_id']) . '\';');
+      if ( !$q )
+        $db->die_json();
+      
+      if ( $theme_data['make_default'] )
+      {
+        setConfig('theme_default', $theme_data['theme_id']);
+      }
+      
+      echo '<div class="info-box"><b>' . $lang->get('acptm_msg_save_success') . '</b>' . $warn_default . '</div>';
+      
+      page_Admin_ThemeManager(true);
+      break;
+    case 'install':
+      $theme_id =& $request['theme_id'];
+      if ( !isset($themes[$theme_id]) )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => 'Theme was deleted from themes/ directory or couldn\'t read theme metadata from filesystem'
+          )));
+      }
+      if ( !isset($themes[$theme_id]['css'][0]) )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => 'Theme doesn\'t have any files in css/, thus it can\'t be installed. (translators: l10n?)'
+          )));
+      }
+      // build dataset
+      $theme_name = $db->escape($themes[$theme_id]['theme_name']);
+      $default_style = $db->escape($themes[$theme_id]['css'][0]);
+      $theme_id = $db->escape($theme_id);
+      
+      // insert it
+      $q = $db->sql_query('INSERT INTO ' . table_prefix . "themes(theme_id, theme_name, default_style, enabled, group_list, group_policy)\n"
+                        . "  VALUES( '$theme_id', '$theme_name', '$default_style', 1, '[]', 'allow_all' );");
+      if ( !$q )
+        $db->die_json();
+      
+      // The response isn't processed unless it's in JSON.
+      echo 'Roger that, over and out.';
+      
+      break;
+    case 'uninstall':
+      $theme_id =& $request['theme_id'];
+      $theme_default = getConfig('theme_default');
+      
+      // Validation
+      if ( !isset($themes[$theme_id]) )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => 'Theme was deleted from themes/ directory or couldn\'t read theme metadata from filesystem'
+          )));
+      }
+      
+      if ( $theme_id == $theme_default )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => $lang->get('acptm_err_uninstalling_default')
+          )));
+      }
+      
+      if ( $theme_id == 'oxygen' )
+      {
+        die(enano_json_encode(array(
+            'mode' => 'error',
+            'error' => $lang->get('acptm_err_uninstalling_oxygen')
+          )));
+      }
+      
+      $theme_id = $db->escape($theme_id);
+      
+      $q = $db->sql_query('DELETE FROM ' . table_prefix . "themes WHERE theme_id = '$theme_id';");
+      if ( !$q )
+        $db->die_json();
+      
+      // Change all the users that were on that theme to the default
+      $default_style = $themes[$theme_default]['default_style'];
+      $default_style = preg_replace('/\.css$/', '', $default_style);
+      
+      $theme_default = $db->escape($theme_default);
+      $default_style = $db->escape($default_style);
+      
+      $q = $db->sql_query('UPDATE ' . table_prefix . "users SET theme = '$theme_default', style = '$default_style' WHERE theme = '$theme_id';");
+      if ( !$q )
+        $db->die_json();
+      
+      echo '<div class="info-box">' . $lang->get('acptm_msg_uninstall_success') . '</div>';
+      
+      page_Admin_ThemeManager(true);
+      break;
   }
 }
 
-function page_Admin_ThemeManagerOld() 
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  
-  // Get the list of styles in the themes/ dir
-  $h = opendir('./themes');
-  $l = Array();
-  if(!$h) die('Error opening directory "./themes" for reading.');
-  while(false !== ($n = readdir($h))) {
-    if($n != '.' && $n != '..' && is_dir('./themes/'.$n))
-      $l[] = $n;
-  }
-  closedir($h);
-  echo('
-  <h3>Theme Management</h3>
-   <p>Install, uninstall, and manage Enano themes.</p>
-  ');
-  if(isset($_POST['disenable'])) {
-    $q = 'SELECT enabled FROM '.table_prefix.'themes WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error selecting enabled/disabled state value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    $r = $db->fetchrow_num($s);
-    $db->free_result();
-    if($r[0] == 1) $e = 0;
-    else $e = 1;
-    $s=true;
-    if($e==0)
-    {
-      $c = $db->sql_query('SELECT * FROM '.table_prefix.'themes WHERE enabled=1');
-      if(!$c) $db->_die('The backup check for having at least on theme enabled failed.');
-      if($db->numrows() <= 1) { echo '<div class="warning-box">You cannot disable the last remaining theme.</div>'; $s=false; }
-    }
-    $db->free_result();
-    if($s) {
-    $q = 'UPDATE '.table_prefix.'themes SET enabled='.$e.' WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
-    $a = $db->sql_query($q);
-    if(!$a) die('Error updating enabled/disabled state value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    else echo('<div class="info-box">The theme "'.$_POST['theme_id'].'" has been  '. ( ( $e == '1' ) ? 'enabled' : 'disabled' ).'.</div>');
-    }
-  }
-  elseif(isset($_POST['edit'])) {
-    
-    $dir = './themes/'.$_POST['theme_id'].'/css/';
-    $list = Array();
-    // Open a known directory, and proceed to read its contents
-    if (is_dir($dir)) {
-      if ($dh = opendir($dir)) {
-        while (($file = readdir($dh)) !== false) {
-          if(preg_match('#^(.*?)\.css$#is', $file) && $file != '_printable.css') {
-            $list[$file] = capitalize_first_letter(substr($file, 0, strlen($file)-4));
-          }
-        }
-        closedir($dh);
-      }
-    }
-    $lk = array_keys($list);
-    
-    $q = 'SELECT theme_name,default_style FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error selecting name value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    $r = $db->fetchrow_num($s);
-    $db->free_result();
-    acp_start_form();
-    echo('<div class="question-box">
-          Theme name displayed to users: <input type="text" name="name" value="'.$r[0].'" /><br /><br />
-          Default stylesheet: <select name="defaultcss">');
-    foreach ($lk as $l)
-    {
-      if($r[1] == $l) $v = ' selected="selected"';
-      else $v = '';
-      echo "<option value='{$l}'$v>{$list[$l]}</option>";
-    }
-    echo('</select><br /><br />
-          <input type="submit" name="editsave" value="OK" /><input type="hidden" name="theme_id" value="'.$_POST['theme_id'].'" />
-          </div>');
-    echo('</form>');
-  }
-  elseif(isset($_POST['editsave'])) {
-    $q = 'UPDATE '.table_prefix.'themes SET theme_name=\'' . $db->escape($_POST['name']) . '\',default_style=\''.$db->escape($_POST['defaultcss']).'\' WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error updating name value: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    else echo('<div class="info-box">Theme data updated.</div>');
-  }
-  elseif(isset($_POST['up'])) {
-    // If there is only one theme or if the selected theme is already at the top, do nothing
-    $q = 'SELECT theme_order FROM '.table_prefix.'themes ORDER BY theme_order;';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
-    $sn = $db->sql_query($q);
-    if(!$sn) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    $r = $db->fetchrow_num($sn);
-    if( /* check for only one theme... */ $db->numrows($s) < 2 || $r[0] == 1 /* ...and check if this theme is already at the top */ ) { echo('<div class="warning-box">This theme is already at the top of the list, or there is only one theme installed.</div>'); } else {
-      // Get the order IDs of the selected theme and the theme before it
-      $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\'' . $db->escape($_POST['theme_id']) . '\'';
-      $s = $db->sql_query($q);
-      if(!$s) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-      $r = $db->fetchrow_num($s);
-      $r = $r[0];
-      $rb = $r - 1;
-      // Thank God for jEdit's rectangular selection and the ablity to edit multiple lines at the same time ;)
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-      echo('<div class="info-box">Theme moved up.</div>');
-    }
-    $db->free_result($s);
-    $db->free_result($sn);
-  }
-  elseif(isset($_POST['down'])) {
-    // If there is only one theme or if the selected theme is already at the top, do nothing
-    $q = 'SELECT theme_order FROM '.table_prefix.'themes ORDER BY theme_order;';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    $r = $db->fetchrow_num($s);
-    if( /* check for only one theme... */ $db->numrows($s) < 2 || $r[0] == $db->numrows($s) /* ...and check if this theme is already at the bottom */ ) { echo('<div class="warning-box">This theme is already at the bottom of the list, or there is only one theme installed.</div>'); } else {
-      // Get the order IDs of the selected theme and the theme before it
-      $q = 'SELECT theme_order FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\'';
-      $s = $db->sql_query($q);
-      if(!$s) die('Error selecting order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-      $r = $db->fetchrow_num($s);
-      $r = $r[0];
-      $rb = $r + 1;
-      // Thank God for jEdit's rectangular selection and the ablity to edit multiple lines at the same time ;)
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order=0 WHERE theme_order='.$rb.'';      /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$rb.' WHERE theme_order='.$r.''; /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-      $q = 'UPDATE '.table_prefix.'themes SET theme_order='.$r.' WHERE theme_order=0';       /* Check for errors... <sigh> */ $s = $db->sql_query($q); if(!$s) die('Error updating order information: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-      echo('<div class="info-box">Theme moved down.</div>');
-    }
-  }
-  else if(isset($_POST['uninstall'])) 
-  {
-    $q = 'SELECT * FROM '.table_prefix.'themes;';
-    $s = $db->sql_query($q);
-    if ( !$s )
-    {
-      die('Error getting theme count: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    }
-    $n = $db->numrows($s);
-    $db->free_result();
-    
-    if ( $_POST['theme_id'] == 'oxygen' )
-    {
-      echo '<div class="error-box">The Oxygen theme is used by Enano for installation, upgrades, and error messages, and cannot be uninstalled.</div>';
-    }
-    else
-    {
-      if($n < 2)
-      {
-        echo '<div class="error-box">The theme could not be uninstalled because it is the only theme left.</div>';
-      }
-      else
-      {
-        $q = 'DELETE FROM '.table_prefix.'themes WHERE theme_id=\''.$db->escape($_POST['theme_id']).'\' LIMIT 1;';
-        $s = $db->sql_query($q);
-        if ( !$s )
-        {
-          die('Error deleting theme data: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-        }
-        else
-        {
-          echo('<div class="info-box">Theme uninstalled.</div>');
-        }
-      }
-    }
-  }
-  elseif(isset($_POST['install'])) {
-    $q = 'SELECT theme_id FROM '.table_prefix.'themes;';
-    $s = $db->sql_query($q);
-    if(!$s) die('Error getting theme count: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-    $n = $db->numrows($s);
-    $n++;
-    $theme_id = $_POST['theme_id'];
-    $theme = Array();
-    include('./themes/'.$theme_id.'/theme.cfg');
-    if ( !isset($theme['theme_id']) )
-    {
-      echo '<div class="error-box">Could not load theme.cfg (theme metadata file)</div>';
-    }
-    else
-    {
-      $default_style = false;
-      if ( $dh = opendir('./themes/' . $theme_id . '/css') )
-      {
-        while ( $file = readdir($dh) )
-        {
-          if ( $file != '_printable.css' && preg_match('/\.css$/i', $file) )
-          {
-            $default_style = $file;
-            break;
-          }
-        }
-        closedir($dh);
-      }
-      else
-      {
-        die('The /css subdirectory could not be located in the theme\'s directory');
-      }
-      
-      if ( $default_style )
-      {
-        $q = 'INSERT INTO '.table_prefix.'themes(theme_id,theme_name,theme_order,enabled,default_style) VALUES(\''.$db->escape($theme['theme_id']).'\', \''.$db->escape($theme['theme_name']).'\', '.$n.', 1, \'' . $db->escape($default_style) . '\')';
-        $s = $db->sql_query($q);
-        if(!$s) die('Error inserting theme data: '.$db->get_error().'<br /><u>SQL:</u><br />'.$q);
-        else echo('<div class="info-box">Theme "'.$theme['theme_name'].'" installed.</div>');
-      }
-      else
-      {
-        echo '<div class="error-box">Could not determine the default style for the theme.</div>';
-      }
-    }
-  }
-  echo('
-  <h3>Currently installed themes</h3>
-    <form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post">
-    <p>
-      <select name="theme_id">
-        ');
-        $q = 'SELECT theme_id,theme_name,enabled FROM '.table_prefix.'themes ORDER BY theme_order';
-        $s = $db->sql_query($q);
-        if(!$s) die('Error selecting theme data: '.$db->get_error().'<br /><u>Attempted SQL:</u><br />'.$q);
-        while ( $r = $db->fetchrow_num($s) ) {
-          if($r[2] < 1) $r[1] .= ' (disabled)';
-          echo('<option value="'.$r[0].'">'.$r[1].'</option>');
-        }
-        $db->free_result();
-        echo('
-        </select> <input type="submit" name="disenable" value="Enable/Disable" /> <input type="submit" name="edit" value="Change settings" /> <input type="submit" name="up" value="Move up" /> <input type="submit" name="down" value="Move down" /> <input type="submit" name="uninstall" value="Uninstall" style="color: #DD3300; font-weight: bold;" />
-      </p>
-    </form>
-    <h3>Install a new theme</h3>
-  ');
-    $theme = Array();
-    $obb = '';
-    for($i=0;$i<sizeof($l);$i++) {
-      if(is_file('./themes/'.$l[$i].'/theme.cfg') && file_exists('./themes/'.$l[$i].'/theme.cfg')) {
-        include('./themes/'.$l[$i].'/theme.cfg');
-        $q = 'SELECT * FROM '.table_prefix.'themes WHERE theme_id=\''.$theme['theme_id'].'\'';
-        $s = $db->sql_query($q);
-        if(!$s) die('Error selecting list of currently installed themes: '.$db->get_error().'<br /><u>Attempted SQL:</u><br />'.$q);
-        if($db->numrows($s) < 1) {
-          $obb .= '<option value="'.$theme['theme_id'].'">'.$theme['theme_name'].'</option>';
-        }
-        $db->free_result();
-      }
-    }
-    if($obb != '') {
-      echo('<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post"><p>');
-      echo('<select name="theme_id">');
-      echo($obb);
-      echo('</select>');
-      echo('
-      <input type="submit" name="install" value="Install this theme" />
-      </p></form>');
-    } else echo('<p>All themes are currently installed.</p>');
-}

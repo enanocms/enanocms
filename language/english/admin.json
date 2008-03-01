@@ -211,6 +211,10 @@ var enano_lang = {
       field_disablesite: 'Disable this site',
       field_disablesite_message: 'Message to show to users:',
       
+      // Section: default theme
+      heading_default_theme: 'Visual defaults',
+      field_defualt_theme: 'Default theme for guests and new users:',
+      
       // Main section: users and communication
       heading_users: 'Users and communication',
       
@@ -317,7 +321,7 @@ var enano_lang = {
       // Section Defective By Design link
       heading_dbd: 'Defective By Design Anti-DRM button',
       dbd_intro: 'The Enano project is strongly against Digital Restrictions Management.',
-      dbd_explain: 'DRM removes the freedoms that every consumer should have: to freely copy and use digital media items they legally purchased to their own devices. Showing your opposition to DRM is as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
+      dbd_explain: 'DRM removes the freedoms that every consumer should have: to freely copy and use digital media items they legally purchased to their own devices. Furthermore, DRM technologies can lock you into a specific brand or product, thus stifling interoperability. Showing your opposition to DRM is as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
       field_stopdrm: 'Help stop DRM by placing a link to DBD on the sidebar!',
       
       // Save button
@@ -449,7 +453,28 @@ var enano_lang = {
       field_default_theme: 'Site-wide default theme:',
       field_default_msg_current: 'This is the current default',
       field_default_btn_make_default: 'Make this the default theme when I click Save',
+      field_disable_title: 'Disable theme: ',
+      field_disable: 'Prevent all users and guests from using this theme',
       heading_theme_groups: 'User and group policy',
+      field_policy: 'Theme access policy:',
+      field_policy_allow_all: 'Allow everyone to use this theme',
+      field_policy_whitelist: 'Only allow the users and groups I select below',
+      field_policy_blacklist: 'Allow everyone except what I select below',
+      field_acl_heading_groups: 'Groups',
+      field_acl_heading_users: 'Users',
+      field_acl_add_user: 'Add a user: ',
+      btn_uninstall_theme: 'Uninstall theme',
+      msg_uninstall_confirm: 'Are you sure you want to uninstall this theme?',
+      
+      err_invalid_username: 'Please enter a valid username.',
+      err_username_not_found: 'The user you entered does not exist.',
+      err_save_validation_failed: 'One or more of the fields in the form is incorrect. Please ensure that you have entered a proper value for all of the fields in the theme editing form, and then click %this.etc_save_changes% again.',
+      err_uninstalling_default: 'You cannot uninstall the default theme.',
+      err_uninstalling_oxygen: 'You cannot uninstall the Oxygen theme because it\'s used for important functions such as database errors.',
+      warn_cant_disable_default: 'Please note that the theme was not disabled because it is currently the default.',
+      warn_access_with_default: 'If you selected to whitelist or blacklist certain users, that choice will not apply to guests because this is the default theme.',
+      msg_save_success: 'Your changes to this theme have been saved.',
+      msg_uninstall_success: 'The selected theme has been uninstalled.',
     },
     acpdb: {
       err_not_supported_title: 'Not supported',
