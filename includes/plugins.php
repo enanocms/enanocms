@@ -12,11 +12,55 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
  
+/**
+ * Class used to handle and process plugin requests and loading. Singleton.
+ * @package Enano
+ * @author Dan Fuhry <dan@enanocms.org>
+ * @copyright (C) 2006-2008 Enano Project
+ * @license GNU General Public License <http://enanocms.org/Special:GNU_General_Public_License>
+ */
+
 class pluginLoader {
+  
+  /**
+   * The list of hooks registered.
+   * @var array
+   * @access private
+   */
+  
   var $hook_list;
+  
+  /**
+   * The list of plugins that should be loaded. Used only by common.php.
+   * @var array
+   * @access private
+   */
+  
   var $load_list;
+  
+  /**
+   * The list of plugins that are loaded currently. This is only used by the loaded() method which in turn is
+   * used by template files with the <!-- IFPLUGIN --> special tag.
+   * @var array
+   * @access private
+   */
+  
   var $loaded_plugins;
+  
+  /**
+   * The list of plugins that are always loaded because they're part of the Enano core. This cannot be modified
+   * by any external code because user plugins are loaded after the load_list is calculated. Can be useful in
+   * alternative administration panel frameworks that need the list of system plugins.
+   * @var array
+   */
+  
   var $system_plugins = Array('SpecialUserFuncs.php','SpecialUserPrefs.php','SpecialPageFuncs.php','SpecialAdmin.php','SpecialCSS.php','SpecialUpdownload.php','SpecialSearch.php','PrivateMessages.php','SpecialGroups.php', 'SpecialRecentChanges.php');
+  
+  /**
+   * Name kept for compatibility. Effectively a constructor. Calculates the list of plugins that should be loaded
+   * and puts that list in the $load_list property. Plugin developers have absolutely no use for this whatsoever.
+   */
+  
   function loadAll() 
   {
     $dir = ENANO_ROOT.'/plugins/';
@@ -66,18 +110,23 @@ class pluginLoader {
     $this->loaded_plugins = $plugins;
     //die('<pre>'.htmlspecialchars(print_r($plugins, true)).'</pre>');
   }
+  
+  /**
+   * Name kept for compatibility. This method is used to add a new hook into the code somewhere. Plugins are encouraged
+   * to set hooks and hook into other plugins in a fail-safe way, this encourages reuse of code. Returns an array, whose
+   * values should be eval'ed.
+   * @example <code>
+   $code = $plugins->setHook('my_hook_name');
+   foreach ( $code as $cmd )
+   {
+     eval($cmd);
+   }
+   </code>
+   * @param string The name of the hook.
+   * @param array Deprecated.
+   */
+  
   function setHook($name, $opts = Array()) {
-    /*
-    $r = Array();
-    if(isset($this->hook_list[$name])) {
-      for($i=0;$i<sizeof($this->hook_list[$name]);$i++) {
-        $ret = eval($this->hook_list[$name][$i]);
-        if($ret !== null) $r[] = $ret;
-      }
-    }
-    if(sizeof($r) > 0) return $r;
-    else return false;
-    */
     if(isset($this->hook_list[$name]) && is_array($this->hook_list[$name]))
     {
       return array(implode("\n", $this->hook_list[$name]));
@@ -87,6 +136,24 @@ class pluginLoader {
       return Array();
     }
   }
+  
+  /**
+   * Attaches to a hook effectively scheduling some code to be run at that point. You should try to keep hooks clean by
+   * making a function that has variables that need to be modified passed by reference.
+   * @example Simple example: <code>
+   $plugins->attachHook('render_wikiformat_pre', '$text = str_replace("Goodbye, Mr. Chips", "Hello, Mr. Carrots", $text);');
+   </code>
+   * @example More complicated example: <code>
+   $plugins->attachHook('render_wikiformat_pre', 'myplugin_parser_ext($text);');
+   
+   // Notice that $text is passed by reference.
+   function myplugin_parser_ext(&$text)
+   {
+     $text = str_replace("Goodbye, Mr. Chips", "Hello, Mr. Carrots", $text);
+   }
+   </code>
+   */
+  
   function attachHook($name, $code) {
     if(!isset($this->hook_list[$name]))
     {
@@ -94,6 +161,13 @@ class pluginLoader {
     }
     $this->hook_list[$name][] = $code;
   }
+  
+  /**
+   * Tell whether a plugin is loaded or not.
+   * @param string The filename of the plugin
+   * @return bool
+   */
+  
   function loaded($plugid)
   {
     return isset( $this->loaded_plugins[$plugid] );
