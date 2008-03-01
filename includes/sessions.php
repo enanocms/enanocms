@@ -1112,8 +1112,8 @@ class sessionManager {
     // $keyhash is stored in the database, this is for compatibility with the older DB structure
     $keyhash = md5($session_key);
     // Record the user's IP
-    $ip = ip2hex($_SERVER['REMOTE_ADDR']);
-    if(!$ip)
+    $ip = $_SERVER['REMOTE_ADDR'];
+    if(!is_valid_ip($ip))
       die('$session->register_session: Remote-Addr was spoofed');
     // The time needs to be stashed to enforce the 15-minute limit on elevated session keys
     $time = time();
@@ -1179,7 +1179,7 @@ class sessionManager {
     else
     {
       $this->theme = ( isset($_GET['theme']) && isset($template->named_theme_list[$_GET['theme']])) ? $_GET['theme'] : $template->default_theme;
-      $this->style = ( isset($_GET['style']) && file_exists(ENANO_ROOT.'/themes/'.$this->theme . '/css/'.$_GET['style'].'.css' )) ? $_GET['style'] : substr($template->named_theme_list[$this->theme]['default_style'], 0, strlen($template->named_theme_list[$this->theme]['default_style'])-4);
+      $this->style = ( isset($_GET['style']) && file_exists(ENANO_ROOT.'/themes/'.$this->theme . '/css/'.$_GET['style'].'.css' )) ? $_GET['style'] : preg_replace('/\.css$/', '', $template->named_theme_list[$this->theme]['default_style']);
     }
     $this->user_id = 1;
     // This is a VERY special case we are allowing. It lets the installer create languages using the Enano API.
@@ -1250,7 +1250,7 @@ class sessionManager {
     }
     $row = $db->fetchrow();
     $row['user_id'] =& $row['uid'];
-    $ip = ip2hex($_SERVER['REMOTE_ADDR']);
+    $ip = $_SERVER['REMOTE_ADDR'];
     if($row['auth_level'] > $row['user_level'])
     {
       // Failed authorization check
@@ -3513,5 +3513,21 @@ class Session_ACLPageInfo {
   }
   
 }
+
+/**
+ * Cron task - clears out the database of Diffie-Hellman keys
+ */
+
+function cron_clean_login_cache()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  if ( !$db->sql_query('DELETE FROM ' . table_prefix . 'diffiehellman;') )
+    $db->_die();
+  
+  setConfig('login_key_cache', '');
+}
+
+register_cron_task('cron_clean_login_cache', 72);
 
 ?>
