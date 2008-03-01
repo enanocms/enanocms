@@ -75,7 +75,7 @@ CREATE TABLE {{TABLE_PREFIX}}session_keys(
   salt varchar(32),
   user_id mediumint(8),
   auth_level tinyint(1) NOT NULL DEFAULT '0',
-  source_ip varchar(10) default '0x7f000001',
+  source_ip varchar(39) NOT NULL DEFAULT '127.0.0.1',
   time bigint(15) default '0'
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
@@ -86,7 +86,7 @@ CREATE TABLE {{TABLE_PREFIX}}themes(
   default_style varchar(63) NOT NULL DEFAULT '',
   enabled tinyint(1) NOT NULL DEFAULT '1',
   group_list text DEFAULT NULL,
-  group_policy ENUM('allow', 'deny') NOT NULL DEFAULT 'deny'
+  group_policy ENUM('allow_all', 'whitelist', 'blacklist') NOT NULL DEFAULT 'allow_all'
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}users(

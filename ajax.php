@@ -157,42 +157,53 @@
         }
       }
       
+      $return['undo_info'] = array();
+      
       if ( $revid > 0 )
       {
         // Retrieve information about this revision and the current one
         $q = $db->sql_query('SELECT l1.author AS currentrev_author, l2.author AS oldrev_author FROM ' . table_prefix . 'logs AS l1
   LEFT JOIN ' . table_prefix . 'logs AS l2
-    ON ( l2.time_id = ' . $revid . '
+    ON ( l2.log_id = ' . $revid . '
          AND l2.log_type  = \'page\'
          AND l2.action    = \'edit\'
          AND l2.page_id   = \'' . $db->escape($paths->page_id)   . '\'
          AND l2.namespace = \'' . $db->escape($paths->namespace) . '\'
+         AND l2.is_draft != 1
         )
   WHERE l1.log_type  = \'page\'
     AND l1.action    = \'edit\'
     AND l1.page_id   = \'' . $db->escape($paths->page_id)   . '\'
     AND l1.namespace = \'' . $db->escape($paths->namespace) . '\'
-    AND l1.time_id >= ' . $revid . '
+    AND l1.time_id   > ' . $page->revision_time . '
+    AND l1.is_draft != 1
   ORDER BY l1.time_id DESC;');
         if ( !$q )
           $db->die_json();
         
-        $rev_count = $db->numrows() - 1;
-        if ( $rev_count == -1 )
+        if ( $db->numrows() > 0 )
         {
-          $return = array(
-              'mode' => 'error',
-              'error' => '[Internal] No rows returned by revision info query. SQL:<pre>' . $db->latest_query . '</pre>'
+          $rev_count = $db->numrows() - 1;
+          if ( $rev_count == -1 )
+          {
+            $return = array(
+                'mode' => 'error',
+                'error' => '[Internal] No rows returned by revision info query. SQL:<pre>' . $db->latest_query . '</pre>'
+              );
+          }
+          else
+          {
+            $row = $db->fetchrow();
+            $return['undo_info'] = array(
+              'old_author'     => $row['oldrev_author'],
+              'current_author' => $row['currentrev_author'],
+              'undo_count'     => $rev_count
             );
+          }
         }
         else
         {
-          $row = $db->fetchrow();
-          $return['undo_info'] = array(
-            'old_author'     => $row['oldrev_author'],
-            'current_author' => $row['currentrev_author'],
-            'undo_count'     => $rev_count
-          );
+          $return['revid'] = $revid = 0;
         }
       }
       
@@ -218,6 +229,7 @@
       $page->send();
       break;
     case "savepage":
+      /* **** OBSOLETE **** */
       $summ = ( isset($_POST['summary']) ) ? $_POST['summary'] : '';
       $minor = isset($_POST['minor']);
       $e = PageUtils::savepage($paths->page_id, $paths->namespace, $_POST['text'], $summ, $minor);
@@ -346,15 +358,15 @@
             $return['new_captcha'] = $session->make_captcha();
           }
         }
-        
-        // If this is based on a draft version, delete the draft - we no longer need it.
-        if ( @$request['used_draft'] )
-        {
-          $q = $db->sql_query('DELETE FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
-                                 AND page_id = \'' . $db->escape($paths->page_id) . '\'
-                                 AND namespace = \'' . $db->escape($paths->namespace) . '\'
-                                 AND is_draft = 1;');
-        }
+      }
+      
+      // If this is based on a draft version, delete the draft - we no longer need it.
+      if ( @$request['used_draft'] )
+      {
+        $q = $db->sql_query('DELETE FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
+                               AND page_id = \'' . $db->escape($paths->page_id) . '\'
+                               AND namespace = \'' . $db->escape($paths->namespace) . '\'
+                               AND is_draft = 1;');
       }
       
       echo enano_json_encode($return);
@@ -385,13 +397,23 @@
       
       break;
     case "protect":
-      echo PageUtils::protect($paths->page_id, $paths->namespace, (int)$_POST['level'], $_POST['reason']);
+      // echo PageUtils::protect($paths->page_id, $paths->namespace, (int)$_POST['level'], $_POST['reason']);
+      $page = new PageProcessor($paths->page_id, $paths->namespace);
+      header('Content-type: application/json');
+      
+      $result = $page->protect_page(intval($_POST['level']), $_POST['reason']);
+      echo enano_json_encode($result);
       break;
     case "histlist":
       echo PageUtils::histlist($paths->page_id, $paths->namespace);
       break;
     case "rollback":
-      echo PageUtils::rollback( (int)$_GET['id'] );
+      $id = intval(@$_GET['id']);
+      $page = new PageProcessor($paths->page_id, $paths->namespace);
+      header('Content-type: application/json');
+      
+      $result = $page->rollback_log_entry($id);
+      echo enano_json_encode($result);
       break;
     case "comments":
       $comments = new Comments($paths->page_id, $paths->namespace);
@@ -405,7 +427,11 @@
       }
       break;
     case "rename":
-      echo PageUtils::rename($paths->page_id, $paths->namespace, $_POST['newtitle']);
+      $page = new PageProcessor($paths->page_id, $paths->namespace);
+      header('Content-type: application/json');
+      
+      $result = $page->rename_page($_POST['newtitle']);
+      echo enano_json_encode($result);
       break;
     case "flushlogs":
       echo PageUtils::flushlogs($paths->page_id, $paths->namespace);

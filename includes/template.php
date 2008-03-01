@@ -130,7 +130,7 @@ class template {
     if ( !$this->theme )
     {
       $this->theme = $this->theme_list[0]['theme_id'];
-      $this->style = substr($this->theme_list[0]['default_style'], 0, strlen($this->theme_list[0]['default_style'])-4);
+      $this->style = preg_replace('/\.css$/', '', $this->theme_list[0]['default_style']);
     }
     $this->theme_loaded = true;
   }

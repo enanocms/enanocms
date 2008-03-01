@@ -20,27 +20,24 @@
 define('ENANO_GIF_SPACER', base64_decode('R0lGODlhAQABAIAAAP///////yH+FUNyZWF0ZWQgd2l0aCBUaGUgR0lNUAAh+QQBCgABACwAAAAAAQABAAACAkwBADs='));
 
 // Don't need a page to load, all we should need is the Enano API
-$_GET['title'] = 'Enano:Cron';
 require('includes/common.php');
 
 global $db, $session, $paths, $template, $plugins; // Common objects
 
 // Hope now that plugins are loaded :-)
-$last_run = ( $x = getConfig('cron_last_run') ) ? $x : 0;
-$time = strval(time());
-setConfig('cron_last_run', $time);
-
 global $cron_tasks;
 
 foreach ( $cron_tasks as $interval => $tasks )
 {
-  $last_run_threshold = time() - ( $interval * 3600 );
+  $last_run = intval(getConfig("cron_lastrun_ivl_$interval"));
+  $last_run_threshold = time() - ( 3600 * $interval );
   if ( $last_run_threshold >= $last_run )
   {
     foreach ( $tasks as $task )
     {
       @call_user_func($task);
     }
+    setConfig("cron_lastrun_ivl_$interval", strval(time()));
   }
 }
 

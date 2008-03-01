@@ -103,8 +103,8 @@ class mysql {
   function die_json()
   {
     $e = addslashes(htmlspecialchars(mysql_error()));
-    $q = addslashes($this->latest_query);
-    $t = "{'mode':'error','error':'An error occurred during database query.\nQuery was:\n  $q\n\nError returned by MySQL: $e'}";
+    $q = str_replace("\n", "\\n", addslashes($this->latest_query));
+    $t = "{'mode':'error','error':'An error occurred during database query.\\nQuery was:\\n  $q\\n\\nError returned by MySQL: $e'}";
     die($t);
   }
   

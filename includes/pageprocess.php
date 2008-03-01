@@ -55,6 +55,13 @@ class PageProcessor
   var $revision_id = 0;
   
   /**
+   * The time this revision was saved, as a UNIX timestamp
+   * @var int
+   */
+  
+  var $revision_time = 0;
+  
+  /**
    * Unsanitized page ID.
    * @var string
    */
@@ -460,6 +467,14 @@ class PageProcessor
       return false;
     }
     
+    // If there's an identical draft copy, delete it
+    $sql = 'DELETE FROM ' . table_prefix . "logs WHERE is_draft = 1 AND page_id = '{$this->page_id}' AND namespace = '{$this->namespace}' AND page_text = '{$text}';";
+    if ( !$db->sql_query($sql) )
+    {
+      $this->raise_error($db->get_error());
+      return false;
+    }
+    
     // Rebuild the search index
     $paths->rebuild_page_index($this->page_id, $this->namespace);
     
@@ -557,6 +572,200 @@ class PageProcessor
     
     // Page created. We're good!
     return true;
+  }
+  
+  /**
+   * Rolls back a non-edit action in the logs
+   * @param int Log entry (log_id) to roll back
+   * @return array Standard Enano error/success protocol
+   */
+  
+  function rollback_log_entry($log_id)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Verify permissions
+    if ( !$this->perms->get_permissions('history_rollback') )
+    {
+      return array(
+        'success' => false,
+        'error' => 'access_denied'
+        );
+    }
+    
+    // Check input
+    $log_id = intval($log_id);
+    if ( empty($log_id) )
+    {
+      return array(
+        'success' => false,
+        'error' => 'invalid_parameter'
+        );
+    }
+    
+    // Fetch the log entry
+    $q = $db->sql_query('SELECT * FROM ' . table_prefix . "logs WHERE log_type = 'page' AND page_id='{$this->page_id}' AND namespace='{$this->namespace}' AND log_id = $log_id;");
+    if ( !$q )
+      $db->_die();
+    
+    // Is this even a valid log entry for this context?
+    if ( $db->numrows() < 1 )
+    {
+      return array(
+        'success' => false,
+        'error' => 'entry_not_found'
+        );
+    }
+    
+    // All good, fetch and free the result
+    $log_entry = $db->fetchrow();
+    $db->free_result();
+    
+    // Let's see, what do we have here...
+    switch ( $log_entry['action'] )
+    {
+      case 'rename':
+        // Page was renamed, let the rename method handle this
+        return $this->rename($log_entry['edit_summary']);
+        break;
+      case 'prot':
+      case 'unprot':
+      case 'semiprot':
+        return $this->protect_page(intval($log_entry['page_text']), '__REVERSION__');
+        break;
+      default:
+        break;
+    }
+  }
+  
+  /**
+   * Renames the page
+   * @param string New name
+   * @return array Standard Enano error/success protocol
+   */
+  
+  function rename_page($new_name)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Check permissions
+    if ( !$this->perms->get_permissions('rename') )
+    {
+      return array(
+        'success' => false,
+        'error' => 'access_denied'
+        );
+    }
+    
+    // If this is the same as the current name, return success
+    $page_name = get_page_title_ns($this->page_id, $this->namespace);
+    if ( $page_name === $new_name )
+    {
+      return array(
+        'success' => true
+        );
+    }
+    
+    // Make sure the name is valid
+    $new_name = trim($new_name);
+    if ( empty($new_name) )
+    {
+      return array(
+        'success' => false,
+        'error' => 'invalid_parameter'
+        );
+    }
+    
+    // Log the action
+    $username = $db->escape($session->username);
+    $page_name = $db->escape($page_name);
+    $time = time();
+    
+    $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs ( log_type, action, page_id, namespace, author, edit_summary, time_id, date_string ) VALUES\n"
+                      . "  ( 'page', 'rename', '{$this->page_id}', '{$this->namespace}', '$username', '$page_name', '$time', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );");
+    if ( !$q )
+      $db->_die();
+    
+    // Not much to do but to rename it now
+    $new_name = $db->escape($new_name);
+    $q = $db->sql_query('UPDATE ' . table_prefix . "pages SET name = '$new_name' WHERE urlname = '{$this->page_id}' AND namespace = '{$this->namespace}';");
+    if ( !$q )
+      $db->_die();
+    
+    return array(
+      'success' => true
+      );
+  }
+  
+  /**
+   * Sets the protection level of the page
+   * @param int Protection level, one of PROTECT_{FULL,SEMI,NONE}
+   * @param string Reason for protection - required
+   */
+  
+  function protect_page($protection_level, $reason)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Validate permissions
+    if ( !$this->perms->get_permissions('protect') )
+    {
+      return array(
+        'success' => false,
+        'error' => 'access_denied'
+        );
+    }
+    
+    // Validate input
+    $reason = trim($reason);
+    if ( !in_array($protection_level, array(PROTECT_NONE, PROTECT_FULL, PROTECT_SEMI)) || empty($reason) )
+    {
+      return array(
+        'success' => false,
+        'error' => 'invalid_parameter'
+        );
+    }
+    
+    // Retrieve page metadata
+    $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
+    if ( !isset($paths->pages[$pathskey]) )
+    {
+      return array(
+        'success' => false,
+        'error' => 'page_metadata_not_found'
+        );
+    }
+    $metadata =& $paths->pages[$pathskey];
+    
+    // Log the action
+    $username = $db->escape($session->username);
+    $time = time();
+    $existing_protection = intval($metadata['protected']);
+    $reason = $db->escape($reason);
+    
+    $action = '[ insanity ]';
+    switch($protection_level)
+    {
+      case PROTECT_FULL: $action = 'prot'; break;
+      case PROTECT_NONE: $action = 'unprot'; break;
+      case PROTECT_SEMI: $action = 'semiprot'; break;
+    }
+    
+    $sql = 'INSERT INTO ' . table_prefix . "logs ( log_type, action, page_id, namespace, author, edit_summary, time_id, page_text, date_string ) VALUES\n"
+         . "  ( 'page', '$action', '{$this->page_id}', '{$this->namespace}', '$username', '$reason', '$time', '$existing_protection', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );";
+    if ( !$db->sql_query($sql) )
+    {
+      $db->_die();
+    }
+    
+    // Perform the actual protection
+    $q = $db->sql_query('UPDATE ' . table_prefix . "pages SET protected = $protection_level WHERE urlname = '{$this->page_id}' AND namespace = '{$this->namespace}';");
+    if ( !$q )
+      $db->_die();
+    
+    return array(
+      'success' => true
+      );
   }
   
   /**
@@ -710,14 +919,13 @@ class PageProcessor
       echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;">
               <b>' . $lang->get('page_msg_archived_title') . '</b><br />
               ' . $lang->get('page_msg_archived_body', array(
-                  'archive_date' => enano_date('F d, Y', $this->revision_id),
-                  'archive_time' => enano_date('h:i a', $this->revision_id),
+                  'archive_date' => enano_date('F d, Y', $this->revision_time),
+                  'archive_time' => enano_date('h:i a', $this->revision_time),
                   'current_link' => makeUrlNS($this->namespace, $this->page_id),
-                  'restore_link' => makeUrlNS($this->namespace, $this->page_id, 'do=rollback&amp;id='.$this->revision_id),
-                  'restore_onclick' => 'ajaxRollback(\''.$this->revision_id.'\'); return false;',
+                  'restore_link' => makeUrlNS($this->namespace, $this->page_id, 'do=edit&amp;revid='.$this->revision_id),
+                  'restore_onclick' => 'ajaxEditor(\''.$this->revision_id.'\'); return false;',
                 )) . '
-            </div>
-            <br />';
+            </div>';
     }
     
     if ( $redir_enabled )
@@ -796,7 +1004,7 @@ class PageProcessor
     if ( $this->revision_id > 0 && is_int($this->revision_id) )
     {
     
-      $q = $db->sql_query('SELECT page_text, char_tag, date_string FROM '.table_prefix.'logs WHERE page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' AND time_id=' . $this->revision_id . ';');
+      $q = $db->sql_query('SELECT page_text, char_tag, time_id FROM '.table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' AND log_id=' . $this->revision_id . ';');
       if ( !$q )
       {
         $this->send_error('Error during SQL query.', true);
@@ -808,7 +1016,7 @@ class PageProcessor
         {
           $db->free_result();
           $page_id = str_replace('.2e', '.', $this->page_id);
-          $q = $db->sql_query('SELECT page_text, char_tag, date_string FROM '.table_prefix.'logs WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $this->namespace . '\' AND time_id=' . $this->revision_id . ';');
+          $q = $db->sql_query('SELECT page_text, char_tag, time_id FROM '.table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $this->namespace . '\' AND log_id=' . $this->revision_id . ';');
           if ( !$q )
           {
             $this->send_error('Error during SQL query.', true);
@@ -884,6 +1092,11 @@ class PageProcessor
     }
     
     $this->text_cache = $row['page_text'];
+    
+    if ( isset($row['time_id']) )
+    {
+      $this->revision_time = intval($row['time_id']);
+    }
     
     return $row['page_text'];
     
@@ -1527,8 +1740,8 @@ class PageProcessor
   
   /**
    * Send an error message and die. For debugging or critical technical errors only - nothing that would under normal circumstances be shown to the user.
-   * @var string Error message
-   * @var bool If true, send DBAL's debugging information as well
+   * @param string Error message
+   * @param bool If true, send DBAL's debugging information as well
    */
    
   function send_error($message, $sql = false)

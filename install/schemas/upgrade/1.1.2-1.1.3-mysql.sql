@@ -9,3 +9,7 @@ CREATE TABLE {{TABLE_PREFIX}}diffiehellman (
   public_key text,
   PRIMARY KEY ( key_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
+
+ALTER TABLE {{TABLE_PREFIX}}session_keys MODIFY COLUMN source_ip varchar(39) NOT NULL DEFAULT '127.0.0.1';
+ALTER TABLE {{TABLE_PREFIX}}themes MODIFY COLUMN group_policy ENUM('allow_all', 'whitelist', 'blacklist') NOT NULL DEFAULT 'allow_all';
+UPDATE {{TABLE_PREFIX}}themes SET group_policy = 'allow_all';

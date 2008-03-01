@@ -371,6 +371,7 @@ var enano_lang = {
       col_extra: 'Extra info',
       extra_reason: 'Reason:',
       extra_oldtitle: 'Old title:',
+      extra_protection_reversion: '(Reversion of previous protection)',
       tip_rdns: 'Click cell background for reverse DNS info',
       action_view: 'View',
       action_contrib: 'User contribs',

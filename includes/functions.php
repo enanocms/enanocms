@@ -144,10 +144,13 @@ function makeUrlNS($n, $t, $query = false, $escape = false)
     $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
     $sep = '&';
   }
+  
+  $ns_prefix = "$n:";
 
   if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
   {
-    $url = contentPath . $paths->nslist[$n] . $t . $flags;
+    $ns_prefix = ( isset($paths->nslist[$n]) ) ? $paths->nslist[$n] : $n . substr($paths->nslist['Special'], -1);
+    $url = contentPath . $ns_prefix . $t . $flags;
   }
   else
   {
@@ -311,7 +314,8 @@ function get_page_title_ns($page_id, $namespace)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
 
-  $page_id_key = $paths->nslist[ $namespace ] . $page_id;
+  $ns_prefix = ( isset($paths->nslist[ $namespace ]) ) ? $paths->nslist[ $namespace ] : $namespace . substr($paths->nslist['Special'], -1);
+  $page_id_key = $ns_prefix . $page_id;
   if ( isset($paths->pages[$page_id_key]) )
   {
     $page_data = $paths->pages[$page_id_key];
@@ -320,7 +324,7 @@ function get_page_title_ns($page_id, $namespace)
   {
     $page_data = array();
   }
-  $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$namespace] . str_replace('_', ' ', dirtify_page_id( $page_id ) );
+  $title = ( isset($page_data['name']) ) ? $page_data['name'] : $ns_prefix . str_replace('_', ' ', dirtify_page_id( $page_id ) );
   return $title;
 }
 

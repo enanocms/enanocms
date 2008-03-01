@@ -168,33 +168,44 @@
       }
       if ( $revid > 0 )
       {
-        echo '<div class="usermessage">' . $lang->get('editor_msg_editing_old_revision') . '</div>';
+        $time = $page->revision_time;
         // Retrieve information about this revision and the current one
         $q = $db->sql_query('SELECT l1.author AS currentrev_author, l2.author AS oldrev_author FROM ' . table_prefix . 'logs AS l1
   LEFT JOIN ' . table_prefix . 'logs AS l2
-    ON ( l2.time_id = ' . $revid . '
+    ON ( l2.log_id = ' . $revid . '
          AND l2.log_type  = \'page\'
          AND l2.action    = \'edit\'
-         AND l2.page_id   = \'ACL_Tests\'
-         AND l2.namespace = \'Article\'
+         AND l2.page_id   = \'' . $db->escape($paths->page_id) . '\'
+         AND l2.namespace = \'' . $db->escape($paths->namespace) . '\'
+         AND l1.is_draft != 1
         )
   WHERE l1.log_type  = \'page\'
     AND l1.action    = \'edit\'
-    AND l1.page_id   = \'ACL_Tests\'
-    AND l1.namespace = \'Article\'
-    AND l1.time_id >= ' . $revid . '
+    AND l1.page_id   = \'' . $db->escape($paths->page_id) . '\'
+    AND l1.namespace = \'' . $db->escape($paths->namespace) . '\'
+    AND l1.time_id > ' . $time . '
+    AND l1.is_draft != 1
   ORDER BY l1.time_id DESC;');
         if ( !$q )
           $db->die_json();
         
-        $rev_count = $db->numrows() - 1;
-        $row = $db->fetchrow();
-        $undo_info = array(
-          'old_author'     => $row['oldrev_author'],
-          'current_author' => $row['currentrev_author'],
-          'undo_count'     => $rev_count,
-          'last_rev_id'    => $revid
-        );
+        if ( $db->numrows() > 0 )
+        {
+          echo '<div class="usermessage">' . $lang->get('editor_msg_editing_old_revision') . '</div>';
+          
+          $rev_count = $db->numrows() - 2;
+          $row = $db->fetchrow();
+          $undo_info = array(
+            'old_author'     => $row['oldrev_author'],
+            'current_author' => $row['currentrev_author'],
+            'undo_count'     => max($rev_count, 1),
+            'last_rev_id'    => $revid
+          );
+        }
+        else
+        {
+          $revid = 0;
+        }
         $db->free_result();
       }
       echo '

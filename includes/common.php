@@ -125,6 +125,7 @@ require_once(ENANO_ROOT.'/includes/email.php');
 require_once(ENANO_ROOT.'/includes/search.php');
 require_once(ENANO_ROOT.'/includes/json.php');
 require_once(ENANO_ROOT.'/includes/json2.php');
+require_once(ENANO_ROOT.'/includes/math.php');
 require_once(ENANO_ROOT.'/includes/wikiengine/Tables.php');
 require_once(ENANO_ROOT.'/includes/pageprocess.php');
 require_once(ENANO_ROOT.'/includes/tagcloud.php');

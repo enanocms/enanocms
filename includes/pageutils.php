@@ -342,7 +342,7 @@ class PageUtils {
     $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
     $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
     
-    $q = 'SELECT time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND is_draft != 1 ORDER BY time_id DESC;';
+    $q = 'SELECT log_id,time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND is_draft != 1 ORDER BY time_id DESC;';
     if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
     echo $lang->get('history_page_subtitle') . '
           <h3>' . $lang->get('history_heading_edits') . '</h3>';
@@ -431,9 +431,9 @@ class PageUtils {
         echo '<td class="' . $cls . '" style="text-align: center;">'. (( $r['minor_edit'] ) ? 'M' : '' ) .'</td>'."\n";
         
         // Actions!
-        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['time_id']) . '" onclick="ajaxHistView(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_view') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'oldid=' . $r['log_id']) . '" onclick="ajaxHistView(\'' . $r['log_id'] . '\'); return false;">' . $lang->get('history_action_view') . '</a></td>'."\n";
         echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>'."\n";
-        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'do=edit&amp;revid=' . $r['time_id']) . '" onclick="ajaxEditor(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_restore') . '</a></td>'."\n";
+        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'do=edit&amp;revid=' . $r['log_id']) . '" onclick="ajaxEditor(\'' . $r['log_id'] . '\'); return false;">' . $lang->get('history_action_restore') . '</a></td>'."\n";
         
         echo '</tr>'."\n"."\n";
         
@@ -448,7 +448,7 @@ class PageUtils {
     }
     $db->free_result();
     echo '<h3>' . $lang->get('history_heading_other') . '</h3>';
-    $q = 'SELECT time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
+    $q = 'SELECT log_id,time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
     if ( !$db->sql_query($q) )
     {
       $db->_die('The history data for the page "' . htmlspecialchars($paths->cpage['name']) . '" could not be selected.');
@@ -492,9 +492,9 @@ class PageUtils {
         // Action taken
         echo '<td class="' . $cls . '">';
         // Some of these are sanitized at insert-time. Others follow the newer Enano policy of stripping HTML at runtime.
-        if    ($r['action']=='prot')     echo $lang->get('history_log_protect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
-        elseif($r['action']=='unprot')   echo $lang->get('history_log_unprotect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
-        elseif($r['action']=='semiprot') echo $lang->get('history_log_semiprotect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
+        if    ($r['action']=='prot')     echo $lang->get('history_log_protect') . '</td><td class="' . $cls . '">'     . $lang->get('history_extra_reason') . ' ' . ( $r['edit_summary'] === '__REVERSION__' ? $lang->get('history_extra_protection_reversion') : htmlspecialchars($r['edit_summary']) );
+        elseif($r['action']=='unprot')   echo $lang->get('history_log_unprotect') . '</td><td class="' . $cls . '">'   . $lang->get('history_extra_reason') . ' ' . ( $r['edit_summary'] === '__REVERSION__' ? $lang->get('history_extra_protection_reversion') : htmlspecialchars($r['edit_summary']) );
+        elseif($r['action']=='semiprot') echo $lang->get('history_log_semiprotect') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . ( $r['edit_summary'] === '__REVERSION__' ? $lang->get('history_extra_protection_reversion') : htmlspecialchars($r['edit_summary']) );
         elseif($r['action']=='rename')   echo $lang->get('history_log_rename') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_oldtitle') . ' '.htmlspecialchars($r['edit_summary']);
         elseif($r['action']=='create')   echo $lang->get('history_log_create') . '</td><td class="' . $cls . '">';
         elseif($r['action']=='delete')   echo $lang->get('history_log_delete') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
@@ -503,7 +503,7 @@ class PageUtils {
         
         // Actions!
         echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrl($paths->nslist['Special'].'Contributions/' . $r['author']) . '">' . $lang->get('history_action_contrib') . '</a></td>';
-        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['time_id']) . '" onclick="ajaxRollback(\'' . $r['time_id'] . '\'); return false;">' . $lang->get('history_action_revert') . '</a></td>';
+        echo '<td class="' . $cls . '" style="text-align: center;"><a rel="nofollow" href="'.makeUrlNS($namespace, $page_id, 'do=rollback&amp;id=' . $r['log_id']) . '" onclick="ajaxRollback(\'' . $r['log_id'] . '\'); return false;">' . $lang->get('history_action_revert') . '</a></td>';
         
         echo '</tr>';
       }
@@ -536,7 +536,7 @@ class PageUtils {
     {
       return('The value "id" on the query string must be an integer.');
     }
-    $e = $db->sql_query('SELECT log_type,action,date_string,page_id,namespace,page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id=' . $id . ';');
+    $e = $db->sql_query('SELECT time_id,log_type,action,date_string,page_id,namespace,page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE log_id=' . $id . ';');
     if ( !$e )
     {
       $db->_die('The rollback data could not be selected.');
@@ -610,7 +610,7 @@ class PageUtils {
             }
             else
             {
-              return 'The page "' . $paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name'].'" has been rolled back to the name it had ("' . $rb['edit_summary'] . '") before ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
+              return 'The page "' . htmlspecialchars($paths->pages[$paths->nslist[$rb['namespace']].$rb['page_id']]['name']) . '" has been rolled back to the name it had ("' . htmlspecialchars($rb['edit_summary']) . '") before ' . enano_date('d M Y h:i a', intval($rb['time_id'])) . '.';
             }
             break;
           case "prot":

@@ -94,9 +94,7 @@ define('SERVICES_JSON_SUPPRESS_ERRORS', 32);
 /**
  * Converts to and from JSON format.
  *
- * Brief example of use:
- *
- * <code>
+ * @example <code>
    // create a new instance of Services_JSON
    $json = new Services_JSON();
   
@@ -111,6 +109,7 @@ define('SERVICES_JSON_SUPPRESS_ERRORS', 32);
    $input = file_get_contents('php://input', 1000000);
    $value = $json->decode($input);
    </code>
+ *
  */
 class Services_JSON
 {

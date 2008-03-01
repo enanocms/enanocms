@@ -77,7 +77,6 @@ var language_onload = function()
 // isn't ready yet
 function language_onload_resched()
 {
-  alert('delaying language init by 0.2s');
   setTimeout('language_onload();', 200);
 }
 

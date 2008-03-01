@@ -98,6 +98,12 @@ define('GENERAL_ERROR', 'General error');
 define('GENERAL_NOTICE', 'Information');
 define('CRITICAL_ERROR', 'Critical error');
 
+// Protection levels
+// These are still hardcoded in some places, so don't change them
+define('PROTECT_NONE', 0);
+define('PROTECT_FULL', 1);
+define('PROTECT_SEMI', 2);
+
 //
 // Enano versions progress
 //
