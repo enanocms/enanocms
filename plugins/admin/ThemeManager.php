@@ -24,7 +24,7 @@ function page_Admin_ThemeManager($force_no_json = false)
     return;
   }
   
-  $system_themes = array('admin', 'printable');
+  $system_themes =& $template->system_themes;
   
   // Obtain the list of themes (both available and already installed) and the styles available for each
   $dh = @opendir(ENANO_ROOT . '/themes');
@@ -310,7 +310,7 @@ function ajaxServlet_Admin_ThemeManager(&$themes)
       if ( $enable == 0 && ( $theme_default === $theme_data['theme_id'] || $theme_data['make_default'] ) )
       {
         $enable = '1';
-        $warn_default .= $lang->get('acptm_warn_cant_disable_default');
+        $warn_default .= '<b>' . $lang->get('acptm_warn_cant_disable_default') . '</b>';
       }
       
       // We're good. Update the theme...

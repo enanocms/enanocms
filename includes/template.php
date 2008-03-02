@@ -16,6 +16,14 @@ class template {
   var $tpl_strings, $tpl_bool, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $namespace_string, $style_list, $theme_loaded;
   
   /**
+   * The list of themes that are critical for Enano operation. This doesn't include oxygen which
+   * remains a user theme. By default this is admin and printable which have to be loaded on demand.
+   * @var array
+   */
+  
+  var $system_themes = array('admin', 'printable');
+  
+  /**
    * Set to true if the site is disabled and thus a message needs to be shown. This should ONLY be changed by common.php.
    * @var bool
    * @access private
@@ -47,40 +55,139 @@ class template {
     
     $this->theme_list = Array();
     $this->named_theme_list = Array();
-    $e = $db->sql_query('SELECT theme_id,theme_name,enabled,default_style FROM '.table_prefix.'themes WHERE enabled=1 ORDER BY theme_order;');
-    if(!$e) $db->_die('The list of themes could not be selected.');
-    for($i=0;$i < $db->numrows(); $i++)
+    
+    $q = $db->sql_query('SELECT theme_id, theme_name, enabled, default_style, group_policy, group_list FROM ' . table_prefix . 'themes;');
+    if ( !$q )
+      $db->_die('template.php selecting theme list');
+    
+    $i = 0;
+    while ( $row = $db->fetchrow() )
     {
-      $this->theme_list[$i] = $db->fetchrow();
-      $this->named_theme_list[$this->theme_list[$i]['theme_id']] = $this->theme_list[$i];
+      $this->theme_list[$i] = $row;
+      $i++;
     }
-    $db->free_result();
-    $this->default_theme = $this->theme_list[0]['theme_id'];
-    $dir = ENANO_ROOT.'/themes/'.$this->default_theme.'/css/';
-    $list = Array();
-    // Open a known directory, and proceed to read its contents
-    if (is_dir($dir)) {
-      if ($dh = opendir($dir)) {
-        while (($file = readdir($dh)) !== false) {
-          if(preg_match('#^(.*?)\.css$#i', $file) && $file != '_printable.css') {
-            $list[] = substr($file, 0, strlen($file)-4);
-          }
+    // List out all CSS files for this theme
+    foreach ( $this->theme_list as $i => &$theme )
+    {
+      $theme['css'] = array();
+      $dir = ENANO_ROOT . "/themes/{$theme['theme_id']}/css";
+      if ( $dh = @opendir($dir) )
+      {
+        while ( ( $file = @readdir($dh) ) !== false )
+        {
+          if ( preg_match('/\.css$/', $file) )
+            $theme['css'][] = preg_replace('/\.css$/', '', $file);
         }
         closedir($dh);
       }
+      // No CSS files? If so, nuke it.
+      if ( count($theme['css']) < 1 )
+      {
+        unset($this->theme_list[$i]);
+      }
     }
+    $this->theme_list = array_values($this->theme_list);
+    // Create associative array of themes
+    foreach ( $this->theme_list as $i => &$theme )
+      $this->named_theme_list[ $theme['theme_id'] ] =& $this->theme_list[$i];
     
-    $def = ENANO_ROOT.'/themes/'.$this->default_theme.'/css/'.$this->named_theme_list[$this->default_theme]['default_style'];
-    if(file_exists($def))
-    {
-      $this->default_style = substr($this->named_theme_list[$this->default_theme]['default_style'], 0, strlen($this->named_theme_list[$this->default_theme]['default_style'])-4);
-    } else {
-      $this->default_style = $list[0];
-    }
-    
-    $this->style_list = $list;
-    
+    $this->default_theme = ( $_ = getConfig('theme_default') ) ? $_ : $this->theme_list[0]['theme_id'];
+    // Come up with the default style. If the CSS file specified in default_style exists, we're good, just
+    // use that. Otherwise, use the first stylesheet that comes to mind.
+    $df_data =& $this->named_theme_list[ $this->default_theme ];
+    $this->default_style = ( in_array($df_data['default_style'], $df_data['css']) ) ? $df_data['default_style'] : $df_data['css'][0];
   }
+  
+  /**
+   * Systematically deletes themes if they're blocked by theme security settings. Called when session->start() finishes.
+   */
+  
+  function process_theme_acls()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // For each theme, check ACLs and delete from RAM if not authorized
+    foreach ( $this->theme_list as $i => $theme )
+    {
+      if ( !$theme['group_list'] )
+        continue;
+      switch ( $theme['group_policy'] )
+      {
+        case 'allow_all':
+          // Unconditionally allowed
+          continue;
+          break;
+        case 'whitelist':
+          // If we're not on the list, off to the left please
+          $list = enano_json_decode($theme['group_list']);
+          $allowed = false;
+          foreach ( $list as $acl )
+          {
+            if ( !preg_match('/^(u|g):([0-9]+)$/', $acl, $match) )
+              // Invalid list entry, silently allow (maybe not a good idea but
+              // really, these things are checked before they're inserted)
+              continue 2;
+            $mode = $match[1];
+            $id = intval($match[2]);
+            switch ( $mode )
+            {
+              case 'u':
+                $allowed = ( $id == $session->user_id );
+                if ( $allowed )
+                  break 2;
+                break;
+              case 'g':
+                $allowed = ( isset($session->groups[$id]) );
+                if ( $allowed )
+                  break 2;
+            }
+          }
+          if ( !$allowed )
+          {
+            unset($this->theme_list[$i]);
+          }
+          break;
+        case 'blacklist':
+          // If we're ON the list, off to the left please
+          $list = enano_json_decode($theme['group_list']);
+          $allowed = true;
+          foreach ( $list as $acl )
+          {
+            if ( !preg_match('/^(u|g):([0-9]+)$/', $acl, $match) )
+              // Invalid list entry, silently allow (maybe not a good idea but
+              // really, these things are checked before they're inserted)
+              continue 2;
+            $mode = $match[1];
+            $id = intval($match[2]);
+            switch ( $mode )
+            {
+              case 'u':
+                $allowed = ( $id != $session->user_id );
+                if ( !$allowed )
+                  break 2;
+                break;
+              case 'g':
+                $allowed = ( !isset($session->groups[$id]) );
+                if ( !$allowed )
+                  break 2;
+            }
+          }
+          if ( !$allowed )
+          {
+            unset($this->theme_list[$i]);
+          }
+          break;
+      }
+    }
+    
+    $this->theme_list = array_values($this->theme_list);
+    
+    // Rebuild associative theme list
+    $this->named_theme_list = array();
+    foreach ( $this->theme_list as $i => &$theme )
+      $this->named_theme_list[ $theme['theme_id'] ] =& $this->theme_list[$i];
+  }
+  
   function sidebar_widget($t, $h, $use_normal_section = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -120,7 +227,7 @@ class template {
       echo "/* WARNING: Falling back to default file because file $path does not exist */\n";
       $path = 'css/' . $this->style_list[0] . '.css';
     }
-    return $this->process_template($path);
+    return '<enano:no-opt>' . $this->process_template($path) . '</enano:no-opt>';
   }
   function load_theme($name = false, $css = false)
   {
@@ -132,6 +239,26 @@ class template {
       $this->theme = $this->theme_list[0]['theme_id'];
       $this->style = preg_replace('/\.css$/', '', $this->theme_list[0]['default_style']);
     }
+    // Make sure we're allowed to use this theme.
+    if ( (
+        // If it was removed, it's probably blocked by an ACL, or it was uninstalled
+        !isset($this->named_theme_list[$this->theme]) ||
+        // Check if the theme is disabled
+        ( isset($this->named_theme_list[$this->theme]) && $this->named_theme_list[$this->theme]['enabled'] == 0 ) )
+        // Above all, if it's a system theme, don't inhibit the loading process.
+        && !in_array($this->theme, $this->system_themes)
+      )
+    {
+      // No, something is preventing it - fall back to site default
+      $this->theme = $this->default_theme;
+      
+      // Come up with the default style. If the CSS file specified in default_style exists, we're good, just
+      // use that. Otherwise, use the first stylesheet that comes to mind.
+      $df_data =& $this->named_theme_list[ $this->theme ];
+      $this->style = ( in_array($df_data['default_style'], $df_data['css']) ) ? $df_data['default_style'] : $df_data['css'][0];
+    }
+    // The list of styles for the currently selected theme
+    $this->style_list =& $this->named_theme_list[ $this->theme ]['css'];
     $this->theme_loaded = true;
   }
   

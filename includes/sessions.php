@@ -551,13 +551,21 @@ class sessionManager {
         die('No group info');
       }
     }
+    
+    // make sure we aren't banned
     $this->check_banlist();
     
+    // Printable page view? Probably the wrong place to control
+    // it but $template is pretty dumb, it will just about always
+    // do what you ask it to do, which isn't always what we want
     if ( isset ( $_GET['printable'] ) )
     {
       $this->theme = 'printable';
       $this->style = 'default';
     }
+    
+    // setup theme ACLs
+    $template->process_theme_acls();
     
     profiler_log('Sessions started');
   }
@@ -3208,6 +3216,23 @@ class sessionManager {
             );
         }
         
+        break;
+      case 'clean_key':
+        // Clean out a key, since it won't be used.
+        if ( !empty($req['key_aes']) )
+        {
+          $this->fetch_public_key($req['key_aes']);
+        }
+        if ( !empty($req['key_dh']) )
+        {
+          $pk = $db->escape($req['key_dh']);
+          $q = $db->sql_query('DELETE FROM ' . table_prefix . "diffiehellman WHERE public_key = '$pk';");
+          if ( !$q )
+            $db->die_json();
+        }
+        return array(
+            'mode' => 'noop'
+          );
         break;
     }
     

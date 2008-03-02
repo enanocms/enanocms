@@ -110,6 +110,12 @@ function ajaxLoginInit(call_on_finish, user_level)
           d.parentNode.removeChild(d);
         }, to);
     }
+    // Ask the server to clean our key
+    ajaxLoginPerformRequest({
+        mode: 'clean_key',
+        key_aes: logindata.key_aes,
+        key_dh: logindata.key_dh
+    });
   };
   
   logindata.mb_object.onbeforeclick['OK'] = function()
@@ -325,12 +331,12 @@ function ajaxLoginProcessResponse(response)
     new messagebox(MB_ICONSTOP | MB_OK, 'FIXME L10N: There was an error in the login process', 'The following error code came from the server:<br />' + response.error);
     return false;
   }
-  // Rid ourselves of any loading windows
-  ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
   // Main mode switch
   switch ( response.mode )
   {
     case 'build_box':
+      // Rid ourselves of any loading windows
+      ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
       // The server wants us to build the login form, all the information is there
       ajaxLoginBuildForm(response);
       break;
@@ -339,6 +345,8 @@ function ajaxLoginProcessResponse(response)
       logindata.successfunc(response.key);
       break;
     case 'login_failure':
+      // Rid ourselves of any loading windows
+      ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
       document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
       var mb_parent = document.getElementById('messageBox').parentNode;
       new Spry.Effect.Shake(mb_parent, {duration: 1500}).start();
@@ -348,6 +356,8 @@ function ajaxLoginProcessResponse(response)
           ajaxLoginBuildForm(response.respawn_info);
           ajaxLoginShowFriendlyError(response);
         }, 2500);
+      break;
+    case 'noop':
       break;
   }
 }
