@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.1.3 (Caoineag alpha 3)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -80,7 +80,7 @@ else
 // using symlinks to reference the original files so as to segregate unique files from non-unique
 // and distribution-standard ones. Enano will pivot its root directory accordingly if the file
 // .enanodev is found in the Enano root (not /repo/).
-if ( strpos(__FILE__, '/repo/') && ( file_exists('.enanodev') || file_exists('../.enanodev') ) )
+if ( strpos(__FILE__, '/repo/') && file_exists(dirname(__FILE__) . '/../../.enanodev') )
 {
   // We have a development directory. Remove /repo/ from the picture.
   $filename = str_replace('/repo/', '/', __FILE__);
