@@ -236,6 +236,7 @@ var enano_lang = {
       btn_viewsource: 'view source',
       btn_history: 'history',
       btn_moreoptions: 'more options',
+      btn_breadcrumbs_home: 'Home',
       
       btn_rename: 'rename',
       btn_printable: 'view printable version',

@@ -293,7 +293,7 @@ function get_page_title($page_id, $show_ns = true)
   $idata = RenderMan::strToPageID($page_id);
   $page_id_key = $paths->nslist[ $idata[1] ] . $idata[0];
   $page_id_key = sanitize_page_id($page_id_key);
-  $page_data = $paths->pages[$page_id_key];
+  $page_data = @$paths->pages[$page_id_key];
   $title = ( isset($page_data['name']) ) ?
     ( ( $page_data['namespace'] == 'Article' || !$show_ns ) ?
       '' :

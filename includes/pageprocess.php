@@ -1694,20 +1694,51 @@ class PageProcessor
   function do_breadcrumbs()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     if ( strpos($this->text_cache, '__NOBREADCRUMBS__') !== false )
       return false;
+    
+    $mode = getConfig('breadcrumb_mode');
+    
+    if ( $mode == 'never' )
+      // Breadcrumbs are disabled
+      return true;
+      
+    // Minimum depth for breadcrumb display
+    $threshold = ( $mode == 'always' ) ? 0 : 1;
+    
     $breadcrumb_data = explode('/', $this->page_id);
-    if ( count($breadcrumb_data) > 1 )
+    if ( count($breadcrumb_data) > $threshold )
     {
+      // If we're not on a subpage of the main page, add "Home" to the list
+      $show_home = false;
+      if ( $mode == 'always' )
+      {
+        $show_home = true;
+      }
       echo '<!-- Start breadcrumbs -->
             <div class="breadcrumbs">
               ';
+      if ( $show_home )
+      {
+        if ( count($breadcrumb_data) > 1 )
+        {
+          echo '<a href="' . makeUrl(getConfig('main_page'), false, true) . '">' . $lang->get('onpage_btn_breadcrumbs_home') . '</a> &raquo;';
+        }
+        else
+        {
+          echo $lang->get('onpage_btn_breadcrumbs_home');
+        }
+      }
       foreach ( $breadcrumb_data as $i => $higherpage )
       {
         $higherpage = $paths->nslist[$this->namespace] . sanitize_page_id(implode('/', array_slice($breadcrumb_data, 0, ($i+1))));
+        if ( $higherpage === getConfig('main_page') )
+          continue;
         if ( ($i + 1) == count($breadcrumb_data) )
         {
-          $title = get_page_title($higherpage, false);
+          $title = ( $higherpage === getConfig('main_page') ) ? $lang->get('onpage_btn_breadcrumbs_home') : get_page_title($higherpage, false);
           if ( !$this->page_exists )
           {
             $title = explode('/', $title);

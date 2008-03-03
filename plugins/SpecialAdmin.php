@@ -279,6 +279,12 @@ function page_Admin_GeneralConfig() {
     $default_theme = ( isset($template->named_theme_list[@$_POST['default_theme']]) ) ? $_POST['default_theme'] : $template->theme_list[0]['theme_id'];
     setConfig('theme_default', $default_theme);
     
+    // Breadcrumb mode
+    if ( in_array($_POST['breadcrumb_mode'], array('subpages', 'always', 'never')) )
+    {
+      setConfig('breadcrumb_mode', $_POST['breadcrumb_mode']);
+    }
+    
     setConfig('register_tou', RenderMan::preprocess_text($_POST['register_tou'], true, false));
     
     // Account lockout policy
@@ -517,6 +523,26 @@ function page_Admin_GeneralConfig() {
                 echo "  <option value=\"$theme_id\"$selected>$theme_name</option>\n          ";
               }
             ?>
+          </select>
+        </td>
+      </tr>
+      
+    <!-- Breadcrumbs -->
+    
+      <tr>
+        <td class="row1">
+          <?php echo $lang->get('acpgc_field_breadcrumb_mode'); ?>
+        </td>
+        <td class="row1">
+          <select name="breadcrumb_mode">
+          <?php
+            foreach ( array('subpages', 'always', 'never') as $mode )
+            {
+              $str = $lang->get("acpgc_field_breadcrumb_mode_$mode");
+              $sel = ( getConfig('breadcrumb_mode') == $mode ) ? ' selected="selected"' : '';
+              echo "  <option value=\"$mode\"$sel>$str</option>\n          ";
+            }
+          ?>
           </select>
         </td>
       </tr>

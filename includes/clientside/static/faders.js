@@ -6,14 +6,14 @@ function darken(nofade)
     nofade = true;
   if(document.getElementById('specialLayer_darkener'))
   {
-    document.getElementById('specialLayer_darkener').style.display = 'block';
     if(nofade)
     {
-      document.getElementById('specialLayer_darkener').style.opacity = '0.7';
-      document.getElementById('specialLayer_darkener').style.filter = 'alpha(opacity=70)';
+      changeOpac(70, 'specialLayer_darkener');
+      document.getElementById('specialLayer_darkener').style.display = 'block';
     }
     else
     {
+      document.getElementById('specialLayer_darkener').style.display = 'block';
       opacity('specialLayer_darkener', 0, 70, 1000);
     }
   } else {
@@ -97,12 +97,21 @@ function enlighten(nofade)
  */
 
 var mb_current_obj;
+var mb_previously_had_darkener = false;
 
 function messagebox(type, title, message)
 {
   var y = getScrollOffset();
-  if(document.getElementById('messageBox')) return;
-  darken(true);
+  
+  // Prevent multiple instances
+  if ( document.getElementById('messageBox') )
+    return;
+  
+  if ( document.getElementById('specialLayer_darkener') )
+    if ( document.getElementById('specialLayer_darkener').style.display == 'block' )
+      mb_previously_had_darkener = true;
+  if ( !mb_previously_had_darkener )
+    darken(true);
   if ( aclDisableTransitionFX )
   {
     document.getElementById('specialLayer_darkener').style.zIndex = '5';
@@ -291,7 +300,8 @@ function messagebox(type, title, message)
       var mbdiv = document.getElementById('messageBox');
       mbdiv.parentNode.removeChild(mbdiv.nextSibling);
       mbdiv.parentNode.removeChild(mbdiv);
-      enlighten(true);
+      if ( !mb_previously_had_darkener )
+        enlighten(true);
     };
   
   //domObjChangeOpac(0, mydiv);
@@ -339,12 +349,13 @@ function messagebox_click(obj, mb)
     var mbdiv = document.getElementById('messageBox');
     mbdiv.parentNode.removeChild(mbdiv.nextSibling);
     mbdiv.parentNode.removeChild(mbdiv);
-    enlighten(true);
+    if ( !mb_previously_had_darkener )
+      enlighten(true);
   }
   else
   {
     var to = fly_out_top(maindiv, true, false);
-    setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.removeChild(mbdiv.nextSibling); mbdiv.parentNode.removeChild(mbdiv); enlighten(true);", to);
+    setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.removeChild(mbdiv.nextSibling); mbdiv.parentNode.removeChild(mbdiv); if ( !mb_previously_had_darkener ) enlighten(true);", to);
   }
   if(typeof mb.onclick[val] == 'function')
   {

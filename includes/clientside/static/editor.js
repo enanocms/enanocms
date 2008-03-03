@@ -122,10 +122,35 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
   }
   
   // Destroy existing contents of page container
-  var edcon = document.getElementById('ajaxEditContainer');
-  for ( var i = edcon.childNodes.length - 1; i >= 0; i-- )
+  if ( editor_use_modal_window )
   {
-    edcon.removeChild(edcon.childNodes[i]);
+    darken(true);
+    // Build a div with 80% width, centered, and 10px from the top of the window
+    var edcon = document.createElement('div');
+    edcon.style.position = 'absolute';
+    edcon.style.backgroundColor = '#FFFFFF';
+    edcon.style.padding = '10px';
+    edcon.style.width = '80%';
+    edcon.id = 'ajaxEditContainerModal';
+    
+    // Positioning
+    var top = getScrollOffset() + 10;
+    var left = ( getWidth() / 10 ) - 10; // 10% of window width on either side - 10px for padding = perfect centering effect
+    edcon.style.top = String(top) + 'px';
+    edcon.style.left = String(left) + 'px';
+    var body = document.getElementsByTagName('body')[0];
+    
+    // Set opacity to 0
+    domObjChangeOpac(0, edcon);
+    body.appendChild(edcon);
+  }
+  else
+  {
+    var edcon = document.getElementById('ajaxEditContainer');
+    for ( var i = edcon.childNodes.length - 1; i >= 0; i-- )
+    {
+      edcon.removeChild(edcon.childNodes[i]);
+    }
   }
   
   var content = response.src;
@@ -519,8 +544,28 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
     }
   }
   
+  // if we're using the modal window, fade it in
+  if ( editor_use_modal_window )
+  {
+    domOpacity(edcon, 0, 100, 500);
+  }
+  
   // Autosave every 5 minutes           (m  *  s  *  ms)
   setInterval('ajaxPerformAutosave();', ( 5 * 60 * 1000 ));
+}
+
+function ajaxEditorDestroyModalWindow()
+{
+  if ( editor_use_modal_window )
+  {
+    var edcon = document.getElementById('ajaxEditContainerModal');
+    var body = document.getElementsByTagName('body')[0];
+    if ( edcon )
+    {
+      body.removeChild(edcon);
+      enlighten(true);
+    }
+  }
 }
 
 function ajaxEditorSave(is_draft)
@@ -661,6 +706,7 @@ function ajaxEditorSave(is_draft)
                   selectButtonMajor('article');
                   unselectAllButtonsMinor();
                   
+                  ajaxEditorDestroyModalWindow();
                   document.getElementById('ajaxEditContainer').innerHTML = '<div class="usermessage">' + $lang.get('editor_msg_saved') + '</div>' + ajax.responseText;
                   opacity('ajaxEditContainer', 0, 100, 1000);
                 }
@@ -766,6 +812,7 @@ function ajaxEditorCancel()
   mb.onclick['Yes'] = function()
   {
     setAjaxLoading();
+    ajaxEditorDestroyModalWindow();
     editor_open = false;
     enableUnload();
     setTimeout('ajaxReset();', 750);

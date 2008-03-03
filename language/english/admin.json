@@ -215,6 +215,12 @@ var enano_lang = {
       heading_default_theme: 'Visual defaults',
       field_defualt_theme: 'Default theme for guests and new users:',
       
+      // Section: breadcrumbs
+      field_breadcrumb_mode: 'Enable breadcrumbs:',
+      field_breadcrumb_mode_subpages: 'Only with a slash in the URL (default)',
+      field_breadcrumb_mode_always: 'Always',
+      field_breadcrumb_mode_never: 'Never',
+      
       // Main section: users and communication
       heading_users: 'Users and communication',
       
