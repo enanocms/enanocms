@@ -111,6 +111,8 @@ class template {
     {
       if ( !$theme['group_list'] )
         continue;
+      if ( $theme['theme_id'] === getConfig('theme_default') )
+        continue;
       switch ( $theme['group_policy'] )
       {
         case 'allow_all':
@@ -1088,7 +1090,7 @@ class template {
     if ( !is_file($tpl_file_fullpath) )
     {
       die_semicritical('Cannot find template file',
-                       '<p>The template parser was asked to load the file "' . htmlspecialchars($filename) . '", but that file couldn\'t be found in the directory for
+                       '<p>The template parser was asked to load the file "' . htmlspecialchars($tpl_file_fullpath) . '", but that file couldn\'t be found in the directory for
                            the current theme.</p>
                         <p>Additional debugging information:<br />
                            <b>Theme currently in use: </b>' . $this->theme . '<br />
@@ -1845,7 +1847,7 @@ EOF;
           break;
         case BLOCK_PLUGIN:
           $parser = $this->makeParserText('{CONTENT}');
-          $c = (gettype($this->fetch_block($row['block_content'])) == 'string') ? $this->fetch_block($row['block_content']) : 'Can\'t find plugin block';
+          $c = (gettype($this->fetch_block($row['block_content'])) == 'string') ? $this->fetch_block($row['block_content']) : /* This used to say "can't find plugin block" but I think it's more friendly to just silently hide it. */ '';
           break;
       }
       $parser->assign_vars(Array( 'TITLE'=>$this->tplWikiFormat($row['block_name']), 'CONTENT'=>$c ));

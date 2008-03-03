@@ -357,6 +357,28 @@ function ajaxLoginProcessResponse(response)
           ajaxLoginShowFriendlyError(response);
         }, 2500);
       break;
+    case 'login_success_reset':
+      var conf = confirm($lang.get('user_login_ajax_msg_used_temp_pass'));
+      if ( conf )
+      {
+        var url = makeUrlNS('Special', 'PasswordReset/stage2/' + response.user_id + '/' + response.temp_password);
+        window.location = url;
+      }
+      else
+      {
+        // treat as a failure
+        ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
+        document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
+        var mb_parent = document.getElementById('messageBox').parentNode;
+        new Spry.Effect.Shake(mb_parent, {duration: 1500}).start();
+        setTimeout(function()
+          {
+            document.getElementById('messageBox').style.backgroundColor = '#FFF';
+            ajaxLoginBuildForm(response.respawn_info);
+            // don't show an error here, just silently respawn
+          }, 2500);
+      }
+      break;
     case 'noop':
       break;
   }

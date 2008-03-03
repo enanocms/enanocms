@@ -369,11 +369,11 @@ class PageProcessor
   }
   
   /**
-   * Updates the content of the page.
+   * Updates (saves/changes/edits) the content of the page.
    * @param string The new text for the page
    * @param string A summary of edits made to the page.
    * @param bool If true, the edit is marked as a minor revision
-   * @return bool True on success, false on failure
+   * @return bool True on success, false on failure. When returning false, it will push errors to the PageProcessor error stack; read with $page->pop_error()
    */
   
   function update_page($text, $edit_summary = false, $minor_edit = false)

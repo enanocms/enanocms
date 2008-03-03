@@ -272,6 +272,20 @@ if ( !KILL_SWITCH && !DISABLE_MCE )
   }
 }
 
+// wrapper for window.console
+if ( !window.console )
+{
+  window.console = {
+    log: function() {},
+    debug: function() {},
+    info: function() {},
+    warn: function() {},
+    warning: function() {},
+    error: function() {},
+    write: function() {}
+  }
+}
+
 // Do not remove the following comments, they are used by jsres.php.
 /*!START_INCLUDER*/
 
@@ -359,6 +373,5 @@ addOnloadHook(function() {
     }
   }
 });
-
 
 //*/

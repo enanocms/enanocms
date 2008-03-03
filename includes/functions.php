@@ -1025,6 +1025,8 @@ function smtp_send_email_core($mail_to, $subject, $message, $headers = '')
     @reset($header_array);
 
     $headers = '';
+    $cc = '';
+    $bcc = '';
     while(list(, $header) = each($header_array))
     {
       if (preg_match('#^cc:#si', $header))
@@ -3101,7 +3103,7 @@ function password_score_len($password)
  * @return int
  */
 
-function password_score($password, &$debug)
+function password_score($password, &$debug = false)
 {
   if ( !is_string($password) )
   {

@@ -361,7 +361,7 @@
       }
       
       // If this is based on a draft version, delete the draft - we no longer need it.
-      if ( @$request['used_draft'] )
+      if ( @$request['used_draft'] && !$request['draft'] )
       {
         $q = $db->sql_query('DELETE FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
                                AND page_id = \'' . $db->escape($paths->page_id) . '\'

@@ -1439,7 +1439,7 @@ function page_Special_Captcha()
   
   require ( ENANO_ROOT.'/includes/captcha.php' );
   $captcha = captcha_object($hash, 'freecap');
-  $captcha->debug = true;
+  // $captcha->debug = true;
   $captcha->make_image();
   
   exit;

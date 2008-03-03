@@ -3195,6 +3195,10 @@ class sessionManager {
         $username =& $userinfo['username'];
         $password =& $userinfo['password'];
         
+        // If we're logging in with a temp password, attach to the login_password_reset hook to send our JSON response
+        // A bit hackish since it just dies with the response :-(
+        $plugins->attachHook('login_password_reset', '$this->process_login_request(array(\'mode\' => \'respond_password_reset\', \'user_id\' => $row[\'user_id\'], \'temp_password\' => $row[\'temp_password\']));');
+        
         // attempt the login
         // function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false)
         $login_result = $this->login_without_crypto($username, $password, false, intval($req['level']), @$req['captcha_hash'], @$req['captcha_code']);
@@ -3219,6 +3223,7 @@ class sessionManager {
         break;
       case 'clean_key':
         // Clean out a key, since it won't be used.
+        // This is called when the user clicks Cancel in the AJAX login interface.
         if ( !empty($req['key_aes']) )
         {
           $this->fetch_public_key($req['key_aes']);
@@ -3233,6 +3238,14 @@ class sessionManager {
         return array(
             'mode' => 'noop'
           );
+        break;
+      case 'respond_password_reset':
+        die(enano_json_encode(array(
+            'mode' => 'login_success_reset',
+            'user_id' => $req['user_id'],
+            'temp_password' => $req['temp_password'],
+            'respawn_info' => $this->process_login_request(array('mode' => 'getkey'))
+          )));
         break;
     }
     
