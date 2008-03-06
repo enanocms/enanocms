@@ -16,6 +16,7 @@ var editor_img_path = scriptPath + '/images/editor';
 // Idle time required for autosave, in seconds
 var AUTOSAVE_TIMEOUT = 15;
 var AutosaveTimeoutObj = null;
+var tinymce_initted = false;
 
 var enano_tinymce_options = {
   mode : "none",
@@ -35,7 +36,7 @@ var enano_tinymce_options = {
 };
 
 // Check tinyMCE to make sure its init is finished
-function tinymce_init_check()
+function tinymce_preinit_check()
 {
   if ( typeof(tinyMCE.init) != 'function' )
     return false;
@@ -52,16 +53,17 @@ var initTinyMCE = function(e)
   {
     if ( !KILL_SWITCH && !DISABLE_MCE )
     {
-      if ( !tinymce_init_check() )
+      if ( !tinymce_preinit_check() && !force )
       {
-        setTimeout('initTinyMCE();', 200);
+        setTimeout('initTinyMCE(false);', 200);
         return false;
       }
       tinyMCE.init(enano_tinymce_options);
+      tinymce_initted = true;
     }
   }
 }
-addOnloadHook(initTinyMCE);
+// addOnloadHook(initTinyMCE);
 
 var editor_open = false;
 
@@ -515,14 +517,15 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
     textarea.setAttribute('readonly', 'readonly');
   }
   
+  $dynano('ajaxEditArea').object.focus();
+  $dynano('ajaxEditArea').object._edTimestamp = timestamp;
+  $dynano('ajaxEditArea').setContent(content);
+  
   // If the editor preference is tinymce, switch the editor to TinyMCE now
   if ( readCookie('enano_editor_mode') == 'tinymce' && allow_wysiwyg )
   {
     $dynano('ajaxEditArea').switchToMCE();
   }
-  $dynano('ajaxEditArea').object.focus();
-  $dynano('ajaxEditArea').object._edTimestamp = timestamp;
-  $dynano('ajaxEditArea').setContent(content);
   
   if ( allow_wysiwyg )
   {

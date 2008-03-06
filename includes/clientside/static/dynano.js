@@ -89,21 +89,30 @@ function __DNObjGetTop(obj) {
 
 function DN_switchToMCE(performWikiTransform)
 {
-  //if ( this.object.dn_is_mce )
-  //  return this;
   if ( !this.object.id )
     this.object.id = 'textarea_' + Math.floor(Math.random() * 1000000);
   if ( !this.object.name )
     this.object.name = 'textarea_' + Math.floor(Math.random() * 1000000);
-  // TinyMCE 2.x
-  // tinyMCE.addMCEControl(this.object, this.object.name, document);
-  // TinyMCE 3.x
+  // Updated for TinyMCE 3.x
   if ( performWikiTransform )
   {
     this.object.value = DN_WikitextToXHTML(this.object.value);
   }
-  tinyMCE.execCommand("mceAddControl", true, this.object.id);
-  this.object.dnIsMCE = 'yes';
+  // If tinyMCE init hasn't been called yet, do it now.
+  if ( !tinymce_initted )
+  {
+    enano_tinymce_options.mode = 'exact';
+    enano_tinymce_options.elements = this.object.name;
+    console.debug(enano_tinymce_options);
+    initTinyMCE();
+    this.object.dnIsMCE = 'yes';
+    return true;
+  }
+  else
+  {
+    tinyMCE.execCommand("mceAddControl", true, this.object.id);
+    this.object.dnIsMCE = 'yes';
+  }
   return this;
 }
 
