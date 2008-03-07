@@ -540,9 +540,10 @@ function hex2ip($in) {
  * description.
  * @param string The title of the error message
  * @param string The body of the message, this can be HTML, and should be separated into paragraphs using the <p> tag
+ * @param bool Added in 1.1.3. If true, only the error is output. Defaults to false.
  */
 
-function die_semicritical($t, $p)
+function die_semicritical($t, $p, $no_wrapper = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $db->close();
@@ -550,6 +551,13 @@ function die_semicritical($t, $p)
   if ( ob_get_status() )
     ob_end_clean();
 
+  if ( $no_wrapper )
+  {
+    echo '<h2>' . htmlspecialchars($t) . '</h2>';
+    echo "<p>$p</p>";
+    exit;
+  }
+  
   $tpl = new template_nodb();
   $tpl->load_theme('oxygen', 'bleu');
   $tpl->tpl_strings['SITE_NAME'] = getConfig('site_name');
