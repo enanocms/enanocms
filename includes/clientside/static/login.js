@@ -328,7 +328,8 @@ function ajaxLoginProcessResponse(response)
   if ( response.mode == 'error' )
   {
     logindata.mb_object.destroy();
-    new messagebox(MB_ICONSTOP | MB_OK, 'FIXME L10N: There was an error in the login process', 'The following error code came from the server:<br />' + response.error);
+    var error_msg = $lang.get('user_' + ( response.error.toLowerCase() ));
+    new messagebox(MB_ICONSTOP | MB_OK, $lang.get('user_err_login_generic_title'), error_msg);
     return false;
   }
   // Main mode switch
