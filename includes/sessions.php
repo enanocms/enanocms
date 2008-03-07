@@ -3568,4 +3568,21 @@ function cron_clean_login_cache()
 
 register_cron_task('cron_clean_login_cache', 72);
 
+/**
+ * Cron task - clears out outdated high-auth session keys
+ */
+
+function cron_clean_old_admin_keys()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $threshold = time() - ( 15 * 60 );
+  $ul_member = USER_LEVEL_MEMBER;
+  if ( !$db->sql_query('DELETE FROM ' . table_prefix . "session_keys WHERE time < $threshold AND auth_level > $ul_member;") )
+    $db->_die();
+}
+
+// Once a week
+register_cron_task('cron_clean_old_admin_keys', 168);
+
 ?>
