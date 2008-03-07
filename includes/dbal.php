@@ -131,11 +131,15 @@ class mysql {
   {
     $this->enable_errorhandler();
     
-    define('ENANO_DBLAYER', 'MYSQL');
-    define('ENANO_SQLFUNC_LOWERCASE', 'lcase');
-    define('ENANO_SQL_MULTISTRING_PRFIX', '');
-    define('ENANO_SQL_BOOLEAN_TRUE', 'true');
-    define('ENANO_SQL_BOOLEAN_FALSE', 'false');
+    if ( !defined('ENANO_SQL_CONSTANTS') )
+    {
+      define('ENANO_SQL_CONSTANTS', '');
+      define('ENANO_DBLAYER', 'MYSQL');
+      define('ENANO_SQLFUNC_LOWERCASE', 'lcase');
+      define('ENANO_SQL_MULTISTRING_PRFIX', '');
+      define('ENANO_SQL_BOOLEAN_TRUE', 'true');
+      define('ENANO_SQL_BOOLEAN_FALSE', 'false');
+    }
     
     if ( !$manual_credentials )
     {
@@ -907,11 +911,15 @@ class postgresql {
   {
     $this->enable_errorhandler();
     
-    define('ENANO_DBLAYER', 'PGSQL');
-    define('ENANO_SQLFUNC_LOWERCASE', 'lower');
-    define('ENANO_SQL_MULTISTRING_PRFIX', 'E');
-    define('ENANO_SQL_BOOLEAN_TRUE', '1');
-    define('ENANO_SQL_BOOLEAN_FALSE', '0');
+    if ( !defined('ENANO_SQL_CONSTANTS') )
+    {
+      define('ENANO_SQL_CONSTANTS', '');
+      define('ENANO_DBLAYER', 'PGSQL');
+      define('ENANO_SQLFUNC_LOWERCASE', 'lower');
+      define('ENANO_SQL_MULTISTRING_PRFIX', 'E');
+      define('ENANO_SQL_BOOLEAN_TRUE', '1');
+      define('ENANO_SQL_BOOLEAN_FALSE', '0');
+    }
     
     if ( !$manual_credentials )
     {
