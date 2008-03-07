@@ -56,7 +56,76 @@ class template {
     $this->theme_list = Array();
     $this->named_theme_list = Array();
     
+    if ( defined('IN_ENANO_UPGRADE') )
+    {
+      return $this->construct_compat();
+    }
+    
     $q = $db->sql_query('SELECT theme_id, theme_name, enabled, default_style, group_policy, group_list FROM ' . table_prefix . 'themes;');
+    if ( !$q )
+      $db->_die('template.php selecting theme list');
+    
+    $i = 0;
+    while ( $row = $db->fetchrow() )
+    {
+      $this->theme_list[$i] = $row;
+      $i++;
+    }
+    // List out all CSS files for this theme
+    foreach ( $this->theme_list as $i => &$theme )
+    {
+      $theme['css'] = array();
+      $dir = ENANO_ROOT . "/themes/{$theme['theme_id']}/css";
+      if ( $dh = @opendir($dir) )
+      {
+        while ( ( $file = @readdir($dh) ) !== false )
+        {
+          if ( preg_match('/\.css$/', $file) )
+            $theme['css'][] = preg_replace('/\.css$/', '', $file);
+        }
+        closedir($dh);
+      }
+      // No CSS files? If so, nuke it.
+      if ( count($theme['css']) < 1 )
+      {
+        unset($this->theme_list[$i]);
+      }
+    }
+    $this->theme_list = array_values($this->theme_list);
+    // Create associative array of themes
+    foreach ( $this->theme_list as $i => &$theme )
+      $this->named_theme_list[ $theme['theme_id'] ] =& $this->theme_list[$i];
+    
+    $this->default_theme = ( $_ = getConfig('theme_default') ) ? $_ : $this->theme_list[0]['theme_id'];
+    // Come up with the default style. If the CSS file specified in default_style exists, we're good, just
+    // use that. Otherwise, use the first stylesheet that comes to mind.
+    $df_data =& $this->named_theme_list[ $this->default_theme ];
+    $this->default_style = ( in_array($df_data['default_style'], $df_data['css']) ) ? $df_data['default_style'] : $df_data['css'][0];
+  }
+  
+  /**
+   * Failsafe constructor for upgrades.
+   */
+  
+  function construct_compat()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    $this->tpl_bool    = Array();
+    $this->tpl_strings = Array();
+    $this->sidebar_extra = '';
+    $this->toolbar_menu = '';
+    $this->additional_headers = '';
+    $this->plugin_blocks = Array();
+    $this->theme_loaded = false;
+    
+    $this->fading_button = '<div style="background-image: url('.scriptPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
+                              <a style="background-image: none; padding-right: 0;" href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
+                            </div>';
+    
+    $this->theme_list = Array();
+    $this->named_theme_list = Array();
+    
+    $q = $db->sql_query('SELECT theme_id, theme_name, enabled, default_style FROM ' . table_prefix . 'themes;');
     if ( !$q )
       $db->_die('template.php selecting theme list');
     
@@ -109,7 +178,7 @@ class template {
     // For each theme, check ACLs and delete from RAM if not authorized
     foreach ( $this->theme_list as $i => $theme )
     {
-      if ( !$theme['group_list'] )
+      if ( !@$theme['group_list'] )
         continue;
       if ( $theme['theme_id'] === getConfig('theme_default') )
         continue;
