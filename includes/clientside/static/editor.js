@@ -63,7 +63,11 @@ var initTinyMCE = function(e)
     }
   }
 }
-// addOnloadHook(initTinyMCE);
+// Safari doesn't fire the init on demand so call it on page load
+if ( is_Safari )
+{
+  addOnloadHook(initTinyMCE);
+}
 
 var editor_open = false;
 
