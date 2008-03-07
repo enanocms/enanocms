@@ -1272,7 +1272,7 @@ class sessionManager {
       $fail = true;
       if ( defined('IN_ENANO_UPGRADE') )
       {
-        if ( installer_enano_version() == '1.1.3' )
+        if ( installer_enano_version() == '1.1.3' && substr($ip, 0, 10) == substr($row['source_ip'], 0, 10) )
           $fail = false;
       }
       // Failed IP address check
