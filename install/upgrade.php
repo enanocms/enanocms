@@ -101,8 +101,6 @@ if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_l
     if ( !$session->user_logged_in )
     {
       $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_MEMBER);
-      echo '<b>Session manager returned error:</b>' . '<pre>' . print_r($result, true) . '</pre>';
-      exit();
     }
     $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_ADMIN);
     if ( $result['success'] )
