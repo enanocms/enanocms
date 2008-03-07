@@ -1,5 +1,5 @@
 Enano CMS
-Version 1.1.2
+Version 1.1.3
 -----------------------------
 
 Thanks for downloading Enano! If you're looking for an installation guide,
@@ -74,7 +74,7 @@ or any modified version.
 CHANGES IN THIS RELEASE
 -----------------------------
 
-Please see <http://enanocms.org/Release_notes/1.1.2> for a list of changes in
+Please see <http://enanocms.org/Release_notes/1.1.3> for a list of changes in
 this release.
 
 UPGRADING FROM PREVIOUS RELEASES
@@ -91,7 +91,7 @@ experimental. Back up your entire database and Enano root before upgrading.
 TRANSLATING ENANO
 -----------------------------
 
-This is the only the second formal release of Enano that is localized. Right
+This is the only the third formal release of Enano that is localized. Right
 now since this is an alpha, you probably don't want to do any translation
 because you'll be doing a TON more strings at every release. HOWEVER, we're
 looking for people to sign up and volunteer for translation efforts later on.
