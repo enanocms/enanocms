@@ -400,7 +400,7 @@ function ajaxServlet_Admin_ThemeManager(&$themes)
         $db->die_json();
       
       // Change all the users that were on that theme to the default
-      $default_style = $themes[$theme_default]['default_style'];
+      $default_style = $template->named_theme_list[$theme_default]['default_style'];
       $default_style = preg_replace('/\.css$/', '', $default_style);
       
       $theme_default = $db->escape($theme_default);
