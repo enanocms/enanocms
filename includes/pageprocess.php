@@ -221,7 +221,8 @@ class PageProcessor
       if ( !$this->page_exists )
       {
         $func_name = "page_{$this->namespace}_{$this->page_id}";
-        die_semicritical($lang->get('page_msg_admin_404_title'), $lang->get('page_msg_admin_404_body', array('func_name' => $func_name)));
+        
+        die_semicritical($lang->get('page_msg_admin_404_title'), $lang->get('page_msg_admin_404_body', array('func_name' => $func_name)), (!$this->send_headers));
       }
       $func_name = "page_{$this->namespace}_{$this->page_id}";
       if ( function_exists($func_name) )
@@ -519,7 +520,7 @@ class PageProcessor
     }
     
     // Guess the proper title
-    $name = ( !empty($title) ) ? $title : dirtify_page_id($this->page_id);
+    $name = ( !empty($title) ) ? $title : str_replace('_', ' ', dirtify_page_id($this->page_id));
     
     // Check for the restricted Project: prefix
     if ( substr($this->page_id, 0, 8) == 'Project:' )
@@ -621,19 +622,134 @@ class PageProcessor
     $log_entry = $db->fetchrow();
     $db->free_result();
     
+    $dateline = enano_date('d M Y h:i a', $log_entry['time_id']);
+    
     // Let's see, what do we have here...
     switch ( $log_entry['action'] )
     {
       case 'rename':
         // Page was renamed, let the rename method handle this
-        return $this->rename($log_entry['edit_summary']);
+        return array_merge($this->rename($log_entry['edit_summary']), array('dateline' => $dateline, 'action' => $log_entry['action']));
         break;
       case 'prot':
       case 'unprot':
       case 'semiprot':
-        return $this->protect_page(intval($log_entry['page_text']), '__REVERSION__');
+        return array_merge($this->protect_page(intval($log_entry['page_text']), '__REVERSION__'), array('dateline' => $dateline, 'action' => $log_entry['action']));
+        break;
+      case 'delete':
+        
+        // Raising a previously dead page has implications...
+        
+        // FIXME: l10n
+        // rollback_extra is required because usually only moderators can undo page deletion AND restore the content.
+        if ( !$this->perms->get_permissions('history_rollback_extra') )
+          return 'Administrative privileges are required for page undeletion.';
+        
+        // Rolling back the deletion of a page that was since created?
+        $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
+        if ( isset($paths->pages[$pathskey]) )
+          return array(
+              'success' => false,
+              // This is a clean Christian in-joke.
+              'error' => 'seeking_living_among_dead'
+            );
+        
+        // Generate a crappy page name
+        $name = $db->escape( str_replace('_', ' ', dirtify_page_id($this->page_id)) );
+        
+        // Stage 1 - re-insert page
+        $e = $db->sql_query('INSERT INTO ' . table_prefix.'pages(name,urlname,namespace) VALUES( \'' . $name . '\', \'' . $this->page_id . '\',\'' . $this->namespace . '\' )');
+        if ( !$e )
+          $db->die_json();
+        
+        // Select the latest published revision
+        $q = $db->sql_query('SELECT page_text FROM ' . table_prefix . "logs WHERE\n"
+                          . "      log_type  = 'page'\n"
+                          . "  AND action    = 'edit'\n"
+                          . "  AND page_id   = '$this->page_id'\n"
+                          . "  AND namespace = '$this->namespace'\n"
+                          . "  AND is_draft != 1\n"
+                          . "ORDER BY time_id DESC LIMIT 1;");
+        if ( !$q )
+          $db->die_json();
+        list($page_text) = $db->fetchrow_num();
+        $db->free_result($q);
+        
+        // Apply the latest revision as the current page text
+        $page_text = $db->escape($page_text);
+        $e = $db->sql_query('INSERT INTO ' . table_prefix."page_text(page_id, namespace, page_text) VALUES\n"
+                          . "  ( '$this->page_id', '$this->namespace', '$page_text' );");
+        if ( !$e )
+          $db->die_json();
+        
+        return array(
+            'success' => true,
+            'dateline' => $dateline,
+            'action' => $log_entry['action']
+          );
+        
+        break;
+      case 'reupload':
+        
+        // given a log id and some revision info, restore the old file.
+        // get the timestamp of the file before this one
+        $q = $db->sql_query('SELECT time_id, file_key, file_extension, filename, size, mimetype FROM ' . table_prefix . "files WHERE time_id < {$log_entry['time_id']} ORDER BY time_id DESC LIMIT 1;");
+        if ( !$q )
+          $db->_die();
+        
+        $row = $db->fetchrow();
+        $db->free_result();
+        
+        // If the file hasn't been renamed to the new format (omitting timestamp), do that now.
+        $fname = ENANO_ROOT . "/files/{$row['file_key']}_{$row['time_id']}{$row['file_extension']}";
+        if ( @file_exists($fname) )
+        {
+          // it's stored in the old format - rename
+          $fname_new = ENANO_ROOT . "/files/{$row['file_key']}{$row['file_extension']}";
+          if ( !@rename($fname, $fname_new) )
+          {
+            return array(
+              'success' => false,
+              'error' => 'rb_file_rename_failed',
+              'action' => $log_entry['action']
+              );
+          }
+        }
+        
+        // Insert a new file entry
+        $time = time();
+        $filename = $db->escape($row['filename']);
+        $mimetype = $db->escape($row['mimetype']);
+        $ext = $db->escape($row['file_extension']);
+        $key = $db->escape($row['file_key']);
+        
+        $q = $db->sql_query('INSERT INTO ' . table_prefix . "files ( time_id, page_id, filename, size, mimetype, file_extension, file_key ) VALUES\n"
+              . "  ( $time, '$this->page_id', '$filename', {$row['size']}, '$mimetype', '$ext', '$key' );");
+        if ( !$q )
+          $db->die_json();
+        
+        // add reupload log entry
+        $username = $db->escape($session->username);
+        $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs ( log_type, action, time_id, page_id, namespace, author, edit_summary ) VALUES\n"
+                          . "  ( 'page', 'reupload', $time, '$this->page_id', '$this->namespace', '$username', '__ROLLBACK__' )");
+        if ( !$q )
+          $db->die_json();
+        
+        return array(
+            'success' => true,
+            'dateline' => $dateline,
+            'action' => $log_entry['action']
+          );
+        
         break;
       default:
+        
+        return array(
+            'success' => false,
+            'error' => 'rb_action_not_supported',
+            'action' => $log_entry['action']
+          );
+        
         break;
     }
   }
@@ -743,6 +859,14 @@ class PageProcessor
     $existing_protection = intval($metadata['protected']);
     $reason = $db->escape($reason);
     
+    if ( $existing_protection == $protection_level )
+    {
+      return array(
+        'success' => false,
+        'error' => 'protection_already_there'
+        );
+    }
+    
     $action = '[ insanity ]';
     switch($protection_level)
     {
@@ -755,13 +879,13 @@ class PageProcessor
          . "  ( 'page', '$action', '{$this->page_id}', '{$this->namespace}', '$username', '$reason', '$time', '$existing_protection', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );";
     if ( !$db->sql_query($sql) )
     {
-      $db->_die();
+      $db->die_json();
     }
     
     // Perform the actual protection
     $q = $db->sql_query('UPDATE ' . table_prefix . "pages SET protected = $protection_level WHERE urlname = '{$this->page_id}' AND namespace = '{$this->namespace}';");
     if ( !$q )
-      $db->_die();
+      $db->die_json();
     
     return array(
       'success' => true
@@ -1666,7 +1790,7 @@ class PageProcessor
           echo '<p>' . $lang->get('page_msg_404_was_deleted', array(
                     'delete_time' => enano_date('d M Y h:i a', $r['time_id']),
                     'delete_reason' => htmlspecialchars($r['edit_summary']),
-                    'rollback_flags' => 'href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['time_id']).'" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;"'
+                    'rollback_flags' => 'href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['log_id']).'" onclick="ajaxRollback(\''.$r['log_id'].'\'); return false;"'
                   ))
                 . '</p>';
           if ( $session->user_level >= USER_LEVEL_ADMIN )

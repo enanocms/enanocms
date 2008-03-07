@@ -216,8 +216,20 @@ function ajaxProtect(l) {
   ajaxPost(stdAjaxPrefix+'&_mode=protect', 'reason='+ajaxEscape(r)+'&level='+l, function() {
     if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
-      if(ajax.responseText != 'good')
-        alert(ajax.responseText);
+      if(ajax.responseText == 'good')
+        return true;
+      // check for JSON error response
+      var response = String(ajax.responseText + '');
+      if ( response.substr(0, 1) == '{' )
+      {
+        response = parseJSON(response);
+        if ( response.mode == 'error' )
+        {
+          alert(response.error);
+          return true;
+        }
+      }
+      alert(ajax.responseText);
     }
   }, true);
 }
@@ -403,13 +415,13 @@ function ajaxHistory()
   });
 }
 
-function ajaxHistView(oldid, tit) {
+function ajaxHistView(oldid, ttl) {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  if(!tit) tit=title;
+  if(!ttl) ttl=title;
   setAjaxLoading();
-  ajaxGet(append_sid(scriptPath+'/ajax.php?title='+tit+'&_mode=getpage&oldid='+oldid), function() {
+  ajaxGet(append_sid(scriptPath+'/ajax.php?title='+ttl+'&_mode=getpage&oldid='+oldid), function() {
     if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       edit_open = false;
@@ -426,7 +438,30 @@ function ajaxRollback(id) {
   ajaxGet(stdAjaxPrefix+'&_mode=rollback&id='+id, function() {
     if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
-      alert(ajax.responseText);
+      
+      var response = String(ajax.responseText + '');
+      if ( response.substr(0, 1) != '{' )
+      {
+        handle_invalid_json(response);
+        return false;
+      }
+      
+      response = parseJSON(response);
+      if ( response.success )
+      {
+        alert( $lang.get('page_msg_rb_success_' + response.action, { dateline: response.dateline }) )
+      }
+      else
+      {
+        if ( response.action )
+        {
+          alert( $lang.get('page_err_' + response.error, { action: response.action }) );
+        }
+        else
+        {
+          alert( $lang.get('page_err_' + response.error) );
+        }
+      }
     }
   });
 }

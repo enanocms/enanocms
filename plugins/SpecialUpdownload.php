@@ -120,8 +120,8 @@ function page_Special_UploadFile()
     $chartag = sha1(microtime());
     $urln = str_replace(' ', '_', $filename);
     
-    $key = md5($filename . '_' . file_get_contents($file['tmp_name']));
-    $targetname = ENANO_ROOT . '/files/' . $key . '_' . $utime . $ext;
+    $key = md5($filename . '_' . ( function_exists('md5_file') ? md5_file($file['tmp_name']) : file_get_contents($file['tmp_name'])));
+    $targetname = ENANO_ROOT . '/files/' . $key . $ext;
     
     if(!@move_uploaded_file($file['tmp_name'], $targetname))
     {
@@ -233,7 +233,15 @@ function page_Special_DownloadFile()
     die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
   }
   
-  $fname = ENANO_ROOT . '/files/' . $row['file_key'] . '_' . $row['time_id'] . $row['file_extension'];
+  $fname = ENANO_ROOT . '/files/' . $row['file_key'] . $row['file_extension'];
+  if ( !file_exists($fname) )
+  {
+    $fname = ENANO_ROOT . '/files/' . $row['file_key'] . '_' . $row['time_id'] . $row['file_extension'];
+  }
+  if ( !file_exists($fname) )
+  {
+    die("Uploaded file $fname not found.");
+  }
   
   if ( isset($_GET['preview']) && substr($row['mimetype'], 0, 6) == 'image/' )
   {
@@ -262,7 +270,7 @@ function page_Special_DownloadFile()
       {
         // Get a temporary file
         // In this case, the file will not be cached and will be scaled each time it's requested
-        $temp_dir = ( is_dir('/tmp') ) ? '/tmp' : ( isset($_ENV['TEMP']) ) ? $_ENV['TEMP'] : 'SOME RANDOM NAME';
+        $temp_dir = sys_get_temp_dir();
         // if tempnam() cannot use the specified directory name, it will fall back on the system default
         $tempname = tempnam($temp_dir, $filename);
         if ( $tempname && is_writeable($tempname) )

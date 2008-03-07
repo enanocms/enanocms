@@ -267,9 +267,23 @@
     case 'rollback':
       $id = (isset($_GET['id'])) ? $_GET['id'] : false;
       if(!$id || !preg_match('#^([0-9]+)$#', $id)) die_friendly('Invalid action ID', '<p>The URL parameter "id" is not an integer. Exiting to prevent nasties like SQL injection, etc.</p>');
-      $rb = PageUtils::rollback( (int) $id );
+      
+      $id = intval($id);
+      
+      $page = new PageProcessor($paths->page_id, $paths->namespace);
+      $result = $page->rollback_log_entry($id);
+      
+      if ( $result['success'] )
+      {
+        $result = $lang->get("page_msg_rb_success_{$result['action']}", array('dateline' => $result['dateline']));
+      }
+      else
+      {
+        $result = $lang->get("page_err_{$result['error']}", array('action' => @$result['action']));
+      }
+      
       $template->header();
-      echo '<p>'.$rb.' <a href="'.makeUrl($paths->page).'">Return to the page</a>.</p>';
+      echo '<p>'.$result.' <a href="'.makeUrl($paths->page).'">' . $lang->get('etc_return_to_page') . '</a></p>';
       $template->footer();
       break;
     case 'catedit':

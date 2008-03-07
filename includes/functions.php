@@ -814,7 +814,12 @@ function show_file_info()
   {
     $selfn = substr($paths->page_id, strlen($paths->nslist['File']), strlen($paths->page_id));
   }
-  $q = $db->sql_query('SELECT mimetype,time_id,size FROM '.table_prefix.'files WHERE page_id=\''.$selfn.'\' ORDER BY time_id DESC;');
+  $selfn = $db->escape($selfn);
+  $q = $db->sql_query('SELECT f.mimetype,f.time_id,f.size,l.log_id FROM ' . table_prefix . "files AS f\n"
+                    . "  LEFT JOIN " . table_prefix . "logs AS l\n"
+                    . "    ON ( l.time_id = f.time_id AND ( l.action = 'reupload' OR l.action IS NULL ) )\n"
+                    . "  WHERE f.page_id = '$selfn'\n"
+                    . "    ORDER BY f.time_id DESC;");
   if ( !$q )
   {
     $db->_die('The file type could not be fetched.');
@@ -845,7 +850,7 @@ function show_file_info()
   {
     $size .= ' (' . ( round($r['size'] / 1024, 1) ) . ' ' . $lang->get('etc_unit_kilobytes_short') . ')';
   }
-          
+  
   echo $lang->get('onpage_filebox_lbl_size', array('size' => $size));
   
   echo '<br />' . $lang->get('onpage_filebox_lbl_uploaded') . ' ' . $datestring . '</p>';
@@ -876,12 +881,26 @@ function show_file_info()
   echo '</p>';
   if ( $db->numrows() > 1 )
   {
+    // requery, sql_result_seek() doesn't work on postgres
+    $db->free_result();
+    $q = $db->sql_query('SELECT f.mimetype,f.time_id,f.size,l.log_id FROM ' . table_prefix . "files AS f\n"
+                    . "  LEFT JOIN " . table_prefix . "logs AS l\n"
+                    . "    ON ( l.time_id = f.time_id AND ( l.action = 'reupload' OR l.action IS NULL ) )\n"
+                    . "  WHERE f.page_id = '$selfn'\n"
+                    . "    ORDER BY f.time_id DESC;");
+    if ( !$q )
+      $db->_die();
+    
     echo '<h3>' . $lang->get('onpage_filebox_heading_history') . '</h3><p>';
+    $last_rollback_id = false;
     while ( $r = $db->fetchrow() )
     {
       echo '(<a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">' . $lang->get('onpage_filebox_btn_this_version') . '</a>) ';
-      if ( $session->get_permissions('history_rollback') )
-        echo ' (<a href="#" onclick="ajaxRollback(\''.$r['time_id'].'\'); return false;">' . $lang->get('onpage_filebox_btn_revert') . '</a>) ';
+      if ( $session->get_permissions('history_rollback') && $last_rollback_id )
+        echo ' (<a href="#rollback:' . $last_rollback_id . '" onclick="ajaxRollback(\''.$last_rollback_id.'\'); return false;">' . $lang->get('onpage_filebox_btn_revert') . '</a>) ';
+      else if ( $session->get_permissions('history_rollback') && !$last_rollback_id )
+        echo ' (' . $lang->get('onpage_filebox_btn_current') . ') ';
+      $last_rollback_id = $r['log_id'];
       $mimetype = $r['mimetype'];
       $datestring = enano_date('F d, Y h:i a', (int)$r['time_id']);
       
@@ -4187,6 +4206,51 @@ function get_char_count($string, $char)
 function get_line_count($string)
 {
   return ( get_char_count($string, "\n") ) + 1;
+}
+
+if ( !function_exists('sys_get_temp_dir') )
+{
+    // Based on http://www.phpit.net/
+    // article/creating-zip-tar-archives-dynamically-php/2/
+    /**
+     * Attempt to get the system's temp directory.
+     * @return string or bool false on failure
+     */
+    
+    function sys_get_temp_dir()
+    {
+        // Try to get from environment variable
+        if ( !empty($_ENV['TMP']) )
+        {
+            return realpath( $_ENV['TMP'] );
+        }
+        else if ( !empty($_ENV['TMPDIR']) )
+        {
+            return realpath( $_ENV['TMPDIR'] );
+        }
+        else if ( !empty($_ENV['TEMP']) )
+        {
+            return realpath( $_ENV['TEMP'] );
+        }
+
+        // Detect by creating a temporary file
+        else
+        {
+            // Try to use system's temporary directory
+            // as random name shouldn't exist
+            $temp_file = tempnam( md5(uniqid(rand(), TRUE)), '' );
+            if ( $temp_file )
+            {
+                $temp_dir = realpath( dirname($temp_file) );
+                unlink( $temp_file );
+                return $temp_dir;
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+    }
 }
 
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');

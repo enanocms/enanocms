@@ -398,6 +398,13 @@
       break;
     case "protect":
       // echo PageUtils::protect($paths->page_id, $paths->namespace, (int)$_POST['level'], $_POST['reason']);
+      
+      if ( @$_POST['reason'] === '__ROLLBACK__' )
+      {
+        // __ROLLBACK__ is a keyword for log entries.
+        die('"__ROLLBACK__" ain\'t gonna do it, buddy. Try to _not_ use reserved keywords next time, ok?');
+      }
+      
       $page = new PageProcessor($paths->page_id, $paths->namespace);
       header('Content-type: application/json');
       
