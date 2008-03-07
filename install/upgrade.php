@@ -101,6 +101,8 @@ if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_l
     if ( !$session->user_logged_in )
     {
       $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_MEMBER);
+      echo '<b>Session manager returned error:</b>' . '<pre>' . print_r($result, true) . '</pre>';
+      exit();
     }
     $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_ADMIN);
     if ( $result['success'] )
@@ -121,11 +123,11 @@ if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_l
   
   if ( isset($result) )
   {
-    echo '<b>Session manager returned error: ' . $result['error'] . '</b>';
+    echo '<b>Session manager returned error:</b>' . '<pre>' . print_r($result, true) . '</pre>';
   }
   
   ?>
-  <p>You need an active admin session to continue.</p>
+  <p>You need <?php if ( !$session->user_logged_in ) echo 'to be logged in and have '; ?>an active admin session to continue.</p>
   <p>
     Username:&nbsp;&nbsp;&nbsp;<input type="text" name="username" /><br />
     Password:&nbsp;&nbsp;&nbsp;<input type="password" name="password" /><br />

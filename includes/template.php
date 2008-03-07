@@ -2202,10 +2202,13 @@ class template_nodb
         $q_loc = '<a href="' . $this->tpl_strings['REPORT_URI'] . '">' . ( is_object($db) ? "{$db->num_queries} SQL" : 'Queries: N/A' ) . '</a>';
         $dbg = $t_loc;
         $dbg_long = $t_loc_long;
-        if ( $session->user_level >= USER_LEVEL_ADMIN )
+        if ( is_object($session) )
         {
-          $dbg .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
-          $dbg_long .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+          if ( $session->user_level >= USER_LEVEL_ADMIN )
+          {
+            $dbg .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+            $dbg_long .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
+          }
         }
         $t = str_replace('[[EnanoPoweredLink]]', 'Powered by <a href="http://enanocms.org/" onclick="window.open(this.href); return false;">Enano</a>', $t);
         $t = str_replace('[[EnanoPoweredLinkLong]]', 'Website engine powered by <a href="http://enanocms.org/" onclick="window.open(this.href); return false;">Enano</a>', $t);

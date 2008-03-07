@@ -1267,9 +1267,18 @@ class sessionManager {
     }
     if($ip != $row['source_ip'])
     {
+      // Special exception for 1.1.x upgrade - the 1.1.3 upgrade changes the size of the column and this is what validate_session
+      // expects, but if the column size hasn't changed yet just check the first 10 digits of the IP.
+      $fail = true;
+      if ( defined('IN_ENANO_UPGRADE') )
+      {
+        if ( installer_enano_version() == '1.1.3' )
+          $fail = false;
+      }
       // Failed IP address check
       // echo '(debug) $session->validate_session: IP address mismatch<br />';
-      return false;
+      if ( $fail )
+        return false;
     }
     
     // Do the password validation
