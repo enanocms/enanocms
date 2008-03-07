@@ -10,6 +10,9 @@ function DNobj(id)
   this.object = ( typeof(id) == 'object' ) ? id : document.getElementById(id);
   if ( !this.object )
   {
+    console.warn('Dynano: requested object is bad. id parameter follows.');
+    console.debug(id);
+    console.debug(tinyMCE.getInstanceById(id));
     this.object = false;
     return this;
   }
@@ -102,8 +105,7 @@ function DN_switchToMCE(performWikiTransform)
   if ( !tinymce_initted )
   {
     enano_tinymce_options.mode = 'exact';
-    enano_tinymce_options.elements = this.object.name;
-    console.debug(enano_tinymce_options);
+    enano_tinymce_options.elements = this.object.id;
     initTinyMCE();
     this.object.dnIsMCE = 'yes';
     return true;
