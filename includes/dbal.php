@@ -100,11 +100,14 @@ class mysql {
     exit;
   }
   
-  function die_json()
+  function die_json($loc = false)
   {
     $e = addslashes(htmlspecialchars(mysql_error()));
     $q = str_replace("\n", "\\n", addslashes($this->latest_query));
-    $t = "{'mode':'error','error':'An error occurred during database query.\\nQuery was:\\n  $q\\n\\nError returned by MySQL: $e'}";
+    $loc = ( $loc ) ? addslashes("\n\nDescription or location of error: $loc") : "";
+    $loc .= "\n\nPlease report the full text of this error to the administrator of the site. If you believe that this is a bug with the software, please contact support@enanocms.org.";
+    $loc = str_replace("\n", "\\n", $loc);
+    $t = "{\"mode\":\"error\",\"error\":\"An error occurred during database query.\\nQuery was:\\n  $q\\n\\nError returned by MySQL: $e$loc\"}";
     die($t);
   }
   
