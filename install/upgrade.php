@@ -206,7 +206,8 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
   // Do the actual upgrade
   enano_perform_upgrade($target_branch);
   
-  echo '<p>All done!</p>';
+  $site_url = makeUrl(getConfig('main_page'), false, true);
+  echo '<p>All done! I\'ll actually be nice enough to give you a <a href="' . $site_url . '">link back to your site</a> this release <tt>:)</tt></p>';
 }
 else
 {
