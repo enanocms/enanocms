@@ -16,8 +16,10 @@
 
 define('IN_ENANO', 1);
 
-// The list of versions in THIS BRANCH, in chronological order.
-$enano_versions = array('1.1.1', '1.1.2', '1.1.3');
+// The list of versions in THIS AND PREVIOUS branches, in chronological order.
+$enano_versions = array();
+$enano_versions['1.0'] = array('1.0', '1.0.1', '1.0.2b1', '1.0.2', '1.0.3', '1.0.4');
+$enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3');
 
 // Turn on every imaginable API hack to make common load on older databases
 define('IN_ENANO_UPGRADE', 1);
@@ -25,9 +27,11 @@ define('IN_ENANO_MIGRATION', 1);
 define('ENANO_ALLOW_LOAD_NOLANG', 1);
 @ini_set('display_errors', 'on');
 
-require('includes/sql_parse.php');
-
+// Load installer files
+require_once('includes/sql_parse.php');
 require_once('includes/common.php');
+require_once('includes/libenanoinstall.php');
+
 // when the installer's common is loaded, it runs chdir() to the ENANO_ROOT, thus making this Enano's common.php
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');
@@ -153,10 +157,43 @@ $ui->show_header();
 
 if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
 {
+  /*
+   HOW DOES ENANO'S UPGRADER WORK?
+   
+   Versions of Enano are organized into branches and then specific versions by
+   version number. The upgrader works by using a list of known version numbers
+   and then systematically executing upgrade schemas for each version.
+   
+   When the user requests an upgrade, the first thing performed is a migration
+   check, which verifies that they are within the right branch. If they are not
+   within the right branch the upgrade framework will load a migration script
+   which will define a function named MIGRATE(). Performing more than one
+   migration in one pass will probably never be supported. How that works for
+   UX in 1.3.x/1.4.x I know not yet.
+   
+   After performing any necessary branch migrations, the framework will perform
+   any upgrades within the target branch, which is the first two parts
+   (delimited by periods) of the installer's version number defined in the
+   installer's common.php.
+   
+   enano_perform_upgrade() will only do upgrades. Not migrations. The two as
+   illustrated within this installer are very different.
+   */
+  
   // Do we need to run the migration first?
-  if ( substr(enano_version(), 0, 4) != '1.1.' )
+  list($major_version, $minor_version) = explode('.', enano_version());
+  $current_branch = "$major_version.$minor_version";
+  
+  list($major_version, $minor_version) = explode('.', installer_enano_version());
+  $target_branch = "$major_version.$minor_version";
+  
+  if ( $target_branch != $current_branch )
   {
-    require(ENANO_ROOT . '/install/upgrade/migration/1.0-1.1.php');
+    // First upgrade to the latest revision of the current branch
+    enano_perform_upgrade($current_branch);
+    // Branch migration could be tricky and is often highly specific between
+    // major branches, so just include a custom migration script.
+    require(ENANO_ROOT . "/install/schemas/upgrade/migration/{$current_branch}-{$target_branch}.php");
     $result = MIGRATE();
     if ( !$result )
     {
@@ -165,90 +202,10 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
       exit;
     }
   }
-  // Main upgrade stage
   
-  // Init vars
-  $version_flipped = array_flip($enano_versions);
-  $version_curr = enano_version();
-  $version_target = installer_enano_version();
+  // Do the actual upgrade
+  enano_perform_upgrade($target_branch);
   
-  // Calculate which scripts to run
-  if ( !isset($version_flipped[$version_curr]) )
-  {
-    echo '<p>ERROR: Unsupported version</p>';
-    $ui->show_footer();
-    exit;
-  }
-  if ( !isset($version_flipped[$version_target]) )
-  {
-    echo '<p>ERROR: Upgrader doesn\'t support its own version</p>';
-    $ui->show_footer();
-    exit;
-  }
-  $upg_queue = array();
-  for ( $i = $version_flipped[$version_curr]; $i < $version_flipped[$version_target]; $i++ )
-  {
-    if ( !isset($enano_versions[$i + 1]) )
-    {
-      echo '<p>ERROR: Unsupported intermediate version</p>';
-      $ui->show_footer();
-      exit;
-    }
-    $ver_this = $enano_versions[$i];
-    $ver_next = $enano_versions[$i + 1];
-    $upg_queue[] = array($ver_this, $ver_next);
-  }
-  
-  // Verify that all upgrade scripts are usable
-  foreach ( $upg_queue as $verset )
-  {
-    $file = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}-$dbdriver.sql";
-    if ( !file_exists($file) )
-    {
-      echo "<p>ERROR: Couldn't find required schema file: $file</p>";
-      $ui->show_footer();
-      exit;
-    }
-  }
-  // Perform upgrade
-  foreach ( $upg_queue as $verset )
-  {
-    $file = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}-$dbdriver.sql";
-    try
-    {
-      $parser = new SQL_Parser($file);
-    }
-    catch(Exception $e)
-    {
-      die("<pre>$e</pre>");
-    }
-    
-    $parser->assign_vars(array(
-      'TABLE_PREFIX' => table_prefix
-    ));
-  
-    $sql_list = $parser->parse();
-  
-    foreach ( $sql_list as $sql )
-    {
-      if ( !$db->sql_query($sql) )
-        $db->_die();
-    }
-    
-    // Is there an additional script (logic) to be run after the schema?
-    $postscript = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}.php";
-    if ( file_exists($postscript) )
-      @include($postscript);
-    
-    // The advantage of calling setConfig on the system version here?
-    // Simple. If the upgrade fails, it will pick up from the last
-    // version, not try to start again from the beginning. This will
-    // still cause errors in most cases though. Eventually we probably
-    // need some sort of query-numbering system that tracks in-progress
-    // upgrades.
-    
-    setConfig('enano_version', $verset[1]);
-  }
   echo '<p>All done!</p>';
 }
 else

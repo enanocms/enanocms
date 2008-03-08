@@ -116,4 +116,124 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   exit;
 }
 
+function enano_perform_upgrade($target_branch)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  // Import version info
+  global $enano_versions;
+  // Import UI functions
+  global $ui;
+  // This is needed for upgrade abstraction
+  global $dbdriver;
+  // Main upgrade stage
+  
+  // Init vars
+  list($major_version, $minor_version) = explode('.', installer_enano_version());
+  $installer_branch = "$major_version.$minor_version";
+  
+  $version_flipped = array_flip($enano_versions[$target_branch]);
+  $version_curr = enano_version();
+  // Change this to be the last version in the current branch.
+  // If we're just upgrading within this branch, use the version the installer library
+  // reports to us. Else, use the latest in the old (current target) branch.
+  // $version_target = installer_enano_version();
+  $version_target = ( $target_branch === $installer_branch ) ? installer_enano_version() : $enano_versions[$target_branch][ count($enano_versions[$target_branch]) - 1 ];
+  
+  // Calculate which scripts to run
+  if ( !isset($version_flipped[$version_curr]) )
+  {
+    echo '<p>ERROR: Unsupported version</p>';
+    $ui->show_footer();
+    exit;
+  }
+  if ( !isset($version_flipped[$version_target]) )
+  {
+    echo '<p>ERROR: Upgrader doesn\'t support its own version</p>';
+    $ui->show_footer();
+    exit;
+  }
+  $upg_queue = array();
+  for ( $i = $version_flipped[$version_curr]; $i < $version_flipped[$version_target]; $i++ )
+  {
+    if ( !isset($enano_versions[$target_branch][$i + 1]) )
+    {
+      echo '<p>ERROR: Unsupported intermediate version</p>';
+      $ui->show_footer();
+      exit;
+    }
+    $ver_this = $enano_versions[$target_branch][$i];
+    $ver_next = $enano_versions[$target_branch][$i + 1];
+    $upg_queue[] = array($ver_this, $ver_next);
+  }
+  
+  // Verify that all upgrade scripts are usable
+  foreach ( $upg_queue as $verset )
+  {
+    $file = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}-$dbdriver.sql";
+    if ( !file_exists($file) )
+    {
+      echo "<p>ERROR: Couldn't find required schema file: $file</p>";
+      $ui->show_footer();
+      exit;
+    }
+  }
+  // Perform upgrade
+  foreach ( $upg_queue as $verset )
+  {
+    $file = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}-$dbdriver.sql";
+    try
+    {
+      $parser = new SQL_Parser($file);
+    }
+    catch(Exception $e)
+    {
+      die("<pre>$e</pre>");
+    }
+    
+    $parser->assign_vars(array(
+      'TABLE_PREFIX' => table_prefix
+    ));
+  
+    $sql_list = $parser->parse();
+    // Check for empty schema file
+    if ( $sql_list[0] === ';' && count($sql_list) == 1 )
+    {
+      // It's empty, report success for this version
+      // See below for explanation of why setConfig() is called here
+      setConfig('enano_version', $verset[1]);
+      continue;
+    }
+    
+    foreach ( $sql_list as $sql )
+    {
+      // check for '@' operator on query
+      if ( substr($sql, 0, 1) == '@' )
+      {
+        // Yes - perform query but don't check for errors
+        $db->sql_query($sql);
+      }
+      else
+      {
+        // Perform as normal
+        if ( !$db->sql_query($sql) )
+          $db->_die();
+      }
+    }
+    
+    // Is there an additional script (logic) to be run after the schema?
+    $postscript = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}.php";
+    if ( file_exists($postscript) )
+      @include($postscript);
+    
+    // The advantage of calling setConfig on the system version here?
+    // Simple. If the upgrade fails, it will pick up from the last
+    // version, not try to start again from the beginning. This will
+    // still cause errors in most cases though. Eventually we probably
+    // need some sort of query-numbering system that tracks in-progress
+    // upgrades.
+    
+    setConfig('enano_version', $verset[1]);
+  }
+}
+
 ?>
