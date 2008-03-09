@@ -208,6 +208,7 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
   
   $site_url = makeUrl(getConfig('main_page'), false, true);
   echo '<p>All done! I\'ll actually be nice enough to give you a <a href="' . $site_url . '">link back to your site</a> this release <tt>:)</tt></p>';
+  echo '<p><b>It is important that you run a language string re-import and then clear your browser cache.</b> Otherwise you may see bits of the interface that appear to not be localized. This process will be automatic and non-destructive in later versions.</p>';
 }
 else
 {
