@@ -1846,46 +1846,31 @@ class PageProcessor
               ';
       if ( $show_home )
       {
-        if ( count($breadcrumb_data) > 1 )
-        {
-          echo '<a href="' . makeUrl(getConfig('main_page'), false, true) . '">' . $lang->get('onpage_btn_breadcrumbs_home') . '</a> &raquo;';
-        }
-        else
-        {
-          echo $lang->get('onpage_btn_breadcrumbs_home');
-        }
+        // Display the "home" link first.
+        $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
+        if ( $pathskey !== getConfig('main_page') )
+          echo '<a href="' . makeUrl(getConfig('main_page'), false, true) . '">';
+        echo $lang->get('onpage_btn_breadcrumbs_home');
+        if ( $pathskey !== getConfig('main_page') )
+          echo '</a>';
       }
-      foreach ( $breadcrumb_data as $i => $higherpage )
+      foreach ( $breadcrumb_data as $i => $crumb )
       {
-        $higherpage = $paths->nslist[$this->namespace] . sanitize_page_id(implode('/', array_slice($breadcrumb_data, 0, ($i+1))));
-        if ( $higherpage === getConfig('main_page') )
+        $cumulative = implode('/', array_slice($breadcrumb_data, 0, ( $i + 1 )));
+        if ( $show_home && $cumulative === getConfig('main_page') )
           continue;
-        if ( ($i + 1) == count($breadcrumb_data) )
+        if ( $show_home || $i > 0 )
+          echo ' &raquo; ';
+        $title = ( isPage($cumulative) ) ? get_page_title($cumulative) : get_page_title($crumb);
+        if ( $i + 1 == count($breadcrumb_data) )
         {
-          $title = ( $higherpage === getConfig('main_page') ) ? $lang->get('onpage_btn_breadcrumbs_home') : get_page_title($higherpage, false);
-          if ( !$this->page_exists )
-          {
-            $title = explode('/', $title);
-            $title = array_reverse($title);
-            $title = $title[0];
-          }
           echo htmlspecialchars($title);
-          break;
-        }
-        else if ( isPage($higherpage) )
-        {
-          $title = get_page_title($higherpage, false);
-          echo '<a href="' . makeUrl($higherpage, false, true) . '">' . htmlspecialchars($title) . '</a>';
         }
         else
         {
-          $title = get_page_title($higherpage, false);
-          $title = explode('/', $title);
-          $title = array_reverse($title);
-          $title = $title[0];
-          echo '<a href="' . makeUrl($higherpage, false, true) . '" class="wikilink-nonexistent">' . htmlspecialchars($title) . '</a>';
+          $exists = ( isPage($cumulative) ) ? '' : ' class="wikilink-nonexistent"';
+          echo '<a href="' . makeUrl($cumulative, false, true) . '"' . $exists . '>' . htmlspecialchars($title) . '</a>';
         }
-        echo ' &raquo; ';
       }
       echo '</div>
             <!-- End breadcrumbs -->
