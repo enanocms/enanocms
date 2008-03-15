@@ -494,7 +494,7 @@ class mysql {
   }
   
   function close() {
-    mysql_close($this->_conn);
+    @mysql_close($this->_conn);
     unset($this->_conn);
   }
   
@@ -1244,7 +1244,7 @@ class postgresql {
   }
   
   function close() {
-    pg_close($this->_conn);
+    @pg_close($this->_conn);
     unset($this->_conn);
   }
   
