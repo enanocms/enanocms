@@ -212,7 +212,7 @@ function page_Special_CreatePage()
     echo '</select>';
     echo '</p>';
     
-  echo '<fieldset>';
+  echo '<fieldset enano:expand="closed">';
   echo '<legend>' . $lang->get('pagetools_create_group_advanced') . '</legend>';
   
   echo '<p>';

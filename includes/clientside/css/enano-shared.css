@@ -713,3 +713,35 @@ div.themebutton div.status {
   height: 150px;
 }
 
+/* Expandable fieldsets */
+
+fieldset legend a.expander {
+  padding-left: 11px;
+  background-position: left center;
+  background-repeat: no-repeat;
+  color: inherit;
+  cursor: pointer;
+}
+
+fieldset legend a.expander:hover {
+  color: inherit;
+}
+
+fieldset legend a.expander-closed {
+  background-image: url(../../../images/expander/closed.gif);
+  
+}
+
+fieldset legend a.expander-closed:hover {
+  background-image: url(../../../images/expander/closed-prelight.gif);
+}
+
+fieldset legend a.expander-open {
+  background-image: url(../../../images/expander/open.gif);
+  padding-left: 17px;
+}
+
+fieldset legend a.expander-open:hover {
+  background-image: url(../../../images/expander/open-prelight.gif);
+}
+

@@ -579,3 +579,129 @@ function dirtify_page_id(page_id)
   
   return page_id;
 }
+
+/*
+ * Expandable fieldsets
+ */
+
+var expander_onload = function()
+{
+  var sets = document.getElementsByTagName('fieldset');
+  if ( sets.length < 1 )
+    return false;
+  for ( var i = 0; i < sets.length; i++ )
+  {
+    var mode = sets[i].getAttribute('enano:expand');
+    if ( mode == 'closed' || mode == 'open' )
+    {
+      expander_init_element(sets[i]);
+    }
+  }
+}
+
+function expander_init_element(el)
+{
+  // get the legend tag
+  var legend = el.getElementsByTagName('legend')[0];
+  if ( !legend )
+    return false;
+  // existing content
+  var existing_inner = legend.innerHTML;
+  // blank the innerHTML and replace it with a link
+  legend.innerHTML = '';
+  var button = document.createElement('a');
+  button.className = 'expander expander-open';
+  button.innerHTML = existing_inner;
+  button.href = '#';
+  
+  legend.appendChild(button);
+  
+  button.onclick = function()
+  {
+    try
+    {
+      expander_handle_click(this);
+    }
+    catch(e)
+    {
+    }
+    return false;
+  }
+  
+  if ( el.getAttribute('enano:expand') == 'closed' )
+  {
+    expander_close(el);
+  }
+}
+
+function expander_handle_click(el)
+{
+  if ( el.parentNode.parentNode.tagName != 'FIELDSET' )
+    return false;
+  var parent = el.parentNode.parentNode;
+  if ( parent.getAttribute('enano:expand') == 'closed' )
+  {
+    expander_open(parent);
+  }
+  else
+  {
+    expander_close(parent);
+  }
+}
+
+function expander_close(el)
+{
+  var children = el.childNodes;
+  for ( var i = 0; i < children.length; i++ )
+  {
+    var child = children[i];
+    if ( child.tagName == 'LEGEND' )
+    {
+      var a = child.getElementsByTagName('a')[0];
+      $(a).rmClass('expander-open');
+      $(a).addClass('expander-closed');
+      continue;
+    }
+    child.expander_meta_old_state = child.style.display;
+    child.style.display = 'none';
+  }
+  el.expander_meta_padbak = el.style.padding;
+  el.setAttribute('enano:expand', 'closed');
+}
+
+function expander_open(el)
+{
+  var children = el.childNodes;
+  for ( var i = 0; i < children.length; i++ )
+  {
+    var child = children[i];
+    if ( child.tagName == 'LEGEND' )
+    {
+      var a = child.getElementsByTagName('a')[0];
+      $(a).rmClass('expander-closed');
+      $(a).addClass('expander-open');
+      continue;
+    }
+    if ( child.expander_meta_old_state )
+    {
+      child.style.display = child.expander_meta_old_state;
+      child.expander_meta_old_state = null;
+    }
+    else
+    {
+      child.style.display = null;
+    }
+  }
+  if ( el.expander_meta_padbak )
+  {
+    el.style.padding = el.expander_meta_padbak;
+    el.expander_meta_padbak = null;
+  }
+  else
+  {
+    el.style.padding = null;
+  }
+  el.setAttribute('enano:expand', 'open');
+}
+
+addOnloadHook(expander_onload);
