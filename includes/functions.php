@@ -550,6 +550,11 @@ function die_semicritical($t, $p, $no_wrapper = false)
 
   if ( ob_get_status() )
     ob_end_clean();
+  
+  if ( defined('ENANO_CLI') )
+  {
+    grinding_halt($t, $p);
+  }
 
   if ( $no_wrapper )
   {
@@ -609,9 +614,26 @@ function grinding_halt($t, $p)
 
   if ( is_object($db) )
     $db->close();
-
+  
   if ( ob_get_status() )
     ob_end_clean();
+  
+  if ( defined('ENANO_CLI') )
+  {
+    // set console color
+    echo "\x1B[31;1m";
+    // error title
+    echo "Critical error in Enano runtime: ";
+    // unbold
+    echo "$t\n";
+    // bold
+    echo "\x1B[37;1m";
+    echo "Error: ";
+    // unbold
+    echo "\x1B[0m";
+    echo "$p\n";
+    exit;
+  }
 
   $tpl = new template_nodb();
   $tpl->load_theme('oxygen', 'bleu');

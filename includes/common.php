@@ -154,6 +154,16 @@ global $lang;
 global $timezone;
 $timezone = 0;
 
+// Divert to CLI loader if running from CLI
+if ( isset($argc) && isset($argv) )
+{
+  if ( is_int($argc) && is_array($argv) && !isset($_SERVER['REQUEST_URI']) )
+  {
+    require(ENANO_ROOT . '/includes/common_cli.php');
+    return;
+  }
+}
+
 // Because Enano sends out complete URLs in several occasions, we need to know what hostname the user is requesting the page from.
 // In future versions we may include a fallback "safety" host to use, but that's too much to worry about now
 if ( !isset($_SERVER['HTTP_HOST']) )
