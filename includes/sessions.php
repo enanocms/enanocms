@@ -1238,7 +1238,7 @@ class sessionManager {
                              . '    ON ( p.message_to=u.username AND p.message_read=0 )' . "\n"
                              . '  WHERE k.session_key=\''.$keyhash.'\'' . "\n"
                              . '    AND k.salt=\''.$salt.'\'' . "\n"
-                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
+                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_timezone,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
     
     if ( !$query )
     {

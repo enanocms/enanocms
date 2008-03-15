@@ -611,6 +611,8 @@ class pathManager {
         unset($text[$i]);
     }
     $text = array_unique(array_values($text));
+    // for debugging purposes (usually XSS safe because of character stripping)
+    // echo ' ' . implode(' ', $text) . '<br />';
     return $text;
   }
   
@@ -669,7 +671,7 @@ class pathManager {
                             . "    ON ( p.urlname = t.page_id AND p.namespace = t.namespace )\n"
                             . "  WHERE ( p.password = '' OR p.password = '$sha1_blank' )\n"
                             . "    AND ( p.visible = 1 )\n"
-                            . "  LIMIT $offset, $pages_in_batch;", false);
+                            . "  LIMIT $pages_in_batch OFFSET $offset;", false);
       if ( !$texts )
         $db->_die();
       
@@ -703,9 +705,10 @@ class pathManager {
             if ( in_array($word, $stopwords) || strval(intval($word)) === $word || strlen($word) < 3 )
               continue;
             $word_db = $db->escape($word);
+            $word_db_lc = $db->escape(strtolower($word));
             if ( !in_array($word, $master_word_list) )
             {
-              $inserts[] = "( '$word_db', '$page_uniqid' )";
+              $inserts[] = "( '$word_db', '$word_db_lc', '$page_uniqid' )";
             }
             else
             {
@@ -724,7 +727,7 @@ class pathManager {
             if ( $verbose && $debug )
               echo 'i';
             $inserts = implode(",\n  ", $inserts);
-            $q = $db->sql_query('INSERT INTO ' . table_prefix . "search_index(word, page_names) VALUES\n  $inserts;", false);
+            $q = $db->sql_query('INSERT INTO ' . table_prefix . "search_index(word, word_lcase, page_names) VALUES\n  $inserts;", false);
             if ( !$q )
               $db->_die();
           }

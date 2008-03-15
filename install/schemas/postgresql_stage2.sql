@@ -85,7 +85,7 @@ CREATE TABLE {{TABLE_PREFIX}}themes(
   default_style varchar(63) NOT NULL DEFAULT '',
   enabled smallint NOT NULL DEFAULT '1',
   group_list text DEFAULT NULL,
-  group_policy varchar(5) NOT NULL DEFAULT 'allow_all',
+  group_policy varchar(9) NOT NULL DEFAULT 'allow_all',
   CHECK (group_policy IN ('allow_all', 'whitelist', 'blacklist'))
 );
 
@@ -193,6 +193,7 @@ CREATE TABLE {{TABLE_PREFIX}}hits(
 
 CREATE TABLE {{TABLE_PREFIX}}search_index(
   word varchar(64) NOT NULL,
+  word_lcase varchar(64) NOT NULL,
   page_names text,
   PRIMARY KEY ( word )
 );

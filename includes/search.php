@@ -110,7 +110,7 @@ class Searcher
  *   page_text: string, the contents of the page (trimmed to ~150 bytes if necessary)
  *   score: numerical relevance score, 1-100, rounded to 2 digits and calculated based on which terms were present and which were not
  * @param string Search query
- * @param string Will be filled with any warnings encountered whilst parsing the query
+ * @param string|reference Will be filled with any warnings encountered whilst parsing the query
  * @param bool Case sensitivity - defaults to false
  * @param array|reference Will be filled with the parsed list of words.
  * @return array
@@ -197,7 +197,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
       $where_any[] = $term;
     }
 
-    $col_word = ( $case_sensitive ) ? 'word' : ENANO_SQLFUNC_LOWERCASE . '(word)';
+    $col_word = ( $case_sensitive ) ? 'word' : 'word_lcase';
     $where_any = ( count($where_any) > 0 ) ? '( ' . $col_word . ' = \'' . implode('\' OR ' . $col_word . ' = \'', $where_any) . '\' )' : '';
 
     // generate query
