@@ -60,6 +60,14 @@ class Language
   var $strings = array();
   
   /**
+   * Switch for debug mode. If true, will show an asterisk after localized strings. This
+   * can be useful if you're localizing a component and need to see what's already done.
+   * @var bool
+   */
+  
+  var $debug = false;
+  
+  /**
    * Constructor.
    * @param int|string Language ID or code to load.
    */
@@ -338,6 +346,94 @@ $lang_cache = ');
       $db->_die('lang.php - invalid or non-well-formed language file');
     }
     
+    return $this->import_array($langdata);
+  }
+  
+  /**
+   * Imports a JSON-format language file into the database and merges with current strings.
+   * @param string Path to plugin file
+   */
+  
+  function import_plugin($file)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    if ( !file_exists($file) )
+      $db->_die('lang.php - can\'t import language file: string file doesn\'t exist');
+    
+    if ( $this->lang_id == 0 )
+      $db->_die('lang.php - BUG: trying to perform import when $lang->lang_id == 0');
+    
+    $contents = trim(@file_get_contents($file));
+    
+    if ( empty($contents) )
+      $db->_die('lang.php - can\'t load the contents of the language file');
+    
+    // If there isn't a specially formed comment block, bail out quietly.
+    if ( !strpos($contents, PLUGIN_METABLOCK_LANGUAGE_START) || !strpos($contents, PLUGIN_METABLOCK_LANGUAGE_END) )
+      return null;
+    
+    // Get all data in the language block
+    $block_start = strpos($contents, PLUGIN_METABLOCK_LANGUAGE_START) + strlen(PLUGIN_METABLOCK_LANGUAGE_START);
+    $block_end = strpos($contents, PLUGIN_METABLOCK_LANGUAGE_END);
+    $block_len = $block_end - $block_start;
+    if ( $block_len < 1 )
+      $db->_die('lang.php - plugin file contains corrupt language data');
+    
+    $contents = substr($contents, $block_start, $block_len);
+    
+    // Trim off all text before and after the starting and ending braces
+    $contents = preg_replace('/^([^{]+)\{/', '{', $contents);
+    $contents = preg_replace('/\}([^}]+)$/', '}', $contents);
+    
+    // Correct syntax to be nice to the json parser
+    $contents = enano_clean_json($contents);
+    
+    try
+    {
+      $langdata = enano_json_decode($contents);
+    }
+    catch(Zend_Json_Exception $e)
+    {
+      $db->_die('lang.php - Exception caught by JSON parser</p><pre>' . htmlspecialchars(print_r($e, true)) . '</pre><p>');
+      exit;
+    }
+    
+    if ( !is_array($langdata) )
+    {
+      $db->_die('lang.php - invalid or non-well-formed language file');
+    }
+    
+    // Does the plugin support the current language?
+    if ( isset($langdata[$this->lang_code]) )
+    {
+      // Yes, import that
+      return $this->import_array($langdata[$this->lang_code]);
+    }
+    
+    // Just import the first language we run across.
+    $supported_langs = array_keys($langdata);
+    
+    if ( !isset($supported_langs[0]) )
+    {
+      $db->_die('lang.php - plugin has an invalid or corrupt language block');
+    }
+    
+    $first_lang = $supported_langs[0];
+    
+    return $this->import_array($langdata[$first_lang]);
+  }
+  
+  /**
+   * Performs the actual import of string data.
+   * @param array Parsed JSON object, should be in the form of an array
+   * @access private
+   */
+  
+  protected function import_array($langdata) 
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
     if ( !isset($langdata['categories']) || !isset($langdata['strings']) )
       $db->_die('lang.php - language file does not contain the proper items');
     
@@ -554,7 +650,7 @@ $lang_cache = ');
       $subs[$key] = strval($value);
       $string = str_replace("%{$key}%", "{$subs[$key]}", $string);
     }
-    return $string;
+    return ( $this->debug ) ? "$string*" : $string;
   }
   
 } // class Language

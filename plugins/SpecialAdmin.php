@@ -4,13 +4,13 @@ Plugin Name: plugin_specialadmin_title
 Plugin URI: http://enanocms.org/
 Description: plugin_specialadmin_desc
 Author: Dan Fuhry
-Version: 1.1.1
+Version: 1.1.3
 Author URI: http://enanocms.org/
 */
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.2 (Caoineag alpha 2)
+ * Version 1.1.3 (Caoineag alpha 3)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -1199,6 +1199,15 @@ function page_Admin_PluginManager()
                    <p>' . $lang->get('acppl_err_system_plugin') . '</p>';
           }
           break;
+        case "reimport":
+          $plugin_id = substr($plugin, 0, -4);
+          if ( isset($plugins->loaded_plugins[$plugin_id]) )
+          {
+            // plugin file is safe, call import
+            $lang->import_plugin( ENANO_ROOT . "/plugins/$plugin" );
+            echo '<div class="info-box">' . $lang->get('acppl_msg_reimport_success') . '</div>';
+          }
+          break;
       }
     }
   }
@@ -1293,12 +1302,14 @@ function page_Admin_PluginManager()
               <td class="'.$cls.'"'.$bgcolor.'>'.$this_plugin['desc'].'</td>
               <td class="'.$cls.'"'.$bgcolor.'><a href="'.$this_plugin['aweb'].'">'.$this_plugin['auth'].'</a></td>
               <td class="'.$cls.'"'.$bgcolor.'>'.$this_plugin['vers'].'</td>
-              <td class="'.$cls.'"'.$bgcolor.'>';
+              <td class="'.$cls.'"'.( $bgcolor != '' ? str_replace_once(';', '; text-align: center;', $bgcolor) : ' style="text-align: center;"' ).' nowrap="nowrap">';
       if ( !in_array($plugin_files[$i], $plugins->system_plugins) )
       {
         if ( getConfig('plugin_'.$plugin_files[$i]) == '1' )
         {
           echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=disable&amp;plugin='.$plugin_files[$i].'">' . $lang->get('acppl_btn_disable') . '</a>';
+          echo ' | ';
+          echo '<a title="' . $lang->get('acppl_btn_reimport_tip') . '" href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=reimport&amp;plugin='.$plugin_files[$i].'">' . $lang->get('acppl_btn_reimport') . '</a>';
         }
         else
         {

@@ -275,6 +275,8 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
     var button = new templateParser(response.toolbar_templates.toolbar_button);
     var tail = new templateParser(response.toolbar_templates.toolbar_end);
     
+    toolbar += head.run();
+    
     button.assign_bool({
         show_title: true
       });
@@ -286,6 +288,7 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
         FLAGS: 'href="#" onclick="ajaxReset(true); return false;"'
       });
     toolbar += button.run();
+    toolbar += tail.run();
   }
   else
   {

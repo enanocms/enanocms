@@ -2269,8 +2269,7 @@ class sessionManager {
       // E-mail addy
       if(is_string($email))
       {
-        // I didn't write this regex.
-        if(!preg_match('/^(?:[\w\d]+\.?)+@((?:(?:[\w\d]\-?)+\.)+\w{2,4}|localhost)$/', $email))
+        if(!check_email_address($email))
           $errors[] = 'The e-mail address you entered is invalid.';
         $strs[] = 'email=\''.$db->escape($email).'\'';
       }

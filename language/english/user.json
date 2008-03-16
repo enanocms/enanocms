@@ -120,7 +120,7 @@ var enano_lang = {
       type_mod: 'Moderator',
       type_admin: 'Administrator',
       
-      msg_elev_timed_out: '<b>Your administrative session has timed out.</b> <a href="%login_link%">Log in again</a>',
+      msg_elev_timed_out: '<b>Your administrative session has timed out.</b> <a href="%login_link%" onclick="ajaxLogonToElev(); return false;">Log in again</a>',
       
       reg_err_captcha: 'The confirmation code you entered was incorrect.',
       reg_err_disabled_title: 'Registration disabled',

@@ -104,6 +104,10 @@ define('PROTECT_NONE', 0);
 define('PROTECT_FULL', 1);
 define('PROTECT_SEMI', 2);
 
+// Special comments - plugin blocks
+define('PLUGIN_METABLOCK_LANGUAGE_START', '/**!language**');
+define('PLUGIN_METABLOCK_LANGUAGE_END', '**!*/');
+
 //
 // Enano versions progress
 //

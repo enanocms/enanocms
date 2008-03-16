@@ -211,7 +211,7 @@ function password_score_draw(score)
   // some colors are from the Gmail sign-up form
   if ( score >= 10 )
   {
-    var color = '#000000';
+    var color = '#010101';
     var fgcolor = '#666666';
     var str = $lang.get('usercp_pwstrength_score_verystrong', { score: score });
   }
@@ -239,11 +239,12 @@ function password_score_draw(score)
     var fgcolor = '#FF6060';
     var str = $lang.get('usercp_pwstrength_score_weak', { score: score });
   }
-  return {
+  var ret = {
     color: color,
     fgcolor: fgcolor,
     str: str
   };
+  return ret;
 }
 
 function password_score_field(field)

@@ -537,6 +537,8 @@ var enano_lang = {
       specialuserfuncs_desc: 'Provides the pages Special:Login, Special:Logout, Special:Register, and Special:Preferences.',
       specialuserprefs_title: 'User control panel',
       specialuserprefs_desc: 'Provides the page Special:Preferences.',
+      specialrecentchanges_title: 'Recent changes interface',
+      specialrecentchanges_desc: 'Provides the page Special:RecentChanges, which is used to view recent modifications to pages on the site.',
     },
     paginate: {
       lbl_page: 'Page:',
