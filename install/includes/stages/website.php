@@ -34,7 +34,7 @@ $ui->show_header();
   }
   var __ajaxMrwTest_chain_rewrite = function()
   {
-    if ( ajax.readyState == 4 && ajax.status == 200 )
+    if ( ajax.readyState == 4 )
     {
       if ( ajax.responseText == 'good_rewrite' )
       {
@@ -48,7 +48,7 @@ $ui->show_header();
   }
   var __ajaxMrwTest_chain_shortened = function()
   {
-    if ( ajax.readyState == 4 && ajax.status == 200 )
+    if ( ajax.readyState == 4 )
     {
       if ( ajax.responseText == 'good_shortened' )
       {
@@ -62,7 +62,7 @@ $ui->show_header();
   }
   var __ajaxMrwTest_chain_standard = function()
   {
-    if ( ajax.readyState == 4 && ajax.status == 200 )
+    if ( ajax.readyState == 4 )
     {
       if ( ajax.responseText == 'good_standard' )
       {
