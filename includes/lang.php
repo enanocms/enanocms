@@ -364,23 +364,13 @@ $lang_cache = ');
     if ( $this->lang_id == 0 )
       $db->_die('lang.php - BUG: trying to perform import when $lang->lang_id == 0');
     
-    $contents = trim(@file_get_contents($file));
+    $block = pluginLoader::parse_plugin_blocks($file, 'language');
+    if ( !is_array($block) )
+      return false;
+    if ( !isset($block[0]) )
+      return false;
     
-    if ( empty($contents) )
-      $db->_die('lang.php - can\'t load the contents of the language file');
-    
-    // If there isn't a specially formed comment block, bail out quietly.
-    if ( !strpos($contents, PLUGIN_METABLOCK_LANGUAGE_START) || !strpos($contents, PLUGIN_METABLOCK_LANGUAGE_END) )
-      return null;
-    
-    // Get all data in the language block
-    $block_start = strpos($contents, PLUGIN_METABLOCK_LANGUAGE_START) + strlen(PLUGIN_METABLOCK_LANGUAGE_START);
-    $block_end = strpos($contents, PLUGIN_METABLOCK_LANGUAGE_END);
-    $block_len = $block_end - $block_start;
-    if ( $block_len < 1 )
-      $db->_die('lang.php - plugin file contains corrupt language data');
-    
-    $contents = substr($contents, $block_start, $block_len);
+    $contents =& $block[0]['value'];
     
     // Trim off all text before and after the starting and ending braces
     $contents = preg_replace('/^([^{]+)\{/', '{', $contents);

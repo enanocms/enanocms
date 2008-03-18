@@ -487,3 +487,30 @@ function mb_logout()
     }
 }
 
+function whiteOutElement(el)
+{
+  var top = $(el).Top();
+  var left = $(el).Left();
+  var width = $(el).Width();
+  var height = $(el).Height();
+  
+  var blackout = document.createElement('div');
+  blackout.style.position = 'absolute';
+  blackout.style.top = top + 'px';
+  blackout.style.left = left + 'px';
+  blackout.style.width = width + 'px';
+  blackout.style.height = height + 'px';
+  
+  blackout.style.backgroundColor = '#FFFFFF';
+  domObjChangeOpac(60, blackout);
+  blackout.style.backgroundImage = 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
+  blackout.style.backgroundPosition = 'center center';
+  blackout.style.backgroundRepeat = 'no-repeat';
+  blackout.style.zIndex = getHighestZ() + 2;
+  
+  var body = document.getElementsByTagName('body')[0];
+  body.appendChild(blackout);
+  
+  return blackout;
+}
+

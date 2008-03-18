@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.2 (Caoineag alpha 2)
+ * Version 1.1.3 (Caoineag alpha 3)
  * Copyright (C) 2006-2007 Dan Fuhry
  * render.php - handles fetching pages and parsing them into HTML
  *

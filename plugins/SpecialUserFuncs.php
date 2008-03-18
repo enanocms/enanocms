@@ -169,6 +169,7 @@ function page_Special_Login()
     }
     
     // 1.1.3: generate diffie hellman key
+    require_once( ENANO_ROOT . '/includes/diffiehellman.php' );
     global $dh_supported, $_math;
     
     $response['dh_supported'] = $dh_supported;
@@ -206,7 +207,7 @@ function page_Special_Login()
   if ( $level <= USER_LEVEL_MEMBER && $session->user_logged_in )
     $paths->main_page();
   $template->header();
-  echo '<form action="'.makeUrl($paths->nslist['Special'].'Login').'" method="post" name="loginform" onsubmit="runEncryption();">';
+  echo '<form action="'.makeUrl($paths->nslist['Special'].'Login').'" method="post" name="loginform" onsubmit="try{runEncryption();}catch(e){};">';
   $header = ( $level > USER_LEVEL_MEMBER ) ? $lang->get('user_login_message_short_elev') : $lang->get('user_login_message_short');
   if ( isset($_POST['login']) )
   {
@@ -226,11 +227,11 @@ function page_Special_Login()
         $errstring = $lang->get('user_err_invalid_credentials');
         if ( $__login_status['lockout_policy'] == 'lockout' )
         {
-          $errstring .= $lang->get('err_invalid_credentials_lockout', array('lockout_fails' => $__login_status['lockout_fails']));
+          $errstring .= $lang->get('err_invalid_credentials_lockout', array('fails' => $__login_status['lockout_fails']));
         }
         else if ( $__login_status['lockout_policy'] == 'captcha' )
         {
-          $errstring .= $lang->get('user_err_invalid_credentials_lockout_captcha', array('lockout_fails' => $__login_status['lockout_fails']));
+          $errstring .= $lang->get('user_err_invalid_credentials_lockout_captcha', array('fails' => $__login_status['lockout_fails']));
         }
         break;
       case 'backend_fail':
@@ -248,7 +249,7 @@ function page_Special_Login()
         
         $s = ( $time_rem == 1 ) ? '' : $lang->get('meta_plural');
         
-        $captcha_string = ( $__login_status['lockout_policy'] == 'captcha' ) ? $lang->get('err_locked_out_captcha_blurb') : '';
+        $captcha_string = ( $__login_status['lockout_policy'] == 'captcha' ) ? $lang->get('user_err_locked_out_captcha_blurb') : '';
         $errstring = $lang->get('user_err_locked_out', array('plural' => $s, 'captcha_blurb' => $captcha_string, 'time_rem' => $time_rem));
         
         break;
@@ -330,26 +331,35 @@ function page_Special_Login()
            <?php
          }
          ?>
-         <tr>
-           <td class="row3" colspan="3">
-             <?php
-             if ( $level <= USER_LEVEL_MEMBER && ( !isset($_GET['use_crypt']) || ( isset($_GET['use_crypt']) && $_GET['use_crypt']!='0' ) ) )
-             {
-               $returnpage_link = ( $return = $paths->getAllParams() ) ? '/' . $return : '';
-               $nocrypt_link = makeUrlNS('Special', "Login$returnpage_link", "level=$level&use_crypt=0", true);
-               echo '<p><b>' . $lang->get('user_login_nocrypt_title') . '</b> ' . $lang->get('user_login_nocrypt_body', array('nocrypt_link' => $nocrypt_link)) . '</p>';
-               echo '<p>' . $lang->get('user_login_nocrypt_countrylist') . '</p>';
-             }
-             else if ( $level <= USER_LEVEL_MEMBER && ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0' ) )
-             {
-               $returnpage_link = ( $return = $paths->getAllParams() ) ? '/' . $return : '';
-               $usecrypt_link = makeUrlNS('Special', "Login$returnpage_link", "level=$level&use_crypt=1", true);
-               echo '<p><b>' . $lang->get('user_login_usecrypt_title') . '</b> ' . $lang->get('user_login_usecrypt_body', array('usecrypt_link' => $usecrypt_link)) . '</p>';
-               echo '<p>' . $lang->get('user_login_usecrypt_countrylist') . '</p>';
-             }
-             ?>
-           </td>
-         </tr>
+         <?php
+         if ( $level <= USER_LEVEL_MEMBER && ( !isset($_GET['use_crypt']) || ( isset($_GET['use_crypt']) && $_GET['use_crypt']!='0' ) ) )
+         {
+           echo '<tr>
+             <td class="row3" colspan="3">';
+             
+           $returnpage_link = ( $return = $paths->getAllParams() ) ? '/' . $return : '';
+           $nocrypt_link = makeUrlNS('Special', "Login$returnpage_link", "level=$level&use_crypt=0", true);
+           echo '<p><b>' . $lang->get('user_login_nocrypt_title') . '</b> ' . $lang->get('user_login_nocrypt_body', array('nocrypt_link' => $nocrypt_link)) . '</p>';
+           echo '<p>' . $lang->get('user_login_nocrypt_countrylist') . '</p>';
+           
+           echo '  </td>
+           </tr>';
+         }
+         else if ( $level <= USER_LEVEL_MEMBER && ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0' ) )
+         {
+           echo '<tr>
+             <td class="row3" colspan="3">';
+             
+           $returnpage_link = ( $return = $paths->getAllParams() ) ? '/' . $return : '';
+           $usecrypt_link = makeUrlNS('Special', "Login$returnpage_link", "level=$level&use_crypt=1", true);
+           echo '<p><b>' . $lang->get('user_login_usecrypt_title') . '</b> ' . $lang->get('user_login_usecrypt_body', array('usecrypt_link' => $usecrypt_link)) . '</p>';
+           echo '<p>' . $lang->get('user_login_usecrypt_countrylist') . '</p>';
+           
+           echo '  </td>
+           </tr>';
+         }
+         ?>
+         
          <tr>
            <th colspan="3" style="text-align: center" class="subhead"><input type="submit" name="login" value="Log in" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '2'; ?>" /></th>
          </tr>
@@ -369,9 +379,35 @@ function page_Special_Login()
         document.forms.loginform.pass.focus();
       </script>
       <?php endif; ?>
+      <?php
+      // 1.1.4
+      
+      require_once( ENANO_ROOT . '/includes/diffiehellman.php' );
+      
+      global $dh_supported, $_math;
+      if ( $dh_supported )
+      {
+        $dh_key_priv = dh_gen_private();
+        $dh_key_pub = dh_gen_public($dh_key_priv);
+        $dh_key_priv = $_math->str($dh_key_priv);
+        $dh_key_pub = $_math->str($dh_key_pub);
+        // store the keys in the DB
+        $q = $db->sql_query('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+        if ( !$q )
+          $db->_die();
+        
+        echo "<input type=\"hidden\" name=\"dh_supported\" value=\"true\" />
+              <input type=\"hidden\" name=\"dh_public_key\" value=\"$dh_key_pub\" />
+              <input type=\"hidden\" name=\"dh_client_public_key\" value=\"\" />";
+      }
+      else
+      {
+        echo "<input type=\"hidden\" name=\"dh_supported\" value=\"false\" />";
+      }
+      ?>
     </form>
     <?php
-      echo $session->aes_javascript('loginform', 'pass', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data');
+      echo $session->aes_javascript('loginform', 'pass', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data', 'dh_supported', 'dh_public_key', 'dh_client_public_key');
     ?>
   <?php
   $template->footer();
@@ -407,103 +443,74 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
   }
   if ( isset($_GET['act']) && $_GET['act'] == 'ajaxlogin' )
   {
-    $plugins->attachHook('login_password_reset', 'SpecialLogin_SendResponse_PasswordReset($row[\'user_id\'], $row[\'temp_password\']);');
-    $data = enano_json_decode($_POST['params']);
-    $captcha_hash = ( isset($data['captcha_hash']) ) ? $data['captcha_hash'] : false;
-    $captcha_code = ( isset($data['captcha_code']) ) ? $data['captcha_code'] : false;
-    $level = ( isset($data['level']) ) ? intval($data['level']) : USER_LEVEL_MEMBER;
-    
-    // 1.1.3: Diffie Hellman
-    global $dh_supported;
-    global $_math;
-    if ( $data['diffiehellman'] && isset($data['publickey_client']) && isset($data['publickey_server']) && isset($data['crypt_key_check']) )
+    die('This version of the Enano LoginAPI is deprecated. Please use the action.json method instead.');
+    $db->close();
+    exit;
+  }
+  if(isset($_POST['login']))
+  {
+    $captcha_hash = ( isset($_POST['captcha_hash']) ) ? $_POST['captcha_hash'] : false;
+    $captcha_code = ( isset($_POST['captcha_code']) ) ? $_POST['captcha_code'] : false;
+    if ( $_POST['use_crypt'] == 'yes' )
     {
+      $result = $session->login_with_crypto($_POST['username'], $_POST['crypt_data'], $_POST['crypt_key'], $_POST['challenge_data'], intval($_POST['auth_level']), $captcha_hash, $captcha_code);
+    }
+    else if ( $_POST['use_crypt'] == 'yes_dh' )
+    {
+      // retrieve and decrypt the password using DiffieHellman
+      
+      require_once( ENANO_ROOT . '/includes/diffiehellman.php' );
+      global $dh_supported, $_math;
+      
       if ( !$dh_supported )
       {
-        die('Special:Login: Illegal request for Diffie Hellman exchange');
+        die_semicritical('DiffieHellman error', 'Server does not support DiffieHellman, denying logon request');
       }
-      // retrieve our public key
-      if ( !preg_match('/^[0-9]+$/', $data['publickey_server']) )
-      {
-        die('Special:Login: Illegal request for Diffie Hellman exchange');
-      }
-      $pubkey_server =& $data['publickey_server'];
       
-      // retrieve our private key
-      $q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$pubkey_server';");
+      // Fetch private key
+      $dh_public = $_POST['dh_public_key'];
+      if ( !preg_match('/^[0-9]+$/', $dh_public) )
+      {
+        die_semicritical('DiffieHellman error', 'Public key not integer: ' . $dh_public);
+      }
+      $q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$dh_public';");
       if ( !$q )
         $db->die_json();
       
       if ( $db->numrows() < 1 )
       {
-        die('Special:Login: Couldn\'t lookup Diffie Hellman key: ' . $pubkey_server);
+        die_semicritical('DiffieHellman error', 'ERR_DH_KEY_NOT_FOUND');
       }
-      list($privkey_server, $key_id) = $db->fetchrow_num();
+      
+      list($dh_private, $dh_key_id) = $db->fetchrow_num();
       $db->free_result();
       
-      // get shared secret
-      $dh_secret = dh_gen_shared_secret($privkey_server, $data['publickey_client']);
+      // We have the private key, now delete the key pair, we no longer need it
+      $q = $db->sql_query('DELETE FROM ' . table_prefix . "diffiehellman WHERE key_id = $dh_key_id;");
+      if ( !$q )
+        $db->die_json();
+      
+      // Generate the shared secret
+      $dh_secret = dh_gen_shared_secret($dh_private, $_POST['dh_client_public_key']);
       $dh_secret = $_math->str($dh_secret);
-      $secret_check = sha1($dh_secret);
-      if ( $secret_check !== $data['crypt_key_check'] )
+      
+      // Did we get all our math right?
+      $dh_secret_check = sha1($dh_secret);
+      $dh_hash = $_POST['crypt_key'];
+      if ( $dh_secret_check !== $dh_hash )
       {
-        die(enano_json_encode(array(
-            'mode' => 'error',
-            'error' => 'Diffie Hellman redundancy check failed, couldn\'t rebuild the AES key.',
-            'debug' => array(
-              'server private key' => $privkey_server,
-              'client public key' => $data['publickey_client'],
-              'expected sha1' => $data['crypt_key_check'],
-              'actual sha1' => $secret_check
-              )
-          )));
+        die_semicritical('DiffieHellman error', 'ERR_DH_HASH_NO_MATCH');
       }
-      // we have the secret, now get the sha256 hash
-      $crypt_key = substr(sha256($dh_secret), 0, ( AES_BITS / 4 ));
-    }
-    else if ( !$data['diffiehellman'] && isset($data['crypt_key']) && isset($data['crypt_data']) )
-    {
-      $crypt_key = $data['crypt_key'];
-    }
-    else
-    {
-      die('Special:Login: Illegal request');
-    }
-    
-    $result = $session->login_with_crypto($data['username'], $data['crypt_data'], $crypt_key, $data['challenge'], $level, $captcha_hash, $captcha_code, !$dh_supported);
-    
-    if ( $result['success'] )
-    {
-      $response = Array(
-          'result' => 'success',
-          'key' => $session->sid_super // ( ( $session->sid_super ) ? $session->sid_super : $session->sid )
-        );
-    }
-    else
-    {
-      $captcha = '';
-      if ( $result['error'] == 'locked_out' && $result['lockout_policy'] == 'captcha' )
-      {
-        $session->kill_captcha();
-        $captcha = $session->make_captcha();
-      }
-      $response = Array(
-          'result' => 'error',
-          'data' => $result,
-          'captcha' => $captcha
-        );
-    }
-    $response = enano_json_encode($response);
-    echo $response;
-    $db->close();
-    exit;
-  }
-  if(isset($_POST['login'])) {
-    $captcha_hash = ( isset($_POST['captcha_hash']) ) ? $_POST['captcha_hash'] : false;
-    $captcha_code = ( isset($_POST['captcha_code']) ) ? $_POST['captcha_code'] : false;
-    if($_POST['use_crypt'] == 'yes')
-    {
-      $result = $session->login_with_crypto($_POST['username'], $_POST['crypt_data'], $_POST['crypt_key'], $_POST['challenge_data'], intval($_POST['auth_level']), $captcha_hash, $captcha_code);
+      
+      // All good! Generate the AES key
+      $aes_key = substr(sha256($dh_secret), 0, ( AES_BITS / 4 ));
+      
+      // decrypt user info
+      $aes_key = hexdecode($aes_key);
+      $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+      $password = $aes->decrypt($_POST['crypt_data'], $aes_key, ENC_HEX);
+      
+      $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code);
     }
     else
     {

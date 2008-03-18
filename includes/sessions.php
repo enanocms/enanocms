@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.2 (Caoineag alpha 2)
+ * Version 1.1.3 (Caoineag alpha 3)
  * Copyright (C) 2006-2007 Dan Fuhry
  * sessions.php - everything related to security and user management
  *
@@ -864,20 +864,22 @@ class sessionManager {
       $duration  = ( $_ = getConfig('lockout_duration') ) ? intval($_) : 15;
       // convert to minutes
       $duration  = $duration * 60;
+      $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
       
-      // get the lockout status
       $timestamp_cutoff = time() - $duration;
       $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
       $q = $this->sql('SELECT timestamp FROM '.table_prefix.'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
       $fails = $db->numrows();
       
-      $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
       $captcha_good = false;
       if ( $policy == 'captcha' && $captcha_hash && $captcha_code )
       {
         // policy is captcha -- check if it's correct, and if so, bypass lockout check
         $real_code = $this->get_captcha($captcha_hash);
-        $captcha_good = ( strtolower($real_code) === strtolower($captcha_code) );
+        if ( strtolower($real_code) === strtolower($captcha_code) )
+        {
+          $captcha_good = true;
+        }
       }
       if ( $policy != 'disable' && !$captcha_good )
       {
@@ -2926,38 +2928,86 @@ class sessionManager {
    * @param string The name of the field that contains the encryption key
    * @param string The name of the field that will contain the encrypted password
    * @param string The name of the field that handles MD5 challenge data
+   * @param string The name of the field that tells if the server supports DiffieHellman
+   * @param string The name of the field with the DiffieHellman public key
+   * @param string The name of the field that the client should populate with its public key
    * @return string
    */
    
-  function aes_javascript($form_name, $pw_field, $use_crypt, $crypt_key, $crypt_data, $challenge)
+  function aes_javascript($form_name, $pw_field, $use_crypt, $crypt_key, $crypt_data, $challenge, $dh_supported = false, $dh_pubkey = false, $dh_client_pubkey = false)
   {
     $code = '
       <script type="text/javascript">
-        disableJSONExts();
-          str = \'\';
-          for(i=0;i<keySizeInBits/4;i++) str+=\'0\';
-          var key = hexToByteArray(str);
-          var pt = hexToByteArray(str);
-          var ct = rijndaelEncrypt(pt, key, \'ECB\');
-          var ct = byteArrayToHex(ct);
-          switch(keySizeInBits)
-          {
-            case 128:
-              v = \'66e94bd4ef8a2c3b884cfa59ca342b2e\';
-              break;
-            case 192:
-              v = \'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7\';
-              break;
-            case 256:
-              v = \'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087\';
-              break;
-          }
-          var testpassed = ' . ( ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0') ? 'false; // CRYPTO-AUTH DISABLED ON USER REQUEST // ' : '' ) . '( ct == v && md5_vm_test() );
-          var frm = document.forms.'.$form_name.';
+          
           function runEncryption()
           {
+            var testpassed = ' . ( ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0') ? 'false; // CRYPTO-AUTH DISABLED ON USER REQUEST // ' : '' ) . '( aes_self_test() && md5_vm_test() );
             var frm = document.forms.'.$form_name.';
-            if(testpassed)
+            var use_diffiehellman = false;' . "\n";
+    if ( $dh_supported && $dh_pubkey )
+    {
+      $code .= <<<EOF
+            if ( frm.$dh_supported.value == 'true' )
+              use_diffiehellman = true;
+EOF;
+    }
+    $code .= '
+    
+            if ( frm[\'' . $dh_supported . '\'] )
+            {
+              frm[\'' . $dh_supported . '\'].value = ( use_diffiehellman ) ? "true" : "false";
+            }
+            
+            if ( testpassed && use_diffiehellman )
+            {
+              // try to blank out the table to prevent double submits and what have you
+              var el = frm.' . $pw_field . ';
+              while ( el.tagName != "BODY" && el.tagName != "TABLE" )
+              {
+                el = el.parentNode;
+              }
+              if ( el.tagName == "TABLE" )
+              {
+                whiteOutElement(el);
+              }
+              
+              frm.'.$use_crypt.'.value = \'yes_dh\';
+              
+              // Perform Diffie Hellman stuff
+              // console.info("DiffieHellman: started keygen process");
+              var dh_priv = dh_gen_private();
+              var dh_pub = dh_gen_public(dh_priv);
+              var secret = dh_gen_shared_secret(dh_priv, frm.' . $dh_pubkey . '.value);
+              // console.info("DiffieHellman: finished keygen process");
+              
+              // secret_hash is used to verify that the server guesses the correct secret
+              var secret_hash = hex_sha1(secret);
+              
+              // give the server our values
+              frm.' . $crypt_key . '.value = secret_hash;
+              frm.' . $dh_client_pubkey . '.value = dh_pub;
+              
+              // console.info("DiffieHellman: set public values");
+              
+              // crypt_key is the actual AES key
+              var crypt_key = (hex_sha256(secret)).substr(0, (keySizeInBits / 4));
+              
+              // Perform encryption
+              crypt_key = hexToByteArray(crypt_key);
+              var pass = frm.'.$pw_field.'.value;
+              pass = stringToByteArray(pass);
+              var cryptstring = rijndaelEncrypt(pass, crypt_key, \'ECB\');
+              if(!cryptstring)
+              {
+                return false;
+              }
+              cryptstring = byteArrayToHex(cryptstring);
+              // console.info("DiffieHellman: finished AES");
+              frm.'.$crypt_data.'.value = cryptstring;
+              frm.'.$pw_field.'.value = \'\';
+              // console.info("DiffieHellman: ready to submit");
+            }
+            else if ( testpassed && !use_diffiehellman )
             {
               frm.'.$use_crypt.'.value = \'yes\';
               var cryptkey = frm.'.$crypt_key.'.value;

@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.2 (Caoineag alpha 2)
+ * Version 1.1.3 (Caoineag alpha 3)
  * Copyright (C) 2006-2007 Dan Fuhry
  * diffiehellman.php - Diffie Hellman key exchange and supporting functions
  *
@@ -17,7 +17,16 @@
  * The Diffie-Hellman key exchange protocol
  */
 
-$GLOBALS['_math'] = enanomath_create();
+global $dh_supported;
+$dh_supported = true;
+try
+{
+  $GLOBALS['_math'] = enanomath_create();
+}
+catch ( Exception $e )
+{
+  $dh_supported = false;
+}
 // Our prime number as a base for operations.
 $GLOBALS['dh_prime'] = '82818079787776757473727170696867666564636261605958575655545352515049484746454443424140393837363534333231302928272625242322212019181716151413121110987654321';
 

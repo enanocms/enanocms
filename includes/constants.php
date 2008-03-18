@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.2 (Caoineag alpha 2)
+ * Version 1.1.3 (Caoineag alpha 3)
  * Copyright (C) 2006-2007 Dan Fuhry
  * constants.php - important defines used Enano-wide
  *
@@ -103,10 +103,6 @@ define('CRITICAL_ERROR', 'Critical error');
 define('PROTECT_NONE', 0);
 define('PROTECT_FULL', 1);
 define('PROTECT_SEMI', 2);
-
-// Special comments - plugin blocks
-define('PLUGIN_METABLOCK_LANGUAGE_START', '/**!language**');
-define('PLUGIN_METABLOCK_LANGUAGE_END', '**!*/');
 
 //
 // Enano versions progress
