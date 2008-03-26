@@ -52,7 +52,7 @@ $ui->show_header();
     {
       if ( ajax.responseText == 'good_shortened' )
       {
-        ajaxMrwSet('standard');
+        ajaxMrwSet('shortened');
       }
       else
       {

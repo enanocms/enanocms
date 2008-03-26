@@ -654,7 +654,7 @@ class pathManager {
     
     @set_time_limit(0);
     
-    $q = $db->sql_query('DELETE FROM search_index;');
+    $q = $db->sql_query('DELETE FROM ' . table_prefix . 'search_index;');
     if ( !$q )
       $db->_die();
     
