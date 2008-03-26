@@ -119,7 +119,6 @@ function messagebox(type, title, message)
   var master_div = document.createElement('div');
   master_div.style.zIndex = '6';
   var mydiv = document.createElement('div');
-  mydiv.style.width = '400px';
   mydiv.style.height = '200px';
   w = getWidth();
   h = getHeight();
@@ -142,7 +141,18 @@ function messagebox(type, title, message)
   mydiv.style.overflow = 'auto';
   
   var buttondiv = document.createElement('div');
-  buttondiv.style.width = '400px';
+  
+  if ( is_iPhone )
+  {
+    mydiv.style.width = '120px';
+    buttondiv.style.width = '120px';
+  }
+  else
+  {
+    mydiv.style.width = '400px';
+    buttondiv.style.width = '400px';
+  }
+  
   w = getWidth();
   h = getHeight();
   if ( aclDisableTransitionFX )

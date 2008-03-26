@@ -37,6 +37,7 @@ if (checkIt('msie')) IE = true;
 else IE = false;
 
 var is_Opera = ( checkIt('opera') ) ? true : false;
+var is_iPhone = ( checkIt('iphone') || checkIt('ipod') ) ? true : false;
 
 var KILL_SWITCH = false;
 
@@ -273,18 +274,27 @@ if ( !KILL_SWITCH && !DISABLE_MCE )
   }
 }
 
-// wrapper for window.console
-if ( !window.console )
+var script = document.createElement('script');
+script.type="text/javascript";
+script.src=scriptPath+"/includes/clientside/firebug/firebug.js";
+head.appendChild(script);
+
+// placeholder for window.console - used if firebug isn't present
+// http://getfirebug.com/firebug/firebugx.js
+if (!window.console || !console.firebug)
 {
-  window.console = {
-    log: function() {},
-    debug: function() {},
-    info: function() {},
-    warn: function() {},
-    warning: function() {},
-    error: function() {},
-    write: function() {}
-  }
+    var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+    "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+
+    window.console = {};
+    for (var i = 0; i < names.length; ++i)
+        window.console[names[i]] = function() {}
+}
+
+// safari has window.console but not the .debug() method
+if ( is_Safari && !window.console.debug )
+{
+  window.console.debug = function() {};
 }
 
 // Do not remove the following comments, they are used by jsres.php.

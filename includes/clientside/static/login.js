@@ -510,7 +510,7 @@ function ajaxLoginBuildForm(data)
   form.appendChild(table);
   
   // Field: enable Diffie Hellman
-  if ( IE )
+  if ( IE || is_iPhone )
   {
     var lbl_dh = document.createElement('span');
     lbl_dh.style.fontSize = 'smaller';
@@ -644,9 +644,9 @@ function ajaxLoginSubmitForm(real, username, password, captcha)
   }
   else
   {
-    if ( IE )
+    if ( IE || is_iPhone )
     {
-      // IE doesn't have this control, continue silently IF the rest
+      // IE/MobileSafari doesn't have this control, continue silently IF the rest
       // of the login form is there
       if ( !document.getElementById('ajax_login_field_username') )
       {
