@@ -176,9 +176,19 @@ class PageProcessor
     
     if ( !$this->perms->get_permissions('read') )
     {
-      $this->err_access_denied();
-      profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
-      return false;
+      // Permission denied to read page. Is this one of our core pages that must always be allowed?
+      // NOTE: Not even the administration panel will work if ACLs deny access to it.
+      if ( $this->namespace == 'Special' && in_array($this->page_id, array('Login', 'Logout', 'LangExportJSON', 'CSS')) )
+      {
+        // Do nothing; allow execution to continue
+      }
+      else
+      {
+        // Page isn't whitelisted, behave as normal
+        $this->err_access_denied();
+        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
+        return false;
+      }
     }
     $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
     $strict_no_headers = false;

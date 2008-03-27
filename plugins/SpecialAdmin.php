@@ -312,7 +312,7 @@ function page_Admin_GeneralConfig() {
     
     if ( is_dir(ENANO_ROOT . '/' . $_POST['avatar_directory']) )
     {
-      if ( preg_match('/^([A-z0-9_-]+)(\/([A-z0-9_-]+))*$/', $_POST['avatar_directory']) )
+      if ( preg_match('/^([A-z0-9_-]+)(\/([A-z0-9_-]+))*\/?$/', $_POST['avatar_directory']) )
       {
         setConfig('avatar_directory', $_POST['avatar_directory']);
       }

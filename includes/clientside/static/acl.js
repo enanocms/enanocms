@@ -729,9 +729,20 @@ function __aclSubmitManager(form)
       var form = document.forms[aclManagerID + '_formobj'];
       selections = new Object();
       var dbg = '';
+      var warned_everyone = false;
       for(var i in aclPermList)
       {
         selections[aclPermList[i]] = getRadioState(form, aclPermList[i], [1, 2, 3, 4]);
+        // If we're editing permissions for everyone on the entire site and the
+        // admin selected to deny privileges, give a stern warning about it.
+        if ( selections[aclPermList[i]] == 1 && aclDataCache.target_type == 1 /* ACL_TYPE_GROUP */ && aclDataCache.target_id == 1 && !warned_everyone )
+        {
+          warned_everyone = true;
+          if ( !confirm($lang.get('acl_msg_deny_everyone_confirm')) )
+          {
+            return false;
+          }
+        }
         dbg += aclPermList[i] + ': ' + selections[aclPermList[i]] + "\n";
         if(!selections[aclPermList[i]])
         {

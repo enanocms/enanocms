@@ -134,6 +134,7 @@ var enano_lang = {
       msg_guest_howto: 'To edit permissions for guests, select "a specific user", and enter Anonymous as the username.',
       msg_deleterule_confirm: 'Do you really want to delete this rule?',
       msg_closeacl_confirm: 'Do you really want to close the ACL manager?',
+      msg_deny_everyone_confirm: 'CAUTION: You are setting a Deny ruling for everyone on this site. This will block the selected actions from being performed at all. Do you really want to do this?\n\nPlease also note that the following core pages will not be blocked from being accessed: Special:Login, Special:Logout, and Special:LangExportJSON.',
       
       btn_success_dismiss: 'dismiss',
       btn_success_close: 'close manager',

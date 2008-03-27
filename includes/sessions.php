@@ -2696,21 +2696,31 @@ class sessionManager {
         // Decide precedence
         if ( isset($this->acl_defaults_used[$i]) )
         {
-          //echo "$i: default in use, overriding to: {$perm[$i]}<br />";
+          // echo "$i: default in use, overriding to: {$perm[$i]}<br />";
           // Defaults are in use, override
-          $this->perms[$i] = $perm[$i];
-          $this->acl_defaults_used[$i] = ( $is_everyone );
+          
+          // CHANGED - 1.1.4:
+          // For some time this has been intentionally relaxed so that the following
+          // exception is available to Deny permissions:
+          //   If the rule applies to the group "Everyone" on the entire site,
+          //   Deny settings could be overriden.
+          // This is documented at: http://docs.enanocms.org/Help:4.2
+          if ( $this->perms[$i] != AUTH_DENY )
+          {
+            $this->perms[$i] = $perm[$i];
+            $this->acl_defaults_used[$i] = ( $is_everyone );
+          }
         }
         else
         {
-          //echo "$i: default NOT in use";
+          // echo "$i: default NOT in use";
           // Defaults are not in use, merge as normal
           if ( $this->perms[$i] != AUTH_DENY )
           {
-            //echo ", but overriding";
+            // echo ", but overriding";
             $this->perms[$i] = $perm[$i];
           }
-          //echo "<br />";
+          // echo "<br />";
         }
       }
     }

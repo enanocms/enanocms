@@ -29,6 +29,11 @@ define('ACL_TYPE_GROUP', 1);
 define('ACL_TYPE_USER', 2);
 define('ACL_TYPE_PRESET', 3);
 
+// ACL switch
+// If this is defined, administrators can edit ACLs regardless of current
+// permissions. This is enabled by default.
+define('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL', 1);
+
 // System groups
 define('GROUP_ID_ADMIN', 2);
 define('GROUP_ID_MOD', 3);
@@ -39,7 +44,7 @@ define('PAGE_GRP_TAGGED', 2);
 define('PAGE_GRP_NORMAL', 3);
 define('PAGE_GRP_REGEX', 4);
 
-// Identifier for the default meta-language
+// Identifier for the default pseudo-language
 define('LANG_DEFAULT', 0);
 
 //

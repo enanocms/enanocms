@@ -1589,7 +1589,7 @@ class PageUtils {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    if(!$session->get_permissions('edit_acl') && $session->user_level < USER_LEVEL_ADMIN)
+    if(!$session->get_permissions('edit_acl') && ( $session->user_level < USER_LEVEL_ADMIN || !defined('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL')) )
     {
       return Array(
         'mode' => 'error',
