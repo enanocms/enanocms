@@ -34,12 +34,11 @@ function ajaxOpenACLManager(page_id, namespace)
           return false;
         }
         try {
-          data = parseJSON(ajax.responseText);
+          var groups = parseJSON(ajax.responseText);
         } catch(e) {
           handle_invalid_json(ajax.responseText);
         }
         __aclBuildWizardWindow();
-        groups = parseJSON(ajax.responseText);
         if ( groups.mode == 'error' )
         {
           alert(groups.error);
@@ -51,6 +50,46 @@ function ajaxOpenACLManager(page_id, namespace)
       }
     }, true);
   return false;
+}
+
+function ajaxOpenDirectACLRule(rule_id)
+{
+  var params = {
+    target_id: rule_id,
+    mode: 'seltarget_id'
+  };
+  params = ajaxEscape(toJSONString(params));
+  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        var response = String(ajax.responseText + '');
+        if ( response.substr(0, 1) != '{' )
+        {
+          handle_invalid_json(ajax.responseText);
+          return false;
+        }
+        try
+        {
+          response = parseJSON(response);
+        }
+        catch(e)
+        {
+          handle_invalid_json(response);
+        }
+        if ( !document.getElementById(aclManagerID) )
+        {
+          __aclBuildWizardWindow();
+        }
+        if ( response.mode == 'error' )
+        {
+          alert(response.error);
+          killACLManager();
+          return false;
+        }
+        aclDataCache = response;
+        aclBuildRuleEditor(response);
+      }
+    }, true);
 }
 
 function ajaxACLSwitchToSelector()
@@ -335,92 +374,7 @@ function __aclJSONSubmitAjaxHandler(params)
           case 'seltarget':
             
             // Build the ACL edit form
-            // try {
-            
-              var act_desc = ( data.type == 'new' ) ? $lang.get('acl_lbl_editwin_title_create') : $lang.get('acl_lbl_editwin_title_edit');
-              var target_type_t = ( data.target_type == 1 ) ? $lang.get('acl_target_type_group') : $lang.get('acl_target_type_user');
-              var target_name_t = data.target_name;
-              var scope_type = ( data.page_id == false && data.namespace == false ) ? $lang.get('acl_scope_type_wholesite') : ( data.namespace == '__PageGroup' ) ? $lang.get('acl_scope_type_pagegroup') : $lang.get('acl_scope_type_thispage');
-              
-              html = '<h2>'+act_desc+'</h2>';
-              html += '<p>' + $lang.get('acl_lbl_editwin_body', { target_type: target_type_t, target: target_name_t, scope_type: scope_type }) + '</p>';
-              parser = new templateParser(data.template.acl_field_begin);
-              html += parser.run();
-              
-              cls = 'row2';
-              for(var i in data.acl_types)
-              {
-                if(typeof(data.acl_types[i]) == 'number')
-                {
-                  cls = ( cls == 'row1' ) ? 'row2' : 'row1';
-                  p = new templateParser(data.template.acl_field_item);
-                  vars = new Object();
-                  if ( data.acl_descs[i].match(/^([a-z0-9_]+)$/) )
-                  {
-                    vars['FIELD_DESC'] = $lang.get(data.acl_descs[i]);
-                  }
-                  else
-                  {
-                    vars['FIELD_DESC'] = data.acl_descs[i];
-                  }
-                  vars['FIELD_INHERIT_CHECKED'] = '';
-                  vars['FIELD_DENY_CHECKED'] = '';
-                  vars['FIELD_DISALLOW_CHECKED'] = '';
-                  vars['FIELD_WIKIMODE_CHECKED'] = '';
-                  vars['FIELD_ALLOW_CHECKED'] = '';
-                  vars['FIELD_NAME'] = i;
-                  if ( !data.current_perms[i] )
-                  {
-                    data.current_perms[i] = 'i';
-                  }
-                  switch(data.current_perms[i])
-                  {
-                    case 'i':
-                    default:
-                      vars['FIELD_INHERIT_CHECKED'] = 'checked="checked"';
-                      break;
-                    case 1:
-                      vars['FIELD_DENY_CHECKED'] = 'checked="checked"';
-                      break;
-                    case 2:
-                      vars['FIELD_DISALLOW_CHECKED'] = 'checked="checked"';
-                      break;
-                    case 3:
-                      vars['FIELD_WIKIMODE_CHECKED'] = 'checked="checked"';
-                      break;
-                    case 4:
-                      vars['FIELD_ALLOW_CHECKED'] = 'checked="checked"';
-                      break;
-                  }
-                  vars['ROW_CLASS'] = cls;
-                  p.assign_vars(vars);
-                  html += p.run();
-                }
-              }
-              
-              var parser = new templateParser(data.template.acl_field_end);
-              html += parser.run();
-              
-              if(data.type == 'edit')
-                html += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'' + $lang.get('acl_msg_deleterule_confirm') + '\')) __aclDeleteRule(); return false;" style="color: red;">' + $lang.get('acl_lbl_deleterule') + '</a></p>';
-              
-              var main = document.getElementById(aclManagerID + '_main');
-              main.innerHTML = html;
-              
-              var form = document.getElementById(aclManagerID + '_formobj_id');
-              
-              var modeobj = form_fetch_field(form, 'mode');
-              if ( modeobj )
-                modeobj.value = 'save_' + data.type;
-              else
-                alert('modeobj is invalid: '+modeobj);
-              
-              aclPermList = array_keys(data.acl_types);
-              
-              document.getElementById(aclManagerID + '_back').style.display = 'inline';
-              document.getElementById(aclManagerID + '_next').value = $lang.get('etc_save_changes');
-              
-            // } catch(e) { alert(e); aclDebug(ajax.responseText); }
+            aclBuildRuleEditor(data);
             
             break;
           case 'success':
@@ -528,6 +482,92 @@ function __aclJSONSubmitAjaxHandler(params)
         }
       }
     }, true);
+}
+
+function aclBuildRuleEditor(data)
+{
+  var act_desc = ( data.type == 'new' ) ? $lang.get('acl_lbl_editwin_title_create') : $lang.get('acl_lbl_editwin_title_edit');
+  var target_type_t = ( data.target_type == 1 ) ? $lang.get('acl_target_type_group') : $lang.get('acl_target_type_user');
+  var target_name_t = data.target_name;
+  var scope_type = ( data.page_id == false && data.namespace == false ) ? $lang.get('acl_scope_type_wholesite') : ( data.namespace == '__PageGroup' ) ? $lang.get('acl_scope_type_pagegroup') : $lang.get('acl_scope_type_thispage');
+  
+  html = '<h2>'+act_desc+'</h2>';
+  html += '<p>' + $lang.get('acl_lbl_editwin_body', { target_type: target_type_t, target: target_name_t, scope_type: scope_type }) + '</p>';
+  parser = new templateParser(data.template.acl_field_begin);
+  html += parser.run();
+  
+  cls = 'row2';
+  for(var i in data.acl_types)
+  {
+    if(typeof(data.acl_types[i]) == 'number')
+    {
+      cls = ( cls == 'row1' ) ? 'row2' : 'row1';
+      p = new templateParser(data.template.acl_field_item);
+      vars = new Object();
+      if ( data.acl_descs[i].match(/^([a-z0-9_]+)$/) )
+      {
+        vars['FIELD_DESC'] = $lang.get(data.acl_descs[i]);
+      }
+      else
+      {
+        vars['FIELD_DESC'] = data.acl_descs[i];
+      }
+      vars['FIELD_INHERIT_CHECKED'] = '';
+      vars['FIELD_DENY_CHECKED'] = '';
+      vars['FIELD_DISALLOW_CHECKED'] = '';
+      vars['FIELD_WIKIMODE_CHECKED'] = '';
+      vars['FIELD_ALLOW_CHECKED'] = '';
+      vars['FIELD_NAME'] = i;
+      if ( !data.current_perms[i] )
+      {
+        data.current_perms[i] = 'i';
+      }
+      switch(data.current_perms[i])
+      {
+        case 'i':
+        default:
+          vars['FIELD_INHERIT_CHECKED'] = 'checked="checked"';
+          break;
+        case 1:
+          vars['FIELD_DENY_CHECKED'] = 'checked="checked"';
+          break;
+        case 2:
+          vars['FIELD_DISALLOW_CHECKED'] = 'checked="checked"';
+          break;
+        case 3:
+          vars['FIELD_WIKIMODE_CHECKED'] = 'checked="checked"';
+          break;
+        case 4:
+          vars['FIELD_ALLOW_CHECKED'] = 'checked="checked"';
+          break;
+      }
+      vars['ROW_CLASS'] = cls;
+      p.assign_vars(vars);
+      html += p.run();
+    }
+  }
+  
+  var parser = new templateParser(data.template.acl_field_end);
+  html += parser.run();
+  
+  if(data.type == 'edit')
+    html += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'' + $lang.get('acl_msg_deleterule_confirm') + '\')) __aclDeleteRule(); return false;" style="color: red;">' + $lang.get('acl_lbl_deleterule') + '</a></p>';
+  
+  var main = document.getElementById(aclManagerID + '_main');
+  main.innerHTML = html;
+  
+  var form = document.getElementById(aclManagerID + '_formobj_id');
+  
+  var modeobj = form_fetch_field(form, 'mode');
+  if ( modeobj )
+    modeobj.value = 'save_' + data.type;
+  else
+    alert('modeobj is invalid: '+modeobj);
+  
+  aclPermList = array_keys(data.acl_types);
+  
+  document.getElementById(aclManagerID + '_back').style.display = 'inline';
+  document.getElementById(aclManagerID + '_next').value = $lang.get('etc_save_changes');
 }
 
 function __aclBuildGroupsHTML(groups)

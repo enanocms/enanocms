@@ -1647,6 +1647,37 @@ class PageUtils {
               );
           }
           break;
+        case 'seltarget_id':
+          if ( !is_int($parms['target_id']) )
+          {
+            return Array(
+              'mode' => 'error',
+              'error' => 'Expected parameter target_id type int'
+              );
+          }
+          $q = $db->sql_query('SELECT target_id, target_type, page_id, namespace, rules FROM ' . table_prefix . "acl WHERE rule_id = {$parms['target_id']};");
+          if ( !$q )
+            return Array(
+              'mode' => 'error',
+              'error' => $db->get_error()
+              );
+          if ( $db->numrows() < 1 )
+            return Array(
+              'mode' => 'error',
+              'error' => "No rule with ID {$parms['target_id']} found"
+              );
+            $parms = $db->fetchrow();
+            $db->free_result();
+            
+            // regenerate page selection
+            $parms['page_id'] = ( isset($parms['page_id']) ) ? $parms['page_id'] : false;
+            $parms['namespace'] = ( isset($parms['namespace']) ) ? $parms['namespace'] : false;
+            $page_id =& $parms['page_id'];
+            $namespace =& $parms['namespace'];
+            $page_where_clause      = ( empty($page_id) || empty($namespace) ) ? 'AND a.page_id IS NULL AND a.namespace IS NULL' : 'AND a.page_id=\'' . $db->escape($page_id) . '\' AND a.namespace=\'' . $db->escape($namespace) . '\'';
+            $page_where_clause_lite = ( empty($page_id) || empty($namespace) ) ? 'AND page_id IS NULL AND namespace IS NULL' : 'AND page_id=\'' . $db->escape($page_id) . '\' AND namespace=\'' . $db->escape($namespace) . '\'';
+            
+            // From here, let the seltarget handler take over
         case 'seltarget':
           $return['mode'] = 'seltarget';
           $return['acl_types'] = $perms_obj->acl_types;
