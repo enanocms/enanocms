@@ -589,13 +589,18 @@ var expander_onload = function()
   var sets = document.getElementsByTagName('fieldset');
   if ( sets.length < 1 )
     return false;
-  for ( var i = 0; i < sets.length; i++ )
+  var init_us = [];
+  for ( var index = 0; index < sets.length; index++ )
   {
-    var mode = sets[i].getAttribute('enano:expand');
+    var mode = sets[index].getAttribute('enano:expand');
     if ( mode == 'closed' || mode == 'open' )
     {
-      expander_init_element(sets[i]);
+      init_us.push(sets[index]);
     }
+  }
+  for ( var k = 0; k < init_us.length; k++ )
+  {
+    expander_init_element(init_us[k]);
   }
 }
 
@@ -624,6 +629,7 @@ function expander_init_element(el)
     }
     catch(e)
     {
+      console.debug('Exception caught: ', e);
     }
     return false;
   }
@@ -662,8 +668,11 @@ function expander_close(el)
       $(a).addClass('expander-closed');
       continue;
     }
-    child.expander_meta_old_state = child.style.display;
-    child.style.display = 'none';
+    if ( child.style )
+    {
+      child.expander_meta_old_state = child.style.display;
+      child.style.display = 'none';
+    }
   }
   el.expander_meta_padbak = el.style.padding;
   el.setAttribute('enano:expand', 'closed');
@@ -682,14 +691,17 @@ function expander_open(el)
       $(a).addClass('expander-open');
       continue;
     }
-    if ( child.expander_meta_old_state )
+    if ( child.expander_meta_old_state && child.style )
     {
       child.style.display = child.expander_meta_old_state;
       child.expander_meta_old_state = null;
     }
     else
     {
-      child.style.display = null;
+      if ( child.style )
+      {
+        child.style.display = null;
+      }
     }
   }
   if ( el.expander_meta_padbak )

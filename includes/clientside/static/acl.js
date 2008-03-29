@@ -79,6 +79,13 @@ function ajaxOpenDirectACLRule(rule_id)
         if ( !document.getElementById(aclManagerID) )
         {
           __aclBuildWizardWindow();
+          var main = document.getElementById(aclManagerID + '_main');
+          main.style.padding = '10px';
+        }
+        else
+        {
+          var main = document.getElementById(aclManagerID + '_main');
+          main.style.backgroundImage = 'none';
         }
         if ( response.mode == 'error' )
         {
@@ -87,7 +94,7 @@ function ajaxOpenDirectACLRule(rule_id)
           return false;
         }
         aclDataCache = response;
-        aclBuildRuleEditor(response);
+        aclBuildRuleEditor(response, true);
       }
     }, true);
 }
@@ -131,10 +138,30 @@ function __aclBuildSelector(groups)
   thispage = strToPageID(title);
   do_scopesel = ( thispage[0] == groups.page_id && thispage[1] == groups.namespace );
   
+  document.getElementById(aclManagerID + '_next').style.display = 'inline';
+  
   seed = Math.floor(Math.random() * 1000000);
         
   main = document.getElementById(aclManagerID + '_main');
   main.style.padding = '10px';
+  main.style.backgroundImage = 'none';
+  
+  // the "edit existing" button
+  var editbtn_wrapper = document.createElement('div');
+  editbtn_wrapper.style.styleFloat = 'right';
+  editbtn_wrapper.style.cssFloat = 'right';
+  editbtn_wrapper.style.fontSize = 'smaller';
+  var editbtn = document.createElement('a');
+  editbtn.href = '#';
+  editbtn.innerHTML = $lang.get('acl_btn_show_existing');
+  editbtn_wrapper.appendChild(editbtn);
+  main.appendChild(editbtn_wrapper);
+  
+  editbtn.onclick = function()
+  {
+    aclSetViewListExisting();
+    return false;
+  }
   
   selector = document.createElement('div');
   
@@ -363,10 +390,14 @@ function __aclJSONSubmitAjaxHandler(params)
           handle_invalid_json(ajax.responseText);
           return false;
         }
-        try {
-          data = parseJSON(ajax.responseText);
-        } catch(e) {
+        try
+        {
+          var data = parseJSON(ajax.responseText);
+        }
+        catch(e)
+        {
           handle_invalid_json(ajax.responseText);
+          return false;
         }
         aclDataCache = data;
         switch(data.mode)
@@ -420,6 +451,7 @@ function __aclJSONSubmitAjaxHandler(params)
               document.getElementById(aclManagerID + '_main').innerHTML += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'' + $lang.get('acl_msg_deleterule_confirm') + '\')) __aclDeleteRule(); return false;" style="color: red;">' + $lang.get('acl_lbl_deleterule') + '</a></p>';
             
             document.getElementById(aclManagerID+'_main').scrollTop = 0;
+            document.getElementById(aclManagerID+'_main').style.backgroundImage = 'none';
                         
             aclDataCache.mode = 'save_edit';
             break;
@@ -476,6 +508,9 @@ function __aclJSONSubmitAjaxHandler(params)
           case 'debug':
             aclDebug(data.text);
             break;
+          case 'list_existing':
+            aclSetViewListExistingRespond(data);
+            break;
           default:
             handle_invalid_json(ajax.responseText);
             break;
@@ -484,12 +519,14 @@ function __aclJSONSubmitAjaxHandler(params)
     }, true);
 }
 
-function aclBuildRuleEditor(data)
+function aclBuildRuleEditor(data, from_direct)
 {
   var act_desc = ( data.type == 'new' ) ? $lang.get('acl_lbl_editwin_title_create') : $lang.get('acl_lbl_editwin_title_edit');
   var target_type_t = ( data.target_type == 1 ) ? $lang.get('acl_target_type_group') : $lang.get('acl_target_type_user');
   var target_name_t = data.target_name;
   var scope_type = ( data.page_id == false && data.namespace == false ) ? $lang.get('acl_scope_type_wholesite') : ( data.namespace == '__PageGroup' ) ? $lang.get('acl_scope_type_pagegroup') : $lang.get('acl_scope_type_thispage');
+  
+  document.getElementById(aclManagerID + '_next').style.display = 'inline';
   
   html = '<h2>'+act_desc+'</h2>';
   html += '<p>' + $lang.get('acl_lbl_editwin_body', { target_type: target_type_t, target: target_name_t, scope_type: scope_type }) + '</p>';
@@ -558,11 +595,19 @@ function aclBuildRuleEditor(data)
   
   var form = document.getElementById(aclManagerID + '_formobj_id');
   
-  var modeobj = form_fetch_field(form, 'mode');
-  if ( modeobj )
-    modeobj.value = 'save_' + data.type;
+  if ( from_direct )
+  {
+    var modeobj = document.getElementById(aclManagerID + '_mode');
+    modeobj.value = 'save_edit';
+  }
   else
-    alert('modeobj is invalid: '+modeobj);
+  {
+    var modeobj = form_fetch_field(form, 'mode');
+    if ( modeobj )
+      modeobj.value = 'save_' + data.type;
+    else
+      alert('modeobj is invalid: '+modeobj);
+  }
   
   aclPermList = array_keys(data.acl_types);
   
@@ -916,6 +961,67 @@ function __aclDeleteRule()
     'mode' : 'delete'
   };
   __aclJSONSubmitAjaxHandler(parms);
+}
+
+function aclSetViewListExisting()
+{
+  if ( !document.getElementById(aclManagerID) )
+  {
+    return false;
+  }
+  
+  var main = document.getElementById(aclManagerID + '_main');
+  main.innerHTML = '';
+  main.style.backgroundImage = 'url(' + scriptPath + '/images/loading-big.gif)';
+  main.style.backgroundRepeat = 'no-repeat';
+  main.style.backgroundPosition = 'center center';
+  
+  var parms = {
+    'mode' : 'list_existing'
+  };
+  __aclJSONSubmitAjaxHandler(parms);
+}
+
+function aclSetViewListExistingRespond(data)
+{
+  var main = document.getElementById(aclManagerID + '_main');
+  main.style.padding = '10px';
+  main.innerHTML = '';
+  
+  var heading = document.createElement('h3');
+  heading.appendChild(document.createTextNode($lang.get('acl_msg_scale_intro_title')));
+  main.appendChild(heading);
+  
+  var p = document.createElement('p');
+  p.appendChild(document.createTextNode($lang.get('acl_msg_scale_intro_body')));
+  main.appendChild(p);
+  
+  
+  main.innerHTML += data.key;
+  main.style.backgroundImage = 'none';
+  
+  document.getElementById(aclManagerID + '_back').style.display = 'inline';
+  document.getElementById(aclManagerID + '_next').style.display = 'none';
+  
+  for ( var i = 0; i < data.rules.length; i++ )
+  {
+    var rule = data.rules[i];
+    // build the rule, this is just more boring DOM crap.
+    var div = document.createElement('div');
+    div.style.padding = '5px 3px';
+    div.style.backgroundColor = '#' + rule.color;
+    div.style.cursor = 'pointer';
+    div.rule_id = rule.rule_id;
+    div.onclick = function()
+    {
+      var main = document.getElementById(aclManagerID + '_main');
+      main.innerHTML = '';
+      main.style.backgroundImage = 'url(' + scriptPath + '/images/loading-big.gif)';
+      ajaxOpenDirectACLRule(parseInt(this.rule_id));
+    }
+    div.innerHTML = rule.score_string;
+    main.appendChild(div);
+  }
 }
 
 function array_keys(obj)

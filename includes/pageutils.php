@@ -1672,10 +1672,14 @@ class PageUtils {
             // regenerate page selection
             $parms['page_id'] = ( isset($parms['page_id']) ) ? $parms['page_id'] : false;
             $parms['namespace'] = ( isset($parms['namespace']) ) ? $parms['namespace'] : false;
+            $parms['mode'] = 'seltarget_id';
             $page_id =& $parms['page_id'];
             $namespace =& $parms['namespace'];
             $page_where_clause      = ( empty($page_id) || empty($namespace) ) ? 'AND a.page_id IS NULL AND a.namespace IS NULL' : 'AND a.page_id=\'' . $db->escape($page_id) . '\' AND a.namespace=\'' . $db->escape($namespace) . '\'';
             $page_where_clause_lite = ( empty($page_id) || empty($namespace) ) ? 'AND page_id IS NULL AND namespace IS NULL' : 'AND page_id=\'' . $db->escape($page_id) . '\' AND namespace=\'' . $db->escape($namespace) . '\'';
+            
+            $return['page_id'] = $parms['page_id'];
+            $return['namespace'] = $parms['namespace'];
             
             // From here, let the seltarget handler take over
         case 'seltarget':
@@ -1688,24 +1692,25 @@ class PageUtils {
           switch($parms['target_type'])
           {
             case ACL_TYPE_USER:
-              $q = $db->sql_query('SELECT a.rules,u.user_id FROM ' . table_prefix.'users AS u
+              $user_col = ( $parms['mode'] == 'seltarget_id' ) ? 'user_id' : 'username';
+              $q = $db->sql_query('SELECT a.rules,u.user_id,u.username FROM ' . table_prefix.'users AS u
                   LEFT JOIN ' . table_prefix.'acl AS a
                     ON a.target_id=u.user_id
                   WHERE a.target_type='.ACL_TYPE_USER.'
-                    AND u.username=\'' . $db->escape($parms['target_id']) . '\'
+                    AND u.' . $user_col . ' = \'' . $db->escape($parms['target_id']) . '\'
                     ' . $page_where_clause . ';');
               if(!$q)
                 return(Array('mode'=>'error','error'=>$db->get_error()));
               if($db->numrows() < 1)
               {
                 $return['type'] = 'new';
-                $q = $db->sql_query('SELECT user_id FROM ' . table_prefix.'users WHERE username=\'' . $db->escape($parms['target_id']) . '\';');
+                $q = $db->sql_query('SELECT user_id,username FROM ' . table_prefix.'users WHERE username=\'' . $db->escape($parms['target_id']) . '\';');
                 if(!$q)
                   return(Array('mode'=>'error','error'=>$db->get_error()));
                 if($db->numrows() < 1)
-                  return Array('mode'=>'error','error'=>$lang->get('acl_err_user_not_found'));
+                  return Array('mode'=>'error','error'=>$lang->get('acl_err_user_not_found'),'debug' => $db->sql_backtrace());
                 $row = $db->fetchrow();
-                $return['target_name'] = $return['target_id'];
+                $return['target_name'] = $row['username'];
                 $return['target_id'] = intval($row['user_id']);
                 $return['current_perms'] = array();
               }
@@ -1713,7 +1718,7 @@ class PageUtils {
               {
                 $return['type'] = 'edit';
                 $row = $db->fetchrow();
-                $return['target_name'] = $return['target_id'];
+                $return['target_name'] = $row['username'];
                 $return['target_id'] = intval($row['user_id']);
                 $return['current_perms'] = $session->string_to_perm($row['rules']);
               }
@@ -1830,8 +1835,9 @@ class PageUtils {
           {
             return Array('mode'=>'error','error'=>$lang->get('acl_err_demo'));
           }
-          $q = $db->sql_query('DELETE FROM ' . table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
-            ' . $page_where_clause_lite . ';');
+          $sql = 'DELETE FROM ' . table_prefix.'acl WHERE target_type='.intval($parms['target_type']).' AND target_id='.intval($parms['target_id']).'
+            ' . $page_where_clause_lite . ';';
+          $q = $db->sql_query($sql);
           if(!$q)
             return Array('mode'=>'error','error'=>$db->get_error());
           return Array(
@@ -1842,6 +1848,117 @@ class PageUtils {
               'page_id' => $page_id,
               'namespace' => $namespace,
             );
+          break;
+        case 'list_existing':
+          
+          $return = array(
+              'mode'  => 'list_existing',
+              'key'   => acl_list_draw_key(),
+              'rules' => array()
+            );
+          
+          $q = $db->sql_query("SELECT a.rule_id, u.username, g.group_name, a.target_type, a.target_id, a.page_id, a.namespace, a.rules, p.pg_name\n"
+                  . "  FROM " . table_prefix . "acl AS a\n"
+                  . "  LEFT JOIN " . table_prefix . "users AS u\n"
+                  . "    ON ( (a.target_type = " . ACL_TYPE_USER . " AND a.target_id = u.user_id) OR (u.user_id IS NULL) )\n"
+                  . "  LEFT JOIN " . table_prefix . "groups AS g\n"
+                  . "    ON ( (a.target_type = " . ACL_TYPE_GROUP . " AND a.target_id = g.group_id) OR (g.group_id IS NULL) )\n"
+                  . "  LEFT JOIN " . table_prefix . "page_groups as p\n"
+                  . "    ON ( (a.namespace = '__PageGroup' AND a.page_id = p.pg_id) OR (p.pg_id IS NULL) )\n"
+                  . "  GROUP BY a.rule_id\n"
+                  . "  ORDER BY a.target_type ASC, a.rule_id ASC;"
+                );
+          
+          if ( !$q )
+            $db->_die();
+          
+          while ( $row = $db->fetchrow($q) )
+          {
+            if ( $row['target_type'] == ACL_TYPE_USER && empty($row['username']) )
+            {
+              // This is only done if we have an ACL affecting a user that doesn't exist.
+              // Nice little bit of maintenance to have.
+              if ( !$db->sql_query("DELETE FROM " . table_prefix . "acl WHERE rule_id = {$row['rule_id']};") )
+                $db->_die();
+              continue;
+            }
+            $score = get_acl_rule_score($row['rules']);
+            $deep_limit = ACL_SCALE_MINIMAL_SHADE;
+            // Determine background color of cell by score
+            if ( $score > 5 )
+            {
+              // high score, show in green
+              $color = 2.5 * $score;
+              if ( $color > 255 )
+                $color = 255;
+              $color = round($color);
+              // blend with the colordepth limit
+              $color = $deep_limit + ( ( 0xFF - $deep_limit ) - ( ( $color / 0xFF ) * ( 0xFF - $deep_limit ) ) );
+              $color = dechex($color);
+              $color = "{$color}ff{$color}";
+            }
+            else if ( $score < -5 )
+            {
+              // low score, show in red
+              $color = 0 - $score;
+              $color = 2.5 * $color;
+              if ( $color > 255 )
+                $color = 255;
+              $color = round($color);
+              // blend with the colordepth limit
+              $color = $deep_limit + ( ( 0xFF - $deep_limit ) - ( ( $color / 0xFF ) * ( 0xFF - $deep_limit ) ) );
+              $color = dechex($color);
+              $color = "ff{$color}{$color}";
+            }
+            else
+            {
+              $color = 'efefef';
+            }
+            
+            // Rate rule textually based on its score
+            if ( $score >= 70 )
+              $desc = $lang->get('acl_msg_scale_allow');
+            else if ( $score >= 50 )
+              $desc = $lang->get('acl_msg_scale_mostly_allow');
+            else if ( $score >= 25 )
+              $desc = $lang->get('acl_msg_scale_some_allow');
+            else if ( $score >= -25 )
+              $desc = $lang->get('acl_msg_scale_mixed');
+            else if ( $score <= -70 )
+              $desc = $lang->get('acl_msg_scale_deny');
+            else if ( $score <= -50 )
+              $desc = $lang->get('acl_msg_scale_mostly_deny');
+            else if ( $score <= -25 )
+              $desc = $lang->get('acl_msg_scale_some_deny');
+            
+            // group and user target info
+            $info = '';
+            if ( $row['target_type'] == ACL_TYPE_USER )
+              $info = $lang->get('acl_msg_list_user', array( 'username' => $row['username'] )); // "(User: {$row['username']})";
+            else if ( $row['target_type'] == ACL_TYPE_GROUP )
+              $info = $lang->get('acl_msg_list_group', array( 'group' => $row['group_name'] ));
+            
+            // affected pages info
+            if ( $row['page_id'] && $row['namespace'] && $row['namespace'] != '__PageGroup' )
+              $info .= $lang->get('acl_msg_list_on_page', array( 'page_name' => "{$row['namespace']}:{$row['page_id']}" ));
+            else if ( $row['page_id'] && $row['namespace'] && $row['namespace'] == '__PageGroup' )
+              $info .= $lang->get('acl_msg_list_on_page_group', array( 'page_group' => $row['pg_name'] ));
+            else
+              $info .= $lang->get('acl_msg_list_entire_site');
+              
+            $score_string = $lang->get('acl_msg_list_score', array
+              (
+                'score' => $score,
+                'desc'  => $desc,
+                'info'  => $info
+                ));
+            $return['rules'][] = array(
+              'score_string' => $score_string,
+              'rule_id'      => $row['rule_id'],
+              'color'        => $color
+              );
+          }
+          
           break;
         default:
           return Array('mode'=>'error','error'=>'Hacking attempt');
@@ -2123,6 +2240,86 @@ class PageUtils {
     return $response;
   }
    
+}
+
+/**
+ * Generates a graphical key showing how the ACL rule list works.
+ * @return string
+ */
+
+function acl_list_draw_key()
+{
+  $out  = '<div style="width: 460px; margin: 0 auto; text-align: center; margin-bottom: 10px;">';
+  $out .= '<div style="float: left;">&larr; Deny</div>';
+  $out .= '<div style="float: right;">Allow &rarr;</div>';
+  $out .= 'Neutral';
+  $out .= '<div style="clear: both;"></div>';
+  // 11 boxes on each side of the center
+  $inc = ceil ( ( 0xFF - ACL_SCALE_MINIMAL_SHADE ) / 11 );
+  for ( $i = ACL_SCALE_MINIMAL_SHADE; $i <= 0xFF; $i+= $inc )
+  {
+    $octet = dechex($i);
+    $color = "ff$octet$octet";
+    $out .= '<div style="background-color: #' . $color . '; float: left; width: 20px;">&nbsp;</div>';
+  }
+  $out .= '<div style="background-color: #efefef; float: left; width: 20px;">&nbsp;</div>';
+  for ( $i = 0xFF; $i >= ACL_SCALE_MINIMAL_SHADE; $i-= $inc )
+  {
+    $octet = dechex($i);
+    $color = "{$octet}ff{$octet}";
+    $out .= '<div style="background-color: #' . $color . '; float: left; width: 20px;">&nbsp;</div>';
+  }
+  $out .= '<div style="clear: both;"></div>';
+  $out .= '<div style="float: left;">-100</div>';
+  $out .= '<div style="float: right;">+100</div>';
+  $out .= '0';
+  $out .= '</div>';
+  return $out;
+}
+
+/**
+ * Gets the numerical score for the serialized form of an ACL rule
+ */
+
+function get_acl_rule_score($perms)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  if ( is_string($perms) )
+    $perms = $session->string_to_perm($perms);
+  else if ( !is_array($perms) )
+    return false;
+  $score = 0;
+  foreach ( $perms as $item )
+  {
+    switch ( $item )
+    {
+      case AUTH_ALLOW :
+        $inc = 2;
+        break;
+      case AUTH_WIKIMODE:
+        $inc = 1;
+        break;
+      case AUTH_DISALLOW:
+        $inc = -1;
+        break;
+      case AUTH_DENY:
+        $inc = -2;
+        break;
+      default:
+        $inc = 0;
+        break;
+    }
+    $score += $inc;
+  }
+  // this is different from the beta; calculate highest score and
+  // get percentage to be fairer to smaller/less broad rules
+  $divisor = count($perms) * 2;
+  if ( $divisor == 0 )
+  {
+    return 0;
+  }
+  $score = 100 * ( $score / $divisor );
+  return round($score);
 }
 
 ?>

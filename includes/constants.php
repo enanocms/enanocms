@@ -29,6 +29,11 @@ define('ACL_TYPE_GROUP', 1);
 define('ACL_TYPE_USER', 2);
 define('ACL_TYPE_PRESET', 3);
 
+// ACL color scale minimal shade for red and green ends
+// The lower, the more saturated the color on the scale.
+// Purely cosmetic. 0x0 - 0xFF, 0xFF will basically disable the scale
+define('ACL_SCALE_MINIMAL_SHADE', 0xA8);
+
 // ACL switch
 // If this is defined, administrators can edit ACLs regardless of current
 // permissions. This is enabled by default.

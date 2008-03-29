@@ -136,12 +136,32 @@ var enano_lang = {
       msg_closeacl_confirm: 'Do you really want to close the ACL manager?',
       msg_deny_everyone_confirm: 'CAUTION: You are setting a Deny ruling for everyone on this site. This will block the selected actions from being performed at all. Do you really want to do this?\n\nPlease also note that the following core pages will not be blocked from being accessed: Special:Login, Special:Logout, and Special:LangExportJSON.',
       
+      msg_scale_intro_title: 'Existing ACL rules',
+      msg_scale_intro_body: 'This is a list of all the existing ACL rules on your site. You can click an entry to edit it. Selecting the same criteria in the user and group selection page will also allow editing a rule.',
+      
+      msg_scale_allow: 'Allow',
+      msg_scale_mostly_allow: 'Mostly allow',
+      msg_scale_some_allow: 'Some allow',
+      msg_scale_mixed: 'Mixed',
+      msg_scale_some_deny: 'Some deny',
+      msg_scale_mostly_deny: 'Mostly deny',
+      msg_scale_deny: 'Deny',
+      
+      msg_list_user: '(User: %username%)',
+      msg_list_group: '(Group: %group%)',
+      msg_list_on_page: ' on page: %page_name%',
+      msg_list_on_page_group: ' for page group: %page_group%',
+      msg_list_entire_site: ' for the entire site',
+      
+      msg_list_score: 'Score: %score% (%desc%) %info%',
+      
       btn_success_dismiss: 'dismiss',
       btn_success_close: 'close manager',
       btn_deleterule: 'Delete rule',
       btn_createrule: 'Create rule',
       btn_returnto_editor: 'Return to ACL editor',
       btn_returnto_userscope: 'Return to user/scope selection',
+      btn_show_existing: '&raquo; View existing rules',
     },
     acphome: {
       heading_main: 'Welcome to Runt, the Enano administration panel.',
