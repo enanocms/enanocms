@@ -307,9 +307,10 @@ $lang_cache = ');
   /**
    * Imports a JSON-format language file into the database and merges with current strings.
    * @param string Path to the JSON file to load
+   * @param bool Enable debugging output, makes the process over CLI more interesting
    */
   
-  function import($file)
+  function import($file, $debug = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -319,10 +320,16 @@ $lang_cache = ');
     if ( $this->lang_id == 0 )
       $db->_die('lang.php - BUG: trying to perform import when $lang->lang_id == 0');
     
+    if ( $debug )
+      echo "Importing file: $file\n  Checking file...\n";
+    
     $contents = trim(@file_get_contents($file));
     
     if ( empty($contents) )
       $db->_die('lang.php - can\'t load the contents of the language file');
+    
+    if ( $debug )
+      echo "  Cleaning up JSON\n";
     
     // Trim off all text before and after the starting and ending braces
     $contents = preg_replace('/^([^{]+)\{/', '{', $contents);
@@ -330,6 +337,9 @@ $lang_cache = ');
     
     // Correct syntax to be nice to the json parser
     $contents = enano_clean_json($contents);
+    
+    if ( $debug )
+      echo "  Decoding JSON stream\n";
     
     try
     {
@@ -346,7 +356,10 @@ $lang_cache = ');
       $db->_die('lang.php - invalid or non-well-formed language file');
     }
     
-    return $this->import_array($langdata);
+    if ( $debug )
+      echo "  Starting string import\n";
+    
+    return $this->import_array($langdata, $debug);
   }
   
   /**
@@ -417,10 +430,11 @@ $lang_cache = ');
   /**
    * Performs the actual import of string data.
    * @param array Parsed JSON object, should be in the form of an array
+   * @param bool Enable debugging output
    * @access private
    */
   
-  protected function import_array($langdata) 
+  protected function import_array($langdata, $debug = false) 
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -434,6 +448,11 @@ $lang_cache = ');
     {
       if ( isset($langdata['strings'][$category]) )
       {
+        if ( $debug )
+        {
+          $desc = ( isset($langdata['strings']['meta'][$category]) ) ? $langdata['strings']['meta'][$category] : $this->get("meta_$category");
+          echo "  Indexing category: $category ({$desc})\n";
+        }
         foreach ( $langdata['strings'][$category] as $string_name => $string_value )
         {
           $string_name = $db->escape($string_name);
@@ -445,6 +464,11 @@ $lang_cache = ');
       }
     }
     
+    if ( $debug )
+    {
+      echo "  Running deletion of old strings...";
+      $start = microtime_float();
+    }
     $delete_list = implode(" OR\n  ", $delete_list);
     
     if ( !empty($delete_list) )
@@ -460,8 +484,19 @@ $lang_cache = ');
         $db->_die('lang.php - couldn\'t kill off them old strings');
     }
     
+    if ( $debug )
+    {
+      $time = round(microtime_float() - $start, 5);
+      echo "({$time}s)\n";
+    }
+    
     if ( !empty($insert_list) )
     {
+      if ( $debug )
+      {
+        echo "  Inserting strings...";
+        $start = microtime_float();
+      }
       $insert_list = implode(",\n  ", $insert_list);
       $sql = "INSERT INTO " . table_prefix . "language_strings(lang_id, string_category, string_name, string_content) VALUES\n  $insert_list;";
       
@@ -472,10 +507,18 @@ $lang_cache = ');
       $q = $db->sql_query($sql);
       if ( !$q )
         $db->_die('lang.php - couldn\'t insert strings in import()');
+      
+      if ( $debug )
+      {
+        $time = round(microtime_float() - $start, 5);
+        echo "({$time}s)\n";
+      }
     }
     
     // YAY! done!
     // This will regenerate the cache file if possible.
+    if ( $debug )
+      echo "  Regenerating cache file\n";
     $this->regen_caches();
   }
   
