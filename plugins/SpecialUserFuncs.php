@@ -1070,7 +1070,7 @@ function page_Special_Register()
           function regenCaptcha()
           {
             var frm = document.forms.regform;
-            document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/"); ?>'+frm.captchahash.value+'/'+Math.floor(Math.random() * 100000);
+            document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/$captchacode"); ?>/'+Math.floor(Math.random() * 100000);
             return false;
           }
           <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
