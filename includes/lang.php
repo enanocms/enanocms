@@ -321,7 +321,10 @@ $lang_cache = ');
       $db->_die('lang.php - BUG: trying to perform import when $lang->lang_id == 0');
     
     if ( $debug )
-      echo "Importing file: $file\n  Checking file...\n";
+      $br = ( isset($_SERVER['REQUEST_URI']) ) ? '<br />' : '';
+    
+    if ( $debug )
+      echo "Importing file: $file$br\n  Checking file...$br\n";
     
     $contents = trim(@file_get_contents($file));
     
@@ -329,7 +332,7 @@ $lang_cache = ');
       $db->_die('lang.php - can\'t load the contents of the language file');
     
     if ( $debug )
-      echo "  Cleaning up JSON\n";
+      echo "  Cleaning up JSON$br\n";
     
     // Trim off all text before and after the starting and ending braces
     $contents = preg_replace('/^([^{]+)\{/', '{', $contents);
@@ -339,7 +342,7 @@ $lang_cache = ');
     $contents = enano_clean_json($contents);
     
     if ( $debug )
-      echo "  Decoding JSON stream\n";
+      echo "  Decoding JSON stream$br\n";
     
     try
     {
@@ -357,7 +360,7 @@ $lang_cache = ');
     }
     
     if ( $debug )
-      echo "  Starting string import\n";
+      echo "  Starting string import$br\n";
     
     return $this->import_array($langdata, $debug);
   }
@@ -441,6 +444,9 @@ $lang_cache = ');
     if ( !isset($langdata['categories']) || !isset($langdata['strings']) )
       $db->_die('lang.php - language file does not contain the proper items');
     
+    if ( $debug )
+      $br = ( isset($_SERVER['REQUEST_URI']) ) ? '<br />' : '';
+    
     $insert_list = array();
     $delete_list = array();
     
@@ -451,7 +457,7 @@ $lang_cache = ');
         if ( $debug )
         {
           $desc = ( isset($langdata['strings']['meta'][$category]) ) ? $langdata['strings']['meta'][$category] : $this->get("meta_$category");
-          echo "  Indexing category: $category ({$desc})\n";
+          echo "  Indexing category: $category ({$desc})$br\n";
         }
         foreach ( $langdata['strings'][$category] as $string_name => $string_value )
         {
@@ -487,7 +493,7 @@ $lang_cache = ');
     if ( $debug )
     {
       $time = round(microtime_float() - $start, 5);
-      echo "({$time}s)\n";
+      echo "({$time}s)$br\n";
     }
     
     if ( !empty($insert_list) )
@@ -511,14 +517,14 @@ $lang_cache = ');
       if ( $debug )
       {
         $time = round(microtime_float() - $start, 5);
-        echo "({$time}s)\n";
+        echo "({$time}s)$br\n";
       }
     }
     
     // YAY! done!
     // This will regenerate the cache file if possible.
     if ( $debug )
-      echo "  Regenerating cache file\n";
+      echo "  Regenerating cache file$br\n";
     $this->regen_caches();
   }
   
