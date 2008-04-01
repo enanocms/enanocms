@@ -107,13 +107,21 @@ class pathManager {
   function parse_url($sanitize = true)
   {
     $title = '';
-    if( isset($_GET['title']) )
+    if ( isset($_GET['title']) )
     {
       $title = $_GET['title'];
     }
-    elseif( isset($_SERVER['PATH_INFO']) )
+    else if ( isset($_SERVER['PATH_INFO']) )
     {
-      $title = substr($_SERVER['PATH_INFO'], ( strpos($_SERVER['PATH_INFO'], '/') ) + 1 );
+      // fix for apache + CGI (occurred on a GoDaddy server, thanks mm3)
+      if ( @substr(@$_SERVER['GATEWAY_INTERFACE'], 0, 3) === 'CGI' && $_SERVER['PATH_INFO'] == scriptPath . '/index.php' )
+      {
+        // do nothing; ignore PATH_INFO
+      }
+      else
+      {
+        $title = substr($_SERVER['PATH_INFO'], ( strpos($_SERVER['PATH_INFO'], '/') ) + 1 );
+      }
     }
     else
     {
