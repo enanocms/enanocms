@@ -389,8 +389,7 @@ $lang_cache = ');
     $contents =& $block[0]['value'];
     
     // Trim off all text before and after the starting and ending braces
-    $contents = preg_replace('/^([^{]+)\{/', '{', $contents);
-    $contents = preg_replace('/\}([^}]+)$/', '}', $contents);
+    $contents = enano_trim_json($contents);
     
     // Correct syntax to be nice to the json parser
     $contents = enano_clean_json($contents);

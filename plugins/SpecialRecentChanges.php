@@ -1,12 +1,14 @@
 <?php
-/*
-Plugin Name: plugin_specialrecentchanges_title
-Plugin URI: http://enanocms.org/
-Description: plugin_specialrecentchanges_desc
-Author: Dan Fuhry
-Version: 1.1.3
-Author URI: http://enanocms.org/
-*/
+/**!info**
+{
+  "Plugin Name"  : "plugin_specialrecentchanges_title",
+  "Plugin URI"   : "http://enanocms.org/",
+  "Description"  : "plugin_specialrecentchanges_desc",
+  "Author"       : "Dan Fuhry",
+  "Version"      : "1.1.3",
+  "Author URI"   : "http://enanocms.org/"
+}
+**!*/
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between

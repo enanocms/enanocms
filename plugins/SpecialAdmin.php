@@ -1,12 +1,14 @@
 <?php
-/*
-Plugin Name: plugin_specialadmin_title
-Plugin URI: http://enanocms.org/
-Description: plugin_specialadmin_desc
-Author: Dan Fuhry
-Version: 1.1.3
-Author URI: http://enanocms.org/
-*/
+/**!info**
+{
+  "Plugin Name"  : "plugin_specialadmin_title",
+  "Plugin URI"   : "http://enanocms.org/",
+  "Description"  : "plugin_specialadmin_desc",
+  "Author"       : "Dan Fuhry",
+  "Version"      : "1.1.3",
+  "Author URI"   : "http://enanocms.org/"
+}
+**!*/
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
@@ -48,6 +50,7 @@ require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
 require(ENANO_ROOT . '/plugins/admin/UserManager.php');
 require(ENANO_ROOT . '/plugins/admin/LangManager.php');
 require(ENANO_ROOT . '/plugins/admin/ThemeManager.php');
+require(ENANO_ROOT . '/plugins/admin/PluginManager.php');
 
 // For convenience and nothing more.
 function acp_start_form()
@@ -1146,6 +1149,7 @@ function page_Admin_UploadAllowedMimeTypes()
   <?php
 }
 
+/*
 function page_Admin_PluginManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1328,6 +1332,7 @@ function page_Admin_PluginManager()
     echo '<tr><th colspan="6" class="subhead">'.$showhide_link.'</th></tr>';
     echo '</table></div>';
 }
+*/
 
 function page_Admin_DBBackup()
 {

@@ -315,6 +315,17 @@ CREATE TABLE {{TABLE_PREFIX}}diffiehellman (
   PRIMARY KEY ( key_id )
 );
 
+-- Added in 1.1.4
+-- This is really honestly a better way to handle plugins.
+
+CREATE TABLE {{TABLE_PREFIX}}plugins (
+  plugin_id SERIAL,
+  plugin_filename varchar(63),
+  plugin_flags int,
+  plugin_version varchar(16),
+  PRIMARY KEY ( plugin_id )
+);
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),

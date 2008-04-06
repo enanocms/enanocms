@@ -224,9 +224,22 @@ class pluginLoader {
       if ( is_string($type) && $blocks[1][$i] !== $type )
         continue;
       
+      $value =& $blocks[4][$i];
+      // parse includes
+      preg_match_all('/^!include [\'"]?(.+?)[\'"]?$/m', $value, $includes);
+      foreach ( $includes[0] as $i => $replace )
+      {
+        $filename = ENANO_ROOT . '/' . $includes[1][$i];
+        if ( @file_exists( $filename ) && @is_readable( $filename ) )
+        {
+          $contents = @file_get_contents($filename);
+          $value = str_replace_once($replace, $contents, $value);
+        }
+      }
+      
       $el = self::parse_vars($blocks[2][$i]);
       $el['block'] = $blocks[1][$i];
-      $el['value'] = $blocks[4][$i];
+      $el['value'] = $value;
       $return[] = $el;
     }
     

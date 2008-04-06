@@ -318,6 +318,17 @@ CREATE TABLE {{TABLE_PREFIX}}diffiehellman (
   PRIMARY KEY ( key_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
+-- Added in 1.1.4
+-- This is really honestly a better way to handle plugins.
+
+CREATE TABLE {{TABLE_PREFIX}}plugins (
+  plugin_id int(12) NOT NULL auto_increment,
+  plugin_filename varchar(63),
+  plugin_flags int(12),
+  plugin_version varchar(16),
+  PRIMARY KEY ( plugin_id )
+) ENGINE `MyISAM` CHARACTER SET `utf8` COLLATE `utf8_bin`;
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),
@@ -335,10 +346,6 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('w3c_vcss', '0'),
   ('approve_comments', '0'),
   ('enable_comments', '1'),
-  ('plugin_SpecialAdmin.php', '1'),
-  ('plugin_SpecialPageFuncs.php', '1'),
-  ('plugin_SpecialUserFuncs.php', '1'),
-  ('plugin_SpecialCSS.php', '1'),
   ('copyright_notice', '{{COPYRIGHT}}'),
   ('wiki_edit_notice_text', '== Why can I edit this page? ==\n\nEveryone can edit almost any page in this website. This concept is called a wiki. It gives everyone the opportunity to make a change for the best. While some spam and vandalism may occur, it is believed that most contributions will be legitimate and helpful.\n\nFor security purposes, a history of all page edits is kept, and administrators are able to restore vandalized or spammed pages with just a few clicks.'),
   ('cache_thumbs', '{{ENABLE_CACHE}}'),

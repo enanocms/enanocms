@@ -4078,6 +4078,17 @@ function enano_clean_json($json)
 }
 
 /**
+ * Trims a snippet of text to the first and last curly braces. Useful for JSON.
+ * @param string Text to trim
+ * @return string
+ */
+
+function enano_trim_json($json)
+{
+  return preg_replace('/^([^{]+)\{/', '{', preg_replace('/\}([^}]+)$/', '}', $json));
+}
+
+/**
  * Starts the profiler.
  */
 
