@@ -807,10 +807,11 @@ class AESCrypt {
    * @param string $text the encrypted text
    * @param string $key the raw binary key used to encrypt the text
    * @param int $input_encoding the encoding used for the encrypted string. Can be ENC_BINARY, ENC_HEX, or ENC_BASE64.
+   * @param bool $no_cache If true, will not cache the decrypted string on disk.
    * @return string
    */
    
-  function decrypt($text, $key, $input_encoding = ENC_HEX)
+  function decrypt($text, $key, $input_encoding = ENC_HEX, $no_cache = false)
   {
     if ( $text == '' )
       return '';
@@ -871,7 +872,8 @@ class AESCrypt {
     
     $this->decrypt_cache[$key_bin][$text_bin] = $dypt;
     
-    aes_decrypt_cache_store($text_bin, $dypt, $key_bin);
+    if ( !$no_cache )
+      aes_decrypt_cache_store($text_bin, $dypt, $key_bin);
     
     return $dypt;
   }

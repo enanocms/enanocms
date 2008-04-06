@@ -516,7 +516,7 @@ class sessionManager {
               $super = $this->validate_session($key);
             }
           }
-          if(is_array($super))
+          if(is_array(@$super))
           {
             $this->auth_level = intval($super['auth_level']);
             $this->sid_super = $_REQUEST['auth'];
@@ -3231,7 +3231,8 @@ EOF;
         // decrypt user info
         $aes_key = hexdecode($aes_key);
         $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-        $userinfo_json = $aes->decrypt($userinfo_crypt, $aes_key, ENC_HEX);
+        // using "true" here disables caching of the decrypted login info (which includes the password)
+        $userinfo_json = $aes->decrypt($userinfo_crypt, $aes_key, ENC_HEX, true);
         if ( !$userinfo_json )
         {
           return array(
