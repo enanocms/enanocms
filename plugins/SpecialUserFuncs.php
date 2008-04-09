@@ -542,6 +542,14 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     }
     else
     {
+      if ( $result['error'] === 'valid_reset' )
+      {
+        header('HTTP/1.1 302 Temporary Redirect');
+        header('Location: ' . $result['redirect_url']);
+        
+        $db->close();
+        exit();
+      }
       $GLOBALS['__login_status'] = $result;
     }
   }

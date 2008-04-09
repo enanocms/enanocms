@@ -956,9 +956,11 @@ class sessionManager {
           eval($cmd);
         }
         
-        header('Location: ' . makeUrlComplete('Special', 'PasswordReset/stage2/' . $row['user_id'] . '/' . $row['temp_password']) );
-        
-        exit;
+        return array(
+            'success' => false,
+            'error' => 'valid_reset',
+            'redirect_url' => makeUrlComplete('Special', 'PasswordReset/stage2/' . $row['user_id'] . '/' . $row['temp_password'])
+          );
       }
     }
     
