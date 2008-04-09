@@ -253,6 +253,8 @@ function page_Admin_PluginManager()
           // not set, skip this plugin
           continue 2;
       }
+      // decide if it's a system plugin
+      $plugin_meta['system plugin'] = in_array($dh, $plugins->system_plugins);
       // all checks passed
       $plugin_list[$dh] = $plugin_meta;
     }
