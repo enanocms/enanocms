@@ -756,10 +756,11 @@ div.miniprompt div.mp-top, div.miniprompt div.mp-bottom {
   height: 57px;
   background-image: url(../../../images/prompt-top.png);
   background-repeat: no-repeat;
+  background-position: center center;
 }
 
 div.miniprompt div.mp-bottom {
-  height: 67px;
+  height: 42px;
   background-image: url(../../../images/prompt-bottom.png);
 }
 

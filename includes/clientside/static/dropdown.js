@@ -92,6 +92,10 @@ function jBoxSetup(obj)
                 obj.childNodes[i].onmouseover = function()  { jBoxOverHandler(this); };
                 obj.childNodes[i].onmouseout = function(e)  { jBoxOutHandler(this, e); };
                 obj.childNodes[i].nextSibling.onmouseout = function(e)  { jBoxOutHandler(this, e); };
+                if ( is_iPhone )
+                {
+                  obj.childNodes[i].onclick = function()  { jBoxOverHandler(this); return false; };
+                }
               }
             }
           }
