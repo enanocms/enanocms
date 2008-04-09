@@ -8,7 +8,7 @@ function mdgInnerLoader(e)
   Fat.fade_all();
   fadeInfoBoxes();
   //initTextareas();
-  buildSearchBoxes();
+  //buildSearchBoxes();
   jBoxInit();
   if(typeof (dbx_set_key) == 'function')
   {
