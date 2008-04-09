@@ -745,3 +745,40 @@ fieldset legend a.expander-open:hover {
   background-image: url(../../../images/expander/open-prelight.gif);
 }
 
+/* Flown-in mini prompts */
+
+div.miniprompt {
+  position: absolute;
+}
+
+div.miniprompt div.mp-top, div.miniprompt div.mp-bottom {
+  width: 388px;
+  height: 57px;
+  background-image: url(../../../images/prompt-top.png);
+  background-repeat: no-repeat;
+}
+
+div.miniprompt div.mp-bottom {
+  height: 67px;
+  background-image: url(../../../images/prompt-bottom.png);
+}
+
+div.miniprompt div.mp-body {
+  padding: 0 44px 10px 44px;
+  width: 300px;
+  background-image: url(../../../images/prompt-body.png);
+  background-repeat: repeat-y;
+  background-position: center center;
+}
+
+div.miniprompt h3 {
+  /* fix padding issues on firefox */
+  margin: 0 0 10px 0;
+}
+
+/* for buttons */
+div.miniprompt div.mp-buttons {
+  text-align: right;
+  position: relative;
+  top: 10px;
+}

@@ -430,7 +430,9 @@ var enano_lang = {
     ajax: {
       // Client-side messages
       protect_prompt_reason: 'Reason for (un)protecting:',
-      rename_prompt: 'What title should this page be renamed to?\nNote: This does not and will never change the URL of this page, that must be done from the admin panel.',
+      rename_prompt: 'What title should this page be renamed to?\n%this.ajax_rename_notice%',
+      rename_prompt_short: 'Enter a new name for this page',
+      rename_notice: 'This won\'t change the URL to this page. To change the URL to this page, use Page Manager in the administration panel.',
       delete_prompt_reason: 'Please enter your reason for deleting this page.',
       delete_confirm: 'You are about to REVERSIBLY delete this page. Do you REALLY want to do this?\n\n(Comments and categorization data, as well as any attached files, will be permanently lost)',
       delvote_confirm: 'Are you sure that you want to vote that this page be deleted?',
@@ -449,7 +451,8 @@ var enano_lang = {
       
       // Server-side responses
       rename_too_short: 'The name you entered is too short. Please enter a longer name for this page.',
-      rename_success: 'The page "%page_name_old%" has been renamed to "%page_name_new%". You are encouraged to leave a comment explaining your action.\n\nYou will see the change take effect the next time you reload this page.',
+      rename_success_title: 'Page renamed',
+      rename_success_body: 'This page has been renamed to "%page_name_new%". You are encouraged to leave a comment explaining your action.<br /><br />Please note that you might not see this change take effect until you reload the page.',
       clearlogs_success: 'The logs for this page have been cleared. A backup of this page has been added to the logs table so that this page can be restored in case of vandalism or spam later.',
       delete_need_reason: 'Invalid reason for deletion passed. Please enter a reason for deleting this page.',
       delete_success: 'This page has been deleted. Note that there is still a log of edits and actions in the database, and anyone with admin rights can raise this page from the dead unless the log is cleared. If the deleted file is an image, there may still be cached thumbnails of it in the cache/ directory, which is inaccessible to users.',
@@ -458,7 +461,6 @@ var enano_lang = {
       delvote_reset_success: 'The number of votes for having this page deleted has been reset to zero.',
       password_success: 'The password for this page has been set.',
       password_disable_success: 'The password for this page has been disabled.',
-      
     },
     sidebar: {
       title_navigation: 'Navigation',
@@ -691,6 +693,7 @@ var enano_lang = {
       cancel: 'Cancel',
       yes: 'Yes',
       no: 'No',
+      go: 'Go',
       unit_bytes: 'bytes',
       unit_kilobytes: 'kilobytes',
       unit_megabytes: 'megabytes',

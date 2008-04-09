@@ -239,15 +239,138 @@ function ajaxRename()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  r = prompt($lang.get('ajax_rename_prompt'));
-  if(!r || r=='') return;
-  setAjaxLoading();
-  ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+ajaxEscape(r), function() {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      alert(ajax.responseText);
-    }
-  }, true);
+  
+  // updated - 1.1.4 to use miniPrompt
+  miniPrompt(ajaxRenameConstructDialog);
+}
+
+var ajaxRenameConstructDialog = function(div)
+{
+  // title
+  var heading = document.createElement('h3');
+  heading.appendChild(document.createTextNode($lang.get('ajax_rename_prompt_short')));
+  div.appendChild(heading);
+  
+  // form
+  var form = document.createElement('form');
+  form.action = 'javascript:void(0);';
+  
+  // box
+  var box = document.createElement('input');
+  box.size = '43';
+  box.style.width = '100%';
+  form.appendChild(box);
+  div.appendChild(form);
+  
+  // notice
+  var notice = document.createElement('small');
+  notice.appendChild(document.createTextNode($lang.get('ajax_rename_notice')));
+  div.appendChild(notice);
+  
+  // button area
+  var btndiv = document.createElement('div');
+  btndiv.className = 'mp-buttons';
+  
+  // buttons
+  var btn_submit = document.createElement('a');
+  btn_submit.href = '#';
+  btn_submit.appendChild(document.createTextNode($lang.get('etc_go')));
+  btn_submit.className = 'fakebutton fakebutton-submit';
+  
+  var btn_cancel = document.createElement('a');
+  btn_cancel.href = '#';
+  btn_cancel.appendChild(document.createTextNode($lang.get('etc_cancel')));
+  btn_cancel.className = 'fakebutton';
+  
+  btndiv.appendChild(btn_submit);
+  btndiv.appendChild(document.createTextNode(' | '));
+  btndiv.appendChild(btn_cancel);
+  div.appendChild(btndiv);
+  
+  // events
+  btn_submit.onclick = function()
+  {
+    ajaxRenameSubmit(this);
+    return false;
+  }
+  btn_cancel.onclick = function()
+  {
+    miniPromptDestroy(this);
+    return false;
+  }
+  form.onsubmit = function()
+  {
+    ajaxRenameSubmit(this);
+    return false;
+  }
+  
+  setTimeout(function()
+    {
+      box.focus();
+    }, 200);
+}
+
+function ajaxRenameSubmit(obj)
+{
+  var box = miniPromptGetParent(obj);
+  if ( !box )
+    return false;
+  
+  var newname = ( obj.getElementsByTagName('input')[0] ).value;
+  newname = trim(newname);
+  
+  if ( newname.length < 1 )
+  {
+    alert($lang.get('ajax_rename_too_short'));
+    return false;
+  }
+  
+  if ( !newname )
+  {
+    return false;
+  }
+  
+  var innerBox = getElementsByClassName(box, 'div', 'mp-body')[0];
+  var whiteout = whiteOutElement(innerBox);
+  whiteout.style.width = ( $(whiteout).Width() - 78 ) + 'px';
+  whiteout.style.left = ( $(whiteout).Left() + 44 ) + 'px';
+  
+  ajaxPost(stdAjaxPrefix + '&_mode=rename', 'newtitle=' + ajaxEscape(newname), function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        whiteout.parentNode.removeChild(whiteout);
+        var response = String(ajax.responseText);
+        if ( response.substr(0, 1) != '{' )
+        {
+          handle_invalid_json(response);
+          return false;
+        }
+        response = parseJSON(response);
+        if ( response.success )
+        {
+          miniPromptDestroy(box, true);
+          ajaxRenameDoClientTransform(newname);
+          new messagebox( MB_OK|MB_ICONINFORMATION, $lang.get('ajax_rename_success_title'), $lang.get('ajax_rename_success_body', { page_name_new: newname }) );
+          mb_previously_had_darkener = false;
+        }
+        else
+        {
+          var errmsg = $lang.get('page_err_' + response.error);
+          alert(errmsg);
+        }
+      }
+    }, true);
+}
+
+function ajaxRenameDoClientTransform(newname)
+{
+  var obj = document.getElementById('h2PageName');
+  if ( obj )
+  {
+    obj.firstChild.nodeValue = newname;
+  }
+  document.title = newname;
 }
 
 function ajaxMakePage()

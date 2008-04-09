@@ -1,20 +1,39 @@
-// Message box system
+// Message box and visual effect system
 
-function darken(nofade)
+/**
+ * Darkens the browser screen. This will make the entire page un-clickable except for any floating divs created after this is called. Restore with enlighten().
+ * @param bool Controls whether the fade should be disabled or not. aclDisableTransitionFX will override this if set to true, and fades are never fired on IE.
+ * @param int When specified, represents the numeric opacity value to set the fade layer to. 1-100.
+ */
+
+function darken(nofade, opacVal)
 {
   if(IE)
     nofade = true;
+  if ( !opacVal )
+    opacVal = 70;
   if(document.getElementById('specialLayer_darkener'))
   {
     if(nofade)
     {
-      changeOpac(70, 'specialLayer_darkener');
+      changeOpac(opacVal, 'specialLayer_darkener');
       document.getElementById('specialLayer_darkener').style.display = 'block';
+      document.getElementById('specialLayer_darkener').myOpacVal = opacVal;
     }
     else
     {
-      document.getElementById('specialLayer_darkener').style.display = 'block';
-      opacity('specialLayer_darkener', 0, 70, 1000);
+      if ( document.getElementById('specialLayer_darkener').style.display != 'none' )
+      {
+        var currentOpac = document.getElementById('specialLayer_darkener').myOpacVal;
+        opacity('specialLayer_darkener', currentOpac, opacVal, 1000);
+        document.getElementById('specialLayer_darkener').myOpacVal = opacVal;
+      }
+      else
+      {
+        document.getElementById('specialLayer_darkener').style.display = 'block';
+        document.getElementById('specialLayer_darkener').myOpacVal = opacVal;
+        opacity('specialLayer_darkener', 0, opacVal, 1000);
+      }
     }
   } else {
     w = getWidth();
@@ -41,10 +60,11 @@ function darken(nofade)
     thediv.style.height = '100%';
     thediv.zIndex = getHighestZ() + 5;
     thediv.id = 'specialLayer_darkener';
+    thediv.myOpacVal = opacVal;
     if(nofade)
     {
-      thediv.style.opacity = '0.7';
-      thediv.style.filter = 'alpha(opacity=70)';
+      thediv.style.opacity = ( parseFloat(opacVal) / 100 );
+      thediv.style.filter = 'alpha(opacity=' + opacVal + ')';
       body = document.getElementsByTagName('body');
       body = body[0];
       body.appendChild(thediv);
@@ -52,10 +72,15 @@ function darken(nofade)
       body = document.getElementsByTagName('body');
       body = body[0];
       body.appendChild(thediv);
-      opacity('specialLayer_darkener', 0, 70, 1000);
+      opacity('specialLayer_darkener', 0, opacVal, 1000);
     }
   }
 }
+
+/**
+ * Un-darkens the screen and re-enables clicking of on-screen controls.
+ * @param bool If true, disables the fade effect. Fades are always disabled if aclDisableTransitionFX is true and on IE.
+ */
 
 function enlighten(nofade)
 {
@@ -67,8 +92,13 @@ function enlighten(nofade)
     {
       document.getElementById('specialLayer_darkener').style.display = 'none';
     }
-    opacity('specialLayer_darkener', 70, 0, 1000);
-    setTimeout("document.getElementById('specialLayer_darkener').style.display = 'none';", 1000);
+    else
+    {
+      var from = document.getElementById('specialLayer_darkener').myOpacVal;
+      // console.info('Fading from ' + from);
+      opacity('specialLayer_darkener', from, 0, 1000);
+      setTimeout("document.getElementById('specialLayer_darkener').style.display = 'none';", 1000);
+    }
   }
 }
 
@@ -386,6 +416,102 @@ function testMessageBox()
     {
       alert('You clicked Cancel!');
     }
+}
+
+/**
+ * The miniPrompt function, for creating small prompts and dialogs. The window will be flown in and the window darkened with opac=0.4.
+ * @param function Will be passed an HTMLElement that is the body of the prompt window; the function can do with this as it pleases
+ */
+
+function miniPrompt(call_on_create)
+{
+  darken(false, 40);
+  
+  var wrapper = document.createElement('div');
+  wrapper.className = 'miniprompt';
+  var top = document.createElement('div');
+  top.className = 'mp-top';
+  var body = document.createElement('div');
+  body.className = 'mp-body';
+  var bottom = document.createElement('div');
+  bottom.className = 'mp-bottom';
+  if ( typeof(call_on_create) == 'function' )
+  {
+    call_on_create(body);
+  }
+  wrapper.appendChild(top);
+  wrapper.appendChild(body);
+  wrapper.appendChild(bottom);
+  var left = ( getWidth() / 2 ) - ( 388 / 2 );
+  wrapper.style.left = left + 'px';
+  var top = getScrollOffset() - 27;
+  wrapper.style.top = top + 'px';
+  domObjChangeOpac(0, wrapper);
+  var realbody = document.getElementsByTagName('body')[0];
+  realbody.appendChild(wrapper);
+  
+  fly_in_top(wrapper, true, true);
+  
+  setTimeout(function()
+    {
+      domObjChangeOpac(100, wrapper);
+    }, 40);
+}
+
+/**
+ * For a given element, loops through the element and all of its ancestors looking for a miniPrompt div, and returns it. Returns false on failure.
+ * @param object:HTMLElement Child node to scan
+ * @return object
+ */
+
+function miniPromptGetParent(obj)
+{
+  while ( true )
+  {
+    // prevent infinite loops
+    if ( !obj || obj.tagName == 'BODY' )
+      return false;
+    
+    if ( $dynano(obj).hasClass('miniprompt') )
+    {
+      return obj;
+    }
+    obj = obj.parentNode;
+  }
+  return false;
+}
+
+/**
+ * Destroys the first miniPrompt div encountered by recursively checking all parent nodes.
+ * Usage: <a href="javascript:miniPromptDestroy(this);">click</a>
+ * @param object:HTMLElement a child of the div.miniprompt
+ * @param bool If true, does not call enlighten().
+ */
+
+function miniPromptDestroy(obj, nofade)
+{
+  obj = miniPromptGetParent(obj);
+  if ( !obj )
+    return false;
+  
+  // found it
+  var parent = obj.parentNode;
+  if ( !nofade )
+    enlighten();
+  var timeout = fly_out_top(obj, true, true);
+  setTimeout(function()
+    {
+      parent.removeChild(obj);
+    }, timeout);
+}
+
+/**
+ * Simple test case
+ */
+
+function miniPromptTest()
+{
+  miniPrompt(function(div) { div.innerHTML = 'hello world! <a href="#" onclick="miniPromptDestroy(this); return false;">destroy me</a>'; });
 }
 
 // Function to fade classes info-box, warning-box, error-box, etc.
