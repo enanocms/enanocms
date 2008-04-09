@@ -13,7 +13,7 @@ var Fat = {
 	},
 	fade_all : function ()
 	{
-		var a = document.getElementsByTagName("*");
+		var a = document.getElementsByTagName("div");
 		for (var i = 0; i < a.length; i++) 
 		{
 			var o = a[i];
