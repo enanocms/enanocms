@@ -382,7 +382,26 @@ var enano_lang = {
       msg_demo_mode: 'Hmm, enabling executables, are we? Tsk tsk. I\'d love to know what\'s in that EXE file you want to upload. OK, maybe you didn\'t enable EXEs. But nevertheless, changing allowed filetypes is disabled in the demo.',
     },
     acppl: {
+      lbl_plugin_name: '<b>%plugin%</b> by %author%',
+      lbl_status_installed: 'Installed',
+      lbl_status_uninstalled: 'Not installed',
+      lbl_status_system: 'System plugin',
+      lbl_status_need_upgrade: 'Disabled (needs upgrade)',
+      lbl_status_disabled: 'Disabled',
+      lbl_filename: 'Filename:',
+      lbl_plugin_site: 'Plugin homepage:',
+      lbl_author_site: 'Author homepage:',
+      lbl_version: 'Version:',
+      lbl_installed_version: 'Installed version:',
       
+      btn_install: 'Install',
+      btn_disable: 'Disable',
+      btn_enable: 'Enable',
+      btn_upgrade: 'Upgrade',
+      btn_uninstall: 'Uninstall',
+      
+      msg_confirm_uninstall: 'Please confirm that you want to uninstall this plugin and that it doesn\'t provide any shared functions that other plugins depend on.',
+      msg_confirm_install: 'Plugins are not supported by the Enano project and could harm your site if malicious. You should only install plugins from sources that you trust.',
     },
     acppm: {
       heading_main: 'Edit page properties',

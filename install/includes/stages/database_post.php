@@ -19,7 +19,7 @@ if ( !defined('IN_ENANO_INSTALL') )
 
 // Start up the DBAL
 require( ENANO_ROOT . '/includes/dbal.php' );
-require( ENANO_ROOT . '/install/includes/sql_parse.php' );
+require( ENANO_ROOT . '/includes/sql_parse.php' );
 $dbal = new $driver();
 $db_host =& $_POST['db_host'];
 $db_user =& $_POST['db_user'];

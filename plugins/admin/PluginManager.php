@@ -255,9 +255,160 @@ function page_Admin_PluginManager()
       }
       // decide if it's a system plugin
       $plugin_meta['system plugin'] = in_array($dh, $plugins->system_plugins);
+      // reset installed variable
+      $plugin_meta['installed'] = false;
+      $plugin_meta['status'] = 0;
       // all checks passed
       $plugin_list[$dh] = $plugin_meta;
     }
   }
-  echo '<pre>' . print_r($plugin_list, true) . '</pre>';
+  // gather info about installed plugins
+  $q = $db->sql_query('SELECT plugin_filename, plugin_version, plugin_flags FROM ' . table_prefix . 'plugins;');
+  if ( !$q )
+    $db->_die();
+  while ( $row = $db->fetchrow() )
+  {
+    if ( !isset($plugin_list[ $row['plugin_filename'] ]) )
+    {
+      // missing plugin file, don't report (for now)
+      continue;
+    }
+    $filename =& $row['plugin_filename'];
+    $plugin_list[$filename]['installed'] = true;
+    $plugin_list[$filename]['status'] = PLUGIN_INSTALLED;
+    if ( $row['plugin_version'] != $plugin_list[$filename]['version'] )
+    {
+      $plugin_list[$filename]['status'] |= PLUGIN_OUTOFDATE;
+      $plugin_list[$filename]['version installed'] = $row['plugin_version'];
+    }
+    if ( $row['plugin_flags'] & PLUGIN_DISABLED )
+    {
+      $plugin_list[$filename]['status'] |= PLUGIN_DISABLED;
+    }
+  }
+  $db->free_result();
+  
+  // sort it all out by filename
+  ksort($plugin_list);
+  
+  // start printing things out
+  acp_start_form();
+  ?>
+  <div class="tblholder">
+    <table border="0" cellspacing="1" cellpadding="5">
+      <?php
+      $rowid = '2';
+      foreach ( $plugin_list as $filename => $data )
+      {
+        // print out all plugins
+        $rowid = ( $rowid == '1' ) ? '2' : '1';
+        $plugin_name = ( preg_match('/^[a-z0-9_]+$/', $data['plugin name']) ) ? $lang->get($data['plugin name']) : $data['plugin name'];
+        $plugin_basics = $lang->get('acppl_lbl_plugin_name', array(
+            'plugin' => $plugin_name,
+            'author' => $data['author']
+          ));
+        $color = '';
+        $buttons = '';
+        if ( $data['system plugin'] )
+        {
+          $status = $lang->get('acppl_lbl_status_system');
+        }
+        else if ( $data['installed'] && !( $data['status'] & PLUGIN_DISABLED ) && !( $data['status'] & PLUGIN_OUTOFDATE ) )
+        {
+          // this plugin is all good
+          $color = '_green';
+          $status = $lang->get('acppl_lbl_status_installed');
+          $buttons = 'uninstall|disable';
+        }
+        else if ( $data['installed'] && $data['status'] & PLUGIN_OUTOFDATE )
+        {
+          $color = '_red';
+          $status = $lang->get('acppl_lbl_status_need_upgrade');
+          $buttons = 'uninstall|update';
+        }
+        else if ( $data['installed'] && $data['status'] & PLUGIN_DISABLED )
+        {
+          $color = '_red';
+          $status = $lang->get('acppl_lbl_status_disabled');
+          $buttons = 'uninstall|enable';
+        }
+        else
+        {
+          $color = '_red';
+          $status = $lang->get('acppl_lbl_status_uninstalled');
+          $buttons = 'install';
+        }
+        $uuid = md5($data['plugin name'] . $data['version'] . $filename);
+        $desc = ( preg_match('/^[a-z0-9_]+$/', $data['description']) ) ? $lang->get($data['description']) : $data['description'];
+        $desc = sanitize_html($desc);
+        
+        $additional = '';
+        
+        // filename
+        $additional .= '<b>' . $lang->get('acppl_lbl_filename') . '</b> ' . "{$filename}<br />";
+        
+        // plugin's site
+        $data['plugin uri'] = htmlspecialchars($data['plugin uri']);
+        $additional .= '<b>' . $lang->get('acppl_lbl_plugin_site') . '</b> ' . "<a href=\"{$data['plugin uri']}\">{$data['plugin uri']}</a><br />";
+        
+        // author's site
+        $data['author uri'] = htmlspecialchars($data['author uri']);
+        $additional .= '<b>' . $lang->get('acppl_lbl_author_site') . '</b> ' . "<a href=\"{$data['author uri']}\">{$data['author uri']}</a><br />";
+        
+        // version
+        $additional .= '<b>' . $lang->get('acppl_lbl_version') . '</b> ' . "{$data['version']}<br />";
+        
+        // installed version
+        if ( $data['status'] & PLUGIN_OUTOFDATE )
+        {
+          $additional .= '<b>' . $lang->get('acppl_lbl_installed_version') . '</b> ' . "{$data['version installed']}<br />";
+        }
+        
+        // build list of buttons
+        $buttons_html = '';
+        if ( !empty($buttons) )
+        {
+          $filename_js = addslashes($filename);
+          $buttons = explode('|', $buttons);
+          $colors = array(
+              'install' => 'green',
+              'disable' => 'blue',
+              'enable' => 'blue',
+              'upgrade' => 'green',
+              'uninstall' => 'red'
+            );
+          foreach ( $buttons as $button )
+          {
+            $btnface = $lang->get("acppl_btn_$button");
+            $buttons_html .= "<a href=\"#\" onclick=\"ajaxPluginAction('$button', '$filename_js', this); return false;\" class=\"abutton_{$colors[$button]} abutton\">$btnface</a>\n";
+          }
+        }
+        
+        echo "<tr>
+                <td class=\"row{$rowid}$color\">
+                  <div style=\"float: right;\">
+                    <b>$status</b>
+                  </div>
+                  <div style=\"cursor: pointer;\" onclick=\"if ( !this.fx ) this.fx = new Spry.Effect.Blind('plugininfo_$uuid', { duration: 500, from: '0%', to: '100%', toggle: true }); this.fx.start();\"
+                    $plugin_basics
+                  </div>
+                  <span class=\"menuclear\"></span>
+                  <div id=\"plugininfo_$uuid\" style=\"display: none;\">
+                    $desc
+                    <div style=\"padding: 5px;\">
+                      $additional
+                      <div style=\"float: right; position: relative; top: -10px;\">
+                        $buttons_html
+                      </div>
+                      <span class=\"menuclear\"></span>
+                    </div>
+                  </div>
+                </td>
+              </tr>";
+      }
+      ?>
+    </table>
+  </div>
+  <?php
+  echo '</form>';
 }

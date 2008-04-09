@@ -783,3 +783,23 @@ div.miniprompt div.mp-buttons {
   position: relative;
   top: 10px;
 }
+
+/* pseudo-buttons made with <a> tags */
+.abutton {
+  padding: 3px 5px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  margin: 0 3px;
+}
+
+.abutton:hover {
+  color: #f0f0f0 !important;
+}
+
+.abutton_green       { color: #00aa00 !important; }
+.abutton_green:hover { background-color: #00aa00; }
+.abutton_blue        { color: #0000aa !important; }
+.abutton_blue:hover  { background-color: #0000aa; }
+.abutton_red         { color: #aa0000 !important; }
+.abutton_red:hover   { background-color: #aa0000; }
+

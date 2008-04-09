@@ -1517,3 +1517,111 @@ function ajaxUpdateCheck(targetelement)
     });
 }
 
+function ajaxPluginAction(action, plugin_filename, btnobj)
+{
+  // if installing or uninstalling, confirm
+  if ( action == 'install' || action == 'uninstall' )
+  {
+    var prompt = miniPrompt(function(div)
+      {
+        var txtholder = document.createElement('div');
+        txtholder.style.textAlign = 'center';
+        txtholder.appendChild(document.createTextNode($lang.get('acppl_msg_confirm_' + action)));
+        txtholder.appendChild(document.createElement('br'));
+        txtholder.appendChild(document.createElement('br'));
+        
+        // create buttons
+        var btn_go = document.createElement('a');
+        btn_go.className = 'abutton abutton_red';
+        btn_go.href = '#';
+        btn_go._action = action;
+        btn_go._filename = plugin_filename;
+        btn_go._button = btnobj;
+        btn_go.appendChild(document.createTextNode($lang.get('acppl_btn_' + action)));
+        btn_go.style.fontWeight = 'bold';
+        txtholder.appendChild(btn_go);
+        
+        // space
+        txtholder.appendChild(document.createTextNode(' '));
+        
+        // cancel
+        var btn_cancel = document.createElement('a');
+        btn_cancel.className = 'abutton abutton_blue';
+        btn_cancel.href = '#';
+        btn_cancel.appendChild(document.createTextNode($lang.get('etc_cancel')));
+        
+        txtholder.appendChild(btn_cancel);
+        div.appendChild(txtholder);
+        
+        btn_go.onclick = function()
+        {
+          ajaxPluginAction(this._action + '_confirm', this._filename, this._button);
+          miniPromptDestroy(this);
+          return false;
+        }
+        btn_cancel.onclick = function()
+        {
+          miniPromptDestroy(this);
+          return false;
+        }
+      });
+    return true;
+  }
+  action = action.replace(/_confirm$/, '');
+  var request = toJSONString({
+      mode: action,
+      plugin: plugin_filename
+    });
+  ajaxPost(makeUrlNS('Admin', 'PluginManager/action.json'), 'r=' + ajaxEscape(request), function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        if ( ajax.responseText == 'good' )
+        {
+          ajaxPage( namespace_list['Admin'] + 'PluginManager' );
+        }
+        else
+        {
+          var response = String(ajax.responseText + '');
+          if ( response.substr(0, 1) != '{' )
+          {
+            handle_invalid_json(response);
+            return false;
+          }
+          response = parseJSON(response);
+          if ( response.mode != 'error' )
+          {
+            console.debug(response);
+            return false;
+          }
+          // wait for fade effect to finish its run
+          setTimeout(function()
+            {
+              miniPrompt(function(div)
+                {
+                  var txtholder = document.createElement('div');
+                  txtholder.style.textAlign = 'center';
+                  txtholder.appendChild(document.createTextNode(response.error));
+                  txtholder.appendChild(document.createElement('br'));
+                  txtholder.appendChild(document.createElement('br'));
+                  
+                  // close button
+                  var btn_cancel = document.createElement('a');
+                  btn_cancel.className = 'abutton abutton_red';
+                  btn_cancel.href = '#';
+                  btn_cancel.appendChild(document.createTextNode($lang.get('etc_ok')));
+                  
+                  txtholder.appendChild(btn_cancel);
+                  div.appendChild(txtholder);
+                  
+                  btn_cancel.onclick = function()
+                  {
+                    miniPromptDestroy(this);
+                    return false;
+                  }
+                });
+            }, 750);
+        }
+      }
+    });
+}

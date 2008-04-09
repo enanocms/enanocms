@@ -87,6 +87,11 @@ define('PM_ARCHIVE', 16);
 define('PM_TRASH', 32);
 define('PM_DELIVERED', 64);
 
+// Plugin status
+define('PLUGIN_INSTALLED', 1);
+define('PLUGIN_DISABLED', 2);
+define('PLUGIN_OUTOFDATE', 4);
+
 // Other stuff
 
 define('MAX_PMS_PER_BATCH', 7); // The maximum number of users that users can send PMs to in one go; restriction does not apply to users with mod_misc rights

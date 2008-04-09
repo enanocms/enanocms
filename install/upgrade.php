@@ -28,7 +28,7 @@ define('ENANO_ALLOW_LOAD_NOLANG', 1);
 @ini_set('display_errors', 'on');
 
 // Load installer files
-require_once('includes/sql_parse.php');
+require_once('../includes/sql_parse.php');
 require_once('includes/common.php');
 require_once('includes/libenanoinstall.php');
 

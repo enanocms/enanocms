@@ -1017,6 +1017,12 @@ class template {
       $this->load_theme($session->theme, $session->style);
     }
     
+    // I feel awful doing this.
+    if ( preg_match('/^W3C_Validator/', @$_SERVER['HTTP_USER_AGENT']) )
+    {
+      header('Content-type: application/xhtml+xml');
+    }
+    
     $headers_sent = true;
     if(!defined('ENANO_HEADERS_SENT'))
       define('ENANO_HEADERS_SENT', '');
