@@ -215,6 +215,18 @@ function page_Admin_PluginManager()
                 );
                 break;
               }
+              
+              // log action
+              $time        = time();
+              $ip_db       = $db->escape($_SERVER['REMOTE_ADDR']);
+              $username_db = $db->escape($session->username);
+              $file_db     = $db->escape($request['plugin']);
+              // request['mode'] is TRUSTED - the case statement will only process if it is one of {enable,disable}.
+              $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, page_text) VALUES\n"
+                                . "  ('security', 'plugin_{$request['mode']}', $time, '$ip_db', '$username_db', '$file_db');");
+              if ( !$q )
+                $db->_die();
+              
               // perform update
               $q = $db->sql_query('UPDATE ' . table_prefix . "plugins SET plugin_flags = $flags_col WHERE plugin_id = {$dataset['plugin id']};");
               if ( !$q )

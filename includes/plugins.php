@@ -451,6 +451,16 @@ class pluginLoader {
       }
     }
     
+    // log action
+    $time        = time();
+    $ip_db       = $db->escape($_SERVER['REMOTE_ADDR']);
+    $username_db = $db->escape($session->username);
+    $file_db     = $db->escape($filename);
+    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, page_text) VALUES\n"
+                      . "  ('security', 'plugin_install', $time, '$ip_db', '$username_db', '$file_db');");
+    if ( !$q )
+      $db->_die();
+    
     // register plugin
     $version_db = $db->escape($dataset['version']);
     $filename_db = $db->escape($filename);
@@ -554,6 +564,16 @@ class pluginLoader {
           $db->die_json();
       }
     }
+    
+    // log action
+    $time        = time();
+    $ip_db       = $db->escape($_SERVER['REMOTE_ADDR']);
+    $username_db = $db->escape($session->username);
+    $file_db     = $db->escape($filename);
+    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, page_text) VALUES\n"
+                      . "  ('security', 'plugin_uninstall', $time, '$ip_db', '$username_db', '$file_db');");
+    if ( !$q )
+      $db->_die();
     
     // deregister plugin
     $q = $db->sql_query('DELETE FROM ' . table_prefix . "plugins WHERE plugin_id = {$dataset['plugin id']};");
@@ -765,6 +785,16 @@ class pluginLoader {
           $db->die_json();
       }
     }
+    
+    // log action
+    $time        = time();
+    $ip_db       = $db->escape($_SERVER['REMOTE_ADDR']);
+    $username_db = $db->escape($session->username);
+    $file_db     = $db->escape($filename);
+    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, page_text) VALUES\n"
+                      . "  ('security', 'plugin_upgrade', $time, '$ip_db', '$username_db', '$file_db');");
+    if ( !$q )
+      $db->_die();
     
     // update version number
     $version = $db->escape($dataset['version']);

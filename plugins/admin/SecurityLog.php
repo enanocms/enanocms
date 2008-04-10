@@ -164,6 +164,9 @@ function seclog_format_inner($r, $f = false)
     case "magick_path"     : $return .= $lang->get('acpsl_entry_magick_path')     ; break;
     case "plugin_disable"  : $return .= $lang->get('acpsl_entry_plugin_disable'   , array('plugin' => $r['page_text'])); break;
     case "plugin_enable"   : $return .= $lang->get('acpsl_entry_plugin_enable'    , array('plugin' => $r['page_text'])); break;
+    case "plugin_install"  : $return .= $lang->get('acpsl_entry_plugin_install'   , array('plugin' => $r['page_text'])); break;
+    case "plugin_uninstall": $return .= $lang->get('acpsl_entry_plugin_uninstall' , array('plugin' => $r['page_text'])); break;
+    case "plugin_upgrade"  : $return .= $lang->get('acpsl_entry_plugin_upgrade'   , array('plugin' => $r['page_text'])); break;
     case "seclog_unauth"   : $return .= $lang->get('acpsl_entry_seclog_unauth')   ; break;
     case "u_from_admin"    : $return .= $lang->get('acpsl_entry_u_from_admin'     , array('username' => $r['page_text'])); break;
     case "u_from_mod"      : $return .= $lang->get('acpsl_entry_u_from_mod'       , array('username' => $r['page_text'])); break;
