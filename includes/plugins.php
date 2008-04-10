@@ -430,7 +430,7 @@ class pluginLoader {
         // aww crap, a query is bad
         $return = array(
           'mode' => 'error',
-          'error' => $lang->get('acppm_err_upgrade_bad_query'),
+          'error' => $lang->get('acppl_err_upgrade_bad_query'),
         );
         break 2;
       }
@@ -534,7 +534,7 @@ class pluginLoader {
         // aww crap, a query is bad
         $return = array(
           'mode' => 'error',
-          'error' => $lang->get('acppm_err_upgrade_bad_query'),
+          'error' => $lang->get('acppl_err_upgrade_bad_query'),
         );
         break 2;
       }
@@ -628,7 +628,7 @@ class pluginLoader {
       // send an error and notify the user even though it was technically a success
       $return = array(
         'mode' => 'error',
-        'error' => $lang->get('acppm_err_upgrade_not_supported'),
+        'error' => $lang->get('acppl_err_upgrade_not_supported'),
       );
       break;
     }
@@ -643,7 +643,7 @@ class pluginLoader {
     {
       $return = array(
         'mode' => 'error',
-        'error' => $lang->get('acppm_err_upgrade_bad_version'),
+        'error' => $lang->get('acppl_err_upgrade_bad_version'),
       );
       break;
     }
@@ -653,7 +653,7 @@ class pluginLoader {
     {
       $return = array(
         'mode' => 'error',
-        'error' => $lang->get('acppm_err_upgrade_bad_target_version'),
+        'error' => $lang->get('acppl_err_upgrade_bad_target_version'),
       );
       break;
     }
@@ -667,7 +667,7 @@ class pluginLoader {
     {
       $return = array(
         'mode' => 'error',
-        'error' => $lang->get('acppm_err_upgrade_to_older'),
+        'error' => $lang->get('acppl_err_upgrade_to_older'),
       );
       break;
     }
@@ -745,7 +745,7 @@ class pluginLoader {
         // aww crap, a query is bad
         $return = array(
           'mode' => 'error',
-          'error' => $lang->get('acppm_err_upgrade_bad_query'),
+          'error' => $lang->get('acppl_err_upgrade_bad_query'),
         );
         break 2;
       }
