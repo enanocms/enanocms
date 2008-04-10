@@ -400,8 +400,18 @@ var enano_lang = {
       btn_upgrade: 'Upgrade',
       btn_uninstall: 'Uninstall',
       
-      msg_confirm_uninstall: 'Please confirm that you want to uninstall this plugin and that it doesn\'t provide any shared functions that other plugins depend on.',
+      msg_confirm_uninstall: 'Uninstalling this plugin may cause the loss of data that was created with it. You should only uninstall a plugin if you are certain you\'ll have no further use for it; in fact, you don\'t even need to uninstall a plugin if you\'re deleting it from the filesystem.',
       msg_confirm_install: 'Plugins are not supported by the Enano project and could harm your site if malicious. You should only install plugins from sources that you trust.',
+      
+      err_upgrade_not_supported: 'This plugin doesn\'t support automatic upgrades. The version number has been updated so the plugin will be re-enabled, but you should check the plugin file to see if the author provided instructions for finishing the upgrade.',
+      err_upgrade_bad_version: 'This plugin cannot be upgraded because you are running a version of the plugin that is not listed in the plugin\'s version list.',
+      err_upgrade_bad_target_version: 'This plugin cannot be upgraded because it does not support its own version. Please contact the author and ask them to fix this.',
+      err_upgrade_to_older: 'You are trying to upgrade to an older release of this plugin. This is unsupported and must be done manually.',
+      err_upgrade_bad_query: 'There is a problem with one of the SQL queries the plugin is trying to make.',
+      
+      msg_old_entries_title: 'Import old plugin installation data',
+      msg_old_entries_body: 'There is still data from the old plugin structure in your database. You can import this to the new structure automatically using the button below.',
+      btn_import_old: 'Import old plugin settings',
     },
     acppm: {
       heading_main: 'Edit page properties',

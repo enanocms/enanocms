@@ -50,11 +50,12 @@ class SQL_Parser
   /**
    * Constructor.
    * @param string If this contains newlines, it will be treated as the target SQL. If not, will be treated as a filename.
+   * @param string If true, force as raw SQL, i.e. don't treat as a filename no matter what
    */
   
-  public function __construct($sql)
+  public function __construct($sql, $force_file = false)
   {
-    if ( strpos($sql, "\n") )
+    if ( strpos($sql, "\n") || $force_file )
     {
       $this->sql_string = $sql;
     }

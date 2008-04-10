@@ -63,52 +63,35 @@ class pluginLoader {
   
   function loadAll() 
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
     $dir = ENANO_ROOT.'/plugins/';
     
-    $this->load_list = Array();
+    $this->load_list = $this->system_plugins;
+    $q = $db->sql_query('SELECT plugin_filename, plugin_version FROM ' . table_prefix . 'plugins WHERE plugin_flags & ~' . PLUGIN_DISABLED . ' = plugin_flags;');
+    if ( !$q )
+      $db->_die();
     
-    $plugins = Array();
-    
-    // Open a known directory, and proceed to read its contents
-    
-    if (is_dir($dir))
+    while ( $row = $db->fetchrow() )
     {
-      if ($dh = opendir($dir))
+      $this->load_list[] = $row['plugin_filename'];
+    }
+    
+    $this->loaded_plugins = $this->get_plugin_list($this->load_list);
+    
+    // check for out-of-date plugins
+    foreach ( $this->load_list as $i => $plugin )
+    {
+      if ( in_array($plugin, $this->system_plugins) )
+        continue;
+      if ( $this->loaded_plugins[$plugin]['status'] & PLUGIN_OUTOFDATE )
       {
-        while (($file = readdir($dh)) !== false)
-        {
-          if(preg_match('#^(.*?)\.php$#is', $file))
-          {
-            if(getConfig('plugin_'.$file) == '1' || in_array($file, $this->system_plugins))
-            {
-              $this->load_list[] = $dir . $file;
-              $plugid = substr($file, 0, strlen($file)-4);
-              $f = @file_get_contents($dir . $file);
-              if ( empty($f) )
-                continue;
-              $f = explode("\n", $f);
-              $f = array_slice($f, 2, 7);
-              $f[0] = substr($f[0], 13);
-              $f[1] = substr($f[1], 12);
-              $f[2] = substr($f[2], 13);
-              $f[3] = substr($f[3], 8 );
-              $f[4] = substr($f[4], 9 );
-              $f[5] = substr($f[5], 12);
-              $plugins[$plugid] = Array();
-              $plugins[$plugid]['name'] = $f[0];
-              $plugins[$plugid]['uri']  = $f[1];
-              $plugins[$plugid]['desc'] = $f[2];
-              $plugins[$plugid]['auth'] = $f[3];
-              $plugins[$plugid]['vers'] = $f[4];
-              $plugins[$plugid]['aweb'] = $f[5];
-            }
-          }
-        }
-        closedir($dh);
+        // it's out of date, don't load
+        unset($this->load_list[$i]);
+        unset($this->loaded_plugins[$plugin]);
       }
     }
-    $this->loaded_plugins = $plugins;
-    //die('<pre>'.htmlspecialchars(print_r($plugins, true)).'</pre>');
+    
+    $this->load_list = array_unique($this->load_list);
   }
   
   /**
@@ -215,7 +198,6 @@ class pluginLoader {
             . '#m';
             
     // Match out all blocks
-    
     $results = preg_match_all($regexp, $contents, $blocks);
     
     $return = array();
@@ -254,6 +236,549 @@ class pluginLoader {
     {
       $return[ $matches[1][$i] ] = $matches[2][$i];
     }
+    return $return;
+  }
+  
+  /**
+   * Reads all plugins in the filesystem and cross-references them with the database, providing a very complete summary of plugins
+   * on the site.
+   * @param array If specified, will restrict scanned files to this list. Defaults to null, which means all PHP files will be scanned.
+   * @return array
+   */
+  
+  function get_plugin_list($restrict = null)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // Scan all plugins
+    $plugin_list = array();
+    
+    if ( $dirh = @opendir( ENANO_ROOT . '/plugins' ) )
+    {
+      while ( $dh = @readdir($dirh) )
+      {
+        if ( !preg_match('/\.php$/i', $dh) )
+          continue;
+        
+        if ( is_array($restrict) )
+          if ( !in_array($dh, $restrict) )
+            continue;
+          
+        $fullpath = ENANO_ROOT . "/plugins/$dh";
+        // it's a PHP file, attempt to read metadata
+        // pass 1: try to read a !info block
+        $blockdata = $this->parse_plugin_blocks($fullpath, 'info');
+        if ( empty($blockdata) )
+        {
+          // no !info block, check for old header
+          $fh = @fopen($fullpath, 'r');
+          if ( !$fh )
+            // can't read, bail out
+            continue;
+          $plugin_data = array();
+          for ( $i = 0; $i < 8; $i++ )
+          {
+            $plugin_data[] = @fgets($fh, 8096);
+          }
+          // close our file handle
+          fclose($fh);
+          // is the header correct?
+          if ( trim($plugin_data[0]) != '<?php' || trim($plugin_data[1]) != '/*' )
+          {
+            // nope. get out.
+            continue;
+          }
+          // parse all the variables
+          $plugin_meta = array();
+          for ( $i = 2; $i <= 7; $i++ )
+          {
+            if ( !preg_match('/^([A-z0-9 ]+?): (.+?)$/', trim($plugin_data[$i]), $match) )
+              continue 2;
+            $plugin_meta[ strtolower($match[1]) ] = $match[2];
+          }
+        }
+        else
+        {
+          // parse JSON block
+          $plugin_data =& $blockdata[0]['value'];
+          $plugin_data = enano_clean_json(enano_trim_json($plugin_data));
+          try
+          {
+            $plugin_meta_uc = enano_json_decode($plugin_data);
+          }
+          catch ( Exception $e )
+          {
+            continue;
+          }
+          // convert all the keys to lowercase
+          $plugin_meta = array();
+          foreach ( $plugin_meta_uc as $key => $value )
+          {
+            $plugin_meta[ strtolower($key) ] = $value;
+          }
+        }
+        if ( !isset($plugin_meta) || !is_array(@$plugin_meta) )
+        {
+          // parsing didn't work.
+          continue;
+        }
+        // check for required keys
+        $required_keys = array('plugin name', 'plugin uri', 'description', 'author', 'version', 'author uri');
+        foreach ( $required_keys as $key )
+        {
+          if ( !isset($plugin_meta[$key]) )
+            // not set, skip this plugin
+            continue 2;
+        }
+        // decide if it's a system plugin
+        $plugin_meta['system plugin'] = in_array($dh, $this->system_plugins);
+        // reset installed variable
+        $plugin_meta['installed'] = false;
+        $plugin_meta['status'] = 0;
+        // all checks passed
+        $plugin_list[$dh] = $plugin_meta;
+      }
+    }
+    // gather info about installed plugins
+    $q = $db->sql_query('SELECT plugin_id, plugin_filename, plugin_version, plugin_flags FROM ' . table_prefix . 'plugins;');
+    if ( !$q )
+      $db->_die();
+    while ( $row = $db->fetchrow() )
+    {
+      if ( !isset($plugin_list[ $row['plugin_filename'] ]) )
+      {
+        // missing plugin file, don't report (for now)
+        continue;
+      }
+      $filename =& $row['plugin_filename'];
+      $plugin_list[$filename]['installed'] = true;
+      $plugin_list[$filename]['status'] = PLUGIN_INSTALLED;
+      $plugin_list[$filename]['plugin id'] = $row['plugin_id'];
+      if ( $row['plugin_version'] != $plugin_list[$filename]['version'] )
+      {
+        $plugin_list[$filename]['status'] |= PLUGIN_OUTOFDATE;
+        $plugin_list[$filename]['version installed'] = $row['plugin_version'];
+      }
+      if ( $row['plugin_flags'] & PLUGIN_DISABLED )
+      {
+        $plugin_list[$filename]['status'] |= PLUGIN_DISABLED;
+      }
+    }
+    $db->free_result();
+    
+    // sort it all out by filename
+    ksort($plugin_list);
+    
+    // done
+    return $plugin_list;
+  }
+  
+  /**
+   * Installs a plugin.
+   * @param string Filename of plugin.
+   * @param array The list of plugins as output by pluginLoader::get_plugin_list(). If not passed, the function is called, possibly wasting time.
+   * @return array JSON-formatted but not encoded response
+   */
+  
+  function install_plugin($filename, $plugin_list = null)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    if ( !$plugin_list )
+      $plugin_list = $this->get_plugin_list();
+    
+    // we're gonna need this
+    require_once ( ENANO_ROOT . '/includes/sql_parse.php' );
+    
+    switch ( true ): case true:
+      
+    // is the plugin in the directory and awaiting installation?
+    if ( !isset($plugin_list[$filename]) || (
+        isset($plugin_list[$filename]) && $plugin_list[$filename]['installed']
+      ))
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => 'Invalid plugin specified.',
+        'debug' => $filename
+      );
+      break;
+    }
+    
+    $dataset =& $plugin_list[$filename];
+    
+    // load up the installer schema
+    $schema = $this->parse_plugin_blocks( ENANO_ROOT . '/plugins/' . $filename, 'install' );
+    
+    $sql = array();
+    if ( !empty($schema) )
+    {
+      // parse SQL
+      $parser = new SQL_Parser($schema[0]['value'], true);
+      $parser->assign_vars(array(
+        'TABLE_PREFIX' => table_prefix
+        ));
+      $sql = $parser->parse();
+    }
+    
+    // schema is final, check queries
+    foreach ( $sql as $query )
+    {
+      if ( !$db->check_query($query) )
+      {
+        // aww crap, a query is bad
+        $return = array(
+          'mode' => 'error',
+          'error' => $lang->get('acppm_err_upgrade_bad_query'),
+        );
+        break 2;
+      }
+    }
+    
+    // this is it, perform installation
+    foreach ( $sql as $query )
+    {
+      if ( substr($query, 0, 1) == '@' )
+      {
+        $query = substr($query, 1);
+        $db->sql_query($query);
+      }
+      else
+      {
+        if ( !$db->sql_query($query) )
+          $db->die_json();
+      }
+    }
+    
+    // register plugin
+    $version_db = $db->escape($dataset['version']);
+    $filename_db = $db->escape($filename);
+    $flags = PLUGIN_INSTALLED;
+    
+    $q = $db->sql_query('INSERT INTO ' . table_prefix . "plugins ( plugin_version, plugin_filename, plugin_flags )\n"
+                      . "  VALUES ( '$version_db', '$filename_db', $flags );");
+    if ( !$q )
+      $db->die_json();
+    
+    $return = array(
+      'success' => true
+    );
+    
+    endswitch;
+    
+    return $return;
+  }
+  
+  /**
+   * Uninstalls a plugin, removing it completely from the database and calling any custom uninstallation code the plugin specifies.
+   * @param string Filename of plugin.
+   * @param array The list of plugins as output by pluginLoader::get_plugin_list(). If not passed, the function is called, possibly wasting time.
+   * @return array JSON-formatted but not encoded response
+   */
+  
+  function uninstall_plugin($filename, $plugin_list = null)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    if ( !$plugin_list )
+      $plugin_list = $this->get_plugin_list();
+    
+    // we're gonna need this
+    require_once ( ENANO_ROOT . '/includes/sql_parse.php' );
+    
+    switch ( true ): case true:
+    
+    // is the plugin in the directory and already installed?
+    if ( !isset($plugin_list[$filename]) || (
+        isset($plugin_list[$filename]) && !$plugin_list[$filename]['installed']
+      ))
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => 'Invalid plugin specified.',
+      );
+      break;
+    }
+    // get plugin id
+    $dataset =& $plugin_list[$filename];
+    if ( empty($dataset['plugin id']) )
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => 'Couldn\'t retrieve plugin ID.',
+      );
+      break;
+    }
+    
+    // load up the installer schema
+    $schema = $this->parse_plugin_blocks( ENANO_ROOT . '/plugins/' . $filename, 'uninstall' );
+    
+    $sql = array();
+    if ( !empty($schema) )
+    {
+      // parse SQL
+      $parser = new SQL_Parser($schema[0]['value'], true);
+      $parser->assign_vars(array(
+        'TABLE_PREFIX' => table_prefix
+        ));
+      $sql = $parser->parse();
+    }
+    
+    // schema is final, check queries
+    foreach ( $sql as $query )
+    {
+      if ( !$db->check_query($query) )
+      {
+        // aww crap, a query is bad
+        $return = array(
+          'mode' => 'error',
+          'error' => $lang->get('acppm_err_upgrade_bad_query'),
+        );
+        break 2;
+      }
+    }
+    
+    // this is it, perform uninstallation
+    foreach ( $sql as $query )
+    {
+      if ( substr($query, 0, 1) == '@' )
+      {
+        $query = substr($query, 1);
+        $db->sql_query($query);
+      }
+      else
+      {
+        if ( !$db->sql_query($query) )
+          $db->die_json();
+      }
+    }
+    
+    // deregister plugin
+    $q = $db->sql_query('DELETE FROM ' . table_prefix . "plugins WHERE plugin_id = {$dataset['plugin id']};");
+    if ( !$q )
+      $db->die_json();
+    
+    $return = array(
+      'success' => true
+    );
+    
+    endswitch;
+    
+    return $return;
+  }
+  
+  /**
+   * Very intelligently upgrades a plugin to the version specified in the filesystem.
+   * @param string Filename of plugin.
+   * @param array The list of plugins as output by pluginLoader::get_plugin_list(). If not passed, the function is called, possibly wasting time.
+   * @return array JSON-formatted but not encoded response
+   */
+  
+  function upgrade_plugin($filename, $plugin_list = null)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    if ( !$plugin_list )
+      $plugin_list = $this->get_plugin_list();
+    
+    // we're gonna need this
+    require_once ( ENANO_ROOT . '/includes/sql_parse.php' );
+    
+    switch ( true ): case true:
+    
+    // is the plugin in the directory and already installed?
+    if ( !isset($plugin_list[$filename]) || (
+        isset($plugin_list[$filename]) && !$plugin_list[$filename]['installed']
+      ))
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => 'Invalid plugin specified.',
+      );
+      break;
+    }
+    // get plugin id
+    $dataset =& $plugin_list[$filename];
+    if ( empty($dataset['plugin id']) )
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => 'Couldn\'t retrieve plugin ID.',
+      );
+      break;
+    }
+    
+    //
+    // Here we go with the main upgrade process. This is the same logic that the
+    // Enano official upgrader uses, in fact it's the same SQL parser. We need
+    // list of all versions of the plugin to continue, though.
+    //
+    
+    if ( !isset($dataset['version list']) || ( isset($dataset['version list']) && !is_array($dataset['version list']) ) )
+    {
+      // no version list - update the version number but leave the rest alone
+      $version = $db->escape($dataset['version']);
+      $q = $db->sql_query('UPDATE ' . table_prefix . "plugins SET plugin_version = '$version' WHERE plugin_id = {$dataset['plugin id']};");
+      if ( !$q )
+        $db->die_json();
+      
+      // send an error and notify the user even though it was technically a success
+      $return = array(
+        'mode' => 'error',
+        'error' => $lang->get('acppm_err_upgrade_not_supported'),
+      );
+      break;
+    }
+    
+    // build target list
+    $versions  = $dataset['version list'];
+    $indices   = array_flip($versions);
+    $installed = $dataset['version installed'];
+    
+    // is the current version upgradeable?
+    if ( !isset($indices[$installed]) )
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => $lang->get('acppm_err_upgrade_bad_version'),
+      );
+      break;
+    }
+    
+    // does the plugin support upgrading to its own version?
+    if ( !isset($indices[$installed]) )
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => $lang->get('acppm_err_upgrade_bad_target_version'),
+      );
+      break;
+    }
+    
+    // list out which versions to do
+    $index_start = @$indices[$installed] + 1;
+    $index_stop  = @$indices[$dataset['version']];
+    
+    // Are we trying to go backwards?
+    if ( $index_stop <= $index_start )
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => $lang->get('acppm_err_upgrade_to_older'),
+      );
+      break;
+    }
+    
+    // build the list of version sets
+    $ver_previous = $installed;
+    $targets = array();
+    for ( $i = $index_start; $i <= $index_stop; $i++ )
+    {
+      $targets[] = array($ver_previous, $versions[$i]);
+      $ver_previous = $versions[$i];
+    }
+    
+    // parse out upgrade sections in plugin file
+    $plugin_blocks = $this->parse_plugin_blocks( ENANO_ROOT . '/plugins/' . $filename, 'upgrade' );
+    $sql_blocks = array();
+    foreach ( $plugin_blocks as $block )
+    {
+      if ( !isset($block['from']) || !isset($block['to']) )
+      {
+        continue;
+      }
+      $key = "{$block['from']} TO {$block['to']}";
+      $sql_blocks[$key] = $block['value'];
+    }
+    
+    // do version list check
+    // for now we won't fret if a specific version set isn't found, we'll just
+    // not do that version and assume there were no DB changes.
+    foreach ( $targets as $i => $target )
+    {
+      list($from, $to) = $target;
+      $key = "$from TO $to";
+      if ( !isset($sql_blocks[$key]) )
+      {
+        unset($targets[$i]);
+      }
+    }
+    $targets = array_values($targets);
+    
+    // parse and finalize schema
+    $schema = array();
+    foreach ( $targets as $i => $target )
+    {
+      list($from, $to) = $target;
+      $key = "$from TO $to";
+      try
+      {
+        $parser = new SQL_Parser($sql_blocks[$key], true);
+      }
+      catch ( Exception $e )
+      {
+        $return = array(
+          'mode' => 'error',
+          'error' => 'SQL parser init exception',
+          'debug' => "$e"
+        );
+        break 2;
+      }
+      $parser->assign_vars(array(
+        'TABLE_PREFIX' => table_prefix
+        ));
+      $parsed = $parser->parse();
+      foreach ( $parsed as $query )
+      {
+        $schema[] = $query;
+      }
+    }
+    
+    // schema is final, check queries
+    foreach ( $schema as $query )
+    {
+      if ( !$db->check_query($query) )
+      {
+        // aww crap, a query is bad
+        $return = array(
+          'mode' => 'error',
+          'error' => $lang->get('acppm_err_upgrade_bad_query'),
+        );
+        break 2;
+      }
+    }
+    
+    // this is it, perform upgrade
+    foreach ( $schema as $query )
+    {
+      if ( substr($query, 0, 1) == '@' )
+      {
+        $query = substr($query, 1);
+        $db->sql_query($query);
+      }
+      else
+      {
+        if ( !$db->sql_query($query) )
+          $db->die_json();
+      }
+    }
+    
+    // update version number
+    $version = $db->escape($dataset['version']);
+    $q = $db->sql_query('UPDATE ' . table_prefix . "plugins SET plugin_version = '$version' WHERE plugin_id = {$dataset['plugin id']};");
+    if ( !$q )
+      $db->die_json();
+    
+    // all done :-)
+    $return = array(
+      'success' => true
+    );
+    
+    endswitch;
+    
     return $return;
   }
 }

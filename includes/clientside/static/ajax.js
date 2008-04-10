@@ -1568,6 +1568,12 @@ function ajaxPluginAction(action, plugin_filename, btnobj)
     return true;
   }
   action = action.replace(/_confirm$/, '');
+  // white-out the plugin info box
+  if ( btnobj )
+  {
+    var td = btnobj.parentNode.parentNode.parentNode.parentNode;
+    var blackbox = whiteOutElement(td);
+  }
   var request = toJSONString({
       mode: action,
       plugin: plugin_filename
@@ -1576,52 +1582,53 @@ function ajaxPluginAction(action, plugin_filename, btnobj)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
-        if ( ajax.responseText == 'good' )
+        var response = String(ajax.responseText + '');
+        if ( response.substr(0, 1) != '{' )
         {
+          handle_invalid_json(response);
+          return false;
+        }
+        response = parseJSON(response);
+        if ( response.success )
+        {
+          if ( blackbox )
+          {
+            blackbox.parentNode.removeChild(blackbox);
+          }
           ajaxPage( namespace_list['Admin'] + 'PluginManager' );
-        }
-        else
-        {
-          var response = String(ajax.responseText + '');
-          if ( response.substr(0, 1) != '{' )
+          return true;
+        } 
+        // wait for fade effect to finish its run
+        setTimeout(function()
           {
-            handle_invalid_json(response);
-            return false;
-          }
-          response = parseJSON(response);
-          if ( response.mode != 'error' )
-          {
-            console.debug(response);
-            return false;
-          }
-          // wait for fade effect to finish its run
-          setTimeout(function()
-            {
-              miniPrompt(function(div)
+            miniPrompt(function(div)
+              {
+                if ( blackbox )
                 {
-                  var txtholder = document.createElement('div');
-                  txtholder.style.textAlign = 'center';
-                  txtholder.appendChild(document.createTextNode(response.error));
-                  txtholder.appendChild(document.createElement('br'));
-                  txtholder.appendChild(document.createElement('br'));
-                  
-                  // close button
-                  var btn_cancel = document.createElement('a');
-                  btn_cancel.className = 'abutton abutton_red';
-                  btn_cancel.href = '#';
-                  btn_cancel.appendChild(document.createTextNode($lang.get('etc_ok')));
-                  
-                  txtholder.appendChild(btn_cancel);
-                  div.appendChild(txtholder);
-                  
-                  btn_cancel.onclick = function()
-                  {
-                    miniPromptDestroy(this);
-                    return false;
-                  }
-                });
-            }, 750);
-        }
+                  blackbox.parentNode.removeChild(blackbox);
+                }
+                var txtholder = document.createElement('div');
+                txtholder.style.textAlign = 'center';
+                txtholder.appendChild(document.createTextNode(response.error));
+                txtholder.appendChild(document.createElement('br'));
+                txtholder.appendChild(document.createElement('br'));
+                
+                // close button
+                var btn_cancel = document.createElement('a');
+                btn_cancel.className = 'abutton abutton_red';
+                btn_cancel.href = '#';
+                btn_cancel.appendChild(document.createTextNode($lang.get('etc_ok')));
+                
+                txtholder.appendChild(btn_cancel);
+                div.appendChild(txtholder);
+                
+                btn_cancel.onclick = function()
+                {
+                  miniPromptDestroy(this);
+                  return false;
+                }
+              });
+          }, 750);
       }
     });
 }

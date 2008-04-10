@@ -26,7 +26,7 @@
  * 
  * The format for the special comment blocks is:
  <code>
- /**!blocktype( param1 = "value1" [ param2 = "value2" ... ] )**
+ /**!blocktype( param1 = "value1"; [ param2 = "value2"; ... ] )**
  
  ... block content ...
  
@@ -58,7 +58,9 @@
  <code>
  /**!language**
  {
+   // each entry at this level should be an ISO-639-1 language code.
    eng: {
+     // from here on in is the standard langauge file format
      categories: [ 'meta', 'foo', 'bar' ],
      strings: {
        meta: {
@@ -86,13 +88,17 @@
  </code>
  * And finally, the format for upgrade schemas:
  <code>
- /**!upgrade from = "0.1-alpha1" to = "0.1-alpha2" **
+ /**!upgrade from = "0.1-alpha1"; to = "0.1-alpha2"; **
  
  **!* /
  </code>
+ * As a courtesy to your users, we ask that you also include an "uninstall" block that reverses any changes your plugin makes
+ * to the database upon installation. The syntax is identical to that of the install block.
+ * 
  * Remember that upgrades will always be done incrementally, so if the user is upgrading 0.1-alpha2 to 0.1, Enano's plugin
  * engine will run the 0.1-alpha2 to 0.1-beta1 upgrader, then the 0.1-beta1 to 0.1 upgrader, going by the versions listed in
- * the example metadata block above.
+ * the example metadata block above. As with the standard Enano installer, prefixing a query with '@' will cause it to be
+ * performed "blindly", e.g. not checked for errors.
  * 
  * All of this information is effective as of Enano 1.1.4.
  */
@@ -110,6 +116,8 @@ function page_Admin_PluginManager()
     echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
     return;
   }
+  
+  $plugin_list = $plugins->get_plugin_list();
   
   // Are we processing an AJAX request from the smartform?
   if ( $paths->getParam(0) == 'action.json' )
@@ -133,6 +141,120 @@ function page_Admin_PluginManager()
         {
           switch ( $request['mode'] )
           {
+            case 'install':
+              // did they specify a plugin to operate on?
+              if ( !isset($request['plugin']) )
+              {
+                $return = array(
+                  'mode' => 'error',
+                  'error' => 'No plugin specified.',
+                );
+                break;
+              }
+              
+              $return = $plugins->install_plugin($request['plugin'], $plugin_list);
+              break;
+            case 'upgrade':
+              // did they specify a plugin to operate on?
+              if ( !isset($request['plugin']) )
+              {
+                $return = array(
+                  'mode' => 'error',
+                  'error' => 'No plugin specified.',
+                );
+                break;
+              }
+              
+              $return = $plugins->upgrade_plugin($request['plugin'], $plugin_list);
+              break;
+            case 'uninstall':
+              // did they specify a plugin to operate on?
+              if ( !isset($request['plugin']) )
+              {
+                $return = array(
+                  'mode' => 'error',
+                  'error' => 'No plugin specified.',
+                );
+                break;
+              }
+              
+              $return = $plugins->uninstall_plugin($request['plugin'], $plugin_list);
+              break;
+            case 'disable':
+            case 'enable':
+              $flags_col = ( $request['mode'] == 'disable' ) ?
+                            "plugin_flags | "  . PLUGIN_DISABLED :
+                            "plugin_flags & ~" . PLUGIN_DISABLED;
+              // did they specify a plugin to operate on?
+              if ( !isset($request['plugin']) )
+              {
+                $return = array(
+                  'mode' => 'error',
+                  'error' => 'No plugin specified.',
+                );
+                break;
+              }
+              // is the plugin in the directory and already installed?
+              if ( !isset($plugin_list[$request['plugin']]) || (
+                  isset($plugin_list[$request['plugin']]) && !$plugin_list[$request['plugin']]['installed']
+                ))
+              {
+                $return = array(
+                  'mode' => 'error',
+                  'error' => 'Invalid plugin specified.',
+                );
+                break;
+              }
+              // get plugin id
+              $dataset =& $plugin_list[$request['plugin']];
+              if ( empty($dataset['plugin id']) )
+              {
+                $return = array(
+                  'mode' => 'error',
+                  'error' => 'Couldn\'t retrieve plugin ID.',
+                );
+                break;
+              }
+              // perform update
+              $q = $db->sql_query('UPDATE ' . table_prefix . "plugins SET plugin_flags = $flags_col WHERE plugin_id = {$dataset['plugin id']};");
+              if ( !$q )
+                $db->die_json();
+              
+              $return = array(
+                'success' => true
+              );
+              break;
+            case 'import':
+              // import all of the plugin_* config entries
+              $q = $db->sql_query('SELECT config_name, config_value FROM ' . table_prefix . "config WHERE config_name LIKE 'plugin_%';");
+              if ( !$q )
+                $db->die_json();
+              
+              while ( $row = $db->fetchrow($q) )
+              {
+                $plugin_filename = preg_replace('/^plugin_/', '', $row['config_name']);
+                if ( isset($plugin_list[$plugin_filename]) && !@$plugin_list[$plugin_filename]['installed'] )
+                {
+                  $return = $plugins->install_plugin($plugin_filename, $plugin_list);
+                  if ( !$return['success'] )
+                    break 2;
+                  if ( $row['config_value'] == '0' )
+                  {
+                    $fn_db = $db->escape($plugin_filename);
+                    $q = $db->sql_query('UPDATE ' . table_prefix . "plugins SET plugin_flags = plugin_flags | " . PLUGIN_DISABLED . " WHERE plugin_filename = '$fn_db';");
+                    if ( !$q )
+                      $db->die_json();
+                  }
+                }
+              }
+              $db->free_result($q);
+              
+              $q = $db->sql_query('DELETE FROM ' . table_prefix . "config WHERE config_name LIKE 'plugin_%';");
+              if ( !$q )
+                $db->die_json();
+              
+              $return = array('success' => true);
+              break;
             default:
               // The requested action isn't something this script knows how to do
               $return = array(
@@ -178,121 +300,7 @@ function page_Admin_PluginManager()
   // Not a JSON request, output normal HTML interface
   //
   
-  // Scan all plugins
-  $plugin_list = array();
-  
-  if ( $dirh = @opendir( ENANO_ROOT . '/plugins' ) )
-  {
-    while ( $dh = @readdir($dirh) )
-    {
-      if ( !preg_match('/\.php$/i', $dh) )
-        continue;
-      $fullpath = ENANO_ROOT . "/plugins/$dh";
-      // it's a PHP file, attempt to read metadata
-      // pass 1: try to read a !info block
-      $blockdata = $plugins->parse_plugin_blocks($fullpath, 'info');
-      if ( empty($blockdata) )
-      {
-        // no !info block, check for old header
-        $fh = @fopen($fullpath, 'r');
-        if ( !$fh )
-          // can't read, bail out
-          continue;
-        $plugin_data = array();
-        for ( $i = 0; $i < 8; $i++ )
-        {
-          $plugin_data[] = @fgets($fh, 8096);
-        }
-        // close our file handle
-        fclose($fh);
-        // is the header correct?
-        if ( trim($plugin_data[0]) != '<?php' || trim($plugin_data[1]) != '/*' )
-        {
-          // nope. get out.
-          continue;
-        }
-        // parse all the variables
-        $plugin_meta = array();
-        for ( $i = 2; $i <= 7; $i++ )
-        {
-          if ( !preg_match('/^([A-z0-9 ]+?): (.+?)$/', trim($plugin_data[$i]), $match) )
-            continue 2;
-          $plugin_meta[ strtolower($match[1]) ] = $match[2];
-        }
-      }
-      else
-      {
-        // parse JSON block
-        $plugin_data =& $blockdata[0]['value'];
-        $plugin_data = enano_clean_json(enano_trim_json($plugin_data));
-        try
-        {
-          $plugin_meta_uc = enano_json_decode($plugin_data);
-        }
-        catch ( Exception $e )
-        {
-          continue;
-        }
-        // convert all the keys to lowercase
-        $plugin_meta = array();
-        foreach ( $plugin_meta_uc as $key => $value )
-        {
-          $plugin_meta[ strtolower($key) ] = $value;
-        }
-      }
-      if ( !isset($plugin_meta) || !is_array(@$plugin_meta) )
-      {
-        // parsing didn't work.
-        continue;
-      }
-      // check for required keys
-      $required_keys = array('plugin name', 'plugin uri', 'description', 'author', 'version', 'author uri');
-      foreach ( $required_keys as $key )
-      {
-        if ( !isset($plugin_meta[$key]) )
-          // not set, skip this plugin
-          continue 2;
-      }
-      // decide if it's a system plugin
-      $plugin_meta['system plugin'] = in_array($dh, $plugins->system_plugins);
-      // reset installed variable
-      $plugin_meta['installed'] = false;
-      $plugin_meta['status'] = 0;
-      // all checks passed
-      $plugin_list[$dh] = $plugin_meta;
-    }
-  }
-  // gather info about installed plugins
-  $q = $db->sql_query('SELECT plugin_filename, plugin_version, plugin_flags FROM ' . table_prefix . 'plugins;');
-  if ( !$q )
-    $db->_die();
-  while ( $row = $db->fetchrow() )
-  {
-    if ( !isset($plugin_list[ $row['plugin_filename'] ]) )
-    {
-      // missing plugin file, don't report (for now)
-      continue;
-    }
-    $filename =& $row['plugin_filename'];
-    $plugin_list[$filename]['installed'] = true;
-    $plugin_list[$filename]['status'] = PLUGIN_INSTALLED;
-    if ( $row['plugin_version'] != $plugin_list[$filename]['version'] )
-    {
-      $plugin_list[$filename]['status'] |= PLUGIN_OUTOFDATE;
-      $plugin_list[$filename]['version installed'] = $row['plugin_version'];
-    }
-    if ( $row['plugin_flags'] & PLUGIN_DISABLED )
-    {
-      $plugin_list[$filename]['status'] |= PLUGIN_DISABLED;
-    }
-  }
-  $db->free_result();
-  
-  // sort it all out by filename
-  ksort($plugin_list);
-  
   // start printing things out
-  acp_start_form();
   ?>
   <div class="tblholder">
     <table border="0" cellspacing="1" cellpadding="5">
@@ -324,7 +332,7 @@ function page_Admin_PluginManager()
         {
           $color = '_red';
           $status = $lang->get('acppl_lbl_status_need_upgrade');
-          $buttons = 'uninstall|update';
+          $buttons = 'uninstall|upgrade';
         }
         else if ( $data['installed'] && $data['status'] & PLUGIN_DISABLED )
         {
@@ -389,7 +397,7 @@ function page_Admin_PluginManager()
                   <div style=\"float: right;\">
                     <b>$status</b>
                   </div>
-                  <div style=\"cursor: pointer;\" onclick=\"if ( !this.fx ) this.fx = new Spry.Effect.Blind('plugininfo_$uuid', { duration: 500, from: '0%', to: '100%', toggle: true }); this.fx.start();\"
+                  <div style=\"cursor: pointer;\" onclick=\"if ( !this.fx ) this.fx = new Spry.Effect.Blind('plugininfo_$uuid', { duration: 500, from: '0%', to: '100%', toggle: true }); this.fx.start();\">
                     $plugin_basics
                   </div>
                   <span class=\"menuclear\"></span>
@@ -410,5 +418,18 @@ function page_Admin_PluginManager()
     </table>
   </div>
   <?php
-  echo '</form>';
+  // are there still old style plugin entries?
+  $q = $db->sql_query('SELECT 1 FROM ' . table_prefix . "config WHERE config_name LIKE 'plugin_%';");
+  if ( !$q )
+    $db->_die();
+  
+  $count = $db->numrows();
+  $db->free_result($q);
+  
+  if ( $count > 0 )
+  {
+    echo '<h3>' . $lang->get('acppl_msg_old_entries_title') . '</h3>';
+    echo '<p>' . $lang->get('acppl_msg_old_entries_body') . '</p>';
+    echo '<p><a class="abutton abutton_green" href="#" onclick="ajaxPluginAction(\'import\', \'\', false); return false;">' . $lang->get('acppl_btn_import_old') . '</a></p>';
+  }
 }
