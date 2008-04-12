@@ -186,7 +186,7 @@ function item_select (b_deselect) {
 }
 
 function item_upstatus (b_clear) {
-	window.setTimeout('window.status="' + (b_clear ? '' : this.a_config[0] + (this.a_config[1] ? ' ('+ this.a_config[1] + ')' : '')) + '"', 10);
+	window.setTimeout('window.status="' + addslashes(b_clear ? '' : this.a_config[0] + (this.a_config[1] ? ' ('+ this.a_config[1] + ')' : '')) + '"', 10);
 }
 
 function item_init () {
@@ -210,6 +210,12 @@ function item_init () {
 
 function item_get_icon (b_junction) {
 	return this.o_root.a_tpl['icon_' + ((this.n_depth ? 0 : 32) + (this.a_children.length ? 16 : 0) + (this.a_children.length && this.b_opened ? 8 : 0) + (!b_junction && this.o_root.o_selected == this ? 4 : 0) + (b_junction ? 2 : 0) + (b_junction && this.is_last() ? 1 : 0))];
+}
+
+function addslashes (text) {
+  text = text.replace(/\\/g, '\\\\');
+  text = text.replace(/"/g, '\\"');
+  return text;
 }
 
 var trees = [];
