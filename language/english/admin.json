@@ -382,6 +382,9 @@ var enano_lang = {
       msg_demo_mode: 'Hmm, enabling executables, are we? Tsk tsk. I\'d love to know what\'s in that EXE file you want to upload. OK, maybe you didn\'t enable EXEs. But nevertheless, changing allowed filetypes is disabled in the demo.',
     },
     acppl: {
+      heading_main: 'Plugin management',
+      intro: 'This interface allows you to control what plugins are in use on this site. Everything you do on this page will be shown in the security logs. Some plugins don\'t fully support the newer features like installation, upgrading and uninstalls. Installing these plugins will still work, but sometimes authors include setup instructions in the plugin file. You should check the file for further setup instructions once the plugin is installed.',
+      
       lbl_plugin_name: '<b>%plugin%</b> by %author%',
       lbl_status_installed: 'Installed',
       lbl_status_uninstalled: 'Not installed',

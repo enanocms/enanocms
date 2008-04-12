@@ -313,6 +313,8 @@ function page_Admin_PluginManager()
   //
   
   // start printing things out
+  echo '<h3>' . $lang->get('acppl_heading_main') . '</h3>';
+  echo '<p>' . $lang->get('acppl_intro') . '</p>';
   ?>
   <div class="tblholder">
     <table border="0" cellspacing="1" cellpadding="5">
