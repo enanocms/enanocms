@@ -547,10 +547,17 @@ function die_semicritical($t, $p, $no_wrapper = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   $db->close();
-
+  
   if ( ob_get_status() )
     ob_end_clean();
+
+  // If the config hasn't been fetched yet, call grinding_halt.
+  if ( !defined('ENANO_CONFIG_FETCHED') )
+  {
+    grinding_halt($t, $p);
+  }
   
+  // also do grinding_halt() if we're in CLI mode
   if ( defined('ENANO_CLI') )
   {
     grinding_halt($t, $p);
@@ -563,8 +570,11 @@ function die_semicritical($t, $p, $no_wrapper = false)
     exit;
   }
   
+  $theme = ( defined('ENANO_CONFIG_FETCHED') ) ? getConfig('theme_default') : 'oxygen';
+  $style = ( defined('ENANO_CONFIG_FETCHED') ) ? '__foo__' : 'bleu';
+  
   $tpl = new template_nodb();
-  $tpl->load_theme('oxygen', 'bleu');
+  $tpl->load_theme($theme, $style);
   $tpl->tpl_strings['SITE_NAME'] = getConfig('site_name');
   $tpl->tpl_strings['SITE_DESC'] = getConfig('site_desc');
   $tpl->tpl_strings['COPYRIGHT'] = getConfig('copyright_notice');
@@ -634,9 +644,11 @@ function grinding_halt($t, $p)
     echo "$p\n";
     exit;
   }
-
+  $theme = ( defined('ENANO_CONFIG_FETCHED') ) ? getConfig('theme_default') : 'oxygen';
+  $style = ( defined('ENANO_CONFIG_FETCHED') ) ? '__foo__' : 'bleu';
+  
   $tpl = new template_nodb();
-  $tpl->load_theme('oxygen', 'bleu');
+  $tpl->load_theme($theme, $style);
   $tpl->tpl_strings['SITE_NAME'] = 'Critical error';
   $tpl->tpl_strings['SITE_DESC'] = 'This website is experiencing a serious error and cannot load.';
   $tpl->tpl_strings['COPYRIGHT'] = 'Unable to retrieve copyright information';
@@ -644,6 +656,7 @@ function grinding_halt($t, $p)
   $tpl->header();
   echo $p;
   $tpl->footer();
+  
   exit;
 }
 

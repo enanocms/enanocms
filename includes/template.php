@@ -12,7 +12,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
  
-class template {
+class template
+{
   var $tpl_strings, $tpl_bool, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $namespace_string, $style_list, $theme_loaded;
   
   /**
@@ -1203,141 +1204,7 @@ class template {
   
   function compile_tpl_code($text)
   {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    // A random seed used to salt tags
-    $seed = md5 ( microtime() . mt_rand() );
-    
-    // Strip out PHP sections
-    preg_match_all('/<\?php(.+?)\?>/is', $text, $php_matches);
-    
-    foreach ( $php_matches[0] as $i => $match )
-    {
-      // Substitute the PHP section with a random tag
-      $tag = "{PHP:$i:$seed}";
-      $text = str_replace_once($match, $tag, $text);
-    }
-    
-    // Escape slashes and single quotes in template code
-    $text = str_replace('\\', '\\\\', $text);
-    $text = str_replace('\'', '\\\'', $text);
-    
-    // Initialize the PHP compiled code
-    $text = 'ob_start(); echo \''.$text.'\'; $tpl_code = ob_get_contents(); ob_end_clean(); return $tpl_code;';
-    
-    ##
-    ## Main rules
-    ##
-    
-    //
-    // Conditionals
-    //
-    
-    $keywords = array('BEGIN', 'BEGINNOT', 'IFSET', 'IFPLUGIN');
-    $code = $plugins->setHook('template_compile_logic_keyword');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    
-    $keywords = implode('|', $keywords);
-    
-    // Matches
-    //          1     2                 3                 4   56                       7     8
-    $regexp = '/(<!-- ('. $keywords .') ([A-z0-9_-]+) -->)(.*)((<!-- BEGINELSE \\3 -->)(.*))?(<!-- END \\3 -->)/isU';
-    
-    /*
-    The way this works is: match all blocks using the standard form with a different keyword in the block each time,
-    and replace them with appropriate PHP logic. Plugin-extensible now. :-)
-    
-    The while-loop is to bypass what is apparently a PCRE bug. It's hackish but it works. Properly written plugins should only need
-    to compile templates (using this method) once for each time the template file is changed.
-    */
-    while ( preg_match($regexp, $text) )
-    {
-      preg_match_all($regexp, $text, $matches);
-      for ( $i = 0; $i < count($matches[0]); $i++ )
-      {
-        $start_tag =& $matches[1][$i];
-        $type =& $matches[2][$i];
-        $test =& $matches[3][$i];
-        $particle_true  =& $matches[4][$i];
-        $else_tag =& $matches[6][$i];
-        $particle_else =& $matches[7][$i];
-        $end_tag =& $matches[8][$i];
-        
-        switch($type)
-        {
-          case 'BEGIN':
-            $cond = "isset(\$this->tpl_bool['$test']) && \$this->tpl_bool['$test']";
-            break;
-          case 'BEGINNOT':
-            $cond = "!isset(\$this->tpl_bool['$test']) || ( isset(\$this->tpl_bool['$test']) && !\$this->tpl_bool['$test'] )";
-            break;
-          case 'IFPLUGIN':
-            $cond = "getConfig('plugin_$test') == '1'";
-            break;
-          case 'IFSET':
-            $cond = "isset(\$this->tpl_strings['$test'])";
-            break;
-          default:
-            $code = $plugins->setHook('template_compile_logic_cond');
-            foreach ( $code as $cmd )
-            {
-              eval($cmd);
-            }
-            break;
-        }
-        
-        if ( !isset($cond) || ( isset($cond) && !is_string($cond) ) )
-          continue;
-        
-        $tag_complete = <<<TPLCODE
-';
-        /* START OF CONDITION: $type ($test) */
-        if ( $cond )
-        {
-          echo '$particle_true';
-        /* ELSE OF CONDITION: $type ($test) */
-        }
-        else
-        {
-          echo '$particle_else';
-        /* END OF CONDITION: $type ($test) */
-        }
-        echo '
-TPLCODE;
-        
-        $text = str_replace_once($matches[0][$i], $tag_complete, $text);
-        
-      }
-    }
-    
-    // For debugging ;-)
-    // die("<pre>&lt;?php\n" . htmlspecialchars($text."\n\n".print_r($matches,true)) . "\n\n?&gt;</pre>");
-    
-    //
-    // Data substitution/variables
-    //
-    
-    // System messages
-    $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $template->tplWikiFormat($paths->sysMsg(\'\\1\')) . \'', $text);
-    
-    // Template variables
-    $text = preg_replace('/\{([A-z0-9_-]+?)\}/is', '\' . $this->tpl_strings[\'\\1\'] . \'', $text);
-    
-    // Reinsert PHP
-    
-    foreach ( $php_matches[1] as $i => $match )
-    {
-      // Substitute the random tag with the "real" PHP code
-      $tag = "{PHP:$i:$seed}";
-      $text = str_replace_once($tag, "'; $match echo '", $text);
-    }
-    
-    // echo('<pre>' . htmlspecialchars($text) . '</pre>');
-    
-    return $text;  
-    
+    return template_compiler_core($text);  
   }
   
   /**
@@ -2014,6 +1881,163 @@ EOF;
 } // class template
 
 /**
+ * The core of the template compilation engine. Independent from the Enano API for failsafe operation.
+ * @param string text to process
+ * @return string Compiled PHP code
+ * @access private
+ */
+
+function template_compiler_core($text)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  // A random seed used to salt tags
+  $seed = md5 ( microtime() . mt_rand() );
+  
+  // Strip out PHP sections
+  preg_match_all('/<\?php(.+?)\?>/is', $text, $php_matches);
+  
+  foreach ( $php_matches[0] as $i => $match )
+  {
+    // Substitute the PHP section with a random tag
+    $tag = "{PHP:$i:$seed}";
+    $text = str_replace_once($match, $tag, $text);
+  }
+  
+  // Escape slashes and single quotes in template code
+  $text = str_replace('\\', '\\\\', $text);
+  $text = str_replace('\'', '\\\'', $text);
+  
+  // Initialize the PHP compiled code
+  $text = 'ob_start(); echo \''.$text.'\'; $tpl_code = ob_get_contents(); ob_end_clean(); return $tpl_code;';
+  
+  ##
+  ## Main rules
+  ##
+  
+  //
+  // Conditionals
+  //
+  
+  $keywords = array('BEGIN', 'BEGINNOT', 'IFSET', 'IFPLUGIN');
+  
+  // only do this if the plugins API is loaded
+  if ( is_object(@$plugins) )
+  {
+    $code = $plugins->setHook('template_compile_logic_keyword');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+  }
+  
+  $keywords = implode('|', $keywords);
+  
+  // Matches
+  //          1     2                 3                 4   56                       7     8
+  $regexp = '/(<!-- ('. $keywords .') ([A-z0-9_-]+) -->)(.*)((<!-- BEGINELSE \\3 -->)(.*))?(<!-- END \\3 -->)/isU';
+  
+  /*
+  The way this works is: match all blocks using the standard form with a different keyword in the block each time,
+  and replace them with appropriate PHP logic. Plugin-extensible now. :-)
+  
+  The while-loop is to bypass what is apparently a PCRE bug. It's hackish but it works. Properly written plugins should only need
+  to compile templates (using this method) once for each time the template file is changed.
+  */
+  
+  profiler_log("[template] compiler matchout start");
+  preg_match_all($regexp, $text, $matches);
+  profiler_log("[template] compiler core loop start");
+  for ( $i = 0; $i < count($matches[0]); $i++ )
+  {
+    $start_tag =& $matches[1][$i];
+    $type =& $matches[2][$i];
+    $test =& $matches[3][$i];
+    $particle_true  =& $matches[4][$i];
+    $else_tag =& $matches[6][$i];
+    $particle_else =& $matches[7][$i];
+    $end_tag =& $matches[8][$i];
+    
+    switch($type)
+    {
+      case 'BEGIN':
+        $cond = "isset(\$this->tpl_bool['$test']) && \$this->tpl_bool['$test']";
+        break;
+      case 'BEGINNOT':
+        $cond = "!isset(\$this->tpl_bool['$test']) || ( isset(\$this->tpl_bool['$test']) && !\$this->tpl_bool['$test'] )";
+        break;
+      case 'IFPLUGIN':
+        $cond = "getConfig('plugin_$test') == '1'";
+        break;
+      case 'IFSET':
+        $cond = "isset(\$this->tpl_strings['$test'])";
+        break;
+      default:
+        // only do this if the plugins API is loaded
+        if ( is_object(@$plugins) )
+        {
+          $code = $plugins->setHook('template_compile_logic_cond');
+          foreach ( $code as $cmd )
+          {
+            eval($cmd);
+          }
+        }
+        break;
+    }
+    
+    if ( !isset($cond) || ( isset($cond) && !is_string($cond) ) )
+      continue;
+    
+    $tag_complete = <<<TPLCODE
+';
+    /* START OF CONDITION: $type ($test) */
+    if ( $cond )
+    {
+      echo '$particle_true';
+    /* ELSE OF CONDITION: $type ($test) */
+    }
+    else
+    {
+      echo '$particle_else';
+    /* END OF CONDITION: $type ($test) */
+    }
+    echo '
+TPLCODE;
+    
+    $text = str_replace_once($matches[0][$i], $tag_complete, $text);
+  }
+  
+  profiler_log("[template] compiler core loop end");
+  
+  // For debugging ;-)
+  // die("<pre>&lt;?php\n" . htmlspecialchars($text."\n\n".print_r($matches,true)) . "\n\n?&gt;</pre>");
+  
+  //
+  // Data substitution/variables
+  //
+  
+  // System messages
+  $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $template->tplWikiFormat($paths->sysMsg(\'\\1\')) . \'', $text);
+  
+  // Template variables
+  $text = preg_replace('/\{([A-z0-9_-]+?)\}/is', '\' . $this->tpl_strings[\'\\1\'] . \'', $text);
+  
+  // Reinsert PHP
+  
+  foreach ( $php_matches[1] as $i => $match )
+  {
+    // Substitute the random tag with the "real" PHP code
+    $tag = "{PHP:$i:$seed}";
+    $text = str_replace_once($tag, "'; $match echo '", $text);
+  }
+  
+  // echo('<pre>' . htmlspecialchars($text) . '</pre>');
+  
+  profiler_log("[template] compiler subst end");
+  
+  return $text;
+}
+
+/**
  * Handles parsing of an individual template file. Instances should only be created through $template->makeParser(). To use:
  *   - Call $template->makeParser(template file name) - file name should be something.tpl, css/whatever.css, etc.
  *   - Make an array of strings you want the template to access. $array['STRING'] would be referenced in the template like {STRING}
@@ -2023,7 +2047,8 @@ EOF;
  * @access private
  */
 
-class templateIndividual extends template {
+class templateIndividual extends template
+{
   var $tpl_strings, $tpl_bool, $tpl_code;
   var $compiled = false;
   /**
@@ -2084,9 +2109,9 @@ class templateIndividual extends template {
 
 class template_nodb
 {
-  var $fading_button, $tpl_strings, $tpl_bool, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list;
-  function __construct() {
-    
+  var $fading_button, $tpl_strings, $tpl_bool, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list;
+  function __construct()
+  {
     $this->tpl_bool    = Array();
     $this->tpl_strings = Array();
     $this->sidebar_extra = '';
@@ -2098,15 +2123,59 @@ class template_nodb
                               <a href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
                             </div>';
     
-    $this->theme_list = Array(Array(
-      'theme_id'=>'oxygen',
-      'theme_name'=>'Oxygen',
-      'theme_order'=>1,
-      'enabled'=>1,
-      ));
+    // get list of themes
+    $this->theme_list = array();
+    $this->named_theme_list = array();
+    $order = 0;
+    
+    if ( $dir = @opendir( ENANO_ROOT . '/themes' ) )
+    {
+      while ( $dh = @readdir($dir) )
+      {
+        if ( $dh == '.' || $dh == '..' || !is_dir( ENANO_ROOT . "/themes/$dh" ) )
+          continue;
+        $theme_dir = ENANO_ROOT . "/themes/$dh";
+        if ( !file_exists("$theme_dir/theme.cfg") )
+          continue;
+        $data = array(
+            'theme_id' => $dh,
+            'theme_name' => ucwords($dh),
+            'enabled' => 1,
+            'theme_order' => ++$order,
+            'default_style' => $this->get_default_style($dh)
+          );
+        $this->named_theme_list[$dh] = $data;
+        $this->theme_list[] =& $this->named_theme_list[$dh];
+      }
+      @closedir($dir);
+    }
   }
   function template() {
     $this->__construct();
+  }
+  function get_default_style($theme_id)
+  {
+    if ( !is_dir( ENANO_ROOT . "/themes/$theme_id/css" ) )
+      return false;
+    $ds = false;
+    if ( $dh = @opendir( ENANO_ROOT . "/themes/$theme_id/css" ) )
+    {
+      while ( $dir = @readdir($dh) )
+      {
+        if ( !preg_match('/\.css$/', $dir) )
+          continue;
+        if ( $dir == '_printable.css' )
+          continue;
+        $ds = preg_replace('/\.css$/', '', $dir);
+        break;
+      }
+      closedir($dh);
+    }
+    else
+    {
+      return false;
+    }
+    return $ds;
   }
   function get_css($s = false) {
     if($s)
@@ -2114,7 +2183,14 @@ class template_nodb
     else
       return $this->process_template('css/'.$this->style.'.css');
   }
-  function load_theme($name, $css, $auto_init = true) {
+  function load_theme($name, $css, $auto_init = true)
+  {
+    if ( !isset($this->named_theme_list[$name]) )
+      $name = $this->theme_list[0]['theme_id'];
+    
+    if ( !file_exists(ENANO_ROOT . "/themes/$name/css/$css.css") )
+      $css = $this->named_theme_list[$name]['default_style'];
+    
     $this->theme = $name;
     $this->style = $css;
     
@@ -2169,13 +2245,20 @@ class template_nodb
     }
     $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1;</script>';
     
+    global $site_name, $site_desc;
+    $site_default_name = ( !empty($site_name) ) ? $site_name : 'Critical error';
+    $site_default_desc = ( !empty($site_desc) ) ? $site_desc : 'This site is experiencing a problem and cannot load.';
+    
+    $site_name_final = ( defined('IN_ENANO_INSTALL') && is_object($lang) ) ? $lang->get('meta_site_name') : $site_default_name;
+    $site_desc_final = ( defined('IN_ENANO_INSTALL') && is_object($lang) ) ? $lang->get('meta_site_desc') : $site_default_desc;
+    
     // The rewritten template engine will process all required vars during the load_template stage instead of (cough) re-processing everything each time around.
     $tpl_strings = Array(
       'PAGE_NAME'=>$this_page,
       'PAGE_URLNAME'=>'Null',
-      'SITE_NAME'=> ( defined('IN_ENANO_INSTALL') && is_object($lang) ) ? $lang->get('meta_site_name') : 'Critical error',
+      'SITE_NAME' => $site_name_final,
       'USERNAME'=>'admin',
-      'SITE_DESC'=>( defined('IN_ENANO_INSTALL') && is_object($lang) ) ? $lang->get('meta_site_desc') : 'This site is experiencing a problem and cannot load.',
+      'SITE_DESC' => $site_desc_final,
       'TOOLBAR'=>$tb,
       'SCRIPTPATH'=>scriptPath,
       'CONTENTPATH'=>contentPath,
@@ -2200,30 +2283,55 @@ class template_nodb
       );
     $this->tpl_strings = array_merge($tpl_strings, $this->tpl_strings);
     
-    $sidebar = ( gettype($sideinfo) == 'string' ) ? $sideinfo : '';
-    if($sidebar != '')
+    $sidebar = ( is_array(@$sideinfo) ) ? $sideinfo : '';
+    if ( $sidebar != '' )
     {
-      if(isset($tplvars['sidebar_top']))
+      if ( isset($tplvars['sidebar_top']) )
       {
         $text = $this->makeParserText($tplvars['sidebar_top']);
         $top = $text->run();
-      } else {
+      }
+      else
+      {
         $top = '';
       }
+      
       $p = $this->makeParserText($tplvars['sidebar_section']);
-      $p->assign_vars(Array(
-          'TITLE'=>$lang->get('meta_sidebar_heading'),
-          'CONTENT'=>$sidebar,
+      $b = $this->makeParserText($tplvars['sidebar_button']);
+      $sidebar_text = '';
+      
+      foreach ( $sidebar as $title => $links )
+      {
+        $p->assign_vars(array(
+          'TITLE' => $title
         ));
-      $sidebar = $p->run();
-      if(isset($tplvars['sidebar_bottom']))
+        // build content
+        $content = '';
+        foreach ( $links as $link_text => $url )
+        {
+          $b->assign_vars(array(
+            'HREF' => htmlspecialchars($url),
+            'FLAGS' => '',
+            'TEXT' => $link_text
+          ));
+          $content .= $b->run();
+        }
+        $p->assign_vars(array(
+          'CONTENT' => $content
+        ));
+        $sidebar_text .= $p->run();
+      }
+      
+      if ( isset($tplvars['sidebar_bottom']) )
       {
         $text = $this->makeParserText($tplvars['sidebar_bottom']);
         $bottom = $text->run();
-      } else {
+      }
+      else
+      {
         $bottom = '';
       }
-      $sidebar = $top . $sidebar . $bottom;
+      $sidebar = $top . $sidebar_text . $bottom;
     }
     $this->tpl_strings['SIDEBAR_LEFT'] = $sidebar;
     
@@ -2296,6 +2404,9 @@ class template_nodb
       $t = str_replace('[[NumQueriesLoc]]', $q_loc, $t);
       $t = str_replace('[[GenTimeLoc]]', $t_loc, $t);
       
+      if ( defined('ENANO_DEBUG') )
+        $t = str_replace('</body>', '<div id="profile" style="margin: 10px;">' . profiler_make_html() . '</div></body>', $t);
+      
       echo $t;
     }
     else return '';
@@ -2325,10 +2436,14 @@ class template_nodb
     else return '';
   }
   
-  function process_template($file) {
-    
-    eval($this->compile_template($file));
-    return $tpl_code;
+  function process_template($file)
+  {
+    profiler_log("[template_nodb] STARTED eval of file $file");
+    $compiled = $this->compile_template($file);
+    profiler_log("[template_nodb] COMPILED file $file");
+    $result = eval($compiled);
+    profiler_log("[template_nodb] FINISHED eval of file $file");
+    return $result;
   }
   
   function extract_vars($file) {
@@ -2343,37 +2458,42 @@ class template_nodb
     }
     return $tplvars;
   }
-  function compile_template($text) {
-    global $sideinfo;
+  function compile_template($text)
+  {
     $text = file_get_contents(ENANO_ROOT . '/themes/'.$this->theme.'/'.$text);
-    $text = str_replace('<script type="text/javascript" src="{SCRIPTPATH}/ajax.php?title={PAGE_URLNAME}&amp;_mode=jsres"></script>', '', $text); // Remove the AJAX code - we don't need it, and it requires a database connection
-    $text = '$tpl_code = \''.str_replace('\'', '\\\'', $text).'\'; return $tpl_code;';
-    $text = preg_replace('#<!-- BEGIN (.*?) -->#is', '\'; if($this->tpl_bool[\'\\1\']) { $tpl_code .= \'', $text);
-    $text = preg_replace('#<!-- IFPLUGIN (.*?) -->#is', '\'; if(getConfig(\'plugin_\\1\')==\'1\') { $tpl_code .= \'', $text);
-    if(defined('IN_ENANO_INSTALL')) $text = str_replace('<!-- SYSMSG Sidebar -->', '<div class="slider"><div class="heading"><a class="head">Installation progress</a></div><div class="slideblock">'.$sideinfo.'</div></div>', $text);
-    else $text = str_replace('<!-- SYSMSG Sidebar -->', '<div class="slider"><div class="heading"><a class="head">System error</a></div><div class="slideblock"><a href="#" onclick="return false;">Enano critical error page</a></div></div>', $text);
-    $text = preg_replace('#<!-- SYSMSG (.*?) -->#is', '', $text);
-    $text = preg_replace('#<!-- BEGINNOT (.*?) -->#is', '\'; if(!$this->tpl_bool[\'\\1\']) { $tpl_code .= \'', $text);
-    $text = preg_replace('#<!-- BEGINELSE (.*?) -->#is', '\'; } else { $tpl_code .= \'', $text);
-    $text = preg_replace('#<!-- END (.*?) -->#is', '\'; } $tpl_code .= \'', $text);
-    $text = preg_replace('#{([A-z0-9]*)}#is', '\'.$this->tpl_strings[\'\\1\'].\'', $text);
-    return $text; //('<pre>'.htmlspecialchars($text).'</pre>');
+    return $this->compile_template_text_post(template_compiler_core($text));
   }
   
-  function compile_template_text($text) {
-    global $sideinfo;
-    $text = str_replace('<script type="text/javascript" src="{SCRIPTPATH}/ajax.php?title={PAGE_URLNAME}&amp;_mode=jsres"></script>', '', $text); // Remove the AJAX code - we don't need it, and it requires a database connection
-    $text = '$tpl_code = \''.str_replace('\'', '\\\'', $text).'\'; return $tpl_code;';
-    $text = preg_replace('#<!-- BEGIN (.*?) -->#is', '\'; if($this->tpl_bool[\'\\1\']) { $tpl_code .= \'', $text);
-    $text = preg_replace('#<!-- IFPLUGIN (.*?) -->#is', '\'; if(getConfig(\'plugin_\\1\')==\'1\') { $tpl_code .= \'', $text);
-    if(defined('IN_ENANO_INSTALL')) $text = str_replace('<!-- SYSMSG Sidebar -->', '<div class="slider"><div class="heading"><a class="head">Installation progress</a></div><div class="slideblock">'.$sideinfo.'</div></div>', $text);
-    else $text = str_replace('<!-- SYSMSG Sidebar -->', '<div class="slider"><div class="heading"><a class="head">System error</a></div><div class="slideblock"><a href="#" onclick="return false;>Enano critical error page</a></div></div>', $text);
-    $text = preg_replace('#<!-- SYSMSG (.*?) -->#is', '', $text);
-    $text = preg_replace('#<!-- BEGINNOT (.*?) -->#is', '\'; if(!$this->tpl_bool[\'\\1\']) { $tpl_code .= \'', $text);
-    $text = preg_replace('#<!-- BEGINELSE (.*?) -->#is', '\'; } else { $tpl_code .= \'', $text);
-    $text = preg_replace('#<!-- END (.*?) -->#is', '\'; } $tpl_code .= \'', $text);
-    $text = preg_replace('#{([A-z0-9]*)}#is', '\'.$this->tpl_strings[\'\\1\'].\'', $text);
-    return $text; //('<pre>'.htmlspecialchars($text).'</pre>');
+  function compile_template_text($text)
+  {
+    return $this->compile_template_text_post(template_compiler_core($text));
+  }
+  
+  /**
+   * Post-processor for template code. Basically what this does is it localizes {lang:foo} blocks.
+   * @param string Mostly-processed TPL code
+   * @return string
+   */
+  
+  function compile_template_text_post($text)
+  {
+    global $lang;
+    preg_match_all('/\{lang:([a-z0-9]+_[a-z0-9_]+)\}/', $text, $matches);
+    foreach ( $matches[1] as $i => $string_id )
+    {
+      if ( is_object(@$lang) )
+      {
+        $string = $lang->get($string_id);
+      }
+      else
+      {
+        $string = '[language not loaded]';
+      }
+      $string = str_replace('\\', '\\\\', $string);
+      $string = str_replace('\'', '\\\'', $string);
+      $text = str_replace_once($matches[0][$i], $string, $text);
+    }
+    return $text;
   }
   
   /**
@@ -2403,6 +2523,18 @@ class template_nodb
     $parser = new templateIndividualSafe($code, $this);
     return $parser;
   }
+  
+  /**
+   * Assigns an array of string values to the template. Strings can be accessed from the template by inserting {KEY_NAME} in the template file.
+   * @param $vars array
+   */
+  function assign_vars($vars)
+  {
+    if(is_array($this->tpl_strings))
+      $this->tpl_strings = array_merge($this->tpl_strings, $vars);
+    else
+      $this->tpl_strings = $vars;
+  }
    
 } // class template_nodb
 
@@ -2411,7 +2543,8 @@ class template_nodb
  * @see class template
  */
  
-class templateIndividualSafe extends template_nodb {
+class templateIndividualSafe extends template_nodb
+{
   var $tpl_strings, $tpl_bool, $tpl_code;
   var $compiled = false;
   /**
