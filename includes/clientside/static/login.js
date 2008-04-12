@@ -140,6 +140,15 @@ function ajaxLoginInit(call_on_finish, user_level)
 }
 
 /**
+ * For compatibility only.
+ */
+
+function ajaxLogonInit(call_on_finish, user_level)
+{
+  return ajaxLoginInit(call_on_finish, user_level);
+}
+
+/**
  * Sets the contents of the AJAX login window to the appropriate status message.
  * @param int One of AJAX_STATUS_*
  */

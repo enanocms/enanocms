@@ -222,11 +222,11 @@ div.contentDiv, div#messageBox {
   font-size: 9pt;
 }
 
-div.contentDiv a, div#messageBox a {
+a {
   color: #7090B0;
 }
 
-div.contentDiv a:hover, div#messageBox a:hover {
+a:hover {
   color: #90B0D0;
 }
 
