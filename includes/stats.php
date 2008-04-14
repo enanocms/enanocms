@@ -2,8 +2,8 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.3 (Caoineag alpha 3)
- * Copyright (C) 2006-2007 Dan Fuhry
+ * Version 1.1.4 (Caoineag alpha 4)
+ * Copyright (C) 2006-2008 Dan Fuhry
  * stats.php - handles statistics for pages (disablable in the admin CP)
  *
  *   ***** UNFINISHED ***** 

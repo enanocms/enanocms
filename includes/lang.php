@@ -2,8 +2,8 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
- * Copyright (C) 2006-2007 Dan Fuhry
+ * Version 1.1.4 (Caoineag alpha 4)
+ * Copyright (C) 2006-2008 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -599,6 +599,9 @@ $lang_cache = ');
   {
     if ( !is_array($substitutions) )
       $substitutions = array();
+    // if this isn't a valid language string ID, just return the string unprocessed.
+    if ( !preg_match('/^([a-z0-9]+)((_[a-z0-9]+)+)$/', $string_id) )
+      return $string_id;
     return $this->substitute($this->get_uncensored($string_id), $substitutions);
   }
   
@@ -625,6 +628,7 @@ $lang_cache = ');
     if ( !$found )
     {
       // Ehh, the string wasn't found. Rerun fetch() and try again.
+      // Or if it's the installer, no use in refetching, so just fail.
       if ( defined('IN_ENANO_INSTALL') )
       {
         return $string_id;

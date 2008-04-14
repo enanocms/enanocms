@@ -2,8 +2,8 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
- * Copyright (C) 2006-2007 Dan Fuhry
+ * Version 1.1.4 (Caoineag alpha 4)
+ * Copyright (C) 2006-2008 Dan Fuhry
  * Installation package
  * common.php - Installer common functions
  *
@@ -16,7 +16,7 @@
 
 // Our version number. This needs to be changed for any custom releases.
 $installer_version = array(
-  'version' => '1.1.3',
+  'version' => '1.1.4',
   'type' => 'alpha'
   // If type is set to "rc", "beta", or "alpha", optionally another version number can be issued with the key 'sub':
   // 'sub' => '3' will produce Enano 1.1.1a3 / Enano 1.1.1 alpha 3
