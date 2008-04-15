@@ -1933,15 +1933,12 @@ function template_compiler_core($text)
   $keywords = implode('|', $keywords);
   
   // Matches
-  //          1     2                 3                 4   56                       7     8
-  $regexp = '/(<!-- ('. $keywords .') ([A-z0-9_-]+) -->)(.*)((<!-- BEGINELSE \\3 -->)(.*))?(<!-- END \\3 -->)/isU';
+  //          1     2                 3                 4   56                       7     8        9
+  $regexp = '/(<!-- ('. $keywords .') ([A-z0-9_-]+) -->)(.*)((<!-- BEGINELSE \\3 -->)(.*))?(<!-- END(IF)? \\3 -->)/isU';
   
   /*
   The way this works is: match all blocks using the standard form with a different keyword in the block each time,
   and replace them with appropriate PHP logic. Plugin-extensible now. :-)
-  
-  The while-loop is to bypass what is apparently a PCRE bug. It's hackish but it works. Properly written plugins should only need
-  to compile templates (using this method) once for each time the template file is changed.
   */
   
   profiler_log("[template] compiler matchout start");
@@ -2017,6 +2014,16 @@ TPLCODE;
   
   // System messages
   $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $template->tplWikiFormat($paths->sysMsg(\'\\1\')) . \'', $text);
+  
+  // only do this if the plugins API is loaded
+  if ( is_object(@$plugins) )
+  {
+    $code = $plugins->setHook('template_compile_subst');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+  }
   
   // Template variables
   $text = preg_replace('/\{([A-z0-9_-]+?)\}/is', '\' . $this->tpl_strings[\'\\1\'] . \'', $text);
