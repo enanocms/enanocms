@@ -774,7 +774,7 @@ function __aclSubmitManager(form)
       
       if(do_scopesel)
       {
-        scope = getRadioState(thefrm, 'scope', ['page', 'global']);
+        scope = getRadioState(thefrm, 'scope', ['page', 'group', 'global']);
         if(scope == 'page')
         {
           pageid = strToPageID(title);
