@@ -514,6 +514,145 @@ function miniPromptTest()
   miniPrompt(function(div) { div.innerHTML = 'hello world! <a href="#" onclick="miniPromptDestroy(this); return false;">destroy me</a>'; });
 }
 
+/**
+ * Message box system for miniPrompts. Less customization but easier to scale than the regular messageBox framework.
+ * @example
+ <code>
+ miniPromptMessage({
+   title: 'Delete page',
+   message: 'Do you really want to delete this page? This is reversible unless you clear the page logs.',
+   buttons: [
+     {
+       text: 'Delete',
+       color: 'red',
+       style: {
+         fontWeight: 'bold'
+       },
+       onclick: function() {
+         ajaxDeletePage();
+         miniPromptDestroy(this);
+       }
+     },
+     {
+       text: 'cancel',
+       onclick: function() {
+         miniPromptDestroy(this);
+       }
+     }
+   ]
+ });
+ </code>
+ */
+
+function miniPromptMessage(parms)
+{
+  if ( !parms.title || !parms.message || !parms.buttons )
+    return false;
+  
+  return miniPrompt(function(parent)
+    {
+      try
+      {
+        var h3 = document.createElement('h3');
+        h3.appendChild(document.createTextNode(parms.title));
+        var body = document.createElement('p');
+        var message = parms.message.split(unescape('%0A'));
+        for ( var i = 0; i < message.length; i++ )
+        {
+          body.appendChild(document.createTextNode(message[i]));
+          if ( i + 1 < message.length )
+            body.appendChild(document.createElement('br'));
+        }
+        
+        parent.style.textAlign = 'center';
+        
+        parent.appendChild(h3);
+        parent.appendChild(body);
+        parent.appendChild(document.createElement('br'));
+        
+        // construct buttons
+        for ( var i = 0; i < parms.buttons.length; i++ )
+        {
+          var button = parms.buttons[i];
+          button.input = document.createElement('a');
+          button.input.href = '#';
+          button.input.clickAction = button.onclick;
+          button.input.className = 'abutton';
+          if ( button.color )
+          {
+            button.input.className += ' abutton_' + button.color;
+          }
+          button.input.appendChild(document.createTextNode(button.text));
+          if ( button.style )
+          {
+            for ( var j in button.style )
+            {
+              button.input.style[j] = button.style[j];
+            }
+          }
+          button.input.onclick = function(e)
+          {
+            try
+            {
+              this.clickAction(e);
+            }
+            catch(e)
+            {
+              console.error(e);
+            }
+            return false;
+          }
+          parent.appendChild(button.input);
+        }
+        if ( parms.buttons[0] )
+        {
+          setTimeout(function()
+            {
+              parms.buttons[0].input.focus();
+            }, 300);
+        }
+      }
+      catch ( e )
+      {
+        console.error(e);
+      }
+    });
+}
+
+function testMPMessageBox()
+{
+  miniPromptMessage({
+    title: 'The Game of LIFE question #73',
+    message: 'You just got your girlfriend pregnant. Please select an option:',
+    buttons: [
+      {
+        text: 'Abort',
+        color: 'red',
+        style: {
+          fontWeight: 'bold'
+        },
+        onclick: function() {
+          miniPromptDestroy(this);
+        }
+      },
+      {
+        text: 'Retry',
+        color: 'blue',
+        onclick: function() {
+          miniPromptDestroy(this);
+        }
+      },
+      {
+        text: 'Ignore',
+        color: 'green',
+        onclick: function() {
+          miniPromptDestroy(this);
+        }
+      }
+    ]
+  });
+}
+
 // Function to fade classes info-box, warning-box, error-box, etc.
 
 function fadeInfoBoxes()

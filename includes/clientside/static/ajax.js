@@ -275,12 +275,12 @@ var ajaxRenameConstructDialog = function(div)
   var btn_submit = document.createElement('a');
   btn_submit.href = '#';
   btn_submit.appendChild(document.createTextNode($lang.get('etc_go')));
-  btn_submit.className = 'fakebutton fakebutton-submit';
+  btn_submit.className = 'abutton abutton_green';
   
   var btn_cancel = document.createElement('a');
   btn_cancel.href = '#';
   btn_cancel.appendChild(document.createTextNode($lang.get('etc_cancel')));
-  btn_cancel.className = 'fakebutton';
+  btn_cancel.className = 'abutton';
   
   btndiv.appendChild(btn_submit);
   btndiv.appendChild(document.createTextNode(' | '));
@@ -828,49 +828,6 @@ function themeid_to_title(id)
   id = id.replace(/-/g, ' ');
   return id;
 }
-
-/*
-function ajaxChangeStyle()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  var win = document.getElementById("cn2");
-  win.innerHTML = ' \
-    <form action="'+ENANO_SPECIAL_CHANGESTYLE+'" onsubmit="jws.closeWin(\'root2\');" method="post" style="text-align: center"> \
-    <h3>Select a theme...</h3>\
-    <select id="mdgThemeID" name="theme" onchange="ajaxGetStyles(this.value);"> \
-    '+ENANO_THEME_LIST+' \
-    </select> \
-    <div id="styleSelector"></div>\
-    <br /><br />\
-    <input type="hidden" name="return_to" value="'+title+'" />\
-    <input id="styleSubmitter" type="submit" style="display: none; font-weight: bold" value="Change theme" /> \
-    <input type="button" value="Cancel" onclick="jws.closeWin(\'root2\');" /> \
-    </form> \
-  ';
-  ajaxGetStyles(ENANO_CURRENT_THEME);
-  jws.openWin('root2', 340, 300);
-}
-
-function ajaxGetStyles(id) {
-  setAjaxLoading();
-  ajaxGet(stdAjaxPrefix+'&_mode=getstyles&id='+id, function() {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      eval(ajax.responseText);
-      html = '<h3>And a style...</h3><select id="mdgStyleID" name="style">';
-      for(i=0;i<list.length;i++) {
-        lname = list[i].substr(0, 1).toUpperCase() + list[i].substr(1, list[i].length);
-        html = html + '<option value="'+list[i]+'">'+lname+'</option>';
-      }
-      html = html + '</select>';
-      document.getElementById('styleSelector').innerHTML = html;
-      document.getElementById('styleSubmitter').style.display = 'inline'; 
-    }
-  });
-}
-*/
 
 function ajaxSwapCSS()
 {

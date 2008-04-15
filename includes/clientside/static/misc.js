@@ -630,4 +630,13 @@ function expander_open(el)
   el.setAttribute('enano:expand', 'open');
 }
 
+/**
+ * Equivalent to PHP's explode function.
+ */
+
+function explode(needle, haystack)
+{
+  return haystack.split(needle);
+}
+
 addOnloadHook(expander_onload);
