@@ -6,12 +6,15 @@
  * @param int When specified, represents the numeric opacity value to set the fade layer to. 1-100.
  */
 
+var darkener_index = 0;
+
 function darken(nofade, opacVal)
 {
   if(IE)
     nofade = true;
   if ( !opacVal )
     opacVal = 70;
+  darkener_index++;
   if(document.getElementById('specialLayer_darkener'))
   {
     if(nofade)
@@ -86,6 +89,9 @@ function enlighten(nofade)
 {
   if(IE)
     nofade = true;
+  darkener_index -= 1;
+  if ( darkener_index > 0 )
+    return false;
   if(document.getElementById('specialLayer_darkener'))
   {
     if(nofade)

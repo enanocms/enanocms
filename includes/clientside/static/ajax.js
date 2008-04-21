@@ -417,15 +417,37 @@ function ajaxDelVote()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm($lang.get('ajax_delvote_confirm'));
-  if(!c) return;
-  setAjaxLoading();
-  ajaxGet(stdAjaxPrefix+'&_mode=delvote', function() {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      alert(ajax.responseText);
-    }
-  }, true);
+  miniPromptMessage({
+      title: $lang.get('ajax_delvote_confirm_title'),
+      message: $lang.get('ajax_delvote_confirm_body'),
+      buttons: [
+        {
+          text: $lang.get('ajax_delvote_btn_submit'),
+          color: 'red',
+          style: {
+            fontWeight: 'bold'
+          },
+          onclick: function(e)
+          {
+            miniPromptDestroy(this);
+            setAjaxLoading();
+            ajaxGet(stdAjaxPrefix+'&_mode=delvote', function() {
+              if ( ajax.readyState == 4 && ajax.status == 200 ) {
+                unsetAjaxLoading();
+                alert(ajax.responseText);
+              }
+            }, true);
+          }
+        },
+        {
+          text: $lang.get('etc_cancel'),
+          onclick: function(e)
+          {
+            miniPromptDestroy(this);
+          }
+        }
+      ]
+    });
 }
 
 function ajaxResetDelVotes()
@@ -433,21 +455,43 @@ function ajaxResetDelVotes()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm($lang.get('ajax_delvote_reset_confirm'));
-  if(!c) return;
-  setAjaxLoading();
-  ajaxGet(stdAjaxPrefix+'&_mode=resetdelvotes', function() {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      alert(ajax.responseText);
-      item = document.getElementById('mdgDeleteVoteNoticeBox');
-      if(item)
-      {
-        opacity('mdgDeleteVoteNoticeBox', 100, 0, 1000);
-        setTimeout("document.getElementById('mdgDeleteVoteNoticeBox').style.display = 'none';", 1000);
-      }
-    }
-  }, true);
+  miniPromptMessage({
+      title: $lang.get('ajax_delvote_reset_confirm_title'),
+      message: $lang.get('ajax_delvote_reset_confirm_body'),
+      buttons: [
+        {
+          text: $lang.get('ajax_delvote_reset_btn_submit'),
+          color: 'red',
+          style: {
+            fontWeight: 'bold',
+          },
+          onclick: function(e)
+          {
+            miniPromptDestroy(this);
+            setAjaxLoading();
+            ajaxGet(stdAjaxPrefix+'&_mode=resetdelvotes', function() {
+              if ( ajax.readyState == 4 && ajax.status == 200 ) {
+                unsetAjaxLoading();
+                alert(ajax.responseText);
+                item = document.getElementById('mdgDeleteVoteNoticeBox');
+                if(item)
+                {
+                  opacity('mdgDeleteVoteNoticeBox', 100, 0, 1000);
+                  setTimeout("document.getElementById('mdgDeleteVoteNoticeBox').style.display = 'none';", 1000);
+                }
+              }
+            }, true);
+          }
+        },
+        {
+          text: $lang.get('etc_cancel'),
+          onclick: function(e)
+          {
+            miniPromptDestroy(this);
+          }
+        }
+      ]
+    });
 }
 
 function ajaxSetWikiMode(val) {
@@ -502,8 +546,7 @@ function ajaxCatSave()
   query='';
   for(i=0;i<catlist.length;i++)
   {
-    l = 'if(document.forms.mdgCatForm.mdgCat_'+catlist[i]+'.checked) s = true; else s = false;';
-    eval(l);
+    var s = ( document.forms.mdgCatForm['mdgCat_' + catlist[i]]['checked'] ) ? true : false;
     if(s) query = query + '&' + catlist[i] + '=true';
   }
   setAjaxLoading();
@@ -594,18 +637,39 @@ function ajaxClearLogs()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  c = confirm($lang.get('ajax_clearlogs_confirm'));
-  if(!c) return;
-  c = confirm($lang.get('ajax_clearlogs_confirm_nag'));
-  if(!c) return;
-  setAjaxLoading();
-  ajaxGet(stdAjaxPrefix+'&_mode=flushlogs', function() {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      alert(ajax.responseText);
-      window.location.reload();
-    }
-  });
+  
+  miniPromptMessage({
+      title: $lang.get('ajax_clearlogs_confirm_title'),
+      message: $lang.get('ajax_clearlogs_confirm_body'),
+      buttons: [
+        {
+          text: $lang.get('ajax_clearlogs_btn_submit'),
+          color: 'red',
+          style: {
+            fontWeight: 'bold'
+          },
+          onclick: function(e)
+          {
+            miniPromptDestroy(this);
+            setAjaxLoading();
+            ajaxGet(stdAjaxPrefix+'&_mode=flushlogs', function() {
+              if ( ajax.readyState == 4 && ajax.status == 200 ) {
+                unsetAjaxLoading();
+                alert(ajax.responseText);
+                window.location.reload();
+              }
+            });
+          }
+        },
+        {
+          text: $lang.get('etc_cancel'),
+          onclick: function(e)
+          {
+            miniPromptDestroy(this);
+          }
+        }
+      ]
+    });
 }
 
 var timelist;
