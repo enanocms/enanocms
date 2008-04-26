@@ -523,6 +523,7 @@ var enano_lang = {
       create_page: 'Create pages',
       html_in_pages: 'Embed unrestricted HTML in pages',
       php_in_pages: 'Embed PHP code in pages',
+      custom_user_title: 'Use a custom user title',
       edit_acl: 'Edit access control lists',
     },
     plugin: {
