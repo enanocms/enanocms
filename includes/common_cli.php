@@ -244,6 +244,10 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Ran disabled-site checks and common_post');
   
+  load_rank_data();
+  
+  profiler_log('Loaded user rank data');
+  
   if ( isset($_GET['noheaders']) )
     $template->no_headers = true;
 }

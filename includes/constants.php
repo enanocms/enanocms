@@ -40,8 +40,15 @@ define('ACL_SCALE_MINIMAL_SHADE', 0xA8);
 define('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL', 1);
 
 // System groups
+define('GROUP_ID_EVERYONE', 1);
 define('GROUP_ID_ADMIN', 2);
 define('GROUP_ID_MOD', 3);
+
+// System ranks
+define('RANK_ID_MEMBER', 1);
+define('RANK_ID_MOD', 2);
+define('RANK_ID_ADMIN', 3);
+define('RANK_ID_GUEST', 4);
 
 // Page group types
 define('PAGE_GRP_CATLINK', 1);
@@ -51,6 +58,11 @@ define('PAGE_GRP_REGEX', 4);
 
 // Identifier for the default pseudo-language
 define('LANG_DEFAULT', 0);
+
+// Image types
+define('IMAGE_TYPE_PNG', 1);
+define('IMAGE_TYPE_GIF', 2);
+define('IMAGE_TYPE_JPG', 3);
 
 //
 // User types - don't touch these

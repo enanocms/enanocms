@@ -1307,6 +1307,9 @@ class PageProcessor
       }
     }
     
+    // get the user's rank
+    $rank_data = $session->get_user_rank(intval($userdata['authoritative_uid']));
+    
     $this->header();
     
     // if ( $send_headers )
@@ -1331,10 +1334,20 @@ class PageProcessor
     // Basic user info
     
     echo '<tr><th class="subhead">' . $lang->get('userpage_heading_basics', array('username' => htmlspecialchars($target_username))) . '</th></tr>';
+    
+    echo '<tr><td class="row1" style="text-align: center;">';
     if ( $userdata['user_has_avatar'] == '1' )
     {
-      echo '<tr><td class="row1" style="text-align: center;"><img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $userdata['username'])) . '" src="' . make_avatar_url(intval($userdata['authoritative_uid']), $userdata['avatar_type']) . '" /></td></tr>';
+      echo '<img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $userdata['username'])) . '" src="' . make_avatar_url(intval($userdata['authoritative_uid']), $userdata['avatar_type']) . '" /><br />';
     }
+    // username
+    echo '<big><span style="' . $rank_data['rank_style'] . '">' . htmlspecialchars($target_username) . '</span></big><br />';
+    // user title, if appropriate
+    if ( $rank_data['user_title'] )
+      echo htmlspecialchars($rank_data['user_title']) . '<br />';
+    // rank
+    echo htmlspecialchars($lang->get($rank_data['rank_title']));
+    echo '</td></tr>';
     echo '<tr><td class="row3">' . $lang->get('userpage_lbl_joined') . ' ' . enano_date('F d, Y h:i a', $userdata['reg_time']) . '</td></tr>';
     echo '<tr><td class="row1">' . $lang->get('userpage_lbl_num_comments') . ' ' . $userdata['n_comments'] . '</td></tr>';
     

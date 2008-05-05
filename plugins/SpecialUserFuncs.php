@@ -100,6 +100,13 @@ $plugins->attachHook('session_started', '
       \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
       
+    $paths->add_page(Array(
+      \'name\'=>\'specialpage_avatar\',
+      \'urlname\'=>\'Avatar\',
+      \'namespace\'=>\'Special\',
+      \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
+      ));
+      
     ');
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
@@ -2019,6 +2026,78 @@ function page_Special_LangExportJSON()
 
 enano_lang[{$lang->lang_id}] = " . enano_json_encode($lang_local->strings) . ";";
   
+}
+
+/**
+ * Fetches and displays an avatar from the filesystem. Avatar fetching is abstracted as of 1.1.4.
+ */
+
+function page_Special_Avatar()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $aggressive_optimize_html;
+  $aggressive_optimize_html = false;
+  
+  $img_types = array(
+      IMAGE_TYPE_PNG => 'png',
+      IMAGE_TYPE_GIF => 'gif',
+      IMAGE_TYPE_JPG => 'jpg'
+    );
+  
+  $avi_id = $paths->getParam(0);
+  if ( !$avi_id || !@preg_match('/^[a-f0-9]+$/', $avi_id) )
+  {
+    echo 'Doesn\'t match the regexp';
+    return true;
+  }
+  
+  $avi_id_dec = hexdecode($avi_id);
+  $avi_id_dec = @unpack('Vdate/Vuid/vimg_type', $avi_id_dec);
+  if ( !$avi_id_dec )
+  {
+    echo 'Bad unpack';
+    return true;
+  }
+  
+  // check parameters
+  if ( !isset($img_types[$avi_id_dec['img_type']]) )
+  {
+    echo 'Invalid image type';
+    return true;
+  }
+  
+  // build file path
+  $avi_type = $img_types[$avi_id_dec['img_type']];
+  $avi_path = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $avi_id_dec['uid'] . '.' . $avi_type;
+  if ( file_exists($avi_path) )
+  {
+    $avi_mod_time = @filemtime($avi_path);
+    $avi_mod_time = date('r', $avi_mod_time);
+    $avi_size = @filesize($avi_path);
+    header("Last-Modified: $avi_mod_time");
+    header("Content-Length: $avi_size");
+    header("Content-Type: image/$avi_type");
+    // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+    header("Cache-Control: public");
+    
+    $fh = @fopen($avi_path, 'r');
+    if ( !$fh )
+    {
+      echo 'Could not open file';
+      return true;
+    }
+    
+    while ( $fd = @fread($fh, 1024) )
+    {
+      echo $fd;
+    }
+    fclose($fh);
+    
+    gzip_output();
+    
+    return true;
+  }
+  return true;
 }
 
 ?>

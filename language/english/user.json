@@ -120,6 +120,11 @@ var enano_lang = {
       type_mod: 'Moderator',
       type_admin: 'Administrator',
       
+      rank_member: '%this.user_type_member%',
+      rank_mod: '%this.user_type_mod%',
+      rank_admin: '%this.user_type_admin%',
+      rank_guest: '%this.user_type_guest%',
+      
       msg_elev_timed_out: '<b>Your administrative session has timed out.</b> <a href="%login_link%" onclick="ajaxLogonToElev(); return false;">Log in again</a>',
       
       reg_err_captcha: 'The confirmation code you entered was incorrect.',
@@ -289,6 +294,8 @@ Sincerely yours,
       publicinfo_field_changetheme: 'Change my theme...',
       publicinfo_field_timezone: 'Time zone:',
       publicinfo_field_timezone_hint: 'Select the time zone you live in and when Daylight Savings Time occurs, if at all.',
+      publicinfo_field_usertitle_title: 'User title:',
+      publicinfo_field_usertitle_hint: 'This can be some text that will be displayed underneath your username.',
       publicinfo_th_im: 'Instant messenger contact information',
       publicinfo_field_aim: 'AIM handle:',
       publicinfo_field_wlm: '<acronym title="Windows&trade; Live Messenger">WLM</acronym> handle:<br /><small>If you don\'t specify the domain (@whatever.com), "@hotmail.com" will be assumed.</small>',

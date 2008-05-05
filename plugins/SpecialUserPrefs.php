@@ -542,7 +542,25 @@ function page_Special_Preferences()
         $session->user_extra['user_hobbies'] = $hobbies;
         $session->user_extra['email_public'] = intval($email_public);
         
-        $q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name', user_timezone = $tz_local WHERE user_id=$session->user_id;");
+        // user title
+        $user_title_col = '';
+        if ( $session->get_permissions('custom_user_title') && isset($_POST['user_title']) )
+        {
+          $user_title = trim($_POST['user_title']);
+          if ( empty($user_title) )
+          {
+            $colval = 'NULL';
+            $session->user_title = null;
+          }
+          else
+          {
+            $colval = "'" . $db->escape($user_title) . "'";
+            $session->user_title = $user_title;
+          }
+          $user_title_col = ", user_title = $colval";
+        }
+        
+        $q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name', user_timezone = $tz_local{$user_title_col} WHERE user_id=$session->user_id;");
         if ( !$q )
           $db->_die();
         
@@ -579,6 +597,8 @@ function page_Special_Preferences()
         {
           $db->free_result();
         }
+        
+        generate_ranks_cache();
         
         echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_publicinfo_msg_save_success') . '</div>';
       }
@@ -644,6 +664,21 @@ function page_Special_Preferences()
             <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_timezone'); ?><br /><small><?php echo $lang->get('usercp_publicinfo_field_timezone_hint'); ?></small></td>
             <td class="row1"><?php echo $tz_select; ?></td>
           </tr>
+          <?php
+          if ( $session->get_permissions('custom_user_title') ):
+          ?>
+            <tr>
+              <td class="row2">
+                <?php echo $lang->get('usercp_publicinfo_field_usertitle_title'); ?><br />
+                <small><?php echo $lang->get('usercp_publicinfo_field_usertitle_hint'); ?></small>
+              </td>
+              <td class="row1">
+                <input type="text" name="user_title" value="<?php echo htmlspecialchars($session->user_title); ?>" />
+              </td>
+            </tr>
+          <?php
+          endif;
+          ?>
           <tr>
             <th class="subhead" colspan="2">
               <?php echo $lang->get('usercp_publicinfo_th_im'); ?>

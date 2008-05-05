@@ -110,8 +110,10 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_has_avatar smallint NOT NULL,
   avatar_type varchar(3) NOT NULL,
   user_registration_ip varchar(39),
-  user_rank int NOT NULL DEFAULT 1,
+  user_rank int DEFAULT NULL,
   user_timezone int NOT NULL DEFAULT 0,
+  user_title varchar(64) DEFAULT NULL,
+  user_group int NOT NULL DEFAULT 1,
   CHECK (avatar_type IN ('jpg', 'png', 'gif')),
   PRIMARY KEY  (user_id)
 );
@@ -326,6 +328,17 @@ CREATE TABLE {{TABLE_PREFIX}}plugins (
   PRIMARY KEY ( plugin_id )
 );
 
+-- Aggregate function array_accum
+-- http://www.postgresql.org/docs/current/static/xaggr.html
+
+CREATE AGGREGATE {{TABLE_PREFIX}}array_accum (anyelement)
+(
+    sfunc = array_append,
+    stype = anyarray,
+    initcond = '{}'
+);
+
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
   ('main_page', 'Main_Page'),
@@ -355,7 +368,7 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('powered_btn', '1');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
-  ('Main_Page', 'Article', '{{MAIN_PAGE_CONTENT}}', '');
+  ('Main_Page', 'Article', E'{{MAIN_PAGE_CONTENT}}', '');
   
 INSERT INTO {{TABLE_PREFIX}}logs(time_id, date_string, log_type, action, page_id, namespace, author, page_text) VALUES
   ({{UNIX_TIME}}, 'DEPRECATED', 'page', 'edit', 'Main_Page', 'Article', '{{ADMIN_USER}}', '{{MAIN_PAGE_CONTENT}}');
@@ -377,7 +390,8 @@ INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
 INSERT INTO {{TABLE_PREFIX}}ranks(rank_id, rank_title, rank_style) VALUES
   (1, 'user_rank_member', ''),
   (2, 'user_rank_mod', 'font-weight: bold; color: #00AA00;'),
-  (3, 'user_rank_admin', 'font-weight: bold; color: #AA0000;');
+  (3, 'user_rank_admin', 'font-weight: bold; color: #AA0000;'),
+  (4, 'user_rank_guest', '');
 
 INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(1, 'Everyone', 3, 1),
   (2,'Administrators',3,1),

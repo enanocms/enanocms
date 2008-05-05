@@ -130,13 +130,13 @@ function renderComments(data)
       html+=' ' + $lang.get('comment_postform_blurb_unapp');
     html += ' <a id="leave_comment_button" href="#" onclick="displayCommentForm(); return false;">' + $lang.get('comment_postform_blurb_link') + '</a></p>';
     html += '<div id="comment_form" style="display: none;">';
-    html += '  <table border="0">';
+    html += '  <table border="0" style="width: 100%;">';
     html += '    <tr><td>' + $lang.get('comment_postform_field_name') + '</td><td>';
     if ( data.user_id > 1 ) html += data.username + '<input id="commentform_name" type="hidden" value="'+data.username+'" size="40" />';
-    else html += '<input id="commentform_name" type="text" size="40" />';
+    else html += '<input id="commentform_name" type="text" size="40" style="width: 100%;" />';
     html += '    </td></tr>';
-    html += '    <tr><td>' + $lang.get('comment_postform_field_subject') + '</td><td><input id="commentform_subject" type="text" size="40" /></td></tr>';
-    html += '    <tr><td>' + $lang.get('comment_postform_field_comment') + '</td><td><textarea id="commentform_message" rows="15" cols="50"></textarea></td></tr>';
+    html += '    <tr><td>' + $lang.get('comment_postform_field_subject') + '</td><td><input id="commentform_subject" type="text" size="40" style="width: 100%;" /></td></tr>';
+    html += '    <tr><td>' + $lang.get('comment_postform_field_comment') + '</td><td><textarea id="commentform_message" rows="15" cols="50" style="width: 100%;"></textarea></td></tr>';
     if ( !data.logged_in && data.guest_posting == '1' )
     {
       html += '  <tr><td>' + $lang.get('comment_postform_field_captcha_title') + '<br /><small>' + $lang.get('comment_postform_field_captcha_blurb') + '</small></td><td>';
@@ -181,21 +181,24 @@ var _render_comment = function(this_comment, data)
   // Name
   tplvars.NAME = this_comment.name;
   if ( this_comment.user_id > 1 )
-    tplvars.NAME = '<a href="' + makeUrlNS('User', this_comment.name) + '">' + this_comment.name + '</a>';
+    tplvars.NAME = '<a href="' + makeUrlNS('User', this_comment.name) + '" style="' + this_comment.rank_style + '">' + this_comment.name + '</a>';
   
   // Avatar
   if ( this_comment.user_has_avatar == '1' )
   {
-    tplvars.AVATAR_URL = scriptPath + '/' + data.avatar_directory + '/' + this_comment.user_id + '.' + this_comment.avatar_type;
+    tplvars.AVATAR_URL = this_comment.avatar_path;
     tplvars.USERPAGE_LINK = makeUrlNS('User', this_comment.name);
     tplvars.AVATAR_ALT = $lang.get('usercp_avatar_image_alt', { username: this_comment.name });
   }
   
   // User level
-  tplvars.USER_LEVEL = $lang.get('user_type_guest');
-  if ( this_comment.user_level >= data.user_level.member ) tplvars.USER_LEVEL = $lang.get('user_type_member');
-  if ( this_comment.user_level >= data.user_level.mod ) tplvars.USER_LEVEL = $lang.get('user_type_mod');
-  if ( this_comment.user_level >= data.user_level.admin ) tplvars.USER_LEVEL = $lang.get('user_type_admin');
+  tplvars.USER_LEVEL = '';
+  if ( this_comment.user_title )
+    tplvars.USER_LEVEL += this_comment.user_title;
+  if ( this_comment.rank_title && this_comment.user_title )
+    tplvars.USER_LEVEL += '<br />';
+  if ( this_comment.rank_title )
+    tplvars.USER_LEVEL += $lang.get(this_comment.rank_title);
   
   // Send PM link
   tplvars.SEND_PM_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br />':'';
@@ -279,6 +282,7 @@ function editComment(id, link)
   var ta = document.createElement('textarea');
   ta.rows = '10';
   ta.cols = '40';
+  ta.style.width = '98%';
   ta.value = src;
   ta.id = 'comment_edit_'+id;
   cmt.appendChild(ta);

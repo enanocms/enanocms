@@ -389,6 +389,9 @@ function page_Admin_UserManager()
             }
           }
           
+          // user level updated, regenerate the ranks cache
+          generate_ranks_cache();
+          
           echo '<div class="info-box">' . $lang->get('acpum_msg_save_success') . '</div>';
         }
       }

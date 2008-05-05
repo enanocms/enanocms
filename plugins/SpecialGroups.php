@@ -223,6 +223,9 @@ function page_Special_Usergroups()
           $members[] = $r;
           $db->free_result();
           
+          // just added a user to the group, so regenerate the ranks cache
+          generate_ranks_cache();
+          
           break;
         case 'del_users':
           foreach ( $members as $i => $member )
@@ -235,6 +238,9 @@ function page_Special_Usergroups()
               unset($members[$i]);
             }
           }
+          // regenerate the ranks cache
+          generate_ranks_cache();
+          
           break;
         case 'pending':
           foreach ( $pending as $i => $member )
@@ -259,6 +265,9 @@ function page_Special_Usergroups()
               }
             }
           }
+          // memberships updated/changed, regenerate ranks cache
+          generate_ranks_cache();
+          
           echo '<div class="info-box">' . $lang->get('groupcp_msg_pending_updated') . '</div>';
           break;
       }

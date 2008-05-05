@@ -133,7 +133,8 @@ var enano_lang = {
       
       msg_guest_howto: 'To edit permissions for guests, select "a specific user", and enter Anonymous as the username.',
       msg_deleterule_confirm: 'Do you really want to delete this rule?',
-      msg_closeacl_confirm: 'Do you really want to close the ACL manager?',
+      msg_closeacl_confirm_title: 'Close the ACL manager?',
+      msg_closeacl_confirm_body: 'This will cancel any changes that you haven\'t saved.',
       msg_deny_everyone_confirm: 'CAUTION: You are setting a Deny ruling for everyone on this site. This will block the selected actions from being performed at all. Do you really want to do this?\n\nPlease also note that the following core pages will not be blocked from being accessed: Special:Login, Special:Logout, and Special:LangExportJSON.',
       
       msg_scale_intro_title: 'Existing ACL rules',
@@ -162,6 +163,7 @@ var enano_lang = {
       btn_returnto_editor: 'Return to ACL editor',
       btn_returnto_userscope: 'Return to user/scope selection',
       btn_show_existing: '&raquo; View existing rules',
+      btn_close: 'Close ACL wizard',
     },
     acphome: {
       heading_main: 'Welcome to Runt, the Enano administration panel.',

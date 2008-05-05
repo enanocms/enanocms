@@ -153,7 +153,7 @@ function messagebox(type, title, message)
     document.getElementById('specialLayer_darkener').style.zIndex = '5';
   }
   var master_div = document.createElement('div');
-  master_div.style.zIndex = '6';
+  master_div.style.zIndex = String(getHighestZ() + 5);
   var mydiv = document.createElement('div');
   mydiv.style.height = '200px';
   w = getWidth();
@@ -431,7 +431,16 @@ function testMessageBox()
 
 function miniPrompt(call_on_create)
 {
-  darken(false, 40);
+  if ( document.getElementById('specialLayer_darkener') )
+  {
+    var opac = parseFloat(document.getElementById('specialLayer_darkener'));
+    opac = opac * 100;
+    darken(false, opac);
+  }
+  else
+  {
+    darken(false, 40);
+  }
   
   var wrapper = document.createElement('div');
   wrapper.className = 'miniprompt';

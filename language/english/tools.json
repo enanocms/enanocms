@@ -48,6 +48,7 @@ var enano_lang = {
       language_export: 'Language exporter',
       private_messages: 'Private Messages',
       recent_changes: 'Recent changes',
+      avatar: 'Fetch avatar'
     },
     search: {
       th_advanced_search: 'Advanced Search',

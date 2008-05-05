@@ -695,7 +695,35 @@ function __aclBuildWizardWindow()
   closer = document.createElement('input');
   closer.type = 'button';
   closer.value = $lang.get('etc_cancel_changes');
-  closer.onclick = function() { if(!confirm($lang.get('acl_msg_closeacl_confirm'))) return false; killACLManager(); return false; }
+  closer.onclick = function()
+  {
+    miniPromptMessage({
+      title: $lang.get('acl_msg_closeacl_confirm_title'),
+      message: $lang.get('acl_msg_closeacl_confirm_body'),
+      buttons: [
+        {
+          text: $lang.get('acl_btn_close'),
+          color: 'red',
+          style: {
+            fontWeight: 'bold'
+          },
+          onclick: function(e)
+          {
+            killACLManager();
+            miniPromptDestroy(this);
+          }
+        },
+        {
+          text: $lang.get('etc_cancel'),
+          onclick: function(e)
+          {
+            miniPromptDestroy(this);
+          }
+        }
+      ]
+    });
+    return false;
+  }
   
   spacer1 = document.createTextNode('  ');
   spacer2 = document.createTextNode('  ');

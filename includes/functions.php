@@ -3344,6 +3344,7 @@ function password_score($password, &$debug = false)
 function register_cron_task($func, $hour_interval = 24)
 {
   global $cron_tasks;
+  $hour_interval = strval($hour_interval);
   if ( !isset($cron_tasks[$hour_interval]) )
     $cron_tasks[$hour_interval] = array();
   $cron_tasks[$hour_interval][] = $func;
@@ -3985,11 +3986,30 @@ function jpg_get_dimensions($filename)
 
 function make_avatar_url($user_id, $avi_type)
 {
+  static $img_types = array(
+      'png' => IMAGE_TYPE_PNG,
+      'gif' => IMAGE_TYPE_GIF,
+      'jpg' => IMAGE_TYPE_JPG
+    );
+  
   if ( !is_int($user_id) )
     return false;
-  if ( !in_array($avi_type, array('png', 'gif', 'jpg')) )
+  if ( !isset($img_types[$avi_type]) )
     return false;
-  return scriptPath . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
+  $avi_relative_path = '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
+  if ( !file_exists(ENANO_ROOT . $avi_relative_path) )
+  {
+    return '';
+  }
+  
+  $img_type = $img_types[$avi_type];
+  
+  $dateline = @filemtime(ENANO_ROOT . $avi_relative_path);
+  $avi_id = pack('VVv', $dateline, $user_id, $img_type);
+  $avi_id = hexencode($avi_id, '', '');
+    
+  // return scriptPath . $avi_relative_path;
+  return makeUrlNS('Special', "Avatar/$avi_id");
 }
 
 /**
@@ -4310,6 +4330,91 @@ if ( !function_exists('sys_get_temp_dir') )
             }
         }
     }
+}
+
+/**
+ * Grabs and processes all rank information directly from the database.
+ */
+
+function fetch_rank_data()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  $sql = $session->generate_rank_sql();
+  $q = $db->sql_query($sql);
+  if ( !$q )
+    $db->_die();
+  
+  $GLOBALS['user_ranks'] = array();
+  global $user_ranks;
+  
+  while ( $row = $db->fetchrow($q) )
+  {
+    $user_id = $row['user_id'];
+    $username = $row['username'];
+    $row = $session->calculate_user_rank($row);
+    $user_ranks[$username] =  $row;
+    $user_ranks[$user_id]  =& $user_ranks[$username];
+  }
+}
+
+/**
+ * Caches the computed user rank information.
+ */
+
+function generate_ranks_cache()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  global $user_ranks;
+  
+  fetch_rank_data();
+  
+  $user_ranks_stripped = array();
+  foreach ( $user_ranks as $key => $value )
+  {
+    if ( is_int($key) )
+      $user_ranks_stripped[$key] = $value;
+  }
+  
+  $ranks_exported = "<?php\n\n// Automatically generated user rank cache.\nglobal \$user_ranks;\n" . '$user_ranks = ' . $lang->var_export_string($user_ranks_stripped) . ';';
+  $uid_map = array();
+  foreach ( $user_ranks as $id => $row )
+  {
+    if ( !is_int($id) )
+    {
+      $username = $id;
+      continue;
+    }
+    
+    $un_san = addslashes($username);
+    $ranks_exported .= "\n\$user_ranks['$un_san'] =& \$user_ranks[{$row['user_id']}];";
+  }
+  $ranks_exported .= "\n\ndefine('ENANO_RANKS_CACHE_LOADED', 1); \n?>";
+  
+  // open ranks cache file
+  $fh = @fopen( ENANO_ROOT . '/cache/cache_ranks.php', 'w' );
+  if ( !$fh )
+    return false;
+  fwrite($fh, $ranks_exported);
+  fclose($fh);
+}
+
+/**
+ * Loads the rank data, first attempting the cache file and then the database.
+ */
+
+function load_rank_data()
+{
+  if ( file_exists( ENANO_ROOT . '/cache/cache_ranks.php' ) )
+  {
+    @include(ENANO_ROOT . '/cache/cache_ranks.php');
+  }
+  if ( !defined('ENANO_RANKS_CACHE_LOADED') )
+  {
+    fetch_rank_data();
+  }
 }
 
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');

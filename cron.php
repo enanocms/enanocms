@@ -29,8 +29,9 @@ global $cron_tasks;
 
 foreach ( $cron_tasks as $interval => $tasks )
 {
+  $interval = doubleval($interval);
   $last_run = intval(getConfig("cron_lastrun_ivl_$interval"));
-  $last_run_threshold = time() - ( 3600 * $interval );
+  $last_run_threshold = doubleval(time()) - ( 3600.0 * $interval );
   if ( $last_run_threshold >= $last_run )
   {
     foreach ( $tasks as $task )

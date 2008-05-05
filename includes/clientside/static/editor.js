@@ -366,11 +366,11 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
       
       var img = document.createElement('img');
       img.src = makeUrlNS('Special', 'Captcha/' + captcha_hash);
-      img._captchaHash = captcha_hash;
+      img.setAttribute('enano:captcha_hash', captcha_hash);
       img.id = 'enano_editor_captcha_img';
       img.onclick = function()
       {
-        this.src = makeUrlNS('Special', 'Captcha/' + this._captchaHash + '/' + Math.floor(Math.random() * 100000));
+        this.src = makeUrlNS('Special', 'Captcha/' + this.getAttribute('enano:captcha_hash') + '/' + Math.floor(Math.random() * 100000));
       }
       img.style.cursor = 'pointer';
       td4_2.appendChild(img);
@@ -379,7 +379,7 @@ function ajaxBuildEditor(readonly, timestamp, allow_wysiwyg, captcha_hash, revid
       var input = document.createElement('input');
       input.type = 'text';
       input.id = 'enano_editor_field_captcha';
-      input._captchaHash = captcha_hash;
+      input.setAttribute('enano:captcha_hash', captcha_hash);
       input.size = '9';
       td4_2.appendChild(input);
       
@@ -622,7 +622,7 @@ function ajaxEditorSave(is_draft)
   };
   
   // Do we need to add captcha info?
-  if ( document.getElementById('enano_editor_field_captcha') )
+  if ( document.getElementById('enano_editor_field_captcha') && !is_draft )
   {
     var captcha_field = document.getElementById('enano_editor_field_captcha');
     if ( captcha_field.value == '' )
@@ -632,7 +632,7 @@ function ajaxEditorSave(is_draft)
       return false;
     }
     json_packet.captcha_code = captcha_field.value;
-    json_packet.captcha_id = captcha_field._captchaHash;
+    json_packet.captcha_id = captcha_field.getAttribute('enano:captcha_hash');
   }
   
   json_packet = ajaxEscape(toJSONString(json_packet));

@@ -749,6 +749,7 @@ fieldset legend a.expander-open:hover {
 
 div.miniprompt {
   position: absolute;
+  z-index: 999;
 }
 
 div.miniprompt div.mp-top, div.miniprompt div.mp-bottom {

@@ -236,6 +236,7 @@ function page_Admin_GroupManager()
           }
           else
           {
+            
             echo '<div class="info-box" style="margin: 0 0 10px 0;"">
                     ' . $lang->get('acpug_msg_user_added', array('username' => htmlspecialchars($_POST['edit_add_username']))) . '
                   </div>';
@@ -244,6 +245,7 @@ function page_Admin_GroupManager()
         else
           echo '<div class="warning-box">' . $lang->get('acpug_err_username_not_exist', array('username' => htmlspecialchars($_POST['edit_add_username']))) . '</div>';
       }
+      generate_ranks_cache();
     }
     $sg_disabled = ( $row['system_group'] == 1 ) ?
              ' value="' . $lang->get('acpug_btn_cant_delete') . '" disabled="disabled" style="color: #FF9773" ' :

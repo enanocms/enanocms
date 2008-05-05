@@ -71,6 +71,8 @@ class Comments
   function process_json($json)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     $data = enano_json_decode($json);
     $data = decode_unicode_array($data);
     if ( !isset($data['mode']) )
@@ -87,7 +89,6 @@ class Comments
     }
     $ret = Array();
     $ret['mode'] = $data['mode'];
-    $ret['avatar_directory'] = getConfig('avatar_directory');
     switch ( $data['mode'] )
     {
       case 'fetch':
@@ -102,6 +103,8 @@ class Comments
                                  ON (u.user_id=c.user_id)
                                LEFT JOIN '.table_prefix.'buddies AS b
                                  ON ( ( b.user_id=' . $session->user_id.' AND b.buddy_user_id=c.user_id ) OR b.user_id IS NULL)
+                               LEFT JOIN '.table_prefix.'ranks AS r
+                                 ON ( ( u.user_rank = r.rank_id ) )
                                WHERE page_id=\'' . $this->page_id . '\'
                                  AND namespace=\'' . $this->namespace . '\'
                                GROUP BY c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,c.ip_address,u.user_level,u.user_id,u.signature,u.user_has_avatar,u.avatar_type,b.buddy_id,b.is_friend
@@ -122,6 +125,9 @@ class Comments
             
             if ( !$this->perms->get_permissions('mod_comments') && $row['approved'] == 0 )
               continue;
+            
+            // Localize the rank
+            $row = array_merge($row, $session->get_user_rank(intval($row['user_id'])));
             
             // Send the source
             $row['comment_source'] = $row['comment_data'];
@@ -149,6 +155,9 @@ class Comments
             
             // Do we have the IP?
             $row['have_ip'] = ( $row['have_ip'] == 1 );
+            
+            // Avatar URL
+            $row['avatar_path'] = make_avatar_url($row['user_id'], $row['avatar_type']);
             
             // Add the comment to the list
             $ret['comments'][] = $row;
@@ -322,6 +331,7 @@ class Comments
           $ret['auth_post_comments'] = $this->perms->get_permissions('post_comments');
           $ret['auth_edit_comments'] = $this->perms->get_permissions('edit_comments');
           $ret['user_id'] = $session->user_id;
+          $ret['rank_data'] = $session->get_user_rank($session->user_id);
           $ret['username'] = $session->username;
           $ret['logged_in'] = $session->user_logged_in;
           $ret['signature'] = RenderMan::render($row['signature']);
@@ -331,7 +341,7 @@ class Comments
           $ret['user_level_list']['member'] = USER_LEVEL_MEMBER;
           $ret['user_level_list']['mod'] = USER_LEVEL_MOD;
           $ret['user_level_list']['admin'] = USER_LEVEL_ADMIN;
-          $ret['avatar_directory'] = getConfig('avatar_directory');
+          $ret['avatar_path'] = make_avatar_url($row['user_id'], $row['avatar_type']);
         }
         
         break;

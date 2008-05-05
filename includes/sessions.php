@@ -148,6 +148,13 @@ class sessionManager {
    */
    
   var $valid_username = '([^<>&\?\'"%\n\r\t\a\/]+)';
+  
+  /**
+   * The current user's user title. Defaults to NULL.
+   * @var string
+   */
+  
+  var $user_title = null;
    
   /**
    * What we're allowed to do as far as permissions go. This changes based on the value of the "auth" URI param.
@@ -246,6 +253,19 @@ class sessionManager {
    */
    
   var $group_mod = Array();
+  
+  /**
+   * A constant array of user-level-to-rank default associations.
+   * @var array
+   */
+  
+  var $level_rank_table = array(
+      USER_LEVEL_ADMIN  => RANK_ID_ADMIN,
+      USER_LEVEL_MOD    => RANK_ID_MOD,
+      USER_LEVEL_MEMBER => RANK_ID_MEMBER,
+      USER_LEVEL_CHPREF => RANK_ID_MEMBER,
+      USER_LEVEL_GUEST  => RANK_ID_GUEST
+    );
   
   # Basic functions
    
@@ -468,6 +488,7 @@ class sessionManager {
         $this->real_name =     $userdata['real_name'];
         $this->email =         $userdata['email'];
         $this->unread_pms =    $userdata['num_pms'];
+        $this->user_title =    $userdata['user_title'];
         if(!$this->compat)
         {
           $this->theme =         $userdata['theme'];
@@ -1232,7 +1253,7 @@ class sessionManager {
     $salt = $db->escape($keydata[3]);
     // using a normal call to $db->sql_query to avoid failing on errors here
     $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,' . "\n"
-                             . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,' . "\n"
+                             . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_title,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,' . "\n"
                              . '    u.user_timezone, x.* FROM '.table_prefix.'session_keys AS k' . "\n"
                              . '  LEFT JOIN '.table_prefix.'users AS u' . "\n"
                              . '    ON ( u.user_id=k.user_id )' . "\n"
@@ -2352,6 +2373,249 @@ class sessionManager {
     
     // Yay! We're done
     return 'success';
+  }
+  
+  #
+  # USER RANKS
+  #
+  
+  /**
+   * SYNOPSIS OF THE RANK SYSTEM
+   * Enano's rank logic calculates a user's rank based on a precedence scale. The way things are checked is:
+   *   1. Check to see if the user has a specific rank assigned. Use that if possible.
+   *   2. Check the user's primary group to see if it specifies a rank. Use that if possible.
+   *   3. Check the other groups a user is in. If one that has a custom rank is encountered, use that rank.
+   *   4. See if the user's user level has a specific rank hard-coded to be associated with it. (Always overrideable as can be seen above)
+   *   5. Use the "member" rank
+   */
+  
+  /**
+   * Generates a textual SQL query for fetching rank data to be sent to calculate_user_rank().
+   * @param string Text to append, possibly a WHERE clause or so
+   * @return string
+   */
+  
+  function generate_rank_sql($append = '')
+  {
+    // Generate level-to-rank associations
+    $assoc = array();
+    foreach ( $this->level_rank_table as $level => $rank )
+    {
+      $assoc[] = "        ( u.user_level = $level AND rl.rank_id = $rank )";
+    }
+    $assoc = implode(" OR\n", $assoc) . "\n";
+    
+    $gid_col = ( ENANO_DBLAYER == 'PGSQL' ) ?
+      'array_to_string(array_accum(m.group_id), \',\') AS group_list' :
+      'GROUP_CONCAT(m.group_id) AS group_list';
+    
+    // The actual query
+    $sql = "SELECT u.user_id, u.username, u.user_level, u.user_group, u.user_rank, u.user_title, g.group_rank,\n"
+         . "       COALESCE(ru.rank_id,    rg.rank_id,    rl.rank_id,    rd.rank_id   ) AS rank_id,\n"
+         . "       COALESCE(ru.rank_title, rg.rank_title, rl.rank_title, rd.rank_title) AS rank_title,\n"
+         . "       COALESCE(ru.rank_style, rg.rank_style, rl.rank_style, rd.rank_style) AS rank_style,\n"
+         . "       ( ru.rank_id IS NULL AND rg.rank_id IS NULL ) AS using_default,"
+         . "       ( ru.rank_id IS NULL AND rg.rank_id IS NOT NULL ) AS using_group,"
+         . "       $gid_col\n"
+         . "  FROM " . table_prefix . "users AS u\n"
+         . "  LEFT JOIN groups AS g\n"
+         . "    ON ( g.group_id = u.user_group )\n"
+         . "  LEFT JOIN " . table_prefix . "group_members AS m\n"
+         . "    ON ( u.user_id = m.user_id )\n"
+         . "  LEFT JOIN ranks AS ru\n"
+         . "    ON ( u.user_rank = ru.rank_id )\n"
+         . "  LEFT JOIN ranks AS rg\n"
+         . "    ON ( g.group_rank = rg.rank_id )\n"
+         . "  LEFT JOIN ranks AS rl\n"
+         . "    ON (\n"
+         . $assoc
+         . "      )\n"
+         . "  LEFT JOIN ranks AS rd\n"
+         . "    ON ( rd.rank_id = 1 )\n"
+         . "  GROUP BY u.user_id, u.username, u.user_level, u.user_group, u.user_rank, u.user_title, g.group_rank,\n"
+         . "       ru.rank_id, ru.rank_title, ru.rank_style,rg.rank_id, rg.rank_title, rg.rank_style,\n"
+         . "       rl.rank_id, rl.rank_title, rl.rank_style,rd.rank_id, rd.rank_title, rd.rank_style$append;";
+    
+    return $sql;
+  }
+  
+  /**
+   * Returns an associative array with a user's rank information.
+   * The array will contain the following values:
+   *   username: string  The user's username
+   *   user_id:  integer Numerical user ID
+   *   rank_id:  integer Numerical rank ID
+   *   rank:     string  The user's current rank
+   *   title:    string  The user's custom user title if applicable; should be displayed one line below the rank
+   *   style:    string  CSS for the username
+   * @param int|string Username *or* user ID
+   * @return array or false on failure
+   */
+  
+  function get_user_rank($id)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    global $user_ranks;
+    // cache info if possible
+    static $_cache = array();
+    
+    if ( is_int($id) )
+      $col = "user_id = $id";
+    else if ( is_string($id) )
+      $col = ENANO_SQLFUNC_LOWERCASE . "(username) = " . ENANO_SQLFUNC_LOWERCASE . "('" . $db->escape($id) . "')";
+    else
+      // invalid parameter
+      return false;
+      
+    // check the cache
+    if ( isset($_cache[$id]) )
+      return $_cache[$id];
+    
+    // check the disk cache
+    if ( is_int($id) )
+    {
+      if ( isset($user_ranks[$id]) )
+      {
+        $_cache[$id] =& $user_ranks[$id];
+        return $user_ranks[$id];
+      }
+    }
+    else if ( is_string($id) )
+    {
+      foreach ( $user_ranks as $key => $valarray )
+      {
+        if ( is_string($key) && strtolower($key) == strtolower($id) )
+        {
+          $_cache[$id] = $valarray;
+          return $valarray;
+        }
+      }
+    }
+    
+    $sql = $this->generate_rank_sql("\n  WHERE $col");
+    
+    $q = $this->sql($sql);
+    // any results?
+    if ( $db->numrows() < 1 )
+    {
+      // nuttin'.
+      $db->free_result();
+      $_cache[$id] = false;
+      return false;
+    }
+    
+    // Found something.
+    $row = $db->fetchrow();
+    $db->free_result();
+    
+    $row = $this->calculate_user_rank($row);
+    
+    $_cache[$id] = $row;
+    return $row;
+  }
+  
+  /**
+   * Performs the actual rank calculation based on the contents of a row.
+   * @param array
+   * @return array
+   */
+  
+  function calculate_user_rank($row)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    static $rank_cache = array();
+    static $group_ranks = array();
+    
+    // try to cache that rank info
+    if ( !isset($rank_cache[ intval($row['rank_id']) ]) && $row['rank_id'] )
+    {
+      $rank_cache[ intval($row['rank_id']) ] = array(
+          'rank_id' => intval($row['rank_id']),
+          'rank_title' => intval($row['rank_title']),
+          'rank_style' => intval($row['rank_style'])
+        );
+    }
+    // cache group info (if appropriate)
+    if ( $row['using_group'] && !isset($group_ranks[ intval($row['user_group']) ]) )
+    {
+      $group_ranks[ intval($row['user_group']) ] = intval($row['group_rank_id']);
+    }
+    
+    // sanitize and process the as-of-yet rank data
+    $row['rank_id'] = intval($row["rank_id"]);
+    $row['rank_title'] = $row["rank_title"];
+    
+    // if we're falling back to some default, then see if we can use one of the user's other groups
+    if ( $row['using_default'] && !empty($row['group_list']) )
+    {
+      $group_list = explode(',', $row['group_list']);
+      if ( array_walk($group_list, 'intval') )
+      {
+        // go through the group list and see if any of them has a rank assigned
+        foreach ( $group_list as $group_id )
+        {
+          // cached in RAM? Preferably use that.
+          if ( !isset($group_ranks[$group_id]) )
+          {
+            // Not cached - grab it
+            $q = $this->sql('SELECT group_rank FROM ' . table_prefix . "groups WHERE group_id = $group_id;");
+            if ( $db->numrows() < 1 )
+            {
+              $db->free_result();
+              continue;
+            }
+            list($result) = $db->fetchrow_num();
+            $db->free_result();
+            
+            if ( $result === null || $result < 1 )
+            {
+              $group_ranks[$group_id] = false;
+            }
+            else
+            {
+              $group_ranks[$group_id] = intval($result);
+            }
+          }
+          // we've got it now
+          if ( $group_ranks[$group_id] )
+          {
+            // found a group with a rank assigned
+            // so get the rank info
+            $rank_id =& $group_ranks[$group_id];
+            if ( !isset($rank_cache[$rank_id]) )
+            {
+              $q = $this->sql('SELECT rank_id, rank_title, rank_style FROM ' . table_prefix . "ranks WHERE rank_id = $rank_id;");
+              if ( $db->numrows() < 1 )
+              {
+                $db->free_result();
+                continue;
+              }
+              $rank_cache[$rank_id] = $db->fetchrow();
+              $db->free_result();
+            }
+            // set the final rank parameters
+            // die("found member-of-group exception with uid {$row['user_id']} gid $group_id rid $rank_id rt {$rank_cache[$rank_id]['rank_title']}");
+            $row['rank_id'] = $rank_id;
+            $row['rank_title'] = $rank_cache[$rank_id]['rank_title'];
+            $row['rank_style'] = $rank_cache[$rank_id]['rank_style'];
+            break;
+          }
+        }
+      }
+    }
+    
+    if ( $row['user_title'] === NULL )
+      $row['user_title'] = false;
+    
+    $row['user_id'] = intval($row['user_id']);
+    $row['user_level'] = intval($row['user_level']);
+    $row['user_group'] = intval($row['user_group']);
+    
+    unset($row['user_rank'], $row['group_rank'], $row['group_list'], $row['using_default'], $row['using_group'], $row['user_level'], $row['user_group'], $row['username']);
+    return $row;
   }
   
   #
@@ -3655,5 +3919,11 @@ function cron_clean_old_admin_keys()
 
 // Once a week
 register_cron_task('cron_clean_old_admin_keys', 168);
+
+/**
+ * Cron task - regenerate cached user rank information
+ */
+
+register_cron_task('generate_ranks_cache', 0.25);
 
 ?>
