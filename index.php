@@ -45,6 +45,7 @@
   require('includes/common.php');
   
   global $db, $session, $paths, $template, $plugins; // Common objects
+  $page_timestamp = time();
   
   if ( !isset($_GET['do']) )
   {
@@ -63,6 +64,7 @@
       $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
       $page->password = $pagepass;
       $page->send(true);
+      $page_timestamp = $page->revision_time;
       break;
     case 'comments':
       $template->header();
@@ -564,11 +566,30 @@
     // Re-enable output buffering to allow the Gzip function (below) to work
     ob_start();
     
+    // Generate an ETag
+    // format: first 10 digits of SHA1 of page name, user id in hex, page timestamp in hex
+    $etag = substr(sha1($paths->namespace . ':' . $paths->page_id), 0, 10) . '-' .
+            dechex($session->user_id) . '-' .
+            dechex($page_timestamp);
+            
+    if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
+    {
+      if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
+      {
+        header('HTTP/1.1 304 Not Modified');
+        exit();
+      }
+    }
+            
+    header("ETag: \"$etag\"");
+    
     // Done, send it to the user
     echo( $html );
   }
 
   $db->close();  
   gzip_output();
+  
+  @ob_end_flush();
   
 ?>

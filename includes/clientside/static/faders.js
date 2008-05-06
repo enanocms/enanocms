@@ -178,16 +178,8 @@ function messagebox(type, title, message)
   
   var buttondiv = document.createElement('div');
   
-  if ( is_iPhone )
-  {
-    mydiv.style.width = '120px';
-    buttondiv.style.width = '120px';
-  }
-  else
-  {
-    mydiv.style.width = '400px';
-    buttondiv.style.width = '400px';
-  }
+  mydiv.style.width = '400px';
+  buttondiv.style.width = '400px';
   
   w = getWidth();
   h = getHeight();

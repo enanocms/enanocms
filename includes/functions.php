@@ -2854,11 +2854,11 @@ function gzip_output()
     $gzip_contents = ob_get_contents();
     ob_end_clean();
     
-    $return = @ob_gzhandler($gzip_contents);
+    $return = @ob_gzhandler($gzip_contents, PHP_OUTPUT_HANDLER_START);
     if ( $return )
     {
       header('Content-encoding: gzip');
-      echo $gzip_contents;
+      echo $return;
     }
     else
     {
@@ -3348,6 +3348,19 @@ function register_cron_task($func, $hour_interval = 24)
   if ( !isset($cron_tasks[$hour_interval]) )
     $cron_tasks[$hour_interval] = array();
   $cron_tasks[$hour_interval][] = $func;
+}
+
+/**
+ * Gets the timestamp for the next estimated cron run.
+ * @return int
+ */
+
+function get_cron_next_run()
+{
+  global $cron_tasks;
+  $lowest_ivl = min(array_keys($cron_tasks));
+  $last_run = intval(getConfig("cron_lastrun_ivl_$lowest_ivl"));
+  return intval($last_run + ( 3600 * $lowest_ivl )) - 30;
 }
 
 /**

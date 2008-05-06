@@ -1178,7 +1178,11 @@ class PageProcessor
     else
     {
       
-      $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\';');
+      $q = $db->sql_query('SELECT t.page_text, t.char_tag, l.time_id FROM '.table_prefix."page_text AS t\n"
+                        . "  LEFT JOIN " . table_prefix . "logs AS l\n"
+                        . "    ON ( l.page_id = t.page_id AND l.namespace = t.namespace )\n"
+                        . "  WHERE t.page_id='$this->page_id' AND t.namespace='$this->namespace'\n"
+                        . "  ORDER BY l.time_id DESC LIMIT 1;");
       if ( !$q )
       {
         $this->send_error('Error during SQL query.', true);

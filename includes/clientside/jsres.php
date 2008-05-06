@@ -82,6 +82,19 @@ require('includes/functions.php');
 require('includes/json2.php');
 require('includes/js-compressor.php');
 
+// try to gzip the output
+$do_gzip = false;
+if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) )
+{
+  $acceptenc = str_replace(' ', '', strtolower($_SERVER['HTTP_ACCEPT_ENCODING']));
+  $acceptenc = explode(',', $acceptenc);
+  if ( in_array('gzip', $acceptenc) )
+  {
+    $do_gzip = true;
+    ob_start();
+  }
+}
+
 // Output format will always be JS
 header('Content-type: text/javascript');
 $everything = '';
@@ -177,9 +190,27 @@ foreach ( $file_list as $js_file )
   $everything .= "\n" . $file_contents;
 }
 
+// generate ETag
+$etag = base64_encode(hexdecode(sha1($everything)));
+
+if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
+{
+  if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
+  {
+    header('HTTP/1.1 304 Not Modified');
+    exit();
+  }
+}
+
 $date = date('r', $apex);
 header("Date: $date");
 header("Last-Modified: $date");
+header("ETag: \"$etag\"");
 
 echo $everything;
+
+if ( $do_gzip )
+{
+  gzip_output();
+}
 

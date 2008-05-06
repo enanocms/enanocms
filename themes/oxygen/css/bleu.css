@@ -129,8 +129,9 @@ div.recttop {
 td.recttoptop {
   width: 100%;
   height: 12px;
-  background-image: url(../images/bleu/border-menu-t.gif);
+  background-image: url(../images/bleu/sprite-horiz.gif);
   background-repeat: repeat-x;
+  background-position: 0 -12px;
   margin: 0;
   padding: 0;
 }
@@ -138,8 +139,9 @@ td.recttoptop {
 td.recttoptop:hover {
   width: 100%;
   height: 12px;
-  background-image: url(../images/bleu/border-menu-t-h.gif);
+  background-image: url(../images/bleu/sprite-horiz.gif);
   background-repeat: repeat-x;
+  background-position: 0 -24px;
   margin: 0;
   padding: 0;
   cursor: pointer;
@@ -155,8 +157,9 @@ div.rectbot {
 td.rectbottop {
   width: 100%;
   height: 12px;
-  background-image: url(../images/bleu/border-btm.gif);
+  background-image: url(../images/bleu/sprite-horiz.gif);
   background-repeat: repeat-x;
+  background-position: 0 -48px;
   margin: 0;
   padding: 0;
 }
@@ -477,28 +480,28 @@ span.menuclear {
 }
 
 /* Rounded corners on nearly everything */
-td#mdg-tl                         { width: 12px; height: 12px;     background: url(../images/bleu/border-tl.gif);    }
-td#mdg-tr                         { width: 12px; height: 12px;     background: url(../images/bleu/border-tr.gif);    }
-td#mdg-top                        {                                background: url(../images/bleu/border-top.gif);   }
-td#mdg-l                          { width: 12px; height: 12px;     background: url(../images/bleu/border-l.gif);     }
-td#mdg-r                          { width: 12px; height: 12px;     background: url(../images/bleu/border-r.gif);     }
-td#mdg-bl                         { width: 12px; height: 12px;     background: url(../images/bleu/border-tb-l.gif);  }
-td#mdg-br                         { width: 12px; height: 12px;     background: url(../images/bleu/border-tb-r.gif);  }
-td#mdg-ml                         { width: 12px; height: 12px;     background: url(../images/bleu/border-m-l.gif);   }
-td#mdg-mr                         { width: 12px; height: 12px;     background: url(../images/bleu/border-m-r.gif);   }
-td#mdg-brl                        { width: 12px; height: 1px;      background: url(../images/bleu/border-m-l.gif);   }
-td#mdg-brr                        { width: 12px; height: 1px;      background: url(../images/bleu/border-m-r.gif);   }
-td#mdg-btl                        { width: 12px; height: 1px;      background: url(../images/bleu/border-btm-l.gif); }
-td#mdg-btr                        { width: 12px; height: 1px;      background: url(../images/bleu/border-btm-r.gif); }
-td#mdg-btcl                       { width: 12px; height: 12px;     background: url(../images/bleu/border-bl.gif);    }
-td#mdg-btcr                       { width: 12px; height: 12px;     background: url(../images/bleu/border-br.gif);    }
-td#mdg-btm                        {              height: 12px;     background: url(../images/bleu/border-btm.gif);   }
-td.mdg-menu-top                   { width: 84%;  height: 12px;     background: url(../images/bleu/border-menu-t.gif); margin: 0; padding: 0; background-repeat: repeat-x; font-size: 2px; }
-td.mdg-menu-tl                    { width: 12px; height: 12px;     background: url(../images/bleu/border-menu-l.gif); background-position: left  top; background-repeat: no-repeat; }
-td.mdg-menu-tr                    { width: 12px; height: 12px;     background: url(../images/bleu/border-menu-r.gif); background-position: right top; background-repeat: no-repeat; }
-td.mdg-menu-bl                    { width: 12px; height: 12px;     background: url(../images/bleu/border-bl.gif);    }
-td.mdg-menu-br                    { width: 12px; height: 12px;     background: url(../images/bleu/border-br.gif);    }
-td.mdg-menu-btm                   {              height: 12px;     background: url(../images/bleu/border-btm.gif);   }
+td#mdg-tl                         { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: -48px 0;                                                                     }
+td#mdg-tr                         { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: -60px 0;                                                                     }
+td#mdg-top                        {                            background-image: url(../images/bleu/sprite-horiz.gif); background-position: 0 -36px;                                                                     }
+td#mdg-l                          { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-vert.gif);  background-position: -24px 0;                                                                     }
+td#mdg-r                          { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-vert.gif);  background-position: -36px 0;                                                                     }
+td#mdg-bl                         { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-vert.gif);  background-position: -72px 0;                                                                     }
+td#mdg-br                         { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-vert.gif);  background-position: -84px 0;                                                                     }
+td#mdg-ml                         { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-vert.gif);  background-position: -48px 0;                                                                     }
+td#mdg-brl                        { width: 12px; height: 1px;  background-image: url(../images/bleu/sprite-vert.gif);  background-position: -48px 0;                                                                     }
+td#mdg-mr                         { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-vert.gif);  background-position: -60px 0;                                                                     }
+td#mdg-brr                        { width: 12px; height: 1px;  background-image: url(../images/bleu/sprite-vert.gif);  background-position: -60px 0;                                                                     }
+td#mdg-btl                        { width: 12px; height: 1px;  background-image: url(../images/bleu/sprite-vert.gif);  background-position: 0 0    ;                                                                     }
+td#mdg-btr                        { width: 12px; height: 1px;  background-image: url(../images/bleu/sprite-vert.gif);  background-position: -12px 0;                                                                     }
+td#mdg-btcl                       { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: -24px 0;                                                                     }
+td.mdg-menu-bl                    { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: -24px 0;                                                                     }
+td#mdg-btcr                       { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: -36px 0;                                                                     }
+td.mdg-menu-br                    { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: -36px 0;                                                                     }
+td.mdg-menu-top                   { width: 84%;  height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: 0 0    ; margin: 0; padding: 0; background-repeat: repeat-x; font-size: 2px; }
+td.mdg-menu-tl                    { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: 0 0    ; background-position: left  top; background-repeat: no-repeat;       }
+td.mdg-menu-tr                    { width: 12px; height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: 0 0    ; background-position: right top; background-repeat: no-repeat;       }
+td.mdg-menu-btm                   {              height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: 0 0    ;                                                                     }
+td#mdg-btm                        {              height: 12px; background-image: url(../images/bleu/sprite-horiz.gif); background-position: 0 -48px;                                                                     }
 
 /* Buttons and textboxes - these settings are used almost everywhere */
 input, textarea, select, button {

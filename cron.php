@@ -42,9 +42,22 @@ foreach ( $cron_tasks as $interval => $tasks )
   }
 }
 
-header('Pragma: no-cache');
-header('Cache-control: no-cache');
-header('Expires: Thu, 1 Jan 1970 00:00:01 GMT');
+$expiry_date = date('r', get_cron_next_run());
+
+$etag = sha1($expiry_date);
+  
+if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
+{
+  if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
+  {
+    header('HTTP/1.1 304 Not Modified');
+    exit();
+  }
+}
+
+header("ETag: $etag");
+
+header('Expires: ' . $expiry_date);
 header('Content-type: image/gif');
 
 echo ENANO_GIF_SPACER;

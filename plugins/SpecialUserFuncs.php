@@ -2014,18 +2014,31 @@ function page_Special_LangExportJSON()
   else
     $lang_local = new Language($lang_id);
   
+  $lang_strings = enano_json_encode($lang_local->strings);
+  $etag = substr(sha1($lang_strings), 0, 20) . '-' . dechex($lang_local->lang_timestamp);
+  
+  if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
+  {
+    if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
+    {
+      header('HTTP/1.1 304 Not Modified');
+      exit();
+    }
+  }
   
   $timestamp = enano_date('D, j M Y H:i:s T', $lang_local->lang_timestamp);
   header("Last-Modified: $timestamp");
   header("Date: $timestamp");
+  header("ETag: \"$etag\"");
   header('Content-type: text/javascript');
   
   $lang_local->fetch();
   echo "if ( typeof(enano_lang) != 'object' )
   var enano_lang = new Object();
 
-enano_lang[{$lang->lang_id}] = " . enano_json_encode($lang_local->strings) . ";";
+enano_lang[{$lang->lang_id}] = " . $lang_strings . ";";
   
+  exit(0);
 }
 
 /**

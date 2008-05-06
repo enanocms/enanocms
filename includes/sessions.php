@@ -1139,7 +1139,7 @@ class sessionManager {
     {
       // Stash it in a cookie
       // For now, make the cookie last forever, we can change this in 1.1.x
-      setcookie( 'sid', $session_key, time()+315360000, scriptPath.'/', null, ( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ) );
+      setcookie( 'sid', $session_key, time()+15552000, scriptPath.'/', null, ( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ) );
       $_COOKIE['sid'] = $session_key;
     }
     // $keyhash is stored in the database, this is for compatibility with the older DB structure
@@ -3223,7 +3223,7 @@ class sessionManager {
     if ( $dh_supported && $dh_pubkey )
     {
       $code .= <<<EOF
-            if ( frm.$dh_supported.value == 'true' )
+            if ( frm.$dh_supported.value == 'true' && !is_iPhone )
               use_diffiehellman = true;
 EOF;
     }
