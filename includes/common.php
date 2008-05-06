@@ -32,6 +32,13 @@ if ( isset($_REQUEST['GLOBALS']) )
   exit;
 }
 
+// only do this if it hasn't been done yet
+if ( !defined('ENANO_COMMON_ROOT_LOADED') )
+{
+
+// log this
+define('ENANO_COMMON_ROOT_LOADED', 1);
+
 // Our version number
 // This needs to match the version number in the database. This number should
 // be the expected output of enano_version(), which will always be in the
@@ -103,6 +110,24 @@ if ( file_exists( ENANO_ROOT . '/_nightly.php') )
 
 // List of scheduled tasks (don't change this manually, use register_cron_task())
 $cron_tasks = array();
+
+} // check for ENANO_COMMON_ROOT_LOADED
+else
+{
+  // loading a second time
+  if ( !defined('ENANO_COMMON_ROOT_LOADED_MULTI') )
+  {
+    define('ENANO_COMMON_ROOT_LOADED_MULTI', 1);
+  }
+}
+
+// If all we really need is the root directory, just leave now
+// checking for ENANO_COMMON_ROOT_LOADED_MULTI here means that if common
+// is included a second time, the rest of Enano will load.
+if ( defined('ENANO_COMMON_ROOTONLY') && !defined('ENANO_COMMON_ROOT_LOADED_MULTI') )
+{
+  return true;
+}
 
 // Start including files. LOTS of files. Yeah!
 require_once(ENANO_ROOT.'/includes/constants.php');

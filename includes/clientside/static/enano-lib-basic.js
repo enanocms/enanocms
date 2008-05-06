@@ -269,7 +269,11 @@ if ( !KILL_SWITCH && !DISABLE_MCE )
   {
     var script = document.createElement('script');
     script.type="text/javascript";
-    script.src=scriptPath+"/includes/clientside/tinymce/tiny_mce.js";
+    script.src=scriptPath+"/includes/clientside/tinymce/tiny_mce_gzip.js";
+    script.onload = function(e)
+    {
+      tinyMCE_GZ.init(enano_tinymce_gz_options);
+    }
     head.appendChild(script);
   }
 }

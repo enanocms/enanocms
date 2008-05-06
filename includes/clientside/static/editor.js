@@ -35,6 +35,15 @@ var enano_tinymce_options = {
   content_css : css_url
 };
 
+var enano_tinymce_gz_options = {
+	plugins : 'table,save,safari,pagebreak,style,layer,advhr,insertdatetime,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras' + do_popups,
+	themes : 'advanced',
+	languages : 'en',
+	disk_cache : true,
+	debug : false
+};
+
+
 // Check tinyMCE to make sure its init is finished
 function tinymce_preinit_check()
 {
