@@ -1,4 +1,18 @@
 <?php
+
+/*
+ * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
+ * Version 1.1.4 (Caoineag alpha 4)
+ * Copyright (C) 2006-2008 Dan Fuhry
+ * tiny_mce_gzip.php - TinyMCE gzip and caching script, stock from MoxieCode with one modification
+ *
+ * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+ */
+
 /**
  * $Id: tiny_mce_gzip.php 315 2007-10-25 14:03:43Z spocke $
  *
@@ -13,7 +27,7 @@
 	// Set the error reporting to minimal.
 	@error_reporting(E_ERROR | E_WARNING | E_PARSE);
   
-  // load Enano
+  // 5/5/2008 - load Enano, but only get the root directory
   define('ENANO_COMMON_ROOTONLY', 1);
   require('../../common.php');
 
@@ -26,6 +40,7 @@
 	$compress = getParam("compress", "true") == "true";
 	$core = getParam("core", "true") == "true";
 	$suffix = getParam("suffix", "_src") == "_src" ? "_src" : "";
+  // 5/5/2008 - set cache path to Enano's usual directory
 	$cachePath = realpath(ENANO_ROOT . "/cache"); // Cache path, this is where the .gz files will be stored
 	$expiresOffset = 3600 * 24 * 10; // Cache for 10 days in browser cache
 	$content = "";
