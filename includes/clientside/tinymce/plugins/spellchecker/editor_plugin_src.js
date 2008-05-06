@@ -45,7 +45,8 @@
 			});
 
 			ed.onInit.add(function() {
-				ed.dom.loadCSS(url + '/css/content.css');
+				if (ed.settings.content_css !== false)
+					ed.dom.loadCSS(url + '/css/content.css');
 			});
 
 			ed.onClick.add(t._showMenu, t);
@@ -227,7 +228,7 @@
 				m = ed.controlManager.createDropMenu('spellcheckermenu', {
 					offset_x : p1.x,
 					offset_y : p1.y,
-					'class' : 'noIcons'
+					'class' : 'mceNoIcons'
 				});
 
 				t._menu = m;
@@ -298,14 +299,16 @@
 		_done : function() {
 			var t = this, la = t.active;
 
-			t.active = 0;
-			t._removeWords();
+			if (t.active) {
+				t.active = 0;
+				t._removeWords();
 
-			if (t._menu)
-				t._menu.hideMenu();
+				if (t._menu)
+					t._menu.hideMenu();
 
-			if (la)
-				t.editor.nodeChanged();
+				if (la)
+					t.editor.nodeChanged();
+			}
 		},
 
 		_sendRPC : function(m, p, cb) {

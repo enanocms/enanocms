@@ -1,5 +1,5 @@
 /**
- * $Id: editor_plugin_src.js 644 2008-02-26 18:03:45Z spocke $
+ * $Id: editor_plugin_src.js 809 2008-04-17 14:41:31Z spocke $
  *
  * @author Moxiecode
  * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
@@ -33,7 +33,8 @@
 			var t = this;
 
 			t.parent(ed);
-			t.zIndex = 1000;
+			t.zIndex = 300000;
+			t.count = 0;
 		},
 
 		open : function(f, p) {
@@ -46,7 +47,10 @@
 			if (!f.inline)
 				return t.parent(f, p);
 
-			t.bookmark = ed.selection.getBookmark('simple');
+			// Only store selection if the type is a normal window
+			if (!f.type)
+				t.bookmark = ed.selection.getBookmark('simple');
+
 			id = DOM.uniqueId();
 			vp = DOM.getViewPort();
 			f.width = parseInt(f.width || 320);
@@ -62,6 +66,7 @@
 			p.mce_height = f.height;
 			p.mce_inline = true;
 			p.mce_window_id = id;
+			p.mce_auto_focus = f.auto_focus;
 
 			// Transpose
 //			po = DOM.getPos(ed.getContainer());
@@ -97,7 +102,7 @@
 				opt += ' mceMovable';
 
 			// Create DOM objects
-			t._addAll(document.body, 
+			t._addAll(DOM.doc.body, 
 				['div', {id : id, 'class' : ed.settings.inlinepopups_skin || 'clearlooks2', style : 'width:100px;height:100px'}, 
 					['div', {id : id + '_wrapper', 'class' : 'mceWrapper' + opt},
 						['div', {id : id + '_top', 'class' : 'mceTop'}, 
@@ -120,19 +125,19 @@
 							['span', {id : id + '_status'}, 'Content']
 						],
 
-						['a', {'class' : 'mceMove', href : 'javascript:;'}],
-						['a', {'class' : 'mceMin', href : 'javascript:;', onmousedown : 'return false;'}],
-						['a', {'class' : 'mceMax', href : 'javascript:;', onmousedown : 'return false;'}],
-						['a', {'class' : 'mceMed', href : 'javascript:;', onmousedown : 'return false;'}],
-						['a', {'class' : 'mceClose', href : 'javascript:;', onmousedown : 'return false;'}],
-						['a', {id : id + '_resize_n', 'class' : 'mceResize mceResizeN', href : 'javascript:;'}],
-						['a', {id : id + '_resize_s', 'class' : 'mceResize mceResizeS', href : 'javascript:;'}],
-						['a', {id : id + '_resize_w', 'class' : 'mceResize mceResizeW', href : 'javascript:;'}],
-						['a', {id : id + '_resize_e', 'class' : 'mceResize mceResizeE', href : 'javascript:;'}],
-						['a', {id : id + '_resize_nw', 'class' : 'mceResize mceResizeNW', href : 'javascript:;'}],
-						['a', {id : id + '_resize_ne', 'class' : 'mceResize mceResizeNE', href : 'javascript:;'}],
-						['a', {id : id + '_resize_sw', 'class' : 'mceResize mceResizeSW', href : 'javascript:;'}],
-						['a', {id : id + '_resize_se', 'class' : 'mceResize mceResizeSE', href : 'javascript:;'}]
+						['a', {'class' : 'mceMove', tabindex : '-1', href : 'javascript:;'}],
+						['a', {'class' : 'mceMin', tabindex : '-1', href : 'javascript:;', onmousedown : 'return false;'}],
+						['a', {'class' : 'mceMax', tabindex : '-1', href : 'javascript:;', onmousedown : 'return false;'}],
+						['a', {'class' : 'mceMed', tabindex : '-1', href : 'javascript:;', onmousedown : 'return false;'}],
+						['a', {'class' : 'mceClose', tabindex : '-1', href : 'javascript:;', onmousedown : 'return false;'}],
+						['a', {id : id + '_resize_n', 'class' : 'mceResize mceResizeN', tabindex : '-1', href : 'javascript:;'}],
+						['a', {id : id + '_resize_s', 'class' : 'mceResize mceResizeS', tabindex : '-1', href : 'javascript:;'}],
+						['a', {id : id + '_resize_w', 'class' : 'mceResize mceResizeW', tabindex : '-1', href : 'javascript:;'}],
+						['a', {id : id + '_resize_e', 'class' : 'mceResize mceResizeE', tabindex : '-1', href : 'javascript:;'}],
+						['a', {id : id + '_resize_nw', 'class' : 'mceResize mceResizeNW', tabindex : '-1', href : 'javascript:;'}],
+						['a', {id : id + '_resize_ne', 'class' : 'mceResize mceResizeNE', tabindex : '-1', href : 'javascript:;'}],
+						['a', {id : id + '_resize_sw', 'class' : 'mceResize mceResizeSW', tabindex : '-1', href : 'javascript:;'}],
+						['a', {id : id + '_resize_se', 'class' : 'mceResize mceResizeSE', tabindex : '-1', href : 'javascript:;'}]
 					]
 				]
 			);
@@ -155,8 +160,12 @@
 			DOM.setStyles(id, {top : f.top, left : f.left, width : f.width + dw, height : f.height + dh});
 
 			u = f.url || f.file;
-			if (tinymce.relaxedDomain)
-				u += (u.indexOf('?') == -1 ? '?' : '&') + 'mce_rdomain=' + tinymce.relaxedDomain;
+			if (u) {
+				if (tinymce.relaxedDomain)
+					u += (u.indexOf('?') == -1 ? '?' : '&') + 'mce_rdomain=' + tinymce.relaxedDomain;
+
+				u = tinymce._addVer(u);
+			}
 
 			if (!f.type) {
 				DOM.add(id + '_content', 'iframe', {id : id + '_ifr', src : 'javascript:""', frameBorder : 0, style : 'border:0;width:10px;height:10px'});
@@ -244,11 +253,26 @@
 				t.focus(id);
 			});
 
+			// Setup blocker
+			if (t.count == 0 && t.editor.getParam('dialog_type') == 'modal') {
+				DOM.add(DOM.doc.body, 'div', {
+					id : 'mceModalBlocker',
+					'class' : (t.editor.settings.inlinepopups_skin || 'clearlooks2') + '_modalBlocker',
+					style : {left : vp.x, top : vp.y, zIndex : t.zIndex - 1}
+				});
+
+				DOM.show('mceModalBlocker'); // Reduces flicker in IE
+			} else
+				DOM.setStyle('mceModalBlocker', 'z-index', t.zIndex - 1);
+
 			t.focus(id);
 			t._fixIELayout(id, 1);
 
-//			if (DOM.get(id + '_ok'))
-//				DOM.get(id + '_ok').focus();
+			// Focus ok button
+			if (DOM.get(id + '_ok'))
+				DOM.get(id + '_ok').focus();
+
+			t.count++;
 
 			return w;
 		},
@@ -280,14 +304,14 @@
 		},
 
 		_startDrag : function(id, se, ac) {
-			var t = this, mu, mm, d = document, eb, w = t.windows[id], we = w.element, sp = we.getXY(), p, sz, ph, cp, vp, sx, sy, sex, sey, dx, dy, dw, dh;
+			var t = this, mu, mm, d = DOM.doc, eb, w = t.windows[id], we = w.element, sp = we.getXY(), p, sz, ph, cp, vp, sx, sy, sex, sey, dx, dy, dw, dh;
 
 			// Get positons and sizes
 //			cp = DOM.getPos(t.editor.getContainer());
 			cp = {x : 0, y : 0};
 			vp = DOM.getViewPort();
 
-			// Reduce viewport size to avoid scrollbars
+			// Reduce viewport size to avoid scrollbars while dragging
 			vp.w -= 2;
 			vp.h -= 2;
 
@@ -325,7 +349,7 @@
 				DOM.add(d.body, 'div', {
 					id : 'mceEventBlocker',
 					'class' : 'mceEventBlocker ' + (t.editor.settings.inlinepopups_skin || 'clearlooks2'),
-					style : {left : vp.x, top : vp.y, width : vp.w - 20, height : vp.h - 20, zIndex : 20001}
+					style : {left : vp.x, top : vp.y, zIndex : t.zIndex + 1}
 				});
 				eb = new Element('mceEventBlocker');
 				eb.update();
@@ -442,7 +466,14 @@
 		},
 
 		close : function(win, id) {
-			var t = this, w, d = document, ix = 0, fw;
+			var t = this, w, d = DOM.doc, ix = 0, fw, id;
+
+			id = t._findId(id || win);
+
+			t.count--;
+
+			if (t.count == 0)
+				DOM.remove('mceModalBlocker');
 
 			// Probably not inline
 			if (!id && win) {
@@ -454,6 +485,8 @@
 				t.onClose.dispatch(t);
 				Event.remove(d, 'mousedown', w.mousedownFunc);
 				Event.remove(d, 'click', w.clickFunc);
+				Event.clear(id);
+				Event.clear(id + '_ifr');
 
 				DOM.setAttrib(id + '_ifr', 'src', 'javascript:""'); // Prevent leak
 				w.element.remove();
@@ -472,8 +505,13 @@
 			}
 		},
 
-		setTitle : function(ti, id) {
-			DOM.get(id + '_title').innerHTML = DOM.encode(ti);
+		setTitle : function(w, ti) {
+			var e;
+
+			w = this._findId(w);
+
+			if (e = DOM.get(w + '_title'))
+				e.innerHTML = DOM.encode(ti);
 		},
 
 		alert : function(txt, cb, s) {
@@ -515,6 +553,24 @@
 		},
 
 		// Internal functions
+
+		_findId : function(w) {
+			var t = this;
+
+			if (typeof(w) == 'string')
+				return w;
+
+			each(t.windows, function(wo) {
+				var ifr = DOM.get(wo.id + '_ifr');
+
+				if (ifr && w == ifr.contentWindow) {
+					w = wo.id;
+					return false;
+				}
+			});
+
+			return w;
+		},
 
 		_fixIELayout : function(id, s) {
 			var w, img;

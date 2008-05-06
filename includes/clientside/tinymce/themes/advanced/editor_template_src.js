@@ -1,12 +1,12 @@
 /**
- * $Id: editor_template_src.js 641 2008-02-26 17:01:30Z spocke $
+ * $Id: editor_template_src.js 829 2008-04-30 14:35:32Z spocke $
  *
  * @author Moxiecode
  * @copyright Copyright © 2004-2008, Moxiecode Systems AB, All rights reserved.
  */
 
 (function() {
-	var DOM = tinymce.DOM, Event = tinymce.dom.Event, extend = tinymce.extend, each = tinymce.each, Cookie = tinymce.util.Cookie, lastExtID;
+	var DOM = tinymce.DOM, Event = tinymce.dom.Event, extend = tinymce.extend, each = tinymce.each, Cookie = tinymce.util.Cookie, lastExtID, explode = tinymce.explode;
 
 	// Tell it to load theme specific language pack(s)
 	tinymce.ThemeManager.requireLangPack('advanced');
@@ -55,8 +55,8 @@
 		stateControls : ['bold', 'italic', 'underline', 'strikethrough', 'bullist', 'numlist', 'justifyleft', 'justifycenter', 'justifyright', 'justifyfull', 'sub', 'sup', 'blockquote'],
 
 		init : function(ed, url) {
-			var t = this, s;
-
+			var t = this, s, v;
+	
 			t.editor = ed;
 			t.url = url;
 			t.onResolveName = new tinymce.util.Dispatcher(this);
@@ -78,7 +78,7 @@
 				theme_advanced_resizing_use_cookie : 1
 			}, ed.settings);
 
-			if (s.theme_advanced_path_location)
+			if ((v = s.theme_advanced_path_location) && v != 'none')
 				s.theme_advanced_statusbar_location = s.theme_advanced_path_location;
 
 			if (s.theme_advanced_statusbar_location == 'none')
@@ -87,7 +87,9 @@
 			// Init editor
 			ed.onInit.add(function() {
 				ed.onNodeChange.add(t._nodeChanged, t);
-				ed.dom.loadCSS(ed.baseURI.toAbsolute("themes/advanced/skins/" + ed.settings.skin + "/content.css"));
+
+				if (ed.settings.content_css !== false)
+					ed.dom.loadCSS(ed.baseURI.toAbsolute("themes/advanced/skins/" + ed.settings.skin + "/content.css"));
 			});
 
 			ed.onSetProgressState.add(function(ed, b, ti) {
@@ -179,15 +181,17 @@
 				}
 			});
 
-			each(ed.getParam('theme_advanced_styles', '', 'hash'), function(v, k) {
-				if (v)
-					c.add(t.editor.translate(k), v);
-			});
+			if (c) {
+				each(ed.getParam('theme_advanced_styles', '', 'hash'), function(v, k) {
+					if (v)
+						c.add(t.editor.translate(k), v);
+				});
 
-			c.onPostRender.add(function(ed, n) {
-				Event.add(n, 'focus', t._importClasses, t);
-				Event.add(n, 'mousedown', t._importClasses, t);
-			});
+				c.onPostRender.add(function(ed, n) {
+					Event.add(n, 'focus', t._importClasses, t);
+					Event.add(n, 'mousedown', t._importClasses, t);
+				});
+			}
 
 			return c;
 		},
@@ -196,16 +200,17 @@
 			var c, t = this, ed = t.editor;
 
 			c = ed.controlManager.createListBox('fontselect', {title : 'advanced.fontdefault', cmd : 'FontName'});
-
-			each(ed.getParam('theme_advanced_fonts', t.settings.theme_advanced_fonts, 'hash'), function(v, k) {
-				c.add(ed.translate(k), v, {style : v.indexOf('dings') == -1 ? 'font-family:' + v : ''});
-			});
+			if (c) {
+				each(ed.getParam('theme_advanced_fonts', t.settings.theme_advanced_fonts, 'hash'), function(v, k) {
+					c.add(ed.translate(k), v, {style : v.indexOf('dings') == -1 ? 'font-family:' + v : ''});
+				});
+			}
 
 			return c;
 		},
 
 		_createFontSizeSelect : function() {
-			var c, t = this, lo = [
+			var t = this, ed = t.editor, c, lo = [
 				"1 (8 pt)",
 				"2 (10 pt)",
 				"3 (12 pt)",
@@ -215,11 +220,12 @@
 				"7 (36 pt)"
 			], fz = [8, 10, 12, 14, 18, 24, 36];
 
-			c = t.editor.controlManager.createListBox('fontsizeselect', {title : 'advanced.font_size', cmd : 'FontSize'});
-
-			each(t.settings.theme_advanced_font_sizes.split(','), function(v) {
-				c.add(lo[parseInt(v) - 1], v, {'style' : 'font-size:' + fz[v - 1] + 'pt', 'class' : 'mceFontSize' + v});
-			});
+			c = ed.controlManager.createListBox('fontsizeselect', {title : 'advanced.font_size', cmd : 'FontSize'});
+			if (c) {
+				each(ed.getParam('theme_advanced_font_sizes', t.settings.theme_advanced_font_sizes, 'hash'), function(v, k) {
+					c.add(k != v ? k : lo[parseInt(v) - 1], v, {'style' : 'font-size:' + fz[v - 1] + 'pt', 'class' : 'mceFontSize' + v});
+				});
+			}
 
 			return c;
 		},
@@ -244,10 +250,11 @@
 			}, t = this;
 
 			c = t.editor.controlManager.createListBox('formatselect', {title : 'advanced.block', cmd : 'FormatBlock'});
-
-			each(t.settings.theme_advanced_blockformats.split(','), function(v) {
-				c.add(t.editor.translate(fmts[v]), v, {element : v, 'class' : v.indexOf('h') == 0 ? '' : 'mcePreview'});
-			});
+			if (c) {
+				each(t.editor.getParam('theme_advanced_blockformats', t.settings.theme_advanced_blockformats, 'hash'), function(v, k) {
+					c.add(t.editor.translate(k != v ? k : fmts[v]), v, {'class' : 'mce_formatPreview mce_' + v});
+				});
+			}
 
 			return c;
 		},
@@ -331,7 +338,7 @@
 			n = o.targetNode;
 
 			// Add classes to first and last TRs
-			nl = sc.rows;
+			nl = DOM.stdMode ? sc.getElementsByTagName('tr') : sc.rows; // Quick fix for IE 8
 			DOM.addClass(nl[0], 'mceFirst');
 			DOM.addClass(nl[nl.length - 1], 'mceLast');
 
@@ -427,6 +434,14 @@
 			DOM.setStyles(e, {width : w, height : h});
 		},
 
+		destroy : function() {
+			var id = this.editor.id;
+
+			Event.clear(id + '_resize');
+			Event.clear(id + '_path_row');
+			Event.clear(id + '_external_close');
+		},
+
 		// Internal functions
 
 		_simpleLayout : function(s, tb, o, p) {
@@ -501,10 +516,10 @@
 			dc = s.theme_advanced_containers_default_class || '';
 			da = s.theme_advanced_containers_default_align || 'center';
 
-			each((s.theme_advanced_containers || '').split(','), function(c, i) {
+			each(explode(s.theme_advanced_containers || ''), function(c, i) {
 				var v = s['theme_advanced_container_' + c] || '';
 
-				switch (c.toLowerCase()) {
+				switch (v.toLowerCase()) {
 					case 'mceeditor':
 						n = DOM.add(tb, 'tr');
 						n = ic = DOM.add(n, 'td', {'class' : 'mceIframeContainer'});
@@ -515,7 +530,7 @@
 						break;
 
 					default:
-						a = s['theme_advanced_container_' + c + '_align'].toLowerCase();
+						a = (s['theme_advanced_container_' + c + '_align'] || da).toLowerCase();
 						a = 'mce' + t._ufirst(a);
 
 						n = DOM.add(DOM.add(tb, 'tr'), 'td', {
@@ -538,7 +553,7 @@
 			if (s.theme_advanced_disable && !t._disabled) {
 				di = {};
 
-				each(s.theme_advanced_disable.split(','), function(v) {
+				each(explode(s.theme_advanced_disable), function(v) {
 					di[v] = 1;
 				});
 
@@ -546,7 +561,7 @@
 			} else
 				di = t._disabled;
 
-			each(v.split(','), function(n) {
+			each(explode(v), function(n) {
 				var c;
 
 				if (di && di[n])
@@ -625,10 +640,10 @@
 							return;
 
 						if (s.theme_advanced_resize_horizontal)
-							c.style.width = o.cw + 'px';
+							c.style.width = Math.max(10, o.cw) + 'px';
 
-						c.style.height = o.ch + 'px';
-						DOM.get(ed.id + '_ifr').style.height = (parseInt(o.ch) + t.deltaHeight) + 'px';
+						c.style.height = Math.max(10, o.ch) + 'px';
+						DOM.get(ed.id + '_ifr').style.height = Math.max(10, parseInt(o.ch) + t.deltaHeight) + 'px';
 					});
 				}
 
@@ -665,7 +680,7 @@
 						};
 
 						// Start listening
-						mf = Event.add(document, 'mousemove', function(e) {
+						mf = Event.add(DOM.doc, 'mousemove', function(e) {
 							var w, h;
 
 							// Calc delta values
@@ -687,12 +702,12 @@
 							return Event.cancel(e);
 						});
 
-						me = Event.add(document, 'mouseup', function(e) {
+						me = Event.add(DOM.doc, 'mouseup', function(e) {
 							var ifr;
 
 							// Stop listening
-							Event.remove(document, 'mousemove', mf);
-							Event.remove(document, 'mouseup', me);
+							Event.remove(DOM.doc, 'mousemove', mf);
+							Event.remove(DOM.doc, 'mouseup', me);
 
 							c.style.display = '';
 							DOM.remove(p);
@@ -703,10 +718,10 @@
 							ifr = DOM.get(ed.id + '_ifr');
 
 							if (s.theme_advanced_resize_horizontal)
-								c.style.width = (r.w + r.dx) + 'px';
+								c.style.width = Math.max(10, r.w + r.dx) + 'px';
 
-							c.style.height = (r.h + r.dy) + 'px';
-							ifr.style.height = (ifr.clientHeight + r.dy) + 'px';
+							c.style.height = Math.max(10, r.h + r.dy) + 'px';
+							ifr.style.height = Math.max(10, ifr.clientHeight + r.dy) + 'px';
 
 							if (s.theme_advanced_resizing_use_cookie) {
 								Cookie.setHash("TinyMCE_" + ed.id + "_size", {
@@ -782,7 +797,7 @@
 				c.select(ed.queryCommandValue('FontName'));
 
 			if (c = cm.get('fontsizeselect'))
-				c.select(ed.queryCommandValue('FontSize'));
+				c.select('' + ed.queryCommandValue('FontSize'));
 
 			if (s.theme_advanced_path && s.theme_advanced_statusbar_location) {
 				p = DOM.get(ed.id + '_path') || DOM.add(ed.id + '_path_row', 'span', {id : ed.id + '_path'});
@@ -879,7 +894,7 @@
 					pi = DOM.create('a', {'href' : "javascript:;", onmousedown : "return false;", title : ti, 'class' : 'mcePath_' + (de++)}, na);
 
 					if (p.hasChildNodes()) {
-						p.insertBefore(document.createTextNode(' \u00bb '), p.firstChild);
+						p.insertBefore(DOM.doc.createTextNode(' \u00bb '), p.firstChild);
 						p.insertBefore(pi, p.firstChild);
 					} else
 						p.appendChild(pi);
@@ -968,6 +983,10 @@
 		_mceImage : function(ui, val) {
 			var ed = this.editor;
 
+			// Internal image object like a flash placeholder
+			if (ed.dom.getAttrib(ed.selection.getNode(), 'class').indexOf('mceItem') != -1)
+				return;
+
 			ed.windowManager.open({
 				url : tinymce.baseURL + '/themes/advanced/image.htm',
 				width : 355 + parseInt(ed.getLang('advanced.image_delta_width', 0)),
@@ -1004,7 +1023,9 @@
 			var t = this;
 
 			this._mceColorPicker(0, {
+				color: t.fgColor,
 				func : function(co) {
+					t.fgColor = co;
 					t.editor.execCommand('ForeColor', false, co);
 				}
 			});
@@ -1014,7 +1035,9 @@
 			var t = this;
 
 			this._mceColorPicker(0, {
+				color: t.bgColor,
 				func : function(co) {
+					t.bgColor = co;
 					t.editor.execCommand('HiliteColor', false, co);
 				}
 			});
