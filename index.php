@@ -567,9 +567,9 @@
     ob_start();
     
     // Generate an ETag
-    // format: first 10 digits of SHA1 of page name, user id in hex, page timestamp in hex
+    // format: first 10 digits of SHA1 of page name, user id in hex, user and auth levels, page timestamp in hex
     $etag = substr(sha1($paths->namespace . ':' . $paths->page_id), 0, 10) . '-' .
-            dechex($session->user_id) . '-' .
+            "u{$session->user_id}l{$session->user_level}a{$session->auth_level}-" .
             dechex($page_timestamp);
             
     if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )

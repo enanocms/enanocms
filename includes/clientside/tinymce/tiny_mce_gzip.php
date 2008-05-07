@@ -93,6 +93,21 @@
 		$enc = in_array('x-gzip', $encodings) ? "x-gzip" : "gzip";
 		$supportsGzip = true;
 	}
+  
+  // Send an ETag (Enano modification 5/5/2008)
+  if ( isset($cacheKey) )
+  {
+    $etag =& $cacheKey;
+    header("ETag: \"$etag\"");
+    if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
+    {
+      if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
+      {
+        header('HTTP/1.1 304 Not Modified');
+        exit();
+      }
+    }
+  }
 
 	// Use cached file disk cache
 	if ($diskCache && $supportsGzip && file_exists($cacheFile)) {
@@ -138,7 +153,7 @@
 	// Restore loading functions
 	if ($core == "true")
 		$content .= "tinyMCE_GZ.end();";
-
+  
 	// Generate GZIP'd content
 	if ($supportsGzip) {
 		if ($compress) {
