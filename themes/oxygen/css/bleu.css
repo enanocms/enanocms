@@ -544,7 +544,8 @@ input#pageheading {
 }
 
 input[type ^="button"], input[type ^="submit"], button {
-  background-image: url(../images/buttonbg.gif);
+  background-image: url(../images/bleu/sprite-horiz.gif);
+  background-position: 0% -60px;
   background-repeat: repeat-x;
   color: #202020;
 }
@@ -648,7 +649,8 @@ div#ajaxEditContainer pre {
 div.toolbar {
   border: 1px solid #3b619c;
   background-color: #D0D0D0;
-  background-image: url(../images/tb-bkg.gif);
+  background-image: url(../images/bleu/sprite-horiz.gif);
+  background-position: 0 -90px;
   padding: 1px 0;
   height: 22px;
   font-family: arial, sans-serif;
@@ -683,13 +685,14 @@ div.toolbar a {
 div.toolbar a:hover, div.toolbar a:focus {
   border: 1px solid #000080;
   background-color: #ceceed;
-  background-image: url(../images/tb-frg.gif);
+  background-image: url(../images/bleu/sprite-horiz.gif);
+  background-position: 0 -118px;
   color: #000000;
   text-decoration: none;
 }
 div.toolbar a:active {
   background-color: #E0E0E0;
-  background-image: url(../images/tb-psh.gif);
+  background-position: 0 -138px;
 }
 div.toolbar img {
   margin: 0;
