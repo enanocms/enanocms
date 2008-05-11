@@ -17,7 +17,7 @@
 
 var enano_lang = {
   categories: [
-    'meta', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar', 'perm', 'plugin', 'paginate', 'upload', 'tz',
+    'meta', 'page', 'comment', 'onpage', 'etc', 'editor', 'history', 'catedit', 'tags', 'delvote', 'ajax', 'sidebar', 'perm', 'plugin', 'paginate', 'upload', 'tz'
   ],
   strings: {
     meta: {
@@ -47,7 +47,7 @@ var enano_lang = {
       enano_about_lbl_serverplatform: 'Server platform:',
       enano_about_lbl_phpversion: '<a href="http://www.php.net/">PHP</a> version:',
       enano_about_lbl_mysqlversion: '<a href="http://www.mysql.com/">MySQL</a> version:',
-      enano_about_lbl_pgsqlversion: '<a href="http://www.postgresql.org/">PostgreSQL</a> version:',
+      enano_about_lbl_pgsqlversion: '<a href="http://www.postgresql.org/">PostgreSQL</a> version:'
     },
     page: {
       sitedisabled_admin_msg_title: 'The site is currently disabled and thus is only accessible to administrators.',
@@ -180,7 +180,7 @@ var enano_lang = {
                     
       autosuggest_heading: 'Page name matches',
       autosuggest_col_name: 'Page title',
-      autosuggest_col_page_id: 'Page ID',
+      autosuggest_col_page_id: 'Page ID'
     },
     comment: {
       lbl_subject: 'Subject',
@@ -230,7 +230,7 @@ var enano_lang = {
       postform_btn_submit: 'Submit comment',
       
       on_friend_list: 'On your friend list',
-      on_foe_list: 'On your foe list',
+      on_foe_list: 'On your foe list'
     },
     onpage: {
       lbl_pagetools: 'Page tools',
@@ -308,7 +308,7 @@ var enano_lang = {
       filebox_heading_history: 'File history',
       filebox_btn_this_version: 'this ver',
       filebox_btn_revert: 'restore',
-      filebox_btn_current: 'current',
+      filebox_btn_current: 'current'
     },
     editor: {
       err_server: 'There was a problem starting the editor',
@@ -342,7 +342,7 @@ var enano_lang = {
       msg_diff_empty: 'There are no differences between the text in the editor and the current revision of the page.',
       msg_editing_old_revision: 'You are editing an old revision of this page. If you click Save, newer revisions of this page will be undone.',
       msg_have_draft_title: 'A draft copy of this page is available.',
-      msg_have_draft_body: '%author% saved a draft version of this page on %time%. You can <a href="#use_draft" onclick="ajaxEditorUseDraft(); return false;">use the draft copy</a>, or edit the current published version (below). If you edit the published version, the draft copy will remain available, but will not reflect your changes. It is recommended that you edit the draft version instead of editing the published version.',
+      msg_have_draft_body: '%author% saved a draft version of this page on %time%. You can <a href="#use_draft" onclick="ajaxEditorUseDraft(); return false;">use the draft copy</a>, or edit the current published version (below). If you edit the published version, the draft copy will remain available, but will not reflect your changes. It is recommended that you edit the draft version instead of editing the published version. You can also <a href="#delete_draft" onclick="ajaxEditorDeleteDraft(); return false;">discard the draft revision</a>.',
       btn_graphical: 'graphical editor',
       btn_wikitext: 'wikitext editor',
       lbl_edit_summary: 'Brief summary of your changes:',
@@ -363,11 +363,14 @@ var enano_lang = {
       msg_save_success_title: 'Changes saved',
       msg_save_success_body: 'Your changes to this page have been saved. Redirecting...',
       reversion_edit_summary: 'Undid %undo_count% revision(s) by %current_author% to revision %last_rev_id% by %old_author%',
+      msg_confirm_delete_draft_title: 'Delete the draft revision?',
+      msg_confirm_delete_draft_body: 'This will discard the saved draft version of this page.',
+      btn_delete_draft: 'Delete draft',
       
       msg_captcha_pleaseenter: 'Please enter the code shown in the image to the right into the text box. This process helps to ensure that this page is not being edited by an automated bot. If the image to the right is illegible, you can regenerate it by clicking on the image (only works if your browser supports Javascript).',
       msg_captcha_blind: 'If you are visually impaired or otherwise cannot read the text shown to the right, please contact the site management and they will be able to make your requested edits.',
       lbl_field_captcha: 'Visual confirmation',
-      lbl_field_captcha_code: 'Code:',
+      lbl_field_captcha_code: 'Code:'
     },
     history: {
       summary_clearlogs: 'Automatic backup created when logs were purged',
@@ -402,7 +405,7 @@ var enano_lang = {
       log_delete: 'Deleted page',
       log_uploadnew: 'Uploaded new file version',
       lbl_comparingrevisions: 'Comparing revisions:',
-      summary_none_given: 'No edit summary provided.',
+      summary_none_given: 'No edit summary provided.'
     },
     catedit: {
       title: 'Select which categories this page should be included in.',
@@ -410,7 +413,7 @@ var enano_lang = {
       catbox_lbl_categories: 'Categories:',
       catbox_lbl_uncategorized: '(Uncategorized)',
       catbox_link_edit: 'edit categorization',
-      catbox_link_showcategorization: 'show page categorization',
+      catbox_link_showcategorization: 'show page categorization'
     },
     tags: {
       catbox_link: 'show page tags',
@@ -418,14 +421,14 @@ var enano_lang = {
       lbl_no_tags: 'No tags on this page',
       btn_add_tag: '(add a tag)',
       lbl_add_tag: 'Add a tag:',
-      btn_add: '+ Add',
+      btn_add: '+ Add'
     },
     delvote: {
       lbl_votes_one: 'There is one user that thinks this page should be deleted.',
       lbl_votes_plural: 'There are %num_users% users that think this page should be deleted.',
       lbl_users_that_voted: 'Users that voted:',
       btn_deletepage: 'Delete page',
-      btn_resetvotes: 'Reset votes',
+      btn_resetvotes: 'Reset votes'
     },
     ajax: {
       // Client-side messages
@@ -465,7 +468,7 @@ var enano_lang = {
       delvote_already_voted: 'It appears that you have already voted to have this page deleted.',
       delvote_reset_success: 'The number of votes for having this page deleted has been reset to zero.',
       password_success: 'The password for this page has been set.',
-      password_disable_success: 'The password for this page has been disabled.',
+      password_disable_success: 'The password for this page has been disabled.'
     },
     sidebar: {
       title_navigation: 'Navigation',
@@ -490,7 +493,7 @@ var enano_lang = {
       btn_login: 'Log in',
       btn_logout: 'Log out',
       btn_changestyle: 'Change theme',
-      btn_recent_changes: 'Recent edits',
+      btn_recent_changes: 'Recent edits'
     },
     perm: {
       read: 'Read page(s)',
@@ -524,7 +527,7 @@ var enano_lang = {
       html_in_pages: 'Embed unrestricted HTML in pages',
       php_in_pages: 'Embed PHP code in pages',
       custom_user_title: 'Use a custom user title',
-      edit_acl: 'Edit access control lists',
+      edit_acl: 'Edit access control lists'
     },
     plugin: {
       specialadmin_title: 'Runt - the Enano administration panel',
@@ -546,7 +549,7 @@ var enano_lang = {
       specialuserprefs_title: 'User control panel',
       specialuserprefs_desc: 'Provides the page Special:Preferences.',
       specialrecentchanges_title: 'Recent changes interface',
-      specialrecentchanges_desc: 'Provides the page Special:RecentChanges, which is used to view recent modifications to pages on the site.',
+      specialrecentchanges_desc: 'Provides the page Special:RecentChanges, which is used to view recent modifications to pages on the site.'
     },
     paginate: {
       lbl_page: 'Page:',
@@ -556,7 +559,7 @@ var enano_lang = {
       btn_next: 'Next',
       lbl_goto_page: 'Go to page:',
       err_bad_page_title: 'Invalid entry',
-      err_bad_page_body: 'Please enter a page number between 1 and %max%.',
+      err_bad_page_body: 'Please enter a page number between 1 and %max%.'
     },
     upload: {
       err_disabled_site: 'File uploads are disabled this website.',
@@ -584,7 +587,7 @@ var enano_lang = {
       btn_upload: 'Upload file',
       
       err_not_found_title: 'File not found',
-      err_not_found_body: 'The file "%filename%" cannot be found.',
+      err_not_found_body: 'The file "%filename%" cannot be found.'
     },
     tz: {
       // Thanks to phpBB for this timezone data.
@@ -668,7 +671,7 @@ var enano_lang = {
       title_13: '[UTC + 13] Tonga Time, Phoenix Islands Time',
       title_14: '[UTC + 14] Line Island Time',
       // This is a JSON string that lists all the timezones that are defined here.
-      list: '{"n12":-12,"n11":-11,"n10":-10,"n9p5":-9.5,"n9":-9,"n8":-8,"n7":-7,"n6":-6,"n5":-5,"n4":-4,"n3p5":-3.5,"n3":-3,"n2":-2,"n1":-1,"0":0,"1":1,"2":2,"3":3,"3p5":3.5,"4":4,"4p5":4.5,"5":5,"5p5":5.5,"5p75":5.75,"6":6,"6p5":6.5,"7":7,"8":8,"8p75":8.75,"9":9,"9p5":9.5,"10":10,"10p5":10.5,"11":11,"11p5":11.5,"12":12,"12p75":12.75,"13":13,"14":14}',
+      list: '{"n12":-12,"n11":-11,"n10":-10,"n9p5":-9.5,"n9":-9,"n8":-8,"n7":-7,"n6":-6,"n5":-5,"n4":-4,"n3p5":-3.5,"n3":-3,"n2":-2,"n1":-1,"0":0,"1":1,"2":2,"3":3,"3p5":3.5,"4":4,"4p5":4.5,"5":5,"5p5":5.5,"5p75":5.75,"6":6,"6p5":6.5,"7":7,"8":8,"8p75":8.75,"9":9,"9p5":9.5,"10":10,"10p5":10.5,"11":11,"11p5":11.5,"12":12,"12p75":12.75,"13":13,"14":14}'
     },
     etc: {
       redirect_title: 'Redirecting...',
@@ -710,7 +713,7 @@ var enano_lang = {
       unit_gigabytes_short: 'GB',
       unit_terabytes_short: 'TB',
       unit_pixels: 'pixels',
-      unit_pixels_short: 'px',
+      unit_pixels_short: 'px'
     }
   }
 };

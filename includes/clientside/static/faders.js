@@ -121,7 +121,7 @@ function enlighten(nofade)
  * Methods:
  *   destroy: kills the running message box
  * Example:
- *   var my_message = new messagebox(MB_OK|MB_ICONSTOP, 'Error logging in', 'The username and/or password is incorrect. Please check the username and retype your password');
+ *   var my_message = new MessageBox(MB_OK|MB_ICONSTOP, 'Error logging in', 'The username and/or password is incorrect. Please check the username and retype your password');
  *   my_message.onclick['OK'] = function() {
  *       document.getElementById('password').value = '';
  *     };
@@ -135,7 +135,7 @@ function enlighten(nofade)
 var mb_current_obj;
 var mb_previously_had_darkener = false;
 
-function messagebox(type, title, message)
+function MessageBox(type, title, message)
 {
   var y = getScrollOffset();
   
@@ -360,6 +360,8 @@ function messagebox(type, title, message)
   mb_current_obj = this;
 }
 
+var messagebox = MessageBox;
+
 function mb_runFlyIn()
 {
   var mydiv = document.getElementById('messageBox');
@@ -405,7 +407,7 @@ function messagebox_click(obj, mb)
 
 function testMessageBox()
 {
-  mb = new messagebox(MB_OKCANCEL|MB_ICONINFORMATION, 'Javascripted dynamic message boxes', 'This is soooooo coool, now if only document.createElement() worked in IE!<br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text');
+  mb = new MessageBox(MB_OKCANCEL|MB_ICONINFORMATION, 'Javascripted dynamic message boxes', 'This is soooooo coool, now if only document.createElement() worked in IE!<br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text');
   mb.onclick['OK'] = function()
     {
       alert('You clicked OK!');
@@ -762,7 +764,7 @@ function changeOpac(opacity, id) {
 
 function mb_logout()
 {
-  var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title'), $lang.get('user_logout_confirm_body'));
+  var mb = new MessageBox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title'), $lang.get('user_logout_confirm_body'));
   mb.onclick['Yes'] = function()
     {
       window.location = makeUrlNS('Special', 'Logout/' + title);

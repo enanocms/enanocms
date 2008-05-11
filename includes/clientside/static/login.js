@@ -93,7 +93,7 @@ function ajaxLoginInit(call_on_finish, user_level)
   logindata = {};
   
   var title = ( user_level > USER_LEVEL_MEMBER ) ? $lang.get('user_login_ajax_prompt_title_elev') : $lang.get('user_login_ajax_prompt_title');
-  logindata.mb_object = new messagebox(MB_OKCANCEL | MB_ICONLOCK, title, '');
+  logindata.mb_object = new MessageBox(MB_OKCANCEL | MB_ICONLOCK, title, '');
   
   logindata.mb_object.onclick['Cancel'] = function()
   {
@@ -338,7 +338,7 @@ function ajaxLoginProcessResponse(response)
   {
     logindata.mb_object.destroy();
     var error_msg = $lang.get('user_' + ( response.error.toLowerCase() ));
-    new messagebox(MB_ICONSTOP | MB_OK, $lang.get('user_err_login_generic_title'), error_msg);
+    new MessageBox(MB_ICONSTOP | MB_OK, $lang.get('user_err_login_generic_title'), error_msg);
     return false;
   }
   // Main mode switch

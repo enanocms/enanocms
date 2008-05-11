@@ -14,7 +14,7 @@ var enano_lang = {
   categories: [
     'meta', 'adm', 'acl', 'adminusers',
     'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acplm', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl',
-    'acpbc', 'acplo', 'acptm', 'sbedit',
+    'acpbc', 'acplo', 'acptm', 'acpur', 'sbedit',
   ],
   strings: {
     meta: {
@@ -32,6 +32,7 @@ var enano_lang = {
       acptm: 'ACP: Theme manager',
       acppg: 'ACP: Page groups',
       acpum: 'ACP: User management',
+      acpur: 'ACP: User rank management',
       acpug: 'ACP: User group management',
       acpcp: 'ACP: COPPA support',
       acpmm: 'ACP: Mass e-mail',
@@ -67,6 +68,7 @@ var enano_lang = {
       page_user_groups: 'Edit user groups',
       page_coppa: 'COPPA support',
       page_mass_email: 'Mass e-mail',
+      page_user_ranks: 'User ranks and titles',
       
       page_security_log: 'Security log',
       page_ban_control: 'Ban control',
@@ -852,6 +854,8 @@ var enano_lang = {
       field_message: 'Message:',
       btn_send: 'Send message',
       msg_send_takeawhile: 'Please be warned: it may take a LONG time to send this message. <b>Please do not stop the script until the process is finished.</b>',
+    },
+    acpur: {
     },
     acpsl: {
       heading_main: 'System security log',

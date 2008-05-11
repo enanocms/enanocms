@@ -133,7 +133,7 @@ function handle_invalid_json(response, customerror)
   a.id = 'invalidjson_link';
   a.onclick = function()
   {
-    var mb = new messagebox(MB_YESNO | MB_ICONEXCLAMATION, 'Do you really want to view this response as HTML?', 'If the response was changed during transmission to include malicious code, you may be allowing that malicious code to run by viewing the response as HTML. Only do this if you have reviewed the response text and have found no suspicious code in it.');
+    var mb = new MessageBox(MB_YESNO | MB_ICONEXCLAMATION, 'Do you really want to view this response as HTML?', 'If the response was changed during transmission to include malicious code, you may be allowing that malicious code to run by viewing the response as HTML. Only do this if you have reviewed the response text and have found no suspicious code in it.');
     mb.onclick['Yes'] = function()
     {
       var html = $dynano('invalidjson_link').object._resp;
@@ -351,7 +351,7 @@ function ajaxRenameSubmit(obj)
         {
           miniPromptDestroy(box, true);
           ajaxRenameDoClientTransform(newname);
-          new messagebox( MB_OK|MB_ICONINFORMATION, $lang.get('ajax_rename_success_title'), $lang.get('ajax_rename_success_body', { page_name_new: newname }) );
+          new MessageBox( MB_OK|MB_ICONINFORMATION, $lang.get('ajax_rename_success_title'), $lang.get('ajax_rename_success_body', { page_name_new: newname }) );
           mb_previously_had_darkener = false;
         }
         else
@@ -770,7 +770,7 @@ function ajaxChangeStyle()
   inner_html +=      ENANO_THEME_LIST;
   inner_html += '  </select>';
   inner_html += '</label></p>';
-  var chtheme_mb = new messagebox(MB_OKCANCEL|MB_ICONQUESTION, $lang.get('ajax_changestyle_title'), inner_html);
+  var chtheme_mb = new MessageBox(MB_OKCANCEL|MB_ICONQUESTION, $lang.get('ajax_changestyle_title'), inner_html);
   chtheme_mb.onbeforeclick['OK'] = ajaxChangeStyleComplete;
 }
 
@@ -1333,7 +1333,7 @@ var keepalive_onload = function()
 
 function aboutKeepAlive()
 {
-  new messagebox(MB_OK|MB_ICONINFORMATION, $lang.get('user_keepalive_info_title'), $lang.get('user_keepalive_info_body'));
+  new MessageBox(MB_OK|MB_ICONINFORMATION, $lang.get('user_keepalive_info_title'), $lang.get('user_keepalive_info_body'));
 }
 
 function ajaxShowCaptcha(code)

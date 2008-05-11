@@ -71,7 +71,8 @@ var initTinyMCE = function(e)
       tinymce_initted = true;
     }
   }
-}
+};
+
 // Safari doesn't fire the init on demand so call it on page load
 if ( is_Safari )
 {
@@ -587,11 +588,11 @@ function ajaxEditorDestroyModalWindow()
   }
 }
 
-function ajaxEditorSave(is_draft)
+function ajaxEditorSave(is_draft, text_override)
 {
   if ( !is_draft )
     ajaxSetEditorLoading();
-  var ta_content = $dynano('ajaxEditArea').getContent();
+  var ta_content = ( text_override ) ? text_override : $dynano('ajaxEditArea').getContent();
   
   if ( !is_draft && ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' ) )
   {
@@ -701,13 +702,27 @@ function ajaxEditorSave(is_draft)
             document.getElementById('ajaxEditArea').needReset = true;
             var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
             var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
-            img.src = scriptPath + '/images/mini-info.png';
-            var d = new Date();
-            var m = String(d.getMinutes());
-            if ( m.length < 2 )
-              m = '0' + m;
-            var time = d.getHours() + ':' + m;
-            lbl.innerHTML = $lang.get('editor_msg_draft_saved', { time: time });
+            if ( response.is_draft == 'delete' )
+            {
+              img.src = scriptPath + '/images/editor/savedraft.gif';
+              lbl.innerHTML = $lang.get('editor_btn_savedraft');
+              
+              var dn = $dynano('ajax_edit_draft_notice').object;
+              if ( dn )
+              {
+                dn.parentNode.removeChild(dn);
+              }
+            }
+            else
+            {
+              img.src = scriptPath + '/images/mini-info.png';
+              var d = new Date();
+              var m = String(d.getMinutes());
+              if ( m.length < 2 )
+                m = '0' + m;
+              var time = d.getHours() + ':' + m;
+              lbl.innerHTML = $lang.get('editor_msg_draft_saved', { time: time });
+            }
           }
           else
           {
@@ -734,6 +749,39 @@ function ajaxEditorSave(is_draft)
         }
       }
     }, true);
+}
+
+// Delete the draft (this is a massive server-side hack)
+function ajaxEditorDeleteDraft()
+{
+  miniPromptMessage({
+      title: $lang.get('editor_msg_confirm_delete_draft_title'),
+      message: $lang.get('editor_msg_confirm_delete_draft_body'),
+      buttons: [
+          {
+            text: $lang.get('editor_btn_delete_draft'),
+            color: 'red',
+            style: {
+              fontWeight: 'bold'
+            },
+            onclick: function() {
+              ajaxEditorDeleteDraftReal();
+              miniPromptDestroy(this);
+            }
+          },
+          {
+            text: $lang.get('etc_cancel'),
+            onclick: function() {
+              miniPromptDestroy(this);
+            }
+          }
+        ]
+    });
+}
+
+function ajaxEditorDeleteDraftReal()
+{
+  return ajaxEditorSave(true, -1);
 }
 
 function ajaxEditorGenPreview()

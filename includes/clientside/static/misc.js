@@ -436,10 +436,10 @@ function sanitize_page_id(page_id)
 
   for ( var i = 0; i < pid_dirty.length; i++ )
   {
-    var char = pid_dirty[i];
-    if ( char == 'X' )
+    var chr = pid_dirty[i];
+    if ( chr == 'X' )
       continue;
-    var cid = char.charCodeAt(0);
+    var cid = chr.charCodeAt(0);
     cid = cid.toString(16).toUpperCase();
     if ( cid.length < 2 )
     {
@@ -456,9 +456,9 @@ function sanitize_page_id(page_id)
 
   for ( var id in pid_chars )
   {
-    var char = pid_chars[id];
+    var chr = pid_chars[id];
     if ( pid_dirty[id] == 'X' )
-      page_id_cleaned += char;
+      page_id_cleaned += chr;
     else
       page_id_cleaned += pid_dirty[id];
   }

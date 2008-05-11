@@ -246,11 +246,11 @@
     case "savepage_json":
       header('Content-type: application/json');
       if ( !isset($_POST['r']) )
-        die('Invalid request [1]');
+        die('Invalid request');
       
       $request = enano_json_decode($_POST['r']);
       if ( !isset($request['src']) || !isset($request['summary']) || !isset($request['minor_edit']) || !isset($request['time']) || !isset($request['draft']) )
-        die('Invalid request [2]<pre>' . htmlspecialchars(print_r($request, true)) . '</pre>');
+        die('Invalid request');
       
       $time = intval($request['time']);
       
@@ -260,35 +260,57 @@
         // The user wants to save a draft version of the page.
         //
         
-        // Delete any draft copies if they exist
-        $q = $db->sql_query('DELETE FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
-                               AND page_id = \'' . $db->escape($paths->page_id) . '\'
-                               AND namespace = \'' . $db->escape($paths->namespace) . '\'
-                               AND is_draft = 1;');
-        if ( !$q )
-          $db->die_json();
-        
-        $src = RenderMan::preprocess_text($request['src'], false, false);
-        
-        // Save the draft
-        $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs ( log_type, action, page_id, namespace, author, edit_summary, page_text, is_draft, time_id )
-                               VALUES (
-                                 \'page\',
-                                 \'edit\',
-                                 \'' . $db->escape($paths->page_id) . '\',
-                                 \'' . $db->escape($paths->namespace) . '\',
-                                 \'' . $db->escape($session->username) . '\',
-                                 \'' . $db->escape($request['summary']) . '\',
-                                 \'' . $db->escape($src) . '\',
-                                 1,
-                                 ' . time() . '
-                               );');
-        
-        // Done!
-        $return = array(
-            'mode' => 'success',
-            'is_draft' => true
+        // Validate permissions
+        if ( !$session->get_permissions('edit_page') )
+        {
+          $return = array(
+            'mode' => 'error',
+            'error' => 'access_denied'
           );
+        }
+        else
+        {
+          // Delete any draft copies if they exist
+          $q = $db->sql_query('DELETE FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
+                                 AND page_id = \'' . $db->escape($paths->page_id) . '\'
+                                 AND namespace = \'' . $db->escape($paths->namespace) . '\'
+                                 AND is_draft = 1;');
+          if ( !$q )
+            $db->die_json();
+          
+          // are we just supposed to delete the draft?
+          if ( $request['src'] === -1 )
+          {
+            $return = array(
+              'mode' => 'success',
+              'is_draft' => 'delete'
+            );
+          }
+          else
+          {
+            $src = RenderMan::preprocess_text($request['src'], false, false);
+            
+            // Save the draft
+            $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs ( log_type, action, page_id, namespace, author, edit_summary, page_text, is_draft, time_id )
+                                   VALUES (
+                                     \'page\',
+                                     \'edit\',
+                                     \'' . $db->escape($paths->page_id) . '\',
+                                     \'' . $db->escape($paths->namespace) . '\',
+                                     \'' . $db->escape($session->username) . '\',
+                                     \'' . $db->escape($request['summary']) . '\',
+                                     \'' . $db->escape($src) . '\',
+                                     1,
+                                     ' . time() . '
+                                   );');
+            
+            // Done!
+            $return = array(
+                'mode' => 'success',
+                'is_draft' => true
+              );
+          }
+        }
       }
       else
       {

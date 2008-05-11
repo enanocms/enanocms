@@ -164,7 +164,7 @@ function ajaxUserNameComplete(o)
         var response = String(ajax.responseText) + ' ';
         if ( response.substr(0,1) != '{' )
         {
-          new messagebox(MB_OK|MB_ICONSTOP, 'Invalid response', 'Invalid or unexpected JSON response from server:<pre>' + ajax.responseText + '</pre>');
+          new MessageBox(MB_OK|MB_ICONSTOP, 'Invalid response', 'Invalid or unexpected JSON response from server:<pre>' + ajax.responseText + '</pre>');
           return false;
         }
         

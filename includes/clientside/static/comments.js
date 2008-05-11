@@ -53,7 +53,7 @@ function ajaxComments(parms)
           materializeComment(response);
           break;
         case 'error':
-          new messagebox(MB_OK|MB_ICONSTOP, ( response.title ? response.title : 'Error fetching comment data' ), response.error);
+          new MessageBox(MB_OK|MB_ICONSTOP, ( response.title ? response.title : 'Error fetching comment data' ), response.error);
           break;
         default:
           alert(ajax.responseText);
@@ -346,12 +346,12 @@ function submitComment()
   }
   if ( subj == '' )
   {
-    new messagebox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter a subject for your comment.');
+    new MessageBox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter a subject for your comment.');
     return false;
   }
   if ( text == '' )
   {
-    new messagebox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter some text for the body of your comment .');
+    new MessageBox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter some text for the body of your comment .');
     return false;
   }
   var req = {
