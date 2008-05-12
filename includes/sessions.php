@@ -171,6 +171,13 @@ class sessionManager {
   var $sw_timed_out = false;
   
   /**
+   * Token appended to some important forms to prevent CSRF.
+   * @var string
+   */
+  
+  var $csrf_token = false;
+  
+  /**
    * Switch to track if we're started or not.
    * @access private
    * @var bool
@@ -497,6 +504,8 @@ class sessionManager {
           $this->reg_time =      $userdata['reg_time'];
         }
         $this->auth_level =    USER_LEVEL_MEMBER;
+        // generate an anti-CSRF token
+        $this->csrf_token =    sha1($this->username . $this->sid . $this->user_id);
         if(!isset($template->named_theme_list[$this->theme]))
         {
           if($this->compat || !is_object($template))
@@ -1072,7 +1081,7 @@ class sessionManager {
   }
   
   /**
-   * Attempts to log in using the old table structure and algorithm.
+   * Attempts to log in using the old table structure and algorithm. This is for upgrades from old 1.0.x releases.
    * @param string $username
    * @param string $password This should be an MD5 hash
    * @return string 'success' if successful, or error message on failure
@@ -2743,7 +2752,160 @@ class sessionManager {
     $object =& $objcache[$namespace][$page_id];
     
     return $object;
+  }
+  
+  /**
+   * Fetch the permissions that apply to an arbitrary user for the page specified. The object you get will have the get_permissions method
+   * and several other abilities.
+   * @param int|string $user_id_or_name; user ID *or* username of the user
+   * @param string $page_id; if null, will be default effective permissions. 
+   * @param string $namespace; if null, will be default effective permissions.
+   * @return object
+   */
+  
+  function fetch_page_acl_user($user_id_or_name, $page_id, $namespace)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
     
+    // cache user info
+    static $user_info_cache = null;
+    
+    if ( isset($user_info_cache[$user_id_or_name]) )
+    {
+      $user_id =& $user_info_cache[$user_id_or_name]['user_id'];
+      $groups =& $user_info_cache[$user_id_or_name]['groups'];
+    }
+    else
+    {
+      $uid_column = ( is_int($user_id_or_name) ) ? "user_id = $user_id_or_name" : "username = '" . $db->escape($user_id_or_name) . "'";
+      $q = $db->sql_query('SELECT u.user_id, m.group_id, g.group_name FROM ' . table_prefix . "users AS u\n"
+                        . "  LEFT JOIN " . table_prefix . "group_members AS m\n"
+                        . "    ON ( ( u.user_id = m.user_id AND m.pending = 0 ) OR m.member_id IS NULL )\n"
+                        . "  LEFT JOIN " . table_prefix . "groups AS g\n"
+                        . "    ON ( g.group_id = m.group_id )\n"
+                        . "  WHERE $uid_column;");
+      if ( !$q )
+        $db->_die();
+      
+      $groups = array();
+      
+      if ( $row = $db->fetchrow() )
+      {
+        $user_id = intval($row['user_id']);
+        if ( $row['group_id'] )
+        {
+          do
+          {
+            $groups[ intval($row['group_id'] ) ] = $row['group_name'];
+          }
+          while ( $row = $db->fetchrow() );
+        }
+        $db->free_result();
+      }
+      else
+      {
+        $db->free_result();
+        throw new Exception('Unknown user ID or username');
+      }
+      
+      $user_info_cache[$user_id_or_name] = array(
+          'user_id' => $user_id,
+          'groups' => $groups
+        );
+    }
+    
+    // cache base permissions
+    static $base_cache = array();
+    if ( !isset($base_cache[$user_id_or_name]) )
+    {
+      $base_cache[$user_id_or_name] = $this->acl_types;
+      $current_perms =& $base_cache[$user_id_or_name];
+      $current_perms['__resolve_table'] = array();
+      
+      $bs = 'SELECT rules, target_type, target_id, rule_id, page_id, namespace FROM '.table_prefix.'acl' . "\n"
+             . '  WHERE page_id IS NULL AND namespace IS NULL AND' . "\n"
+             . '  ( ';
+    
+      $q = Array();
+      $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id= ' . $user_id . ' )';
+      if(count($groups) > 0)
+      {
+        foreach($groups as $g_id => $g_name)
+        {
+          $q[] = '( target_type='.ACL_TYPE_GROUP.' AND target_id='.intval($g_id).' )';
+        }
+      }
+      $bs .= implode(" OR \n    ", $q) . " ) \n  ORDER BY target_type ASC, target_id ASC;";
+      $q = $this->sql($bs);
+      foreach ( $this->acl_types as $perm_type => $_ )
+      {
+        // init the resolver table with blanks
+        $current_perms['__resolve_table'][$perm_type] = array(
+            'src' => ACL_INHERIT_GLOBAL_EVERYONE,
+            'rule_id' => -1
+          );
+      }
+      if ( $row = $db->fetchrow() )
+      {
+        do {
+          $rules = $this->string_to_perm($row['rules']);
+          $is_everyone = ( $row['target_type'] == ACL_TYPE_GROUP && $row['target_id'] == 1 );
+          // track where these rulings are coming from
+          $src = ( $is_everyone ) ? ACL_INHERIT_GLOBAL_EVERYONE : ( $row['target_type'] == ACL_TYPE_GROUP ? ACL_INHERIT_GLOBAL_GROUP : ACL_INHERIT_GLOBAL_USER );
+          foreach ( $rules as $perm_type => $_ )
+          {
+            $current_perms['__resolve_table'][$perm_type] = array(
+                'src' => $src,
+                'rule_id' => $row['rule_id']
+              );
+          }
+          // merge it in
+          $current_perms = $this->acl_merge($current_perms, $rules, $is_everyone, $_defaults_used);
+        } while ( $row = $db->fetchrow() );
+      }
+    }
+    
+    // cache of permission objects (to save RAM and SQL queries)
+    static $objcache = array();
+    
+    if ( count($objcache) == 0 )
+    {
+      foreach ( $paths->nslist as $key => $_ )
+      {
+        $objcache[$key] = array();
+      }
+    }
+    
+    if ( !isset($objcache[$namespace][$page_id]) )
+    {
+      $objcache[$namespace][$page_id] = array();
+    }
+    
+    if ( isset($objcache[$namespace][$page_id][$user_id_or_name]) )
+    {
+      return $objcache[$namespace][$page_id][$user_id_or_name];
+    }
+    
+    //if ( !isset( $paths->pages[$paths->nslist[$namespace] . $page_id] ) )
+    //{
+    //  // Page does not exist
+    //  return false;
+    //}
+    
+    $objcache[$namespace][$page_id][$user_id_or_name] = new Session_ACLPageInfo(
+      $page_id,                                        // $page_id, 
+      $namespace,                                      // $namespace,
+      $this->acl_types,                                // $acl_types,
+      $this->acl_descs,                                // $acl_descs,
+      $this->acl_deps,                                 // $acl_deps,
+      $base_cache[$user_id_or_name],                   // $base,
+      $user_info_cache[$user_id_or_name]['user_id'],   // $user_id = null,
+      $user_info_cache[$user_id_or_name]['groups'],    // $groups = null,
+      $base_cache[$user_id_or_name]['__resolve_table'] // $resolve_table = array()
+    );
+    $object =& $objcache[$namespace][$page_id][$user_id_or_name];
+    
+    return $object;
   }
   
   /**
@@ -2898,25 +3060,56 @@ class sessionManager {
    * Merges two ACL arrays. Both parameters should be permission list arrays. The second group takes precedence over the first, but AUTH_DENY always prevails.
    * @param array $perm1 The first set of permissions
    * @param array $perm2 The second set of permissions
+   * @param bool $is_everyone If true, applies exceptions for "Everyone" group
+   * @param array|reference $defaults_used Array that will be filled with default usage data
    * @return array
    */
    
-  function acl_merge($perm1, $perm2)
+  function acl_merge($perm1, $perm2, $is_everyone = false, &$defaults_used)
   {
     $ret = $perm1;
-    foreach ( $perm2 as $type => $level )
+    if ( !is_array(@$defaults_used) )
     {
-      if ( isset( $ret[$type] ) )
-      {
-        if ( $ret[$type] != AUTH_DENY )
-          $ret[$type] = $level;
-      }
-      // else
-      // {
-      //   $ret[$type] = $level;
-      // }
+      $defaults_used = array();
     }
-    return $ret;
+    foreach ( $perm1 as $i => $p )
+    {
+      if ( isset($perm2[$i]) )
+      {
+        if ( $is_everyone && !$defaults_used[$i] )
+          continue;
+        // Decide precedence
+        if ( isset($defaults_used[$i]) )
+        {
+          // echo "$i: default in use, overriding to: {$perm2[$i]}<br />";
+          // Defaults are in use, override
+          
+          // CHANGED - 1.1.4:
+          // For some time this has been intentionally relaxed so that the following
+          // exception is available to Deny permissions:
+          //   If the rule applies to the group "Everyone" on the entire site,
+          //   Deny settings could be overriden.
+          // This is documented at: http://docs.enanocms.org/Help:4.2
+          if ( $perm1[$i] != AUTH_DENY )
+          {
+            $perm1[$i] = $perm2[$i];
+            $defaults_used[$i] = ( $is_everyone );
+          }
+        }
+        else
+        {
+          // echo "$i: default NOT in use";
+          // Defaults are not in use, merge as normal
+          if ( $perm1[$i] != AUTH_DENY )
+          {
+            // echo ", but overriding";
+            $perm1[$i] = $perm2[$i];
+          }
+          // echo "<br />";
+        }
+      }
+    }
+    return $perm1;
   }
   
   /**
@@ -2953,43 +3146,7 @@ class sessionManager {
   
   function acl_merge_with_current($perm, $is_everyone = false, $scope = 2)
   {
-    foreach ( $this->perms as $i => $p )
-    {
-      if ( isset($perm[$i]) )
-      {
-        if ( $is_everyone && !$this->acl_defaults_used[$i] )
-          continue;
-        // Decide precedence
-        if ( isset($this->acl_defaults_used[$i]) )
-        {
-          // echo "$i: default in use, overriding to: {$perm[$i]}<br />";
-          // Defaults are in use, override
-          
-          // CHANGED - 1.1.4:
-          // For some time this has been intentionally relaxed so that the following
-          // exception is available to Deny permissions:
-          //   If the rule applies to the group "Everyone" on the entire site,
-          //   Deny settings could be overriden.
-          // This is documented at: http://docs.enanocms.org/Help:4.2
-          if ( $this->perms[$i] != AUTH_DENY )
-          {
-            $this->perms[$i] = $perm[$i];
-            $this->acl_defaults_used[$i] = ( $is_everyone );
-          }
-        }
-        else
-        {
-          // echo "$i: default NOT in use";
-          // Defaults are not in use, merge as normal
-          if ( $this->perms[$i] != AUTH_DENY )
-          {
-            // echo ", but overriding";
-            $this->perms[$i] = $perm[$i];
-          }
-          // echo "<br />";
-        }
-      }
-    }
+    $this->perms = $this->acl_merge($this->perms, $perm, $is_everyone, $this->acl_defaults_used);
   }
   
   /**
@@ -3658,6 +3815,39 @@ class Session_ACLPageInfo {
   var $wiki_mode = false;
   
   /**
+   * Tracks where permissions were calculated using the ACL_INHERIT_* constants. Layout:
+   * array(
+   *   [permission_name] => array(
+   *       [src] => ACL_INHERIT_*
+   *       [rule_id] => integer
+   *     ),
+   *   ...
+   * )
+   *
+   * @var array
+   */
+  
+  var $perm_resolve_table = array();
+  
+  #
+  # USER PARAMETERS
+  #
+  
+  /**
+   * User ID
+   * @var int
+   */
+  
+  var $user_id = 1;
+  
+  /**
+   * Group membership associative array (group_id => group_name)
+   * @var array
+   */
+  
+  var $groups = array();
+  
+  /**
    * Constructor.
    * @param string $page_id The ID of the page to check
    * @param string $namespace The namespace of the page to check.
@@ -3665,11 +3855,19 @@ class Session_ACLPageInfo {
    * @param array $acl_descs List of human-readable descriptions for permissions (associative)
    * @param array $acl_deps List of dependencies for permissions. For example, viewing history/diffs depends on the ability to read the page.
    * @param array $base What to start with - this is an attempt to reduce the number of SQL queries.
+   * @param int|string $user_id_or_name Username or ID to search for, defaults to current user
+   * @param array $resolve_table Debugging info for tracking where rules came from, defaults to a blank array.
    */
    
-  function Session_ACLPageInfo($page_id, $namespace, $acl_types, $acl_descs, $acl_deps, $base)
+  function __construct($page_id, $namespace, $acl_types, $acl_descs, $acl_deps, $base, $user_id = null, $groups = null, $resolve_table = array())
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // hack
+    if ( isset($base['__resolve_table']) )
+    {
+      unset($base['__resolve_table']);
+    }
     
     $this->acl_deps = $acl_deps;
     $this->acl_types = $acl_types;
@@ -3677,6 +3875,39 @@ class Session_ACLPageInfo {
     
     $this->perms = $acl_types;
     $this->perms = $session->acl_merge_complete($this->perms, $base);
+    
+    $this->perm_resolve_table = array();
+    if ( is_array($resolve_table) )
+      $this->perm_resolve_table = $resolve_table;
+    
+    if ( is_int($user_id) && is_array($groups) )
+    {
+      $this->user_id = $user_id;
+      $this->groups = $groups;
+    }
+    else
+    {
+      $this->user_id = $session->user_id;
+      $this->groups = $session->groups;
+    }
+    
+    $this->page_id = $page_id;
+    $this->namespace = $namespace;
+    
+    $this->__calculate();
+  }
+  
+  /**
+   * Performs the actual permission calculation.
+   * @access private
+   */
+  
+  private function __calculate()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $page_id =& $this->page_id;
+    $namespace =& $this->namespace;
     
     // PAGE group info
     $pg_list = $paths->get_page_groups($page_id, $namespace);
@@ -3687,20 +3918,20 @@ class Session_ACLPageInfo {
     }
     
     // Build a query to grab ACL info
-    $bs = 'SELECT rules,target_type,target_id FROM '.table_prefix.'acl WHERE ' . "\n"
+    $bs = 'SELECT rules,target_type,target_id,page_id,namespace,rule_id FROM '.table_prefix.'acl WHERE ' . "\n"
           . '  ( ';
     $q = Array();
-    $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id='.$session->user_id.' )';
-    if(count($session->groups) > 0)
+    $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id='.$this->user_id.' )';
+    if(count($this->groups) > 0)
     {
-      foreach($session->groups as $g_id => $g_name)
+      foreach($this->groups as $g_id => $g_name)
       {
         $q[] = '( target_type='.ACL_TYPE_GROUP.' AND target_id='.intval($g_id).' )';
       }
     }
     // The reason we're using an ORDER BY statement here is because ACL_TYPE_GROUP is less than ACL_TYPE_USER, causing the user's individual
     // permissions to override group permissions.
-    $bs .= implode(" OR\n    ", $q) . ' ) AND (' . $pg_info . ' page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\' )     
+    $bs .= implode(" OR\n    ", $q) . ' ) AND (' . $pg_info . ' ( page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\' ) )     
       ORDER BY target_type ASC, page_id ASC, namespace ASC;';
     $q = $session->sql($bs);
     if ( $row = $db->fetchrow() )
@@ -3708,6 +3939,25 @@ class Session_ACLPageInfo {
       do {
         $rules = $session->string_to_perm($row['rules']);
         $is_everyone = ( $row['target_type'] == ACL_TYPE_GROUP && $row['target_id'] == 1 );
+        // log where this comes from
+        if ( $row['namespace'] == '__PageGroup' )
+        {
+          $src = ( $is_everyone ) ? ACL_INHERIT_PG_EVERYONE : ( $row['target_type'] == ACL_TYPE_GROUP ? ACL_INHERIT_PG_GROUP : ACL_INHERIT_PG_USER );
+        }
+        else
+        {
+          $src = ( $is_everyone ) ? ACL_INHERIT_LOCAL_EVERYONE : ( $row['target_type'] == ACL_TYPE_GROUP ? ACL_INHERIT_LOCAL_GROUP : ACL_INHERIT_LOCAL_USER );
+        }
+        foreach ( $rules as $perm_type => $perm_value )
+        {
+          if ( $this->perms[$perm_type] == AUTH_DENY )
+            continue;
+          
+          $this->perm_resolve_table[$perm_type] = array(
+              'src' => $src,
+              'rule_id' => $row['rule_id']
+            );
+        }
         $this->acl_merge_with_current($rules, $is_everyone);
       } while ( $row = $db->fetchrow() );
     }

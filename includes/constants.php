@@ -29,6 +29,17 @@ define('ACL_TYPE_GROUP', 1);
 define('ACL_TYPE_USER', 2);
 define('ACL_TYPE_PRESET', 3);
 
+// ACL inheritance debugging info
+define('ACL_INHERIT_GLOBAL_EVERYONE', 9);
+define('ACL_INHERIT_GLOBAL_GROUP', 8);
+define('ACL_INHERIT_GLOBAL_USER', 7);
+define('ACL_INHERIT_PG_EVERYONE', 6);
+define('ACL_INHERIT_PG_GROUP', 5);
+define('ACL_INHERIT_PG_USER', 4);
+define('ACL_INHERIT_LOCAL_EVERYONE', 3);
+define('ACL_INHERIT_LOCAL_GROUP', 2);
+define('ACL_INHERIT_LOCAL_USER', 1);
+
 // ACL color scale minimal shade for red and green ends
 // The lower, the more saturated the color on the scale.
 // Purely cosmetic. 0x0 - 0xFF, 0xFF will basically disable the scale
