@@ -8,6 +8,8 @@ CREATE TABLE {{TABLE_PREFIX}}plugins (
   PRIMARY KEY ( plugin_id )
 ) ENGINE `MyISAM` CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
+ALTER TABLE {{TABLE_PREFIX}}search_index ADD COLUMN word_lcase varchar(64) NOT NULL;
+
 -- User title
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_title varchar(64) DEFAULT NULL;
 ALTER TABLE {{TABLE_PREFIX}}users MODIFY COLUMN user_rank int(12) unsigned DEFAULT NULL;
