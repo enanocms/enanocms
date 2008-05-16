@@ -308,6 +308,8 @@ Sincerely yours,
       publicinfo_field_hobbies: 'Your hobbies:',
       publicinfo_field_email_public: 'E-mail address is public',
       publicinfo_field_email_public_hint: 'If this is checked, your e-mail address will be displayed on your user page. To protect your address from spambots, your e-mail address will be encrypted.',
+      publicinfo_field_jsfx: 'Disable animation effects on pages',
+      publicinfo_field_jsfx_hint: 'If you aren\'t big on eye candy, this can speed up applets like the ACL manager and confirmation dialogs.',
       publicinfo_btn_save: 'Save profile',
       
       // Avatar management

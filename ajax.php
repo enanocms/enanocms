@@ -335,7 +335,7 @@
         }
         
         // Verify captcha, if needed
-        if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
+        if ( false && !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
         {
           if ( !isset($request['captcha_id']) || !isset($request['captcha_code']) )
           {

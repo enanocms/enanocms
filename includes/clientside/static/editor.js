@@ -650,6 +650,7 @@ function ajaxEditorSave(is_draft, text_override)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
+        ajaxUnSetEditorLoading();
         var response = String(ajax.responseText + '');
         if ( response.substr(0, 1) != '{' )
         {
@@ -727,7 +728,6 @@ function ajaxEditorSave(is_draft, text_override)
           else
           {
             // The save was successful; reset flags and make another request for the new page content
-            ajaxUnSetEditorLoading();
             setAjaxLoading();
             editor_open = false;
             enableUnload();

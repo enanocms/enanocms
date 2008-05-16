@@ -811,6 +811,54 @@ class pluginLoader {
     
     return $return;
   }
+  
+  /**
+   * Re-imports the language strings from a plugin.
+   * @param string File name
+   * @return array Enano JSON response protocol
+   */
+  
+  function reimport_plugin_strings($filename, $plugin_list = null)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    if ( !$plugin_list )
+      $plugin_list = $this->get_plugin_list();
+    
+    switch ( true ): case true:
+    
+    // is the plugin in the directory and already installed?
+    if ( !isset($plugin_list[$filename]) || (
+        isset($plugin_list[$filename]) && !$plugin_list[$filename]['installed']
+      ))
+    {
+      $return = array(
+        'mode' => 'error',
+        'error' => 'Invalid plugin specified.',
+      );
+      break;
+    }
+    // get plugin data
+    $dataset =& $plugin_list[$filename];
+    
+    $result = $lang->import_plugin(ENANO_ROOT . '/plugins/' . $filename);
+    if ( $result )
+    {
+      return array(
+        'success' => true
+      );
+    }
+    else
+    {
+      return array(
+        'mode' => 'error',
+        'error' => 'Language API returned error'
+      );
+    }
+    
+    endswitch;
+  }
 }
 
 ?>

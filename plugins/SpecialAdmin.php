@@ -48,6 +48,7 @@ require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
 require(ENANO_ROOT . '/plugins/admin/GroupManager.php');
 require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
 require(ENANO_ROOT . '/plugins/admin/UserManager.php');
+require(ENANO_ROOT . '/plugins/admin/UserRanks.php');
 require(ENANO_ROOT . '/plugins/admin/LangManager.php');
 require(ENANO_ROOT . '/plugins/admin/ThemeManager.php');
 require(ENANO_ROOT . '/plugins/admin/PluginManager.php');

@@ -129,6 +129,7 @@ CREATE TABLE {{TABLE_PREFIX}}users_extra(
   user_job text,
   user_hobbies text,
   email_public smallint NOT NULL DEFAULT 0,
+  disable_js_fx smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ( user_id ) 
 );
 
@@ -204,8 +205,9 @@ CREATE TABLE {{TABLE_PREFIX}}groups(
   group_id SERIAL,
   group_name varchar(64),
   group_type smallint NOT NULL DEFAULT 1,
-  PRIMARY KEY ( group_id ),
-  system_group smallint NOT NULL DEFAULT 0 
+  system_group smallint NOT NULL DEFAULT 0,
+  group_rank int DEFAULT NULL,
+  PRIMARY KEY ( group_id )
 );
 
 CREATE TABLE {{TABLE_PREFIX}}group_members(

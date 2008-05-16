@@ -406,6 +406,7 @@ var enano_lang = {
       btn_enable: 'Enable',
       btn_upgrade: 'Upgrade',
       btn_uninstall: 'Uninstall',
+      btn_reimport: 'Re-import strings',
       
       msg_confirm_uninstall: 'Uninstalling this plugin may cause the loss of data that was created with it. You should only uninstall a plugin if you are certain you\'ll have no further use for it; in fact, you don\'t even need to uninstall a plugin if you\'re deleting it from the filesystem.',
       msg_confirm_install: 'Plugins are not supported by the Enano project and could harm your site if malicious. You should only install plugins from sources that you trust.',

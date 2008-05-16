@@ -5,7 +5,7 @@ var aclPermList = false;
 var aclDataCache = false;
 
 // Can be set to true by slow themes (St. Patty)
-var aclDisableTransitionFX = false;
+var aclDisableTransitionFX = ( is_firefox2 || pref_disable_js_fx ) ? true : false;
 
 function ajaxOpenACLManager(page_id, namespace)
 {

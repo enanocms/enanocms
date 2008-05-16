@@ -128,6 +128,7 @@ CREATE TABLE {{TABLE_PREFIX}}users_extra(
   user_job text,
   user_hobbies text,
   email_public tinyint(1) NOT NULL DEFAULT 0,
+  disable_js_fx tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY ( user_id ) 
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
@@ -203,8 +204,9 @@ CREATE TABLE {{TABLE_PREFIX}}groups(
   group_id mediumint(5) UNSIGNED NOT NULL auto_increment,
   group_name varchar(64),
   group_type tinyint(1) NOT NULL DEFAULT 1,
-  PRIMARY KEY ( group_id ),
-  system_group tinyint(1) NOT NULL DEFAULT 0 
+  system_group tinyint(1) NOT NULL DEFAULT 0,
+  group_rank int(12) unsigned DEFAULT NULL,
+  PRIMARY KEY ( group_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}group_members(

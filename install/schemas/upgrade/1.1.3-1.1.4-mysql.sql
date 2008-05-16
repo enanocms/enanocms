@@ -21,3 +21,9 @@ UPDATE {{TABLE_PREFIX}}users SET user_rank = NULL;
 DELETE FROM {{TABLE_PREFIX}}ranks WHERE rank_id = 4;
 INSERT INTO {{TABLE_PREFIX}}ranks(rank_id, rank_title, rank_style) VALUES
   (4, 'user_rank_guest', '');
+  
+-- Other rank-related columns
+ALTER TABLE {{TABLE_PREFIX}}groups ADD COLUMN group_rank int(12) unsigned DEFAULT NULL;
+
+-- Disable JS effects column
+ALTER TABLE {{TABLE_PREFIX}}users_extra ADD COLUMN disable_js_fx tinyint(1) NOT NULL DEFAULT 0;

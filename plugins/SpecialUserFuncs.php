@@ -2037,6 +2037,8 @@ function page_Special_LangExportJSON()
   var enano_lang = new Object();
 
 enano_lang[{$lang->lang_id}] = " . $lang_strings . ";";
+
+  gzip_output();
   
   exit(0);
 }

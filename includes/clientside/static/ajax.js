@@ -463,7 +463,7 @@ function ajaxResetDelVotes()
           text: $lang.get('ajax_delvote_reset_btn_submit'),
           color: 'red',
           style: {
-            fontWeight: 'bold',
+            fontWeight: 'bold'
           },
           onclick: function(e)
           {

@@ -427,13 +427,20 @@ function miniPrompt(call_on_create)
 {
   if ( document.getElementById('specialLayer_darkener') )
   {
-    var opac = parseFloat(document.getElementById('specialLayer_darkener'));
-    opac = opac * 100;
-    darken(false, opac);
+    if ( document.getElementById('specialLayer_darkener').style.display != 'none' )
+    {
+      var opac = parseFloat(document.getElementById('specialLayer_darkener').style.opacity);
+      opac = opac * 100;
+      darken(aclDisableTransitionFX, opac);
+    }
+    else
+    {
+      darken(aclDisableTransitionFX, 40);
+    }
   }
   else
   {
-    darken(false, 40);
+    darken(aclDisableTransitionFX, 40);
   }
   
   var wrapper = document.createElement('div');
@@ -459,12 +466,19 @@ function miniPrompt(call_on_create)
   var realbody = document.getElementsByTagName('body')[0];
   realbody.appendChild(wrapper);
   
-  fly_in_top(wrapper, true, true);
-  
-  setTimeout(function()
-    {
-      domObjChangeOpac(100, wrapper);
-    }, 40);
+  if ( aclDisableTransitionFX )
+  {
+    domObjChangeOpac(100, wrapper);
+  }
+  else
+  {
+    fly_in_top(wrapper, true, true);
+    
+    setTimeout(function()
+      {
+        domObjChangeOpac(100, wrapper);
+      }, 40);
+  }
 }
 
 /**
@@ -506,12 +520,19 @@ function miniPromptDestroy(obj, nofade)
   // found it
   var parent = obj.parentNode;
   if ( !nofade )
-    enlighten();
-  var timeout = fly_out_top(obj, true, true);
-  setTimeout(function()
-    {
-      parent.removeChild(obj);
-    }, timeout);
+    enlighten(aclDisableTransitionFX);
+  if ( aclDisableTransitionFX )
+  {
+    parent.removeChild(obj);
+  }
+  else
+  {
+    var timeout = fly_out_top(obj, true, true);
+    setTimeout(function()
+      {
+        parent.removeChild(obj);
+      }, timeout);
+  }
 }
 
 /**

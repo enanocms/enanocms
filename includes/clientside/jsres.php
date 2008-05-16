@@ -57,6 +57,7 @@ $full_compress_safe = array(
   'libbigint.js',
   'ajax.js',
   'editor.js',
+  'login.js',
   'acl.js',
   'misc.js',
   'comments.js',
@@ -66,6 +67,7 @@ $full_compress_safe = array(
   'paginate.js',
   'autocomplete.js',
   'md5.js',
+  'enano-lib-basic.js',
   'pwstrength.js',
   'sha256.js',
   'flyin.js',
@@ -132,16 +134,66 @@ $apex = filemtime('includes/clientside/static/enano-lib-basic.js');
 $before_includes = substr($file, 0, $pos_start_includes);
 $after_includes = substr($file, $pos_end_includes);
 
-$everything .= $before_includes;
-$everything .= $after_includes;
+// compress enano-lib-basic
+$libbasic = "$before_includes\n$after_includes";
+$libbasic = jsres_cache_check('enano-lib-basic.js', $libbasic);
+$everything .= $libbasic;
+
+// $everything .= $before_includes;
+// $everything .= $after_includes;
 
 foreach ( $file_list as $js_file )
 {
   $file_contents = file_get_contents("includes/clientside/static/$js_file");
-  $file_md5 = md5($file_contents);
   $time = filemtime("includes/clientside/static/$js_file");
   if ( $time > $apex )
     $apex = $time;
+  
+  $file_contents = jsres_cache_check($js_file, $file_contents);
+  
+  $everything .= "\n\n// $js_file\n";
+  $everything .= "\n" . $file_contents;
+}
+
+// generate ETag
+$etag = base64_encode(hexdecode(sha1($everything)));
+
+if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
+{
+  if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
+  {
+    header('HTTP/1.1 304 Not Modified');
+    exit();
+  }
+}
+
+$everything = str_replace('/* JavaScriptCompressor 0.8 [www.devpro.it], thanks to Dean Edwards for idea [dean.edwards.name] */' . "\r\n", '', $everything);
+
+$date = date('r', $apex);
+header("Date: $date");
+header("Last-Modified: $date");
+header("ETag: \"$etag\"");
+
+echo $everything;
+
+if ( $do_gzip )
+{
+  gzip_output();
+}
+
+/**
+ * Check the cache for the given JS file and return the best-compressed version.
+ * @param string Javascript file (acl.js)
+ * @param string Default/current contents
+ * @return string
+ */
+
+function jsres_cache_check($js_file, $file_contents)
+{
+  global $full_compress_safe, $compress_unsafe;
+  
+  $file_md5 = md5($file_contents);
+  
   // Is this file cached?
   $cache_path = ENANO_ROOT . "/cache/jsres_$js_file.json";
   $loaded_cache = false;
@@ -186,31 +238,6 @@ foreach ( $file_list as $js_file )
     }
   }
   
-  $everything .= "\n // $js_file\n";
-  $everything .= "\n" . $file_contents;
-}
-
-// generate ETag
-$etag = base64_encode(hexdecode(sha1($everything)));
-
-if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
-{
-  if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
-  {
-    header('HTTP/1.1 304 Not Modified');
-    exit();
-  }
-}
-
-$date = date('r', $apex);
-header("Date: $date");
-header("Last-Modified: $date");
-header("ETag: \"$etag\"");
-
-echo $everything;
-
-if ( $do_gzip )
-{
-  gzip_output();
+  return $file_contents;
 }
 

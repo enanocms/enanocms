@@ -514,6 +514,7 @@ function page_Special_Preferences()
         $hobbies = $db->escape($hobbies);
         
         $email_public = ( isset($_POST['email_public']) ) ? '1' : '0';
+        $disable_js_fx = ( isset($_POST['disable_js_fx']) ) ? '1' : '0';
         
         $session->real_name = $real_name;
         
@@ -566,7 +567,7 @@ function page_Special_Preferences()
         
         $q = $db->sql_query('UPDATE '.table_prefix."users_extra SET user_aim='$imaddr_aim',user_yahoo='$imaddr_yahoo',user_msn='$imaddr_msn',
                                user_xmpp='$imaddr_xmpp',user_homepage='$homepage',user_location='$location',user_job='$occupation',
-                               user_hobbies='$hobbies',email_public=$email_public
+                               user_hobbies='$hobbies',email_public=$email_public,disable_js_fx=$disable_js_fx
                                WHERE user_id=$session->user_id;");
         
         if ( !$q )
@@ -723,6 +724,10 @@ function page_Special_Preferences()
           <tr>
             <td class="row2" style="width: 50%;"><label for="chk_email_public"><?php echo $lang->get('usercp_publicinfo_field_email_public'); ?></label><br /><small><?php echo $lang->get('usercp_publicinfo_field_email_public_hint'); ?></small></td>
             <td class="row1" style="width: 50%;"><input type="checkbox" id="chk_email_public" name="email_public" <?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?> size="30" /></td>
+          </tr>
+          <tr>
+            <td class="row2" style="width: 50%;"><label for="chk_jsfx"><?php echo $lang->get('usercp_publicinfo_field_jsfx'); ?></label><br /><small><?php echo $lang->get('usercp_publicinfo_field_jsfx_hint'); ?></small></td>
+            <td class="row1" style="width: 50%;"><input type="checkbox" id="chk_jsfx" name="disable_js_fx" <?php if ($session->user_extra['disable_js_fx'] == 1) echo 'checked="checked"'; ?> size="30" /></td>
           </tr>
           <tr>
             <th class="subhead" colspan="2">

@@ -93,6 +93,7 @@ class pathManager {
     $this->addAdminNode('adm_cat_users',      'adm_page_user_groups',    'GroupManager', scriptPath . '/images/icons/applets/groupmanager.png');
     $this->addAdminNode('adm_cat_users',      'adm_page_coppa',          'COPPA', scriptPath . '/images/icons/applets/coppa.png');
     $this->addAdminNode('adm_cat_users',      'adm_page_mass_email',     'MassEmail', scriptPath . '/images/icons/applets/massemail.png');
+    $this->addAdminNode('adm_cat_users',      'adm_page_user_ranks',     'UserRanks', scriptPath . '/images/icons/applets/userranks.png');
     $this->addAdminNode('adm_cat_security',   'adm_page_security_log',   'SecurityLog', scriptPath . '/images/icons/applets/securitylog.png');
     $this->addAdminNode('adm_cat_security',   'adm_page_ban_control',    'BanControl', scriptPath . '/images/icons/applets/bancontrol.png');
     

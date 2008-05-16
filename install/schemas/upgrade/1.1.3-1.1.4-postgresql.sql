@@ -34,3 +34,9 @@ DELETE FROM {{TABLE_PREFIX}}ranks WHERE rank_id = 4;
 INSERT INTO {{TABLE_PREFIX}}ranks(rank_id, rank_title, rank_style) VALUES
   (4, 'user_rank_guest', '');
 
+-- Other rank-related columns
+ALTER TABLE {{TABLE_PREFIX}}groups ADD COLUMN group_rank int DEFAULT NULL;
+
+-- Disable JS effects column
+ALTER TABLE {{TABLE_PREFIX}}users_extra ADD COLUMN disable_js_fx smallint NOT NULL DEFAULT 0;
+

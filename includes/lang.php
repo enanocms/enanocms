@@ -525,6 +525,8 @@ $lang_cache = ');
     if ( $debug )
       echo "  Regenerating cache file$br\n";
     $this->regen_caches();
+    
+    return true;
   }
   
   /**

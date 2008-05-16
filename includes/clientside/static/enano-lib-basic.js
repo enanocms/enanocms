@@ -17,7 +17,7 @@
 
 if(typeof title != 'string')
 {
-  alert('Uh-oh! The required dynamic (PHP-generated) Javascript variables don\'t seem to be available. Javascript is going to be seriously broken.');
+  alert('There was a problem loading the PHP-generated Javascript variables that control parameters for AJAX applets. Most on-page functionality will be very badly broken.\n\nTheme developers, ensure that you are using {JS_DYNAMIC_VARS} *before* you include jsres.php.');
 }
 
 // Run-time variables
@@ -38,6 +38,7 @@ else IE = false;
 
 var is_Opera = ( checkIt('opera') ) ? true : false;
 var is_iPhone = ( checkIt('iphone') || checkIt('ipod') ) ? true : false;
+var is_firefox2 = ( checkIt('firefox/2.') ) ? true : false;
 
 var KILL_SWITCH = false;
 

@@ -167,6 +167,19 @@ function page_Admin_PluginManager()
               
               $return = $plugins->upgrade_plugin($request['plugin'], $plugin_list);
               break;
+            case 'reimport':
+              // did they specify a plugin to operate on?
+              if ( !isset($request['plugin']) )
+              {
+                $return = array(
+                  'mode' => 'error',
+                  'error' => 'No plugin specified.',
+                );
+                break;
+              }
+              
+              $return = $plugins->reimport_plugin_strings($request['plugin'], $plugin_list);
+              break;
             case 'uninstall':
               // did they specify a plugin to operate on?
               if ( !isset($request['plugin']) )
@@ -340,7 +353,7 @@ function page_Admin_PluginManager()
           // this plugin is all good
           $color = '_green';
           $status = $lang->get('acppl_lbl_status_installed');
-          $buttons = 'uninstall|disable';
+          $buttons = 'reimport|uninstall|disable';
         }
         else if ( $data['installed'] && $data['status'] & PLUGIN_OUTOFDATE )
         {
@@ -397,7 +410,8 @@ function page_Admin_PluginManager()
               'disable' => 'blue',
               'enable' => 'blue',
               'upgrade' => 'green',
-              'uninstall' => 'red'
+              'uninstall' => 'red',
+              'reimport' => 'green'
             );
           foreach ( $buttons as $button )
           {
