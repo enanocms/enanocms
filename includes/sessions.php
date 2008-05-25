@@ -274,6 +274,24 @@ class sessionManager {
       USER_LEVEL_GUEST  => RANK_ID_GUEST
     );
   
+  /**
+   * A constant array that maps precedence constants to language strings
+   * @var array
+   */
+  
+  var $acl_inherit_lang_table = array(
+      ACL_INHERIT_ENANO_DEFAULT   => 'acl_inherit_enano_default',
+      ACL_INHERIT_GLOBAL_EVERYONE => 'acl_inherit_global_everyone',
+      ACL_INHERIT_GLOBAL_GROUP    => 'acl_inherit_global_group',
+      ACL_INHERIT_GLOBAL_USER     => 'acl_inherit_global_user',
+      ACL_INHERIT_PG_EVERYONE     => 'acl_inherit_pg_everyone',
+      ACL_INHERIT_PG_GROUP        => 'acl_inherit_pg_group',
+      ACL_INHERIT_PG_USER         => 'acl_inherit_pg_user',
+      ACL_INHERIT_LOCAL_EVERYONE  => 'acl_inherit_local_everyone',
+      ACL_INHERIT_LOCAL_GROUP     => 'acl_inherit_local_group',
+      ACL_INHERIT_LOCAL_USER      => 'acl_inherit_local_user'
+    );
+  
   # Basic functions
    
   /**
@@ -2822,9 +2840,11 @@ class sessionManager {
       $current_perms =& $base_cache[$user_id_or_name];
       $current_perms['__resolve_table'] = array();
       
-      $bs = 'SELECT rules, target_type, target_id, rule_id, page_id, namespace FROM '.table_prefix.'acl' . "\n"
-             . '  WHERE page_id IS NULL AND namespace IS NULL AND' . "\n"
-             . '  ( ';
+      $bs = 'SELECT rules, target_type, target_id, rule_id, page_id, namespace, g.group_name FROM '.table_prefix."acl AS a\n"
+          . "  LEFT JOIN " . table_prefix . "groups AS g\n"
+          . "    ON ( ( a.target_type = " . ACL_TYPE_GROUP . " AND a.target_id = g.group_id ) OR ( a.target_type != " . ACL_TYPE_GROUP . " ) )\n"
+          . '  WHERE page_id IS NULL AND namespace IS NULL AND' . "\n"
+          . '  ( ';
     
       $q = Array();
       $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id= ' . $user_id . ' )';
@@ -2841,7 +2861,7 @@ class sessionManager {
       {
         // init the resolver table with blanks
         $current_perms['__resolve_table'][$perm_type] = array(
-            'src' => ACL_INHERIT_GLOBAL_EVERYONE,
+            'src' => ACL_INHERIT_ENANO_DEFAULT,
             'rule_id' => -1
           );
       }
@@ -2858,6 +2878,10 @@ class sessionManager {
                 'src' => $src,
                 'rule_id' => $row['rule_id']
               );
+            if ( $row['group_name'] )
+            {
+              $current_perms['__resolve_table'][$perm_type]['group_name'] = $row['group_name'];
+            }
           }
           // merge it in
           $current_perms = $this->acl_merge($current_perms, $rules, $is_everyone, $_defaults_used);
@@ -3918,7 +3942,13 @@ class Session_ACLPageInfo {
     }
     
     // Build a query to grab ACL info
-    $bs = 'SELECT rules,target_type,target_id,page_id,namespace,rule_id FROM '.table_prefix.'acl WHERE ' . "\n"
+    $bs = 'SELECT rules,target_type,target_id,page_id,namespace,rule_id,pg.pg_name,g.group_name FROM '.table_prefix."acl AS a\n"
+        . "  LEFT JOIN " . table_prefix . "page_groups AS pg\n"
+        . "    ON ( ( a.page_id = pg.pg_id AND a.namespace = '__PageGroup' ) OR ( a.namespace != '__PageGroup' ) )\n"
+        . "  LEFT JOIN " . table_prefix . "groups AS g\n"
+        . "    ON ( ( a.target_type = " . ACL_TYPE_GROUP . " AND a.target_id = g.group_id ) OR ( a.target_type != " . ACL_TYPE_GROUP . " ) )\n";
+    
+    $bs .= '  WHERE ' . "\n"
           . '  ( ';
     $q = Array();
     $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id='.$this->user_id.' )';
@@ -3933,6 +3963,7 @@ class Session_ACLPageInfo {
     // permissions to override group permissions.
     $bs .= implode(" OR\n    ", $q) . ' ) AND (' . $pg_info . ' ( page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\' ) )     
       ORDER BY target_type ASC, page_id ASC, namespace ASC;';
+      
     $q = $session->sql($bs);
     if ( $row = $db->fetchrow() )
     {
@@ -3943,10 +3974,15 @@ class Session_ACLPageInfo {
         if ( $row['namespace'] == '__PageGroup' )
         {
           $src = ( $is_everyone ) ? ACL_INHERIT_PG_EVERYONE : ( $row['target_type'] == ACL_TYPE_GROUP ? ACL_INHERIT_PG_GROUP : ACL_INHERIT_PG_USER );
+          $pg_name = $row['pg_name'];
         }
         else
         {
           $src = ( $is_everyone ) ? ACL_INHERIT_LOCAL_EVERYONE : ( $row['target_type'] == ACL_TYPE_GROUP ? ACL_INHERIT_LOCAL_GROUP : ACL_INHERIT_LOCAL_USER );
+        }
+        if ( $row['group_name'] )
+        {
+          $group_name = $row['group_name'];
         }
         foreach ( $rules as $perm_type => $perm_value )
         {
@@ -3957,6 +3993,14 @@ class Session_ACLPageInfo {
               'src' => $src,
               'rule_id' => $row['rule_id']
             );
+          if ( isset($pg_name) )
+          {
+            $this->perm_resolve_table[$perm_type]['pg_name'] = $pg_name;
+          }
+          if ( isset($group_name) )
+          {
+            $this->perm_resolve_table[$perm_type]['group_name'] = $group_name;
+          }
         }
         $this->acl_merge_with_current($rules, $is_everyone);
       } while ( $row = $db->fetchrow() );

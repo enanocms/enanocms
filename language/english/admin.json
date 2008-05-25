@@ -166,6 +166,17 @@ var enano_lang = {
       btn_returnto_userscope: 'Return to user/scope selection',
       btn_show_existing: '&raquo; View existing rules',
       btn_close: 'Close ACL wizard',
+      
+      inherit_enano_default: 'Enano defaults',
+      inherit_global_everyone: 'Rule for everyone on the entire site',
+      inherit_global_group: 'Rule for the group "%group_name%" on the entire site',
+      inherit_global_user: 'Rule for this user on the entire site',
+      inherit_pg_everyone: 'Rule for everyone in the page group "%pg_name"',
+      inherit_pg_group: 'Rule for the group "%group_name%" in the page group "%pg_name%"',
+      inherit_pg_user: 'Rule for this user in the page group "%pg_name%"',
+      inherit_local_everyone: 'Rule for everyone on this page',
+      inherit_local_group: 'Rule for the group "%group_name%" on this page',
+      inherit_local_user: 'Rule for this user on this page',
     },
     acphome: {
       heading_main: 'Welcome to Runt, the Enano administration panel.',

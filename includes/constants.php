@@ -30,6 +30,7 @@ define('ACL_TYPE_USER', 2);
 define('ACL_TYPE_PRESET', 3);
 
 // ACL inheritance debugging info
+define('ACL_INHERIT_ENANO_DEFAULT', 10);
 define('ACL_INHERIT_GLOBAL_EVERYONE', 9);
 define('ACL_INHERIT_GLOBAL_GROUP', 8);
 define('ACL_INHERIT_GLOBAL_USER', 7);

@@ -276,7 +276,7 @@ function enano_date($string, $timestamp = false)
   $timestamp = $timestamp + ( $timezone * 60 );
   
   // Let PHP do the work for us =)
-  return date($string, $timestamp);
+  return gmdate($string, $timestamp);
 }
 
 /**
@@ -333,7 +333,7 @@ function get_page_title_ns($page_id, $namespace)
  * @param string $url The URL, either relative or absolute.
  * @param string $title The title of the message
  * @param string $message A short message to show to the user
- * @param string $timeout Timeout, in seconds, to delay the redirect. Defaults to 3.
+ * @param string $timeout Timeout, in seconds, to delay the redirect. Defaults to 3. If 0, sends a 307 Temporary Redirect.
  */
 
 function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_body', $timeout = 3)
