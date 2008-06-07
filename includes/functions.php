@@ -391,6 +391,91 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
 
 }
 
+/**
+ * Generates a confirmation form if a CSRF check fails. Will terminate execution.
+ */
+
+function csrf_confirm_form()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  // If the token was overridden with the correct one, the user confirmed the action using this form. Continue exec.
+  if ( isset($_POST['cstok']) || isset($_GET ['cstok']) )
+  {
+    // using the if() check makes sure that the token isn't in a cookie, since $_REQUEST includes $_COOKIE.
+    $token_check =& $_REQUEST['cstok'];
+    if ( $token_check === $session->csrf_token )
+    {
+      // overridden token matches, continue exec
+      return true;
+    }
+  }
+  
+  $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($lang->get('user_csrf_confirm_title'));
+  $template->header();
+  
+  // initial info
+  echo '<p>' . $lang->get('user_csrf_confirm_body') . '</p>';
+  
+  // start form
+  $form_method = ( empty($_POST) ) ? 'get' : 'post';
+  echo '<form action="' . htmlspecialchars($_SERVER['REQUEST_URI']) . '" method="' . $form_method . '" enctype="multipart/form-data">';
+  
+  echo '<fieldset enano:expand="closed">';
+  echo '<legend>' . $lang->get('user_csrf_confirm_btn_viewrequest') . '</legend><div>';
+  
+  if ( empty($_POST) )
+  {
+    // GET request
+    echo csrf_confirm_get_recursive();
+  }
+  else
+  {
+    // POST request
+    echo csrf_confirm_post_recursive();
+  }
+  echo '</div></fieldset>';
+  // insert the right CSRF token
+  echo '<input type="hidden" name="cstok" value="' . $session->csrf_token . '" />';
+  echo '<p><input type="submit" value="' . $lang->get('user_csrf_confirm_btn_continue') . '" /></p>';
+  echo '</form>';
+  
+  $template->footer();
+  
+  exit;
+}
+
+function csrf_confirm_get_recursive($_inner = false, $pfx = false, $data = false)
+{
+  // make posted arrays work right
+  if ( !$data )
+    ( $_inner == 'post' ) ? $data =& $_POST : $data =& $_GET;
+  foreach ( $data as $key => $value )
+  {
+    $pfx_this = ( empty($pfx) ) ? $key : "{$pfx}[{$key}]";
+    if ( is_array($value) )
+    {
+      csrf_confirm_get_recursive(true, $pfx_this, $value);
+    }
+    else if ( empty($value) )
+    {
+      echo htmlspecialchars($pfx_this . " = <nil>") . "<br />\n";
+      echo '<input type="hidden" name="' . htmlspecialchars($pfx_this) . '" value="" />';
+    }
+    else
+    {
+      echo htmlspecialchars($pfx_this . " = " . $value) . "<br />\n";
+      echo '<input type="hidden" name="' . htmlspecialchars($pfx_this) . '" value="' . htmlspecialchars($value) . '" />';
+    }
+  }
+}
+
+function csrf_confirm_post_recursive()
+{
+  csrf_confirm_get_recursive('post');
+}
+
 // Removed wikiFormat() from here, replaced with RenderMan::render
 
 /**
@@ -2894,6 +2979,8 @@ function aggressive_optimize_html($html)
   
   // Optimize (but don't obfuscate) Javascript
   preg_match_all('/<script([ ]+.*?)?>(.*?)(\]\]>)?<\/script>/is', $html, $jscript);
+  require_once(ENANO_ROOT . '/includes/js-compressor.php');
+  $jsc = new JavascriptCompressor();
   
   // list of Javascript reserved words - from about.com
   $reserved_words = array('abstract', 'as', 'boolean', 'break', 'byte', 'case', 'catch', 'char', 'class', 'continue', 'const', 'debugger', 'default', 'delete', 'do',
@@ -2910,51 +2997,12 @@ function aggressive_optimize_html($html)
     
     // echo('<pre>' . "-----------------------------------------------------------------------------\n" . htmlspecialchars($js) . '</pre>');
     
-    // for line optimization, explode it
-    $particles = explode("\n", $js);
-    
-    foreach ( $particles as $j => $atom )
-    {
-      // Remove comments
-      $atom = preg_replace('#\/\/(.+)#i', '', $atom);
-      
-      $atom = trim($atom);
-      if ( empty($atom) )
-        unset($particles[$j]);
-      else
-        $particles[$j] = $atom;
-    }
-    
-    $js = implode("\n", $particles);
-    
-    $js = preg_replace('#/\*(.*?)\*/#s', '', $js);
-    
-    // find all semicolons and then linebreaks, and replace with a single semicolon
-    $js = str_replace(";\n", ';', $js);
-    
-    // starting braces
-    $js = preg_replace('/\{([\s]+)/m', '{', $js);
-    $js = str_replace(")\n{", '){', $js);
-    
-    // ending braces (tricky)
-    $js = preg_replace('/\}([^;])/m', '};\\1', $js);
-    
-    // other rules
-    $js = str_replace("};\n", "};", $js);
-    $js = str_replace(",\n", ',', $js);
-    $js = str_replace("[\n", '[', $js);
-    $js = str_replace("]\n", ']', $js);
-    $js = str_replace("\n}", '}', $js);
-    
-    // newlines immediately before reserved words
-    $js = preg_replace("/(\)|;)\n$reserved_words/is", '\\1\\2', $js);
-    
-    // fix for firefox issue
-    $js = preg_replace('/\};([\s]*)(else|\))/i', '}\\2', $js);
+    $js = $jsc->getClean($js);
     
     $replacement = "<script{$jscript[1][$i]}>/* <![CDATA[ */ $js /* ]]> */</script>";
     // apply changes
     $html = str_replace($jscript[0][$i], $replacement, $html);
+     
   }
   
   // Re-insert untouchable tags

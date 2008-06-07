@@ -788,7 +788,7 @@ function mb_logout()
   var mb = new MessageBox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title'), $lang.get('user_logout_confirm_body'));
   mb.onclick['Yes'] = function()
     {
-      window.location = makeUrlNS('Special', 'Logout/' + title);
+      window.location = makeUrlNS('Special', 'Logout/' + csrf_token + '/' + title);
     }
 }
 

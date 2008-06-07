@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialuserfuncs_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.3",
+  "Version"      : "1.1.4",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -226,6 +226,12 @@ function page_Special_Login()
       case 'key_not_found':
         $errstring = $lang->get('user_err_key_not_found');
         break;
+      case 'ERR_DH_KEY_NOT_FOUND':
+        $errstring = $lang->get('user_err_dh_key_not_found') . " -- {$__login_status['debug']}";
+        break;
+      case 'ERR_DH_KEY_NOT_INTEGER':
+        $errstring = $lang->get('user_err_dh_key_not_numeric');
+        break;
       case 'key_wrong_length':
         $errstring = $lang->get('user_err_key_wrong_length');
         break;
@@ -252,7 +258,7 @@ function page_Special_Login()
           $attempts = $__login_status['lockout_threshold'];
         
         $server_time = time();
-        $time_rem = ( $__login_status['lockout_last_time'] == time() ) ? $__login_status['lockout_duration'] : $__login_status['lockout_duration'] - round( ( $server_time - $__login_status['lockout_last_time'] ) / 60 );
+        $time_rem = ( intval(@$__login_status['lockout_last_time']) == time() ) ? $__login_status['lockout_duration'] : $__login_status['lockout_duration'] - round( ( $server_time - $__login_status['lockout_last_time'] ) / 60 );
         if ( $time_rem < 1 )
           $time_rem = $__login_status['lockout_duration'];
         
@@ -452,9 +458,8 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
   }
   if ( isset($_GET['act']) && $_GET['act'] == 'ajaxlogin' )
   {
-    die('This version of the Enano LoginAPI is deprecated. Please use the action.json method instead.');
-    $db->close();
-    exit;
+    echo 'This version of the Enano LoginAPI is deprecated. Please use the action.json method instead.';
+    return true;
   }
   if(isset($_POST['login']))
   {
@@ -480,7 +485,12 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       $dh_public = $_POST['dh_public_key'];
       if ( !preg_match('/^[0-9]+$/', $dh_public) )
       {
-        die_semicritical('DiffieHellman error', 'Public key not integer: ' . $dh_public);
+        $__login_status = array(
+          'success' => false,
+          'error' => 'ERR_DH_KEY_NOT_INTEGER',
+          'debug' => "public key: $dh_public"
+        );
+        return false;
       }
       $q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$dh_public';");
       if ( !$q )
@@ -488,7 +498,12 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       
       if ( $db->numrows() < 1 )
       {
-        die_semicritical('DiffieHellman error', 'ERR_DH_KEY_NOT_FOUND');
+        $__login_status = array(
+          'success' => false,
+          'error' => 'ERR_DH_KEY_NOT_FOUND',
+          'debug' => "public key: $dh_public"
+        );
+        return false;
       }
       
       list($dh_private, $dh_key_id) = $db->fetchrow_num();
@@ -508,7 +523,12 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       $dh_hash = $_POST['crypt_key'];
       if ( $dh_secret_check !== $dh_hash )
       {
-        die_semicritical('DiffieHellman error', 'ERR_DH_HASH_NO_MATCH');
+        $__login_status = array(
+          'success' => false,
+          'error' => 'ERR_DH_HASH_NO_MATCH',
+          'debug' => "dh_secret_check = $dh_secret_check\ndh_hash_input = $dh_hash"
+        );
+        return false;
       }
       
       // All good! Generate the AES key
@@ -581,18 +601,28 @@ function SpecialLogin_SendResponse_PasswordReset($user_id, $passkey)
   exit;
 }
 
-function page_Special_Logout() {
+function page_Special_Logout()
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  
   if ( !$session->user_logged_in )
     $paths->main_page();
+  
+  $token = $paths->getParam(0);
+  if ( $token !== $session->csrf_token )
+  {
+    csrf_confirm_form();
+  }
   
   $l = $session->logout();
   if ( $l == 'success' )
   {
     $url = makeUrl(getConfig('main_page'), false, true);
-    if ( $pi = $paths->getAllParams() )
+    if ( $paths->getParam(1) )
     {
+      $pi = explode('/', $paths->getAllParams());
+      $pi = implode('/', array_values(array_slice($pi, 1)));
       list($pid, $ns) = RenderMan::strToPageID($pi);
       $perms = $session->fetch_page_acl($pid, $ns);
       if ( $perms->get_permissions('read') )
@@ -600,7 +630,7 @@ function page_Special_Logout() {
         $url = makeUrl($pi, false, true);
       }
     }
-    redirect($url, $lang->get('user_logout_success_title'), $lang->get('user_logout_success_body'), 4);
+    redirect($url, $lang->get('user_logout_success_title'), $lang->get('user_logout_success_body'), 3);
   }
   $template->header();
   echo '<h3>' . $lang->get('user_logout_err_title') . '</h3>';
@@ -2027,10 +2057,14 @@ function page_Special_LangExportJSON()
   }
   
   $timestamp = enano_date('D, j M Y H:i:s T', $lang_local->lang_timestamp);
+  // generate expires header
+  $expires = date('r', mktime(-1, -1, -1, -1, -1, intval(date('y'))+1));
+
   header("Last-Modified: $timestamp");
   header("Date: $timestamp");
   header("ETag: \"$etag\"");
   header('Content-type: text/javascript');
+  header("Expires: $expires");
   
   $lang_local->fetch();
   echo "if ( typeof(enano_lang) != 'object' )
@@ -2108,9 +2142,6 @@ function page_Special_Avatar()
     }
     fclose($fh);
     
-    gzip_output();
-    
-    return true;
   }
   return true;
 }

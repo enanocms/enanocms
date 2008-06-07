@@ -90,6 +90,7 @@ var enano_lang = {
       logout_confirm_body: 'If you log out, you will no longer be able to access your user preferences, your private messages, or certain areas of this site until you log in again.',
       logout_confirm_title_elev: 'Are you sure you want to de-authenticate?',
       logout_confirm_body_elev: 'If you de-authenticate, you will no longer be able to use the administration panel until you re-authenticate again. You may do so at any time using the Administration button on the sidebar.',
+      logout_confirm_btn_logout: 'Log Out',
       logout_err_title: 'An error occurred during the logout process.',
       // Unused at this point
       logout_err_not_loggedin: 'You don\'t seem to be logged in.',
@@ -226,6 +227,12 @@ Sincerely yours,
       
       autofill_heading_suggestions: 'Username suggestions',
       autofill_msg_no_suggestions: 'No suggestions',
+      
+      // CSRF confirmation form
+      csrf_confirm_title: 'Invalid form confirmation key',
+      csrf_confirm_body: 'Your browser sent an invalid confirmation key for a form. Your session may have expired, or you may have been redirected here from a remote site in an attack known as Cross-Site Request Forgery (CSRF). If you are sure you want to continue with this action, you may click the button below. Otherwise, return to the main page and do not proceed.',
+      csrf_confirm_btn_viewrequest: 'View request and form data',
+      csrf_confirm_btn_continue: 'Continue',
     },
     usercp: {
       // Meta
