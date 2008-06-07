@@ -174,6 +174,11 @@ class PageProcessor
     
     profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Started send process");
     
+    if ( $this->send_headers )
+    {
+      $template->init_vars($this);
+    }
+    
     if ( !$this->perms->get_permissions('read') )
     {
       // Permission denied to read page. Is this one of our core pages that must always be allowed?
@@ -228,6 +233,8 @@ class PageProcessor
     }
     if ( $this->namespace == 'Special' || $this->namespace == 'Admin' )
     {
+      $this->revision_time = time();
+      
       if ( !$this->page_exists )
       {
         $func_name = "page_{$this->namespace}_{$this->page_id}";

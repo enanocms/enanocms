@@ -1249,6 +1249,8 @@ class sessionManager {
       $lang = new Language($language);
       @setlocale(LC_ALL, $lang->lang_code);
     }
+    // make a CSRF token
+    $this->csrf_token = sha1($_SERVER['REMOTE_ADDR'] . sha1($this->private_key));
   }
   
   /**
