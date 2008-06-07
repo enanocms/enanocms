@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialadmin_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.3",
+  "Version"      : "1.1.4",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -1962,27 +1962,47 @@ function page_Special_Administration()
       }
       if ( t == namespace_list.Admin + 'AdminLogout' )
       {
-        var mb = new messagebox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title_elev'), $lang.get('user_logout_confirm_body_elev'));
-        mb.onclick['Yes'] = function() {
-          var tigraentry = document.getElementById('i_div0_0').parentNode;
-          var tigraobj = $(tigraentry);
-          var div = document.createElement('div');
-          div.style.backgroundColor = '#FFFFFF';
-          domObjChangeOpac(70, div);
-          div.style.position = 'absolute';
-          var top = tigraobj.Top();
-          var left = tigraobj.Left();
-          var width = tigraobj.Width();
-          var height = tigraobj.Height();
-          div.style.top = top + 'px';
-          div.style.left = left + 'px';
-          div.style.width = width + 'px';
-          div.style.height = height + 'px';
-          var body = document.getElementsByTagName('body')[0];
-          enlighten(true);
-          body.appendChild(div);
-          ajaxPageBin(namespace_list.Admin + 'AdminLogout');
-        }
+        miniPromptMessage({
+            title: $lang.get('user_logout_confirm_title_elev'),
+            message: $lang.get('user_logout_confirm_body_elev'),
+            buttons: [
+              {
+                text: $lang.get('user_logout_confirm_btn_logout'),
+                color: 'red',
+                style: {
+                  fontWeight: 'bold'
+                },
+                onclick: function()
+                {
+                  var tigraentry = document.getElementById('i_div0_0').parentNode;
+                  var tigraobj = $(tigraentry);
+                  var div = document.createElement('div');
+                  div.style.backgroundColor = '#FFFFFF';
+                  domObjChangeOpac(70, div);
+                  div.style.position = 'absolute';
+                  var top = tigraobj.Top();
+                  var left = tigraobj.Left();
+                  var width = tigraobj.Width();
+                  var height = tigraobj.Height();
+                  div.style.top = top + 'px';
+                  div.style.left = left + 'px';
+                  div.style.width = width + 'px';
+                  div.style.height = height + 'px';
+                  var body = document.getElementsByTagName('body')[0];
+                  miniPromptDestroy(true);
+                  body.appendChild(div);
+                  ajaxPageBin(namespace_list.Admin + 'AdminLogout');
+                }
+              },
+              {
+                text: $lang.get('etc_cancel'),
+                onclick: function()
+                {
+                  miniPromptDestroy(this);
+                }
+              }
+            ]
+          });
         return;
       }
       ajaxPageBin(t);

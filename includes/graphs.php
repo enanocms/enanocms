@@ -742,6 +742,8 @@ class GraphMaker {
 // http://web.archive.org/web/20030130065944/szewo.com/php/graph/graph.class.php3.txt
 // License unknown, however sources on the web have shown this to be either GPL or public domain.
 
+// At this point this class has been very nearly rewritten for Enano.
+
 class GraphMaker_compat {
   var $_values;
   var $_ShowLabels;

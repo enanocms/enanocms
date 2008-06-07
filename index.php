@@ -28,10 +28,6 @@
   global $do_gzip;
   $do_gzip = true;
   
-  if(isset($_SERVER['PATH_INFO'])) $v = $_SERVER['PATH_INFO'];
-  elseif(isset($_GET['title'])) $v = $_GET['title'];
-  else $v = '';
-  
   if ( isset($_GET['nocompress']) )
     $aggressive_optimize_html = false;
   
@@ -42,6 +38,7 @@
     ob_start();
   }
   
+  // start up Enano
   require('includes/common.php');
   
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -586,7 +583,7 @@
     // Done, send it to the user
     echo( $html );
   }
-
+  
   $db->close();  
   gzip_output();
   

@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialuserprefs_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.3",
+  "Version"      : "1.1.4",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
