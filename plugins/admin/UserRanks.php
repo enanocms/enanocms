@@ -24,7 +24,50 @@ function page_Admin_UserRanks()
     return;
   }
   
-  echo 'Hello world!';
+  // This should be a constant somewhere
+  $protected_ranks = array(
+      RANK_ID_MEMBER,
+      RANK_ID_MOD,
+      RANK_ID_ADMIN,
+      RANK_ID_GUEST
+    );
+  
+  if ( $paths->getParam(0) == 'action.json' )
+  {
+    // ajax call
+    return true;
+  }
+  
+  // draw initial interface
+  // yes, four paragraphs of introduction. Suck it up.
+  echo '<h3>' . $lang->get('acpur_heading_main') . '</h3>';
+  echo '<p>' . $lang->get('acpur_intro_para1') . '</p>';
+  echo '<p>' . $lang->get('acpur_intro_para2') . '</p>';
+  echo '<p>' . $lang->get('acpur_intro_para3') . '</p>';
+  echo '<p>' . $lang->get('acpur_intro_para4') . '</p>';
+  
+  // fetch ranks
+  $q = $db->sql_query('SELECT rank_id, rank_title, rank_style FROM ' . table_prefix . "ranks ORDER BY rank_title ASC;");
+  if ( !$q )
+    $db->_die();
+  
+  echo '<div class="rankadmin-left" id="admin_ranks_container_left">';
+  while ( $row = $db->fetchrow() )
+  {
+    // format rank according to what its users look like
+    // rank titles can be stored as language strings, so have the language manager fetch this
+    // normally it refetches (which takes time) if a string isn't found, but it won't try to fetch
+    // a string that isn't in the category_stringid format
+    $rank_title = $lang->get($row['rank_title']);
+    // FIXME: make sure htmlspecialchars() is escaping quotes and backslashes
+    echo '<a href="#rank_edit:' . $row['rank_id'] . '" onclick="ajaxInitRankEdit(' . $row['rank_id'] . '); return false;" class="rankadmin-editlink" style="' . htmlspecialchars($row['rank_style']) . '">' . htmlspecialchars($rank_title) . '</a> ';
+  }
+  echo '</div>';
+  
+  echo '<div class="rankadmin-right" id="admin_ranks_container_right">';
+  echo $lang->get('acpur_msg_select_rank');
+  echo '</div>';
+  echo '<span class="menuclear"></span>';
 }
 
 ?>

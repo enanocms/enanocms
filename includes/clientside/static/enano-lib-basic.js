@@ -338,6 +338,7 @@ var thefiles = [
   'paginate.js',
   'pwstrength.js',
   'theme-manager.js',
+  'rank-manager.js',
   'SpryEffects.js',
   'loader.js'
 ];

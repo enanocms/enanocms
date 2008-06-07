@@ -805,3 +805,25 @@ div.miniprompt div.mp-buttons {
 .abutton_red         { color:            #880000 !important; }
 .abutton_red:hover   { background-color: #880000 !important; }
 
+/* User rank administration */
+
+div.rankadmin-left {
+  float: left;
+  border: 1px solid #e0e0e0;
+  margin: 0 1.4em 0 0;
+  padding: 0.6em;
+}
+
+a.rankadmin-editlink {
+  display: block;
+  font-size: large;
+  padding: 3px;
+}
+
+a.rankadmin-editlink:hover {
+  background-color: #f0f0f0;
+}
+
+div.rankadmin-right {
+  float: left;
+}
