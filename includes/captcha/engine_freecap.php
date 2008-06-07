@@ -388,7 +388,7 @@ class captcha_engine_freecap extends captcha_base
       ImageFill($this->im3,0,0,$bg3);
       $temp_bg_col = ImageColorAllocate($temp_bg,255,255,255);
       ImageFill($temp_bg,0,0,$temp_bg_col);
-    
+      
       // we draw all noise onto temp_bg
       // then if we're morphing, merge from temp_bg to im3
       // or if not, just copy a $widthx$height portion of $temp_bg to $this->im3
@@ -459,7 +459,7 @@ class captcha_engine_freecap extends captcha_base
           $temp_width[$i] = imagesx($temp_im[$i]);
           $temp_height[$i] = imagesy($temp_im[$i]);
         }
-    
+        
         $blocksize = $this->rand_func(20,60);
         for($i=0 ; $i<$width*2 ; $i+=$blocksize)
         {

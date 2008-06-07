@@ -166,10 +166,10 @@ function captcha_object($session_id, $engine = false, $row = false)
     $engine = getConfig('captcha_engine');
     if ( !$engine )
     {
-      $engine = 'bc';
+      $engine = 'freecap';
     }
   }
-  if( !extension_loaded("gd") || !function_exists("gd_info") || !function_exists('imagettftext') )
+  if( !extension_loaded("gd") || !function_exists("gd_info") || !function_exists('imagettftext') || !function_exists('imagepng') || !function_exists('imagecreatefromjpeg') )
   {
     $engine = 'failsafe';
   }
