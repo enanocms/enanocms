@@ -71,6 +71,7 @@ $full_compress_safe = array(
   'pwstrength.js',
   'sha256.js',
   'flyin.js',
+  'rank-manager.js',
   'template-compiler.js',
   'toolbar.js',
   'diffiehellman.js',
@@ -167,12 +168,16 @@ if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
   }
 }
 
+// generate expires header
+$expires = date('r', mktime(-1, -1, -1, -1, -1, intval(date('y'))+1));
+
 $everything = str_replace('/* JavaScriptCompressor 0.8 [www.devpro.it], thanks to Dean Edwards for idea [dean.edwards.name] */' . "\r\n", '', $everything);
 
 $date = date('r', $apex);
 header("Date: $date");
 header("Last-Modified: $date");
 header("ETag: \"$etag\"");
+header("Expires: $expires");
 
 echo $everything;
 
