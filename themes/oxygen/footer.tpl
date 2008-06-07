@@ -51,6 +51,8 @@
         Loading...
       </div>
     </div>
+    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
+    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php"></script>
     <script type="text/javascript">
       // This initializes the Javascript runtime when the DOM is ready - not when the page is
       // done loading, because enano-lib-basic still has to load some 15 other script files

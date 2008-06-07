@@ -11,8 +11,6 @@
       var tinymce_skin = 'o2k7';
     </script>
     
-    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
-    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php"></script>
     {ADDITIONAL_HEADERS}
     
     <script type="text/javascript">
