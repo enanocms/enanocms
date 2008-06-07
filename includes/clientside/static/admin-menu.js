@@ -9,7 +9,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  *
  * Some code found in this script is not licensed under the GNU General Public License; however, it is believed that the license terms shown
- * below are GPL-compatible. If you believe that this is not the case, please drop a note to support@enano.homelinux.org.
+ * below are GPL-compatible. If you believe that this is not the case, please drop a note to support@enanocms.org.
  */
  
 /*
