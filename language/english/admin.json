@@ -421,12 +421,14 @@ var enano_lang = {
       
       msg_confirm_uninstall: 'Uninstalling this plugin may cause the loss of data that was created with it. You should only uninstall a plugin if you are certain you\'ll have no further use for it; in fact, you don\'t even need to uninstall a plugin if you\'re deleting it from the filesystem.',
       msg_confirm_install: 'Plugins are not supported by the Enano project and could harm your site if malicious. You should only install plugins from sources that you trust.',
+      msg_confirm_reimport: 'Re-importing strings will reload all language data from the plugin file. This should fix missing messages, but any customizations you have made to the plugin\'s language strings will be lost.',
       
       err_upgrade_not_supported: 'This plugin doesn\'t support automatic upgrades. The version number has been updated so the plugin will be re-enabled, but you should check the plugin file to see if the author provided instructions for finishing the upgrade.',
       err_upgrade_bad_version: 'This plugin cannot be upgraded because you are running a version of the plugin that is not listed in the plugin\'s version list.',
       err_upgrade_bad_target_version: 'This plugin cannot be upgraded because it does not support its own version. Please contact the author and ask them to fix this.',
       err_upgrade_to_older: 'You are trying to upgrade to an older release of this plugin. This is unsupported and must be done manually.',
       err_upgrade_bad_query: 'There is a problem with one of the SQL queries the plugin is trying to make.',
+      err_import_no_strings: 'This plugin doesn\'t have language support.',
       
       msg_old_entries_title: 'Import old plugin installation data',
       msg_old_entries_body: 'There is still data from the old plugin structure in your database. You can import this to the new structure automatically using the button below.',
@@ -459,7 +461,7 @@ var enano_lang = {
       lbl_special_hint: 'This option enables you to use your own HTML headers and other code. If you enable this, only the raw contents of the page will be displayed instead of Enano\'s full page formatting and styles. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages (dependent on permissions), meaning you can use Enano\'s API on the page.',
       lbl_special: 'Bypass the template engine for this page',
       lbl_visible_title: 'Make page publicly listed?',
-      lbl_visible_hint: 'If you enable this option, this page will be indexed for searching and will appear in public page lists such as Special:AllPages. This option is enabled by default. Disabling this does not protect the page from unauthorized access. If you want to keep this page from being accessed without authorization, you should create abstract new ACL rule or password-protect the page.',
+      lbl_visible_hint: 'If you enable this option, this page will be indexed for searching and will appear in public page lists such as Special:AllPages. This option is enabled by default. Disabling this does not protect the page from unauthorized access. If you want to keep this page from being accessed without authorization, you should create a new ACL rule or password-protect the page.',
       lbl_visible: 'Allow page to be indexed and listed',
       lbl_protected_title: 'Protect page from edits?',
       lbl_protected_off: 'Unprotected',
@@ -868,6 +870,23 @@ var enano_lang = {
       msg_send_takeawhile: 'Please be warned: it may take a LONG time to send this message. <b>Please do not stop the script until the process is finished.</b>',
     },
     acpur: {
+      heading_main: 'User ranks and titles',
+      intro_para1: 'This screen lets you control users\' ranks and custom user titles. User ranks let you provide a graphic distinction between different types or roles of users using colors and other style rules. You can also associate a snippet of text with a rank; this will be displayed below the username of users that are in this rank.',
+      intro_para2: 'A user\'s rank is only a visual distinction; no permissions are associated with it. In other words, if someone is in the Administrators group but has the rank of %this.user_rank_member%, they will still have administrative abilities. On the flip side, giving someone the rank of %this.user_rank_admin% will not give them administrator privileges, but they will be labeled as an administrator.',
+      intro_para3: 'Ranks can be assigned based on a lot of different criteria. By default, Enano maps the Administrator and Moderator ranks based on user level. You can also assign a rank based on group memberships (e.g. being in a group automatically assigns a specific rank) and set individual ranks for users.',
+      intro_para4: 'This screen lets you create, edit, and delete ranks. To assign them, edit the respective user or usergroup.',
+      
+      msg_select_rank: 'To edit a rank, select it on the left. Or, click Create New Rank to start a new rank.',
+      
+      th_edit_rank: 'Edit rank: %rank_title%',
+      th_create_rank: 'Create new rank',
+      
+      field_rank_title: 'Rank name:',
+      field_style_basic: 'Basic style options:',
+      field_style_basic_bold: 'Bold',
+      field_style_basic_italic: 'Italic',
+      field_style_basic_underline: 'Underline',
+      field_style_color: 'Username color:',
     },
     acpsl: {
       heading_main: 'System security log',

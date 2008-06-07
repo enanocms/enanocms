@@ -842,6 +842,16 @@ class pluginLoader {
     // get plugin data
     $dataset =& $plugin_list[$filename];
     
+    // check for a language block
+    $blocks = self::parse_plugin_blocks(ENANO_ROOT . '/plugins/' . $filename, 'language');
+    if ( count($blocks) < 1 )
+    {
+      return array(
+          'mode' => 'error',
+          'error' => $lang->get('acppl_err_import_no_strings')
+        );
+    }
+    
     $result = $lang->import_plugin(ENANO_ROOT . '/plugins/' . $filename);
     if ( $result )
     {

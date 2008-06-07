@@ -1540,8 +1540,8 @@ function ajaxUpdateCheck(targetelement)
 
 function ajaxPluginAction(action, plugin_filename, btnobj)
 {
-  // if installing or uninstalling, confirm
-  if ( action == 'install' || action == 'uninstall' )
+  // if installing, uninstalling, or re-importing, confirm
+  if ( action == 'install' || action == 'uninstall' || action == 'reimport' )
   {
     var prompt = miniPrompt(function(div)
       {
