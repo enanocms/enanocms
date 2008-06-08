@@ -4234,6 +4234,7 @@ function profiler_log($point, $allow_backtrace = true)
   {
     $_profiler[ count($_profiler) - 1 ]['mem'] = memory_get_usage();
   }
+  return true;
 }
 
 /**

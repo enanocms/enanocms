@@ -381,6 +381,7 @@ class template
       $local_fullpage = $local_page . $page_append;
       $local_page_id =& $page->page_id;
       $local_namespace =& $page->namespace;
+      $local_page_exists =& $page->page_exists;
       $perms =& $page->perms;
     }
     else
@@ -389,7 +390,65 @@ class template
       $local_page_id =& $paths->page_id;
       $local_fullpage =& $paths->fullpage;
       $local_namespace =& $paths->namespace;
+      $local_page_exists =& $paths->page_exists;
+      $local_page_protected =& $paths->page_protected;
       $perms =& $session;
+    }
+    
+    if ( $local_page_exists && isset($paths->pages[$local_page]) )
+    {
+      $local_cdata =& $paths->pages[$local_page];
+    }
+    else
+    {
+      // if the page doesn't exist but we're trying to load it, it was requested manually and $paths->cpage should match it.
+      if ( $paths->page_id == $local_page_id )
+      {
+        // load metadata from cpage
+        $local_cdata =& $paths->cpage;
+      }
+      else
+      {
+        // generate our own failsafe metadata
+        $local_cdata = array(
+            'urlname' => $local_page,
+            'urlname_nons' => $local_page_id,
+            'namespace' => $local_namespace,
+            'name' => get_page_title_ns($local_page_id, $local_namespace),
+            'comments_on' => 0,
+            'protected' => 0,
+            'wiki_mode' => 2,
+            'delvotes' => 0,
+            'delvote_ips' => serialize(array())
+          );
+      }
+    }
+    
+    // calculate protection
+    if ( !isset($local_page_protected) )
+    {
+      if ( $local_cdata['protected'] == 0 )
+      {
+        $local_page_protected = false;
+      }
+      else if ( $local_cdata['protected'] == 1 )
+      {
+        $local_page_protected = true;
+      }
+      else if ( $local_cdata['protected'] == 2 )
+      {
+        if (
+             ( !$session->user_logged_in || // Is the user logged in?
+               ( $session->user_logged_in && $session->reg_time + ( 4 * 86400 ) >= time() ) ) // If so, have they been registered for 4 days?
+             && !$perms->get_permissions('even_when_protected') ) // And of course, is there an ACL that overrides semi-protection?
+        {
+          $local_page_protected = true;
+        }
+        else
+        {
+          $local_page_protected = false;
+        }
+      }
     }
     
     $tplvars = $this->extract_vars('elements.tpl');
@@ -499,7 +558,7 @@ class template
     
     // Page toolbar
     // Comments button
-    if ( $perms->get_permissions('read') && getConfig('enable_comments')=='1' && $local_namespace != 'Special' && $local_namespace != 'Admin' && $paths->cpage['comments_on'] == 1 )
+    if ( $perms->get_permissions('read') && getConfig('enable_comments')=='1' && $local_namespace != 'Special' && $local_namespace != 'Admin' && $local_cdata['comments_on'] == 1 )
     {
       
       $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$local_page_id.'\' AND namespace=\''.$local_namespace.'\';');
@@ -573,7 +632,7 @@ class template
       $tb .= $button->run();
     }
     // History button
-    if ( $perms->get_permissions('read') /* && $paths->wiki_mode */ && $paths->page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('history_view') )
+    if ( $perms->get_permissions('read') /* && $paths->wiki_mode */ && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('history_view') )
     {
       $button->assign_vars(array(
         'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="' . $lang->get('onpage_tip_history') . '" accesskey="h"',
@@ -588,7 +647,7 @@ class template
     
     // Additional actions menu
     // Rename button
-    if ( $perms->get_permissions('read') && $paths->page_exists && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ) && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $perms->get_permissions('read') && $local_page_exists && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ) && $local_namespace != 'Special' && $local_namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="' . $lang->get('onpage_tip_rename') . '" accesskey="r"',
@@ -599,7 +658,7 @@ class template
     }
     
     // Vote-to-delete button
-    if ( $paths->wiki_mode && $perms->get_permissions('vote_delete') && $paths->page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin')
+    if ( $paths->wiki_mode && $perms->get_permissions('vote_delete') && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin')
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="' . $lang->get('onpage_tip_delvote') . '" accesskey="d"',
@@ -610,7 +669,7 @@ class template
     }
     
     // Clear-votes button
-    if ( $perms->get_permissions('read') && $paths->wiki_mode && $paths->page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('vote_reset') && $paths->cpage['delvotes'] > 0)
+    if ( $perms->get_permissions('read') && $paths->wiki_mode && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('vote_reset') && $local_cdata['delvotes'] > 0)
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="' . $lang->get('onpage_tip_resetvotes') . '" accesskey="y"',
@@ -621,7 +680,7 @@ class template
     }
     
     // Printable page button
-    if ( $paths->page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'title="' . $lang->get('onpage_tip_printable') . '"',
@@ -632,7 +691,7 @@ class template
     }
     
     // Protect button
-    if($perms->get_permissions('read') && $paths->wiki_mode && $paths->page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('protect'))
+    if($perms->get_permissions('read') && $paths->wiki_mode && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('protect'))
     {
       
       $label = $this->makeParserText($tplvars['toolbar_label']);
@@ -640,7 +699,7 @@ class template
       $t0 = $label->run();
       
       $ctmp = ''; 
-      if ( $paths->cpage['protected'] == 1 )
+      if ( $local_cdata['protected'] == 1 )
       {
         $ctmp=' style="text-decoration: underline;"';
       }
@@ -652,7 +711,7 @@ class template
       $t1 = $menubtn->run();
       
       $ctmp = '';
-      if ( $paths->cpage['protected'] == 0 )
+      if ( $local_cdata['protected'] == 0 )
       {
         $ctmp=' style="text-decoration: underline;"';
       }
@@ -664,7 +723,7 @@ class template
       $t2 = $menubtn->run();
       
       $ctmp = '';
-      if ( $paths->cpage['protected'] == 2 )
+      if ( $local_cdata['protected'] == 2 )
       {
         $ctmp = ' style="text-decoration: underline;"';
       }
@@ -686,7 +745,7 @@ class template
     }
     
     // Wiki mode button
-    if($perms->get_permissions('read') && $paths->page_exists && $perms->get_permissions('set_wiki_mode') && $local_namespace != 'Special' && $local_namespace != 'Admin')
+    if($perms->get_permissions('read') && $local_page_exists && $perms->get_permissions('set_wiki_mode') && $local_namespace != 'Special' && $local_namespace != 'Admin')
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
@@ -695,7 +754,7 @@ class template
       
       // on button
       $ctmp = '';
-      if ( $paths->cpage['wiki_mode'] == 1 )
+      if ( $local_cdata['wiki_mode'] == 1 )
       {
         $ctmp = ' style="text-decoration: underline;"';
       }
@@ -708,7 +767,7 @@ class template
       
       // off button
       $ctmp = '';
-      if ( $paths->cpage['wiki_mode'] == 0 )
+      if ( $local_cdata['wiki_mode'] == 0 )
       {
         $ctmp=' style="text-decoration: underline;"';
       }
@@ -721,7 +780,7 @@ class template
       
       // global button
       $ctmp = ''; 
-      if ( $paths->cpage['wiki_mode'] == 2 )
+      if ( $local_cdata['wiki_mode'] == 2 )
       {
         $ctmp=' style="text-decoration: underline;"';
       }
@@ -755,21 +814,21 @@ class template
     }
     
     // Delete page button
-    if ( $perms->get_permissions('read') && $perms->get_permissions('delete_page') && $paths->page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $perms->get_permissions('read') && $perms->get_permissions('delete_page') && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
     {
       $s = $lang->get('onpage_btn_deletepage');
-      if ( $paths->cpage['delvotes'] == 1 )
+      if ( $local_cdata['delvotes'] == 1 )
       {
         $subst = array(
-          'num_votes' => $paths->cpage['delvotes'],
+          'num_votes' => $local_cdata['delvotes'],
           'plural' => ''
           );
         $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
       }
-      else if ( $paths->cpage['delvotes'] > 1 )
+      else if ( $local_cdata['delvotes'] > 1 )
       {
         $subst = array(
-          'num_votes' => $paths->cpage['delvotes'],
+          'num_votes' => $local_cdata['delvotes'],
           'plural' => $lang->get('meta_plural')
           );
         $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
@@ -785,9 +844,9 @@ class template
     }
     
     // Password-protect button
-    if(isset($paths->cpage['password']))
+    if(isset($local_cdata['password']))
     {
-      if ( $paths->cpage['password'] == '' )
+      if ( $local_cdata['password'] == '' )
       {
         $a = $perms->get_permissions('password_set');
       }
@@ -800,7 +859,7 @@ class template
     {
       $a = $perms->get_permissions('password_set');
     }
-    if ( $a && $perms->get_permissions('read') && $paths->page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $a && $perms->get_permissions('read') && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
@@ -829,7 +888,7 @@ class template
     }
     
     // Administer page button
-    if ( $session->user_level >= USER_LEVEL_ADMIN && $paths->page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $session->user_level >= USER_LEVEL_ADMIN && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="' . $lang->get('onpage_tip_adminoptions') . '" accesskey="g"',
@@ -881,7 +940,7 @@ class template
     /* if($this->sidebar_extra == '') $this->tpl_bool['right_sidebar'] = false;
     else */ $this->tpl_bool['right_sidebar'] = true;
     
-    $this->tpl_bool['auth_rename'] = ( $paths->page_exists && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ) && $local_namespace != 'Special' && $local_namespace != 'Admin');
+    $this->tpl_bool['auth_rename'] = ( $local_page_exists && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ) && $local_namespace != 'Special' && $local_namespace != 'Admin');
     
     $this->tpl_bool['enable_uploads'] = ( getConfig('enable_uploads') == '1' && $perms->get_permissions('upload_files') ) ? true : false;
     
@@ -941,23 +1000,26 @@ class template
     $urlname_clean = strtr( $urlname_clean, array( '<' => '&lt;', '>' => '&gt;' ) );
     
     $urlname_jssafe = sanitize_page_id($local_fullpage);
+    $physical_urlname_jssafe = sanitize_page_id($paths->fullpage);
     
     // Generate the dynamic javascript vars
     $js_dynamic = '    <script type="text/javascript">// <![CDATA[
       // This section defines some basic and very important variables that are used later in the static Javascript library.
       // SKIN DEVELOPERS: The template variable for this code block is {JS_DYNAMIC_VARS}. This MUST be inserted BEFORE the tag that links to the main Javascript lib.
-      var title=\''. $urlname_jssafe .'\';
-      var page_exists='. ( ( $paths->page_exists) ? 'true' : 'false' ) .';
-      var scriptPath=\''. scriptPath .'\';
-      var contentPath=\''.contentPath.'\';
-      var ENANO_SID =\'' . $SID . '\';
-      var user_level=' . $session->user_level . ';
-      var auth_level=' . $session->auth_level . ';
+      var title = \''. $urlname_jssafe .'\';
+      var physical_title = \'' . $physical_urlname_jssafe . '\';
+      var page_exists = '. ( ( $local_page_exists) ? 'true' : 'false' ) .';
+      var scriptPath = \''. scriptPath .'\';
+      var contentPath = \''.contentPath.'\';
+      var ENANO_SID = \'' . $SID . '\';
+      var user_level = ' . $session->user_level . ';
+      var auth_level = ' . $session->auth_level . ';
       var USER_LEVEL_GUEST = ' . USER_LEVEL_GUEST . ';
       var USER_LEVEL_MEMBER = ' . USER_LEVEL_MEMBER . ';
       var USER_LEVEL_CHPREF = ' . USER_LEVEL_CHPREF . ';
       var USER_LEVEL_MOD = ' . USER_LEVEL_MOD . ';
       var USER_LEVEL_ADMIN = ' . USER_LEVEL_ADMIN . ';
+      var disable_redirect = ' . ( isset($_GET['redirect']) && $_GET['redirect'] == 'no' ? 'true' : 'false' ) . ';
       var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? '1' : '0' ) . ';
       var csrf_token = "' . $session->csrf_token . '";
       var editNotice = \'' . ( (getConfig('wiki_edit_notice')=='1') ? str_replace("\n", "\\\n", RenderMan::render(getConfig('wiki_edit_notice_text'))) : '' ) . '\';
@@ -989,7 +1051,7 @@ class template
       $js_dynamic .= "\n    //]]>\n    </script>";
     
     $tpl_strings = Array(
-      'PAGE_NAME'=>htmlspecialchars($paths->cpage['name']),
+      'PAGE_NAME'=>htmlspecialchars($local_cdata['name']),
       'PAGE_URLNAME'=> $urlname_clean,
       'SITE_NAME'=>htmlspecialchars(getConfig('site_name')),
       'USERNAME'=>$session->username,
@@ -2038,15 +2100,17 @@ function template_compiler_core($text)
   
   // Matches
   //          1     2                 3                 4   56                       7     8        9
-  $regexp = '/(<!-- ('. $keywords .') ([A-z0-9_-]+) -->)(.*)((<!-- BEGINELSE \\3 -->)(.*))?(<!-- END(IF)? \\3 -->)/isU';
+  $regexp = '/(<!-- ?(' . $keywords . ') ([A-z0-9_-]+) ?-->)([\w\W]*)((<!-- ?BEGINELSE \\3 ?-->)([\w\W]*))?(<!-- ?END(IF)? \\3 ?-->)/isU';
   
   /*
   The way this works is: match all blocks using the standard form with a different keyword in the block each time,
   and replace them with appropriate PHP logic. Plugin-extensible now. :-)
   */
   
-  profiler_log("[template] compiler matchout start");
-  preg_match_all($regexp, $text, $matches);
+  // This is a workaround for what seems like a PCRE bug
+  while ( ( profiler_log("[template] compiler matchout start") || true ) && preg_match_all($regexp, $text, $matches) )
+  {
+  
   profiler_log("[template] compiler core loop start");
   for ( $i = 0; $i < count($matches[0]); $i++ )
   {
@@ -2105,6 +2169,7 @@ function template_compiler_core($text)
 TPLCODE;
     
     $text = str_replace_once($matches[0][$i], $tag_complete, $text);
+  }
   }
   
   profiler_log("[template] compiler core loop end");

@@ -905,10 +905,15 @@ class Admin_UserManager_SmartForm
                         </tr>
                         <tr>
                           <td>{lang:acpum_field_newpassword}</td>
-                          <td><input type="password" name="new_password" value="" <!-- BEGIN password_meter -->onkeyup="password_score_field(this);" /><span class="password-checker" style="font-weight: bold; color: #A0A0A0"> Waiting for l10n init</span><!-- BEGINELSE password_meter --> /><!-- END password_meter -->
-                            <!-- BEGIN password_meter -->
-                              <div id="pwmeter" style="margin: 4px 0; height: 8px;"></div>
-                            <!-- END password_meter -->
+                          <td>
+                          <!-- BEGIN password_meter -->
+                            <input type="password" name="new_password" value="" onkeyup="password_score_field(this);" /><span class="password-checker" style="font-weight: bold; color: #A0A0A0"> Waiting for l10n init</span>
+                          <!-- BEGINELSE password_meter -->
+                            <input type="password" name="new_password" value="" />
+                          <!-- END password_meter -->
+                          <!-- BEGIN password_meter -->
+                            <div id="pwmeter" style="margin: 4px 0; height: 8px;"></div>
+                          <!-- END password_meter -->
                           </td>
                         </tr>
                         <tr>
