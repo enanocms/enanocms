@@ -702,7 +702,8 @@ class pathManager {
         echo "Running indexing round $j of $loops (offset $offset)\n" . ( isset($_SERVER['REQUEST_URI']) ? '<br />' : '' );
       }
       
-      $texts = $db->sql_query('SELECT p.name, t.page_id, t.namespace, t.page_text FROM ' . table_prefix . "page_text AS t\n"
+      // this is friendly to both MySQL and PostgreSQL.
+      $texts = $db->sql_query('SELECT p.name, p.visible, t.page_id, t.namespace, t.page_text FROM ' . table_prefix . "page_text AS t\n"
                             . "  LEFT JOIN " . table_prefix . "pages AS p\n"
                             . "    ON ( p.urlname = t.page_id AND p.namespace = t.namespace )\n"
                             . "  WHERE ( p.password = '' OR p.password = '$sha1_blank' )\n"
@@ -725,6 +726,19 @@ class pathManager {
             if ( $debug )
               echo ", mem = $mu...";
             flush();
+          }
+          
+          // skip this page if it's not supposed to be indexed
+          if ( $row['visible'] == 0 )
+          {
+            if ( $verbose )
+            {
+              echo "skipped";
+              if ( isset($_SERVER['REQUEST_URI']) )
+                echo '<br />';
+              echo "\n";
+            }
+            continue;
           }
           
           // Indexing identifier for the page in the DB

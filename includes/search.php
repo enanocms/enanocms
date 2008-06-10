@@ -394,7 +394,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
     $sql = 'SELECT ' . $concat_column . ' AS id, p.name FROM ' . table_prefix . "page_text AS t\n"
             . "  LEFT JOIN " . table_prefix . "pages AS p\n"
             . "    ON ( p.urlname = t.page_id AND p.namespace = t.namespace )\n"
-            . "  WHERE\n  $where_any\n  $where_req;";
+            . "  WHERE p.visible = 1 AND (\n    $where_any\n    $where_req\n  );";
     if ( !($q = $db->sql_unbuffered_query($sql)) )
       $db->_die('Error is in perform_search(), includes/search.php, query 2. Parsed query dump follows:<pre>(indexable) ' . htmlspecialchars(print_r($query, true)) . '(non-indexable) ' . htmlspecialchars(print_r($query_phrase, true)) . '</pre>');
 
@@ -466,7 +466,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
   $sql = 'SELECT ' . $concat_column . ' AS id, t.page_id, t.namespace, CHAR_LENGTH(t.page_text) AS page_length, t.page_text, p.name AS page_name FROM ' . table_prefix . "page_text AS t
             LEFT JOIN " . table_prefix . "pages AS p
               ON ( p.urlname = t.page_id AND p.namespace = t.namespace )
-            WHERE $text_where $where_not;";
+            WHERE p.visible = 1 AND ( $text_where $where_not );";
   if ( !($q = $db->sql_unbuffered_query($sql)) )
     $db->_die('Error is in perform_search(), includes/search.php, query 3');
 
@@ -499,7 +499,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
 
   foreach ( $paths->pages as $id => $page )
   {
-    if ( $page['namespace'] != 'Special' )
+    if ( $page['namespace'] != 'Special' || $page['visible'] == 0 )
       continue;
     if ( !is_int($id) )
       continue;
