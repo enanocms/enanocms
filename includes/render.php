@@ -868,7 +868,13 @@ class RenderMan {
     $taglist = array();
     
     // Wicked huh?
-    $regex = '/\[\[:' . str_replace('/', '\\/', preg_quote($paths->nslist['File'])) . '([\w\s0-9_\(\)!@%\^\+\|\.-]+?)((\|thumb)|(\|([0-9]+)x([0-9]+)))?(\|left|\|right)?(\|raw|\|(.+))?\]\]/i';
+    $ns_file = str_replace('/', '\\/', preg_quote($paths->nslist['File']));
+    $regex = '/
+           \[\[                                                                  # starting delimiter 
+           :' . $ns_file . '([\w\s0-9_\(\)!@%\^\+\|\.-]+?\.(?:png|gif|jpg|jpeg)) # image filename
+           (?:(?:\|(?:.+?))*)                                                    # parameters
+           \]\]                                                                  # ending delimiter
+           /ix';
     
     preg_match_all($regex, $text, $matches);
     
@@ -877,11 +883,75 @@ class RenderMan {
       
       $full_tag   =& $matches[0][$i];
       $filename   =& $matches[1][$i];
-      $scale_type =& $matches[2][$i];
-      $width      =& $matches[5][$i];
-      $height     =& $matches[6][$i];
-      $clear      =& $matches[7][$i];
-      $caption    =& $matches[8][$i];
+      
+      // apply recursion (hack? @todo could this be done with (?R) in PCRE?)
+      $tag_pos = strpos($text, $full_tag);
+      $tag_end_pos = $tag_pos + strlen($full_tag);
+      while ( get_char_count($full_tag, ']') < get_char_count($full_tag, '[') && $tag_end_pos < strlen($text) )
+      {
+        $full_tag .= substr($text, $tag_end_pos, 1);
+        $tag_end_pos++;
+      }
+      if ( $tag_end_pos > strlen($text) )
+      {
+        // discard tag, not closed fully
+        continue;
+      }
+      
+      // init the various image parameters
+      $width = null;
+      $height = null;
+      $scale_type = null;
+      $raw_display = false;
+      $clear = null;
+      $caption = null;
+      
+      // trim tag and parse particles
+      $tag_trim = rtrim(ltrim($full_tag, '['), ']');
+      // trim off the filename from the start of the tag
+      $filepart_len = 1 + strlen($paths->nslist['File']) + strlen($filename) + 1;
+      $tag_trim = substr($tag_trim, $filepart_len);
+      // explode and we should have parameters
+      $tag_parts = explode('|', $tag_trim);
+      
+      // for each of the parameters, see if it matches a known option. If so, apply it;
+      // otherwise, see if a plugin reserved that parameter and if not treat it as the caption
+      foreach ( $tag_parts as $param )
+      {
+        switch($param)
+        {
+          case 'left':
+          case 'right':
+            $clear = $param;
+            break;
+          case 'thumb':
+            $scale_type = 'thumb';
+            break;
+          case 'raw':
+            $raw_display = true;
+            break;
+          default:
+            // height specification
+            if ( preg_match('/^([0-9]+)x([0-9]+)$/', $param, $dims) )
+            {
+              $width = intval($dims[1]);
+              $height = intval($dims[2]);
+              break;
+            }
+            // not the height, so see if a plugin took this over
+            // this hook requires plugins to return true if they modified anythin
+            $code = $plugins->setHook('img_tag_parse_params');
+            foreach ( $code as $cmd )
+            {
+              if ( eval($cmd) )
+                break 2;
+            }
+            // we would have broken out by now if a plugin properly handled this,
+            // so just set the caption now.
+            $caption = $param;
+            break;
+        }
+      }
       
       if ( !isPage( $paths->nslist['File'] . $filename ) )
       {
@@ -889,7 +959,7 @@ class RenderMan {
         continue;
       }
       
-      if ( $scale_type == '|thumb' )
+      if ( $scale_type == 'thumb' )
       {
         $r_width  = 225;
         $r_height = 225;
@@ -927,14 +997,14 @@ class RenderMan {
       
       $complete_tag = '';
       
-      if ( !empty($scale_type) && $caption != '|raw' )
+      if ( !empty($scale_type) && !$raw_display )
       {
         $complete_tag .= '<div class="thumbnail" ';
         $clear_text = '';
         if ( !empty($clear) )
         {
-          $side = ( $clear == '|left' ) ? 'left' : 'right';
-          $opposite = ( $clear == '|left' ) ? 'right' : 'left';
+          $side = ( $clear == 'left' ) ? 'left' : 'right';
+          $opposite = ( $clear == 'left' ) ? 'right' : 'left';
           $clear_text .= "float: $side; margin-$opposite: 20px; width: {$r_width}px;";
           $complete_tag .= 'style="' . $clear_text . '" ';
         }
@@ -948,13 +1018,12 @@ class RenderMan {
       
         if ( !empty($caption) )
         {
-          $cap = substr($caption, 1);
-          $complete_tag .= $mag_button . $cap;
+          $complete_tag .= $mag_button . $caption;
         }
         
         $complete_tag .= '</div>';
       }
-      else if ( $caption == '|raw' )
+      else if ( $raw_display )
       {
         $complete_tag .= "$img_tag";
         $taglist[$i] = $complete_tag;
@@ -981,6 +1050,7 @@ class RenderMan {
       
       $pos = strpos($text, $full_tag);
       
+      /*
       while(true)
       {
         $check1 = substr($text, $pos, 3);
@@ -992,15 +1062,22 @@ class RenderMan {
         }
         $pos--;
       }
+      */
       
+      /*
       $repl = "{$s_delim}e_img_{$i}{$f_delim}";
       $text = substr($text, 0, $pos) . $repl . substr($text, $pos);
       
       $text = str_replace($full_tag, '', $text);
+      */
+      $text = str_replace_once($full_tag, $complete_tag, $text);
       
       unset($full_tag, $filename, $scale_type, $width, $height, $clear, $caption, $r_width, $r_height);
       
     }
+    
+    // if ( count($matches[0]) > 0 )
+    //   die('<pre>' . htmlspecialchars($text) . '</pre>');
     
     return $text;
   }
