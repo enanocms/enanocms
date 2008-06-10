@@ -124,7 +124,7 @@ ul.icons li:hover {
   border-color: #D0D0D0;
   -moz-border-radius: 5px;
 }
-a.icon {
+a.icon, span.icon {
   display: block;
   font-size: 18pt;
   line-height: 48px;
@@ -134,22 +134,22 @@ a.icon {
   color: #002266;
   text-decoration: none !important;
 }
-a.icon:hover {
+a.icon:hover, span.icon:hover {
   cursor: pointer;
   color: #002266 !important;
   background-color: #F0F0F0;
 }
-a.icon-disabled {
+a.icon-disabled, span.icon-disabled {
   color: #808080 !important;
   opacity: 0.7;
   filter: alpha(opacity=70);
 }
-a.icon-disabled:hover {
+a.icon-disabled:hover, span.icon-disabled:hover {
   color: #808080 !important;
   background-color: #FCFCFC;
   border-color: #F8F8F8;
 }
-a.icon small, a.icon-disabled small {
+a.icon small, a.icon-disabled small, span.icon small, span.icon-disabled small {
   display: block;
   font-size: 8pt;
   line-height: normal;
@@ -167,7 +167,7 @@ a.install-disabled {
 a.upgrade {
   background-image: url(../icons/upgrade.png);
 }
-a.upgrade-disabled {
+a.upgrade-disabled, span.upgrade-disabled {
   background-image: url(../icons/upgrade-disabled.png);
 }
 
@@ -204,14 +204,14 @@ input[type ^="button"], button {
   border-width: 1px;
   border-style: solid;
 }
-input[type ^="submit"] {
+input[type ^="submit"], button.submit {
   background-color: #4F729A;
   color: #FFFFFF;
   border-width: 1px;
   border-style: solid;
   border-color: #1F426A #7FA2CA #7FA2CA #1F426A;
 }
-input[type ^="submit"]:hover, input[type ^="submit"]:focus {
+input[type ^="submit"]:hover, input[type ^="submit"]:focus, button.submit:hover, button.submit:focus {
   background-color: #5f82aa;
 }
 input[type ^="text"], input[type ^="password"] {

@@ -64,6 +64,14 @@ class pluginLoader {
   function loadAll() 
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // if we're in an upgrade, just skip this step
+    if ( defined('IN_ENANO_UPGRADE') )
+    {
+      $this->load_list = array();
+      return false;
+    }
+    
     $dir = ENANO_ROOT.'/plugins/';
     
     $this->load_list = $this->system_plugins;

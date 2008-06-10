@@ -71,7 +71,7 @@ function language_onload_resched()
 {
   if ( window.console )
   {
-    window.console.info('Delaying language init by 0.2s because language_onload decided that enano_lang[ENANO_LANG_ID] isn\'t ready');
+    // window.console.info('Delaying language init by 0.2s because language_onload decided that enano_lang[ENANO_LANG_ID] isn\'t ready');
   }
   setTimeout('language_onload();', 200);
 }

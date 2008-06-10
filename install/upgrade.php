@@ -33,59 +33,27 @@ require_once('includes/common.php');
 require_once('includes/libenanoinstall.php');
 
 // when the installer's common is loaded, it runs chdir() to the ENANO_ROOT, thus making this Enano's common.php
+// PHP5 notice removed in 1.1.4 since the existing common is loaded and that loads lang and json2, which will
+// give syntax errors on PHP4. So much for that. The installer will warn about this anyway.
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');
 
 $ui = new Enano_Installer_UI('Enano upgrader', false);
-if ( version_compare(PHP_VERSION, '5.0.0', '<') )
-{
-  $ui->__construct('Enano upgrader', false);
-}
+
 $stg_welcome = $ui->add_stage('Welcome', true);
 $stg_confirm = $ui->add_stage('Confirmation', true);
 $stg_upgrade = $ui->add_stage('Perform upgrade', true);
 $stg_finish  = $ui->add_stage('Finish', true);
-$stg_php4 = $ui->add_stage('PHP4 compatibility notice', false);
 
-if ( version_compare(PHP_VERSION, '5.0.0', '<') || isset($_GET['debug_warn_php4']) )
-{
-  $ui->set_visible_stage($stg_php4);
-  $ui->step = '';
-  
-  $ui->show_header();
-  
-  // This isn't localized because all localization code is dependent on
-  // PHP 5 (loading lang.php will throw a parser error under PHP4). This
-  // one message probably doesn't need to be localized anyway.
-  
-  ?>
-  <h2 class="heading-error">
-    Your server doesn't have support for PHP 5.
-  </h2>
-  <p>
-    PHP 5 is the latest version of the language on which Enano was built. Its many new features have been available since early 2004, yet
-    many web hosts have not migrated to it because of the work involved. In 2007, Zend Corporation announced that support for the aging
-    PHP 4.x would be discontinued at the end of the year. An initiative called <a href="http://gophp5.org/">GoPHP5</a> was started to
-    encourage web hosts to migrate to PHP 5.
-  </p>
-  <p>
-    Because of the industry's decision to not support PHP 4 any longer, the Enano team decided that it was time to begin using the powerful
-    features of PHP 5 at the expense of PHP 4 compatibility. Therefore, this version of Enano cannot be installed on your server until it
-    is upgraded to at least PHP 5.0.0, and preferably the latest available version.
-    <!-- No, not even removing the check in this installer script will help. As soon as the PHP4 check is passed, the installer shows the
-         language selection page, after which the language code is loaded. The language code and libjson2 will trigger parse errors under
-         PHP <5.0.0. -->
-  </p>
-  <p>
-    If you need to use Enano but can't upgrade your PHP because you're on a shared or reseller hosting service, you can use the
-    <a href="http://enanocms.org/download?series=1.0">1.0.x series of Enano</a> on your site. While the Enano team attempts to make this
-    older series work on PHP 4, official support is not provided for installations of Enano on PHP 4.
-  </p>
-  <?php
-  
-  $ui->show_footer();
-  exit(0);
-}
+// init languages
+$lang_id_list = array_keys($languages);
+$lang_id = $lang_id_list[0];
+$language_dir = $languages[$lang_id]['dir'];
+
+// load the language file
+$lang = new Language($lang_id);
+$lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/install.json');
+$lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/user.json');
 
 // Version check
 if ( enano_version() == installer_enano_version() )
@@ -106,35 +74,57 @@ if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_l
     {
       $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_MEMBER);
     }
-    $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_ADMIN);
-    if ( $result['success'] )
+    if ( !isset($result) || ( isset($result) && $result['success']) )
     {
-      header('HTTP/1.1 302 Some kind of redirect with implied no content');
-      header('Location: ' . scriptPath . '/install/' . $session->append_sid('upgrade.php'));
-      exit();
+      $result = $session->login_without_crypto($_POST['username'], $_POST['password'], false, USER_LEVEL_ADMIN);
+      if ( $result['success'] )
+      {
+        header('HTTP/1.1 302 Some kind of redirect with implied no content');
+        header('Location: ' . scriptPath . '/install/' . $session->append_sid('upgrade.php'));
+        exit();
+      }
     }
   }
   
   $ui->show_header();
   
   ?>
-  <h3>Authentication needed</h3>
+  <h3><?php echo $lang->get('upgrade_login_msg_auth_needed_title'); ?></h3>
   <?php
   
   echo '<form action="upgrade.php" method="post">';
   
   if ( isset($result) )
   {
-    echo '<b>Session manager returned error:</b>' . '<pre>' . print_r($result, true) . '</pre>';
+    echo '<b>' . $lang->get('upgrade_login_err_failed', array('error_code' => $result['error'])) . '</b>';
   }
   
   ?>
-  <p>You need <?php if ( !$session->user_logged_in ) echo 'to be logged in and have '; ?>an active admin session to continue.</p>
-  <p>
-    Username:&nbsp;&nbsp;&nbsp;<input type="text" name="username" /><br />
-    Password:&nbsp;&nbsp;&nbsp;<input type="password" name="password" /><br />
-    <input type="submit" name="do_login" value="Log in" />
-  </p>
+  <p><?php
+  if ( $session->user_logged_in )
+  {
+    echo $lang->get('upgrade_login_msg_auth_needed_body_level2');
+  }
+  else
+  {
+    echo $lang->get('upgrade_login_msg_auth_needed_body_level1');
+  }
+  ?></p>
+  <table border="0" cellspacing="0" cellpadding="5" style="margin: 0 auto;">
+  <tr>
+    <td><?php echo $lang->get('user_login_field_username'); ?>:</td>
+    <td><input type="text" name="username" tabindex="1" /></td>
+  </tr>
+  <tr>
+    <td><?php echo $lang->get('user_login_field_password'); ?>:</td>
+    <td><input type="password" name="password" tabindex="2" /></td>
+  </tr>
+  <tr>
+    <td colspan="2" style="text-align: center;">
+      <input type="submit" name="do_login" value="<?php echo $lang->get('upgrade_login_btn_login'); ?>" tabindex="3" />
+    </td>
+  </tr>
+  </table>
   <?php
   
   echo '</form>';
@@ -213,7 +203,19 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
 else
 {
   ?>
-  <p>Nothing's really implemented for now except the actual migration code, which is not very smart. Just <a href="<?php echo $session->append_sid('upgrade.php?stage=pimpmyenano'); ?>">do the upgrade and get it over with</a>.</p>
+  <h3><?php echo $lang->get('upgrade_confirm_title'); ?></h3>
+  <p><?php echo $lang->get('upgrade_confirm_body', array('enano_version' => installer_enano_version())); ?></p>
+  <ul>
+    <li><?php echo $lang->get('upgrade_confirm_objective_backup_fs', array('dir' => ENANO_ROOT)); ?></li>
+    <li><?php echo $lang->get('upgrade_confirm_objective_backup_db', array('dbname' => $dbname)); ?></li>
+  </ul>
+  <form method="get" action="upgrade.php" style="text-align: center;">
+    <input type="hidden" name="auth" value="<?php echo $session->sid_super; ?>" />
+    <button name="stage" value="pimpmyenano" class="submit">
+      <img src="images/icons/pimp.png" />
+      <?php echo $lang->get('upgrade_confirm_btn_upgrade'); ?>
+    </button>
+  </form>
   <?php
 }
 

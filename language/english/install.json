@@ -15,7 +15,7 @@
 
 var enano_lang_install = {
   categories: [
-    'meta', 'language', 'welcome', 'license', 'sysreqs', 'database', 'dbmysql', 'dbpgsql', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp',
+    'meta', 'language', 'welcome', 'license', 'sysreqs', 'database', 'dbmysql', 'dbpgsql', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp', 'upgrade'
   ],
   strings: {
     meta: {
@@ -360,6 +360,19 @@ var enano_lang_install = {
                             With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
                             </p>',
       btn_close_window: 'Close window',
+    },
+    upgrade: {
+      login_msg_auth_needed_title: 'Authentication needed',
+      login_msg_auth_needed_body_level1: 'To continue, you need to log in. Please enter an administrator username and password below.',
+      login_msg_auth_needed_body_level2: 'To confirm the upgrade, you need to re-enter your login information. Please enter your username and password below.',
+      login_btn_login: 'Log in',
+      login_err_failed: 'The following error occurred during the login process: %error_code%.',
+      
+      confirm_title: 'Confirm upgrade',
+      confirm_body: 'You are about to upgrade to Enano version <b>%enano_version%</b>. You should make sure that you\'ve done the following before you continue:',
+      confirm_objective_backup_fs: 'Back up Enano installation directory (<b>%dir%</b>)',
+      confirm_objective_backup_db: 'Back up Enano database, including non-Enano tables if any (<b>%dbname%</b>)',
+      confirm_btn_upgrade: 'Pimp my Enano!',
     }
   }
 }

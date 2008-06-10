@@ -1,5 +1,5 @@
 Enano CMS
-Version 1.1.3
+Version 1.1.4
 -----------------------------
 
 Thanks for downloading Enano! If you're looking for an installation guide,
@@ -44,28 +44,25 @@ Most of the PHP code in Enano was written by Dan Fuhry. Some parts were borrowed
 from other projects that are also released under Free licenses; see the various
 files under the licenses/ directory included with this release for details.
 
-If you are planning to make a commercial fork of Enano, all of the software and
-libraries included with Enano are available under licenses that allow you to do
-so; however, in compliance with the GPL, you must:
+Please be reminded that if you create a commercial fork of Enano, that while
+all of the components included with Enano are licensed in such a way that you
+are allowed to do so, you must make the project in its entirety available under
+the GNU General Public License, notwithstanding licenses for specific
+components of Enano named in /licenses/index.html and in various source code
+files.
 
-a) provide attribution to the Enano team in source code files and on the
-   (renamed) Special:About_Enano page,
-b) remove all instances of the word Enano and the Enano logo from your
-   derivative work, with the exception of the following phrase, which must
-   be shown on the (renamed) Special:About_Enano page:
+We also ask that if you fork Enano, you provide attribution to the Enano team
+by including the following notice on the (renamed) Special:About_Enano page:
 
-    "The software used on this website was based on Enano CMS. Copyright
-     (C) 2006-2007 Dan Fuhry."
+  "This software is based on Enano CMS, copyright (C) 2006-2008 Dan Fuhry."
 
-   The words "Enano CMS" must link to the page <http://enanocms.org/>. You may
-   (at your option) also include a notice of non-endorsement by the Enano
-   Foundation, unless you're lucky enough to become an official fork
-   maintainer.
-
-c) Provide the complete source code for your modified version of Enano under
-   the terms of the GNU General Public License, and
-d) Include the complete and unmodified licenses/ directory, which contains
-   licensing information for third-party libraries that Enano uses.
+While you have no legal obligation to do so, we ask that any forks of Enano
+be renamed so that they do not contain the word "Enano" anywhere in the
+product name. This is for identity and support reasons - users may get
+confused as to which one is the "real" Enano CMS. We also strongly recommend
+that you include a notice of non-endorsement from Dan Fuhry and the Enano
+Foundation and a disclaimer of liability for damages incurred through the use
+of the software.
 
 As permitted by the GPL, you may charge for the service of downloading Enano
 from your server; however, you may not prevent others from distributing Enano
@@ -74,7 +71,7 @@ or any modified version.
 CHANGES IN THIS RELEASE
 -----------------------------
 
-Please see <http://enanocms.org/Release_notes/1.1.3> for a list of changes in
+Please see <http://enanocms.org/Release_notes/1.1.4> for a list of changes in
 this release.
 
 UPGRADING FROM PREVIOUS RELEASES

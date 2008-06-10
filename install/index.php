@@ -36,6 +36,9 @@ if ( defined('ENANO_INSTALLED') )
   require('includes/common.php');
 }
 
+// are we in PHP5?
+define('HAVE_PHP5', version_compare(PHP_VERSION, '5.0.0', '>='));
+
 ?>
 
           <div id="installnotice">
@@ -112,7 +115,18 @@ if ( defined('ENANO_INSTALLED') )
                   }
                   else
                   {
-                    echo '<li><a href="upgrade.php" class="upgrade icon">Upgrade</a></li>';
+                    if ( HAVE_PHP5 && !isset($_GET['debug_warn_php4']) )
+                      echo '<li><a href="upgrade.php" class="upgrade icon">Upgrade</a></li>';
+                    else
+                      echo '<li>
+                    <span class="upgrade-disabled icon icon-disabled">
+                      Upgrade
+                      <small>
+                        Your server doesn\'t have PHP 5 or later installed. Enano 1.2 does not have support for PHP 4.
+                        <a href="install.php?debug_warn_php4">Learn more &raquo;</a>
+                      </small> <!-- CSS takes care of making this position properly -->
+                    </span>
+                  </li>';
                   }
                   endif;
                   ?>

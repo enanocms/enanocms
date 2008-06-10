@@ -513,7 +513,7 @@ class sessionManager {
         $this->real_name =     $userdata['real_name'];
         $this->email =         $userdata['email'];
         $this->unread_pms =    $userdata['num_pms'];
-        $this->user_title =    $userdata['user_title'];
+        $this->user_title =    ( isset($userdata['user_title']) ) ? $userdata['user_title'] : null;
         if(!$this->compat)
         {
           $this->theme =         $userdata['theme'];
@@ -1075,7 +1075,7 @@ class sessionManager {
         $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
       // Do we also need to increment the lockout countdown?
-      if ( $policy != 'disable' && !defined('IN_ENANO_INSTALL') )
+      if ( !defined('IN_ENANO_INSTALL') && $policy != 'disable' )
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
@@ -1326,7 +1326,7 @@ class sessionManager {
       $fail = true;
       if ( defined('IN_ENANO_UPGRADE') )
       {
-        if ( installer_enano_version() == '1.1.3' && substr($ip, 0, 10) == substr($row['source_ip'], 0, 10) )
+        if ( substr($ip, 0, 10) == substr($row['source_ip'], 0, 10) )
           $fail = false;
       }
       // Failed IP address check

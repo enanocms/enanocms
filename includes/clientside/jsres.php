@@ -102,6 +102,35 @@ if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) )
 header('Content-type: text/javascript');
 $everything = '';
 
+// if we only want the tiny version of the API (just enough to get by until the full one is loaded), send that
+// with a simple ETag and far future expires header
+if ( isset($_GET['early']) )
+{
+  header('ETag: enanocms-lib-early-r1');
+  header('Expires: Wed, 1 Jan 2020 00:00:00 GMT');
+  
+  echo <<<JSEOF
+var onload_hooks = new Array();
+
+function addOnloadHook(func)
+{
+  if ( typeof ( func ) == 'function' )
+  {
+    if ( typeof(onload_hooks.push) == 'function' )
+    {
+      onload_hooks.push(func);
+    }
+    else
+    {
+      onload_hooks[onload_hooks.length] = func;
+    }
+  }
+}
+JSEOF;
+  
+  exit();
+}
+
 // Load and parse enano_lib_basic
 $file = @file_get_contents('includes/clientside/static/enano-lib-basic.js');
 

@@ -7,6 +7,9 @@
     <link id="mdgCss" rel="stylesheet" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" type="text/css" />
     {JS_DYNAMIC_VARS}
     
+    <!-- Only load a basic set of functions for now. Let the rest of the API load when the page is finished. -->
+    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php?early"></script>
+    
     <script type="text/javascript">
       var tinymce_skin = 'o2k7';
     </script>
