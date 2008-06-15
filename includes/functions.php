@@ -357,10 +357,12 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
   {
     $template = new template_nodb();
     $template->load_theme('oxygen', 'bleu', false);
-    $template->tpl_strings['SITE_NAME'] = 'Enano';
-    $template->tpl_strings['SITE_DESC'] = 'This site is experiencing a critical error and cannot load.';
-    $template->tpl_strings['COPYRIGHT'] = 'Powered by Enano CMS - &copy; 2006-2008 Dan Fuhry. This program is Free Software; see the <a href="' . scriptPath . '/install.php?mode=license">GPL file</a> included with this package for details.';
-    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($title);
+    $template->assign_vars(array(
+        'SITE_NAME' => 'Enano',
+        'SITE_DESC' => 'This site is experiencing a critical error and cannot load.',
+        'COPYRIGHT' => 'Powered by Enano CMS - &copy; 2006-2008 Dan Fuhry. This program is Free Software; see the <a href="' . scriptPath . '/install.php?mode=license">GPL file</a> included with this package for details.',
+        'PAGE_NAME' => htmlspecialchars($title)
+      ));
   }
 
   $template->add_header('<meta http-equiv="refresh" content="' . $timeout . '; url=' . str_replace('"', '\\"', $url) . '" />');
@@ -376,7 +378,7 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
   if ( get_class($template) == 'template_nodb' )
     $template->init_vars();
 
-  $template->tpl_strings['PAGE_NAME'] = $title;
+  $template->assign_vars(array('PAGE_NAME' => $title));
   $template->header(true);
   echo '<p>' . $message . '</p>';
   $subst = array(
