@@ -1989,7 +1989,7 @@ function page_Special_Administration()
                   div.style.width = width + 'px';
                   div.style.height = height + 'px';
                   var body = document.getElementsByTagName('body')[0];
-                  miniPromptDestroy(true);
+                  miniPromptDestroy(this);
                   body.appendChild(div);
                   ajaxPageBin(namespace_list.Admin + 'AdminLogout');
                 }

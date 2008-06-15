@@ -1147,6 +1147,11 @@ class template
       header('Content-type: application/xhtml+xml');
     }
     
+    // Reassign one important variable that can need to be changed after init_vars(): ADDITIONAL_HEADERS
+    $this->assign_vars(array(
+        'ADDITIONAL_HEADERS' => $this->additional_headers
+      ));
+    
     $headers_sent = true;
     if(!defined('ENANO_HEADERS_SENT'))
       define('ENANO_HEADERS_SENT', '');

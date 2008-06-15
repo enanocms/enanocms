@@ -395,7 +395,7 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
  * Generates a confirmation form if a CSRF check fails. Will terminate execution.
  */
 
-function csrf_confirm_form()
+function csrf_request_confirm()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
@@ -4425,7 +4425,7 @@ function fetch_rank_data()
  * Caches the computed user rank information.
  */
 
-function generate_ranks_cache()
+function generate_cache_userranks()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;

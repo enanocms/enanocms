@@ -4267,6 +4267,6 @@ register_cron_task('cron_clean_old_admin_keys', 168);
  * Cron task - regenerate cached user rank information
  */
 
-register_cron_task('generate_ranks_cache', 0.25);
+register_cron_task('generate_cache_userranks', 0.25);
 
 ?>

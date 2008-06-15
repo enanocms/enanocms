@@ -390,7 +390,7 @@ function page_Admin_UserManager()
           }
           
           // user level updated, regenerate the ranks cache
-          generate_ranks_cache();
+          generate_cache_userranks();
           
           echo '<div class="info-box">' . $lang->get('acpum_msg_save_success') . '</div>';
         }

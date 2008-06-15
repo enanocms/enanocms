@@ -599,7 +599,7 @@ function page_Special_Preferences()
           $db->free_result();
         }
         
-        generate_ranks_cache();
+        generate_cache_userranks();
         
         echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_publicinfo_msg_save_success') . '</div>';
       }

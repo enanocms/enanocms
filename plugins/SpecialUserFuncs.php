@@ -612,7 +612,7 @@ function page_Special_Logout()
   $token = $paths->getParam(0);
   if ( $token !== $session->csrf_token )
   {
-    csrf_confirm_form();
+    csrf_request_confirm();
   }
   
   $l = $session->logout();
