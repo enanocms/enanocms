@@ -194,6 +194,15 @@ class PageProcessor
         return false;
       }
     }
+    
+    // Is there a custom function registered for handling this namespace?
+    if ( $proc = $paths->get_namespace_processor($this->namespace) )
+    {
+      // yes, just call that
+      // this is protected aggressively by the PathManager against overriding critical namespaces
+      return call_user_func($proc, $this);
+    }
+    
     $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
     $strict_no_headers = false;
     if ( $this->namespace == 'Admin' && strstr($this->page_id, '/') )

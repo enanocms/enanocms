@@ -2935,6 +2935,22 @@ class sessionManager {
   }
   
   /**
+   * Checks if the given ACL rule type applies to a namespace.
+   * @param string ACL rule type
+   * @param string Namespace
+   * @return bool
+   */
+  
+  function check_acl_scope($acl_rule, $namespace)
+  {
+    if ( !isset($this->acl_scope[$acl_rule]) )
+      return false;
+    if ( $this->acl_scope[$acl_rule] === array('All') )
+      return true;
+    return ( in_array($namespace, $this->acl_scope[$acl_rule]) ) ? true : false;
+  }
+  
+  /**
    * Read all of our permissions from the database and process/apply them. This should be called after the page is determined.
    * @access private
    */
@@ -3038,7 +3054,8 @@ class sessionManager {
       }
       else
       {
-        $this->acl_scope[$perm_type][] = $ns;
+        if ( $this->acl_scope[$perm_type] !== array('All') )
+          $this->acl_scope[$perm_type][] = $ns;
         if ( isset($this->acl_types[$perm_type]) && !isset($this->perms[$perm_type]) )
         {
           $this->perms[$perm_type] = $this->acl_types[$perm_type];
@@ -3895,6 +3912,17 @@ class Session_ACLPageInfo {
       unset($base['__resolve_table']);
     }
     
+    foreach ( $acl_types as $perm_type => $_ )
+    {
+      if ( !$session->check_acl_scope($perm_type, $namespace) )
+      {
+        unset($acl_types[$perm_type]);
+        unset($acl_deps[$perm_type]);
+        unset($acl_descs[$perm_type]);
+        unset($base[$perm_type]);
+      }
+    }
+    
     $this->acl_deps = $acl_deps;
     $this->acl_types = $acl_types;
     $this->acl_descs = $acl_descs;
@@ -3989,6 +4017,9 @@ class Session_ACLPageInfo {
         foreach ( $rules as $perm_type => $perm_value )
         {
           if ( $this->perms[$perm_type] == AUTH_DENY )
+            continue;
+          
+          if ( !$session->check_acl_scope($perm_type, $this->namespace) )
             continue;
           
           $this->perm_resolve_table[$perm_type] = array(
@@ -4093,7 +4124,23 @@ class Session_ACLPageInfo {
     else
     {
       // ACL type is undefined
-      trigger_error('Unknown access type "' . $type . '"', E_USER_WARNING);
+      $caller = 'unknown';
+      if ( function_exists('debug_backtrace') )
+      {
+        if ( $bt = @debug_backtrace() )
+        {
+          foreach ( $bt as $trace )
+          {
+            $file = basename($trace['file']);
+            if ( $file != 'sessions.php' )
+            {
+              $caller = $file . ':' . $trace['line'];
+              break;
+            }
+          }
+        }
+      }
+      trigger_error('Unknown access type "' . $type . '", called from ' . $caller . '', E_USER_WARNING);
       return false; // Be on the safe side and deny access
     }
     if ( !$no_deps )

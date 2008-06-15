@@ -558,7 +558,7 @@ class template
     
     // Page toolbar
     // Comments button
-    if ( $perms->get_permissions('read') && getConfig('enable_comments')=='1' && $local_namespace != 'Special' && $local_namespace != 'Admin' && $local_cdata['comments_on'] == 1 )
+    if ( $perms->get_permissions('read') && getConfig('enable_comments')=='1' && $local_cdata['comments_on'] == 1 )
     {
       
       $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$local_page_id.'\' AND namespace=\''.$local_namespace.'\';');
@@ -610,7 +610,7 @@ class template
       $tb .= $button->run();
     }
     // Edit button
-    if($perms->get_permissions('read') && ($local_namespace != 'Special' && $local_namespace != 'Admin' && $local_namespace != 'Anonymous') && ( $perms->get_permissions('edit_page') && ( ( $paths->page_protected && $perms->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
+    if($perms->get_permissions('read') && $session->check_acl_scope('edit_page', $local_namespace) && ( $perms->get_permissions('edit_page') && ( ( $paths->page_protected && $perms->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
     {
       $button->assign_vars(array(
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_edit') . '" accesskey="e"',
@@ -621,7 +621,7 @@ class template
       $tb .= $button->run();
     // View source button
     }
-    else if($perms->get_permissions('view_source') && ( !$perms->get_permissions('edit_page') || !$perms->get_permissions('even_when_protected') && $paths->page_protected ) && $local_namespace != 'Special' && $local_namespace != 'Admin' && $local_namespace != 'Anonymous') 
+    else if ( $session->check_acl_scope('view_source', $local_namespace) && $perms->get_permissions('view_source') && ( !$perms->get_permissions('edit_page') || !$perms->get_permissions('even_when_protected') && $paths->page_protected ) && $local_namespace != 'Anonymous') 
     {
       $button->assign_vars(array(
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_viewsource') . '" accesskey="e"',
@@ -632,7 +632,7 @@ class template
       $tb .= $button->run();
     }
     // History button
-    if ( $perms->get_permissions('read') /* && $paths->wiki_mode */ && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('history_view') )
+    if ( $perms->get_permissions('read') && $session->check_acl_scope('history_view', $local_namespace) && $local_page_exists && $perms->get_permissions('history_view') )
     {
       $button->assign_vars(array(
         'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="' . $lang->get('onpage_tip_history') . '" accesskey="h"',
@@ -647,7 +647,7 @@ class template
     
     // Additional actions menu
     // Rename button
-    if ( $perms->get_permissions('read') && $local_page_exists && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ) && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $perms->get_permissions('read') && $session->check_acl_scope('rename', $local_namespace) && $local_page_exists && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ) )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="' . $lang->get('onpage_tip_rename') . '" accesskey="r"',
@@ -658,7 +658,7 @@ class template
     }
     
     // Vote-to-delete button
-    if ( $paths->wiki_mode && $perms->get_permissions('vote_delete') && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin')
+    if ( $paths->wiki_mode && $session->check_acl_scope('vote_delete', $local_namespace) && $perms->get_permissions('vote_delete') && $local_page_exists)
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="' . $lang->get('onpage_tip_delvote') . '" accesskey="d"',
@@ -669,7 +669,7 @@ class template
     }
     
     // Clear-votes button
-    if ( $perms->get_permissions('read') && $paths->wiki_mode && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('vote_reset') && $local_cdata['delvotes'] > 0)
+    if ( $perms->get_permissions('read') && $session->check_acl_scope('vote_reset', $local_namespace) && $paths->wiki_mode && $local_page_exists && $perms->get_permissions('vote_reset') && $local_cdata['delvotes'] > 0)
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="' . $lang->get('onpage_tip_resetvotes') . '" accesskey="y"',
@@ -680,7 +680,7 @@ class template
     }
     
     // Printable page button
-    if ( $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $local_page_exists )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'title="' . $lang->get('onpage_tip_printable') . '"',
@@ -691,7 +691,7 @@ class template
     }
     
     // Protect button
-    if($perms->get_permissions('read') && $paths->wiki_mode && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' && $perms->get_permissions('protect'))
+    if($perms->get_permissions('read') && $session->check_acl_scope('protect', $local_namespace) && $paths->wiki_mode && $local_page_exists && $perms->get_permissions('protect'))
     {
       
       $label = $this->makeParserText($tplvars['toolbar_label']);
@@ -745,7 +745,7 @@ class template
     }
     
     // Wiki mode button
-    if($perms->get_permissions('read') && $local_page_exists && $perms->get_permissions('set_wiki_mode') && $local_namespace != 'Special' && $local_namespace != 'Admin')
+    if($perms->get_permissions('read') && $session->check_acl_scope('set_wiki_mode', $local_namespace) && $local_page_exists && $perms->get_permissions('set_wiki_mode'))
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
@@ -803,7 +803,7 @@ class template
     }
     
     // Clear logs button
-    if ( $perms->get_permissions('read') && $perms->get_permissions('clear_logs') && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $perms->get_permissions('read') && $session->check_acl_scope('clear_logs', $local_namespace) && $perms->get_permissions('clear_logs') )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxClearLogs()); return false; }" title="' . $lang->get('onpage_tip_flushlogs') . '" accesskey="l"',
@@ -814,7 +814,7 @@ class template
     }
     
     // Delete page button
-    if ( $perms->get_permissions('read') && $perms->get_permissions('delete_page') && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $perms->get_permissions('read') && $session->check_acl_scope('delete_page', $local_namespace) && $perms->get_permissions('delete_page') && $local_page_exists )
     {
       $s = $lang->get('onpage_btn_deletepage');
       if ( $local_cdata['delvotes'] == 1 )
@@ -844,7 +844,7 @@ class template
     }
     
     // Password-protect button
-    if(isset($local_cdata['password']))
+    if(isset($local_cdata['password']) && $session->check_acl_scope('password_set', $local_namespace) && $session->check_acl_scope('password_reset', $local_namespace))
     {
       if ( $local_cdata['password'] == '' )
       {
@@ -855,11 +855,15 @@ class template
         $a = $perms->get_permissions('password_reset');
       }
     }
-    else
+    else if ( $session->check_acl_scope('password_set', $local_namespace) )
     {
       $a = $perms->get_permissions('password_set');
     }
-    if ( $a && $perms->get_permissions('read') && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    else
+    {
+      $a = false;
+    }
+    if ( $a && $perms->get_permissions('read') && $local_page_exists )
     {
       // label at start
       $label = $this->makeParserText($tplvars['toolbar_label']);
@@ -877,7 +881,7 @@ class template
     }
     
     // Manage ACLs button
-    if ( !$paths->anonymous_page && ( $perms->get_permissions('edit_acl') || ( defined('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL') &&  $session->user_level >= USER_LEVEL_ADMIN ) ) )
+    if ( !$paths->anonymous_page && $session->check_acl_scope('edit_acl', $local_namespace) && ( $perms->get_permissions('edit_acl') || ( defined('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL') &&  $session->user_level >= USER_LEVEL_ADMIN ) ) )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { return ajaxOpenACLManager(); }" title="' . $lang->get('onpage_tip_aclmanager') . '" accesskey="m"',
@@ -888,7 +892,7 @@ class template
     }
     
     // Administer page button
-    if ( $session->user_level >= USER_LEVEL_ADMIN && $local_page_exists && $local_namespace != 'Special' && $local_namespace != 'Admin' )
+    if ( $session->user_level >= USER_LEVEL_ADMIN && $local_page_exists )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="' . $lang->get('onpage_tip_adminoptions') . '" accesskey="g"',
@@ -940,9 +944,9 @@ class template
     /* if($this->sidebar_extra == '') $this->tpl_bool['right_sidebar'] = false;
     else */ $this->tpl_bool['right_sidebar'] = true;
     
-    $this->tpl_bool['auth_rename'] = ( $local_page_exists && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ) && $local_namespace != 'Special' && $local_namespace != 'Admin');
+    $this->tpl_bool['auth_rename'] = ( $local_page_exists && $session->check_acl_scope('rename', $local_namespace) && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ));
     
-    $this->tpl_bool['enable_uploads'] = ( getConfig('enable_uploads') == '1' && $perms->get_permissions('upload_files') ) ? true : false;
+    $this->tpl_bool['enable_uploads'] = ( getConfig('enable_uploads') == '1' && $session->get_permissions('upload_files') ) ? true : false;
     
     $this->tpl_bool['stupid_mode'] = false;
     
@@ -1002,6 +1006,15 @@ class template
     $urlname_jssafe = sanitize_page_id($local_fullpage);
     $physical_urlname_jssafe = sanitize_page_id($paths->fullpage);
     
+    if ( $session->check_acl_scope('even_when_protected', $local_namespace) )
+    {
+      $protected = $paths->page_protected && !$perms->get_permissions('even_when_protected');
+    }
+    else
+    {
+      $protected = false;
+    }
+    
     // Generate the dynamic javascript vars
     $js_dynamic = '    <script type="text/javascript">// <![CDATA[
       // This section defines some basic and very important variables that are used later in the static Javascript library.
@@ -1023,7 +1036,7 @@ class template
       var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? '1' : '0' ) . ';
       var csrf_token = "' . $session->csrf_token . '";
       var editNotice = \'' . ( (getConfig('wiki_edit_notice')=='1') ? str_replace("\n", "\\\n", RenderMan::render(getConfig('wiki_edit_notice_text'))) : '' ) . '\';
-      var prot = ' . ( ($paths->page_protected && !$perms->get_permissions('even_when_protected')) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server
+      var prot = ' . ( ($protected) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server
       var ENANO_SPECIAL_CREATEPAGE = \''. makeUrl($paths->nslist['Special'].'CreatePage') .'\';
       var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $urlname_clean .'&namespace=' . $local_namespace . '\';
       var ENANO_SPECIAL_CHANGESTYLE = \''. makeUrlNS('Special', 'ChangeStyle') .'\';

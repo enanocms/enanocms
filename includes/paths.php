@@ -17,8 +17,18 @@
  * @see http://enanocms.org/Help:API_Documentation
  */
  
-class pathManager {
-  var $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $anonymous_page;
+class pathManager
+{
+  public $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $anonymous_page;
+  
+  /**
+   * List of custom processing functions for namespaces. This is protected so trying to do anything with it will throw an error.
+   * @access private
+   * @var array
+   */
+  
+  protected $namespace_processors;
+  
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -76,7 +86,7 @@ class pathManager {
     $session->register_acl_type('html_in_pages',          AUTH_DISALLOW, 'perm_html_in_pages',          Array('edit_page'),                                       'Article|User|Project|Template|File|Help|System|Category|Admin');
     $session->register_acl_type('php_in_pages',           AUTH_DISALLOW, 'perm_php_in_pages',           Array('edit_page', 'html_in_pages'),                      'Article|User|Project|Template|File|Help|System|Category|Admin');
     $session->register_acl_type('custom_user_title',      AUTH_DISALLOW, 'perm_custom_user_title',      Array(),                                                  'User|Special');
-    $session->register_acl_type('edit_acl',               AUTH_DISALLOW, 'perm_edit_acl',               Array('read', 'post_comments', 'edit_comments', 'edit_page', 'view_source', 'mod_comments', 'history_view', 'history_rollback', 'history_rollback_extra', 'protect', 'rename', 'clear_logs', 'vote_delete', 'vote_reset', 'delete_page', 'set_wiki_mode', 'password_set', 'password_reset', 'mod_misc', 'edit_cat', 'even_when_protected', 'upload_files', 'upload_new_version', 'create_page', 'php_in_pages'));
+    $session->register_acl_type('edit_acl',               AUTH_DISALLOW, 'perm_edit_acl',               Array());
     
     // DO NOT add new admin pages here! Use a plugin to call $paths->addAdminNode();
     $this->addAdminNode('adm_cat_general',    'adm_page_general_config', 'GeneralConfig', scriptPath . '/images/icons/applets/generalconfig.png');
@@ -573,6 +583,56 @@ class pathManager {
   }
   
   /**
+   * Registers a handler to manually process a namespace instead of the default PageProcessor behavior.
+   * The first and only parameter passed to the processing function will be the PageProcessor instance.
+   * @param string Namespace to process
+   * @param mixed Function address. Either a function name or an array of the form array(0 => mixed (string:class name or object), 1 => string:method)
+   */
+  
+  function register_namespace_processor($namespace, $function)
+  {
+    if ( isset($this->namespace_processors[$namespace]) )
+    {
+      $processorname = ( is_string($this->namespace_processors[$namespace]) ) ?
+        $this->namespace_processors[$namespace] :
+        ( is_object($this->namespace_processors[$namespace][0]) ? get_class($this->namespace_processors[$namespace][0]) : $this->namespace_processors[$namespace][0] ) . '::' .
+          $this->namespace_processors[$namespace][1];
+          
+      trigger_error("Namespace \"$namespace\" is already being processed by $processorname - replacing caller", E_USER_WARNING);
+    }
+    if ( !is_string($function) )
+    {
+      if ( !is_array($function) )
+        return false;
+      if ( count($function) != 2 )
+        return false;
+      if ( !is_string($function[0]) && !is_object($function[0]) )
+        return false;
+      if ( !is_string($function[1]) )
+        return false;
+    }
+    
+    // security: don't allow Special or Admin namespaces to be overridden
+    if ( $namespace == 'Special' || $namespace == 'Admin' )
+    {
+      trigger_error("Security manager denied attempt to override processor for $namespace", E_USER_ERROR);
+    }
+    
+    $this->namespace_processors[$namespace] = $function;
+  }
+  
+  /**
+   * Returns a namespace processor if one exists, otherwise returns false.
+   * @param string Namespace
+   * @return mixed
+   */
+  
+  function get_namespace_processor($namespace)
+  {
+    return ( isset($this->namespace_processors[$namespace]) ) ? $this->namespace_processors[$namespace] : false;
+  }
+  
+  /**
    * Fetches the page texts for searching
    */
    
@@ -829,7 +889,17 @@ class pathManager {
     $row = $db->fetchrow();
     $db->free_result();
     $search = new Searcher();
-    $search->buildIndex(Array("ns={$namespace};pid={$page_id}"=>$row['page_text'] . ' ' . $this->pages[$idstring]['name']));
+    
+    // if the page shouldn't be indexed, send a blank set of strings to the indexing engine
+    if ( $this->pages[$idstring]['visible'] == 0 )
+    {
+      $search->buildIndex(Array("ns={$namespace};pid={$page_id}"=>''));
+    }
+    else
+    {
+      $search->buildIndex(Array("ns={$namespace};pid={$page_id}"=>$row['page_text'] . ' ' . $this->pages[$idstring]['name']));
+    }
+    
     $new_index = $search->index;
     
     if ( ENANO_DBLAYER == 'MYSQL' )
