@@ -3091,7 +3091,7 @@ class sessionManager {
    * @return array
    */
    
-  function acl_merge($perm1, $perm2, $is_everyone = false, &$defaults_used)
+  function acl_merge($perm1, $perm2, $is_everyone = false, &$defaults_used = array())
   {
     $ret = $perm1;
     if ( !is_array(@$defaults_used) )

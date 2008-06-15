@@ -174,13 +174,12 @@ class PageProcessor
     
     profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Started send process");
     
-    if ( $this->send_headers )
-    {
-      $template->init_vars($this);
-    }
-    
     if ( !$this->perms->get_permissions('read') )
     {
+      if ( $this->send_headers )
+      {
+        $template->init_vars($this);
+      }
       // Permission denied to read page. Is this one of our core pages that must always be allowed?
       // NOTE: Not even the administration panel will work if ACLs deny access to it.
       if ( $this->namespace == 'Special' && in_array($this->page_id, array('Login', 'Logout', 'LangExportJSON', 'CSS')) )
@@ -199,6 +198,10 @@ class PageProcessor
     $strict_no_headers = false;
     if ( $this->namespace == 'Admin' && strstr($this->page_id, '/') )
     {
+      if ( $this->send_headers )
+      {
+        $template->init_vars($this);
+      }
       $this->page_id = substr($this->page_id, 0, strpos($this->page_id, '/'));
       $funcname = "page_{$this->namespace}_{$this->page_id}";
       if ( function_exists($funcname) )
@@ -208,6 +211,10 @@ class PageProcessor
     }
     if ( isset($paths->pages[$pathskey]) )
     {
+      if ( $this->send_headers )
+      {
+        $template->init_vars($this);
+      }
       if ( $paths->pages[$pathskey]['special'] == 1 )
       {
         $this->send_headers = false;
@@ -233,6 +240,11 @@ class PageProcessor
     }
     if ( $this->namespace == 'Special' || $this->namespace == 'Admin' )
     {
+      if ( $this->send_headers )
+      {
+        $template->init_vars($this);
+      }
+      
       $this->revision_time = time();
       
       if ( !$this->page_exists )
@@ -272,10 +284,20 @@ class PageProcessor
     }
     else if ( $this->namespace == 'User' && strpos($this->page_id, '/') === false )
     {
+      if ( $this->send_headers )
+      {
+        $template->init_vars($this);
+      }
+      
       $this->_handle_userpage();
     }
     else if ( ( $this->namespace == 'Template' || $this->namespace == 'System' ) && $this->page_exists )
     {
+      if ( $this->send_headers )
+      {
+        $template->init_vars($this);
+      }
+      
       $this->header();
       
       $text = $this->fetch_text();
@@ -290,6 +312,11 @@ class PageProcessor
     }
     else if ( $this->namespace == 'Anonymous' )
     {
+      if ( $this->send_headers )
+      {
+        $template->init_vars($this);
+      }
+      
       $uri = scriptPath . '/' . $this->page_id;
       if ( !$this->send_headers )
       {
@@ -313,6 +340,10 @@ class PageProcessor
       
       if ( empty($ob) )
       {
+        if ( $this->send_headers )
+        {
+          $template->init_vars($this);
+        }
         $this->err_page_not_existent();
       }
       else
@@ -327,6 +358,10 @@ class PageProcessor
     else // (disabled for compatibility reasons) if ( in_array($this->namespace, array('Article', 'User', 'Project', 'Help', 'File', 'Category')) && $this->page_exists )
     {
       // Send as regular page
+      if ( $this->send_headers )
+      {
+        $template->init_vars($this);
+      }
       
       // die($this->page_id);
       
