@@ -260,24 +260,6 @@ function runOnloadHooks(e)
 }
 
 var head = document.getElementsByTagName('head')[0];
-if ( !KILL_SWITCH && !DISABLE_MCE )
-{
-  if ( IE )
-  {
-    document.write('<script type="text/javascript" src="' + scriptPath + '/includes/clientside/tinymce/tiny_mce.js"></script>');
-  }
-  else
-  {
-    var script = document.createElement('script');
-    script.type="text/javascript";
-    script.src=scriptPath+"/includes/clientside/tinymce/tiny_mce_gzip.js";
-    script.onload = function(e)
-    {
-      tinyMCE_GZ.init(enano_tinymce_gz_options);
-    }
-    head.appendChild(script);
-  }
-}
 
 var script = document.createElement('script');
 script.type="text/javascript";
