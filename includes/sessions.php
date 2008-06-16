@@ -4016,6 +4016,9 @@ class Session_ACLPageInfo {
         }
         foreach ( $rules as $perm_type => $perm_value )
         {
+          if ( !isset($this->perms[$perm_type]) )
+            continue;
+          
           if ( $this->perms[$perm_type] == AUTH_DENY )
             continue;
           
