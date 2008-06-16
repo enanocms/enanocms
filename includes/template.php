@@ -602,8 +602,8 @@ class template
       }
       
       $db->free_result();
-      $n = ( $perms->get_permissions('mod_comments') ) ? (string)$nc : (string)$na;
-      if ( $perms->get_permissions('mod_comments') && $nu > 0 )
+      $n = ( $session->check_acl_scope('mod_comments', $local_namespace) && $perms->get_permissions('mod_comments') ) ? (string)$nc : (string)$na;
+      if ( $session->check_acl_scope('mod_comments', $local_namespace) && $perms->get_permissions('mod_comments') && $nu > 0 )
       {
         $subst = array(
             'num_comments' => $nc,
