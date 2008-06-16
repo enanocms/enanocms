@@ -2426,7 +2426,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
         {
           $tmp = ( is_callable($callers[$j]) ) ? @call_user_func($callers[$j], $val, $row) : $val;
 
-          if ( $tmp )
+          if ( is_string($tmp) )
           {
             $row[$j] = $tmp;
           }
@@ -2435,7 +2435,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
       $parser->assign_vars($row);
       $parser->assign_vars(array('_css_class' => $cls));
       $out .= $parser->run();
-    } while ( $row = $db->fetchrow($q) );
+    } while ( $row = @$db->fetchrow($q) );
     $out .= $footer;
   }
 
