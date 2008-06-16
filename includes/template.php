@@ -14,7 +14,7 @@
  
 class template
 {
-  var $tpl_strings, $tpl_bool, $vars_assign_history, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $namespace_string, $style_list, $theme_loaded;
+  var $tpl_strings, $tpl_bool, $vars_assign_history, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $namespace_string, $style_list, $theme_loaded, $initted_to_page_id, $initted_to_namespace;
   
   /**
    * The list of themes that are critical for Enano operation. This doesn't include oxygen which
@@ -394,6 +394,15 @@ class template
       $local_page_protected =& $paths->page_protected;
       $perms =& $session;
     }
+    
+    if ( $local_page_id === $this->initted_to_page_id && $local_namespace === $this->initted_to_namespace )
+    {
+      // we're already initted with this page.
+      return true;
+    }
+    
+    $this->initted_to_page_id = $local_page_id;
+    $this->initted_to_namespace = $local_namespace;
     
     if ( $local_page_exists && isset($paths->pages[$local_page]) )
     {
@@ -1148,9 +1157,12 @@ class template
     }
     
     // Reassign one important variable that can need to be changed after init_vars(): ADDITIONAL_HEADERS
-    $this->assign_vars(array(
-        'ADDITIONAL_HEADERS' => $this->additional_headers
-      ));
+    if ( !empty($this->additional_headers) )
+    {
+      $this->assign_vars(array(
+          'ADDITIONAL_HEADERS' => $this->additional_headers
+        ));
+    }
     
     $headers_sent = true;
     if(!defined('ENANO_HEADERS_SENT'))
