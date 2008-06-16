@@ -16,6 +16,11 @@ class template
 {
   var $tpl_strings, $tpl_bool, $vars_assign_history, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $namespace_string, $style_list, $theme_loaded, $initted_to_page_id, $initted_to_namespace;
   
+  var $initted_to_theme = array(
+      'theme' => false,
+      'style' => false
+    );
+  
   /**
    * The list of themes that are critical for Enano operation. This doesn't include oxygen which
    * remains a user theme. By default this is admin and printable which have to be loaded on demand.
@@ -342,9 +347,10 @@ class template
   /**
    * Initializes all variables related to on-page content. This includes sidebars and what have you.
    * @param object Optional PageProcessor object to use for passing metadata and permissions on. If omitted, uses information from $paths and $session.
+   * @param bool If true, re-inits even if already initted with this page_id and namespace
    */
   
-  function init_vars($page = false)
+  function init_vars($page = false, $force_init = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $email;
@@ -395,7 +401,7 @@ class template
       $perms =& $session;
     }
     
-    if ( $local_page_id === $this->initted_to_page_id && $local_namespace === $this->initted_to_namespace )
+    if ( $local_page_id === $this->initted_to_page_id && $local_namespace === $this->initted_to_namespace && $this->theme === $this->initted_to_theme['theme'] && $this->style === $this->initted_to_theme['style'] && !$force_init )
     {
       // we're already initted with this page.
       return true;
@@ -403,6 +409,10 @@ class template
     
     $this->initted_to_page_id = $local_page_id;
     $this->initted_to_namespace = $local_namespace;
+    $this->initted_to_theme = array(
+        'theme' => $this->theme,
+        'style' => $this->style
+      );
     
     if ( $local_page_exists && isset($paths->pages[$local_page]) )
     {
