@@ -2460,10 +2460,10 @@ class sessionManager {
          . $assoc
          . "      )\n"
          . "  LEFT JOIN ranks AS rd\n"
-         . "    ON ( rd.rank_id = 1 )\n"
+         . "    ON ( rd.rank_id = 1 )$append\n"
          . "  GROUP BY u.user_id, u.username, u.user_level, u.user_group, u.user_rank, u.user_title, g.group_rank,\n"
          . "       ru.rank_id, ru.rank_title, ru.rank_style,rg.rank_id, rg.rank_title, rg.rank_style,\n"
-         . "       rl.rank_id, rl.rank_title, rl.rank_style,rd.rank_id, rd.rank_title, rd.rank_style$append;";
+         . "       rl.rank_id, rl.rank_title, rl.rank_style,rd.rank_id, rd.rank_title, rd.rank_style;";
     
     return $sql;
   }
