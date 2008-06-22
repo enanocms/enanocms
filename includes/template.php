@@ -47,6 +47,7 @@ class template
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    
     $this->tpl_bool    = Array();
     $this->tpl_strings = Array();
     $this->sidebar_extra = '';
@@ -1166,14 +1167,6 @@ class template
       header('Content-type: application/xhtml+xml');
     }
     
-    // Reassign one important variable that can need to be changed after init_vars(): ADDITIONAL_HEADERS
-    if ( !empty($this->additional_headers) )
-    {
-      $this->assign_vars(array(
-          'ADDITIONAL_HEADERS' => $this->additional_headers
-        ));
-    }
-    
     $headers_sent = true;
     if(!defined('ENANO_HEADERS_SENT'))
       define('ENANO_HEADERS_SENT', '');
@@ -1825,7 +1818,7 @@ EOF;
   function username_field($name, $value = false)
   {
     $randomid = md5( time() . microtime() . mt_rand() );
-    $text = '<input name="'.$name.'" onkeyup="new AutofillUsername(this);" autocomplete="off" type="text" size="30" id="userfield_'.$randomid.'"';
+    $text = '<input name="'.$name.'" class="autofill username" type="text" size="30" id="userfield_'.$randomid.'"';
     if($value) $text .= ' value="'.$value.'"';
     $text .= ' />';
     return $text;
@@ -1840,24 +1833,9 @@ EOF;
   function pagename_field($name, $value = false)
   {
     $randomid = md5( time() . microtime() . mt_rand() );
-    $text = '<input name="'.$name.'" onkeyup="ajaxPageNameComplete(this)" type="text" size="30" id="pagefield_'.$randomid.'"';
+    $text = '<input name="'.$name.'" class="autofill page" type="text" size="30" id="pagefield_'.$randomid.'"';
     if($value) $text .= ' value="'.$value.'"';
     $text .= ' />';
-    $text .= '<script type="text/javascript">
-        var inp = document.getElementById(\'pagefield_' . $randomid . '\');
-        var f = get_parent_form(inp);
-        if ( f )
-        {
-          if ( typeof(f.onsubmit) != \'function\' )
-          {
-            f.onsubmit = function() {
-              if ( !submitAuthorized )
-              {
-                return false;
-              }
-            }
-          }
-        }</script>';
     return $text;
   }
   

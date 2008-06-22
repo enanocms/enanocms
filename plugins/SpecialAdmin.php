@@ -2019,6 +2019,7 @@ function page_Special_Administration()
           if ( ajax.readyState == 4 && ajax.status == 200 ) {
             document.getElementById('ajaxPageContainer').innerHTML = ajax.responseText;
             fadeInfoBoxes();
+            autofill_onload();
           }
         });
     }

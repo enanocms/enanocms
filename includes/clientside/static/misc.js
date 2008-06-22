@@ -639,4 +639,17 @@ function explode(needle, haystack)
   return haystack.split(needle);
 }
 
+/**
+ * Equivalent to PHP's in_array function.
+ */
+
+function in_array(needle, haystack)
+{
+  for(var i in haystack)
+  {
+    if(haystack[i] == needle) return i;
+  }
+  return false;
+}
+
 addOnloadHook(expander_onload);

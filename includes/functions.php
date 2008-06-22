@@ -2837,6 +2837,63 @@ function str_replace_once($needle, $thread, $haystack)
 }
 
 /**
+ * Replaces all given occurences of needle in haystack, case insensitively.
+ * @param string Needle
+ * @param string Thread
+ * @param string Haystack
+ * @return string
+ */
+
+function str_replace_i($needle, $thread, $haystack)
+{
+  $needle_len = strlen($needle);
+  $haystack_len = strlen($haystack);
+  for ( $i = 0; $i < $haystack_len; $i++ )
+  {
+    $test = substr($haystack, $i, $needle_len);
+    if ( strtolower($test) == strtolower($needle) )
+    {
+      // Got it!
+      $upto = substr($haystack, 0, $i);
+      $from = substr($haystack, ( $i + $needle_len ));
+      $haystack = "{$upto}{$thread}{$from}";
+      $haystack_len = strlen($haystack);
+      $i = $i + strlen($thread);
+    }
+  }
+  return $haystack;
+}
+
+/**
+ * Highlights a term in a string.
+ * @param string Needle (term to highlight)
+ * @param string Haystack (search string)
+ * @param string Starting tag (<b>)
+ * @param string Ending tag (</b>)
+ * @return string
+ */
+
+function highlight_term($needle, $haystack, $start_tag = '<b>', $end_tag = '</b>')
+{
+  $needle_len = strlen($needle);
+  $haystack_len = strlen($haystack);
+  for ( $i = 0; $i < $haystack_len; $i++ )
+  {
+    $test = substr($haystack, $i, $needle_len);
+    if ( strtolower($test) == strtolower($needle) )
+    {
+      // Got it!
+      $upto = substr($haystack, 0, $i);
+      $from = substr($haystack, ( $i + $needle_len ));
+      $haystack = "{$upto}{$start_tag}{$test}{$end_tag}{$from}";
+      $haystack_len = strlen($haystack);
+      $i = $i + strlen($needle) + strlen($start_tag) + strlen($end_tag);
+    }
+  }
+  return $haystack;
+}
+
+/**
  * From http://us2.php.net/urldecode - decode %uXXXX
  * @param string The urlencoded string
  * @return string

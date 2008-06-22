@@ -67,6 +67,13 @@ $plugins->attachHook('session_started', '
       \'namespace\'=>\'Special\',
       \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
       ));
+    
+    $paths->add_page(Array(
+      \'name\'=>\'specialpage_autofill\',
+      \'urlname\'=>\'Autofill\',
+      \'namespace\'=>\'Special\',
+      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
+      ));
     ');
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
@@ -827,5 +834,74 @@ function sidebar_add_tag_cloud()
 }
 
 $plugins->attachHook('compile_template', 'sidebar_add_tag_cloud();');
+
+function page_Special_Autofill()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  header('Content-type: text/javascript');
+  
+  $dataset = array();
+  if ( isset($_GET['type']) )
+  {
+    switch($_GET['type'])
+    {
+      case 'username':
+        if ( isset($_GET['userinput']) && strlen($_GET['userinput']) >= 3 )
+        {
+          $search = '%' . escape_string_like($_GET['userinput']) . '%';
+          $q = $db->sql_query('SELECT username FROM ' . table_prefix . "users WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) LIKE '$search' AND user_id > 1");
+          if ( !$q )
+            $db->die_json();
+          
+          while ( $row = $db->fetchrow() )
+          {
+            $key = array(
+              'name' => $row['username'],
+              'name_highlight' => highlight_term($_GET['userinput'], $row['username'], '<b>', '</b>')
+            );
+            $key = array_merge($key, $session->get_user_rank($row['username']));
+            $key['rank_title'] = $lang->get($key['rank_title']);
+            $dataset[] = $key;
+          }
+        }
+        break;
+      case 'page':
+        if ( isset($_GET['userinput']) && strlen($_GET['userinput']) >= 3 )
+        {
+          $search = '%' . escape_string_like($_GET['userinput']) . '%';
+          $q = $db->sql_query('SELECT urlname, namespace, name FROM ' . table_prefix . "users\n"
+                            . "  WHERE (\n"
+                            . "       " . ENANO_SQLFUNC_LOWERCASE . "(urlname) LIKE '$search'\n"
+                            . "    OR " . ENANO_SQLFUNC_LOWERCASE . "(name)    LIKE '$search'\n"
+                            . "  ) AND user_id > 1");
+          if ( !$q )
+            $db->die_json();
+          
+          while ( $row = $db->fetchrow() )
+          {
+            $pathskey = ( isset($paths->nslist[$row['namespace']]) ? $paths->nslist[$row['namespace']] : $row['namespace'] . substr($paths->nslist['Special'], -1) ) . $row['urlname'];
+            $key = array(
+              'page_id' => $pathskey,
+              'pid_highlight'  => highlight_term($_GET['userinput'], dirtify_page_id($pathskey), '<b>', '</b>'),
+              'name_highlight' => highlight_term($_GET['userinput'], $row['name'], '<b>', '</b>')
+            );
+            $dataset[] = $key;
+          }
+        }
+        break;
+      default:
+        $code = $plugins->setHook('autofill_json_request');
+        foreach ( $code as $cmd )
+        {
+          eval($cmd);
+        }
+        break;
+    }
+  }
+  
+  echo enano_json_encode($dataset);
+}
 
 ?>

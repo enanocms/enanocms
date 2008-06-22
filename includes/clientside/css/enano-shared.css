@@ -157,7 +157,7 @@ div.breadcrumbs                   { margin: 10px 0; padding: 5px; border: 1px so
 
 /* The beautiful tables inside what may not obviously be mdg-comment divs */
 div.tblholder td.row1             { padding: 4px; background-color: #E0E0E0; }
-div.tblholder td.row2             { padding: 4px; background-color: #F0F0F0; }
+div.tblholder td.row2             { padding: 4px; background-color: #F0F0F0 !important; } /* using !important allows emphasized cells like in autosuggest to be highlighted */
 div.tblholder td.row3             { padding: 4px; background-color: #E8E8E8; }
 div.tblholder th                  { padding: 4px; background-color: #7080A0; font-weight: bold; text-align: center; color: #FFFFFF; }
 div.tblholder th.subhead          { padding: 4px; background-color: #90A0B0; font-weight: bold; text-align: center; color: #FFFFFF; }
@@ -238,20 +238,6 @@ div.js-search-submit {
 
 div.js-search-submit:hover {
   background-image: url(../../../images/search-btn-hilite.png);
-}
-
-input[type ^="text"].username, input[type ^="password"].password {
-  padding: 2px 2px 2px 27px;
-  width: 96px;
-  height: 15px;
-  border: 0px none #000;
-  font-size: 11px;
-}
-input[type ^="text"].username {
-  background-image: url(../../../images/login-username.png);
-}
-input[type ^="password"].password {
-  background-image: url(../../../images/login-password.png);
 }
 
 /*
@@ -827,3 +813,21 @@ a.rankadmin-editlink:hover {
 div.rankadmin-right {
   float: left;
 }
+
+/* Spry auto-suggestion */
+.hideSuggestClass
+{
+	max-height: 200px;
+	overflow:auto;
+	display:none;
+	width: 175px;
+	margin: 0px;
+	cursor: pointer;
+	z-index: 1011;
+}
+
+.showSuggestClass .hideSuggestClass
+{
+	display: block !important;
+}
+

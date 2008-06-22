@@ -2,6 +2,22 @@
  * AJAX applets
  */
  
+function ajaxMakeXHR()
+{
+  var ajax;
+  if (window.XMLHttpRequest) {
+    ajax = new XMLHttpRequest();
+  } else {
+    if (window.ActiveXObject) {           
+      ajax = new ActiveXObject("Microsoft.XMLHTTP");
+    } else {
+      alert('Enano client-side runtime error: No AJAX support, unable to continue');
+      return;
+    }
+  }
+  return ajax;
+}
+
 function ajaxGet(uri, f, call_editor_safe) {
   // Is the editor open?
   if ( editor_open && !call_editor_safe )
@@ -18,15 +34,11 @@ function ajaxGet(uri, f, call_editor_safe) {
     editor_open = false;
     enableUnload();
   }
-  if (window.XMLHttpRequest) {
-    ajax = new XMLHttpRequest();
-  } else {
-    if (window.ActiveXObject) {           
-      ajax = new ActiveXObject("Microsoft.XMLHTTP");
-    } else {
-      alert('Enano client-side runtime error: No AJAX support, unable to continue');
-      return;
-    }
+  ajax = ajaxMakeXHR();
+  if ( !ajax )
+  {
+    console.error('ajaxMakeXHR() failed');
+    return false;
   }
   ajax.onreadystatechange = f;
   ajax.open('GET', uri, true);
@@ -50,15 +62,11 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
     editor_open = false;
     enableUnload();
   }
-  if (window.XMLHttpRequest) {
-    ajax = new XMLHttpRequest();
-  } else {
-    if (window.ActiveXObject) {           
-      ajax = new ActiveXObject("Microsoft.XMLHTTP");
-    } else {
-      alert('Enano client-side runtime error: No AJAX support, unable to continue');
-      return;
-    }
+  ajax = ajaxMakeXHR();
+  if ( !ajax )
+  {
+    console.error('ajaxMakeXHR() failed');
+    return false;
   }
   ajax.onreadystatechange = f;
   ajax.open('POST', uri, true);

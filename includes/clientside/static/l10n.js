@@ -10,6 +10,7 @@ var Language = function(lang_id)
     return false;
   this.strings = enano_lang[lang_id];
   this.lang_id = lang_id;
+  this.placeholder = false;
   
   this.get = function(string_id, subst)
   {
@@ -48,7 +49,10 @@ var Language = function(lang_id)
   
 }
 
-var $lang;
+var $lang = {
+  get: function(t) { return t; },
+  placeholder: true
+};
 
 var language_onload = function()
 {

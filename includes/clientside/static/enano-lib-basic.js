@@ -292,10 +292,10 @@ if ( is_Safari && !window.console.debug )
 var thefiles = [
   'dynano.js',
   'misc.js',
+  'l10n.js',
   'login.js',
   'admin-menu.js',
   'ajax.js',
-  'autocomplete.js',
   'autofill.js',
   'base64.js',
   'dropdown.js',
@@ -311,7 +311,6 @@ var thefiles = [
   'sliders.js',
   'toolbar.js',
   'rijndael.js',
-  'l10n.js',
   'template-compiler.js',
   'acl.js',
   'comments.js',
@@ -322,6 +321,9 @@ var thefiles = [
   'theme-manager.js',
   'rank-manager.js',
   'SpryEffects.js',
+  'SpryData.js',
+  'SpryJSONDataSet.js',
+  'SpryAutoSuggest.js',
   'loader.js'
 ];
 
