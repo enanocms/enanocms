@@ -509,8 +509,21 @@ Sincerely yours,
       ajax_teaser_inbox: 'No new mail.',
       ajax_teaser_starred: 'You haven\'t starred any messages yet. Starring a message lets you give it a special status that separates it from the rest of your mail so it\'s easier to find. You can star a message by clicking the small gray star next to a message in your inbox or archive.',
       ajax_teaser_sent: 'You haven\'t sent any messages yet. When you send a message, a copy of it will appear here.',
+      ajax_teaser_drafts: 'You don\'t have any drafts. When you save a message so you can finish writing it later, it will appear here.',
+      ajax_teaser_archive: 'You haven\'t archived any messages yet. Archive a message when you want to remove it from your inbox but keep a copy of it around.',
+      ajax_teaser_trash: 'No deleted messages. Delete a message by checking it in another folder and clicking Delete. Deleting a message from this folder will remove it permanently.',
       
       ajax_no_subject: '[No subject]',
+      
+      ajax_compose_lbl_to: 'To:',
+      ajax_compose_lbl_subject: 'Subject:',
+      ajax_compose_btn_send: 'Send message',
+      ajax_compose_btn_save: 'Save draft',
+      ajax_compose_btn_cancel: 'Discard',
+      ajax_compose_btn_cancel_confirm: 'Discard message',
+      
+      ajax_compose_msg_confirm_discard_title: 'Discard message?',
+      ajax_compose_msg_confirm_discard_body: 'Save this message as a draft if you want to avoid losing it. Discarding this message will not delete any existing drafts.',
     },
     userfuncs: {
       

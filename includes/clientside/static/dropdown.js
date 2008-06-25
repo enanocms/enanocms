@@ -36,6 +36,7 @@ var jBoxInit = function()
 {
   setTimeout('jBoxBatchSetup();', 200);
 }
+addOnloadHook(jBoxInit);
 
 // Initializes each menu.
 function jBoxBatchSetup()
@@ -144,7 +145,7 @@ function jBoxOverHandlerBin(obj)
   }
   if(obj.nextSibling.tagName.toLowerCase() == 'ul' || ( obj.nextSibling.tagName.toLowerCase() == 'div' && obj.nextSibling.className == 'submenu' ))
   {
-    $dynano(a).addClass('liteselected');
+    $dynano(obj).addClass('liteselected');
     //obj.className = 'liteselected';
     var ul = obj.nextSibling;
     var dim = fetch_dimensions(obj);
@@ -419,28 +420,6 @@ function jBoxGarbageCollection(e)
 
 document.onclick = jBoxGarbageCollection;
 
-function removeTextNodes(obj)
-{
-  if(obj)
-  {
-    if(typeof(obj.tagName) != 'string' || ( String(obj) == '[object Text]' && is_Safari ) )
-    {
-      if ( ( obj.nodeType == 3 && obj.data.match(/^([\s]*)$/ig) ) ) //  || ( typeof(obj.innerHTML) == undefined && is_Safari ) ) 
-      {
-        obj.parentNode.removeChild(obj);
-        return;
-      }
-    }
-    if(obj.firstChild)
-    {
-      for(var i = 0; i < obj.childNodes.length; i++)
-      {
-        removeTextNodes(obj.childNodes[i]);
-      }
-    }
-  }
-}
-
 var getElementsByClassName = function(parent, type, cls) {
   if(!type)
     type = '*';
@@ -526,29 +505,25 @@ document.onmousemove = function(e)
   setMousePos(e);
 };
 
-function domObjChangeOpac(opacity, id) {
-    var object = id.style;
-    object.opacity = (opacity / 100);
-    object.MozOpacity = (opacity / 100);
-    object.KhtmlOpacity = (opacity / 100);
-    object.filter = "alpha(opacity=" + opacity + ")";
-}
-
-function getScrollOffset()
+function removeTextNodes(obj)
 {
-  var position;
-  if (self.pageYOffset)
+  if(obj)
   {
-    position = self.pageYOffset;
+    if(typeof(obj.tagName) != 'string' || ( String(obj) == '[object Text]' && is_Safari ) )
+    {
+      if ( ( obj.nodeType == 3 && obj.data.match(/^([\s]*)$/ig) ) ) //  || ( typeof(obj.innerHTML) == undefined && is_Safari ) ) 
+      {
+        obj.parentNode.removeChild(obj);
+        return;
+      }
+    }
+    if(obj.firstChild)
+    {
+      for(var i = 0; i < obj.childNodes.length; i++)
+      {
+        removeTextNodes(obj.childNodes[i]);
+      }
+    }
   }
-  else if (document.documentElement && document.documentElement.scrollTop)
-  {
-    position = document.documentElement.scrollTop;
-  }
-  else if (document.body)
-  {
-    position = document.body.scrollTop;
-  }
-  return position;
 }
 

@@ -4,6 +4,17 @@
 
 var Language = function(lang_id)
 {
+  // load the language file
+  load_show_win('strings');
+  var ajax = ajaxMakeXHR();
+  var uri = makeUrlNS('Special', 'LangExportJSON/' + lang_id);
+  ajax.open('GET', uri, false);
+  ajax.send(null);
+  if ( ajax.readyState == 4 && ajax.status == 200 )
+  {
+    eval_global(ajax.responseText);
+  }
+  
   if ( typeof(enano_lang) != 'object' )
     return false;
   if ( typeof(enano_lang[lang_id]) != 'object' )
@@ -56,29 +67,7 @@ var $lang = {
 
 var language_onload = function()
 {
-  if ( typeof(enano_lang) != 'object' )
-  {
-    language_onload_resched();
-    return true;
-  }
-  if ( !enano_lang[ENANO_LANG_ID] )
-  {
-    language_onload_resched();
-    return true;
-  }
   $lang = new Language(ENANO_LANG_ID);
 }
 
-// Rescheduler for language onload - allows delaying init if the string list
-// isn't ready yet
-function language_onload_resched()
-{
-  if ( window.console )
-  {
-    // window.console.info('Delaying language init by 0.2s because language_onload decided that enano_lang[ENANO_LANG_ID] isn\'t ready');
-  }
-  setTimeout('language_onload();', 200);
-}
-
 addOnloadHook(language_onload);
-

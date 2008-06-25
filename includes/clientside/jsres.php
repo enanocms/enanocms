@@ -14,7 +14,7 @@
  */
 
 // Disable for IE, it causes problems.
-if ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') )
+if ( ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') /*|| true*/ ) && !isset($_GET['early']) )
 {
   header('HTTP/1.1 302 Redirect');
   header('Location: static/enano-lib-basic.js');
@@ -54,12 +54,10 @@ chdir(ENANO_ROOT);
 // Files safe to run full (aggressive) compression on
 $full_compress_safe = array(
   // Sorted by file size, descending (du -b *.js | sort -n)
-  // 'SpryData.js',
-  // 'SpryEffects.js',
   'ajax.js',
   'libbigint.js',
   'editor.js',
-  // 'SpryAutoSuggest.js',
+  'functions.js',
   'login.js',
   'acl.js',
   'misc.js',

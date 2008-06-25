@@ -8,21 +8,4 @@
 // Replaced with Spry-based mechanism.
 //
 
-function get_parent_form(o)
-{
-  if ( !o.parentNode )
-    return false;
-  if ( o.tagName == 'FORM' )
-    return o;
-  var p = o.parentNode;
-  while(true)
-  {
-    if ( p.tagName == 'FORM' )
-      return p;
-    else if ( !p )
-      return false;
-    else
-      p = p.parentNode;
-  }
-}
 

@@ -2,187 +2,7 @@
  * AJAX applets
  */
  
-function ajaxMakeXHR()
-{
-  var ajax;
-  if (window.XMLHttpRequest) {
-    ajax = new XMLHttpRequest();
-  } else {
-    if (window.ActiveXObject) {           
-      ajax = new ActiveXObject("Microsoft.XMLHTTP");
-    } else {
-      alert('Enano client-side runtime error: No AJAX support, unable to continue');
-      return;
-    }
-  }
-  return ajax;
-}
-
-function ajaxGet(uri, f, call_editor_safe) {
-  // Is the editor open?
-  if ( editor_open && !call_editor_safe )
-  {
-    // Make sure the user is willing to close the editor
-    var conf = confirm($lang.get('editor_msg_confirm_ajax'));
-    if ( !conf )
-    {
-      // Kill off any "loading" windows, etc. and cancel the request
-      unsetAjaxLoading();
-      return false;
-    }
-    // The user allowed the editor to be closed. Reset flags and knock out the on-close confirmation.
-    editor_open = false;
-    enableUnload();
-  }
-  ajax = ajaxMakeXHR();
-  if ( !ajax )
-  {
-    console.error('ajaxMakeXHR() failed');
-    return false;
-  }
-  ajax.onreadystatechange = f;
-  ajax.open('GET', uri, true);
-  ajax.setRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" );
-  ajax.send(null);
-}
-
-function ajaxPost(uri, parms, f, call_editor_safe) {
-  // Is the editor open?
-  if ( editor_open && !call_editor_safe )
-  {
-    // Make sure the user is willing to close the editor
-    var conf = confirm($lang.get('editor_msg_confirm_ajax'));
-    if ( !conf )
-    {
-      // Kill off any "loading" windows, etc. and cancel the request
-      unsetAjaxLoading();
-      return false;
-    }
-    // The user allowed the editor to be closed. Reset flags and knock out the on-close confirmation.
-    editor_open = false;
-    enableUnload();
-  }
-  ajax = ajaxMakeXHR();
-  if ( !ajax )
-  {
-    console.error('ajaxMakeXHR() failed');
-    return false;
-  }
-  ajax.onreadystatechange = f;
-  ajax.open('POST', uri, true);
-  ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  // Setting Content-length in Safari triggers a warning
-  if ( !is_Safari )
-  {
-    ajax.setRequestHeader("Content-length", parms.length);
-  }
-  ajax.setRequestHeader("Connection", "close");
-  ajax.send(parms);
-}
-
-/**
- * Show a friendly error message depicting an AJAX response that is not valid JSON
- * @param string Response text
- * @param string Custom error message. If omitted, the default will be shown.
- */
-
-function handle_invalid_json(response, customerror)
-{
-  var mainwin = $dynano('ajaxEditContainer').object;
-  mainwin.innerHTML = '';
-  
-  // Title
-  var h3 = document.createElement('h3');
-  h3.appendChild(document.createTextNode('The site encountered an error while processing your request.'));
-  mainwin.appendChild(h3);
-  
-  if ( typeof(customerror) == 'string' )
-  {
-    var el = document.createElement('p');
-    el.appendChild(document.createTextNode(customerror));
-    mainwin.appendChild(el);
-  }
-  else
-  {
-    customerror  = 'We unexpectedly received the following response from the server. The response should have been in the JSON ';
-    customerror += 'serialization format, but the response wasn\'t composed only of the JSON response. There are three possible triggers ';
-    customerror += 'for this problem:';
-    var el = document.createElement('p');
-    el.appendChild(document.createTextNode(customerror));
-    mainwin.appendChild(el);
-    var ul = document.createElement('ul');
-    var li1 = document.createElement('li');
-    var li2 = document.createElement('li');
-    var li3 = document.createElement('li');
-    li1.appendChild(document.createTextNode('The server sent back a bad HTTP response code and thus sent an error page instead of running Enano. This indicates a possible problem with your server, and is not likely to be a bug with Enano.'));
-    var osc_exception = ( window.location.hostname == 'demo.opensourcecms.com' ) ? ' This is KNOWN to be the case with the OpenSourceCMS.com demo version of Enano.' : '';
-    li2.appendChild(document.createTextNode('The server sent back the expected JSON response, but also injected some code into the response that should not be there. Typically this consists of advertisement code. In this case, the administrator of this site will have to contact their web host to have advertisements disabled.' + osc_exception));
-    li3.appendChild(document.createTextNode('It\'s possible that Enano triggered a PHP error or warning. In this case, you may be looking at a bug in Enano.'));
-      
-    ul.appendChild(li1);
-    ul.appendChild(li2);
-    ul.appendChild(li3);
-    mainwin.appendChild(ul);
-  }
-  
-  var p2 = document.createElement('p');
-  p2.appendChild(document.createTextNode('The response received from the server is as follows:'));
-  mainwin.appendChild(p2);
-  
-  var pre = document.createElement('pre');
-  pre.appendChild(document.createTextNode(response));
-  mainwin.appendChild(pre);
-  
-  var p3 = document.createElement('p');
-  p3.appendChild(document.createTextNode('You may also choose to view the response as HTML. '));
-  var a = document.createElement('a');
-  a.appendChild(document.createTextNode('View as HTML...'));
-  a._resp = response;
-  a.id = 'invalidjson_link';
-  a.onclick = function()
-  {
-    var mb = new MessageBox(MB_YESNO | MB_ICONEXCLAMATION, 'Do you really want to view this response as HTML?', 'If the response was changed during transmission to include malicious code, you may be allowing that malicious code to run by viewing the response as HTML. Only do this if you have reviewed the response text and have found no suspicious code in it.');
-    mb.onclick['Yes'] = function()
-    {
-      var html = $dynano('invalidjson_link').object._resp;
-      var win = window.open('about:blank', 'invalidjson_htmlwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes');
-      win.document.write(html);
-    }
-    return false;
-  }
-  a.href = '#';
-  p3.appendChild(a);
-  mainwin.appendChild(p3);
-}
-
-function ajaxEscape(text)
-{
-  /*
-  text = escape(text);
-  text = text.replace(/\+/g, '%2B', text);
-  */
-  text = window.encodeURIComponent(text);
-  return text;
-}
-
-function ajaxAltEscape(text)
-{
-  text = escape(text);
-  text = text.replace(/\+/g, '%2B', text);
-  return text;
-}
-
-function ajaxDiscard()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  c = confirm($lang.get('editor_msg_discard_confirm'));
-  if(!c) return;
-  ajaxReset();
-}
-
-function ajaxReset()
+window.ajaxReset = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -207,10 +27,12 @@ function ajaxReset()
 
 // Miscellaneous AJAX applets
 
-function ajaxProtect(l) {
+window.ajaxProtect = function(l) {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
+  load_component('l10n');
+  
   if(shift) {
     r = 'NO_REASON';
   } else {
@@ -243,13 +65,15 @@ function ajaxProtect(l) {
   }, true);
 }
 
-function ajaxRename()
+window.ajaxRename = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
   
   // updated - 1.1.4 to use miniPrompt
+  load_component('l10n');
+  load_component('messagebox');
   miniPrompt(ajaxRenameConstructDialog);
 }
 
@@ -319,7 +143,7 @@ var ajaxRenameConstructDialog = function(div)
     }, 200);
 }
 
-function ajaxRenameSubmit(obj)
+window.ajaxRenameSubmit = function(obj)
 {
   var box = miniPromptGetParent(obj);
   if ( !box )
@@ -372,7 +196,7 @@ function ajaxRenameSubmit(obj)
     }, true);
 }
 
-function ajaxRenameDoClientTransform(newname)
+window.ajaxRenameDoClientTransform = function(newname)
 {
   var obj = document.getElementById('h2PageName');
   if ( obj )
@@ -382,25 +206,12 @@ function ajaxRenameDoClientTransform(newname)
   document.title = newname;
 }
 
-function ajaxMakePage()
+window.ajaxDeletePage = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  setAjaxLoading();
-  ajaxPost(ENANO_SPECIAL_CREATEPAGE, ENANO_CREATEPAGE_PARAMS, function() {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      window.location.reload();
-    }
-  });
-}
-
-function ajaxDeletePage()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
+  load_component('l10n');
   var reason = prompt($lang.get('ajax_delete_prompt_reason'));
   if ( !reason || reason == '' )
   {
@@ -421,8 +232,11 @@ function ajaxDeletePage()
   });
 }
 
-function ajaxDelVote()
+window.ajaxDelVote = function()
 {
+  load_component('l10n');
+  load_component('messagebox');
+  
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
@@ -459,8 +273,11 @@ function ajaxDelVote()
     });
 }
 
-function ajaxResetDelVotes()
+window.ajaxResetDelVotes = function()
 {
+  load_component('l10n');
+  load_component('messagebox');
+  
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
@@ -503,31 +320,11 @@ function ajaxResetDelVotes()
     });
 }
 
-function ajaxSetWikiMode(val) {
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  setAjaxLoading();
-  document.getElementById('wikibtn_0').style.textDecoration = 'none';
-  document.getElementById('wikibtn_1').style.textDecoration = 'none';
-  document.getElementById('wikibtn_2').style.textDecoration = 'none';
-  document.getElementById('wikibtn_'+val).style.textDecoration = 'underline';
-  ajaxGet(stdAjaxPrefix+'&_mode=setwikimode&mode='+val, function() {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      if(ajax.responseText!='GOOD')
-      {
-        alert(ajax.responseText);
-      }
-    }
-  });
-}
-
 // Editing/saving category information
 // This was not easy to write, I hope enjoy it, and dang I swear I'm gonna
 // find someone to work on just the Javascript part of Enano...
 
-function ajaxCatEdit()
+window.ajaxCatEdit = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -542,7 +339,7 @@ function ajaxCatEdit()
   });
 }
 
-function ajaxCatSave()
+window.ajaxCatSave = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -572,7 +369,7 @@ function ajaxCatSave()
 
 // History stuff
 
-function ajaxHistory()
+window.ajaxHistory = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -590,7 +387,7 @@ function ajaxHistory()
   });
 }
 
-function ajaxHistView(oldid, ttl) {
+window.ajaxHistView = function(oldid, ttl) {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
@@ -605,7 +402,7 @@ function ajaxHistView(oldid, ttl) {
   });
 }
 
-function ajaxRollback(id) {
+window.ajaxRollback = function(id) {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
@@ -641,11 +438,14 @@ function ajaxRollback(id) {
   });
 }
 
-function ajaxClearLogs()
+window.ajaxClearLogs = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
+  
+  load_component('l10n');
+  load_component('messagebox');
   
   miniPromptMessage({
       title: $lang.get('ajax_clearlogs_confirm_title'),
@@ -681,9 +481,7 @@ function ajaxClearLogs()
     });
 }
 
-var timelist;
-
-function buildDiffList()
+window.buildDiffList = function()
 {
   arrDiff1Buttons = getElementsByClassName(document, 'input', 'clsDiff1Radio');
   arrDiff2Buttons = getElementsByClassName(document, 'input', 'clsDiff2Radio');
@@ -704,7 +502,7 @@ function buildDiffList()
   }
 }
 
-function selectDiff1Button(obj)
+window.selectDiff1Button = function(obj)
 {
   var this_time = obj.id.substr(6);
   var index = parseInt(in_array(this_time, timelist));
@@ -721,7 +519,7 @@ function selectDiff1Button(obj)
   }
 }
 
-function selectDiff2Button(obj)
+window.selectDiff2Button = function(obj)
 {
   var this_time = obj.id.substr(6);
   var index = parseInt(in_array(this_time, timelist));
@@ -738,7 +536,7 @@ function selectDiff2Button(obj)
   }
 }
 
-function ajaxHistDiff()
+window.ajaxHistDiff = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -767,11 +565,14 @@ function ajaxHistDiff()
 
 // Change the user's preferred style/theme
 
-function ajaxChangeStyle()
+window.ajaxChangeStyle = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
+  load_component('l10n');
+  load_component('messagebox');
+  
   var inner_html = '';
   inner_html += '<p><label>' + $lang.get('ajax_changestyle_lbl_theme') + ' ';
   inner_html += '  <select id="chtheme_sel_theme" onchange="ajaxGetStyles(this.value);">';
@@ -783,7 +584,7 @@ function ajaxChangeStyle()
   chtheme_mb.onbeforeclick['OK'] = ajaxChangeStyleComplete;
 }
 
-function ajaxGetStyles(id)
+window.ajaxGetStyles = function(id)
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -844,7 +645,7 @@ function ajaxGetStyles(id)
     }, true);
 }
 
-function ajaxChangeStyleComplete()
+window.ajaxChangeStyleComplete = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -892,17 +693,7 @@ function ajaxChangeStyleComplete()
   
 }
 
-function themeid_to_title(id)
-{
-  if ( typeof(id) != 'string' )
-    return false;
-  id = id.substr(0, 1).toUpperCase() + id.substr(1);
-  id = id.replace(/_/g, ' ');
-  id = id.replace(/-/g, ' ');
-  return id;
-}
-
-function ajaxSwapCSS()
+window.ajaxSwapCSS = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -919,11 +710,12 @@ function ajaxSwapCSS()
   menuOff();
 }
 
-function ajaxSetPassword()
+window.ajaxSetPassword = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
+  load_component('crypto');
   pass = hex_sha1(document.getElementById('mdgPassSetField').value);
   setAjaxLoading();
   ajaxPost(stdAjaxPrefix+'&_mode=setpass', 'password='+pass, function()
@@ -936,103 +728,7 @@ function ajaxSetPassword()
     }, true);
 }
 
-function ajaxStartLogin()
-{
-  ajaxLogonToMember();
-}
-
-function ajaxStartAdminLogin()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  if ( auth_level < USER_LEVEL_ADMIN )
-  {
-    ajaxLoginInit(function(k) {
-      ENANO_SID = k;
-      auth_level = USER_LEVEL_ADMIN;
-      var loc = makeUrlNS('Special', 'Administration');
-      if ( (ENANO_SID + ' ').length > 1 )
-        window.location = loc;
-    }, USER_LEVEL_ADMIN);
-    return false;
-  }
-  var loc = makeUrlNS('Special', 'Administration');
-  window.location = loc;
-}
-
-function ajaxAdminPage()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  if ( auth_level < USER_LEVEL_ADMIN )
-  {
-    ajaxPromptAdminAuth(function(k) {
-      ENANO_SID = k;
-      auth_level = USER_LEVEL_ADMIN;
-      var loc = String(window.location + '');
-      window.location = append_sid(loc);
-      var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'PageManager&source=ajax&page_id=' + ajaxEscape(title));
-      if ( (ENANO_SID + ' ').length > 1 )
-        window.location = loc;
-    }, 9);
-    return false;
-  }
-  var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'PageManager&source=ajax&page_id=' + ajaxEscape(title));
-  window.location = loc;
-}
-
-var navto_ns;
-var navto_pg;
-var navto_ul;
-
-function ajaxLoginNavTo(namespace, page_id, min_level)
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  navto_pg = page_id;
-  navto_ns = namespace;
-  navto_ul = min_level;
-  if ( auth_level < min_level )
-  {
-    ajaxPromptAdminAuth(function(k) {
-      ENANO_SID = k;
-      auth_level = navto_ul;
-      var loc = makeUrlNS(navto_ns, navto_pg);
-      if ( (ENANO_SID + ' ').length > 1 )
-        window.location = loc;
-    }, min_level);
-    return false;
-  }
-  var loc = makeUrlNS(navto_ns, navto_pg);
-  window.location = loc;
-}
-
-function ajaxAdminUser(username)
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  if ( auth_level < USER_LEVEL_ADMIN )
-  {
-    ajaxPromptAdminAuth(function(k) {
-      ENANO_SID = k;
-      auth_level = USER_LEVEL_ADMIN;
-      var loc = String(window.location + '');
-      window.location = append_sid(loc);
-      var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'UserManager&src=get&user=' + ajaxEscape(username));
-      if ( (ENANO_SID + ' ').length > 1 )
-        window.location = loc;
-    }, 9);
-    return false;
-  }
-  var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'UserManager&src=get&user=' + ajaxEscape(username));
-  window.location = loc;
-}
-
-function ajaxDisableEmbeddedPHP()
+window.ajaxDisableEmbeddedPHP = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -1073,7 +769,7 @@ function ajaxDisableEmbeddedPHP()
 
 var catHTMLBuf = false;
 
-function ajaxCatToTag()
+window.ajaxCatToTag = function()
 {
   if ( KILL_SWITCH )
     return false;
@@ -1135,7 +831,7 @@ function ajaxCatToTag()
 
 var addtag_open = false;
 
-function ajaxAddTagStage1()
+window.ajaxAddTagStage1 = function()
 {
   if ( addtag_open )
     return false;
@@ -1167,7 +863,7 @@ function ajaxAddTagStage1()
 
 var addtag_nukeme = false;
 
-function ajaxAddTagStage2(tag, nukeme)
+window.ajaxAddTagStage2 = function(tag, nukeme)
 {
   if ( !addtag_open )
     return false;
@@ -1233,7 +929,7 @@ function ajaxAddTagStage2(tag, nukeme)
     });
 }
 
-function ajaxDeleteTag(parentobj, tag_id)
+window.ajaxDeleteTag = function(parentobj, tag_id)
 {
   var arrDelete = [ parentobj, parentobj.previousSibling, parentobj.previousSibling.previousSibling ];
   var parent = parentobj.parentNode;
@@ -1277,7 +973,7 @@ function ajaxDeleteTag(parentobj, tag_id)
     });
 }
 
-function ajaxTagToCat()
+window.ajaxTagToCat = function()
 {
   if ( !catHTMLBuf )
     return false;
@@ -1294,14 +990,14 @@ function ajaxTagToCat()
 
 var keepalive_interval = false;
 
-function ajaxPingServer()
+window.ajaxPingServer = function()
 {
   ajaxGet(stdAjaxPrefix + '&_mode=ping', function()
     {
     });
 }
 
-function ajaxToggleKeepalive()
+window.ajaxToggleKeepalive = function()
 {
   if ( readCookie('admin_keepalive') == '1' )
   {
@@ -1340,12 +1036,12 @@ var keepalive_onload = function()
   }
 };
 
-function aboutKeepAlive()
+window.aboutKeepAlive = function()
 {
   new MessageBox(MB_OK|MB_ICONINFORMATION, $lang.get('user_keepalive_info_title'), $lang.get('user_keepalive_info_body'));
 }
 
-function ajaxShowCaptcha(code)
+window.ajaxShowCaptcha = function(code)
 {
   var mydiv = document.createElement('div');
   mydiv.style.backgroundColor = '#FFFFFF';
@@ -1376,7 +1072,7 @@ function ajaxShowCaptcha(code)
   body.appendChild(mydiv);
 }
 
-function ajaxUpdateCheck(targetelement)
+window.ajaxUpdateCheck = function(targetelement)
 {
   if ( !document.getElementById(targetelement) )
   {
@@ -1547,7 +1243,7 @@ function ajaxUpdateCheck(targetelement)
     });
 }
 
-function ajaxPluginAction(action, plugin_filename, btnobj)
+window.ajaxPluginAction = function(action, plugin_filename, btnobj)
 {
   // if installing, uninstalling, or re-importing, confirm
   if ( action == 'install' || action == 'uninstall' || action == 'reimport' )
@@ -1661,4 +1357,51 @@ function ajaxPluginAction(action, plugin_filename, btnobj)
           }, 750);
       }
     });
+}
+
+window.ajaxReverseDNS = function(o, text)
+{
+  if(text) var ipaddr = text;
+  else var ipaddr = o.innerHTML;
+  rDnsObj = o;
+  rDnsBannerObj = bannerOn('Retrieving reverse DNS info...');
+  ajaxGet(stdAjaxPrefix+'&_mode=rdns&ip='+ipaddr, function() {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        off = fetch_offset(rDnsObj);
+        dim = fetch_dimensions(rDnsObj);
+        right = off['left'] + dim['w'];
+        top = off['top'] + dim['h'];
+        var thediv = document.createElement('div');
+        thediv.className = 'info-box';
+        thediv.style.margin = '0';
+        thediv.style.position = 'absolute';
+        thediv.style.top  = top  + 'px';
+        thediv.style.display = 'none';
+        thediv.style.zIndex = getHighestZ() + 2;
+        thediv.id = 'mdgDynamic_rDnsInfoDiv_'+Math.floor(Math.random() * 1000000);
+        thediv.innerHTML = '<b>Reverse DNS:</b><br />'+ajax.responseText+' <a href="#" onclick="elem = document.getElementById(\''+thediv.id+'\'); elem.innerHTML = \'\'; elem.style.display = \'none\';return false;">Close</a>';
+        var body = document.getElementsByTagName('body');
+        body = body[0];
+        bannerOff(rDnsBannerObj);
+        body.appendChild(thediv);
+        thediv.style.display = 'block';
+        left = fetch_dimensions(thediv);
+        thediv.style.display = 'none';
+        left = right - left['w'];
+        thediv.style.left = left + 'px';
+        thediv.style.display = 'block';
+        fadeInfoBoxes();
+      }
+    });
+}
+
+function themeid_to_title(id)
+{
+  if ( typeof(id) != 'string' )
+    return false;
+  id = id.substr(0, 1).toUpperCase() + id.substr(1);
+  id = id.replace(/_/g, ' ');
+  id = id.replace(/-/g, ' ');
+  return id;
 }

@@ -1977,7 +1977,14 @@ class PageUtils {
   public static function acl_json($parms = '{ }')
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $parms = enano_json_decode($parms);
+    try
+    {
+      $parms = enano_json_decode($parms);
+    }
+    catch ( Zend_Json_Exception $e )
+    {
+      $parms = array();
+    }
     $ret = PageUtils::acl_editor($parms);
     $ret = enano_json_encode($ret);
     return $ret;

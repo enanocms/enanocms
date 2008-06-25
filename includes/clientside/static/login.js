@@ -10,7 +10,7 @@
  * Performs a logon as a regular member.
  */
 
-function ajaxLogonToMember()
+window.ajaxLogonToMember = function()
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -27,7 +27,7 @@ function ajaxLogonToMember()
  * Authenticates to the highest level the current user is allowed to go to.
  */
 
-function ajaxLogonToElev()
+window.ajaxLogonToElev = function()
 {
   if ( auth_level == user_level )
     return true;
@@ -88,8 +88,14 @@ var AJAX_STATE_LOADING_KEY = 2;
  * @param int The security level to authenticate at - see http://docs.enanocms.org/Help:Appendix_B
  */
 
-function ajaxLoginInit(call_on_finish, user_level)
+window.ajaxLoginInit = function(call_on_finish, user_level)
 {
+  load_component('messagebox');
+  load_component('flyin');
+  load_component('SpryEffects');
+  load_component('l10n');
+  load_component('crypto');
+  
   logindata = {};
   
   var title = ( user_level > USER_LEVEL_MEMBER ) ? $lang.get('user_login_ajax_prompt_title_elev') : $lang.get('user_login_ajax_prompt_title');
@@ -143,7 +149,7 @@ function ajaxLoginInit(call_on_finish, user_level)
  * For compatibility only.
  */
 
-function ajaxLogonInit(call_on_finish, user_level)
+window.ajaxLogonInit = function(call_on_finish, user_level)
 {
   return ajaxLoginInit(call_on_finish, user_level);
 }
@@ -153,7 +159,7 @@ function ajaxLogonInit(call_on_finish, user_level)
  * @param int One of AJAX_STATUS_*
  */
 
-function ajaxLoginSetStatus(status)
+window.ajaxLoginSetStatus = function(status)
 {
   if ( !logindata.mb_inner )
     return false;
@@ -305,7 +311,7 @@ function ajaxLoginSetStatus(status)
  * @param object JSON packet to send
  */
 
-function ajaxLoginPerformRequest(json)
+window.ajaxLoginPerformRequest = function(json)
 {
   json = toJSONString(json);
   json = ajaxEscape(json);
@@ -331,7 +337,7 @@ function ajaxLoginPerformRequest(json)
  * @param object JSON response
  */
 
-function ajaxLoginProcessResponse(response)
+window.ajaxLoginProcessResponse = function(response)
 {
   // Did the server send a plaintext error?
   if ( response.mode == 'error' )
@@ -403,7 +409,7 @@ function ajaxLoginProcessResponse(response)
  * @param object Metadata to build off of
  */
 
-function ajaxLoginBuildForm(data)
+window.ajaxLoginBuildForm = function(data)
 {
   // let's hope this effectively preloads the image...
   var _ = document.createElement('img');
@@ -620,7 +626,7 @@ function ajaxLoginBuildForm(data)
   }
 }
 
-function ajaxLoginSubmitForm(real, username, password, captcha)
+window.ajaxLoginSubmitForm = function(real, username, password, captcha)
 {
   // Perform AES test to make sure it's all working
   if ( !aes_self_test() )
@@ -761,7 +767,7 @@ function ajaxLoginSubmitForm(real, username, password, captcha)
   ajaxLoginPerformRequest(json_packet);
 }
 
-function ajaxLoginShowFriendlyError(response)
+window.ajaxLoginShowFriendlyError = function(response)
 {
   if ( !response.respawn_info )
     return false;
@@ -803,7 +809,7 @@ function ajaxLoginShowFriendlyError(response)
   body.appendChild(errbox);
 }
 
-function ajaxLoginGetErrorText(response)
+window.ajaxLoginGetErrorText = function(response)
 {
   switch ( response.error_code )
   {
@@ -868,3 +874,114 @@ function ajaxLoginGetErrorText(response)
   }
 }
 
+window.ajaxInitLogout = function()
+{
+  load_component('messagebox');
+  load_component('l10n');
+  var mb = new MessageBox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title'), $lang.get('user_logout_confirm_body'));
+  mb.onclick['Yes'] = function()
+    {
+      window.location = makeUrlNS('Special', 'Logout/' + csrf_token + '/' + title);
+    }
+}
+
+window.mb_logout = function()
+{
+  ajaxInitLogout();
+}
+
+window.ajaxStartLogin = function()
+{
+  ajaxLogonToMember();
+}
+
+window.ajaxStartAdminLogin = function()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
+  if ( auth_level < USER_LEVEL_ADMIN )
+  {
+    ajaxLoginInit(function(k) {
+      ENANO_SID = k;
+      auth_level = USER_LEVEL_ADMIN;
+      var loc = makeUrlNS('Special', 'Administration');
+      if ( (ENANO_SID + ' ').length > 1 )
+        window.location = loc;
+    }, USER_LEVEL_ADMIN);
+    return false;
+  }
+  var loc = makeUrlNS('Special', 'Administration');
+  window.location = loc;
+}
+
+window.ajaxAdminPage = function()
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
+  if ( auth_level < USER_LEVEL_ADMIN )
+  {
+    ajaxPromptAdminAuth(function(k) {
+      ENANO_SID = k;
+      auth_level = USER_LEVEL_ADMIN;
+      var loc = String(window.location + '');
+      window.location = append_sid(loc);
+      var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'PageManager&source=ajax&page_id=' + ajaxEscape(title));
+      if ( (ENANO_SID + ' ').length > 1 )
+        window.location = loc;
+    }, 9);
+    return false;
+  }
+  var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'PageManager&source=ajax&page_id=' + ajaxEscape(title));
+  window.location = loc;
+}
+
+var navto_ns;
+var navto_pg;
+var navto_ul;
+
+window.ajaxLoginNavTo = function(namespace, page_id, min_level)
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
+  navto_pg = page_id;
+  navto_ns = namespace;
+  navto_ul = min_level;
+  if ( auth_level < min_level )
+  {
+    ajaxPromptAdminAuth(function(k) {
+      ENANO_SID = k;
+      auth_level = navto_ul;
+      var loc = makeUrlNS(navto_ns, navto_pg);
+      if ( (ENANO_SID + ' ').length > 1 )
+        window.location = loc;
+    }, min_level);
+    return false;
+  }
+  var loc = makeUrlNS(navto_ns, navto_pg);
+  window.location = loc;
+}
+
+window.ajaxAdminUser = function(username)
+{
+  // IE <6 pseudo-compatibility
+  if ( KILL_SWITCH )
+    return true;
+  if ( auth_level < USER_LEVEL_ADMIN )
+  {
+    ajaxPromptAdminAuth(function(k) {
+      ENANO_SID = k;
+      auth_level = USER_LEVEL_ADMIN;
+      var loc = String(window.location + '');
+      window.location = append_sid(loc);
+      var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'UserManager&src=get&user=' + ajaxEscape(username));
+      if ( (ENANO_SID + ' ').length > 1 )
+        window.location = loc;
+    }, 9);
+    return false;
+  }
+  var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'UserManager&src=get&user=' + ajaxEscape(username));
+  window.location = loc;
+}

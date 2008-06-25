@@ -7,6 +7,10 @@ var $ = function(id)
 var $dynano = $;
 function DNobj(id)
 {
+  if ( id == undefined )
+  {
+    return {};
+  }
   this.object = ( typeof(id) == 'object' ) ? id : document.getElementById(id);
   if ( !this.object )
   {

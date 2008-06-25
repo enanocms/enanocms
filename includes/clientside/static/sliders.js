@@ -5,7 +5,7 @@
 
 var sliders_initted = false;
       
-function initSliders()
+var initSliders = function()
 {
   sliders_initted = true;
   if ( KILL_SWITCH )
@@ -56,6 +56,8 @@ function initSliders()
         divheights[i] = d;        
     }
 }
+
+addOnloadHook(initSliders);
 
 // this is one of our divs, it just has a DOM reference to the element and the original height
 function div(_el, _ht)

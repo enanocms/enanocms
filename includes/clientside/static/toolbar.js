@@ -1,6 +1,6 @@
 // Page toolbar - selecting buttons
 
-function unselectAllButtonsMajor()
+window.unselectAllButtonsMajor = function()
 {
   if ( !document.getElementById('pagebar_main') )
     return false;
@@ -15,7 +15,7 @@ function unselectAllButtonsMajor()
   }
 }
 
-function unselectAllButtonsMinor()
+window.unselectAllButtonsMinor = function()
 {
   if ( !document.getElementById('pagebar_main') )
     return false;
@@ -36,7 +36,7 @@ function unselectAllButtonsMinor()
   }
 }
 
-function selectButtonMajor(which)
+window.selectButtonMajor = function(which)
 {
   if ( !document.getElementById('pagebar_main') )
     return false;
@@ -50,7 +50,7 @@ function selectButtonMajor(which)
   }
 }
 
-function selectButtonMinor(which)
+window.selectButtonMinor = function(which)
 {
   if ( !document.getElementById('pagebar_main') )
     return false;

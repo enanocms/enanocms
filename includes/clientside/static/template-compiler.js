@@ -1,7 +1,7 @@
 // An implementation of Enano's template compiler in Javascript. Same exact API
 // as the PHP version - constructor accepts text, then the assign_vars, assign_bool, and run methods.
 
-function templateParser(text)
+window.templateParser = function(text)
 {
   this.tpl_code    = text;
   this.tpl_strings = new Object();
@@ -11,7 +11,7 @@ function templateParser(text)
   this.run         = __tpRun;
 }
 
-function __tpAssignVars(vars)
+window.__tpAssignVars = function(vars)
 {
   for(var i in vars)
   {
@@ -19,7 +19,7 @@ function __tpAssignVars(vars)
   }
 }
 
-function __tpAssignBool(vars)
+window.__tpAssignBool = function(vars)
 {
   for(var i in vars)
   {
@@ -27,7 +27,7 @@ function __tpAssignBool(vars)
   }
 }
 
-function __tpRun()
+window.__tpRun = function()
 {
   if(typeof(this.tpl_code) == 'string')
   {
@@ -45,7 +45,7 @@ function __tpRun()
   return false;
 }
 
-function __tpCompileTemplate(code)
+window.__tpCompileTemplate = function(code)
 {
   // Compile plaintext/template code to javascript code
   code = code.replace(/\\/g, "\\\\");
@@ -60,7 +60,7 @@ function __tpCompileTemplate(code)
   return code;
 }
 
-function __tpExtractVars(code)
+window.__tpExtractVars = function(code)
 {
   code = code.replace('\\', "\\\\");
   code = code.replace("'",  "\\'");

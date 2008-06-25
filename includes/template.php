@@ -297,7 +297,12 @@ class template
   }
   function add_header($html)
   {
-    $this->additional_headers .= "\n" . $html;
+    /* debug only **
+    $bt = debug_backtrace();
+    $bt = $bt[1];
+    $this->additional_headers .= "\n    <!-- {$bt['file']}:{$bt['line']} -->\n    " . $html;
+    */
+    $this->additional_headers .= "\n   " . $html;
   }
   function get_css($s = false)
   {
@@ -977,10 +982,6 @@ class template
     // Add the e-mail address client code to the header
     $this->add_header($email->jscode());
     
-    // Add language file
-    $lang_uri = makeUrlNS('Special', 'LangExportJSON/' . $lang->lang_id, false, true);
-    $this->add_header("<script type=\"text/javascript\" src=\"$lang_uri\"></script>");
-    
     // Generate the code for the Log out and Change theme sidebar buttons
     // Once again, the new template parsing system can be used here
     
@@ -1061,6 +1062,7 @@ class template
       var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $urlname_clean .'&namespace=' . $local_namespace . '\';
       var ENANO_SPECIAL_CHANGESTYLE = \''. makeUrlNS('Special', 'ChangeStyle') .'\';
       var namespace_list = new Array();
+      var msg_loading_component = \'' . addslashes($lang->get('ajax_msg_loading_component')) . '\';
       var AES_BITS = '.AES_BITS.';
       var AES_BLOCKSIZE = '.AES_BLOCKSIZE.';
       var pagepass = \''. ( ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '' ) .'\';
@@ -1097,7 +1099,6 @@ class template
       'ADMIN_SID_AMP_HTML'=>$ash,
       'ADMIN_SID_AUTO'=>$as2,
       'ADMIN_SID_RAW'=> ( is_string($session->sid_super) ? $session->sid_super : '' ),
-      'ADDITIONAL_HEADERS'=>$this->additional_headers,
       'COPYRIGHT'=>RenderMan::parse_internal_links(getConfig('copyright_notice')),
       'TOOLBAR_EXTRAS'=>$this->toolbar_menu,
       'REQUEST_URI'=>$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
@@ -1129,6 +1130,12 @@ class template
     $this->tpl_bool['sidebar_left']  = ( $this->tpl_strings['SIDEBAR_LEFT']  != $min) ? true : false;
     $this->tpl_bool['sidebar_right'] = ( $this->tpl_strings['SIDEBAR_RIGHT'] != $min) ? true : false;
     $this->tpl_bool['right_sidebar'] = $this->tpl_bool['sidebar_right']; // backward compatibility
+    
+    // and finally one that needs to be symlinked...
+    if ( !isset($this->tpl_strings['ADDITIONAL_HEADERS']) )
+    {
+      $this->tpl_strings['ADDITIONAL_HEADERS'] =& $this->additional_headers;
+    }
     
     $code = $plugins->setHook('template_var_init_end');
     foreach ( $code as $cmd )

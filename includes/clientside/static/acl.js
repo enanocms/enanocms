@@ -4,17 +4,15 @@ var aclManagerID = 'enano_aclmanager_' + Math.floor(Math.random() * 1000000);
 var aclPermList = false;
 var aclDataCache = false;
 
-// Can be set to true by slow themes (St. Patty)
-if ( typeof(pref_disable_js_fx) != 'boolean' )
-{
-  var pref_disable_js_fx = false;
-}
-var aclDisableTransitionFX = ( is_firefox2 || pref_disable_js_fx ) ? true : false;
-
 function ajaxOpenACLManager(page_id, namespace)
 {
   if(IE)
     return true;
+  load_component('messagebox');
+  load_component('fadefilter');
+  load_component('template-compiler');
+  load_component('l10n');
+  
   if(!page_id || !namespace)
   {
     var data = strToPageID(title);
@@ -1063,18 +1061,3 @@ function array_keys(obj)
     keys.push(i);
   return keys;
 }
-
-function form_fetch_field(form, name)
-{
-  var fields = form.getElementsByTagName('input');
-  if ( fields.length < 1 )
-    return false;
-  for ( var i = 0; i < fields.length; i++ )
-  {
-    var field = fields[i];
-    if ( field.name == name )
-      return field;
-  }
-  return false;
-}
-

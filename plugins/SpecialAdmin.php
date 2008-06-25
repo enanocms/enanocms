@@ -174,6 +174,13 @@ Received invalid XML response.
           </div>';
   }
   
+  // Any hooks?
+  $code = $plugins->setHook('acp_home');
+  foreach ( $code as $cmd )
+  {
+    eval($cmd);
+  }
+  
   // Security log
   echo '<h3>' . $lang->get('acphome_heading_seclog') . '</h3>';
   echo '<p>' . $lang->get('acphome_msg_seclog_info') . '</p>';
@@ -316,7 +323,7 @@ function page_Admin_GeneralConfig() {
     
     if ( is_dir(ENANO_ROOT . '/' . $_POST['avatar_directory']) )
     {
-      if ( preg_match('/^([A-z0-9_-]+)(\/([A-z0-9_-]+))*\/?$/', $_POST['avatar_directory']) )
+      if ( preg_match('/^[A-z0-9_-]+(?:\/(?:[A-z0-9_-]+))*\/?$/', $_POST['avatar_directory']) )
       {
         setConfig('avatar_directory', $_POST['avatar_directory']);
       }
@@ -1944,6 +1951,7 @@ function page_Special_Administration()
   }
   else
   {
+    $template->add_header('<script type="text/javascript" src="' . scriptPath . '/includes/clientside/static/admin-menu.js"></script>');
     $template->load_theme('admin', 'default');
     $template->init_vars();
     if( !isset( $_GET['noheaders'] ) ) 
@@ -1962,6 +1970,7 @@ function page_Special_Administration()
       }
       if ( t == namespace_list.Admin + 'AdminLogout' )
       {
+        load_component('messagebox');
         miniPromptMessage({
             title: $lang.get('user_logout_confirm_title_elev'),
             message: $lang.get('user_logout_confirm_body_elev'),
@@ -2023,7 +2032,16 @@ function page_Special_Administration()
           }
         });
     }
-    function _enanoAdminOnload() { ajaxPage('<?php echo $paths->nslist['Admin']; ?>Home'); }
+    <?php
+    if ( !isset($_GET['module']) )
+    {
+      echo <<<EOF
+    var _enanoAdminOnload = function() { ajaxPage('{$paths->nslist['Admin']}Home'); };
+    addOnloadHook(_enanoAdminOnload);
+    
+EOF;
+    }
+    ?>
     var TREE_TPL = {
       'target'  : '_self',  // name of the frame links will be opened in
                   // other possible values are: _blank, _parent, _search, _self and _top
@@ -2051,10 +2069,18 @@ function page_Special_Administration()
       'icon_26' : '<?php echo scriptPath; ?>/images/icons/minusbottom.gif',// junction for opened node
       'icon_27' : '<?php echo scriptPath; ?>/images/icons/minus.gif'       // junction for last opended node
     };
-    addOnloadHook(keepalive_onload);
+    
+    addOnloadHook(function()
+      {
+        load_component('ajax');
+        load_component('l10n');
+        load_component('autofill');
+        keepalive_onload();
+      });
+    
     <?php
     echo $paths->parseAdminTree(); // Make a Javascript array that defines the tree
-    if(!isset($_GET['module'])) { echo 'addOnloadHook(_enanoAdminOnload);'; } ?>
+    ?>
     </script>
     <table border="0" width="100%">
       <tr>

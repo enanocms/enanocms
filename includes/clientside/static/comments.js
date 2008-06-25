@@ -3,8 +3,11 @@
 var comment_template = false;
 var comment_render_track = 0;
 
-function ajaxComments(parms)
+window.ajaxComments = function(parms)
 {
+  load_component('l10n');
+  load_component('paginate');
+  load_component('template-compiler');
   setAjaxLoading();
   var pid = strToPageID(title);
   if(!parms)
@@ -63,7 +66,7 @@ function ajaxComments(parms)
   });
 }
 
-function renderComments(data)
+window.renderComments = function(data)
 {
   
   var html = '';
@@ -254,19 +257,19 @@ var _render_comment = function(this_comment, data)
   return ret;
 }
 
-function displayCommentForm()
+window.displayCommentForm = function()
 {
   document.getElementById('leave_comment_button').style.display = 'none';
   document.getElementById('comment_form').style.display = 'block';
 }
 
-function hideCommentForm()
+window.hideCommentForm = function()
 {
   document.getElementById('leave_comment_button').style.display = 'inline';
   document.getElementById('comment_form').style.display = 'none';
 }
 
-function editComment(id, link)
+window.editComment = function(id, link)
 {
   var ctr = document.getElementById('subject_'+id);
   var subj = ( ctr.firstChild ) ? trim(ctr.firstChild.nodeValue) : ''; // If there's a span in there that says 'unapproved', this eliminates it
@@ -292,7 +295,7 @@ function editComment(id, link)
   link.onclick = function() { var id = this.id.substr(this.id.indexOf('_')+1); saveComment(id, this); return false; };
 }
 
-function saveComment(id, link)
+window.saveComment = function(id, link)
 {
   var data = document.getElementById('comment_edit_'+id).value;
   var subj = document.getElementById('subject_edit_'+id).value;
@@ -311,7 +314,7 @@ function saveComment(id, link)
   ajaxComments(req);
 }
 
-function deleteComment(id)
+window.deleteComment = function(id)
 {
   if ( !shift )
   {
@@ -329,7 +332,7 @@ function deleteComment(id)
   ajaxComments(req);
 }
 
-function submitComment()
+window.submitComment = function()
 {
   var name = document.getElementById('commentform_name').value;
   var subj = document.getElementById('commentform_subject').value;
@@ -365,7 +368,7 @@ function submitComment()
   ajaxComments(req);
 }
 
-function redrawComment(data)
+window.redrawComment = function(data)
 {
   if ( data.subj )
   {
@@ -402,7 +405,7 @@ function redrawComment(data)
   }
 }
 
-function approveComment(id)
+window.approveComment = function(id)
 {
   var div = document.getElementById('comment_holder_'+id);
   var real_id = div.getElementsByTagName('input')[0]['value'];
@@ -415,7 +418,7 @@ function approveComment(id)
 }
 
 // Does the actual DOM object removal
-function annihiliateComment(id) // Did I spell that right?
+window.annihiliateComment = function(id) // Did I spell that right?
 {
   var approved = true;
   if(document.getElementById('comment_approve_'+id))
@@ -437,7 +440,7 @@ function annihiliateComment(id) // Did I spell that right?
   }
 }
 
-function materializeComment(data)
+window.materializeComment = function(data)
 {
   // Intelligently get an ID
 
@@ -561,7 +564,7 @@ function materializeComment(data)
   
 }
 
-function comment_decrement_unapproval()
+window.comment_decrement_unapproval = function()
 {
   if ( document.getElementById('comment_count_unapp_inner') )
   {
@@ -584,7 +587,7 @@ function comment_decrement_unapproval()
   }
 }
 
-function comment_increment_unapproval()
+window.comment_increment_unapproval = function()
 {
   if ( document.getElementById('comment_count_unapp_inner') )
   {
@@ -609,7 +612,7 @@ function comment_increment_unapproval()
   }
 }
 
-function viewCommentIP(id, local_id)
+window.viewCommentIP = function(id, local_id)
 {
   // set "loading" indicator on IP button
   var span = $dynano('comment_ip_' + local_id).object;
@@ -623,45 +626,5 @@ function viewCommentIP(id, local_id)
     local_id: local_id
   }
   ajaxComments(parms);
-}
-
-function htmlspecialchars(text)
-{
-  text = text.replace(/</g, '&lt;');
-  text = text.replace(/>/g, '&gt;');
-  return text;
-}
-
-// Equivalent to PHP trim() function
-function trim(text)
-{
-  text = text.replace(/^([\s]+)/, '');
-  text = text.replace(/([\s]+)$/, '');
-  return text;
-}
-
-// Equivalent to PHP implode() function
-function implode(chr, arr)
-{
-  if ( typeof ( arr.toJSONString ) == 'function' )
-    delete(arr.toJSONString);
-  
-  var ret = '';
-  var c = 0;
-  for ( var i in arr )
-  {
-    if(i=='toJSONString')continue;
-    if ( c > 0 )
-      ret += chr;
-    ret += arr[i];
-    c++;
-  }
-  return ret;
-}
-
-function nl2br(text)
-{
-  var regex = new RegExp(unescape('%0A'), 'g');
-  return text.replace(regex, '<br />' + unescape('%0A'));
 }
 

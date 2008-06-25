@@ -87,7 +87,5 @@ var Fat = {
 	}
 }
 
-window.onload = function () 
-	{
-	Fat.fade_all();
-	}
+addOnloadHook(Fat.fade_all);
+

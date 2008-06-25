@@ -8,7 +8,7 @@ var autofill_schemas = {};
 
 // default, generic schema
 autofill_schemas.generic = {
-  template: '<div id="--ID--_region" spry:region="autofill_region_--ID--" class="tblholder">' + "\n" +
+  template: '<div id="--ID--_region" spry:region="autofill_ds_--CLASS--" class="tblholder">' + "\n" +
             '  <table border="0" cellspacing="1" cellpadding="3" style="font-size: smaller;">' + "\n" +
             '    <tr spry:repeat="autofill_region_--ID--">' + "\n" +
             '      <td class="row1" spry:suggest="{name}">{name}</td>' + "\n" +
@@ -18,23 +18,30 @@ autofill_schemas.generic = {
   
   init: function(element, fillclass)
   {
+    // calculate positions before spry f***s everything up
+    var top = $dynano(element).Top() + $dynano(element).Height() - 10; // tblholder has 10px top margin
+    var left = $dynano(element).Left();
+    
+    // dataset name
+    var ds_name = 'autofill_ds_' + fillclass;
+    
+    var allow_anon = ( params.allow_anon ) ? '1' : '0';
     // setup the dataset
-    window["autofill_region_" + element.id] = new Spry.Data.JSONDataSet(makeUrlNS('Special', 'Autofill', 'type=' + fillclass));
+    window[ds_name] = new Spry.Data.JSONDataSet(makeUrlNS('Special', 'Autofill', 'type=' + fillclass + '&allow_anon' + allow_anon));
     
     // inject our HTML wrapper
-    var template = this.template.replace(new RegExp('--ID--', 'g'), element.id);
+    var template = this.template.replace(new RegExp('--ID--', 'g'), element.id).replace(new RegExp('--CLASS--', 'g', fillclass));
     var wrapper = element.parentNode; // document.createElement('div');
     wrapper.id = 'autofill_wrap_' + element.id;
     
     // a bunch of hacks to add a spry wrapper
-    // var el2 = element.cloneNode(false);
-    // wrapper.appendChild(el2);
-    wrapper.innerHTML += template;
-    // insertAfter(element.parentNode, wrapper, element);
-    // element.parentNode.removeChild(element);
-    // element = el2;
+    wrapper.innerHTML = template + wrapper.innerHTML;
     
-    var autosuggest = new Spry.Widget.AutoSuggest("autofill_wrap_" + element.id, element.id + '_region', window["autofill_region_" + element.id], 'name', {loadFromServer: true, urlParam: 'userinput', hoverSuggestClass: 'row2', minCharsType: 3});
+    var autosuggest = new Spry.Widget.AutoSuggest("autofill_wrap_" + element.id, element.id + '_region', window[ds_name], 'name', {loadFromServer: true, urlParam: 'userinput', hoverSuggestClass: 'row2', minCharsType: 3});
+    var regiondiv = document.getElementById(element.id + '_region');
+    regiondiv.style.position = 'absolute';
+    regiondiv.style.top = top + 'px';
+    regiondiv.style.left = left + 'px';
   }
 };
 
@@ -42,6 +49,9 @@ function autofill_init_element(element, params)
 {
   if ( element.parentNode.id.match(/^autofill_wrap_/) )
     return false;
+  
+  if ( !Spry.Data );
+    load_spry_data();
   
   params = params || {};
   // assign an ID if it doesn't have one yet
@@ -68,8 +78,13 @@ function autofill_init_element(element, params)
 
 var autofill_onload = function()
 {
+  if ( this.loaded )
+  {
+    return true;
+  }
+  
   autofill_schemas.username = {
-    template: '<div id="--ID--_region" spry:region="autofill_region_--ID--" class="tblholder">' + "\n" +
+    template: '<div id="--ID--_region" spry:region="autofill_ds_username" class="tblholder">' + "\n" +
               '  <table border="0" cellspacing="1" cellpadding="3" style="font-size: smaller;">' + "\n" +
               '    <tr>' + "\n" +
               '      <th>' + $lang.get('user_autofill_heading_suggestions') + '</th>' + "\n" +
@@ -88,9 +103,10 @@ var autofill_onload = function()
       
       var allow_anon = ( params.allow_anon ) ? '1' : '0';
       // setup the dataset
-      window["autofill_region_" + element.id] = new Spry.Data.JSONDataSet(makeUrlNS('Special', 'Autofill', 'type=' + fillclass + '&allow_anon' + allow_anon));
-      Spry.Data.initRegions(document.body);
-      (window["autofill_region_" + element.id]).loadData();
+      if ( !window.autofill_ds_username )
+      {
+        window.autofill_ds_username = new Spry.Data.JSONDataSet(makeUrlNS('Special', 'Autofill', 'type=' + fillclass + '&allow_anon' + allow_anon));
+      }
       
       // inject our HTML wrapper
       var template = this.template.replace(new RegExp('--ID--', 'g'), element.id);
@@ -100,7 +116,7 @@ var autofill_onload = function()
       // a bunch of hacks to add a spry wrapper
       wrapper.innerHTML = template + wrapper.innerHTML;
       
-      var autosuggest = new Spry.Widget.AutoSuggest("autofill_wrap_" + element.id, element.id + '_region', window["autofill_region_" + element.id], 'name', {loadFromServer: true, urlParam: 'userinput', hoverSuggestClass: 'row2', minCharsType: 3});
+      var autosuggest = new Spry.Widget.AutoSuggest("autofill_wrap_" + element.id, element.id + '_region', window.autofill_ds_username, 'name', {loadFromServer: true, urlParam: 'userinput', hoverSuggestClass: 'row2', minCharsType: 3});
       var regiondiv = document.getElementById(element.id + '_region');
       regiondiv.style.position = 'absolute';
       regiondiv.style.top = top + 'px';
@@ -123,6 +139,19 @@ var autofill_onload = function()
   
   var inputs = document.getElementsByClassName('input', 'autofill');
   
+  if ( inputs.length > 0 )
+  {
+    // we have at least one input that needs to be made an autofill element.
+    // is spry data loaded?
+    if ( !Spry.Data )
+    {
+      load_spry_data();
+      return true;
+    }
+  }
+  
+  this.loaded = true;
+  
   for ( var i = 0; i < inputs.length; i++ )
   {
     autofill_init_element(inputs[i]);
@@ -130,6 +159,11 @@ var autofill_onload = function()
 }
 
 addOnloadHook(autofill_onload);
+
+function autofill_force_region_refresh()
+{
+  Spry.Data.initRegions();
+}
 
 function AutofillUsername(element, event, allowanon)
 {
@@ -143,18 +177,13 @@ function AutofillUsername(element, event, allowanon)
     });
 }
 
-function findParentForm(o)
+// load spry data components
+function load_spry_data()
 {
-  if ( o.tagName == 'FORM' )
-    return o;
-  while(true)
+  var scripts = [ 'SpryData.js', 'SpryJSONDataSet.js', 'SpryAutoSuggest.js' ];
+  for ( var i = 0; i < scripts.length; i++ )
   {
-    o = o.parentNode;
-    if ( !o )
-      return false;
-    if ( o.tagName == 'FORM' )
-      return o;
+    load_component(scripts[i]);
   }
-  return false;
+  autofill_onload();
 }
-

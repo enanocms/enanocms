@@ -578,7 +578,7 @@
       }
     }
             
-    header("ETag: \"$etag\"");
+    // header("ETag: \"$etag\"");
     
     // Done, send it to the user
     echo( $html );

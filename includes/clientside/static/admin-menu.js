@@ -212,15 +212,14 @@ function item_get_icon (b_junction) {
 	return this.o_root.a_tpl['icon_' + ((this.n_depth ? 0 : 32) + (this.a_children.length ? 16 : 0) + (this.a_children.length && this.b_opened ? 8 : 0) + (!b_junction && this.o_root.o_selected == this ? 4 : 0) + (b_junction ? 2 : 0) + (b_junction && this.is_last() ? 1 : 0))];
 }
 
-function addslashes (text) {
-  text = text.replace(/\\/g, '\\\\');
-  text = text.replace(/"/g, '\\"');
-  return text;
-}
-
 var trees = [];
 get_element = document.all ?
 	function (s_id) { return document.all[s_id] } :
 	function (s_id) { return document.getElementById(s_id) };
 
-
+function addslashes(text)
+{
+  text = text.replace(/\\/g, '\\\\');
+  text = text.replace(/"/g, '\\"');
+  return text;
+}

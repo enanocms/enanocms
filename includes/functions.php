@@ -3053,8 +3053,8 @@ function aggressive_optimize_html($html)
   for ( $i = 0; $i < count($jscript[0]); $i++ )
   {
     $js =& $jscript[2][$i];
-    
-    // echo('<pre>' . "-----------------------------------------------------------------------------\n" . htmlspecialchars($js) . '</pre>');
+    if ( empty($js) )
+      continue;
     
     $js = $jsc->getClean($js);
     

@@ -150,7 +150,8 @@ function parseJSON(string, filter)
         var j = eval('(' + string + ')');
         if (typeof filter === 'function') {
   
-            function walk(k, v) {
+            function walk(k, v)
+            {
                 if (v && typeof v === 'object') {
                     for (var i in v) {
                         if (v.hasOwnProperty(i)) {

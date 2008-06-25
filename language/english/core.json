@@ -456,6 +456,7 @@ var enano_lang = {
       killphp_confirm: 'Are you really sure you want to do this? Some pages might not function if this emergency-only feature is activated.',
       killphp_success: 'Embedded PHP in pages has been disabled.',
       lbl_moreoptions_nojs: 'More options for this page',
+      msg_loading_component: 'Loading %component%...',
       
       // Server-side responses
       rename_too_short: 'The name you entered is too short. Please enter a longer name for this page.',
