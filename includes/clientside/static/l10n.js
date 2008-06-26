@@ -4,15 +4,27 @@
 
 var Language = function(lang_id)
 {
-  // load the language file
-  load_show_win('strings');
-  var ajax = ajaxMakeXHR();
-  var uri = makeUrlNS('Special', 'LangExportJSON/' + lang_id);
-  ajax.open('GET', uri, false);
-  ajax.send(null);
-  if ( ajax.readyState == 4 && ajax.status == 200 )
+  var have_lang = false;
+  
+  if ( typeof(enano_lang) == 'object' )
   {
-    eval_global(ajax.responseText);
+    if ( typeof(enano_lang[lang_id]) == 'object' )
+    {
+      have_lang = true;
+    }
+  }
+  if ( !have_lang )
+  {
+    // load the language file
+    load_show_win('strings');
+    var ajax = ajaxMakeXHR();
+    var uri = makeUrlNS('Special', 'LangExportJSON/' + lang_id);
+    ajax.open('GET', uri, false);
+    ajax.send(null);
+    if ( ajax.readyState == 4 && ajax.status == 200 )
+    {
+      eval_global(ajax.responseText);
+    }
   }
   
   if ( typeof(enano_lang) != 'object' )

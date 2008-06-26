@@ -462,4 +462,12 @@ for ( var i in placeholder_list )
   window[i] = placeholder_instances[i].go;
 }
 
+$lang = {
+  get: function(a, b)
+  {
+    load_component('l10n');
+    return $lang.get(a, b);
+  }
+}
+
 //*/

@@ -155,6 +155,12 @@ $ui->show_header();
     return true;
   }
   
+  addOnloadHook(function()
+    {
+      load_component('crypto');
+      load_component('l10n');
+    });
+  
   // ]]>
 
 </script>
