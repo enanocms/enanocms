@@ -1041,37 +1041,6 @@ window.aboutKeepAlive = function()
   new MessageBox(MB_OK|MB_ICONINFORMATION, $lang.get('user_keepalive_info_title'), $lang.get('user_keepalive_info_body'));
 }
 
-window.ajaxShowCaptcha = function(code)
-{
-  var mydiv = document.createElement('div');
-  mydiv.style.backgroundColor = '#FFFFFF';
-  mydiv.style.padding = '10px';
-  mydiv.style.position = 'absolute';
-  mydiv.style.top = '0px';
-  mydiv.id = 'autoCaptcha';
-  mydiv.style.zIndex = String( getHighestZ() + 1 );
-  var img = document.createElement('img');
-  img.onload = function()
-  {
-    if ( this.loaded )
-      return true;
-    var mydiv = document.getElementById('autoCaptcha');
-    var width = getWidth();
-    var divw = $dynano(mydiv).Width();
-    var left = ( width / 2 ) - ( divw / 2 );
-    mydiv.style.left = left + 'px';
-    fly_in_top(mydiv, false, true);
-    this.loaded = true;
-  };
-  img.src = makeUrlNS('Special', 'Captcha/' + code);
-  img.onclick = function() { this.src = this.src + '/a'; };
-  img.style.cursor = 'pointer';
-  mydiv.appendChild(img);
-  domObjChangeOpac(0, mydiv);
-  var body = document.getElementsByTagName('body')[0];
-  body.appendChild(mydiv);
-}
-
 window.ajaxUpdateCheck = function(targetelement)
 {
   if ( !document.getElementById(targetelement) )

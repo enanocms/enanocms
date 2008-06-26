@@ -8,6 +8,7 @@ function ajaxOpenACLManager(page_id, namespace)
 {
   if(IE)
     return true;
+  
   load_component('messagebox');
   load_component('fadefilter');
   load_component('template-compiler');

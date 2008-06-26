@@ -909,7 +909,7 @@ class template
     if ( !$paths->anonymous_page && $session->check_acl_scope('edit_acl', $local_namespace) && ( $perms->get_permissions('edit_acl') || ( defined('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL') &&  $session->user_level >= USER_LEVEL_ADMIN ) ) )
     {
       $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { return ajaxOpenACLManager(); }" title="' . $lang->get('onpage_tip_aclmanager') . '" accesskey="m"',
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { var s = ajaxOpenACLManager(); console.debug(s); return false; }" title="' . $lang->get('onpage_tip_aclmanager') . '" accesskey="m"',
           'HREF'  => makeUrl($local_page, 'do=aclmanager', true),
           'TEXT'  => $lang->get('onpage_btn_acl'),
         ));

@@ -198,10 +198,9 @@ function runOnloadHooks(e)
 var loaded_components = {};
 function load_component(file)
 {
-  if ( !file.match(/\.js$/) )
-    file = file + '.js';
+  file = file.replace(/\.js$/, '');
   
-  console.info('Loading component %s via AJAX', file.replace(/\.js$/, ''));
+  console.info('Loading component %s via AJAX', file);
   
   if ( loaded_components[file] )
   {
@@ -214,6 +213,7 @@ function load_component(file)
   // get an XHR instance
   var ajax = ajaxMakeXHR();
   
+  file = file + '.js';
   var uri = scriptPath + '/includes/clientside/static/' + file;
   ajax.open('GET', uri, false);
   ajax.send(null);
@@ -420,7 +420,7 @@ function Placeholder(funcname, filename)
       arglist[arglist.length] = 'arguments['+i+']';
     }
     arglist = implode(', ', arglist);
-    eval(funcname + '(' + arglist + ');');
+    return eval(funcname + '(' + arglist + ');');
   }
 }
 
@@ -451,6 +451,7 @@ var placeholder_list = {
   unselectAllButtonsMinor: 'toolbar.js',
   darken: 'fadefilter.js',
   enlighten: 'fadefilter.js',
+  autofill_onload: 'autofill.js',
 }
 
 var placeholder_instances = {};
