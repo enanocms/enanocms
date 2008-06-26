@@ -119,7 +119,7 @@ if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) )
 
 // Output format will always be JS
 header('Content-type: text/javascript');
-$everything = "/* The code represented in this file is compressed for optimization purposes. The full source code is available in " . scriptPath . "/includes/clientside/static. */\n\nvar ENANO_JSRES_COMPRESSED = true;\n\n";
+$everything = "/* The code represented in this file is compressed for optimization purposes. The full source code is available in includes/clientside/static/. */\n\nvar ENANO_JSRES_COMPRESSED = true;\n\n";
 
 // if we only want the tiny version of the API (just enough to get by until the full one is loaded), send that
 // with a simple ETag and far future expires header
