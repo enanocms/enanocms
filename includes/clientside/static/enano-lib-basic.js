@@ -15,9 +15,14 @@
  * this website for more information.
  */
 
-if(typeof title != 'string')
+if ( typeof(title) != 'string')
 {
   alert('There was a problem loading the PHP-generated Javascript variables that control parameters for AJAX applets. Most on-page functionality will be very badly broken.\n\nTheme developers, ensure that you are using {JS_DYNAMIC_VARS} *before* you include jsres.php.');
+}
+
+if ( typeof(ENANO_JSRES_COMPRESSED) == undefined )
+{
+  var ENANO_JSRES_COMPRESSED = false;
 }
 
 // Run-time variables
@@ -196,8 +201,10 @@ function runOnloadHooks(e)
 }
 
 var loaded_components = {};
+var _load_component_running = false;
 function load_component(file)
 {
+  _load_component_running = true;
   file = file.replace(/\.js$/, '');
   
   console.info('Loading component %s via AJAX', file);
@@ -214,7 +221,7 @@ function load_component(file)
   var ajax = ajaxMakeXHR();
   
   file = file + '.js';
-  var uri = scriptPath + '/includes/clientside/static/' + file;
+  var uri = ( ENANO_JSRES_COMPRESSED ) ? scriptPath + '/includes/clientside/jsres.php?f=' + file : scriptPath + '/includes/clientside/static/' + file;
   ajax.open('GET', uri, false);
   ajax.send(null);
   if ( ajax.readyState == 4 && ajax.status == 200 )
@@ -226,6 +233,7 @@ function load_component(file)
   }
   
   loaded_components[file] = true;
+  _load_component_running = false;
   return true;
 }
 
@@ -351,14 +359,8 @@ var thefiles = [
   'dropdown.js',
   'json.js',
   'sliders.js',
-  'pwstrength.js',
   'loader.js'
 ];
-
-var problem_scripts = {
-  'json.js' : true,
-  'template-compiler.js' : true
-};
 
 for(var f in thefiles)
 {
@@ -366,7 +368,7 @@ for(var f in thefiles)
     continue;
   var script = document.createElement('script');
   script.type="text/javascript";
-  if ( problem_scripts[thefiles[f]] && KILL_SWITCH )
+  if ( thefiles[f] == 'json.js' && KILL_SWITCH )
   {
     // alert('kill switch and problem script');
     continue;
@@ -443,6 +445,7 @@ var placeholder_list = {
   ajaxInitLogout: 'login.js',
   ajaxStartLogin: 'login.js',
   ajaxStartAdminLogin: 'login.js',
+  ajaxLoginNavTo: 'login.js',
   ajaxAdminPage: 'login.js',
   mb_logout: 'login.js',
   selectButtonMajor: 'toolbar.js',
@@ -452,6 +455,8 @@ var placeholder_list = {
   darken: 'fadefilter.js',
   enlighten: 'fadefilter.js',
   autofill_onload: 'autofill.js',
+  password_score: 'pwstrength.js',
+  password_score_field: 'pwstrength.js',
 }
 
 var placeholder_instances = {};

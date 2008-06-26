@@ -13,6 +13,24 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
+/**
+ * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it
+ * from very early on in the script to measure the starting time of Enano.
+ * @return float
+ */
+
+// First check to see if something already declared this function.... it happens often.
+if ( !function_exists('microtime_float') )
+{
+  function microtime_float()
+  {
+    list($usec, $sec) = explode(" ", microtime());
+    return ((float)$usec + (float)$sec);
+  }
+}
+
+$local_start = microtime_float();
+
 // Disable for IE, it causes problems.
 if ( ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') /*|| true*/ ) && !isset($_GET['early']) )
 {
@@ -101,7 +119,7 @@ if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) )
 
 // Output format will always be JS
 header('Content-type: text/javascript');
-$everything = '';
+$everything = "/* The code represented in this file is compressed for optimization purposes. The full source code is available in " . scriptPath . "/includes/clientside/static. */\n\nvar ENANO_JSRES_COMPRESSED = true;\n\n";
 
 // if we only want the tiny version of the API (just enough to get by until the full one is loaded), send that
 // with a simple ETag and far future expires header
@@ -165,25 +183,43 @@ $apex = filemtime('includes/clientside/static/enano-lib-basic.js');
 $before_includes = substr($file, 0, $pos_start_includes);
 $after_includes = substr($file, $pos_end_includes);
 
-// compress enano-lib-basic
-$libbasic = "$before_includes\n$after_includes";
-$libbasic = jsres_cache_check('enano-lib-basic.js', $libbasic);
-$everything .= $libbasic;
-
-// $everything .= $before_includes;
-// $everything .= $after_includes;
-
-foreach ( $file_list as $js_file )
+if ( isset($_GET['f']) )
 {
+  // requested a single file
+  $js_file =& $_GET['f'];
+  if ( !preg_match('/^[a-z0-9_-]+\.js$/i', $js_file) )
+  {
+    header('HTTP/1.1 404 Not Found');
+    exit('Not found');
+  }
+  
+  $apex = filemtime("includes/clientside/static/$js_file");
+  
   $file_contents = file_get_contents("includes/clientside/static/$js_file");
-  $time = filemtime("includes/clientside/static/$js_file");
-  if ( $time > $apex )
-    $apex = $time;
+  $everything = jsres_cache_check($js_file, $file_contents);
+}
+else
+{
+  // compress enano-lib-basic
+  $libbasic = "$before_includes\n$after_includes";
+  $libbasic = jsres_cache_check('enano-lib-basic.js', $libbasic);
+  $everything .= $libbasic;
   
-  $file_contents = jsres_cache_check($js_file, $file_contents);
+  // $everything .= $before_includes;
+  // $everything .= $after_includes;
   
-  $everything .= "\n\n// $js_file\n";
-  $everything .= "\n" . $file_contents;
+  foreach ( $file_list as $js_file )
+  {
+    $file_contents = file_get_contents("includes/clientside/static/$js_file");
+    $time = filemtime("includes/clientside/static/$js_file");
+    if ( $time > $apex )
+      $apex = $time;
+    
+    $file_contents = jsres_cache_check($js_file, $file_contents);
+    
+    $everything .= "\n\n// $js_file\n";
+    $everything .= "\n" . $file_contents;
+  }
 }
 
 // generate ETag
@@ -208,6 +244,11 @@ header("Date: $date");
 header("Last-Modified: $date");
 header("ETag: \"$etag\"");
 header("Expires: $expires");
+
+$local_end = microtime_float();
+$local_gentime = $local_end - $local_start;
+$local_gentime = round($local_gentime, 5);
+header("X-Performance: generated in $local_gentime seconds");
 
 echo $everything;
 

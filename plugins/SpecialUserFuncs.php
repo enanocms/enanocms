@@ -227,7 +227,7 @@ function page_Special_Login()
         $errstring = $lang->get('user_err_key_not_found');
         break;
       case 'ERR_DH_KEY_NOT_FOUND':
-        $errstring = $lang->get('user_err_dh_key_not_found') . " -- {$__login_status['debug']}";
+        $errstring = $lang->get('user_err_dh_key_not_found'); // . " -- {$__login_status['debug']}";
         break;
       case 'ERR_DH_KEY_NOT_INTEGER':
         $errstring = $lang->get('user_err_dh_key_not_numeric');

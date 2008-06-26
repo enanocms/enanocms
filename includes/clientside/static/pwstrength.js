@@ -195,6 +195,7 @@ function password_score_draw(score)
   {
     // $lang isn't initted yet, this happens sometimes on the usercp/emailpassword form.
     // Try to init it if we have ENANO_LANG_ID and enano_lang; if not, report an error.
+    load_component('l10n');
     if ( typeof(enano_lang) == 'object' && typeof(ENANO_LANG_ID) == 'number' )
     {
       language_onload();

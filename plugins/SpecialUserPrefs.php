@@ -392,30 +392,17 @@ function page_Special_Preferences()
       ?>
       <script type="text/javascript">
       <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
-      password_score_field(document.forms.empwform.newpass);
-      <?php endif; ?>
-        disableJSONExts();
-        str = '';
-        for(i=0;i<keySizeInBits/4;i++) str+='0';
-        var key = hexToByteArray(str);
-        var pt = hexToByteArray(str);
-        var ct = rijndaelEncrypt(pt, key, "ECB");
-        var ct = byteArrayToHex(ct);
-        switch(keySizeInBits)
+      addOnloadHook(function()
         {
-          case 128:
-            v = '66e94bd4ef8a2c3b884cfa59ca342b2e';
-            break;
-          case 192:
-            v = 'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7';
-            break;
-          case 256:
-            v = 'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087';
-            break;
-        }
-        var aes_testpassed = ( ct == v && md5_vm_test() );
+          password_score_field(document.forms.empwform.newpass);
+        });
+      <?php endif; ?>
+        
         function runEncryption()
         {
+          load_component('crypto');
+          var aes_testpassed = aes_self_test();
+          
           var frm = document.forms.empwform;
           if ( frm.newpass.value.length < 1 )
             return true;

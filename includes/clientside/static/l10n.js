@@ -25,6 +25,7 @@ var Language = function(lang_id)
     {
       eval_global(ajax.responseText);
     }
+    load_hide_win();
   }
   
   if ( typeof(enano_lang) != 'object' )
