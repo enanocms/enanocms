@@ -460,8 +460,8 @@ var placeholder_list = {
   enlighten: 'fadefilter.js',
   autofill_onload: 'autofill.js',
   password_score: 'pwstrength.js',
-  password_score_field: 'pwstrength.js',
-}
+  password_score_field: 'pwstrength.js'
+};
 
 var placeholder_instances = {};
 

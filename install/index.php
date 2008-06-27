@@ -79,7 +79,7 @@ define('HAVE_PHP5', version_compare(PHP_VERSION, '5.0.0', '>='));
               <td>
                 <ul class="icons">
                   <li><a href="readme.php" class="readme icon">Readme</a></li>
-                  <?php
+<?php
                   if ( !defined('ENANO_INSTALLED') ):
                   ?>
                   <li><a href="install.php" class="install icon">Install</a></li>
@@ -91,7 +91,7 @@ define('HAVE_PHP5', version_compare(PHP_VERSION, '5.0.0', '>='));
                       </small>
                     </a>
                   </li>
-                  <?php
+<?php
                   else:
                   ?>
                   <li>
@@ -130,6 +130,7 @@ define('HAVE_PHP5', version_compare(PHP_VERSION, '5.0.0', '>='));
                   }
                   endif;
                   ?>
+                
                 </ul>
               </td>
             </tr>
