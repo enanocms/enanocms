@@ -1,6 +1,24 @@
-// init TinyMCE
-var head = document.getElementsByTagName('head')[0];
+//
+// TinyMCE support
+//
 
+// Check tinyMCE to make sure its init is finished
+var initTinyMCE = function(e)
+{
+  if ( typeof(tinyMCE_GZ) == 'object' )
+  {
+    if ( !KILL_SWITCH && !DISABLE_MCE )
+    {
+      tinyMCE_GZ.init(enano_tinymce_gz_options, function()
+        {
+          tinyMCE.init(enano_tinymce_options);
+        });
+      tinymce_initted = true;
+    }
+  }
+};
+
+// editor options
 if ( document.getElementById('mdgCss') )
 {
   var css_url = document.getElementById('mdgCss').href;
@@ -39,51 +57,14 @@ var enano_tinymce_gz_options = {
 	debug : false
 };
 
+// load the script
+
 if ( !KILL_SWITCH && !DISABLE_MCE )
 {
-  // load MCE with XHR
-  var ajax = ajaxMakeXHR();
   var uri = scriptPath + '/includes/clientside/tinymce/tiny_mce_gzip.js';
-  ajax.open('GET', uri, false);
-  ajax.send(null);
-  if ( ajax.readyState == 4 && ajax.status == 200 )
-  {
-    eval_global(ajax.responseText);
-    tinyMCE_GZ.init(enano_tinymce_gz_options);
-  }
-  else
-  {
-    console.error('TinyMCE load failed');
-  }
+  var sc = document.createElement('script');
+  sc.src = uri;
+  sc.type = 'text/javascript';
+  var head = document.getElementsByTagName('head')[0];
+  head.appendChild(sc);
 }
-
-// Check tinyMCE to make sure its init is finished
-window.tinymce_preinit_check = function()
-{
-  if ( typeof(tinyMCE.init) != 'function' )
-    return false;
-  if ( typeof(tinymce.DOM) != 'object' )
-    return false;
-  if ( typeof(tinymce.DOM.get) != 'function' )
-    return false;
-  if ( typeof(enano_tinymce_gz_options) != 'object' )
-    return false;
-  return true;
-}
-
-var initTinyMCE = function(e)
-{
-  if ( typeof(tinyMCE) == 'object' )
-  {
-    if ( !KILL_SWITCH && !DISABLE_MCE )
-    {
-      if ( !tinymce_preinit_check() )
-      {
-        setTimeout('initTinyMCE(false);', 200);
-        return false;
-      }
-      tinyMCE.init(enano_tinymce_options);
-      tinymce_initted = true;
-    }
-  }
-};

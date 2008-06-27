@@ -13,6 +13,8 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
+// define('ENANO_JS_DEBUG', 1);
+
 /**
  * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it
  * from very early on in the script to measure the starting time of Enano.
@@ -32,7 +34,7 @@ if ( !function_exists('microtime_float') )
 $local_start = microtime_float();
 
 // Disable for IE, it causes problems.
-if ( ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') /*|| true*/ ) && !isset($_GET['early']) )
+if ( ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') || defined('ENANO_JS_DEBUG') ) && !isset($_GET['early']) )
 {
   header('HTTP/1.1 302 Redirect');
   header('Location: static/enano-lib-basic.js');
@@ -72,29 +74,24 @@ chdir(ENANO_ROOT);
 // Files safe to run full (aggressive) compression on
 $full_compress_safe = array(
   // Sorted by file size, descending (du -b *.js | sort -n)
+  'crypto.js',
   'ajax.js',
-  'libbigint.js',
   'editor.js',
   'functions.js',
   'login.js',
   'acl.js',
   'misc.js',
   'comments.js',
-  'rijndael.js',
   'autofill.js',
   'dropdown.js',
   'paginate.js',
-  'md5.js',
   'enano-lib-basic.js',
   'SpryJSONDataSet.js',
   'pwstrength.js',
-  'sha256.js',
   'flyin.js',
   'rank-manager.js',
   'template-compiler.js',
   'toolbar.js',
-  'diffiehellman.js',
-  'enanomath.js'
 );
 
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code

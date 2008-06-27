@@ -16,14 +16,13 @@ function DNobj(id)
   {
     console.warn('Dynano: requested object is bad. id parameter follows.');
     console.debug(id);
-    console.debug(tinyMCE.getInstanceById(id));
     this.object = false;
     return this;
   }
   this.height = __DNObjGetHeight(this.object);
   this.width = __DNObjGetWidth(this.object);
   
-  if ( this.object.tagName == 'TEXTAREA' && typeof(tinyMCE) == 'object' )
+  if ( this.object.tagName == 'TEXTAREA' && ( typeof(tinyMCE) == 'object' || typeof(tinyMCE_GZ) == 'object' ) )
   {
     this.object.dnIsMCE = 'no';
     this.switchToMCE = DN_switchToMCE;
@@ -108,6 +107,7 @@ function DN_switchToMCE(performWikiTransform)
   // If tinyMCE init hasn't been called yet, do it now.
   if ( !tinymce_initted )
   {
+    console.info('$().switchToMCE(): doing "exact"-type MCE init');
     enano_tinymce_options.mode = 'exact';
     enano_tinymce_options.elements = this.object.id;
     initTinyMCE();
@@ -116,7 +116,8 @@ function DN_switchToMCE(performWikiTransform)
   }
   else
   {
-    tinyMCE.execCommand("mceAddControl", true, this.object.id);
+    console.info('$().switchToMCE(): tinyMCE already loaded, calling mceAddControl');
+    tinymce.EditorManager.execCommand("mceAddControl", true, this.object.id);
     this.object.dnIsMCE = 'yes';
   }
   return this;
@@ -129,12 +130,12 @@ function DN_destroyMCE(performWikiTransform)
   if ( this.object.id )
   {
     // TinyMCE 2.x
-    // tinyMCE.removeMCEControl(this.object.name);
+    // tinymce.EditorManager.removeMCEControl(this.object.name);
     // TinyMCE 3.x
-    var ed = tinyMCE.getInstanceById(this.object.id);
+    var ed = tinymce.EditorManager.getInstanceById(this.object.id);
     if ( ed )
     {
-      if ( !tinyMCE.execCommand("mceRemoveEditor", false, this.object.id) )
+      if ( !tinymce.EditorManager.execCommand("mceRemoveEditor", false, this.object.id) )
         alert('could not destroy editor');
       if ( performWikiTransform )
       {
@@ -151,9 +152,9 @@ function DN_mceFetchContent()
   if ( this.object.name )
   {
     var text = this.object.value;
-    if ( tinyMCE.get(this.object.id) )
+    if ( tinymce.EditorManager.get(this.object.id) )
     {
-      var editor = tinyMCE.get(this.object.id);
+      var editor = tinymce.EditorManager.get(this.object.id);
       text = editor.getContent();
     }
     return text;
@@ -169,9 +170,9 @@ function DN_mceSetContent(text)
   if ( this.object.name )
   {
     this.object.value = text;
-    if ( tinyMCE.get(this.object.id) )
+    if ( tinymce.EditorManager.get(this.object.id) )
     {
-      var editor = tinyMCE.get(this.object.id);
+      var editor = tinymce.EditorManager.get(this.object.id);
       editor.setContent(text);
     }
   }

@@ -17,6 +17,7 @@ var Language = function(lang_id)
   {
     // load the language file
     load_show_win('strings');
+    console.info('Loading language ' + lang_id + ' via AJAX synchronous request');
     var ajax = ajaxMakeXHR();
     var uri = makeUrlNS('Special', 'LangExportJSON/' + lang_id);
     ajax.open('GET', uri, false);

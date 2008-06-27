@@ -14,10 +14,11 @@ window.ajaxEditor = function(revid)
   load_component('l10n');
   load_component('template-compiler');
   load_component('messagebox');
-  var rev_id_uri = ( revid ) ? '&revid=' + revid : '';
   selectButtonMinor('edit');
   selectButtonMajor('article');
   setAjaxLoading();
+  
+  var rev_id_uri = ( revid ) ? '&revid=' + revid : '';
   ajaxGet(stdAjaxPrefix + '&_mode=getsource' + rev_id_uri, function()
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )

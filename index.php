@@ -23,10 +23,10 @@
  
   // Set up gzip encoding before any output is sent
   
-  $aggressive_optimize_html = true;
+  $aggressive_optimize_html = false;
   
   global $do_gzip;
-  $do_gzip = true;
+  $do_gzip = false;
   
   if ( isset($_GET['nocompress']) )
     $aggressive_optimize_html = false;

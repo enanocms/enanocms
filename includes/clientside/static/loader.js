@@ -21,6 +21,7 @@ function enano_init(e)
   mdgInnerLoader(e);
   
   // we're loaded; set flags to true
+  console.info('Enano::JS runtime: system init complete');
   onload_complete = true;
 }
 

@@ -177,8 +177,11 @@ function page_Special_CreatePage()
   ?>
   <enano:no-opt>
   <script type="text/javascript">
-    function cpGenPreviewUrl()
+    window.cpGenPreviewUrl = function()
     {
+      if ( typeof(load_component) != 'function' )
+        return false;
+      
       var frm = document.forms['create_form'];
       var radio_custom = frm.getElementsByTagName('input')[2];
       var use_custom_url = radio_custom.checked;
@@ -250,7 +253,7 @@ function page_Special_CreatePage()
     
   echo '</form>';
   
-  echo '<script type="text/javascript">cpGenPreviewUrl();</script>';
+  echo '<script type="text/javascript">addOnloadHook(cpGenPreviewUrl); addOnloadHook(function(){load_component(\'expander\')});</script>';
   
   $template->footer();
 }

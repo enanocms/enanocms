@@ -20,6 +20,20 @@ if ( typeof(title) != 'string')
   alert('There was a problem loading the PHP-generated Javascript variables that control parameters for AJAX applets. Most on-page functionality will be very badly broken.\n\nTheme developers, ensure that you are using {JS_DYNAMIC_VARS} *before* you include jsres.php.');
 }
 
+// placeholder for window.console - used if firebug isn't present
+// http://getfirebug.com/firebug/firebugx.js
+if (!window.console || !console.firebug)
+{
+    var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+    "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+
+    window.console = {};
+    for (var i = 0; i < names.length; ++i)
+        window.console[names[i]] = function() {}
+}
+
+console.info('Enano::JS runtime: starting system init');
+
 if ( typeof(ENANO_JSRES_COMPRESSED) == undefined )
 {
   var ENANO_JSRES_COMPRESSED = false;
@@ -68,8 +82,7 @@ if ( IE )
   }
 }
 
-// dummy tinyMCE object
-var tinyMCE = new Object();
+var tinymce_initted = false;
 
 if ( typeof(DISABLE_MCE) == undefined )
 {
@@ -263,6 +276,8 @@ function load_show_win(file)
 function load_hide_win()
 {
   var ld = document.getElementById('_js_load_component');
+  if ( !ld )
+    return false;
   ld.parentNode.removeChild(ld);
 }
 
@@ -330,18 +345,6 @@ function eval_global(_jsString)
 
 var head = document.getElementsByTagName('head')[0];
 
-// placeholder for window.console - used if firebug isn't present
-// http://getfirebug.com/firebug/firebugx.js
-if (!window.console || !console.firebug)
-{
-    var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
-    "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
-
-    window.console = {};
-    for (var i = 0; i < names.length; ++i)
-        window.console[names[i]] = function() {}
-}
-
 // safari has window.console but not the .debug() method
 if ( is_Safari && !window.console.debug )
 {
@@ -359,6 +362,7 @@ var thefiles = [
   'dropdown.js',
   'json.js',
   'sliders.js',
+  'tinymce-init.js',
   'loader.js'
 ];
 
