@@ -136,11 +136,12 @@ class sessionManager {
   var $unread_pms = 0;
   
   /**
-   * AES key used to encrypt passwords and session key info - irreversibly destroyed when disallow_password_grab() is called
+   * AES key used to encrypt passwords and session key info.
    * @var string
+   * @access private
    */
    
-  var $private_key;
+  protected $private_key;
   
   /**
    * Regex that defines a valid username, minus the ^ and $, these are added later
@@ -2405,6 +2406,32 @@ class sessionManager {
     
     // Yay! We're done
     return 'success';
+  }
+  
+  /**
+   * Encrypts a string using the site's private key.
+   * @param string
+   * @param int Return type - one of ENC_BINARY, ENC_HEX, ENC_BASE64
+   * @return string
+   */
+  
+  function pk_encrypt($string, $return_type = ENC_HEX)
+  {
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+    return $aes->encrypt($string, $this->private_key, $return_type);
+  }
+  
+  /**
+   * Encrypts a string using the site's private key.
+   * @param string
+   * @param int Input type - one of ENC_BINARY, ENC_HEX, ENC_BASE64
+   * @return string
+   */
+  
+  function pk_decrypt($string, $input_type = ENC_HEX)
+  {
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+    return $aes->decrypt($string, $this->private_key, $input_type);
   }
   
   #

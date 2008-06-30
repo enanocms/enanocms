@@ -211,7 +211,7 @@ function page_Special_Preferences()
             $db->_die();
           $row = $db->fetchrow();
           $db->free_result();
-          $old_pass = $aes->decrypt($row['password'], $session->private_key, ENC_HEX);
+          $old_pass = $session->pk_decrypt($row['password'], ENC_HEX);
           
           $new_email = $_POST['newemail'];
           
@@ -257,7 +257,7 @@ function page_Special_Preferences()
             // Encrypt new password
             if ( empty($errors) )
             {
-              $newpass_enc = $aes->encrypt($newpass, $session->private_key, ENC_HEX);
+              $newpass_enc = $session->pk_encrypt($newpass, ENC_HEX);
               // Perform the swap
               $q = $db->sql_query('UPDATE '.table_prefix.'users SET password=\'' . $newpass_enc . '\' WHERE user_id=' . $session->user_id . ';');
               if ( !$q )

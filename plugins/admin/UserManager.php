@@ -147,7 +147,7 @@ function page_Admin_UserManager()
           $to_update_users['username'] = $username;
           if ( $password )
           {
-            $password = $aes->encrypt($password, $session->private_key, ENC_HEX);
+            $password = $session->pk_encrypt($password, ENC_HEX);
             $to_update_users['password'] = $password;
           }
           $to_update_users['email'] = $email;

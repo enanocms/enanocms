@@ -1597,7 +1597,7 @@ function page_Special_PasswordReset()
           return false;
         }
       }
-      $encpass = $aes->encrypt($data, $session->private_key, ENC_HEX);
+      $encpass = $session->pk_encrypt($data, ENC_HEX);
       $q = $db->sql_query('UPDATE '.table_prefix.'users SET password=\'' . $encpass . '\',temp_password=\'\',temp_password_time=0 WHERE user_id='.$user_id.';');
       
       if($q)
