@@ -24,57 +24,60 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', '
+$plugins->attachHook('session_started', 'SpecialPageFuncs_paths_init();');
+
+function SpecialPageFuncs_paths_init()
+{
   global $paths;
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_create_page\',
-      \'urlname\'=>\'CreatePage\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_all_pages\',
-      \'urlname\'=>\'AllPages\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_special_pages\',
-      \'urlname\'=>\'SpecialPages\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_about_enano\',
-      \'urlname\'=>\'About_Enano\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_gnu_gpl\',
-      \'urlname\'=>\'GNU_General_Public_License\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_tag_cloud\',
-      \'urlname\'=>\'TagCloud\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_autofill\',
-      \'urlname\'=>\'Autofill\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    ');
+  $paths->add_page(Array(
+    'name'=>'specialpage_create_page',
+    'urlname'=>'CreatePage',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_all_pages',
+    'urlname'=>'AllPages',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_special_pages',
+    'urlname'=>'SpecialPages',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_about_enano',
+    'urlname'=>'About_Enano',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_gnu_gpl',
+    'urlname'=>'GNU_General_Public_License',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_tag_cloud',
+    'urlname'=>'TagCloud',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_autofill',
+    'urlname'=>'Autofill',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+}
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 

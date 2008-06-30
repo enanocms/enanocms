@@ -22,15 +22,18 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-$plugins->attachHook('session_started', '
+$plugins->attachHook('session_started', 'SpecialGroups_paths_init();');
+
+function SpecialGroups_paths_init()
+{
   global $paths;
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_groupcp\',
-      \'urlname\'=>\'Usergroups\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    ');
+  $paths->add_page(Array(
+    'name'=>'specialpage_groupcp',
+    'urlname'=>'Usergroups',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+}
 
 function page_Special_Usergroups()
 {

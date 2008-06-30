@@ -398,9 +398,10 @@ class pathManager
     {
       eval($cmd);
     }
-    
-    $session->init_permissions();
+   
     profiler_log('Paths and CMS core initted');
+    $session->init_permissions();
+    profiler_log('Default ACL set retrieved');
   }
   
   function add_page($flags)
@@ -415,7 +416,7 @@ class pathManager
         $flags['name'] = $lang->get($flags['name']);
     }
     
-    $pages_len = sizeof($this->pages)/2;
+    $pages_len = sizeof($this->pages) / 2;
     $this->pages[$pages_len] = $flags;
     $this->pages[$flags['urlname']] =& $this->pages[$pages_len];
   }

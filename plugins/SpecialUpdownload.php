@@ -25,22 +25,25 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', '
+$plugins->attachHook('session_started', 'SpecialUpDownload_paths_init();');
+
+function SpecialUpDownload_paths_init()
+{
   global $paths;
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_upload_file\',
-      \'urlname\'=>\'UploadFile\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_download_file\',
-      \'urlname\'=>\'DownloadFile\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    ');
+  $paths->add_page(Array(
+    'name'=>'specialpage_upload_file',
+    'urlname'=>'UploadFile',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_download_file',
+    'urlname'=>'DownloadFile',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+}
 
 function page_Special_UploadFile()
 {

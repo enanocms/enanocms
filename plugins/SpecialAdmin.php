@@ -24,34 +24,49 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', '
-  global $paths;
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_administration\',
-      \'urlname\'=>\'Administration\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_manage_sidebar\',
-      \'urlname\'=>\'EditSidebar\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-  ');
+$plugins->attachHook('session_started', 'SpecialAdmin_paths_init();');
 
-// Admin pages that were too enormous to be in this file were split off into the plugins/admin/ directory in 1.0.1
-require(ENANO_ROOT . '/plugins/admin/PageManager.php');
-require(ENANO_ROOT . '/plugins/admin/PageEditor.php');
-require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
-require(ENANO_ROOT . '/plugins/admin/GroupManager.php');
-require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
-require(ENANO_ROOT . '/plugins/admin/UserManager.php');
-require(ENANO_ROOT . '/plugins/admin/UserRanks.php');
-require(ENANO_ROOT . '/plugins/admin/LangManager.php');
-require(ENANO_ROOT . '/plugins/admin/ThemeManager.php');
-require(ENANO_ROOT . '/plugins/admin/PluginManager.php');
+function SpecialAdmin_paths_init()
+{
+  global $paths;
+  $paths->add_page(Array(
+    'name'=>'specialpage_administration',
+    'urlname'=>'Administration',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_manage_sidebar',
+    'urlname'=>'EditSidebar',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+}
+
+$plugins->attachHook('common_post', 'SpecialAdmin_include();');
+
+function SpecialAdmin_include()
+{
+  global $paths;
+  
+  // Admin pages that were too enormous to be in this file were split off into the plugins/admin/ directory in 1.0.1.
+  // Only load these files if we're looking to load the admin panel
+  list($pid, $ns) = RenderMan::strToPageID($paths->get_pageid_from_url());
+  if ( $ns == 'Admin' )
+  {
+    require(ENANO_ROOT . '/plugins/admin/PageManager.php');
+    require(ENANO_ROOT . '/plugins/admin/PageEditor.php');
+    require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
+    require(ENANO_ROOT . '/plugins/admin/GroupManager.php');
+    require(ENANO_ROOT . '/plugins/admin/SecurityLog.php');
+    require(ENANO_ROOT . '/plugins/admin/UserManager.php');
+    require(ENANO_ROOT . '/plugins/admin/UserRanks.php');
+    require(ENANO_ROOT . '/plugins/admin/LangManager.php');
+    require(ENANO_ROOT . '/plugins/admin/ThemeManager.php');
+    require(ENANO_ROOT . '/plugins/admin/PluginManager.php');
+  }
+}
 
 // For convenience and nothing more.
 function acp_start_form()

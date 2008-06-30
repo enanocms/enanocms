@@ -64,6 +64,7 @@ class pluginLoader {
   function loadAll() 
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    $GLOBALS['plugins_cache'] = array();
     
     // if we're in an upgrade, just skip this step
     if ( defined('IN_ENANO_UPGRADE') )
@@ -251,15 +252,28 @@ class pluginLoader {
    * Reads all plugins in the filesystem and cross-references them with the database, providing a very complete summary of plugins
    * on the site.
    * @param array If specified, will restrict scanned files to this list. Defaults to null, which means all PHP files will be scanned.
+   * @param bool If true, allows using cached information. Defaults to true.
    * @return array
    */
   
-  function get_plugin_list($restrict = null)
+  function get_plugin_list($restrict = null, $use_cache = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Scan all plugins
     $plugin_list = array();
+    $ta = 0;
+    // won't load twice (failsafe automatic skip)
+    $this->load_plugins_cache();
+    if ( $use_cache )
+    {
+      global $plugins_cache;
+    }
+    else
+    {
+      // blank array - effectively skips importing the cache
+      $plugins_cache = array();
+    }
     
     if ( $dirh = @opendir( ENANO_ROOT . '/plugins' ) )
     {
@@ -272,57 +286,69 @@ class pluginLoader {
           if ( !in_array($dh, $restrict) )
             continue;
           
-        $fullpath = ENANO_ROOT . "/plugins/$dh";
         // it's a PHP file, attempt to read metadata
-        // pass 1: try to read a !info block
-        $blockdata = $this->parse_plugin_blocks($fullpath, 'info');
-        if ( empty($blockdata) )
+        $fullpath = ENANO_ROOT . "/plugins/$dh";
+        // first can we use cached info?
+        if ( isset($plugins_cache[$dh]) && $plugins_cache[$dh]['file md5'] === $this->md5_header($fullpath) )
         {
-          // no !info block, check for old header
-          $fh = @fopen($fullpath, 'r');
-          if ( !$fh )
-            // can't read, bail out
-            continue;
-          $plugin_data = array();
-          for ( $i = 0; $i < 8; $i++ )
-          {
-            $plugin_data[] = @fgets($fh, 8096);
-          }
-          // close our file handle
-          fclose($fh);
-          // is the header correct?
-          if ( trim($plugin_data[0]) != '<?php' || trim($plugin_data[1]) != '/*' )
-          {
-            // nope. get out.
-            continue;
-          }
-          // parse all the variables
-          $plugin_meta = array();
-          for ( $i = 2; $i <= 7; $i++ )
-          {
-            if ( !preg_match('/^([A-z0-9 ]+?): (.+?)$/', trim($plugin_data[$i]), $match) )
-              continue 2;
-            $plugin_meta[ strtolower($match[1]) ] = $match[2];
-          }
+          $plugin_meta = $plugins_cache[$dh];
         }
         else
         {
-          // parse JSON block
-          $plugin_data =& $blockdata[0]['value'];
-          $plugin_data = enano_clean_json(enano_trim_json($plugin_data));
-          try
+          // the cache is out of date if we reached here -- regenerate
+          if ( $use_cache )
+            $this->generate_plugins_cache();
+          
+          // pass 1: try to read a !info block
+          $blockdata = $this->parse_plugin_blocks($fullpath, 'info');
+          if ( empty($blockdata) )
           {
-            $plugin_meta_uc = enano_json_decode($plugin_data);
+            // no !info block, check for old header
+            $fh = @fopen($fullpath, 'r');
+            if ( !$fh )
+              // can't read, bail out
+              continue;
+            $plugin_data = array();
+            for ( $i = 0; $i < 8; $i++ )
+            {
+              $plugin_data[] = @fgets($fh, 8096);
+            }
+            // close our file handle
+            fclose($fh);
+            // is the header correct?
+            if ( trim($plugin_data[0]) != '<?php' || trim($plugin_data[1]) != '/*' )
+            {
+              // nope. get out.
+              continue;
+            }
+            // parse all the variables
+            $plugin_meta = array();
+            for ( $i = 2; $i <= 7; $i++ )
+            {
+              if ( !preg_match('/^([A-z0-9 ]+?): (.+?)$/', trim($plugin_data[$i]), $match) )
+                continue 2;
+              $plugin_meta[ strtolower($match[1]) ] = $match[2];
+            }
           }
-          catch ( Exception $e )
+          else
           {
-            continue;
-          }
-          // convert all the keys to lowercase
-          $plugin_meta = array();
-          foreach ( $plugin_meta_uc as $key => $value )
-          {
-            $plugin_meta[ strtolower($key) ] = $value;
+            // parse JSON block
+            $plugin_data =& $blockdata[0]['value'];
+            $plugin_data = enano_clean_json(enano_trim_json($plugin_data));
+            try
+            {
+              $plugin_meta_uc = enano_json_decode($plugin_data);
+            }
+            catch ( Exception $e )
+            {
+              continue;
+            }
+            // convert all the keys to lowercase
+            $plugin_meta = array();
+            foreach ( $plugin_meta_uc as $key => $value )
+            {
+              $plugin_meta[ strtolower($key) ] = $value;
+            }
           }
         }
         if ( !isset($plugin_meta) || !is_array(@$plugin_meta) )
@@ -379,6 +405,92 @@ class pluginLoader {
     
     // done
     return $plugin_list;
+  }
+  
+  /**
+   * Attempts to cache plugin information in a file to speed fetching.
+   */
+  
+  function generate_plugins_cache()
+  {
+    if ( getConfig('cache_thumbs') != '1' )
+      return;
+    
+    // fetch the most current info
+    $plugin_info = $this->get_plugin_list(null, false);
+    foreach ( $plugin_info as $plugin => &$info )
+    {
+      $info['file md5'] = $this->md5_header(ENANO_ROOT . "/plugins/$plugin");
+    }
+    
+    $this->update_plugins_cache($plugin_info);
+    $GLOBALS['plugins_cache'] = $plugin_info;
+    @define('ENANO_PLUGINS_CACHE_LOADED', true);
+  }
+  
+  /**
+   * Writes an information array to the cache file.
+   * @param array
+   * @access private
+   */
+  
+  function update_plugins_cache($plugin_info)
+  {
+    $plugin_info = Language::var_export_string($plugin_info);
+    
+    $file = ENANO_ROOT . '/cache/cache_plugins.php';
+    $fh = @fopen($file, 'w');
+    if ( !$fh )
+      // can't open for writing
+      return false;
+      
+    $contents = <<<EOF
+<?php
+/**
+ * Cache of plugin files. Automatically generated, any modifications will soon be lost
+ */
+
+@define('ENANO_PLUGINS_CACHE_LOADED', true);
+\$GLOBALS['plugins_cache'] = $plugin_info;
+
+EOF;
+    fwrite($fh, $contents);
+    fclose($fh);
+  }
+  
+  /**
+   * Loads the plugins cache if any.
+   */
+  
+  function load_plugins_cache()
+  {
+    if ( file_exists(ENANO_ROOT . '/cache/cache_plugins.php') && !defined('ENANO_PLUGINS_CACHE_LOADED') )
+    {
+      require(ENANO_ROOT . '/cache/cache_plugins.php');
+    }
+  }
+  
+  /**
+   * Calculates the MD5 sum of the first 10 lines of a file. Useful for caching plugin header information.
+   * @param string File
+   * @return string
+   */
+  
+  function md5_header($file)
+  {
+    $fh = @fopen($file, 'r');
+    if ( !$fh )
+      return false;
+    $i = 0;
+    $h = '';
+    while ( $i < 10 )
+    {
+      $line = fgets($fh, 8096);
+      $h .= $line . "\n";
+      $i++;
+    }
+    fclose($fh);
+    return md5($h);
   }
   
   /**

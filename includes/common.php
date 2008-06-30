@@ -328,6 +328,8 @@ $plugins = new pluginLoader();
 // Obtain list of plugins
 $plugins->loadAll();
 
+profiler_log('Fetched plugin list');
+
 global $plugins;
 
 // Load plugins from common because we can't give plugins full abilities in object context

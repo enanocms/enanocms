@@ -460,7 +460,10 @@ var placeholder_list = {
   enlighten: 'fadefilter.js',
   autofill_onload: 'autofill.js',
   password_score: 'pwstrength.js',
-  password_score_field: 'pwstrength.js'
+  password_score_field: 'pwstrength.js',
+  ajaxEditTheme: 'theme-manager.js',
+  ajaxToggleSystemThemes: 'theme-manager.js',
+  ajaxInstallTheme: 'theme-manager.js',
 };
 
 var placeholder_instances = {};

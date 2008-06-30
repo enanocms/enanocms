@@ -22,22 +22,25 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-$plugins->attachHook('session_started', '
+$plugins->attachHook('session_started', 'SpecialSearch_paths_init();');
+
+function SpecialSearch_paths_init()
+{
   global $paths;
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_search_rebuild\',
-      \'urlname\'=>\'SearchRebuild\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_search\',
-      \'urlname\'=>\'Search\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    ');
+  $paths->add_page(Array(
+    'name'=>'specialpage_search_rebuild',
+    'urlname'=>'SearchRebuild',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_search',
+    'urlname'=>'Search',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+}
 
 function page_Special_SearchRebuild()
 {

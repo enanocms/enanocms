@@ -168,16 +168,11 @@ class Language
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    // We're using eval() here because it makes handling scope easier.
-    
     if ( !file_exists($file) )
       $db->_die('lang.php - requested cache file doesn\'t exist');
     
-    $contents = file_get_contents($file);
-    $contents = preg_replace('/([\s]*)<\?php/', '', $contents);
-    
-    @eval($contents);
-    
+    @include($file);
+        
     if ( !isset($lang_cache) || ( isset($lang_cache) && !is_array($lang_cache) ) )
       $db->_die('lang.php - the cache file is invalid (didn\'t set $lang_cache as an array)');
     
@@ -576,7 +571,7 @@ $lang_cache = ');
    * @return string
    */
   
-  function var_export_string($val)
+  static function var_export_string($val)
   {
     ob_start();
     var_export($val);
@@ -635,6 +630,7 @@ $lang_cache = ');
       {
         return $string_id;
       }
+      profiler_log('Language(' . $this->lang_code . '): refetching due to missing string: ' . $string_id);
       $this->fetch();
       if ( isset($this->strings[$category]) && isset($this->strings[$category][$string_name]) )
       {

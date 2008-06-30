@@ -362,8 +362,6 @@ class template
     global $email;
     global $lang;
     
-    profiler_log("template: starting var init");
-    
     if(!$this->theme || !$this->style)
     {
       $this->load_theme();
@@ -412,6 +410,8 @@ class template
       // we're already initted with this page.
       return true;
     }
+    
+    profiler_log("template: starting var init");
     
     $this->initted_to_page_id = $local_page_id;
     $this->initted_to_namespace = $local_namespace;
@@ -561,6 +561,12 @@ class template
       eval($cmd);
     }
     $ns =& $this->namespace_string;
+    
+    //
+    // PAGE TOOLBAR (on-page controls/actions)
+    //
+    
+    profiler_log('template: var init: finished initial setup, starting toolbar');
     
     // Initialize the toolbar
     $tb = '';
@@ -938,16 +944,34 @@ class template
       $tb .= $button->run();
     }
     
+    //
+    // OTHER SWITCHES
+    //
+    
+    profiler_log('template: var init: finshed toolbar, starting other switches');
+    
     $is_opera = (isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'Opera')) ? true : false;
     
     $this->tpl_bool = Array(
-      'auth_admin'=>$session->user_level >= USER_LEVEL_ADMIN ? true : false,
-      'user_logged_in'=>$session->user_logged_in,
-      'opera'=>$is_opera,
+      'auth_admin' => $session->user_level >= USER_LEVEL_ADMIN ? true : false,
+      'user_logged_in' => $session->user_logged_in,
+      'opera' => $is_opera,
       );
     
-    if($session->sid_super) { $ash = '&amp;auth='.$session->sid_super; $asq = "?auth=".$session->sid_super; $asa = "&auth=".$session->sid_super; $as2 = htmlspecialchars(urlSeparator).'auth='.$session->sid_super; }
-    else { $asq=''; $asa=''; $as2 = ''; $ash = ''; }
+    if ( $session->sid_super )
+    {
+      $ash = '&amp;auth=' . $session->sid_super;
+      $asq = "?auth=" . $session->sid_super;
+      $asa = "&auth=" . $session->sid_super;
+      $as2 = htmlspecialchars(urlSeparator) . 'auth='.$session->sid_super;
+    }
+    else
+    {
+      $asq = '';
+      $asa = '';
+      $as2 = '';
+      $ash = '';
+    }
     
     $code = $plugins->setHook('compile_template');
     foreach ( $code as $cmd )
@@ -956,25 +980,25 @@ class template
     }
     
     // Some additional sidebar processing
-    if($this->sidebar_extra != '') {
+    if ( $this->sidebar_extra != '' )
+    {
       $se = $this->sidebar_extra;
       $parser = $this->makeParserText($tplvars['sidebar_section_raw']);
-      $parser->assign_vars(Array('TITLE'=>'Links','CONTENT'=>$se));
+      $parser->assign_vars(array(
+          'TITLE' => 'Links', // FIXME: l10n
+          'CONTENT' => $se
+        ));
+      
       $this->sidebar_extra = $parser->run();
     }
     
-    $this->sidebar_extra = $this->sidebar_extra.$this->sidebar_widgets;
+    $this->sidebar_extra = $this->sidebar_extra . $this->sidebar_widgets;
     
     $this->tpl_bool['fixed_menus'] = false;
-    /* if($this->sidebar_extra == '') $this->tpl_bool['right_sidebar'] = false;
-    else */ $this->tpl_bool['right_sidebar'] = true;
-    
+    $this->tpl_bool['right_sidebar'] = true;
     $this->tpl_bool['auth_rename'] = ( $local_page_exists && $session->check_acl_scope('rename', $local_namespace) && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ));
-    
     $this->tpl_bool['enable_uploads'] = ( getConfig('enable_uploads') == '1' && $session->get_permissions('upload_files') ) ? true : false;
-    
     $this->tpl_bool['stupid_mode'] = false;
-    
     $this->tpl_bool['in_admin'] = ( ( $local_page_id == 'Administration' && $local_namespace == 'Special' ) || $local_namespace == 'Admin' );
     
     $p = ( isset($_GET['printable']) ) ? '/printable' : '';
@@ -1018,6 +1042,8 @@ class template
       ));
     
     $admin_link = $parser->run();
+    
+    profiler_log('template: var init: finished sidebar/misc processing, starting dynamic vars and finalization');
     
     $SID = ($session->sid_super) ? $session->sid_super : '';
     
@@ -1084,6 +1110,8 @@ class template
         $js_dynamic .= "namespace_list['{$k}'] = '$c';";
       }
       $js_dynamic .= "\n    //]]>\n    </script>";
+      
+    profiler_log('template: var init: finished JS dynamic vars and assigning final var set');
     
     $tpl_strings = Array(
       'PAGE_NAME'=>htmlspecialchars($local_cdata['name']),
@@ -1126,17 +1154,26 @@ class template
     
     $this->assign_vars($tpl_strings, true);
     
+    //
+    // COMPILE THE SIDEBAR
+    //
+    
+    // This is done after the big assign_vars() so that sidebar code has access to the newly assigned variables
+    
+    profiler_log('template: var init: finished final var set, executing and applying sidebar templates');
+    
     list($this->tpl_strings['SIDEBAR_LEFT'], $this->tpl_strings['SIDEBAR_RIGHT'], $min) = $this->fetch_sidebar();
     $this->tpl_bool['sidebar_left']  = ( $this->tpl_strings['SIDEBAR_LEFT']  != $min) ? true : false;
     $this->tpl_bool['sidebar_right'] = ( $this->tpl_strings['SIDEBAR_RIGHT'] != $min) ? true : false;
     $this->tpl_bool['right_sidebar'] = $this->tpl_bool['sidebar_right']; // backward compatibility
     
-    // and finally one that needs to be symlinked...
+    // and finally one string value that needs to be symlinked...
     if ( !isset($this->tpl_strings['ADDITIONAL_HEADERS']) )
     {
       $this->tpl_strings['ADDITIONAL_HEADERS'] =& $this->additional_headers;
     }
     
+    // done!
     $code = $plugins->setHook('template_var_init_end');
     foreach ( $code as $cmd )
     {
@@ -2133,10 +2170,9 @@ function template_compiler_core($text)
   */
   
   // This is a workaround for what seems like a PCRE bug
-  while ( ( profiler_log("[template] compiler matchout start") || true ) && preg_match_all($regexp, $text, $matches) )
+  while ( preg_match_all($regexp, $text, $matches) )
   {
   
-  profiler_log("[template] compiler core loop start");
   for ( $i = 0; $i < count($matches[0]); $i++ )
   {
     $start_tag =& $matches[1][$i];
@@ -2197,8 +2233,6 @@ TPLCODE;
   }
   }
   
-  profiler_log("[template] compiler core loop end");
-  
   // For debugging ;-)
   // die("<pre>&lt;?php\n" . htmlspecialchars($text."\n\n".print_r($matches,true)) . "\n\n?&gt;</pre>");
   
@@ -2232,8 +2266,6 @@ TPLCODE;
   }
   
   // echo('<pre>' . htmlspecialchars($text) . '</pre>');
-  
-  profiler_log("[template] compiler subst end");
   
   return $text;
 }

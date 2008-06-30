@@ -39,6 +39,7 @@ var enano_lang = {
       log_out: 'Log out',
       register: 'Register',
       preferences: 'Edit Profile',
+      autofill: 'Javascript suggestion servlet',
       contributions: 'User contributions',
       change_theme: 'Change my preferred theme',
       activate_account: 'Activate user account',

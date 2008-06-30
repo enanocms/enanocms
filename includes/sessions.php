@@ -419,9 +419,9 @@ class sessionManager {
     if($this->started) return;
     $this->started = true;
     $user = false;
-    if(isset($_COOKIE['sid']))
+    if ( isset($_COOKIE['sid']) )
     {
-      if($this->compat)
+      if ( $this->compat )
       {
         $userdata = $this->compat_validate_session($_COOKIE['sid']);
       }
@@ -429,7 +429,7 @@ class sessionManager {
       {
         $userdata = $this->validate_session($_COOKIE['sid']);
       }
-      if(is_array($userdata))
+      if ( is_array($userdata) )
       {
         $data = RenderMan::strToPageID($paths->get_pageid_from_url());
         
@@ -598,6 +598,7 @@ class sessionManager {
       {
         die('No group info');
       }
+      profiler_log('Fetched group memberships');
     }
     
     // make sure we aren't banned
@@ -615,7 +616,7 @@ class sessionManager {
     // setup theme ACLs
     $template->process_theme_acls();
     
-    profiler_log('Sessions started');
+    profiler_log('Sessions started. Banlist and theme ACLs initialized');
   }
   
   # Logins
@@ -1280,6 +1281,7 @@ class sessionManager {
     }
     $keyhash = md5($key);
     $salt = $db->escape($keydata[3]);
+    profiler_log("SessionManager: checking session: " . sha1($key) . ": decrypted session key to $decrypted_key");
     // using a normal call to $db->sql_query to avoid failing on errors here
     $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,' . "\n"
                              . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_title,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,' . "\n"
@@ -1311,6 +1313,7 @@ class sessionManager {
       return false;
     }
     $row = $db->fetchrow();
+    profiler_log("SessionManager: checking session: " . sha1($key) . ": selected and fetched results");
     $row['user_id'] =& $row['uid'];
     $ip = $_SERVER['REMOTE_ADDR'];
     if($row['auth_level'] > $row['user_level'])

@@ -18,7 +18,7 @@
 
 define('IN_ENANO', 1);
 // DEFINE THIS BEFORE RELEASE!
-// define('ENANO_DANGEROUS', 1);
+define('ENANO_DANGEROUS', 1);
 
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');

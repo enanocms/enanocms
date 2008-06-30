@@ -24,90 +24,92 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', '
+$plugins->attachHook('session_started', 'SpecialUserFuncs_paths_init();');
+
+function SpecialUserFuncs_paths_init()
+{
   global $paths;
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_log_in\',
-      \'urlname\'=>\'Login\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_log_out\',
-      \'urlname\'=>\'Logout\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_register\',
-      \'urlname\'=>\'Register\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_preferences\',
-      \'urlname\'=>\'Preferences\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
+  $paths->add_page(Array(
+    'name'=>'specialpage_log_in',
+    'urlname'=>'Login',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  $paths->add_page(Array(
+    'name'=>'specialpage_log_out',
+    'urlname'=>'Logout',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  $paths->add_page(Array(
+    'name'=>'specialpage_register',
+    'urlname'=>'Register',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  $paths->add_page(Array(
+    'name'=>'specialpage_preferences',
+    'urlname'=>'Preferences',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_contributions',
+    'urlname'=>'Contributions',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_change_theme',
+    'urlname'=>'ChangeStyle',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_activate_account',
+    'urlname'=>'ActivateAccount',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_captcha',
+    'urlname'=>'Captcha',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_password_reset',
+    'urlname'=>'PasswordReset',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+  
+  $paths->add_page(Array(
+    'name'=>'specialpage_member_list',
+    'urlname'=>'Memberlist',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
     
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_contributions\',
-      \'urlname\'=>\'Contributions\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
+  $paths->add_page(Array(
+    'name'=>'specialpage_language_export',
+    'urlname'=>'LangExportJSON',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>0,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
     
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_change_theme\',
-      \'urlname\'=>\'ChangeStyle\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_activate_account\',
-      \'urlname\'=>\'ActivateAccount\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_captcha\',
-      \'urlname\'=>\'Captcha\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_password_reset\',
-      \'urlname\'=>\'PasswordReset\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-    
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_member_list\',
-      \'urlname\'=>\'Memberlist\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>1,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-      
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_language_export\',
-      \'urlname\'=>\'LangExportJSON\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-      
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_avatar\',
-      \'urlname\'=>\'Avatar\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-      
-    ');
+  $paths->add_page(Array(
+    'name'=>'specialpage_avatar',
+    'urlname'=>'Avatar',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>0,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+}
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 

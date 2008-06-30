@@ -24,24 +24,31 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', '
+$plugins->attachHook('session_started', 'SpecialCSS_paths_init();');
+
+function SpecialCSS_paths_init()
+{
   global $paths;
-    $paths->add_page(Array(
-      \'name\'=>\'specialpage_css\',
-      \'urlname\'=>\'CSS\',
-      \'namespace\'=>\'Special\',
-      \'special\'=>0,\'visible\'=>0,\'comments_on\'=>0,\'protected\'=>1,\'delvotes\'=>0,\'delvote_ips\'=>\'\',
-      ));
-  ');
+  $paths->add_page(Array(
+    'name'=>'specialpage_css',
+    'urlname'=>'CSS',
+    'namespace'=>'Special',
+    'special'=>0,'visible'=>0,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
+    ));
+}
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 
-function page_Special_CSS() {
+function page_Special_CSS()
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
   header('Content-type: text/css');
-  if(isset($_GET['printable']) || $paths->getParam(0) == 'printable') {
+  if ( isset($_GET['printable']) || $paths->getParam(0) == 'printable' )
+  {
     echo $template->get_css('_printable.css');
-  } else {
+  }
+  else
+  {
     echo $template->get_css();
   }
 }
