@@ -76,6 +76,13 @@ define('IMAGE_TYPE_PNG', 1);
 define('IMAGE_TYPE_GIF', 2);
 define('IMAGE_TYPE_JPG', 3);
 
+// token types
+define('TOKEN_VARIABLE', 1);
+define('TOKEN_BOOLOP', 2);
+define('TOKEN_PARENTHLEFT', 3);
+define('TOKEN_PARENTHRIGHT', 4);
+define('TOKEN_NOT', 5);
+
 //
 // User types - don't touch these
 //

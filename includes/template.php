@@ -86,23 +86,9 @@ class template
     // List out all CSS files for this theme
     foreach ( $this->theme_list as $i => &$theme )
     {
-      $theme['css'] = array();
-      $dir = ENANO_ROOT . "/themes/{$theme['theme_id']}/css";
-      if ( $dh = @opendir($dir) )
-      {
-        while ( ( $file = @readdir($dh) ) !== false )
-        {
-          if ( preg_match('/\.css$/', $file) )
-            $theme['css'][] = preg_replace('/\.css$/', '', $file);
-        }
-        closedir($dh);
-      }
-      // No CSS files? If so, nuke it.
-      if ( count($theme['css']) < 1 )
-      {
-        unset($this->theme_list[$i]);
-      }
+      $theme['css'] = $this->get_theme_css_files($theme['theme_id']);
     }
+    unset($theme);
     $this->theme_list = array_values($this->theme_list);
     // Create associative array of themes
     foreach ( $this->theme_list as $i => &$theme )
@@ -113,6 +99,33 @@ class template
     // use that. Otherwise, use the first stylesheet that comes to mind.
     $df_data =& $this->named_theme_list[ $this->default_theme ];
     $this->default_style = ( in_array($df_data['default_style'], $df_data['css']) ) ? $df_data['default_style'] : $df_data['css'][0];
+  }
+  
+  /**
+   * Gets the list of available CSS files (styles) for the specified theme.
+   * @param string Theme ID
+   * @return array
+   */
+  
+  function get_theme_css_files($theme_id)
+  {
+    $css = array();
+    $dir = ENANO_ROOT . "/themes/{$theme_id}/css";
+    if ( $dh = @opendir($dir) )
+    {
+      while ( ( $file = @readdir($dh) ) !== false )
+      {
+        if ( preg_match('/\.css$/', $file) )
+          $css[] = preg_replace('/\.css$/', '', $file);
+      }
+      closedir($dh);
+    }
+    // No CSS files? If so, nuke it.
+    if ( count($css) < 1 )
+    {
+      unset($this->theme_list[$theme_id]);
+    }
+    return $css;
   }
   
   /**
@@ -566,8 +579,6 @@ class template
     // PAGE TOOLBAR (on-page controls/actions)
     //
     
-    profiler_log('template: var init: finished initial setup, starting toolbar');
-    
     // Initialize the toolbar
     $tb = '';
     
@@ -948,8 +959,6 @@ class template
     // OTHER SWITCHES
     //
     
-    profiler_log('template: var init: finshed toolbar, starting other switches');
-    
     $is_opera = (isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'Opera')) ? true : false;
     
     $this->tpl_bool = Array(
@@ -1043,8 +1052,6 @@ class template
     
     $admin_link = $parser->run();
     
-    profiler_log('template: var init: finished sidebar/misc processing, starting dynamic vars and finalization');
-    
     $SID = ($session->sid_super) ? $session->sid_super : '';
     
     $urlname_clean = str_replace('\'', '\\\'', str_replace('\\', '\\\\', dirtify_page_id($local_fullpage)));
@@ -1111,8 +1118,6 @@ class template
       }
       $js_dynamic .= "\n    //]]>\n    </script>";
       
-    profiler_log('template: var init: finished JS dynamic vars and assigning final var set');
-    
     $tpl_strings = Array(
       'PAGE_NAME'=>htmlspecialchars($local_cdata['name']),
       'PAGE_URLNAME'=> $urlname_clean,
@@ -1154,13 +1159,13 @@ class template
     
     $this->assign_vars($tpl_strings, true);
     
+    profiler_log('template: var init: finished toolbar building and initial assign()');
+    
     //
     // COMPILE THE SIDEBAR
     //
     
     // This is done after the big assign_vars() so that sidebar code has access to the newly assigned variables
-    
-    profiler_log('template: var init: finished final var set, executing and applying sidebar templates');
     
     list($this->tpl_strings['SIDEBAR_LEFT'], $this->tpl_strings['SIDEBAR_RIGHT'], $min) = $this->fetch_sidebar();
     $this->tpl_bool['sidebar_left']  = ( $this->tpl_strings['SIDEBAR_LEFT']  != $min) ? true : false;
@@ -1299,7 +1304,11 @@ class template
       $t = str_replace('[[EnanoPoweredLinkLong]]', $lang->get('page_enano_powered_long', array('about_uri' => $this->tpl_strings['URL_ABOUT_ENANO'])), $t);
       
       if ( defined('ENANO_DEBUG') )
+      {
         $t = str_replace('</body>', '<div id="profile" style="margin: 10px;">' . profiler_make_html() . '</div></body>', $t);
+        // ob_end_clean();
+        // return profiler_make_html();
+      }
       
       return $t;
     }
@@ -1381,8 +1390,28 @@ class template
       $this->init_vars();
     }
     
+    $cache_file = ENANO_ROOT . '/cache/' . $this->theme . '-' . str_replace('/', '-', $file) . '.php';
+    if ( file_exists($cache_file) )
+    {
+      // this is about the time of the breaking change to cache file format
+      if ( filemtime($cache_file) > 1215038089 )
+      {
+        $result = @include($cache_file);
+        if ( isset($md5) )
+        {
+          if ( $md5 == md5_file(ENANO_ROOT . "/themes/{$this->theme}/$file") )
+          {
+            $result = $this->compile_template_text_post($result);
+            return $result;
+          }
+        }
+      }
+    }
+    
     $compiled = $this->compile_template($file);
-    return eval($compiled);
+    $result = eval($compiled);
+    
+    return $result;
   }
   
   /**
@@ -1475,30 +1504,7 @@ class template
                            </p>');
     }
     
-    // Check for cached copy
-    // This will make filenames in the pattern of theme-file.tpl.php
-    $cache_file = ENANO_ROOT . '/cache/' . $this->theme . '-' . str_replace('/', '-', $filename) . '.php';
-    
-    // Only use cached copy if caching is enabled
-    //   (it is enabled by default I think)
-    if ( file_exists($cache_file) && getConfig('cache_thumbs') == '1' )
-    {
-      // Cache files are auto-generated, but otherwise are normal PHP files
-      include($cache_file);
-      
-      // Fetch content of the ORIGINAL
-      $text = file_get_contents($tpl_file_fullpath);
-      
-      // $md5 will be set by the cached file
-      // This makes sure that a cached copy of the template is used only if its MD5
-      // matches the MD5 of the file that the compiled file was compiled from.
-      if ( isset($md5) && $md5 == md5($text) )
-      {
-        return $this->compile_template_text_post(str_replace('\\"', '"', $tpl_text));
-      }
-    }
-    
-    // We won't use the cached copy here
+    // We won't use the cached copy here.
     $text = file_get_contents($tpl_file_fullpath);
     
     // This will be used later when writing the cached file
@@ -1506,6 +1512,9 @@ class template
     
     // Preprocessing and checks complete - compile the code
     $text = $this->compile_tpl_code($text);
+    
+    // Generate cache filename
+    $cache_file = ENANO_ROOT . '/cache/' . $this->theme . '-' . str_replace('/', '-', $filename) . '.php';
     
     // Perhaps caching is enabled and the admin has changed the template?
     if ( is_writable( ENANO_ROOT . '/cache/' ) && getConfig('cache_thumbs') == '1' )
@@ -1517,19 +1526,22 @@ class template
         return $text;
       }
       
-      // Escape the compiled code so it can be eval'ed
-      $text_escaped = addslashes($text);
-      $notice = <<<EOF
+      // Final contents of cache file
+      $file_contents = <<<EOF
+<?php
 
 /*
  * NOTE: This file was automatically generated by Enano and is based on compiled code. Do not edit this file.
  * If you edit this file, any changes you make will be lost the next time the associated source template file is edited.
  */
 
+\$md5 = '$md5';
+
+$text
 EOF;
       // This is really just a normal PHP file that sets a variable or two and exits.
       // $tpl_text actually will contain the compiled code
-      fwrite($h, '<?php ' . $notice . ' $md5 = \'' . $md5 . '\'; $tpl_text = \'' . $text_escaped . '\'; ?>');
+      fwrite($h, $file_contents);
       fclose($h);
     }
     
@@ -1613,6 +1625,26 @@ EOF;
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
+    $START = microtime_float();
+    
+    // localize the whole string first
+    preg_match_all('/\{lang:([a-z0-9]+_[a-z0-9_]+)\}/', $message, $matches);
+    foreach ( $matches[1] as $i => $string_id )
+    {
+      $string = $lang->get($string_id);
+      $string = str_replace('\\', '\\\\', $string);
+      $string = str_replace('\'', '\\\'', $string);
+      $message = str_replace_once($matches[0][$i], $string, $message);
+    }
+    
+    // first: the hackish optimization -
+    // if it's only a bunch of letters, numbers and spaces, just skip this sh*t.
+    
+    if ( preg_match('/^[\w\s\.]*$/i', $message) )
+    {
+      return $message;
+    }
+    
     $filter_links = false;
     $tplvars = $this->extract_vars($filename);
     if($session->sid_super) $as = htmlspecialchars(urlSeparator).'auth='.$session->sid_super;
@@ -1636,185 +1668,45 @@ EOF;
     
     // Conditionals
     
-    preg_match_all('#\{if ([A-Za-z0-9_ \(\)&\|\!-]*)\}(.*?)\{\/if\}#is', $message, $links);
-    
-    // Temporary exception from coding standards - using tab length of 4 here for clarity
-    for ( $i = 0; $i < sizeof($links[1]); $i++ )
-    {
-        $condition =& $links[1][$i];
-        $message = str_replace('{if '.$condition.'}'.$links[2][$i].'{/if}', '{CONDITIONAL:'.$i.':'.$random_id.'}', $message);
-        
-        // Time for some manual parsing...
-        $chk = false;
-        $current_id = '';
-        $prn_level = 0;
-        // Used to keep track of where we are in the conditional
-        // Object of the game: turn {if this && ( that OR !something_else )} ... {/if} into if( ( isset($this->tpl_bool['that']) && $this->tpl_bool['that'] ) && ...
-        // Method of attack: escape all variables, ignore all else. Non-valid code is filtered out by a regex above.
-        $in_var_now = true;
-        $in_var_last = false;
-        $current_var = '';
-        $current_var_start_pos = 0;
-        $current_var_end_pos     = 0;
-        $j = -1;
-        $condition = $condition . ' ';
-        $d = strlen($condition);
-        while($j < $d)
-        {
-            $j++;
-            $in_var_last = $in_var_now;
-            
-            $char = substr($condition, $j, 1);
-            $in_var_now = ( preg_match('#^([A-z0-9_]*){1}$#', $char) ) ? true : false;
-            if(!$in_var_last && $in_var_now)
-            {
-                $current_var_start_pos = $j;
-            }
-            if($in_var_last && !$in_var_now)
-            {
-                $current_var_end_pos = $j;
-            }
-            if($in_var_now)
-            {
-                $current_var .= $char;
-                continue;
-            }
-            // OK we are not inside of a variable. That means that we JUST hit the end because the counter ($j) will be advanced to the beginning of the next variable once processing here is complete.
-            if($char != ' ' && $char != '(' && $char != ')' && $char != 'A' && $char != 'N' && $char != 'D' && $char != 'O' && $char != 'R' && $char != '&' && $char != '|' && $char != '!' && $char != '<' && $char != '>' && $char != '0' && $char != '1' && $char != '2' && $char != '3' && $char != '4' && $char != '5' && $char != '6' && $char != '7' && $char != '8' && $char != '9')
-            {
-                // XSS attack! Bail out
-                $errmsg    = '<p><b>Error:</b> Syntax error (possibly XSS attack) caught in template code:</p>';
-                $errmsg .= '<pre>';
-                $errmsg .= '{if '.htmlspecialchars($condition).'}';
-                $errmsg .= "\n    ";
-                for ( $k = 0; $k < $j; $k++ )
-                {
-                    $errmsg .= " ";
-                }
-                // Show position of error
-                $errmsg .= '<span style="color: red;">^</span>';
-                $errmsg .= '</pre>';
-                $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $errmsg, $message);
-                continue 2;
-            }
-            if($current_var != '')
-            {
-                $cd = '( isset($this->tpl_bool[\''.$current_var.'\']) && $this->tpl_bool[\''.$current_var.'\'] )';
-                $cvt = substr($condition, 0, $current_var_start_pos) . $cd . substr($condition, $current_var_end_pos, strlen($condition));
-                $j = $j + strlen($cd) - strlen($current_var);
-                $current_var = '';
-                $condition = $cvt;
-                $d = strlen($condition);
-            }
-        }
-        $condition = substr($condition, 0, strlen($condition)-1);
-        $condition = '$chk = ( '.$condition.' ) ? true : false;';
-        eval($condition);
-        
-        if($chk)
-        {
-            if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], 0, strpos($links[2][$i], '{else}'));
-            else $c = $links[2][$i];
-            $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
-        }
-        else
-        {
-            if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], strpos($links[2][$i], '{else}')+6, strlen($links[2][$i]));
-            else $c = '';
-            $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
-        }
-    }
-    
-    preg_match_all('#\{!if ([A-Za-z_-]*)\}(.*?)\{\/if\}#is', $message, $links);
-    
-    for($i=0;$i<sizeof($links[1]);$i++)
-    {
-      $message = str_replace('{!if '.$links[1][$i].'}'.$links[2][$i].'{/if}', '{CONDITIONAL:'.$i.':'.$random_id.'}', $message);
-      if(isset($this->tpl_bool[$links[1][$i]]) && $this->tpl_bool[$links[1][$i]]) {
-        if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], strpos($links[2][$i], '{else}')+6, strlen($links[2][$i]));
-        else $c = '';
-        $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
-      } else {
-        if(strstr($links[2][$i], '{else}')) $c = substr($links[2][$i], 0, strpos($links[2][$i], '{else}'));
-        else $c = $links[2][$i];
-        $message = str_replace('{CONDITIONAL:'.$i.':'.$random_id.'}', $c, $message);
-      }
-    }
-    
-    preg_match_all('/\{lang:([a-z0-9]+_[a-z0-9_]+)\}/', $message, $matches);
-    foreach ( $matches[1] as $i => $string_id )
-    {
-      $string = $lang->get($string_id);
-      $string = str_replace('\\', '\\\\', $string);
-      $string = str_replace('\'', '\\\'', $string);
-      $message = str_replace_once($matches[0][$i], $string, $message);
-    }
+    $message = $this->twf_parse_conditionals($message);
     
     /*
      * HTML RENDERER
      */
      
     // Images
-    $j = preg_match_all('#\[\[:'.$paths->nslist['File'].'([\w\s0-9_\(\)!@%\^\+\|\.-]+?)\]\]#is', $message, $matchlist);
-    $matches = Array();
-    $matches['images'] = $matchlist[1];
-    for($i=0;$i<sizeof($matchlist[1]);$i++)
-    {
-      if(isPage($paths->nslist['File'].$matches['images'][$i]))
-      {
-        $message = str_replace('[[:'.$paths->nslist['File'].$matches['images'][$i].']]',
-                               '<img alt="'.$matches['images'][$i].'" style="border: 0" src="'.makeUrlNS('Special', 'DownloadFile/'.$matches['images'][$i]).'" />',
-                               $message);
-      }
-    }
+    $message = RenderMan::process_image_tags($message, $taglist);
+    $message = RenderMan::process_imgtags_stage2($message, $taglist);
     
     // Internal links
-    
-    $text_parser = $this->makeParserText($tplvars['sidebar_button']);
-    
-    preg_match_all("#\[\[([^\|\]\n\a\r\t]*?)\]\]#is", $message, $il);
-    for($i=0;$i<sizeof($il[1]);$i++)
-    {
-      $href = makeUrl(str_replace(' ', '_', $il[1][$i]), null, true);
-      $text_parser->assign_vars(Array(  
-          'HREF'  => $href,
-          'FLAGS' => '',
-          'TEXT'  => $il[1][$i]
-        ));
-      $message = str_replace("[[{$il[1][$i]}]]", $text_parser->run(), $message);
-    }
-    
-    preg_match_all('#\[\[([^\|\]\n\a\r\t]*?)\|([^\]\r\n\a\t]*?)\]\]#is', $message, $il);
-    for($i=0;$i<sizeof($il[1]);$i++)
-    {
-      $href = makeUrl(str_replace(' ', '_', $il[1][$i]), null, true);
-      $text_parser->assign_vars(Array(
-          'HREF'  => $href,
-          'FLAGS' => '',
-          'TEXT'  => $il[2][$i]
-        ));
-      $message = str_replace("[[{$il[1][$i]}|{$il[2][$i]}]]", $text_parser->run(), $message);
-    }
+    $message = RenderMan::parse_internal_links($message, $tplvars['sidebar_button']);
     
     // External links
-    // $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?) ([^\]]+)\\]#', '<a href="\\1://\\2">\\3</a><br style="display: none;" />', $message);
-    // $message = preg_replace('#\[(http|ftp|irc):\/\/([a-z0-9\/:_\.\?&%\#@_\\\\-]+?)\\]#', '<a href="\\1://\\2">\\1://\\2</a><br style="display: none;" />', $message);
     
-    preg_match_all('/\[((https?|ftp|irc):\/\/([^@\s\]"\':]+)?((([a-z0-9-]+\.)*)[a-z0-9-]+)(\/[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]*(\?(([a-z0-9_-]+)(=[A-z0-9_%\|~`\!@#\$\^&\*\(\):;\.,\/-\[\]]+)?((&([a-z0-9_-]+)(=[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]+)?)*))?)?)?) ([^\]]+)\]/is', $message, $ext_link);
-    
-    // die('<pre>' . htmlspecialchars( print_r($ext_link, true) ) . '</pre>');
+    $url_regexp = <<<EOF
+(
+  (?:https?|ftp|irc):\/\/                            # protocol
+  (?:[^@\s\]"\':]+@)?                                # username (FTP only but whatever)
+  (?:(?:(?:[a-z0-9-]+\.)*)[a-z0-9-]+)                # hostname
+  (?:\/[A-z0-9_%\|~`!\!@#\$\^&?=\*\(\):;\.,\/-]*)? # path
+)
+EOF;
+
+    $text_parser = $this->makeParserText($tplvars['sidebar_button']);
+
+    preg_match_all('/\[' . $url_regexp . '[ ]([^\]]+)\]/isx', $message, $ext_link);
     
     for ( $i = 0; $i < count($ext_link[0]); $i++ )
     {
       $text_parser->assign_vars(Array(  
           'HREF'  => $ext_link[1][$i],
           'FLAGS' => '',
-          'TEXT'  => $ext_link[16][$i]
+          'TEXT'  => $ext_link[2][$i]
         ));
       $message = str_replace($ext_link[0][$i], $text_parser->run(), $message);
     }
     
-    preg_match_all('/\[((https?|ftp|irc):\/\/([^@\s\]"\':]+)?((([a-z0-9-]+\.)*)[a-z0-9-]+)(\/[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]*(\?(([a-z0-9_-]+)(=[A-z0-9_%\|~`\!@#\$\^&\*\(\):;\.,\/-\[\]]+)?((&([a-z0-9_-]+)(=[A-z0-9_%\|~`!\!@#\$\^&\*\(\):;\.,\/-]+)?)*))?)?)?)\]/is', $message, $ext_link);
+    preg_match_all('/\[' . $url_regexp . '\]/is', $message, $ext_link);
     
     for ( $i = 0; $i < count($ext_link[0]); $i++ )
     {
@@ -1826,31 +1718,179 @@ EOF;
       $message = str_replace($ext_link[0][$i], $text_parser->run(), $message);
     }
     
-    $parser1 = $this->makeParserText($tplvars['sidebar_section']);
-    $parser2 = $this->makeParserText($tplvars['sidebar_section_raw']);
-                            
-    preg_match_all('#\{slider(2|)=([^\}]*?)\}(.*?)\{\/slider(2|)\}#is',  $message, $sb);
-    
-    // Modified to support the sweet new template var system
-    for($i=0;$i<sizeof($sb[1]);$i++)
-    {
-      $p = ($sb[1][$i] == '2') ? $parser2 : $parser1;
-      $p->assign_vars(Array('TITLE'=>$sb[2][$i],'CONTENT'=>$sb[3][$i]));
-      $message = str_replace("{slider{$sb[1][$i]}={$sb[2][$i]}}{$sb[3][$i]}{/slider{$sb[4][$i]}}", $p->run(), $message);
-    }
+    $TIME = microtime_float() - $START;
     
     /*
-    Extras ;-)
-    $message = preg_replace('##is', '', $message);
-    $message = preg_replace('##is', '', $message);
-    $message = preg_replace('##is', '', $message);
-    $message = preg_replace('##is', '', $message);
-    $message = preg_replace('##is', '', $message);
+    if ( $TIME > 0.02 )
+    {
+      echo 'template: tplWikiFormat took a while for this one. string dump:<pre>';
+      echo htmlspecialchars($message);
+      echo '</pre>';
+    }
     */
     
-    //die('<pre>'.htmlspecialchars($message).'</pre>');
-    //eval($message); exit;
     return $message;
+  }
+  
+  /**
+   * Parses conditional {if} blocks in sidebars and other tplWikiFormatted things
+   * @param string A string potentially containing conditional blocks
+   * @return string Processed string
+   */
+  
+  function twf_parse_conditionals($message)
+  {
+    if ( !preg_match_all('/\{(!?)if ([a-z0-9_\(\)\|&! ]+)\}(.*?)(?:\{else\}(.*?))?\{\/if\}/is', $message, $matches) )
+    {
+      return $message;
+    }
+    foreach ( $matches[0] as $match_id => $full_block )
+    {
+      // 1 = "not" flag
+      // 2 = condition
+      // 3 = if true
+      // 4 = else
+      $condresult = $this->process_condition($matches[2][$match_id]);
+      if ( !empty($matches[1][$match_id]) )
+      {
+        if ( $condresult == 1 )
+          $condresult = 2;
+        else if ( $condresult == 2 )
+          $condresult = 1;
+      }
+      switch($condresult)
+      {
+        case 1:
+          // evaluated to false
+          $message = str_replace_once($full_block, $matches[4][$match_id], $message);
+          break;
+        case 2:
+          // evaluated to true
+          $message = str_replace_once($full_block, $matches[3][$match_id], $message);
+          break;
+        case 3:
+          $message = str_replace_once($full_block, "Syntax error: mismatched parentheses (" . htmlspecialchars($matches[2][$match_id]) . ")<br />\n", $message);
+          break;
+        case 4:
+          $message = str_replace_once($full_block, "Syntax error: illegal character (" . htmlspecialchars($matches[2][$match_id]) . ")<br />\n", $message);
+          break;
+        case 5:
+          $message = str_replace_once($full_block, "Syntax error: illegal sequence (" . htmlspecialchars($matches[2][$match_id]) . ")<br />\n", $message);
+          break;
+      }
+    }
+    return $message;
+  }
+  
+  /**
+   * Inner-loop parser for a conditional block. Verifies a string condition to make sure it's syntactically correct, then returns what it evaluates to.
+   * Return values:
+   *   1 - string evaluates to true
+   *   2 - string evaluates to false
+   *   3 - Syntax error - mismatched parentheses
+   *   4 - Syntax error - unknown token
+   *   5 - Syntax error - invalid sequence
+   * @param string
+   * @return int
+   * 
+   */
+  
+  function process_condition($condition)
+  {
+    // make sure parentheses are matched
+    $parentheses = preg_replace('/[^\(\)]/', '', $condition);
+    if ( !empty($parentheses) )
+    {
+      $i = 0;
+      $parentheses = enano_str_split($parentheses);
+      foreach ( $parentheses as $chr )
+      {
+        $inc = ( $chr == '(' ) ? 1 : -1;
+        $i += $inc;
+      }
+      if ( $i != 0 )
+      {
+        // mismatched parentheses
+        return 3;
+      }
+    }
+    // sequencer check
+    // first, pad all sequences of characters with spaces
+    $seqcheck = preg_replace('/([a-z0-9_]+)/i', '\\1 ', $condition);
+    $seqcheck = preg_replace('/([&|()!])/i', '\\1 ', $seqcheck);
+    // now shrink all spaces to one space each
+    $seqcheck = preg_replace('/[ ]+/', ' ', $seqcheck);
+    
+    // explode it. the allowed sequences are:
+    //   - TOKEN_NOT + TOKEN_VARIABLE
+    //   - TOKEN_NOT + TOKEN_PARENTHLEFT
+    //   - TOKEN_BOOLOP + TOKEN_NOT
+    //   - TOKEN_PARENTHRIGHT + TOKEN_NOT
+    //   - TOKEN_VARIABLE + TOKEN_BOOLOP
+    //   - TOKEN_BOOLOP + TOKEN_PARENTHLEFT
+    //   - TOKEN_PARENTHLEFT + TOKEN_VARIABLE
+    //   - TOKEN_BOOLOP + TOKEN_VARIABLE
+    //   - TOKEN_VARIABLE + TOKEN_PARENTHRIGHT
+    //   - TOKEN_PARENTHRIGHT + TOKEN_BOOLOP
+    $seqcheck = explode(' ', trim($seqcheck));
+    $last_item = TOKEN_BOOLOP;
+    foreach ( $seqcheck as $i => $token )
+    {
+      // determine type
+      if ( $token == '(' )
+      {
+        $type = TOKEN_PARENTHLEFT;
+      }
+      else if ( $token == ')' )
+      {
+        $type = TOKEN_PARENTHRIGHT;
+      }
+      else if ( $token == '!' )
+      {
+        $type = TOKEN_NOT;
+      }
+      else if ( strtolower($token) == 'and' || strtolower($token) == 'or' || $token == '&&' || $token == '||' )
+      {
+        $type = TOKEN_BOOLOP;
+      }
+      else if ( preg_match('/^[a-z0-9_]+$/i', $token) )
+      {
+        $type = TOKEN_VARIABLE;
+        // at this point it's considered safe to wrap it
+        $seqcheck[$i] = "( isset(\$this->tpl_bool['$token']) && \$this->tpl_bool['$token'] )";
+      }
+      else
+      {
+        // syntax error - doesn't match known token types
+        return 4;
+      }
+      // inner sequence check
+      if (
+           ( $last_item == TOKEN_BOOLOP && $type == TOKEN_NOT ) ||
+           ( $last_item == TOKEN_PARENTHRIGHT && $type == TOKEN_NOT ) ||
+           ( $last_item == TOKEN_NOT && $type == TOKEN_VARIABLE ) ||
+           ( $last_item == TOKEN_NOT && $type == TOKEN_PARENTHLEFT ) ||
+           ( $last_item == TOKEN_VARIABLE && $type == TOKEN_BOOLOP ) ||
+           ( $last_item == TOKEN_BOOLOP && $type == TOKEN_PARENTHLEFT ) ||
+           ( $last_item == TOKEN_PARENTHLEFT && $type == TOKEN_VARIABLE ) ||
+           ( $last_item == TOKEN_BOOLOP && $type == TOKEN_VARIABLE ) ||
+           ( $last_item == TOKEN_VARIABLE && $type == TOKEN_PARENTHRIGHT ) ||
+           ( $last_item == TOKEN_PARENTHRIGHT && $type == TOKEN_BOOLOP )
+         )
+      {
+        // sequence is good, continue
+      }
+      else
+      {
+        // sequence is invalid, break out
+        return 5;
+      }
+      $last_item = $type;
+    }
+    // passed all checks
+    $seqcheck = implode(' ', $seqcheck);
+    $result = eval("return ( $seqcheck ) ? true : false;");
+    return ( $result ) ? 2 : 1;
   }
   
   /**
@@ -1977,6 +2017,25 @@ EOF;
     $left = '';
     $right = '';
     
+    // check the cache
+    $cache_enable = getConfig('cache_thumbs') == '1' && !$session->user_logged_in;
+    $cache_file = ENANO_ROOT . "/cache/cache_anon_sidebar.php";
+    $cache_fresh = intval(getConfig('sidebar_anon_cache_time') + 600) >= time();
+    if ( $cache_enable && $cache_fresh )
+    {
+      @include($cache_file);
+      if ( isset($sidebar_cache) )
+      {
+        // we loaded the cache!
+        foreach ( $sidebar_cache as $i => $_ )
+        {
+          $block =& $sidebar_cache[$i];
+          $block = str_replace('$USERNAME$', $session->username, $block);
+        }
+        return $sidebar_cache;
+      }
+    }
+    
     if ( !$this->fetch_block('Links') )
       $this->initLinksWidget();
     
@@ -1988,9 +2047,11 @@ EOF;
     
     if(isset($vars['sidebar_top'])) 
     {
-      $left  .= $this->parse($vars['sidebar_top']);
-      $right .= $this->parse($vars['sidebar_top']);
+      $top = $this->parse($vars['sidebar_top']);
+      $left  .= $top;
+      $right .= $top;
     }
+    
     while($row = $db->fetchrow())
     {
       switch($row['block_type'])
@@ -2033,19 +2094,42 @@ EOF;
     $db->free_result();
     if(isset($vars['sidebar_bottom'])) 
     {
-      $left  .= $this->parse($vars['sidebar_bottom']);
-      $right .= $this->parse($vars['sidebar_bottom']);
+      $bottom = $this->parse($vars['sidebar_bottom']);
+      $left  .= $bottom;
+      $right .= $bottom;
     }
     $min = '';
     if(isset($vars['sidebar_top'])) 
     {
-      $min .= $this->parse($vars['sidebar_top']);
+      $min .= $top;
     }
     if(isset($vars['sidebar_bottom']))
     {
-      $min .= $this->parse($vars['sidebar_bottom']);
+      $min .= $bottom;
     }
-    return Array($left, $right, $min);
+    $return = Array($left, $right, $min);
+    if ( $cache_enable )
+    {
+      $cachestore = Language::var_export_string($return);
+      $cachestore = str_replace($session->username, '$USERNAME$', $cachestore);
+      $cachestore = <<<EOF
+<?php
+/**
+ * Automatically generated cache of the sidebar for guests.
+ * Do not modify this, it is refreshed every 15 minutes.
+ */
+
+\$sidebar_cache = $cachestore;
+EOF;
+      $fh = @fopen($cache_file, 'w');
+      if ( $fh )
+      {
+        fwrite($fh, $cachestore);
+        fclose($fh);
+      }
+      setConfig('sidebar_anon_cache_time', time());
+    }
+    return $return;
   }
   
   function initLinksWidget()
@@ -2053,6 +2137,7 @@ EOF;
     global $db, $session, $paths, $template, $plugins; // Common objects
     // SourceForge/W3C buttons
     $ob = Array();
+    // FIXME: l10n
     $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN ) ? 'title="You may disable this button in the admin panel under General Configuration."' : '';
     if(getConfig('sflogo_enabled')=='1')
     {
@@ -2676,11 +2761,8 @@ class template_nodb
   
   function process_template($file)
   {
-    profiler_log("[template_nodb] STARTED eval of file $file");
     $compiled = $this->compile_template($file);
-    profiler_log("[template_nodb] COMPILED file $file");
     $result = eval($compiled);
-    profiler_log("[template_nodb] FINISHED eval of file $file");
     return $result;
   }
   

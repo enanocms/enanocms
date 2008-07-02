@@ -586,8 +586,8 @@ class sessionManager {
         . '    ON g.group_id=m.group_id' . "\n"
         . '  WHERE ( m.user_id='.$this->user_id.'' . "\n" 
         . '    OR g.group_name=\'Everyone\')' . "\n"
-        . '    ' . ( enano_version() == '1.0RC1' ? '' : 'AND ( m.pending != 1 OR m.pending IS NULL )' ) . '' . "\n"
-        . '  ORDER BY group_id ASC;'); // Make sure "Everyone" comes first so the permissions can be overridden
+        . '    ' . ( /* quick hack for upgrade compatibility reasons */ enano_version() == '1.0RC1' ? '' : 'AND ( m.pending != 1 OR m.pending IS NULL )' ) . '' . "\n"
+        . '  ORDER BY group_id ASC;'); // The ORDER BY is to make sure "Everyone" comes first so the permissions can be overridden
       if($row = $db->fetchrow())
       {
         do {
@@ -2801,6 +2801,8 @@ class sessionManager {
     $objcache[$namespace][$page_id] = new Session_ACLPageInfo( $page_id, $namespace, $this->acl_types, $this->acl_descs, $this->acl_deps, $this->acl_base_cache );
     $object =& $objcache[$namespace][$page_id];
     
+    profiler_log("session: fetched ACLs for page {$namespace}:{$page_id}");
+    
     return $object;
   }
   
@@ -3020,48 +3022,12 @@ class sessionManager {
     // Cache the sitewide permissions for later use
     $this->acl_base_cache = $this->perms;
     
-    // Eliminate types that don't apply to this namespace
-    foreach ( $this->perms AS $i => $perm )
-    {
-      if ( !in_array ( $paths->namespace, $this->acl_scope[$i] ) && !in_array('All', $this->acl_scope[$i]) )
-      {
-        unset($this->perms[$i]);
-      }
-    }
+    profiler_log('session: base ACL set calculated');
     
-    // PAGE group info
-    $pg_list = $paths->get_page_groups($paths->page_id, $paths->namespace);
-    $pg_info = '';
-    foreach ( $pg_list as $g_id )
-    {
-      $pg_info .= ' ( page_id=\'' . $g_id . '\' AND namespace=\'__PageGroup\' ) OR';
-    }
-    
-    // Build a query to grab ACL info
-    $bs = 'SELECT rules,target_type,target_id FROM '.table_prefix.'acl WHERE ( ';
-    $q = Array();
-    $q[] = '( target_type='.ACL_TYPE_USER.' AND target_id='.$this->user_id.' )';
-    if(count($this->groups) > 0)
-    {
-      foreach($this->groups as $g_id => $g_name)
-      {
-        $q[] = '( target_type='.ACL_TYPE_GROUP.' AND target_id='.intval($g_id).' )';
-      }
-    }
-    // The reason we're using an ORDER BY statement here is because ACL_TYPE_GROUP is less than ACL_TYPE_USER, causing the user's individual
-    // permissions to override group permissions.
-    $bs .= implode(" OR\n    ", $q) . " )\n  AND (" . $pg_info . ' ( page_id=\''.$db->escape($paths->page_id).'\' AND namespace=\''.$db->escape($paths->namespace).'\' ) )     
-      ORDER BY target_type ASC, page_id ASC, namespace ASC;';
-    $q = $this->sql($bs);
-    if ( $row = $db->fetchrow() )
-    {
-      do {
-        $rules = $this->string_to_perm($row['rules']);
-        $is_everyone = ( $row['target_type'] == ACL_TYPE_GROUP && $row['target_id'] == 1 );
-        $this->acl_merge_with_current($rules, $is_everyone);
-      } while ( $row = $db->fetchrow() );
-    }
-    
+    // Load and calculate permissions for the current page
+    $page_acl = $this->fetch_page_acl($paths->page_id, $paths->namespace);
+    $this->perms = $page_acl->perms;
+    $this->acl_defaults_used = $page_acl->acl_defaults_used;
   }
   
   /**
@@ -3558,6 +3524,8 @@ EOF;
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Setup EnanoMath and Diffie-Hellman
+    require_once(ENANO_ROOT.'/includes/math.php');
+    
     global $dh_supported;
     $dh_supported = true;
     try

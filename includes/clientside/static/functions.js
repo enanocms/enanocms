@@ -558,6 +558,7 @@ function getHighestZ()
   return z;
 }
 
+var shift = false;
 function isKeyPressed(event)
 {
   if (event.shiftKey==1)

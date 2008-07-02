@@ -113,7 +113,7 @@ class pathManager
       eval($cmd);
     }
     
-    $this->wiki_mode = (int)getConfig('wiki_mode')=='1';
+    $this->wiki_mode = ( getConfig('wiki_mode') == '1' ) ? 1 : 0;
     $this->template_cache = Array();
   }
   function parse_url($sanitize = true)

@@ -65,6 +65,8 @@ function page_Special_Search()
   global $aggressive_optimize_html;
   global $lang;
   
+  require_once(ENANO_ROOT.'/includes/search.php');
+  
   $aggressive_optimize_html = false;
   
   if ( !$q = $paths->getParam(0) )

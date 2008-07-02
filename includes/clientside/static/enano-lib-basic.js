@@ -465,6 +465,7 @@ var placeholder_list = {
   ajaxEditTheme: 'theme-manager.js',
   ajaxToggleSystemThemes: 'theme-manager.js',
   ajaxInstallTheme: 'theme-manager.js',
+  ajaxInitRankEdit: 'rank-manager.js'
 };
 
 var placeholder_instances = {};

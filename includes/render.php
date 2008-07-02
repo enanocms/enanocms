@@ -217,6 +217,9 @@ class RenderMan {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
+    require_once(ENANO_ROOT.'/includes/wikiformat.php');
+    require_once(ENANO_ROOT.'/includes/wikiengine/Tables.php');
+    
     profiler_log("RenderMan: starting wikitext render");
     
     $random_id = md5( time() . mt_rand() );
@@ -474,12 +477,18 @@ class RenderMan {
   /**
    * Parses internal links (wikilinks) in a block of text.
    * @param string Text to process
+   * @param string Optional. If included will be used as a template instead of using the default syntax.
    * @return string
    */
   
-  public static function parse_internal_links($text)
+  public static function parse_internal_links($text, $tplcode = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    if ( is_string($tplcode) )
+    {
+      $parser = $template->makeParserText($tplcode);
+    }
     
     // stage 1 - links with alternate text
     preg_match_all('/\[\[([^\[\]<>\{\}\|]+)\|(.+?)\]\]/', $text, $matches);
@@ -493,7 +502,19 @@ class RenderMan {
       $quot = '"';
       $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
       
-      $link = "<a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a>";
+      if ( $tplcode )
+      {
+        $parser->assign_vars(array(
+            'HREF' => $url,
+            'FLAGS' => $exists,
+            'TEXT' => $inner_text
+          ));
+        $link = $parser->run();
+      }
+      else
+      {
+        $link = "<a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a>";
+      }
       
       $text = str_replace($match, $link, $text);
     }
@@ -510,7 +531,19 @@ class RenderMan {
       $quot = '"';
       $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
       
-      $link = "<a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a>";
+      if ( $tplcode )
+      {
+        $parser->assign_vars(array(
+            'HREF' => $url,
+            'FLAGS' => $exists,
+            'TEXT' => $inner_text
+          ));
+        $link = $parser->run();
+      }
+      else
+      {
+        $link = "<a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a>";
+      }
       
       $text = str_replace($match, $link, $text);
     }
@@ -845,6 +878,7 @@ class RenderMan {
   public static function diff($str1, $str2)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    require_once(ENANO_ROOT.'/includes/diff.php');
     $str1 = explode("\n", $str1);
     $str2 = explode("\n", $str2);
     $diff = new Diff($str1, $str2);

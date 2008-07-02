@@ -157,8 +157,6 @@ class PageProcessor
     if ( !is_int($revision_id) )
       $revision_id = 0;
     
-    profiler_log("PageProcessor [{$namespace}:{$page_id}]: Ran initial checks");
-    
     $this->_setup( $page_id, $namespace, $revision_id );
   }
   
@@ -172,7 +170,7 @@ class PageProcessor
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Started send process");
+    profiler_log('PageProcessor: send() called');
     
     if ( !$this->perms->get_permissions('read') )
     {
@@ -190,7 +188,6 @@ class PageProcessor
       {
         // Page isn't whitelisted, behave as normal
         $this->err_access_denied();
-        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
         return false;
       }
     }
@@ -237,7 +234,6 @@ class PageProcessor
           if ( $this->password != $password )
           {
             $this->err_wrong_password();
-            profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
             return false;
           }
         }
@@ -245,6 +241,7 @@ class PageProcessor
     }
     if ( $this->page_exists && $this->namespace != 'Special' && $this->namespace != 'Admin' && $do_stats )
     {
+      require_once(ENANO_ROOT.'/includes/stats.php');
       doStats($this->page_id, $this->namespace);
     }
     if ( $this->namespace == 'Special' || $this->namespace == 'Admin' )
@@ -265,9 +262,7 @@ class PageProcessor
       $func_name = "page_{$this->namespace}_{$this->page_id}";
       if ( function_exists($func_name) )
       {
-        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Calling special/admin page");
         $result = @call_user_func($func_name);
-        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
         return $result;
       }
       else
@@ -287,7 +282,6 @@ class PageProcessor
           echo "<h2>$title</h2>
                 <p>$message</p>";
         }
-        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
         return false;
       }
     }
@@ -372,13 +366,11 @@ class PageProcessor
         $template->init_vars($this);
       }
       
-      // die($this->page_id);
-      
       $text = $this->fetch_text();
+      
       if ( $text == 'err_no_text_rows' )
       {
         $this->err_no_rows();
-        profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
         return false;
       }
       else
@@ -409,7 +401,6 @@ class PageProcessor
         }
       }
     }
-    profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Finished send process");
   }
   
   /**
@@ -1029,6 +1020,7 @@ class PageProcessor
     global $lang;
     
     $text = $this->fetch_text();
+    
     $text = preg_replace('/([\s]*)__NOBREADCRUMBS__([\s]*)/', '', $text);
     $text = preg_replace('/([\s]*)__NOTOC__([\s]*)/', '', $text);
     
@@ -1228,7 +1220,6 @@ class PageProcessor
     }
     else
     {
-      
       $q = $db->sql_query('SELECT t.page_text, t.char_tag, l.time_id FROM '.table_prefix."page_text AS t\n"
                         . "  LEFT JOIN " . table_prefix . "logs AS l\n"
                         . "    ON ( l.page_id = t.page_id AND l.namespace = t.namespace )\n"

@@ -19,7 +19,7 @@
   define('ENANO_INTERFACE_INDEX', '');
   
   // For the mighty and brave.
-  // define('ENANO_DEBUG', '');
+  define('ENANO_DEBUG', '');
  
   // Set up gzip encoding before any output is sent
   
@@ -65,6 +65,7 @@
       break;
     case 'comments':
       $template->header();
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       $sub = ( isset ($_GET['sub']) ) ? $_GET['sub'] : false;
       switch($sub)
       {
@@ -121,6 +122,7 @@
         redirect(makeUrl($paths->page), '', '', 0);
         break;
       }
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(isset($_POST['_save']))
       {
         $captcha_valid = true;
@@ -258,6 +260,7 @@
       $template->footer();
       break;
     case 'history':
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       $hist = PageUtils::histlist($paths->page_id, $paths->namespace);
       $template->header();
       echo $hist;
@@ -286,6 +289,7 @@
       $template->footer();
       break;
     case 'catedit':
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(isset($_POST['__enanoSaveButton']))
       {
         unset($_POST['__enanoSaveButton']);
@@ -313,6 +317,7 @@
       break;
     case 'protect':
       if (!isset($_REQUEST['level'])) die_friendly('Invalid request', '<p>No protection level specified</p>');
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(!empty($_POST['reason']))
       {
         if(!preg_match('#^([0-2]*){1}$#', $_POST['level'])) die_friendly('Error protecting page', '<p>Request validation failed</p>');
@@ -349,6 +354,7 @@
       $template->footer();
       break;
     case 'rename':
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(!empty($_POST['newname']))
       {
         $r = PageUtils::rename($paths->page_id, $paths->namespace, $_POST['newname']);
@@ -370,6 +376,7 @@
       {
         die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
       }
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(isset($_POST['_downthejohn']))
       {
         $template->header();
@@ -388,6 +395,7 @@
       $template->footer();
       break;
     case 'delvote':
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(isset($_POST['_ballotbox']))
       {
         $template->header();
@@ -416,6 +424,7 @@
       $template->footer();
       break;
     case 'resetvotes':
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(!$session->get_permissions('vote_reset'))
       {
         die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
@@ -442,6 +451,7 @@
       {
         die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
       }
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(isset($_POST['_adiossucker']))
       {
         $reason = ( isset($_POST['reason']) ) ? $_POST['reason'] : false;
@@ -509,6 +519,8 @@
       }
       break;
     case 'diff':
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
+      require_once(ENANO_ROOT.'/includes/diff.php');
       $template->header();
       $id1 = ( isset($_GET['diff1']) ) ? (int)$_GET['diff1'] : false;
       $id2 = ( isset($_GET['diff2']) ) ? (int)$_GET['diff2'] : false;
@@ -533,6 +545,7 @@
       die_friendly($lang->get('page_detag_success_title'), '<p>' . $lang->get('page_detag_success_body') . '</p>');
       break;
     case 'aclmanager':
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       $data = ( isset($_POST['data']) ) ? $_POST['data'] : Array('mode' => 'listgroups');
       PageUtils::aclmanager($data);
       break;

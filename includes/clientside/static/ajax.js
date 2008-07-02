@@ -149,7 +149,11 @@ window.ajaxRenameSubmit = function(obj)
   if ( !box )
     return false;
   
-  var newname = ( obj.getElementsByTagName('input')[0] ).value;
+  var input = obj.getElementsByTagName('input')[0];
+  console.debug(obj, input);
+  if ( !input )
+    return false;
+  var newname = input.value;
   newname = trim(newname);
   
   if ( newname.length < 1 )

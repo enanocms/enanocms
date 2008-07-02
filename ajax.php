@@ -14,76 +14,6 @@
  
   define('ENANO_INTERFACE_AJAX', '');
  
-  // fillusername should be done without the help of the rest of Enano - all we need is the DBAL
-  if ( isset($_GET['_mode']) && $_GET['_mode'] == 'fillusername' )
-  {
-    // setup and load a very basic, specialized instance of the Enano API
-    function microtime_float()
-    {
-      list($usec, $sec) = explode(" ", microtime());
-      return ((float)$usec + (float)$sec);
-    }
-    // Determine directory (special case for development servers)
-    if ( strpos(__FILE__, '/repo/') && file_exists('.enanodev') )
-    {
-      $filename = str_replace('/repo/', '/', __FILE__);
-    }
-    else
-    {
-      $filename = __FILE__;
-    }
-    define('ENANO_ROOT', dirname($filename));
-    require(ENANO_ROOT.'/includes/functions.php');
-    require(ENANO_ROOT.'/includes/dbal.php');
-    require(ENANO_ROOT.'/includes/json2.php');
-    
-    require(ENANO_ROOT . '/config.php');
-    unset($dbuser, $dbpasswd);
-    if ( !isset($dbdriver) )
-      $dbdriver = 'mysql';
-    
-    $db = new $dbdriver();
-    
-    $db->connect();
-    
-    // result is sent using JSON
-    $return = Array(
-        'mode' => 'success',
-        'users_real' => Array()
-      );
-    
-    // should be connected to the DB now
-    $name = (isset($_GET['name'])) ? $db->escape($_GET['name']) : false;
-    if ( !$name )
-    {
-      $return = array(
-        'mode' => 'error',
-        'error' => 'Invalid URI'
-      );
-      die( enano_json_encode($return) );
-    }
-    $allowanon = ( isset($_GET['allowanon']) && $_GET['allowanon'] == '1' ) ? '' : ' AND user_id > 1';
-    $q = $db->sql_query('SELECT username FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username) LIKE ' . ENANO_SQLFUNC_LOWERCASE . '(\'%'.$name.'%\')' . $allowanon . ' ORDER BY username ASC;');
-    if ( !$q )
-    {
-      $db->die_json();
-    }
-    $i = 0;
-    while($r = $db->fetchrow())
-    {
-      $return['users_real'][] = $r['username'];
-      $i++;
-    }
-    $db->free_result();
-    
-    // all done! :-)
-    $db->close();
-    
-    echo enano_json_encode( $return );
-    
-    exit;
-  }
- 
   require('includes/common.php');
   
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -93,6 +23,7 @@
   
   switch($_GET['_mode']) {
     case "checkusername":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::checkusername($_GET['name']);
       break;
     case "getsource":
@@ -230,18 +161,7 @@
       break;
     case "savepage":
       /* **** OBSOLETE **** */
-      $summ = ( isset($_POST['summary']) ) ? $_POST['summary'] : '';
-      $minor = isset($_POST['minor']);
-      $e = PageUtils::savepage($paths->page_id, $paths->namespace, $_POST['text'], $summ, $minor);
-      if ( $e == 'good' )
-      {
-        $page = new PageProcessor($paths->page_id, $paths->namespace);
-        $page->send();
-      }
-      else
-      {
-        echo '<p>Error saving the page: '.$e.'</p>';
-      }
+      
       break;
     case "savepage_json":
       header('Content-type: application/json');
@@ -434,6 +354,7 @@
       echo enano_json_encode($result);
       break;
     case "histlist":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::histlist($paths->page_id, $paths->namespace);
       break;
     case "rollback":
@@ -445,6 +366,7 @@
       echo enano_json_encode($result);
       break;
     case "comments":
+      require_once(ENANO_ROOT.'/includes/comment.php');
       $comments = new Comments($paths->page_id, $paths->namespace);
       if ( isset($_POST['data']) )
       {
@@ -463,33 +385,42 @@
       echo enano_json_encode($result);
       break;
     case "flushlogs":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::flushlogs($paths->page_id, $paths->namespace);
       break;
     case "deletepage":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       $reason = ( isset($_POST['reason']) ) ? $_POST['reason'] : false;
       if ( empty($reason) )
         die($lang->get('page_err_need_reason'));
       echo PageUtils::deletepage($paths->page_id, $paths->namespace, $reason);
       break;
     case "delvote":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::delvote($paths->page_id, $paths->namespace);
       break;
     case "resetdelvotes":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::resetdelvotes($paths->page_id, $paths->namespace);
       break;
     case "getstyles":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::getstyles($_GET['id']);
       break;
     case "catedit":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::catedit($paths->page_id, $paths->namespace);
       break;
     case "catsave":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::catsave($paths->page_id, $paths->namespace, $_POST);
       break;
     case "setwikimode":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::setwikimode($paths->page_id, $paths->namespace, (int)$_GET['mode']);
       break;
     case "setpass":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::setpass($paths->page_id, $paths->namespace, $_POST['password']);
       break;
     case "fillusername":
@@ -537,9 +468,11 @@
       }
       break;
     case "preview":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       echo PageUtils::genPreview($_POST['text']);
       break;
     case "pagediff":
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       $id1 = ( isset($_GET['diff1']) ) ? (int)$_GET['diff1'] : false;
       $id2 = ( isset($_GET['diff2']) ) ? (int)$_GET['diff2'] : false;
       if(!$id1 || !$id2) { echo '<p>Invalid request.</p>'; $template->footer(); break; }
@@ -558,6 +491,7 @@
       else echo $rdns;
       break;
     case 'acljson':
+      require_once(ENANO_ROOT.'/includes/pageutils.php');
       $parms = ( isset($_POST['acl_params']) ) ? rawurldecode($_POST['acl_params']) : false;
       echo PageUtils::acl_json($parms);
       break;

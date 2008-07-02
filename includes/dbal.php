@@ -32,7 +32,10 @@ function db_error_handler($errno, $errstr, $errfile = false, $errline = false, $
   $debug = $debug[0]['file'] . ', line ' . $debug[0]['line'];
   echo "<b>$errtype:</b> $errstr<br />Error source:<pre>$debug</pre>";
 }
- 
+
+global $db_sql_parse_time;
+$db_sql_parse_time = 0;
+
 class mysql {
   var $num_queries, $query_backtrace, $query_times, $query_sources, $latest_result, $latest_query, $_conn, $sql_stack_fields, $sql_stack_values, $debug;
   var $row = array();
@@ -309,79 +312,46 @@ class mysql {
   }
   
   /**
-   * Checks a SQL query for possible signs of injection attempts
+   * Performs heuristic analysis on a SQL query to check for known attack patterns.
    * @param string $q the query to check
    * @return bool true if query passed check, otherwise false
    */
   
   function check_query($q, $debug = false)
   {
-    if($debug) echo "\$db-&gt;check_query(): checking query: ".htmlspecialchars($q).'<br />'."\n";
-    $sz = strlen($q);
-    $quotechar = false;
-    $quotepos  = 0;
-    $prev_is_quote = false;
-    $just_started = false;
-    for ( $i = 0; $i < strlen($q); $i++, $c = substr($q, $i, 1) )
+    global $db_sql_parse_time;
+    $ts = microtime_float();
+    
+    // remove properly escaped quotes
+    $q = str_replace(array("\\\"", "\\'"), '', $q);
+    
+    // make sure quotes match
+    foreach ( array('"', "'") as $quote )
     {
-      $next = substr($q, $i+1, 1);
-      $next2 = substr($q, $i+2, 1);
-      $prev = substr($q, $i-1, 1);
-      $prev2 = substr($q, $i-2, 1);
-      if(isset($c) && in_array($c, Array('"', "'", '`')))
+      if ( get_char_count($q, $quote) % 2 == 1 )
       {
-        if($quotechar)
-        {
-          if (
-              ( $quotechar == $c && $quotechar != $next && ( $quotechar != $prev || $just_started ) && $prev != '\\') ||
-              ( $prev2 == '\\' && $prev == $quotechar && $quotechar == $c )
-            )
-          {
-            $quotechar = false;
-            if($debug) echo('$db-&gt;check_query(): just finishing a quote section, quoted string: '.htmlspecialchars(substr($q, $quotepos, $i - $quotepos + 1)) . '<br />');
-            $q = substr($q, 0, $quotepos) . 'SAFE_QUOTE' . substr($q, $i + 1, strlen($q));
-            if($debug) echo('$db-&gt;check_query(): Filtered query: '.$q.'<br />');
-            $i = $quotepos;
-          }
-        }
-        else
-        {
-          $quotechar = $c;
-          $quotepos  = $i;
-          $just_started = true;
-        }
-        if($debug) echo '$db-&gt;check_query(): found quote char as pos: '.$i.'<br />';
-        continue;
-      }
-      $just_started = false;
-    }
-    if(substr(trim($q), strlen(trim($q))-1, 1) == ';') $q = substr(trim($q), 0, strlen(trim($q))-1);
-    for($i=0;$i<strlen($q);$i++,$c=substr($q, $i, 1))
-    {
-      if ( 
-           ( ( $c == ';' && $i != $sz-1 ) || $c . substr($q, $i+1, 1) == '--' )
-        || ( in_array($c, Array('"', "'", '`')) )
-         ) // Don't permit semicolons in mid-query, and never allow comments
-      {
-        // Injection attempt!
-        if($debug)
-        {
-          $e = '';
-          for($j=$i-5;$j<$i+5;$j++)
-          {
-            if($j == $i) $e .= '<span style="color: red; text-decoration: underline;">' . $c . '</span>';
-            else $e .= $c;
-          }
-          echo 'Injection attempt caught at pos: '.$i.'<br />';
-        }
+        // mismatched quotes
         return false;
       }
+      // this quote is now confirmed to be matching; we can safely move all quoted strings out and replace with a token
+      $q = preg_replace("/$quote(.*?)$quote/s", 'SAFE_QUOTE', $q);
     }
+    $q = preg_replace("/(SAFE_QUOTE)+/", 'SAFE_QUOTE', $q);
+    
+    // quotes are now matched out. does this string have a comment marker in it?
+    if ( strstr($q, '--') )
+    {
+      return false;
+    }
+    
     if ( preg_match('/[\s]+(SAFE_QUOTE|[\S]+)=\\1($|[\s]+)/', $q, $match) )
     {
       if ( $debug ) echo 'Found always-true test in query, injection attempt caught, match:<br />' . '<pre>' . print_r($match, true) . '</pre>';
       return false;
     }
+    
+    $ts = microtime_float() - $ts;
+    $db_sql_parse_time += $ts;
     return true;
   }
   
@@ -1066,72 +1036,39 @@ class postgresql {
   
   function check_query($q, $debug = false)
   {
-    if($debug) echo "\$db-&gt;check_query(): checking query: ".htmlspecialchars($q).'<br />'."\n";
-    $sz = strlen($q);
-    $quotechar = false;
-    $quotepos  = 0;
-    $prev_is_quote = false;
-    $just_started = false;
-    for ( $i = 0; $i < strlen($q); $i++, $c = substr($q, $i, 1) )
+    global $db_sql_parse_time;
+    $ts = microtime_float();
+    
+    // remove properly escaped quotes
+    $q = str_replace(array("\\\"", "\\'"), '', $q);
+    
+    // make sure quotes match
+    foreach ( array('"', "'") as $quote )
     {
-      $next = substr($q, $i+1, 1);
-      $next2 = substr($q, $i+2, 1);
-      $prev = substr($q, $i-1, 1);
-      $prev2 = substr($q, $i-2, 1);
-      if(isset($c) && in_array($c, Array('"', "'", '`')))
+      if ( get_char_count($q, $quote) % 2 == 1 )
       {
-        if($quotechar)
-        {
-          if (
-              ( $quotechar == $c && $quotechar != $next && ( $quotechar != $prev || $just_started ) && $prev != '\\') ||
-              ( $prev2 == '\\' && $prev == $quotechar && $quotechar == $c )
-            )
-          {
-            $quotechar = false;
-            if($debug) echo('$db-&gt;check_query(): just finishing a quote section, quoted string: '.htmlspecialchars(substr($q, $quotepos, $i - $quotepos + 1)) . '<br />');
-            $q = substr($q, 0, $quotepos) . 'SAFE_QUOTE' . substr($q, $i + 1, strlen($q));
-            if($debug) echo('$db-&gt;check_query(): Filtered query: '.$q.'<br />');
-            $i = $quotepos;
-          }
-        }
-        else
-        {
-          $quotechar = $c;
-          $quotepos  = $i;
-          $just_started = true;
-        }
-        if($debug) echo '$db-&gt;check_query(): found quote char as pos: '.$i.'<br />';
-        continue;
-      }
-      $just_started = false;
-    }
-    if(substr(trim($q), strlen(trim($q))-1, 1) == ';') $q = substr(trim($q), 0, strlen(trim($q))-1);
-    for($i=0;$i<strlen($q);$i++,$c=substr($q, $i, 1))
-    {
-      if ( 
-           ( ( $c == ';' && $i != $sz-1 ) || $c . substr($q, $i+1, 1) == '--' )
-        || ( in_array($c, Array('"', "'", '`')) )
-         ) // Don't permit semicolons in mid-query, and never allow comments
-      {
-        // Injection attempt!
-        if($debug)
-        {
-          $e = '';
-          for($j=$i-5;$j<$i+5;$j++)
-          {
-            if($j == $i) $e .= '<span style="color: red; text-decoration: underline;">' . $c . '</span>';
-            else $e .= $c;
-          }
-          echo 'Injection attempt caught at pos: '.$i.'<br />';
-        }
+        // mismatched quotes
         return false;
       }
+      // this quote is now confirmed to be matching; we can safely move all quoted strings out and replace with a token
+      $q = preg_replace("/$quote(.*?)$quote/s", 'SAFE_QUOTE', $q);
     }
+    $q = preg_replace("/(SAFE_QUOTE)+/", 'SAFE_QUOTE', $q);
+    
+    // quotes are now matched out. does this string have a comment marker in it?
+    if ( strstr($q, '--') )
+    {
+      return false;
+    }
+    
     if ( preg_match('/[\s]+(SAFE_QUOTE|[\S]+)=\\1($|[\s]+)/', $q, $match) )
     {
       if ( $debug ) echo 'Found always-true test in query, injection attempt caught, match:<br />' . '<pre>' . print_r($match, true) . '</pre>';
       return false;
     }
+    
+    $ts = microtime_float() - $ts;
+    $db_sql_parse_time += $ts;
     return true;
   }
   

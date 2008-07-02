@@ -138,20 +138,10 @@ require_once(ENANO_ROOT.'/includes/sessions.php');
 require_once(ENANO_ROOT.'/includes/template.php');
 require_once(ENANO_ROOT.'/includes/plugins.php');
 require_once(ENANO_ROOT.'/includes/lang.php');
-require_once(ENANO_ROOT.'/includes/comment.php');
-require_once(ENANO_ROOT.'/includes/wikiformat.php');
-require_once(ENANO_ROOT.'/includes/diff.php');
 require_once(ENANO_ROOT.'/includes/render.php');
-require_once(ENANO_ROOT.'/includes/stats.php');
-require_once(ENANO_ROOT.'/includes/pageutils.php');
-require_once(ENANO_ROOT.'/includes/js-compressor.php');
 require_once(ENANO_ROOT.'/includes/rijndael.php');
 require_once(ENANO_ROOT.'/includes/email.php');
-require_once(ENANO_ROOT.'/includes/search.php');
-require_once(ENANO_ROOT.'/includes/json.php');
 require_once(ENANO_ROOT.'/includes/json2.php');
-require_once(ENANO_ROOT.'/includes/math.php');
-require_once(ENANO_ROOT.'/includes/wikiengine/Tables.php');
 require_once(ENANO_ROOT.'/includes/pageprocess.php');
 require_once(ENANO_ROOT.'/includes/tagcloud.php');
 
@@ -197,6 +187,8 @@ if ( !isset($_SERVER['HTTP_HOST']) )
 //
 // END BACKGROUND AND ENVIRONMENT CHECKS
 //
+
+profiler_log('Background/environment checks done');
 
 //
 // MAIN API INITIALIZATION
@@ -308,7 +300,6 @@ if ( getConfig('default_language') === false && !defined('IN_ENANO_MIGRATION') )
         <pre>
 &lt;?php
 define("ENANO_ALLOW_LOAD_NOLANG", 1);
-$_GET["title"] = "langinstall";
 require("includes/common.php");
 install_language("eng", "English", "English", ENANO_ROOT . "/language/english/enano.json");</pre>');
   }

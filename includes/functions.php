@@ -4325,6 +4325,10 @@ function profiler_make_html()
   
   foreach ( $profile as $i => $entry )
   {
+    // $time_since_last = $entry['time'] - $time_last;
+    // if ( $time_since_last < 0.01 )
+    //   continue;
+    
     $html .= "<!-- ########################################################## -->\n<tr>\n  <th colspan=\"2\">Event $i</th>\n</tr>";
     
     $html .= '<tr>' . "\n";
