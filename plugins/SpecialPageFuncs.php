@@ -24,7 +24,7 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', 'SpecialPageFuncs_paths_init();');
+// $plugins->attachHook('session_started', 'SpecialPageFuncs_paths_init();');
 
 function SpecialPageFuncs_paths_init()
 {

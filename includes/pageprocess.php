@@ -623,6 +623,9 @@ class PageProcessor
     if ( !$q )
       $db->_die('PageProcessor page creation - logging stage');
     
+    // Update the cache
+    $paths->update_metadata_cache();
+    
     // Page created. We're good!
     return true;
   }
@@ -1125,7 +1128,7 @@ class PageProcessor
       $text = '?>' . $text;
       $text = preg_replace('/<nowiki>(.*?)<\/nowiki>/s', '\\1', $text);
     }
-    // echo('<pre>'.htmlspecialchars($text).'</pre>');
+    
     eval ( $text );
     
     $code = $plugins->setHook('pageprocess_render_tail');
@@ -1354,7 +1357,14 @@ class PageProcessor
     }
     
     // get the user's rank
-    $rank_data = $session->get_user_rank(intval($userdata['authoritative_uid']));
+    if ( $user_exists )
+    {
+      $rank_data = $session->get_user_rank(intval($userdata['authoritative_uid']));
+    }
+    else
+    {
+      $rank_data = $session->get_user_rank(1);
+    }
     
     $this->header();
     

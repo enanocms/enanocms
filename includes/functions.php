@@ -1948,6 +1948,9 @@ function sanitize_html($html, $filter_php = true)
   // Random seed for substitution
   $rand_seed = md5( sha1(microtime()) . mt_rand() );
   
+  // We need MediaWiki
+  require_once(ENANO_ROOT . '/includes/wikiengine/Tables.php');
+  
   // Strip out comments that are already escaped
   preg_match_all('/&lt;!--(.*?)--&gt;/', $html, $comment_match);
   $i = 0;
@@ -2821,17 +2824,11 @@ function is_valid_ip($ip)
 function str_replace_once($needle, $thread, $haystack)
 {
   $needle_len = strlen($needle);
-  for ( $i = 0; $i < strlen($haystack); $i++ )
+  if ( $pos = strstr($haystack, $needle) )
   {
-    $test = substr($haystack, $i, $needle_len);
-    if ( $test == $needle )
-    {
-      // Got it!
-      $upto = substr($haystack, 0, $i);
-      $from = substr($haystack, ( $i + $needle_len ));
-      $new_haystack = "{$upto}{$thread}{$from}";
-      return $new_haystack;
-    }
+    $upto = substr($haystack, 0, ( strlen($haystack) - strlen($pos) ));
+    $from = substr($pos, $needle_len);
+    return "{$upto}{$thread}{$from}";
   }
   return $haystack;
 }

@@ -25,7 +25,7 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', 'SpecialUpDownload_paths_init();');
+// $plugins->attachHook('session_started', 'SpecialUpDownload_paths_init();');
 
 function SpecialUpDownload_paths_init()
 {

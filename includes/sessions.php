@@ -2519,8 +2519,11 @@ class sessionManager {
     // cache info if possible
     static $_cache = array();
     
+    if ( is_int($id) && $id == 0 )
+      $id = 1;
+    
     if ( is_int($id) )
-      $col = "user_id = $id";
+      $col = "u.user_id = $id";
     else if ( is_string($id) )
       $col = ENANO_SQLFUNC_LOWERCASE . "(username) = " . ENANO_SQLFUNC_LOWERCASE . "('" . $db->escape($id) . "')";
     else

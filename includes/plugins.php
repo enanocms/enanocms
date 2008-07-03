@@ -288,89 +288,13 @@ class pluginLoader {
           
         // it's a PHP file, attempt to read metadata
         $fullpath = ENANO_ROOT . "/plugins/$dh";
-        // first can we use cached info?
-        if ( isset($plugins_cache[$dh]) && $plugins_cache[$dh]['file md5'] === $this->md5_header($fullpath) )
+        $plugin_meta = $this->get_plugin_info($fullpath);
+        
+        if ( is_array($plugin_meta) )
         {
-          $plugin_meta = $plugins_cache[$dh];
+          // all checks passed
+          $plugin_list[$dh] = $plugin_meta;
         }
-        else
-        {
-          // the cache is out of date if we reached here -- regenerate
-          if ( $use_cache )
-            $this->generate_plugins_cache();
-          
-          // pass 1: try to read a !info block
-          $blockdata = $this->parse_plugin_blocks($fullpath, 'info');
-          if ( empty($blockdata) )
-          {
-            // no !info block, check for old header
-            $fh = @fopen($fullpath, 'r');
-            if ( !$fh )
-              // can't read, bail out
-              continue;
-            $plugin_data = array();
-            for ( $i = 0; $i < 8; $i++ )
-            {
-              $plugin_data[] = @fgets($fh, 8096);
-            }
-            // close our file handle
-            fclose($fh);
-            // is the header correct?
-            if ( trim($plugin_data[0]) != '<?php' || trim($plugin_data[1]) != '/*' )
-            {
-              // nope. get out.
-              continue;
-            }
-            // parse all the variables
-            $plugin_meta = array();
-            for ( $i = 2; $i <= 7; $i++ )
-            {
-              if ( !preg_match('/^([A-z0-9 ]+?): (.+?)$/', trim($plugin_data[$i]), $match) )
-                continue 2;
-              $plugin_meta[ strtolower($match[1]) ] = $match[2];
-            }
-          }
-          else
-          {
-            // parse JSON block
-            $plugin_data =& $blockdata[0]['value'];
-            $plugin_data = enano_clean_json(enano_trim_json($plugin_data));
-            try
-            {
-              $plugin_meta_uc = enano_json_decode($plugin_data);
-            }
-            catch ( Exception $e )
-            {
-              continue;
-            }
-            // convert all the keys to lowercase
-            $plugin_meta = array();
-            foreach ( $plugin_meta_uc as $key => $value )
-            {
-              $plugin_meta[ strtolower($key) ] = $value;
-            }
-          }
-        }
-        if ( !isset($plugin_meta) || !is_array(@$plugin_meta) )
-        {
-          // parsing didn't work.
-          continue;
-        }
-        // check for required keys
-        $required_keys = array('plugin name', 'plugin uri', 'description', 'author', 'version', 'author uri');
-        foreach ( $required_keys as $key )
-        {
-          if ( !isset($plugin_meta[$key]) )
-            // not set, skip this plugin
-            continue 2;
-        }
-        // decide if it's a system plugin
-        $plugin_meta['system plugin'] = in_array($dh, $this->system_plugins);
-        // reset installed variable
-        $plugin_meta['installed'] = false;
-        $plugin_meta['status'] = 0;
-        // all checks passed
-        $plugin_list[$dh] = $plugin_meta;
       }
     }
     // gather info about installed plugins
@@ -406,6 +330,103 @@ class pluginLoader {
     // done
     return $plugin_list;
   }
+  
+  /**
+   * Retrieves the metadata block from a plugin file
+   * @param string Path to plugin file (full path)
+   * @return array
+   */
+  
+  function get_plugin_info($fullpath)
+  {
+    global $plugins_cache;
+    $dh = basename($fullpath);
+    
+    // first can we use cached info?
+    if ( isset($plugins_cache[$dh]) && $plugins_cache[$dh]['file md5'] === $this->md5_header($fullpath) )
+    {
+      $plugin_meta = $plugins_cache[$dh];
+    }
+    else
+    {
+      // the cache is out of date if we reached here -- regenerate
+      if ( $use_cache )
+        $this->generate_plugins_cache();
+      
+      // pass 1: try to read a !info block
+      $blockdata = $this->parse_plugin_blocks($fullpath, 'info');
+      if ( empty($blockdata) )
+      {
+        // no !info block, check for old header
+        $fh = @fopen($fullpath, 'r');
+        if ( !$fh )
+          // can't read, bail out
+          return false;
+        $plugin_data = array();
+        for ( $i = 0; $i < 8; $i++ )
+        {
+          $plugin_data[] = @fgets($fh, 8096);
+        }
+        // close our file handle
+        fclose($fh);
+        // is the header correct?
+        if ( trim($plugin_data[0]) != '<?php' || trim($plugin_data[1]) != '/*' )
+        {
+          // nope. get out.
+          return false;
+        }
+        // parse all the variables
+        $plugin_meta = array();
+        for ( $i = 2; $i <= 7; $i++ )
+        {
+          if ( !preg_match('/^([A-z0-9 ]+?): (.+?)$/', trim($plugin_data[$i]), $match) )
+            return false;
+          $plugin_meta[ strtolower($match[1]) ] = $match[2];
+        }
+      }
+      else
+      {
+        // parse JSON block
+        $plugin_data =& $blockdata[0]['value'];
+        $plugin_data = enano_clean_json(enano_trim_json($plugin_data));
+        try
+        {
+          $plugin_meta_uc = enano_json_decode($plugin_data);
+        }
+        catch ( Exception $e )
+        {
+          return false;
+        }
+        // convert all the keys to lowercase
+        $plugin_meta = array();
+        foreach ( $plugin_meta_uc as $key => $value )
+        {
+          $plugin_meta[ strtolower($key) ] = $value;
+        }
+      }
+    }
+    if ( !isset($plugin_meta) || !is_array(@$plugin_meta) )
+    {
+      // parsing didn't work.
+      return false;
+    }
+    // check for required keys
+    $required_keys = array('plugin name', 'plugin uri', 'description', 'author', 'version', 'author uri');
+    foreach ( $required_keys as $key )
+    {
+      if ( !isset($plugin_meta[$key]) )
+        // not set, skip this plugin
+        return false;
+    }
+    // decide if it's a system plugin
+    $plugin_meta['system plugin'] = in_array($dh, $this->system_plugins);
+    // reset installed variable
+    $plugin_meta['installed'] = false;
+    $plugin_meta['status'] = 0;
+    
+    return $plugin_meta;
+  }
+  
   
   /**
    * Attempts to cache plugin information in a file to speed fetching.

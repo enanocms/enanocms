@@ -24,7 +24,7 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', 'SpecialAdmin_paths_init();');
+// $plugins->attachHook('session_started', 'SpecialAdmin_paths_init();');
 
 function SpecialAdmin_paths_init()
 {
@@ -165,6 +165,7 @@ Received invalid XML response.
   // Stats
   if(getConfig('log_hits') == '1')
   {
+    require_once(ENANO_ROOT . '/includes/stats.php');
     $stats = stats_top_pages(10);
     //die('<pre>'.print_r($stats,true).'</pre>');
     $c = 0;

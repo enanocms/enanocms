@@ -378,6 +378,22 @@ if ( !defined('IN_ENANO_INSTALL') )
   // All checks passed! Start the main components up.  
   $session->start();
   
+  // Grab language strings from the database
+  $lang->fetch();
+  profiler_log('Fetched language strings');
+  
+  // Add all of our built in special pages
+  SpecialUserFuncs_paths_init();
+  SpecialPageFuncs_paths_init();
+  SpecialAdmin_paths_init();
+  SpecialCSS_paths_init();
+  SpecialUpDownload_paths_init();
+  SpecialSearch_paths_init();
+  PrivateMessages_paths_init();
+  SpecialGroups_paths_init();
+  SpecialRecentChanges_paths_init();
+  profiler_log('Added special pages');
+  
   // This is where plugins will want to add pages from 1.1.x on out. You can still add
   // pages at base_classes_initted but the titles won't be localized. This is because
   // the session manager has to be started before localization will work in the user's

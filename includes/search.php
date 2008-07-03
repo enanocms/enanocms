@@ -501,8 +501,6 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
   {
     if ( $page['namespace'] != 'Special' || $page['visible'] == 0 )
       continue;
-    if ( !is_int($id) )
-      continue;
     $idstring = 'ns=' . $page['namespace'] . ';pid=' . $page['urlname_nons'];
     $any = array_values(array_unique(array_merge($query['any'], $query_phrase['any'])));
     foreach ( $any as $term )

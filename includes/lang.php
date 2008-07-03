@@ -630,8 +630,8 @@ $lang_cache = ');
       {
         return $string_id;
       }
-      profiler_log('Language(' . $this->lang_code . '): refetching due to missing string: ' . $string_id);
       $this->fetch();
+      profiler_log('Language(' . $this->lang_code . '): refetched due to missing string: ' . $string_id);
       if ( isset($this->strings[$category]) && isset($this->strings[$category][$string_name]) )
       {
         $found = true;

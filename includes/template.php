@@ -83,11 +83,6 @@ class template
       $this->theme_list[$i] = $row;
       $i++;
     }
-    // List out all CSS files for this theme
-    foreach ( $this->theme_list as $i => &$theme )
-    {
-      $theme['css'] = $this->get_theme_css_files($theme['theme_id']);
-    }
     unset($theme);
     $this->theme_list = array_values($this->theme_list);
     // Create associative array of themes
@@ -95,6 +90,7 @@ class template
       $this->named_theme_list[ $theme['theme_id'] ] =& $this->theme_list[$i];
     
     $this->default_theme = ( $_ = getConfig('theme_default') ) ? $_ : $this->theme_list[0]['theme_id'];
+    $this->named_theme_list[ $this->default_theme ]['css'] = $this->get_theme_css_files($this->default_theme);
     // Come up with the default style. If the CSS file specified in default_style exists, we're good, just
     // use that. Otherwise, use the first stylesheet that comes to mind.
     $df_data =& $this->named_theme_list[ $this->default_theme ];
@@ -1394,12 +1390,12 @@ class template
     if ( file_exists($cache_file) )
     {
       // this is about the time of the breaking change to cache file format
-      if ( filemtime($cache_file) > 1215038089 )
+      if ( ($m = filemtime($cache_file)) > 1215038089 )
       {
         $result = @include($cache_file);
         if ( isset($md5) )
         {
-          if ( $md5 == md5_file(ENANO_ROOT . "/themes/{$this->theme}/$file") )
+          if ( $m >= filemtime(ENANO_ROOT . "/themes/{$this->theme}/$file") )
           {
             $result = $this->compile_template_text_post($result);
             return $result;

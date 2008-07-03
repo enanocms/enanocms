@@ -22,7 +22,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-$plugins->attachHook('session_started', 'SpecialSearch_paths_init();');
+// $plugins->attachHook('session_started', 'SpecialSearch_paths_init();');
 
 function SpecialSearch_paths_init()
 {

@@ -24,7 +24,7 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-$plugins->attachHook('session_started', 'SpecialRecentChanges_paths_init();');
+// $plugins->attachHook('session_started', 'SpecialRecentChanges_paths_init();');
 
 function SpecialRecentChanges_paths_init()
 {

@@ -436,7 +436,7 @@
       $name = sanitize_page_id($name);
       $name = str_replace('_', ' ', $name);
       
-      for($i=0;$i<sizeof($paths->pages)/2;$i++)
+      foreach ( $paths->pages as $i => $_ )
       {
         if( ( 
             preg_match('#'.preg_quote($name).'(.*)#i', $paths->pages[$i]['name']) ||

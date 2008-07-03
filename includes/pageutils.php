@@ -1307,7 +1307,7 @@ class PageUtils {
     }
     $db->free_result();
     $cat_all = Array();
-    for($i=0;$i<sizeof($paths->pages)/2;$i++)
+    foreach ( $paths->pages as $i => $_ )
     {
       if($paths->pages[$i]['namespace']=='Category') $cat_all[] = $paths->pages[$i];
     }
@@ -1383,7 +1383,7 @@ class PageUtils {
     $page_data =& $paths->pages[$paths->nslist[$namespace].$page_id];
     
     $cat_all = Array();
-    for($i=0;$i<sizeof($paths->pages)/2;$i++)
+    foreach ( $paths->pages as $i => $_ )
     {
       if($paths->pages[$i]['namespace']=='Category') $cat_all[] = $paths->pages[$i];
     }
