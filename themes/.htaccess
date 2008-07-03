@@ -1,0 +1,17 @@
+# Thanks to http://phaedo.cx/archives/2007/07/25/tools-for-optimizing-your-website-etag-and-expire-headers-in-django-apache-and-lighttpd/ for this.
+FileETag MTime Size
+
+# http://www.askapache.com/htaccess/apache-speed-expires.html
+<IfModule mod_headers.c>
+  <FilesMatch "\.(jpg|jpeg|png|gif|js|css)$">
+    Header set Expires "Wed, 1 Jan 2020 20:00:00 GMT"
+  </FilesMatch>
+</IfModule>
+
+# http://www.askapache.com/htaccess/apache-speed-compression.html
+<IfModule mod_deflate.c>
+  <FilesMatch "\.(js|css)$">
+    SetOutputFilter DEFLATE
+  </FilesMatch>
+</IfModule>
+
