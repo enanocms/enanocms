@@ -13,6 +13,7 @@ var pagin_objects = new Object();
 
 window.paginator = function(data, callback, offset, perpage, passer)
 {
+  load_component('flyin');
   if ( !perpage || typeof(perpage) != 'number' || ( typeof(perpage) == 'number' && perpage < 1 ) )
   {
     this.perpage = 10;

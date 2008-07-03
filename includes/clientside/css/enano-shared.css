@@ -2,10 +2,6 @@
  * Shared stuff that all Enano themes (should) use
  */
 
-/* IE-only stylesheet */
-@import url("./enano-shared-ie.css");
-/* End IE-only stylesheet */
- 
 /* Information, warning, question, error, and wait boxes */
 div.error-box                     { background-image: url(../../../images/error.png);    background-position: 8px 8px; background-repeat: no-repeat; background-color: #FFF4F4; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }
 div.info-box                      { background-image: url(../../../images/info.png);     background-position: 8px 8px; background-repeat: no-repeat; background-color: #F4F4FF; border: 1px dashed #406080; padding: 10px 10px 10px 50px; margin: 1em 0 0 0; min-height: 25px; }

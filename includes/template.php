@@ -956,11 +956,13 @@ class template
     //
     
     $is_opera = (isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'Opera')) ? true : false;
+    $is_msie = (isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE')) ? true : false;
     
     $this->tpl_bool = Array(
       'auth_admin' => $session->user_level >= USER_LEVEL_ADMIN ? true : false,
       'user_logged_in' => $session->user_logged_in,
       'opera' => $is_opera,
+      'msie' => $is_msie
       );
     
     if ( $session->sid_super )

@@ -120,28 +120,15 @@ $everything = "/* The code represented in this file is compressed for optimizati
 
 // if we only want the tiny version of the API (just enough to get by until the full one is loaded), send that
 // with a simple ETag and far future expires header
+
+// note - obfuscated for optimization purposes. The exact same code except properly indented is in enano-lib-basic.
 if ( isset($_GET['early']) )
 {
-  header('ETag: enanocms-lib-early-r1');
+  header('ETag: enanocms-lib-early-r2');
   header('Expires: Wed, 1 Jan 2020 00:00:00 GMT');
   
   echo <<<JSEOF
-var onload_hooks = new Array();
-
-function addOnloadHook(func)
-{
-  if ( typeof ( func ) == 'function' )
-  {
-    if ( typeof(onload_hooks.push) == 'function' )
-    {
-      onload_hooks.push(func);
-    }
-    else
-    {
-      onload_hooks[onload_hooks.length] = func;
-    }
-  }
-}
+var onload_hooks = new Array();function addOnloadHook(func){if ( typeof ( func ) == 'function' ){if ( typeof(onload_hooks.push) == 'function' ){onload_hooks.push(func);}else{onload_hooks[onload_hooks.length] = func;};};}
 JSEOF;
   
   exit();
