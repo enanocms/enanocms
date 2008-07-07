@@ -1008,6 +1008,9 @@ class template
     $this->tpl_bool['stupid_mode'] = false;
     $this->tpl_bool['in_admin'] = ( ( $local_page_id == 'Administration' && $local_namespace == 'Special' ) || $local_namespace == 'Admin' );
     
+    // allows conditional testing of the theme ID (a bit crude, came from my NSIS days)
+    $this->tpl_bool["theme_is_{$this->theme}"] = true;
+    
     $p = ( isset($_GET['printable']) ) ? '/printable' : '';
     
     // Add the e-mail address client code to the header
