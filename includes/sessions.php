@@ -436,73 +436,7 @@ class sessionManager {
         
         if(!$this->compat && $userdata['account_active'] != 1 && $data[1] != 'Special' && $data[1] != 'Admin')
         {
-          $language = intval(getConfig('default_language'));
-          $lang = new Language($language);
-          @setlocale(LC_ALL, $lang->lang_code);
-          
-          $this->logout();
-          $a = getConfig('account_activation');
-          switch($a)
-          {
-            case 'none':
-            default:
-              $solution = $lang->get('user_login_noact_solution_none');
-              break;
-            case 'user':
-              $solution = $lang->get('user_login_noact_solution_user');
-              break;
-            case 'admin':
-              $solution = $lang->get('user_login_noact_solution_admin');
-              break;
-          }
-          
-          // admin activation request opportunity
-          $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\' AND edit_summary=\'' . $db->escape($userdata['username']) . '\';');
-          if ( !$q )
-            $db->_die();
-          
-          $can_request = ( $db->numrows() < 1 );
-          $db->free_result();
-          
-          if ( isset($_POST['logout']) )
-          {
-            $this->sid = $_COOKIE['sid'];
-            $this->user_logged_in = true;
-            $this->user_id =       intval($userdata['user_id']);
-            $this->username =      $userdata['username'];
-            $this->auth_level =    USER_LEVEL_MEMBER;
-            $this->user_level =    USER_LEVEL_MEMBER;
-            $this->logout();
-            redirect(scriptPath . '/', $lang->get('user_login_noact_msg_logout_success_title'), $lang->get('user_login_noact_msg_logout_success_body'), 5);
-          }
-          
-          if ( $can_request && !isset($_POST['activation_request']) )
-          {
-            $form = '<p>' . $lang->get('user_login_noact_msg_ask_admins') . '</p>
-                     <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
-                       <p><input type="submit" name="activation_request" value="' . $lang->get('user_login_noact_btn_request_activation') . '" /> <input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
-                     </form>';
-          }
-          else
-          {
-            if ( $can_request && isset($_POST['activation_request']) )
-            {
-              $this->admin_activation_request($userdata['username']);
-              $form = '<p>' . $lang->get('user_login_noact_msg_admins_just_asked') . '</p>
-                       <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
-                         <p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
-                       </form>';
-            }
-            else
-            {
-              $form = '<p>' . $lang->get('user_login_noact_msg_admins_asked') . '</p>
-                       <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
-                         <p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
-                       </form>';
-            }
-          }
-          
-          die_semicritical($lang->get('user_login_noact_title'), '<p>' . $lang->get('user_login_noact_msg_intro') . ' '.$solution.'</p>' . $form);
+          $this->show_inactive_error($userdata);
         }
         
         $this->sid = $_COOKIE['sid'];
@@ -1155,6 +1089,7 @@ class sessionManager {
     // Encrypt the key
     $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $session_key = $aes->encrypt($session_key, $this->private_key, ENC_HEX);
+    $dec_DEBUG = $aes->decrypt($session_key, $this->private_key, ENC_HEX);
     
     // If we're registering an elevated-privilege key, it needs to be on GET
     if($level > USER_LEVEL_MEMBER)
@@ -1297,7 +1232,7 @@ class sessionManager {
                              . '    AND k.salt=\''.$salt.'\'' . "\n"
                              . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_timezone,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public, x.disable_js_fx;');
     
-    if ( !$query )
+    if ( !$query && ( defined('IN_ENANO_INSTALL') or defined('IN_ENANO_UPGRADE') ) )
     {
       $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone FROM '.table_prefix.'session_keys AS k
                              LEFT JOIN '.table_prefix.'users AS u
@@ -1307,6 +1242,10 @@ class sessionManager {
                              WHERE k.session_key=\''.$keyhash.'\'
                                AND k.salt=\''.$salt.'\'
                              GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level;');
+    }
+    else if ( !$query )
+    {
+      $db->_die();
     }
     if($db->numrows() < 1)
     {
@@ -1500,6 +1439,85 @@ class sessionManager {
   }
   
   # Miscellaneous stuff
+  
+  /**
+   * Alerts the user that their account is inactive, and tells them appropriate steps to remedy the situation. Halts execution.
+   * @param array Return from validate_session()
+   */
+  
+  function show_inactive_error($userdata)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    $language = intval(getConfig('default_language'));
+    $lang = new Language($language);
+    @setlocale(LC_ALL, $lang->lang_code);
+    
+    $this->logout();
+    $a = getConfig('account_activation');
+    switch($a)
+    {
+      case 'none':
+      default:
+        $solution = $lang->get('user_login_noact_solution_none');
+        break;
+      case 'user':
+        $solution = $lang->get('user_login_noact_solution_user');
+        break;
+      case 'admin':
+        $solution = $lang->get('user_login_noact_solution_admin');
+        break;
+    }
+    
+    // admin activation request opportunity
+    $q = $db->sql_query('SELECT 1 FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\' AND edit_summary=\'' . $db->escape($userdata['username']) . '\';');
+    if ( !$q )
+      $db->_die();
+    
+    $can_request = ( $db->numrows() < 1 );
+    $db->free_result();
+    
+    if ( isset($_POST['logout']) )
+    {
+      $this->sid = $_COOKIE['sid'];
+      $this->user_logged_in = true;
+      $this->user_id =       intval($userdata['user_id']);
+      $this->username =      $userdata['username'];
+      $this->auth_level =    USER_LEVEL_MEMBER;
+      $this->user_level =    USER_LEVEL_MEMBER;
+      $this->logout();
+      redirect(scriptPath . '/', $lang->get('user_login_noact_msg_logout_success_title'), $lang->get('user_login_noact_msg_logout_success_body'), 5);
+    }
+    
+    if ( $can_request && !isset($_POST['activation_request']) )
+    {
+      $form = '<p>' . $lang->get('user_login_noact_msg_ask_admins') . '</p>
+               <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+                 <p><input type="submit" name="activation_request" value="' . $lang->get('user_login_noact_btn_request_activation') . '" /> <input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
+               </form>';
+    }
+    else
+    {
+      if ( $can_request && isset($_POST['activation_request']) )
+      {
+        $this->admin_activation_request($userdata['username']);
+        $form = '<p>' . $lang->get('user_login_noact_msg_admins_just_asked') . '</p>
+                 <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+                   <p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
+                 </form>';
+      }
+      else
+      {
+        $form = '<p>' . $lang->get('user_login_noact_msg_admins_asked') . '</p>
+                 <form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+                   <p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
+                 </form>';
+      }
+    }
+    
+    die_semicritical($lang->get('user_login_noact_title'), '<p>' . $lang->get('user_login_noact_msg_intro') . ' '.$solution.'</p>' . $form);
+  }
   
   /**
    * Appends the high-privilege session key to the URL if we are authorized to do high-privilege stuff
