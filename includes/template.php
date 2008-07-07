@@ -2079,6 +2079,22 @@ EOF;
           $c = (gettype($this->fetch_block($row['block_content'])) == 'string') ? $this->fetch_block($row['block_content']) : /* This used to say "can't find plugin block" but I think it's more friendly to just silently hide it. */ '';
           break;
       }
+      // is there a {restrict} or {hideif} block?
+      if ( preg_match('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', $c, $match) )
+      {
+        // we have one, check the condition
+        $type =& $match[1];
+        $cond =& $match[2];
+        $result = $this->process_condition($cond);
+        if ( ( $type == 'restrict' && $result == 1 ) || ( $type == 'hideif' && $result == 2 ) )
+        {
+          // throw out this block, it's hidden for whatever reason by the sidebar script
+          continue;
+        }
+        // didn't get a match, so hide the conditional logic
+        $c = str_replace_once($match[0], '', $c);
+      }
+      
       $parser->assign_vars(Array( 'TITLE'=>$this->tplWikiFormat($row['block_name']), 'CONTENT'=>$c ));
       $run = $parser->run();
       if ( $row['block_type'] == BLOCK_PLUGIN )

@@ -48,12 +48,12 @@ $plugins->attachHook('common_post', 'SpecialAdmin_include();');
 
 function SpecialAdmin_include()
 {
-  global $paths;
+  global $db, $session, $paths, $template, $plugins; // Common objects
   
   // Admin pages that were too enormous to be in this file were split off into the plugins/admin/ directory in 1.0.1.
   // Only load these files if we're looking to load the admin panel
   list($pid, $ns) = RenderMan::strToPageID($paths->get_pageid_from_url());
-  if ( $ns == 'Admin' )
+  if ( $ns == 'Admin' || ( $pid == 'Administration' && $ns == 'Special' ) )
   {
     require(ENANO_ROOT . '/plugins/admin/PageManager.php');
     require(ENANO_ROOT . '/plugins/admin/PageEditor.php');
@@ -65,6 +65,11 @@ function SpecialAdmin_include()
     require(ENANO_ROOT . '/plugins/admin/LangManager.php');
     require(ENANO_ROOT . '/plugins/admin/ThemeManager.php');
     require(ENANO_ROOT . '/plugins/admin/PluginManager.php');
+    // require(ENANO_ROOT . '/plugins/admin/CacheManager.php');
+    
+    // Set the theme
+    $session->theme = 'admin';
+    $session->style = 'default';
   }
 }
 
@@ -1968,8 +1973,6 @@ function page_Special_Administration()
   else
   {
     $template->add_header('<script type="text/javascript" src="' . scriptPath . '/includes/clientside/static/admin-menu.js"></script>');
-    $template->load_theme('admin', 'default');
-    $template->init_vars();
     if( !isset( $_GET['noheaders'] ) ) 
     {
       $template->header();
@@ -2551,6 +2554,7 @@ function page_Special_EditSidebar()
               $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : $lang->get('sbedit_msg_plugin_not_loaded');
               break;
           }
+          $c = preg_replace('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', '', $c);
           die('var status = \'GOOD\'; var content = unescape(\''.hexencode($c).'\');');
           break;
       }
@@ -2631,6 +2635,7 @@ function page_Special_EditSidebar()
           $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : $lang->get('sbedit_msg_plugin_not_loaded');
           break;
       }
+      $c = preg_replace('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', '', $c);
       $block_name = $row['block_name']; // $template->tplWikiFormat($row['block_name']);
       if ( empty($block_name) )
         $block_name = '&lt;' . $lang->get('sbedit_note_block_unnamed') . '&gt;';
