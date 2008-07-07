@@ -288,7 +288,7 @@ class pluginLoader {
           
         // it's a PHP file, attempt to read metadata
         $fullpath = ENANO_ROOT . "/plugins/$dh";
-        $plugin_meta = $this->get_plugin_info($fullpath);
+        $plugin_meta = $this->get_plugin_info($fullpath, $use_cache);
         
         if ( is_array($plugin_meta) )
         {
@@ -337,7 +337,7 @@ class pluginLoader {
    * @return array
    */
   
-  function get_plugin_info($fullpath)
+  function get_plugin_info($fullpath, $use_cache = true)
   {
     global $plugins_cache;
     $dh = basename($fullpath);
