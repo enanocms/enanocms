@@ -137,6 +137,7 @@ require_once(ENANO_ROOT.'/includes/paths.php');
 require_once(ENANO_ROOT.'/includes/sessions.php');
 require_once(ENANO_ROOT.'/includes/template.php');
 require_once(ENANO_ROOT.'/includes/plugins.php');
+require_once(ENANO_ROOT.'/includes/cache.php');
 require_once(ENANO_ROOT.'/includes/lang.php');
 require_once(ENANO_ROOT.'/includes/render.php');
 require_once(ENANO_ROOT.'/includes/rijndael.php');
@@ -308,6 +309,9 @@ install_language("eng", "English", "English", ENANO_ROOT . "/language/english/en
 }
 
 profiler_log('Ran checks');
+
+// Init cache
+$cache = new CacheManager();
 
 // Load plugin manager
 $plugins = new pluginLoader();

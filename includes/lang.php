@@ -122,14 +122,21 @@ class Language
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $lang_file = ENANO_ROOT . "/cache/lang_{$this->lang_id}.php";
     // Attempt to load the strings from a cache file
-    if ( file_exists($lang_file) && $allow_cache )
+    $loaded = false;
+    
+    if ( $allow_cache )
     {
-      // Yay! found it
-      $this->load_cache_file($lang_file);
+      // Load the cache manager
+      global $cache;
+      
+      if ( $cached = $cache->fetch("lang_{$this->lang_id}") )
+      {
+        $this->merge($cached);
+        $loaded = true;
+      }
     }
-    else
+    if ( !$loaded )
     {
       // No cache file - select and retrieve from the database
       $q = $db->sql_unbuffered_query("SELECT string_category, string_name, string_content FROM " . table_prefix . "language_strings WHERE lang_id = {$this->lang_id};");
@@ -150,6 +157,7 @@ class Language
         while ( $row = $db->fetchrow() );
         // all done fetching
         $this->merge($strings);
+        $this->regen_caches(false);
       }
       else
       {
@@ -528,41 +536,24 @@ $lang_cache = ');
    * Refetches the strings and writes out the cache file.
    */
   
-  function regen_caches()
+  function regen_caches($refetch = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $lang_file = ENANO_ROOT . "/cache/lang_{$this->lang_id}.php";
-    
     // Refresh the strings in RAM to the latest copies in the DB
-    $this->fetch(false);
+    if ( $refetch )
+      $this->fetch(false);
     
-    $handle = @fopen($lang_file, 'w');
-    if ( !$handle )
-      // Couldn't open the file. Silently fail and let the strings come from the database.
-      return false;
-      
-    // The file's open, that means we should be good.
-    fwrite($handle, '<?php
-// This file was generated automatically by Enano. You should not edit this file because any changes you make
-// to it will not be visible in the ACP and all changes will be lost upon any changes to strings in the admin panel.
-
-$lang_cache = ');
+    // Load the cache manager
+    global $cache;
     
-    $exported = $this->var_export_string($this->strings);
-    if ( empty($exported) )
-      // Ehh, that's not good
-      $db->_die('lang.php - var_export_string() failed');
-    
-    fwrite($handle, $exported . '; ?>');
+    // Store it
+    $cache->store("lang_{$this->lang_id}", $this->strings, -1);
     
     // Update timestamp in database
     $q = $db->sql_query('UPDATE ' . table_prefix . 'language SET last_changed = ' . time() . ' WHERE lang_id = ' . $this->lang_id . ';');
     if ( !$q )
       $db->_die('lang.php - updating timestamp on language');
-    
-    // Done =)
-    fclose($handle);
   }
   
   /**

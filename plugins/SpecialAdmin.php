@@ -2166,6 +2166,7 @@ function page_Special_EditSidebar()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $cache;
   
   if($session->auth_level < USER_LEVEL_ADMIN) 
   {
@@ -2227,6 +2228,7 @@ function page_Special_EditSidebar()
           exit;
         }
       }
+      $cache->purge('anon_sidebar');
       echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_order_update_success') . '</div>';
     }
     elseif(isset($_POST['create']))
@@ -2279,7 +2281,8 @@ function page_Special_EditSidebar()
         $template->footer();
         exit;
       }
-      
+    
+      $cache->purge('anon_sidebar');
       echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_item_added') . '</div>';
       
     }
@@ -2385,7 +2388,7 @@ function page_Special_EditSidebar()
                 <?php
                   foreach($template->plugin_blocks as $k => $c)
                   {
-                    echo '<option value="'.$k.'">'.$k.'</option>';
+                    echo '<option value="'.$k.'">'.$lang->get($k).'</option>';
                   }
                 ?>
                 </select>
@@ -2414,6 +2417,7 @@ function page_Special_EditSidebar()
           return;
           break;
         case 'move':
+          $cache->purge('anon_sidebar');
           if( !isset($_GET['side']) || ( isset($_GET['side']) && !preg_match('#^([0-9]+)$#', $_GET['side']) ) )
           {
             echo '<div class="warning-box" style="margin: 10px 0;">$_GET[\'side\'] contained an SQL injection attempt</div>';
@@ -2436,6 +2440,7 @@ function page_Special_EditSidebar()
             $template->footer();
             exit;
           }
+          $cache->purge('anon_sidebar');
           if(isset($_GET['ajax']))
           {
             ob_end_clean();
@@ -2493,6 +2498,8 @@ function page_Special_EditSidebar()
           ob_end_clean();
           $r = $db->fetchrow();
           $db->free_result();
+          $cache->purge('anon_sidebar');
+          
           if($r['block_type'] == BLOCK_PLUGIN) die('HOUSTON_WE_HAVE_A_PLUGIN');
           die($r['block_content']);
           break;
@@ -2555,6 +2562,7 @@ function page_Special_EditSidebar()
               break;
           }
           $c = preg_replace('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', '', $c);
+          $cache->purge('anon_sidebar');
           die('var status = \'GOOD\'; var content = unescape(\''.hexencode($c).'\');');
           break;
       }

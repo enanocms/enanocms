@@ -446,7 +446,6 @@ class pluginLoader {
     
     $this->update_plugins_cache($plugin_info);
     $GLOBALS['plugins_cache'] = $plugin_info;
-    @define('ENANO_PLUGINS_CACHE_LOADED', true);
   }
   
   /**
@@ -457,26 +456,8 @@ class pluginLoader {
   
   function update_plugins_cache($plugin_info)
   {
-    $plugin_info = Language::var_export_string($plugin_info);
-    
-    $file = ENANO_ROOT . '/cache/cache_plugins.php';
-    $fh = @fopen($file, 'w');
-    if ( !$fh )
-      // can't open for writing
-      return false;
-      
-    $contents = <<<EOF
-<?php
-/**
- * Cache of plugin files. Automatically generated, any modifications will soon be lost
- */
-
-@define('ENANO_PLUGINS_CACHE_LOADED', true);
-\$GLOBALS['plugins_cache'] = $plugin_info;
-
-EOF;
-    fwrite($fh, $contents);
-    fclose($fh);
+    global $cache;
+    return $cache->store('plugins', $plugin_info, -1);
   }
   
   /**
@@ -485,9 +466,10 @@ EOF;
   
   function load_plugins_cache()
   {
-    if ( file_exists(ENANO_ROOT . '/cache/cache_plugins.php') && !defined('ENANO_PLUGINS_CACHE_LOADED') )
+    global $cache;
+    if ( $data = $cache->fetch('plugins') )
     {
-      require(ENANO_ROOT . '/cache/cache_plugins.php');
+      $GLOBALS['plugins_cache'] = $data;
     }
   }
   

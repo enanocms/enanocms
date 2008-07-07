@@ -836,7 +836,7 @@ function sidebar_add_tag_cloud()
     }
     $sb_html = $cloud->make_html('small', 'justify') . '<br /><a style="text-align: center;" href="' . makeUrlNS('Special', 'TagCloud') . '">' . $lang->get('pagetools_tagcloud_sidebar_btn_larger') . '</a>';
   }
-  $template->sidebar_widget($lang->get('pagetools_tagcloud_sidebar_title'), "<div style='padding: 5px;'>$sb_html</div>");
+  $template->sidebar_widget('pagetools_tagcloud_sidebar_title', "<div style='padding: 5px;'>$sb_html</div>");
 }
 
 $plugins->attachHook('compile_template', 'sidebar_add_tag_cloud();');

@@ -2014,26 +2014,18 @@ EOF;
   function fetch_sidebar()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $cache;
     
     $left = '';
     $right = '';
     
     // check the cache
-    $cache_enable = getConfig('cache_thumbs') == '1' && !$session->user_logged_in;
-    $cache_file = ENANO_ROOT . "/cache/cache_anon_sidebar.php";
-    $cache_fresh = intval(getConfig('sidebar_anon_cache_time') + 600) >= time();
-    if ( $cache_enable && $cache_fresh )
+    if ( !$session->user_logged_in && $data = $cache->fetch('anon_sidebar') )
     {
-      @include($cache_file);
-      if ( isset($sidebar_cache) )
+      if ( @$data['_theme_'] === $this->theme )
       {
-        // we loaded the cache!
-        foreach ( $sidebar_cache as $i => $_ )
-        {
-          $block =& $sidebar_cache[$i];
-          $block = str_replace('$USERNAME$', $session->username, $block);
-        }
-        return $sidebar_cache;
+        unset($data['_theme_']);
+        return $data;
       }
     }
     
@@ -2079,7 +2071,7 @@ EOF;
           break;
         case BLOCK_PLUGIN:
           $parser = $this->makeParserText('{CONTENT}');
-          $c = (gettype($this->fetch_block($row['block_content'])) == 'string') ? $this->fetch_block($row['block_content']) : /* This used to say "can't find plugin block" but I think it's more friendly to just silently hide it. */ '';
+          $c = '<!-- PLUGIN -->' . (gettype($this->fetch_block($row['block_content'])) == 'string') ? $this->fetch_block($row['block_content']) : /* This used to say "can't find plugin block" but I think it's more friendly to just silently hide it. */ '';
           break;
       }
       // is there a {restrict} or {hideif} block?
@@ -2125,26 +2117,14 @@ EOF;
       $min .= $bottom;
     }
     $return = Array($left, $right, $min);
-    if ( $cache_enable )
+    if ( getConfig('cache_thumbs') == '1' && !$session->user_logged_in )
     {
-      $cachestore = Language::var_export_string($return);
+      $cachestore = enano_json_encode($return);
       $cachestore = str_replace($session->username, '$USERNAME$', $cachestore);
-      $cachestore = <<<EOF
-<?php
-/**
- * Automatically generated cache of the sidebar for guests.
- * Do not modify this, it is refreshed every 15 minutes.
- */
-
-\$sidebar_cache = $cachestore;
-EOF;
-      $fh = @fopen($cache_file, 'w');
-      if ( $fh )
-      {
-        fwrite($fh, $cachestore);
-        fclose($fh);
-      }
-      setConfig('sidebar_anon_cache_time', time());
+      $cachestore = str_replace($paths->page, '$PAGEID$', $cachestore);
+      $cachestore = enano_json_decode($cachestore);
+      $cachestore['_theme_'] = $this->theme;
+      $cache->store('anon_sidebar', $cachestore, 10);
     }
     return $return;
   }
