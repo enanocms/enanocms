@@ -4539,6 +4539,49 @@ function load_rank_data()
   }
 }
 
+/**
+ * Function to purge all caches used in Enano. Useful for upgrades, maintenance, backing the site up, etc.
+ */
+
+function purge_all_caches()
+{
+  if ( $dh = opendir(ENANO_ROOT . '/cache') )
+  {
+    $data_files = array(
+        'aes_decrypt.php',
+        'cache_anon_sidebar.php',
+        'cache_page_meta.php',
+        'cache_plugins.php',
+        'cache_ranks.php'
+      );
+    while ( $file = @readdir($dh) )
+    {
+      $fullpath = ENANO_ROOT . "/cache/$file";
+      // we don't want to mess with directories
+      if ( !is_file($fullpath) )
+        continue;
+      
+      // data files
+      if ( in_array($file, $data_files) )
+        unlink($fullpath);
+      // template files
+      else if ( preg_match('/\.(?:tpl|css)\.php$/', $file) )
+        unlink($fullpath);
+      // compressed javascript
+      else if ( preg_match('/^jsres_(?:[A-z0-9_-]+)\.js\.json$/', $file) )
+        unlink($fullpath);
+      // tinymce stuff
+      else if ( preg_match('/^tiny_mce_(?:[a-f0-9]+)\.gz$/', $file) )
+        unlink($fullpath);
+      // language files
+      else if ( preg_match('/^lang_json_(?:[a-f0-9]+?)\.php$/', $file) || preg_match('/^lang_(?:[0-9]+?)\.php$/', $file) )
+        unlink($fullpath);
+    }
+    return true;
+  }
+  return false;
+}
+
 //die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>
