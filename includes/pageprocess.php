@@ -354,6 +354,7 @@ class PageProcessor
         // Something sent content, so we'll assume the page exist...ed at least according to the plugin
         if ( $this->namespace != 'Special' && $this->namespace != 'Admin' && $do_stats )
         {
+          require_once(ENANO_ROOT.'/includes/stats.php');
           doStats($this->page_id, $this->namespace);
         }
       }
@@ -862,6 +863,9 @@ class PageProcessor
     $q = $db->sql_query('UPDATE ' . table_prefix . "pages SET name = '$new_name' WHERE urlname = '{$this->page_id}' AND namespace = '{$this->namespace}';");
     if ( !$q )
       $db->_die();
+    
+    // Update the cache
+    $paths->update_metadata_cache();
     
     return array(
       'success' => true
