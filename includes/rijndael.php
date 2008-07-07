@@ -1223,8 +1223,10 @@ class Crypt_Rijndael_Key extends Crypt_Rijndael
     $i = 0;
     $rk = 0;
     
-    if ( $this->key_state == 'encrypt' )
+    if ( $this->key_state === 'encrypt' )
+    {
       return 0;
+    }
     
     $this->key_state = 'encrypt';
     
@@ -1340,13 +1342,18 @@ class Crypt_Rijndael_Key extends Crypt_Rijndael
     $rk = 0;
     $bits =& $this->bits;
     
-    if ( $this->key_state == 'decrypt' )
+    if ( $this->key_state === 'decrypt' )
+    {
       return 0;
+    }
     
     $this->key_state = 'decrypt';
-
+    
     // first, start with an encryption schedule 
-    $status = $this->set_encrypt($bits);
+    $status = $this->set_encrypt();
+    
+    // set the state again because set_encrypt() will change it
+    $this->key_state = 'decrypt';
     
     if ($status < 0) {
       librijndael2::trace("AES_set_decrypt_key: AES_set_encrypt_key error");
@@ -1458,11 +1465,11 @@ class AESCrypt
    * @return string
    */
   
-  function pad_string($string)
+  protected function pad_string($string)
   {
     while ( strlen($string) % 32 > 0 )
     {
-      $string .= "\000";
+      $string .= "00";
     }
     return $string;
   }
@@ -1536,7 +1543,8 @@ class AESCrypt
     $plaintext = str_split($this->pad_string($plaintext), 32);
     foreach ( $plaintext as $block )
     {
-      $result .= $aes->AES_cbc_encrypt($block, $okey, $ivec, 'AES_ENCRYPT');
+      $block = $aes->AES_cbc_encrypt($block, $okey, $ivec, 'AES_ENCRYPT');
+      $result .= $block;
     }
     
     switch ( $return_format )
@@ -1602,10 +1610,11 @@ class AESCrypt
     // perform decryption
     $result = '';
     $cryptext_orig = $cryptext;
-    $cryptext = str_split($cryptext, 32);
+    $cryptext = enano_str_split($cryptext, 32);
     foreach ( $cryptext as $block )
     {
-      $result .= $aes->AES_cbc_encrypt($block, $okey, $ivec, 'AES_DECRYPT');
+      $block = $aes->AES_cbc_encrypt($block, $okey, $ivec, 'AES_DECRYPT');
+      $result .= $block;
     }
     
     // decode result and trim nul bytes
@@ -1639,6 +1648,43 @@ class AESCrypt
     return $instance;
   }
   
+  #
+  # Utility functions
+  #
+  
+  /**
+   * Generates a random key suitable for encryption
+   * @param int $len the length of the key, in bytes
+   * @return string a BINARY key
+   */
+  
+  function randkey($len = 32)
+  {
+    $key = '';
+    for($i=0;$i<$len;$i++)
+    {
+      $key .= chr(mt_rand(0, 255));
+    }
+    if ( @file_exists('/dev/urandom') && @is_readable('/dev/urandom') )
+    {
+      // Let's use something a little more secure
+      $ur = @fopen('/dev/urandom', 'r');
+      if ( !$ur )
+        return $key;
+      $ukey = @fread($ur, $len);
+      fclose($ur);
+      if ( strlen($ukey) != $len )
+        return $key;
+      return $ukey;
+    }
+    return $key;
+  }
+  
+  function gen_readymade_key()
+  {
+    $key = librijndael2::string2hex($this->randkey(AES_BITS / 8));
+    return $key;
+  }
 }
 
 function aes_decrypt_cache_store($encrypted, $decrypted, $key)
