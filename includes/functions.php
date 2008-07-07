@@ -579,6 +579,23 @@ function arrayItemBottom($arr, $keyname) {
   return $arr;
 }
 
+/**
+ * Implementation of array_merge() that preserves key names. $arr2 takes precedence over $arr1.
+ * @param array $arr1
+ * @param array $arr2
+ * @return array
+ */
+
+function enano_safe_array_merge($arr1, $arr2)
+{
+  $arr3 = $arr1;
+  foreach($arr2 as $k => $v)
+  {
+    $arr3[$k] = $v;
+  }
+  return $arr3;
+}
+
 // Convert IP address to hex string
 // Input:  127.0.0.1  (string)
 // Output: 0x7f000001 (string)

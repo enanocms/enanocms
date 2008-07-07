@@ -14,23 +14,6 @@
  */
 
 /**
- * Implementation of array_merge() that preserves key names. $arr2 takes precedence over $arr1.
- * @param array $arr1
- * @param array $arr2
- * @return array
- */
-
-function enano_safe_array_merge($arr1, $arr2)
-{
-  $arr3 = $arr1;
-  foreach($arr2 as $k => $v)
-  {
-    $arr3[$k] = $v;
-  }
-  return $arr3;
-}
-
-/**
  * In Enano versions prior to 1.0.2, this class provided a search function that was keyword-based and allowed boolean searches. It was
  * cut from Coblynau and replaced with perform_search(), later in this file, because of speed issues. Now mostly deprecated. The only
  * thing remaining is the buildIndex function, which is still used by the path manager and the new search framework.
