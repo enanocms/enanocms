@@ -92,13 +92,14 @@ class pathManager
     $this->addAdminNode('adm_cat_general',    'adm_page_general_config', 'GeneralConfig', scriptPath . '/images/icons/applets/generalconfig.png');
     $this->addAdminNode('adm_cat_general',    'adm_page_file_uploads',   'UploadConfig', scriptPath . '/images/icons/applets/uploadconfig.png');
     $this->addAdminNode('adm_cat_general',    'adm_page_file_types',     'UploadAllowedMimeTypes', scriptPath . '/images/icons/applets/uploadallowedmimetypes.png');
-    $this->addAdminNode('adm_cat_general',    'adm_page_plugins',        'PluginManager', scriptPath . '/images/icons/applets/pluginmanager.png');
-    $this->addAdminNode('adm_cat_general',    'adm_page_db_backup',      'DBBackup', scriptPath . '/images/icons/applets/dbbackup.png');
-    $this->addAdminNode('adm_cat_general',    'adm_page_lang_manager',   'LangManager', scriptPath . '/images/icons/applets/langmanager.png');
     $this->addAdminNode('adm_cat_content',    'adm_page_manager',        'PageManager', scriptPath . '/images/icons/applets/pagemanager.png');
     $this->addAdminNode('adm_cat_content',    'adm_page_editor',         'PageEditor', scriptPath . '/images/icons/applets/pageeditor.png');
     $this->addAdminNode('adm_cat_content',    'adm_page_pg_groups',      'PageGroups', scriptPath . '/images/icons/applets/pagegroups.png');
     $this->addAdminNode('adm_cat_appearance', 'adm_page_themes',         'ThemeManager', scriptPath . '/images/icons/applets/thememanager.png');
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_plugins',        'PluginManager', scriptPath . '/images/icons/applets/pluginmanager.png');
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_db_backup',      'DBBackup', scriptPath . '/images/icons/applets/dbbackup.png');
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_lang_manager',   'LangManager', scriptPath . '/images/icons/applets/langmanager.png');
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_cache_manager',  'CacheManager', scriptPath . '/images/icons/applets/cachemanager.png');
     $this->addAdminNode('adm_cat_users',      'adm_page_users',          'UserManager', scriptPath . '/images/icons/applets/usermanager.png');
     $this->addAdminNode('adm_cat_users',      'adm_page_user_groups',    'GroupManager', scriptPath . '/images/icons/applets/groupmanager.png');
     $this->addAdminNode('adm_cat_users',      'adm_page_coppa',          'COPPA', scriptPath . '/images/icons/applets/coppa.png');

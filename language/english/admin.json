@@ -14,7 +14,7 @@ var enano_lang = {
   categories: [
     'meta', 'adm', 'acl', 'adminusers',
     'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acplm', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl',
-    'acpbc', 'acplo', 'acptm', 'acpur', 'sbedit',
+    'acpcm', 'acpbc', 'acplo', 'acptm', 'acpur', 'sbedit',
   ],
   strings: {
     meta: {
@@ -24,12 +24,13 @@ var enano_lang = {
       acpgc: 'ACP: General configuration',
       acpup: 'ACP: File uploads',
       acpft: 'ACP: Allowed file types',
-      acppl: 'ACP: Manage plugins',
-      acpdb: 'ACP: Database backup',
-      acplm: 'ACP: Language manager',
       acppm: 'ACP: Manage pages',
       acped: 'ACP: Edit page content',
       acptm: 'ACP: Theme manager',
+      acppl: 'ACP: Manage plugins',
+      acpdb: 'ACP: Database backup',
+      acplm: 'ACP: Language manager',
+      acpcm: 'ACP: Cache settings',
       acppg: 'ACP: Page groups',
       acpum: 'ACP: User management',
       acpur: 'ACP: User rank management',
@@ -46,7 +47,7 @@ var enano_lang = {
       
       cat_general: 'General',
       cat_content: 'Content',
-      cat_appearance: 'Appearance',
+      cat_appearance: 'System and maintenance',
       cat_users: 'Users',
       cat_security: 'Security',
       cat_plugins: 'Plugin configuration',
@@ -54,15 +55,16 @@ var enano_lang = {
       page_general_config: 'General configuration',
       page_file_uploads: 'File uploads',
       page_file_types: 'Allowed file types',
-      page_plugins: 'Manage plugins',
-      page_db_backup: 'Backup database',
-      page_lang_manager: 'Language manager',
       
       page_manager: 'Manage pages',
       page_editor: 'Edit page content',
       page_pg_groups: 'Manage page groups',
       
       page_themes: 'Manage themes',
+      page_plugins: 'Manage plugins',
+      page_db_backup: 'Backup database',
+      page_lang_manager: 'Language manager',
+      page_cache_manager: 'Cache settings',
       
       page_users: 'Manage users',
       page_user_groups: 'Edit user groups',
@@ -538,6 +540,17 @@ var enano_lang = {
       warn_access_with_default: 'If you selected to whitelist or blacklist certain users, that choice will not apply to guests because this is the default theme.',
       msg_save_success: 'Your changes to this theme have been saved.',
       msg_uninstall_success: 'The selected theme has been uninstalled.',
+    },
+    acpcm: {
+      heading_main: 'Performance and caching settings',
+      intro: 'From this page you can control what information on your site is stored in cache files. Caching speeds up Enano performance by allowing data to be retrieved from the disk instead of querying the database. Sometimes the cache isn\'t updated immediately when the database is. From this page you can control what is cached, and you can clear specific caches to force them to refresh.',
+      table_header: 'Cache settings',
+      lbl_enable_cache: 'Enable the cache (recommended)',
+      hint_enable_cache: 'To use the cache, the folder "cache" in the Enano root directory needs to be writable by the server. You can usually accomplish this by using your FTP client\'s CHMOD feature to set the permissions on this folder to 777. Learn more <a href="http://en.wikipedia.org/wiki/Chmod" onclick="window.open(this.href); return false;">about UNIX permissions</a>.',
+      btn_clear_all: 'Clear all caches',
+      hint_clear_all: 'To force all caches (except image thumbnails) on the site to empty, click this button. Certain caches, such as language data, must be regenerated in order to fully refresh the cache. It is recommended that you use "%this.acpcm_btn_refresh_all%" below to clear all caches and then regenerate them.',
+      btn_refresh_all: 'Refresh all caches',
+      hint_refresh_all: 'This will clear all caches (except image thumbnails) on the site to empty and then regenerate, except templates, which are cached on demand.',
     },
     acpdb: {
       err_not_supported_title: 'Not supported',

@@ -65,7 +65,7 @@ function SpecialAdmin_include()
     require(ENANO_ROOT . '/plugins/admin/LangManager.php');
     require(ENANO_ROOT . '/plugins/admin/ThemeManager.php');
     require(ENANO_ROOT . '/plugins/admin/PluginManager.php');
-    // require(ENANO_ROOT . '/plugins/admin/CacheManager.php');
+    require(ENANO_ROOT . '/plugins/admin/CacheManager.php');
     
     // Set the theme
     $session->theme = 'admin';
