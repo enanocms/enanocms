@@ -827,3 +827,11 @@ div.rankadmin-right {
 	display: block !important;
 }
 
+.adminiconsprite {
+  width: 16px;
+  height: 16px;
+  background-image: url(../../../images/icons/applets/sprite.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
