@@ -121,6 +121,9 @@ if ( getConfig('default_language') === false && !defined('IN_ENANO_MIGRATION') )
 
 profiler_log('Ran checks');
 
+// Init cache
+$cache = new CacheManager();
+
 // Load plugin manager
 $plugins = new pluginLoader();
 
