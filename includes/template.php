@@ -2025,6 +2025,11 @@ EOF;
       if ( @$data['_theme_'] === $this->theme )
       {
         unset($data['_theme_']);
+        foreach ( $data as &$md )
+        {
+          $md = str_replace('$USERNAME$', $session->username, $md);
+          $md = str_replace('$PAGEID$', $paths->page, $md);
+        }
         return $data;
       }
     }
