@@ -932,26 +932,6 @@ function page_Special_Register()
         <input type="hidden" name="crypt_data" value="" />
       <script type="text/javascript">
         // ENCRYPTION CODE
-        disableJSONExts();
-        str = '';
-        for(i=0;i<keySizeInBits/4;i++) str+='0';
-        var key = hexToByteArray(str);
-        var pt = hexToByteArray(str);
-        var ct = rijndaelEncrypt(pt, key, "ECB");
-        var ct = byteArrayToHex(ct);
-        switch(keySizeInBits)
-        {
-          case 128:
-            v = '66e94bd4ef8a2c3b884cfa59ca342b2e';
-            break;
-          case 192:
-            v = 'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7';
-            break;
-          case 256:
-            v = 'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087';
-            break;
-        }
-        var aes_testpassed = ( ct == v && md5_vm_test() );
         function runEncryption()
         {
           var frm = document.forms.regform;
@@ -969,7 +949,7 @@ function page_Special_Register()
             alert($lang.get('user_reg_err_alert_password_tooshort'));
             return false;
           }
-          if(aes_testpassed)
+          if(aes_self_test())
           {
             frm.use_crypt.value = 'yes';
             var cryptkey = frm.crypt_key.value;
@@ -1124,12 +1104,17 @@ function page_Special_Register()
             document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/$captchacode"); ?>/'+Math.floor(Math.random() * 100000);
             return false;
           }
-          <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
-          var frm = document.forms.regform;
-          password_score_field(frm.password);
-          <?php endif; ?>
-          validateForm();
-          setTimeout('checkUsername();', 1000);
+          addOnloadHook(function()
+            {
+              <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
+              var frm = document.forms.regform;
+              load_component('pwstrength');
+              password_score_field(frm.password);
+              <?php endif; ?>
+              load_component('crypto');
+              validateForm();
+              setTimeout('checkUsername();', 1000);
+            });
           // ]]>
         </script>
       </enano:no-opt>
