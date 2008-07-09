@@ -2997,6 +2997,33 @@ function sanitize_tag($tag)
 }
 
 /**
+ * Replacement for gzencode() which doesn't always work.
+ * @param string Data to compress
+ * @param int Compression level - 0 (no compression) to 9 (maximum compression)
+ * @param string Filename to encode into the compressed data - defaults to blank
+ * @param string Comment for archive - defaults to blank
+ * @return string Compressed data
+ */
+
+if ( !function_exists('gzencode') )
+{
+  function gzencode($data = "", $level = 6, $filename = "", $comments = "")
+  {
+    $flags = (empty($comment)? 0 : 16) + (empty($filename)? 0 : 8);
+    $mtime = time();
+    
+    if ( !function_exists('gzdeflate') )
+      return false;
+   
+    return (pack("C1C1C1C1VC1C1", 0x1f, 0x8b, 8, $flags, $mtime, 2, 0xFF) .
+            (empty($filename) ? "" : $filename . "\0") .
+            (empty($comment) ? "" : $comment . "\0") .
+            gzdeflate($data, $level) .
+            pack("VV", crc32($data), strlen($data)));
+  }
+}
+
+/**
  * Gzips the output buffer.
  */
 
@@ -3007,12 +3034,12 @@ function gzip_output()
   //
   // Compress buffered output if required and send to browser
   //
-  if ( $do_gzip && function_exists('ob_gzhandler') )
+  if ( $do_gzip && function_exists('gzdeflate') )
   {
     $gzip_contents = ob_get_contents();
     ob_end_clean();
     
-    $return = @ob_gzhandler($gzip_contents, PHP_OUTPUT_HANDLER_START);
+    $return = @gzencode($gzip_contents);
     if ( $return )
     {
       header('Content-encoding: gzip');
