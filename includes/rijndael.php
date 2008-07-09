@@ -1689,6 +1689,9 @@ class AESCrypt
 
 function aes_decrypt_cache_store($encrypted, $decrypted, $key)
 {
+  if ( getConfig('cache_thumbs') != '1' )
+    return false;
+  
   $cache_file = ENANO_ROOT . '/cache/aes_decrypt.php';
   // only cache if $decrypted is long enough to actually warrant caching
   if ( strlen($decrypted) < 32 )

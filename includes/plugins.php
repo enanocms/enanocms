@@ -446,6 +446,8 @@ class pluginLoader {
     
     $this->update_plugins_cache($plugin_info);
     $GLOBALS['plugins_cache'] = $plugin_info;
+    
+    return true;
   }
   
   /**

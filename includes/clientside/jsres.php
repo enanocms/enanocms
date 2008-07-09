@@ -69,6 +69,10 @@ if ( !defined('ENANO_ROOT') )
 
 chdir(ENANO_ROOT);
 
+// fetch only the site config
+define('ENANO_EXIT_AFTER_CONFIG', 1);
+require('includes/common.php');
+
 // CONFIG
 
 // Files safe to run full (aggressive) compression on
@@ -97,8 +101,6 @@ $full_compress_safe = array(
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code
 $compress_unsafe = array('SpryEffects.js', 'json.js', 'fat.js', 'admin-menu.js', 'autofill.js');
 
-require('includes/functions.php');
-require('includes/json2.php');
 require('includes/js-compressor.php');
 
 // try to gzip the output
@@ -279,7 +281,7 @@ function jsres_cache_check($js_file, $file_contents)
       }
     }
   }
-  if ( !$loaded_cache )
+  if ( !$loaded_cache && getConfig('cache_thumbs') == '1' )
   {
     // Try to open the cache file and write to it. If we can't do that, just don't compress the code.
     $handle = @fopen($cache_path, 'w');

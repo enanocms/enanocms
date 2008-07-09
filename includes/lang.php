@@ -554,6 +554,8 @@ $lang_cache = ');
     $q = $db->sql_query('UPDATE ' . table_prefix . 'language SET last_changed = ' . time() . ' WHERE lang_id = ' . $this->lang_id . ';');
     if ( !$q )
       $db->_die('lang.php - updating timestamp on language');
+    
+    return true;
   }
   
   /**

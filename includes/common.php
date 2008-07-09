@@ -252,6 +252,11 @@ $db->free_result();
 
 profiler_log('Config fetched');
 
+if ( defined('ENANO_EXIT_AFTER_CONFIG') )
+{
+  return true;
+}
+
 // Now that we have the config, check the Enano version.
 if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
 {

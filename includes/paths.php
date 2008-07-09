@@ -89,24 +89,24 @@ class pathManager
     $session->register_acl_type('edit_acl',               AUTH_DISALLOW, 'perm_edit_acl',               Array());
     
     // DO NOT add new admin pages here! Use a plugin to call $paths->addAdminNode();
-    $this->addAdminNode('adm_cat_general',    'adm_page_general_config', 'GeneralConfig', scriptPath . '/images/icons/applets/generalconfig.png');
-    $this->addAdminNode('adm_cat_general',    'adm_page_file_uploads',   'UploadConfig', scriptPath . '/images/icons/applets/uploadconfig.png');
-    $this->addAdminNode('adm_cat_general',    'adm_page_file_types',     'UploadAllowedMimeTypes', scriptPath . '/images/icons/applets/uploadallowedmimetypes.png');
-    $this->addAdminNode('adm_cat_content',    'adm_page_manager',        'PageManager', scriptPath . '/images/icons/applets/pagemanager.png');
-    $this->addAdminNode('adm_cat_content',    'adm_page_editor',         'PageEditor', scriptPath . '/images/icons/applets/pageeditor.png');
-    $this->addAdminNode('adm_cat_content',    'adm_page_pg_groups',      'PageGroups', scriptPath . '/images/icons/applets/pagegroups.png');
-    $this->addAdminNode('adm_cat_appearance', 'adm_page_themes',         'ThemeManager', scriptPath . '/images/icons/applets/thememanager.png');
-    $this->addAdminNode('adm_cat_appearance', 'adm_page_plugins',        'PluginManager', scriptPath . '/images/icons/applets/pluginmanager.png');
-    $this->addAdminNode('adm_cat_appearance', 'adm_page_db_backup',      'DBBackup', scriptPath . '/images/icons/applets/dbbackup.png');
-    $this->addAdminNode('adm_cat_appearance', 'adm_page_lang_manager',   'LangManager', scriptPath . '/images/icons/applets/langmanager.png');
-    $this->addAdminNode('adm_cat_appearance', 'adm_page_cache_manager',  'CacheManager', scriptPath . '/images/icons/applets/cachemanager.png');
-    $this->addAdminNode('adm_cat_users',      'adm_page_users',          'UserManager', scriptPath . '/images/icons/applets/usermanager.png');
-    $this->addAdminNode('adm_cat_users',      'adm_page_user_groups',    'GroupManager', scriptPath . '/images/icons/applets/groupmanager.png');
-    $this->addAdminNode('adm_cat_users',      'adm_page_coppa',          'COPPA', scriptPath . '/images/icons/applets/coppa.png');
-    $this->addAdminNode('adm_cat_users',      'adm_page_mass_email',     'MassEmail', scriptPath . '/images/icons/applets/massemail.png');
-    $this->addAdminNode('adm_cat_users',      'adm_page_user_ranks',     'UserRanks', scriptPath . '/images/icons/applets/userranks.png');
-    $this->addAdminNode('adm_cat_security',   'adm_page_security_log',   'SecurityLog', scriptPath . '/images/icons/applets/securitylog.png');
-    $this->addAdminNode('adm_cat_security',   'adm_page_ban_control',    'BanControl', scriptPath . '/images/icons/applets/bancontrol.png');
+    $this->addAdminNode('adm_cat_general',    'adm_page_general_config', 'GeneralConfig',          array(2, 2));
+    $this->addAdminNode('adm_cat_general',    'adm_page_file_uploads',   'UploadConfig',           array(2, 5));
+    $this->addAdminNode('adm_cat_general',    'adm_page_file_types',     'UploadAllowedMimeTypes', array(1, 5));
+    $this->addAdminNode('adm_cat_content',    'adm_page_manager',        'PageManager',            array(1, 4));
+    $this->addAdminNode('adm_cat_content',    'adm_page_editor',         'PageEditor',             array(3, 3));
+    $this->addAdminNode('adm_cat_content',    'adm_page_pg_groups',      'PageGroups',             array(4, 3));
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_themes',         'ThemeManager',           array(4, 4));
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_plugins',        'PluginManager',          array(2, 4));
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_db_backup',      'DBBackup',               array(1, 2));
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_lang_manager',   'LangManager',            array(1, 3));
+    $this->addAdminNode('adm_cat_appearance', 'adm_page_cache_manager',  'CacheManager',           array(3, 1));
+    $this->addAdminNode('adm_cat_users',      'adm_page_users',          'UserManager',            array(3, 5));
+    $this->addAdminNode('adm_cat_users',      'adm_page_user_groups',    'GroupManager',           array(3, 2));
+    $this->addAdminNode('adm_cat_users',      'adm_page_coppa',          'COPPA',                  array(4, 1));
+    $this->addAdminNode('adm_cat_users',      'adm_page_mass_email',     'MassEmail',              array(2, 3));
+    $this->addAdminNode('adm_cat_users',      'adm_page_user_ranks',     'UserRanks',              array(4, 5));
+    $this->addAdminNode('adm_cat_security',   'adm_page_security_log',   'SecurityLog',            array(3, 4));
+    $this->addAdminNode('adm_cat_security',   'adm_page_ban_control',    'BanControl',             array(2, 1));
     
     $code = $plugins->setHook('acl_rule_init');
     foreach ( $code as $cmd )
@@ -463,7 +463,7 @@ class pathManager
     $k = array_keys($this->admin_tree);
     $i = 0;
     $ret = '';
-    $icon = "<img alt=\"\" src=\"" . scriptPath . "/images/icons/applets/home.png\" style=\"border-width: 0; margin-right: 3px;\" /> ";
+    $icon = $this->make_sprite_icon(4, 2);
     $icon = addslashes($icon);
     $ret .= "var TREE_ITEMS = [\n  ['$icon" . $lang->get('adm_btn_home') . "', 'javascript:ajaxPage(\'".$this->nslist['Admin']."Home\');',\n    ";
     foreach($k as $key)
@@ -477,7 +477,16 @@ class pathManager
         $name = ( preg_match('/^[a-z0-9_]+$/', $key) ) ? $lang->get($c['name']) : $c['name'];
         if ( $c['icon'] && $c['icon'] != scriptPath . '/images/spacer.gif' )
         {
-          $icon = "<img alt=\"\" src=\"{$c['icon']}\" style=\"border-width: 0; margin-right: 3px;\" /> ";
+          if ( is_array($c['icon']) )
+          {
+            // this is a sprite reference
+            list($ix, $iy) = $c['icon'];
+            $icon = $this->make_sprite_icon($ix, $iy);
+          }
+          else
+          {
+            $icon = "<img alt=\"\" src=\"{$c['icon']}\" style=\"border-width: 0; margin-right: 3px;\" /> ";
+          }
         }
         else
         {
@@ -488,7 +497,7 @@ class pathManager
       }
       $ret .= "      ],\n";
     }
-    $icon = "<img alt=\"\" src=\"" . scriptPath . "/images/icons/applets/adminlogout.png\" style=\"border-width: 0; margin-right: 3px;\" /> ";
+    $icon = $this->make_sprite_icon(1, 1);
     $icon = addslashes($icon);
     $ret .= "    ['$icon" . $lang->get('adm_btn_logout') . "', 'javascript:ajaxPage(\\'".$this->nslist['Admin']."AdminLogout\\');'],\n";
     $ret .= "    ['<span id=\\'keepalivestat\\'>" . $lang->get('adm_btn_keepalive_loading') . "</span>', 'javascript:ajaxToggleKeepalive();', 
@@ -498,6 +507,20 @@ class pathManager
     // $ret .= "    ['(debug) Clear menu bitfield', 'javascript:createCookie(\\'admin_menu_state\\', \\'1\\', 365);'],\n";
     $ret .= "]\n];";
     return $ret;
+  }
+  
+  /**
+   * Internal function to generate HTML code for an icon in the admin panel tree which is sprited.
+   * @param int X index of icon
+   * @param int Y index of icon
+   * @return string
+   */
+  
+  function make_sprite_icon($ix, $iy)
+  {
+    $xpos = 16 * ( $ix - 1 );
+    $ypos = 16 * ( $iy - 1 );
+    return "<img alt=\"\" src=\"" . scriptPath . "/images/spacer.gif\" class=\"adminiconsprite\" style=\"border-width: 0; margin-right: 3px; background-position: -{$xpos}px -{$ypos}px;\" /> ";
   }
   
   /**

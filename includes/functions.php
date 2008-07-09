@@ -4565,6 +4565,8 @@ function generate_cache_userranks()
     return false;
   fwrite($fh, $ranks_exported);
   fclose($fh);
+  
+  return true;
 }
 
 /**
@@ -4589,13 +4591,16 @@ function load_rank_data()
 
 function purge_all_caches()
 {
+  global $cache;
   if ( $dh = opendir(ENANO_ROOT . '/cache') )
   {
+    $cache->purge('page_meta');
+    $cache->purge('anon_sidebar');
+    $cache->purge('plugins');
+    
     $data_files = array(
         'aes_decrypt.php',
-        'cache_anon_sidebar.php',
-        'cache_page_meta.php',
-        'cache_plugins.php',
+        // ranks cache is stored using a custom engine (not enano's default cache)
         'cache_ranks.php'
       );
     while ( $file = @readdir($dh) )
@@ -4618,7 +4623,7 @@ function purge_all_caches()
       else if ( preg_match('/^tiny_mce_(?:[a-f0-9]+)\.gz$/', $file) )
         unlink($fullpath);
       // language files
-      else if ( preg_match('/^lang_json_(?:[a-f0-9]+?)\.php$/', $file) || preg_match('/^lang_(?:[0-9]+?)\.php$/', $file) )
+      else if ( preg_match('/^lang_json_(?:[a-f0-9]+?)\.php$/', $file) || preg_match('/^(?:cache_)?lang_(?:[0-9]+?)\.php$/', $file) )
         unlink($fullpath);
     }
     return true;

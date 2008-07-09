@@ -544,6 +544,7 @@ var enano_lang = {
     acpcm: {
       heading_main: 'Performance and caching settings',
       intro: 'From this page you can control what information on your site is stored in cache files. Caching speeds up Enano performance by allowing data to be retrieved from the disk instead of querying the database. Sometimes the cache isn\'t updated immediately when the database is. From this page you can control what is cached, and you can clear specific caches to force them to refresh.',
+      msg_refresh_warning: 'Some of the caches on this page will automatically refresh immediately even if you click Clear. This is because any use of the component will invoke the cache. To disable this behavior, you must disable caching site-wide.',
       table_header: 'Cache settings',
       lbl_enable_cache: 'Enable the cache (recommended)',
       hint_enable_cache: 'To use the cache, the folder "cache" in the Enano root directory needs to be writable by the server. You can usually accomplish this by using your FTP client\'s CHMOD feature to set the permissions on this folder to 777. Learn more <a href="http://en.wikipedia.org/wiki/Chmod" onclick="window.open(this.href); return false;">about UNIX permissions</a>.',
@@ -551,6 +552,32 @@ var enano_lang = {
       hint_clear_all: 'To force all caches (except image thumbnails) on the site to empty, click this button. Certain caches, such as language data, must be regenerated in order to fully refresh the cache. It is recommended that you use "%this.acpcm_btn_refresh_all%" below to clear all caches and then regenerate them.',
       btn_refresh_all: 'Refresh all caches',
       hint_refresh_all: 'This will clear all caches (except image thumbnails) on the site to empty and then regenerate, except templates, which are cached on demand.',
+      
+      th_individual_caches: 'Individual caches',
+      btn_clear: 'Clear',
+      btn_refresh: 'Refresh',
+      
+      cache_page_desc_title: 'Page metadata',
+      cache_page_desc_body: 'Information about pages on the site is stored in this cache. This cache is updated when a page is created, renamed or deleted, and it expires every 20 minutes.',
+      cache_ranks_desc_title: 'User ranks',
+      cache_ranks_desc_body: 'Since user ranks take a long time to calculate, fully computed rank data is cached to speed loading of comments and user pages. This cache is updated when any user information is changed, and its expiry time is 15 minutes.',
+      cache_sidebar_desc_title: 'Sidebar for guest users',
+      cache_sidebar_desc_body: 'Rendering the sidebar is a CPU-intensive process because of the number of templates that must be parsed and the custom logic in sidebars. As a result, the fully rendered sidebar is cached for guests. This cache is updated when the sidebar editor is used and expires every 10 minutes.',
+      cache_plugins_desc_title: 'Plugin metadata',
+      cache_plugins_desc_body: 'Plugin files contain special information in the headers that allow Enano to read information about the plugin. Since it takes time to read and parse this information, metadata about plugins is cached. This cache is updated when any change is detected to the first 10 lines of a PHP file in the plugins/ directory.',
+      cache_template_desc_title: 'Template files',
+      cache_template_desc_body: 'Page templates have a lot of logic that takes time to process. They are compiled and then cached on disk to speed loading. This cache is cleared whenever a template file is changed. This cachs cannot be refreshed, as refreshes take place incrementally.',
+      cache_aes_desc_title: 'Encrypted session keys',
+      cache_aes_desc_body: 'Enano encrypts session keys using the AES encryption cipher. Decrypted session keys are cached on the server in a way that is inaccessible to users browsing the site. This cache is dynamically updated whenever a string is sent to the AES decryption module. Clearing it may cause a temporary increase in the load on your site and should only be done if disk space is a concern. This cache is limited to 5,000 keys; when this limit is reached, the oldest 2,500 keys are deleted.',
+      cache_lang_desc_title: 'Language strings',
+      cache_lang_desc_body: 'Language strings, or the text that makes up the Enano user interface, are cached on the disk because they take up a large amount of space in the database. Caching this information allows Enano to minimize bandwidth used when communicating with the database server.',
+      cache_js_desc_title: 'Compressed Javascript runtimes',
+      cache_js_desc_body: 'The on-page tools that Enano provides require a significant amount of Javascript code, which is compressed and cached for better load times. This cache is updated whenever any of the Javascript files are changed, but it is an incremental cache, meaning that it cannot be refreshed manually (only cleared).',
+      cache_thumbs_desc_title: 'Image thumbnails',
+      cache_thumbs_desc_body: 'Thumbnails (preview-size versions of uploaded images) can take up to 2 seconds to generate, usually increasing load times and potentially causing increased server load. This cache is refreshed on demand. Clearing this cache may cause increased loads on your server.',
+      
+      msg_action_success: 'The action you requested was successful.',
+      err_action_failed: 'There was an error during the requested action.'
     },
     acpdb: {
       err_not_supported_title: 'Not supported',
