@@ -1124,6 +1124,7 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    global $cache;
     $perms = $session->fetch_page_acl($page_id, $namespace);
     $x = trim($reason);
     if ( empty($x) )
@@ -1141,8 +1142,12 @@ class PageUtils {
     if(!$e) $db->_die('The page text entry could not be deleted.');
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'pages WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'');
     if(!$e) $db->_die('The page entry could not be deleted.');
-    $e = $db->sql_query('DELETE FROM ' . table_prefix.'files WHERE page_id=\'' . $page_id . '\'');
-    if(!$e) $db->_die('The file entry could not be deleted.');
+    if ( $namespace == 'File' )
+    {
+      $e = $db->sql_query('DELETE FROM ' . table_prefix.'files WHERE page_id=\'' . $page_id . '\'');
+      if(!$e) $db->_die('The file entry could not be deleted.');
+    }
+    $cache->purge('page_meta');
     return $lang->get('ajax_delete_success');
   }
   

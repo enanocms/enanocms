@@ -49,6 +49,7 @@ function page_Special_UploadFile()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $cache;
   global $mime_types;
   if(getConfig('enable_uploads')!='1') { die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('upload_err_disabled_site') . '</p>'); }
   if ( !$session->get_permissions('upload_files') )
@@ -148,6 +149,7 @@ function page_Special_UploadFile()
     {
       if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.$utime.', \''.enano_date('d M Y h:i a').'\', \'page\', \'reupload\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\', \''.$comments.'\');')) $db->_die('The page log could not be updated.');
     }
+    $cache->purge('page_meta');
     die_friendly($lang->get('upload_success_title'), '<p>' . $lang->get('upload_success_body', array('file_link' => makeUrlNS('File', $filename))) . '</p>');
   }
   else
