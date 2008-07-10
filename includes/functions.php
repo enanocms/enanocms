@@ -15,10 +15,11 @@
 /**
  * Fetch a value from the site configuration.
  * @param string The identifier of the value ("site_name" etc.)
+ * @param string If specified, this is the "default" value for the configuration entry. Defaults to false.
  * @return string Configuration value, or bool(false) if the value is not set
  */
 
-function getConfig($n)
+function getConfig($n, $default = false)
 {
   global $enano_config;
   if ( isset( $enano_config[ $n ] ) )
@@ -27,7 +28,7 @@ function getConfig($n)
   }
   else
   {
-    return false;
+    return $default;
   }
 }
 
@@ -40,8 +41,17 @@ function getConfig($n)
 
 function setConfig($n, $v)
 {
-
   global $enano_config, $db;
+  
+  if ( isset($enano_config[$n]) )
+  {
+    if ( $enano_config[$n] === $v )
+    {
+      // configuration already matches this value
+      return true;
+    }
+  }
+  
   $enano_config[$n] = $v;
   $v = $db->escape($v);
 
