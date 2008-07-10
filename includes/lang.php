@@ -76,7 +76,7 @@ class Language
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    if ( defined('IN_ENANO_INSTALL') && !defined('ENANO_CONFIG_FETCHED') )
+    if ( defined('IN_ENANO_INSTALL') && ( !defined('ENANO_CONFIG_FETCHED') || defined('IN_ENANO_UPGRADE') ) )
     {
       // special case for the Enano installer: it will load its own strings from a JSON file and just use this API for fetching
       // and templatizing them.
