@@ -801,6 +801,7 @@ class pathManager
   function rebuild_search_index($verbose = false, $debug = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    require_once(ENANO_ROOT . '/includes/search.php');
     
     @set_time_limit(0);
     

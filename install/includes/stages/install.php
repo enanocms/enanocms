@@ -105,6 +105,7 @@ else
 }
 
 // Import languages
+error_reporting(E_ALL | E_STRICT);
 run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_language_setup', $lang->get('install_stg_importlang_body'));
 
 // Init logs

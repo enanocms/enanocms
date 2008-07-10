@@ -76,9 +76,11 @@ class Language
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    if ( defined('IN_ENANO_INSTALL') )
+    if ( defined('IN_ENANO_INSTALL') && !defined('ENANO_CONFIG_FETCHED') )
     {
-      // special case for the Enano installer: it will load its own strings from a JSON file and just use this API for fetching and templatizing them.
+      // special case for the Enano installer: it will load its own strings from a JSON file and just use this API for fetching
+      // and templatizing them.
+      // 1.1.4 fix: this was still being called after main API startup from installer payload
       $this->lang_id   = 1;
       $this->lang_code = $lang;
       return true;
@@ -96,7 +98,7 @@ class Language
       $db->_die('lang.php - attempting to pass invalid value to constructor');
     }
     
-    $lang_default = ( $x = getConfig('default_language') ) ? intval($x) : '\'def\'';
+    $lang_default = ( $x = getConfig('default_language') ) ? intval($x) : '0';
     
     $q = $db->sql_query("SELECT lang_id, lang_code, last_changed, ( lang_id = $lang_default ) AS is_default FROM " . table_prefix . "language WHERE $sql_col OR lang_id = $lang_default ORDER BY is_default ASC LIMIT 1;");
     
@@ -606,6 +608,8 @@ $lang_cache = ');
   
   function get_uncensored($string_id, $substitutions = false)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
     // Extract the category and string ID
     $category = substr($string_id, 0, ( strpos($string_id, '_') ));
     $string_name = substr($string_id, ( strpos($string_id, '_') + 1 ));
@@ -619,7 +623,7 @@ $lang_cache = ');
     {
       // Ehh, the string wasn't found. Rerun fetch() and try again.
       // Or if it's the installer, no use in refetching, so just fail.
-      if ( defined('IN_ENANO_INSTALL') )
+      if ( defined('IN_ENANO_INSTALL') || ( defined('ENANO_INSTALLED') && !@$db->_conn ) )
       {
         return $string_id;
       }

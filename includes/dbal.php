@@ -271,7 +271,7 @@ class mysql {
       }
     }
     
-    $r = mysql_query($q, $this->_conn);
+    $r = pg_query($q, $this->_conn);
     
     if ( $log_query )
       $this->query_times[$q] = microtime_float() - $time_start;
@@ -326,7 +326,7 @@ class mysql {
     $q = str_replace(array("\\\"", "\\'"), '', $q);
     
     // make sure quotes match
-    foreach ( array('"', "'") as $quote )
+    foreach ( array("'", '"') as $quote )
     {
       if ( get_char_count($q, $quote) % 2 == 1 )
       {
@@ -1003,29 +1003,7 @@ class postgresql {
   
   function sql_unbuffered_query($q)
   {
-    $this->enable_errorhandler();
-    
-    $this->num_queries++;
-    $this->query_backtrace[] = '(UNBUFFERED) ' . $q;
-    $this->latest_query = $q;
-    // First make sure we have a connection
-    if ( !$this->_conn )
-    {
-      $this->_die('A database connection has not yet been established.');
-    }
-    // Does this query look malicious?
-    if ( !$this->check_query($q) )
-    {
-      $this->report_query($q);
-      grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
-    }
-    
-    $time_start = microtime_float();
-    $r = pg_query($q);
-    $this->query_times[$q] = microtime_float() - $time_start;
-    $this->latest_result = $r;
-    $this->disable_errorhandler();
-    return $r;
+    return $this->sql_query($q);
   }
   
   /**
@@ -1043,7 +1021,7 @@ class postgresql {
     $q = str_replace(array("\\\"", "\\'"), '', $q);
     
     // make sure quotes match
-    foreach ( array('"', "'") as $quote )
+    foreach ( array("'", '"') as $quote )
     {
       if ( get_char_count($q, $quote) % 2 == 1 )
       {

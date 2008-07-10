@@ -48,7 +48,7 @@ function stg_password_decode()
   if ( $db->numrows() < 1 )
     return false;
   list($aes_key) = $db->fetchrow_num();
-  $aes_key = $aes->hextostring($aes_key);
+  $aes_key = hexdecode($aes_key);
   
   $pass = $aes->decrypt($_POST['crypt_data'], $aes_key, ENC_HEX);
   if ( !$pass )
@@ -98,7 +98,7 @@ function stg_load_schema()
   $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
   
   $site_key = stg_make_private_key();
-  $site_key = $aes->hextostring($site_key);
+  $site_key = hexdecode($site_key);
   $admin_pass_clean = stg_password_decode();
   $admin_pass = $aes->encrypt($admin_pass_clean, $site_key, ENC_HEX);
   
@@ -318,6 +318,7 @@ function stg_language_setup()
     return false;
   
   $lang_local = new Language($lang_id);
+  
   $lang_local->import( ENANO_ROOT . "/language/{$lang_info['dir']}/user.json" );
   $lang_local->import( ENANO_ROOT . "/language/{$lang_info['dir']}/tools.json" );
   $lang_local->import( ENANO_ROOT . "/language/{$lang_info['dir']}/admin.json" );
