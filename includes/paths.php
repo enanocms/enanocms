@@ -955,6 +955,8 @@ class pathManager
   function rebuild_page_index($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    require_once(ENANO_ROOT . '/includes/search.php');
+    
     if(!$db->sql_query('SELECT page_text FROM '.table_prefix.'page_text
       WHERE page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\';'))
     {
