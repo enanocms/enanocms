@@ -1230,7 +1230,7 @@ class sessionManager {
                              . '    ON ( p.message_to=u.username AND p.message_read=0 )' . "\n"
                              . '  WHERE k.session_key=\''.$keyhash.'\'' . "\n"
                              . '    AND k.salt=\''.$salt.'\'' . "\n"
-                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_timezone,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public, x.disable_js_fx;');
+                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_timezone,u.user_title,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public, x.disable_js_fx;');
     
     if ( !$query && ( defined('IN_ENANO_INSTALL') or defined('IN_ENANO_UPGRADE') ) )
     {
@@ -2483,7 +2483,7 @@ class sessionManager {
     $assoc = implode(" OR\n", $assoc) . "\n";
     
     $gid_col = ( ENANO_DBLAYER == 'PGSQL' ) ?
-      'array_to_string(array_accum(m.group_id), \',\') AS group_list' :
+      'array_to_string(' . table_prefix . 'array_accum(m.group_id), \',\') AS group_list' :
       'GROUP_CONCAT(m.group_id) AS group_list';
     
     // The actual query
@@ -2491,6 +2491,7 @@ class sessionManager {
          . "       COALESCE(ru.rank_id,    rg.rank_id,    rl.rank_id,    rd.rank_id   ) AS rank_id,\n"
          . "       COALESCE(ru.rank_title, rg.rank_title, rl.rank_title, rd.rank_title) AS rank_title,\n"
          . "       COALESCE(ru.rank_style, rg.rank_style, rl.rank_style, rd.rank_style) AS rank_style,\n"
+         . "       rg.rank_id AS group_rank_id,"
          . "       ( ru.rank_id IS NULL AND rg.rank_id IS NULL ) AS using_default,"
          . "       ( ru.rank_id IS NULL AND rg.rank_id IS NOT NULL ) AS using_group,"
          . "       $gid_col\n"
@@ -3994,7 +3995,7 @@ class Session_ACLPageInfo {
     // Build a query to grab ACL info
     $bs = 'SELECT rules,target_type,target_id,page_id,namespace,rule_id,pg.pg_name,g.group_name FROM '.table_prefix."acl AS a\n"
         . "  LEFT JOIN " . table_prefix . "page_groups AS pg\n"
-        . "    ON ( ( a.page_id = pg.pg_id AND a.namespace = '__PageGroup' ) OR ( a.namespace != '__PageGroup' ) )\n"
+        . "    ON ( ( a.page_id = CAST(pg.pg_id AS char) AND a.namespace = '__PageGroup' ) OR ( a.namespace != '__PageGroup' ) )\n"
         . "  LEFT JOIN " . table_prefix . "groups AS g\n"
         . "    ON ( ( a.target_type = " . ACL_TYPE_GROUP . " AND a.target_id = g.group_id ) OR ( a.target_type != " . ACL_TYPE_GROUP . " ) )\n";
     
