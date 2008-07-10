@@ -271,7 +271,7 @@ class mysql {
       }
     }
     
-    $r = pg_query($q, $this->_conn);
+    $r = mysql_query($q, $this->_conn);
     
     if ( $log_query )
       $this->query_times[$q] = microtime_float() - $time_start;
