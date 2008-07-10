@@ -876,7 +876,11 @@ var editor_loading = false;
 
 window.ajaxSetEditorLoading = function()
 {
-  var ed = tinyMCE.get('ajaxEditArea');
+  var ed = false;
+  if ( window.tinyMCE )
+  {
+    ed = tinyMCE.get('ajaxEditArea');
+  }
   editor_loading = true;
   if ( ed )
   {
@@ -907,7 +911,11 @@ window.ajaxSetEditorLoading = function()
 window.ajaxUnSetEditorLoading = function()
 {
   editor_loading = false;
-  var ed = tinyMCE.get('ajaxEditArea');
+  var ed = false;
+  if ( window.tinyMCE )
+  {
+    ed = tinyMCE.get('ajaxEditArea');
+  }
   if ( ed )
   {
     ed.setProgressState(0);
