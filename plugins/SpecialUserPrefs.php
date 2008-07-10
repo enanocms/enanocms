@@ -896,6 +896,32 @@ function page_Special_Preferences()
               echo '<div class="error-box">' . $lang->get('usercp_avatar_move_failed') . '</div>';
             }
             break;
+          case 'set_gravatar':
+            // set avatar to use Gravatar
+            // make sure we're allowed to do this
+            if ( getConfig('avatar_upload_gravatar') != '1' )
+            {
+              // access denied
+              break;
+            }
+            // first, remove old image
+            if ( $has_avi )
+            {
+              // First switch the avatar off
+              $q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_has_avatar = 0 WHERE user_id = ' . $session->user_id . ';');
+              if ( !$q )
+                $db->_die('Avatar CP switching user avatar off');
+              
+              @unlink($avi_path);
+            }
+            // set to gravatar mode
+            $q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_has_avatar = 1, avatar_type = \'grv\' WHERE user_id = ' . $session->user_id . ';');
+            if ( !$q )
+              $db->_die('Avatar CP switching user avatar off');
+              
+            $has_avi = 1;
+            echo '<div class="info-box">' . $lang->get('usercp_avatar_gravatar_success') . '</div>';
+            break;
         }
       }
       
@@ -910,14 +936,22 @@ function page_Special_Preferences()
             case 'remove':
               $('avatar_upload_http').object.style.display = 'none';
               $('avatar_upload_file').object.style.display = 'none';
+              $('avatar_upload_gravatar').object.style.display = 'none';
               break;
             case 'set_http':
               $('avatar_upload_http').object.style.display = 'block';
               $('avatar_upload_file').object.style.display = 'none';
+              $('avatar_upload_gravatar').object.style.display = 'none';
               break;
             case 'set_file':
               $('avatar_upload_http').object.style.display = 'none';
               $('avatar_upload_file').object.style.display = 'block';
+              $('avatar_upload_gravatar').object.style.display = 'none';
+              break;
+            case 'set_gravatar':
+              $('avatar_upload_gravatar').object.style.display = 'block';
+              $('avatar_upload_http').object.style.display = 'none';
+              $('avatar_upload_file').object.style.display = 'none';
               break;
           }
         }
@@ -942,7 +976,7 @@ function page_Special_Preferences()
               
       if ( $has_avi == 1 )
       {
-        echo '<img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $session->username)) . '" src="' . make_avatar_url($session->user_id, $avi_type) . '" />';
+        echo '<img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $session->username)) . '" src="' . make_avatar_url($session->user_id, $avi_type, $session->email) . '" />';
       }
       else
       {
@@ -973,7 +1007,7 @@ function page_Special_Preferences()
       }
       if ( getConfig('avatar_upload_file') == '1' )
       {
-        echo '    <label><input type="radio" name="avatar_action" value="set_file" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_file') . '</label>
+        echo '    <label><input type="radio" name="avatar_action" value="set_file" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_file') . '</label><br />
                   <div id="avatar_upload_file" style="display: none; margin: 10px 0 0 2.2em;">
                     ' . $lang->get('usercp_avatar_lbl_file') . ' <input type="file" name="avatar_file" size="40" /><br />
                     <small>' . $lang->get('usercp_avatar_lbl_file_desc') . ' ' . $lang->get('usercp_avatar_limits') . '</small>
@@ -982,6 +1016,24 @@ function page_Special_Preferences()
       else
       {
         echo '    <div id="avatar_upload_file" style="display: none;"></div>';
+      }
+      if ( getConfig('avatar_upload_gravatar') == '1' )
+      {
+        $rating_images = array('g' => '0', 'pg' => '1', 'r' => '2', 'x' => '3');
+        $rating_id = $rating_images[ getConfig('gravatar_rating', 'g') ];
+        $rating_image = "http://s.gravatar.com/images/gravatars/ratings/$rating_id.gif";
+        $max_rating = getConfig('gravatar_rating', 'g');
+        echo '    <label><input type="radio" name="avatar_action" value="set_gravatar" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_gravatar') . ' <img alt=" " src="' . make_gravatar_url($session->email, 16) . '" /></label> (<a href="http://www.gravatar.com/" onclick="window.open(this); return false;">' . $lang->get('usercp_avatar_link_gravatar_info') . '</a>)
+                  <div id="avatar_upload_gravatar" style="display: none; margin: 10px 0 0 2.2em;">
+                    <div style="float: left; margin-right: 5px; margin-bottom: 20px;">
+                      <img alt=" " src="' . $rating_image . '" />
+                    </div>
+                    ' . $lang->get("usercp_avatar_gravatar_rating_$max_rating") . '
+                  </div>';
+      }
+      else
+      {
+        echo '    <div id="avatar_upload_gravatar" style="display: none;"></div>';
       }
       echo '    </td>
               </tr>';

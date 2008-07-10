@@ -40,3 +40,6 @@ ALTER TABLE {{TABLE_PREFIX}}groups ADD COLUMN group_rank int DEFAULT NULL;
 -- Disable JS effects column
 ALTER TABLE {{TABLE_PREFIX}}users_extra ADD COLUMN disable_js_fx smallint NOT NULL DEFAULT 0;
 
+-- Add "grv" avatar type
+ALTER TABLE {{TABLE_PREFIX}}users DROP CONSTRAINT {{TABLE_PREFIX}}users_avatar_type_check;
+ALTER TABLE {{TABLE_PREFIX}}users ADD CONSTRAINT {{TABLE_PREFIX}}users_avatar_type_check CHECK ( avatar_type IN ( 'png', 'gif', 'jpg', 'grv' ) );

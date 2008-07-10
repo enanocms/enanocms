@@ -27,3 +27,6 @@ ALTER TABLE {{TABLE_PREFIX}}groups ADD COLUMN group_rank int(12) unsigned DEFAUL
 
 -- Disable JS effects column
 ALTER TABLE {{TABLE_PREFIX}}users_extra ADD COLUMN disable_js_fx tinyint(1) NOT NULL DEFAULT 0;
+
+-- Add "grv" avatar type
+ALTER TABLE {{TABLE_PREFIX}}users MODIFY COLUMN avatar_type ENUM('png', 'gif', 'jpg', 'grv');

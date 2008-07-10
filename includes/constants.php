@@ -75,6 +75,7 @@ define('LANG_DEFAULT', 0);
 define('IMAGE_TYPE_PNG', 1);
 define('IMAGE_TYPE_GIF', 2);
 define('IMAGE_TYPE_JPG', 3);
+define('IMAGE_TYPE_GRV', 4);
 
 // token types
 define('TOKEN_VARIABLE', 1);

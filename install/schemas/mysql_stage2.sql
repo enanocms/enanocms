@@ -108,7 +108,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_coppa tinyint(1) NOT NULL DEFAULT 0,
   user_lang smallint(5) NOT NULL DEFAULT 1,
   user_has_avatar tinyint(1) NOT NULL DEFAULT 0,
-  avatar_type ENUM('jpg', 'png', 'gif') NOT NULL DEFAULT 'png',
+  avatar_type ENUM('jpg', 'png', 'gif', 'grv') NOT NULL DEFAULT 'png',
   user_registration_ip varchar(39),
   user_rank int(12) UNSIGNED DEFAULT NULL,
   user_timezone int(12) UNSIGNED NOT NULL DEFAULT 0,

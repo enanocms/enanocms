@@ -641,7 +641,7 @@ class PageUtils {
     if(!$e) $db->_die('The comment text data could not be selected.');
     $num_app = $db->numrows();
     $db->free_result();
-    $lq = $db->sql_query('SELECT c.comment_id,c.subject,c.name,c.comment_data,c.approved,c.time,c.user_id,c.ip_address,u.user_level,u.signature,u.user_has_avatar,u.avatar_type
+    $lq = $db->sql_query('SELECT c.comment_id,c.subject,c.name,c.comment_data,c.approved,c.time,c.user_id,c.ip_address,u.user_level,u.email,u.signature,u.user_has_avatar,u.avatar_type
                   FROM ' . table_prefix.'comments AS c
                   LEFT JOIN ' . table_prefix.'users AS u
                     ON c.user_id=u.user_id
@@ -765,7 +765,7 @@ class PageUtils {
         {
           $bool['user_has_avatar'] = true;
           $strings['AVATAR_ALT'] = $lang->get('usercp_avatar_image_alt', array('username' => $row['name']));
-          $strings['AVATAR_URL'] = make_avatar_url(intval($row['user_id']), $row['avatar_type']);
+          $strings['AVATAR_URL'] = make_avatar_url(intval($row['user_id']), $row['avatar_type'], $row['email']);
           $strings['USERPAGE_LINK'] = makeUrlNS('User', $row['name']);
         }
         

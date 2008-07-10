@@ -4152,25 +4152,38 @@ function jpg_get_dimensions($filename)
  * Generates a URL for the avatar for the given user ID and avatar type.
  * @param int User ID
  * @param string Image type - must be one of jpg, png, or gif.
+ * @param string User's e-mail address, makes Special:Avatar redirect if not specified
  * @return string
  */
 
-function make_avatar_url($user_id, $avi_type)
+function make_avatar_url($user_id, $avi_type, $user_email = false)
 {
   static $img_types = array(
       'png' => IMAGE_TYPE_PNG,
       'gif' => IMAGE_TYPE_GIF,
-      'jpg' => IMAGE_TYPE_JPG
+      'jpg' => IMAGE_TYPE_JPG,
+      'grv' => IMAGE_TYPE_GRV
     );
   
   if ( !is_int($user_id) )
     return false;
   if ( !isset($img_types[$avi_type]) )
     return false;
-  $avi_relative_path = '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
-  if ( !file_exists(ENANO_ROOT . $avi_relative_path) )
+  
+  if ( $avi_type == 'grv' )
   {
-    return '';
+    if ( $user_email )
+    {
+      return make_gravatar_url($user_email);
+    }
+  }
+  else
+  {
+    $avi_relative_path = '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
+    if ( !file_exists(ENANO_ROOT . $avi_relative_path) )
+    {
+      return '';
+    }
   }
   
   $img_type = $img_types[$avi_type];
@@ -4181,6 +4194,39 @@ function make_avatar_url($user_id, $avi_type)
     
   // return scriptPath . $avi_relative_path;
   return makeUrlNS('Special', "Avatar/$avi_id");
+}
+
+/**
+ * Generates a URL to the Gravatar for a user based on his/her e-mail address.
+ * @param string E-mail address
+ * @param int Size - defaults to site-wide limits
+ * @return string URL
+ */
+
+function make_gravatar_url($email, $size = false)
+{
+  $email = md5($email);
+  
+  // gravatar parameters
+  if ( $size )
+  {
+    $max_size = intval($size);
+  }
+  else
+  {
+    $max_x = intval(getConfig('avatar_max_width', '150'));
+    $max_y = intval(getConfig('avatar_max_height', '150'));
+    // ?s=
+    $max_size = ( $max_x > $max_y ) ? $max_y : $max_x;
+  }
+  
+  // ?r=
+  $rating = getConfig('gravatar_rating', 'g');
+  
+  // final URL
+  $url = "http://www.gravatar.com/avatar/$email?r=$rating&s=$max_size";
+  
+  return $url;
 }
 
 /**

@@ -341,6 +341,11 @@ function page_Admin_GeneralConfig() {
     setConfig('avatar_enable_anim', ( isset($_POST['avatar_enable_anim']) ? '1' : '0' ));
     setConfig('avatar_upload_file', ( isset($_POST['avatar_upload_file']) ? '1' : '0' ));
     setConfig('avatar_upload_http', ( isset($_POST['avatar_upload_http']) ? '1' : '0' ));
+    setConfig('avatar_upload_gravatar', ( isset($_POST['avatar_upload_gravatar']) ? '1' : '0' ));
+    if ( in_array($_POST['gravatar_rating'], array('g', 'pg', 'r', 'x')) )
+    {
+      setConfig('gravatar_rating', $_POST['gravatar_rating']);
+    }
     
     if ( is_dir(ENANO_ROOT . '/' . $_POST['avatar_directory']) )
     {
@@ -497,22 +502,6 @@ function page_Admin_GeneralConfig() {
         </td>
       </tr>
             
-    <!-- Default permissions -->
-    
-    <!--
-    
-    READ: Do not try to enable this, backend support for it has been disabled. To edit default
-          permissions, select The Entire Website in any permissions editor window.
-    
-      <tr><th colspan="2">Default permissions for pages</th></tr>
-      
-      <tr>
-        <td class="row1">You can edit the default set of permissions used when no other permissions are available. Permissions set here are used when no other permissions are available. As with other ACL rules, you can assign these defaults to every user or one specific user or group.</td>
-        <td class="row1"><a href="#" onclick="ajaxOpenACLManager('__DefaultPermissions', 'Special'); return false;">Manage default permissions</a></td>
-      </tr>
-      
-      -->
-      
     <!-- Site disablement -->
     
       <tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_disablesite'); ?></th></tr>
@@ -811,6 +800,40 @@ function page_Admin_GeneralConfig() {
             <input type="checkbox" name="avatar_upload_http" <?php if ( getConfig('avatar_upload_http') == '1' || getConfig('avatar_upload_http') === false ) echo 'checked="checked" '; ?>/>
             <?php echo $lang->get('acpgc_field_avatar_upload_http'); ?>
           </label>
+          
+          <br />
+          
+          <label>
+          <input type="checkbox" name="avatar_upload_gravatar" <?php if ( getConfig('avatar_upload_gravatar') == '1' || getConfig('avatar_upload_gravatar') === false ) echo 'checked="checked" '; ?>onclick="document.getElementById('acp_gravatar_rating').style.display = ( this.checked ) ? 'block' : 'none';" />
+            <?php echo $lang->get('acpgc_field_avatar_upload_gravatar'); ?>
+          </label>
+          
+          <br />
+          
+          <fieldset id="acp_gravatar_rating" style="margin-top: 10px; <?php if ( getConfig('avatar_upload_gravatar') === '0' ) echo ' display: none;'; ?>">
+          
+            <?php /* The four ratings are g, pg, r, and x - loop through each and output a localized string and a radiobutton */ ?>
+            <legend><?php echo $lang->get('acpgc_field_avatar_gravatar_rating'); ?></legend>
+            
+            <?php foreach ( array('g', 'pg', 'r', 'x') as $rating ): ?>
+            
+            <label>
+            
+              <input type="radio" name="gravatar_rating" value="<?php echo $rating; ?>"<?php
+                // Check the button if this is the current selection *or* if we're on "G" and the current configuration value is unset
+                if ( getConfig('gravatar_rating', 'g') == $rating )
+                  echo ' checked="checked"';
+                ?> />
+                
+              <?php /* The localized string */ ?>
+              <?php echo $lang->get("acpgc_field_avatar_gravatar_rating_$rating"); ?>
+              
+            </label>
+            
+            <br />
+            
+            <?php endforeach; ?>
+          </fieldset>
         </td>
       </tr>
       

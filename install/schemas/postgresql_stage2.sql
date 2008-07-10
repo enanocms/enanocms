@@ -114,7 +114,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_timezone int NOT NULL DEFAULT 0,
   user_title varchar(64) DEFAULT NULL,
   user_group int NOT NULL DEFAULT 1,
-  CHECK (avatar_type IN ('jpg', 'png', 'gif')),
+  CHECK (avatar_type IN ('jpg', 'png', 'gif', 'grv')),
   PRIMARY KEY  (user_id)
 );
 

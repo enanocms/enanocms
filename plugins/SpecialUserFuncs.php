@@ -2079,7 +2079,8 @@ function page_Special_Avatar()
   $img_types = array(
       IMAGE_TYPE_PNG => 'png',
       IMAGE_TYPE_GIF => 'gif',
-      IMAGE_TYPE_JPG => 'jpg'
+      IMAGE_TYPE_JPG => 'jpg',
+      IMAGE_TYPE_GRV => 'grv'
     );
   
   $avi_id = $paths->getParam(0);
@@ -2106,6 +2107,31 @@ function page_Special_Avatar()
   
   // build file path
   $avi_type = $img_types[$avi_id_dec['img_type']];
+  
+  // is this a gravatar?
+  if ( $avi_type == 'grv' )
+  {
+    // yes, we'll have to redirect
+    // sanitize UID
+    $uid = intval($avi_id_dec['uid']);
+    
+    // fetch email
+    $q = $db->sql_query('SELECT email FROM ' . table_prefix . "users WHERE user_id = $uid;");
+    if ( !$q )
+      $db->_die();
+    if ( $db->numrows() < 1 )
+      return false;
+    
+    list($email) = $db->fetchrow_num();
+    $db->free_result();
+    
+    $url = make_gravatar_url($url);
+    
+    // ship out the redirect
+    header('HTTP/1.1 302 Permanent Redirect');
+    header("Location: $url");
+  }
+  
   $avi_path = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $avi_id_dec['uid'] . '.' . $avi_type;
   if ( file_exists($avi_path) )
   {

@@ -1226,7 +1226,7 @@ EOF;
     {
       $parser->assign_vars(array(
           'AVATAR_SRC' => make_avatar_url($this->user_id, $this->avi_type),
-          'AVATAR_ALT' => $lang->get('usercp_avatar_image_alt', array('username' => $this->username))
+          'AVATAR_ALT' => $lang->get('usercp_avatar_image_alt', array('username' => $this->username), $this->email)
         ));
     }
     

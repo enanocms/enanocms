@@ -1398,7 +1398,7 @@ class PageProcessor
     echo '<tr><td class="row1" style="text-align: center;">';
     if ( $userdata['user_has_avatar'] == '1' )
     {
-      echo '<img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $userdata['username'])) . '" src="' . make_avatar_url(intval($userdata['authoritative_uid']), $userdata['avatar_type']) . '" /><br />';
+      echo '<img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $userdata['username'])) . '" src="' . make_avatar_url(intval($userdata['authoritative_uid']), $userdata['avatar_type'], $userdata['email']) . '" /><br />';
     }
     // username
     echo '<big><span style="' . $rank_data['rank_style'] . '">' . htmlspecialchars($target_username) . '</span></big><br />';

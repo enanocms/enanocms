@@ -327,6 +327,12 @@ var enano_lang = {
       field_avatar_upload_methods: 'Allowed upload methods:',
       field_avatar_upload_file: 'Allow users to upload image files from their computers',
       field_avatar_upload_http: 'Allow users to enter a URL to their desired avatar',
+      field_avatar_upload_gravatar: 'Allow users to use their <a href="http://www.gravatar.com/" onclick="window.open(this.href); return false;">Gravatar</a>',
+      field_avatar_gravatar_rating: 'Highest allowed rating for Gravatar images:',
+      field_avatar_gravatar_rating_g: 'G (no objectionable content)',
+      field_avatar_gravatar_rating_pg: 'PG (rude gestures, immodest dress, mild swearing/violence)',
+      field_avatar_gravatar_rating_r: 'R (profanity, violence, nudity, hard drug use)',
+      field_avatar_gravatar_rating_x: 'X (hardcore sexual images, extremely disturbing violence)',
       field_avatar_directory: 'Avatar storage directory:',
       field_avatar_directory_hint: 'This should be relative to your Enano root and should contain only alphanumeric characters and forward slashes, even if your server runs Windows.',
       
