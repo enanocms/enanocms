@@ -373,6 +373,18 @@ var enano_lang_install = {
       confirm_objective_backup_fs: 'Back up Enano installation directory (<b>%dir%</b>)',
       confirm_objective_backup_db: 'Back up Enano database, including non-Enano tables if any (<b>%dbname%</b>)',
       confirm_btn_upgrade: 'Pimp my Enano!',
+      
+      err_post_not_available: 'You\'re trying to run the post-upgrade process, but your site isn\'t in the correct state for this.',
+      
+      post_status_title: 'Finishing upgrade',
+      post_status_body: 'Enano is cleaning up some data and finalizing the upgrade.',
+      post_status_finish_title: 'All done!',
+      post_status_finish_body: 'That\'s it - Enano has been upgraded. You should <a href="%mainpage_link%">go back to your site</a> now and make sure that everything works right. If you find a problem, be sure to report it to the <a href="http://forum.enanocms.org/">Enano development team</a>. (Make sure you disable any plugins first, since we can\'t easily tell if your problem is caused by the Enano core or by a plugin.)',
+      
+      stg_flushcache_title: 'Flush caches',
+      stg_flushcache_body: 'The upgrader failed to delete some cached data. You may experience some problems with file corruption or badly drawn pages until the caches expire, which is often no longer than 20 minutes.',
+      stg_setversion_title: 'Set Enano version and log upgrade',
+      stg_setversion_body: 'There was a problem finalizing the upgrade and inserting logs. You really shouldn\'t ever see this message, but calling setConfig(\'enano_version\', installer_enano_version()) should get you rolling again since everything else is probably done by now.',
     }
   }
 }

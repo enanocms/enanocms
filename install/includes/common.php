@@ -148,7 +148,7 @@ while ( $dh = @readdir($dir) )
 
 if ( count($languages) < 1 )
 {
-  die('CRITICAL: No languages are available');
+  die('The Enano installer couldn\'t find any languages in the language/ folder. Enano needs at least one language in this folder to load and install properly.');
 }
 
 // List of available DB drivers

@@ -137,6 +137,10 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
 {
   $ui->set_visible_stage($stg_upgrade);
 }
+else if ( isset($_GET['stage']) && @$_GET['stage'] == 'postpimp' )
+{
+  $ui->set_visible_stage($stg_finish);
+}
 else
 {
   $ui->set_visible_stage($stg_confirm);
@@ -196,9 +200,58 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
   // Do the actual upgrade
   enano_perform_upgrade($target_branch);
   
-  $site_url = makeUrl(getConfig('main_page'), false, true);
-  echo '<p>All done! I\'ll actually be nice enough to give you a <a href="' . $site_url . '">link back to your site</a> this release <tt>:)</tt></p>';
-  echo '<p><b>It is important that you run a language string re-import and then clear your browser cache.</b> Otherwise you may see bits of the interface that appear to not be localized. This process will be automatic and non-destructive in later versions.</p>';
+  // Mark as upgrade-in-progress
+  setConfig('enano_version', 'upg-' . installer_enano_version());
+  
+  ?>
+  <h3>
+    <?php echo $lang->get('upgrade_msg_schema_complete_title'); ?>
+  </h3>
+  <p>
+    <?php echo $lang->get('upgrade_msg_schema_complete_body'); ?>
+  </p>
+  <form action="upgrade.php" method="get" style="text-align: center;">
+    <input type="hidden" name="auth" value="<?php echo $session->sid_super; ?>" />
+    <p style="text-align: center;">
+      <button name="stage" value="postpimp">
+        <?php echo $lang->get('etc_continue'); ?>
+      </button>
+    </p>
+  </form>
+  <?php
+}
+else if ( isset($_GET['stage']) && @$_GET['stage'] == 'postpimp' )
+{
+  // verify version
+  if ( enano_version() != 'upg-' . installer_enano_version() )
+  {
+    echo '<p>' . $lang->get('upgrade_err_post_not_available') . '</p>';
+    $ui->show_footer();
+    $db->close();
+    exit();
+  }
+  
+  function stg_load_files()
+  {
+    if ( !@include( ENANO_ROOT . "/install/includes/payload.php" ) )
+      return false;
+    
+    return true;
+  }
+  
+  echo '<h3>' . $lang->get('upgrade_post_status_title') . '</h3>';
+  echo '<p>' . $lang->get('upgrade_post_status_body') . '</p>';
+  
+  start_install_table();
+  run_installer_stage('load', $lang->get('install_stg_load_title'), 'stg_load_files', $lang->get('install_stg_load_body'), false);
+  run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_lang_import', $lang->get('install_stg_importlang_body'));
+  run_installer_stage('flushcache', $lang->get('upgrade_stg_flushcache_title'), 'stg_flush_cache', $lang->get('upgrade_stg_flushcache_body'));
+  run_installer_stage('setversion', $lang->get('upgrade_stg_setversion_title'), 'stg_set_version', $lang->get('upgrade_stg_setversion_body'));
+  close_install_table();
+  
+  $link_home = makeUrl(getConfig('main_page'), false, true);
+  echo '<h3>' . $lang->get('upgrade_post_status_finish_title') . '</h3>';
+  echo '<p>' . $lang->get('upgrade_post_status_finish_body', array('mainpage_link' => $link_home)) . '</p>';
 }
 else
 {

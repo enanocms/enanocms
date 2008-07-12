@@ -76,7 +76,7 @@ class Language
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    if ( defined('IN_ENANO_INSTALL') && ( !defined('ENANO_CONFIG_FETCHED') || defined('IN_ENANO_UPGRADE') ) )
+    if ( defined('IN_ENANO_INSTALL') && ( !defined('ENANO_CONFIG_FETCHED') || ( defined('IN_ENANO_UPGRADE') && !defined('IN_ENANO_UPGRADE_POST') ) ) )
     {
       // special case for the Enano installer: it will load its own strings from a JSON file and just use this API for fetching
       // and templatizing them.
@@ -312,10 +312,11 @@ $lang_cache = ');
   /**
    * Imports a JSON-format language file into the database and merges with current strings.
    * @param string Path to the JSON file to load
+   * @param bool If true, only imports new strings and skips those that already exist. Defaults to false (import all strings)
    * @param bool Enable debugging output, makes the process over CLI more interesting
    */
   
-  function import($file, $debug = false)
+  function import($file, $skip_existing = false, $debug = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -367,7 +368,7 @@ $lang_cache = ');
     if ( $debug )
       echo "  Starting string import$br\n";
     
-    return $this->import_array($langdata, $debug);
+    return $this->import_array($langdata, $skip_existing, $debug);
   }
   
   /**
@@ -437,11 +438,12 @@ $lang_cache = ');
   /**
    * Performs the actual import of string data.
    * @param array Parsed JSON object, should be in the form of an array
+   * @param bool If true, only imports new strings and skips those that already exist. Defaults to false.
    * @param bool Enable debugging output
    * @access private
    */
   
-  protected function import_array($langdata, $debug = false) 
+  protected function import_array($langdata, $skip_existing = false, $debug = false) 
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -465,6 +467,17 @@ $lang_cache = ');
         }
         foreach ( $langdata['strings'][$category] as $string_name => $string_value )
         {
+          // should we skip this string?
+          if ( isset($this->strings[$category]) && $skip_existing )
+          {
+            if ( isset($this->strings[$category][$string_name]) )
+            {
+              // already exists, skip
+              if ( $debug )
+                echo "    Skipping string (already exists): {$category}_{$string_name}$br\n";
+              continue;
+            }
+          }
           $string_name = $db->escape($string_name);
           $string_value = $db->escape($string_value);
           $category_name = $db->escape($category);

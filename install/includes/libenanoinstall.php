@@ -92,6 +92,7 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   close_install_table();
   $post_data = '';
   $mysql_error = mysql_error();
+  $file = ( defined('IN_ENANO_UPGRADE') ) ? 'upgrade.php' : 'install.php';
   foreach ( $_POST as $key => $value )
   {
     // FIXME: These should really also be sanitized for double quotes
@@ -102,7 +103,7 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   if ( $stage_id == 'renameconfig' )
     echo '<p>' . $failure_explanation . '</p>';
   else
-    echo '<form action="install.php?stage=install&amp;sub=' . $stage_id . '" method="post">
+    echo '<form action="' . $file . '?stage=install&amp;sub=' . $stage_id . '" method="post">
             ' . $post_data . '
             <input type="hidden" name="resume_stack" value="' . htmlspecialchars(implode('|', $resume_stack)) . '" />
             <h3>' . $lang->get('meta_msg_err_stagefailed_title') . '</h3>

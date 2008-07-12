@@ -48,6 +48,7 @@ if ( !$result )
       ?>
     </p>
     <p>
+      <!-- FIXME: l10n -->
       <input type="submit" name="_cont" value="Go back" />
     </p>
   </form>

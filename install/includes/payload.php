@@ -422,3 +422,67 @@ function stg_rename_config()
   return true;
 }
 
+/**
+ * UPGRADE STAGES
+ */
+
+function stg_lang_import()
+{
+  global $db, $languages;
+  
+  define('IN_ENANO_UPGRADE_POST', 1);
+  
+  //
+  // IMPORT NEW STRINGS
+  //
+  
+  // for each installed language, look for the json files in the filesystem and if they're ok, import new strings from them
+  $q = $db->sql_query('SELECT lang_id, lang_code FROM ' . table_prefix . "language;");
+  if ( !$q )
+    $db->_die();
+  
+  while ( $row = $db->fetchrow($q) )
+  {
+    if ( isset($languages[$row['lang_code']]) )
+    {
+      // found a language and it's good on the filesystem; load it and call a reimport
+      $lang_local = new Language($row['lang_id']);
+      // call fetch to make sure we're up to date
+      $lang_local->fetch();
+      // import
+      foreach ( array('core', 'admin', 'user', 'tools') as $language_file )
+      {
+        // generate full path
+        $language_file = ENANO_ROOT . "/language/{$languages[$row['lang_code']]['dir']}/$language_file.json";
+        // setting the second parameter to bool(true) causes it to skip existing strings
+        if ( !$lang_local->import($language_file, true) )
+          // on failure, report failure to libenanoinstall
+          return false;
+      }
+      // unload this lang_local object to save memory
+      unset($lang_local);
+    }
+  }
+  
+  return true;
+}
+
+function stg_flush_cache()
+{
+  return purge_all_caches();
+}
+
+function stg_set_version()
+{
+  global $db;
+  // log the upgrade
+  $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES'
+         . '(\'security\', \'upgrade_enano\', ' . time() . ', \'[DEPRECATED]\', \'' . $db->escape($session->username) . '\', \'' . $db->escape($this_version) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
+  if ( !$q )
+  {
+    $db->_die();
+    return false;
+  }
+  setConfig('enano_version', installer_enano_version());
+  return true;
+}
