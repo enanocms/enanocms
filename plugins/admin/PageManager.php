@@ -18,6 +18,8 @@ function page_Admin_PageManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $cache;
+  
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
@@ -251,16 +253,25 @@ function page_Admin_PageManager()
                     if ( !$db->sql_query($q) )
                       $db->_die('PageManager running slave update query after page ID/namespace change');
                   }
+                  
+                  // update $paths with the new pathskey
+                  $new_pathskey = $paths->nslist[$namespace_new] . $page_id_new;
+                  $paths->pages[$new_pathskey] =& $paths->pages[$pathskey];
                 }
                 
-                // Did we change the name of the page? If so, make PageUtils log it
+                // Did we change the name of the page? If so, make PageProcessor log it
                 if ( $dataset_backup['name'] != $dataset['name'] )
                 {
-                  PageUtils::rename($page_id_new, $namespace_new, $dataset['name']);
+                  $page = new PageProcessor($page_id_new, $namespace_new);
+                  $page->rename_page($dataset['name']);
                 }
+                
+                // Finally, clear the metadata cache
+                $cache->purge('page_meta');
               }
               
               // Did the user ask to delete the page?
+              // I know it's a bit pointless to delete the page only after validating and processing the whole form, but what the heck :)
               if ( isset($_POST['delete']) )
               {
                 PageUtils::deletepage($page_id_new, $namespace_new, $lang->get('acppm_delete_reason'));
