@@ -126,11 +126,21 @@ function enano_perform_upgrade($target_branch)
   global $ui;
   // This is needed for upgrade abstraction
   global $dbdriver;
+  
+  // see if we're actually supposed to be in post-upgrade
+  if ( getConfig('enano_version') == 'upg-' . installer_enano_version() )
+  {
+    // yep, fall out here to avoid errors
+    return true;
+  }
+  
   // Main upgrade stage
   
   // Init vars
   list($major_version, $minor_version) = explode('.', installer_enano_version());
   $installer_branch = "$major_version.$minor_version";
+  $installer_branch = preg_replace('/^upg-/', '', $installer_branch);
+  $target_branch = preg_replace('/^upg-/', '', $target_branch);
   
   $version_flipped = array_flip($enano_versions[$target_branch]);
   $version_curr = enano_version();

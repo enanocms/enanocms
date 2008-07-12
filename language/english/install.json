@@ -374,12 +374,19 @@ var enano_lang_install = {
       confirm_objective_backup_db: 'Back up Enano database, including non-Enano tables if any (<b>%dbname%</b>)',
       confirm_btn_upgrade: 'Pimp my Enano!',
       
+      msg_schema_complete_title: 'Database upgrades complete',
+      msg_schema_complete_body: 'You\'re past the hard part - all of the modifications to your database were successful. We need to perform a few final steps to finish the upgrade; just click the button below to finish everything up.',
+      btn_continue: 'Finish upgrade',
+      
+      err_current_title: 'Already running current version',
+      err_current_body: 'No database upgrades are needed right now, you\'re already running the Enano version set in this installer. Try <a href="%mainpage_link%">heading back to your site</a>. Think there\'s a mistake somewhere? <a href="http://forum.enanocms.org/">Let the Enano team know about it</a>.',
+      err_current_body_para2: 'You might also want to use the administration panel to check for updates, or <a href="http://enanocms.org/download">download the latest release</a> of Enano.',
       err_post_not_available: 'You\'re trying to run the post-upgrade process, but your site isn\'t in the correct state for this.',
       
       post_status_title: 'Finishing upgrade',
       post_status_body: 'Enano is cleaning up some data and finalizing the upgrade.',
       post_status_finish_title: 'All done!',
-      post_status_finish_body: 'That\'s it - Enano has been upgraded. You should <a href="%mainpage_link%">go back to your site</a> now and make sure that everything works right. If you find a problem, be sure to report it to the <a href="http://forum.enanocms.org/">Enano development team</a>. (Make sure you disable any plugins first, since we can\'t easily tell if your problem is caused by the Enano core or by a plugin.)',
+      post_status_finish_body: 'That\'s it - Enano has been upgraded. You should <a href="%mainpage_link%">go back to your site</a> now and make sure that everything works right. If you find a problem, be sure to report it to the <a href="http://forum.enanocms.org/">Enano development team</a>. (Make sure you disable any plugins first, since we can\'t easily tell if your problem is caused by the Enano core or by a plugin, unless all of your non-system plugins are disabled.)',
       
       stg_flushcache_title: 'Flush caches',
       stg_flushcache_body: 'The upgrader failed to delete some cached data. You may experience some problems with file corruption or badly drawn pages until the caches expire, which is often no longer than 20 minutes.',

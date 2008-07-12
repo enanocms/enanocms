@@ -474,10 +474,10 @@ function stg_flush_cache()
 
 function stg_set_version()
 {
-  global $db;
+  global $db, $session, $paths, $template, $plugins; // Common objects
   // log the upgrade
   $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES'
-         . '(\'security\', \'upgrade_enano\', ' . time() . ', \'[DEPRECATED]\', \'' . $db->escape($session->username) . '\', \'' . $db->escape($this_version) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
+         . '(\'security\', \'upgrade_enano\', ' . time() . ', \'[DEPRECATED]\', \'' . $db->escape($session->username) . '\', \'' . $db->escape(installer_enano_version()) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
   if ( !$q )
   {
     $db->_die();

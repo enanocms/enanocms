@@ -59,7 +59,10 @@ $lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/user.json');
 if ( enano_version() == installer_enano_version() )
 {
   $ui->show_header();
-  echo '<h3>Already upgraded</h3>' . '<p>You don\'t need to migrate, you\'re already on <del>crack</del> the 1.1 platform.</p>';
+  $link_home = makeUrl(getConfig('main_page'), false, true);
+  echo '<h3>' . $lang->get('upgrade_err_current_title') . '</h3>' .
+       '<p>' . $lang->get('upgrade_err_current_body', array('mainpage_link' => $link_home)) . '</p>' .
+       '<p>' . $lang->get('upgrade_err_current_body_para2', array('mainpage_link' => $link_home)) . '</p>';
   $ui->show_footer();
   exit();
 }
@@ -175,7 +178,7 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
    */
   
   // Do we need to run the migration first?
-  list($major_version, $minor_version) = explode('.', enano_version());
+  list($major_version, $minor_version) = explode('.', preg_replace('/^upg-/', '', enano_version()));
   $current_branch = "$major_version.$minor_version";
   
   list($major_version, $minor_version) = explode('.', installer_enano_version());
@@ -213,8 +216,8 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
   <form action="upgrade.php" method="get" style="text-align: center;">
     <input type="hidden" name="auth" value="<?php echo $session->sid_super; ?>" />
     <p style="text-align: center;">
-      <button name="stage" value="postpimp">
-        <?php echo $lang->get('etc_continue'); ?>
+      <button name="stage" value="postpimp" class="submit">
+        <?php echo $lang->get('upgrade_btn_continue'); ?>
       </button>
     </p>
   </form>
@@ -248,6 +251,9 @@ else if ( isset($_GET['stage']) && @$_GET['stage'] == 'postpimp' )
   run_installer_stage('flushcache', $lang->get('upgrade_stg_flushcache_title'), 'stg_flush_cache', $lang->get('upgrade_stg_flushcache_body'));
   run_installer_stage('setversion', $lang->get('upgrade_stg_setversion_title'), 'stg_set_version', $lang->get('upgrade_stg_setversion_body'));
   close_install_table();
+  
+  // demote privileges
+  $session->logout(USER_LEVEL_ADMIN);
   
   $link_home = makeUrl(getConfig('main_page'), false, true);
   echo '<h3>' . $lang->get('upgrade_post_status_finish_title') . '</h3>';
