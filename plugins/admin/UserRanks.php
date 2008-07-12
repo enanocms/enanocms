@@ -120,6 +120,9 @@ function page_Admin_UserRanks()
         $rank_style = $db->escape(@$request['rank_style']);
         $q = $db->sql_query('UPDATE ' . table_prefix . "ranks SET rank_title = '$rank_title', rank_style = '$rank_style' WHERE rank_id = $rank_id;");
         
+        // regenerate the ranks cache
+        generate_cache_userranks();
+        
         echo enano_json_encode(array(
             'mode' => 'success'
           ));
@@ -152,6 +155,9 @@ function page_Admin_UserRanks()
             ));
           return true;
         }
+        
+        // regenerate the ranks cache
+        generate_cache_userranks();
         
         echo enano_json_encode(array(
             'mode' => 'success',
@@ -192,6 +198,9 @@ function page_Admin_UserRanks()
         $q = $db->sql_query('DELETE FROM ' . table_prefix . "ranks WHERE rank_id = $rank_id;");
         if ( !$q )
           $db->_die();
+        
+        // regenerate the ranks cache
+        generate_cache_userranks();
         
         echo enano_json_encode(array(
             'mode' => 'success'
