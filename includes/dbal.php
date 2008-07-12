@@ -1141,7 +1141,7 @@ class postgresql {
         eval($cmd);
       }
     }
-    $last_was_insert = preg_match('/^INSERT INTO ([a-z0-9_]+)\(/i', $this->latest_query, $match);
+    $last_was_insert = preg_match('/^INSERT INTO ([a-z0-9_]+)/i', $this->latest_query, $match);
     if ( $last_was_insert )
     {
       // trick based on PunBB's PostgreSQL driver
