@@ -1,0 +1,23 @@
+Enano 1.1.4 - Known Bugs and Issues
+
+  These are the issues in Enano 1.1.4 that the development team knows
+  about, but did not have time to fix before this release was
+  scheduled. Hopefully all of these will be fixed in the next release.
+
+- Username and page name auto-complation does not work
+  These components were moved to a new framework - Spry data sets - in
+  Enano 1.1.4. We're having a lot of issues with this due to the
+  requirement for loading the data only on demand (e.g. when the user
+  starts typing in the form field). We also need to be able to create
+  username autocompletion fields with DHTML, which spry is also
+  failing at. Now if only Spry's effects library wasn't so damn nice,
+  we'd probably swap it out for something else entirely.
+
+- Several expected ACL management features are missing
+  We know, we know. You want ACL presets and more ways to debug
+  existing rules. The good news is that the latter is fully implemented
+  on the backend level. The bad news is that creating a good frontend
+  is a hard thing especially with the standard that the existing ACL
+  editor sets. We'll have both presets and ACL rule tracing done for
+  Enano 1.1.5.
+
