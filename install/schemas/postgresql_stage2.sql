@@ -389,11 +389,11 @@ INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name,
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);
   
-INSERT INTO {{TABLE_PREFIX}}ranks(rank_id, rank_title, rank_style) VALUES
-  (1, 'user_rank_member', ''),
-  (2, 'user_rank_mod', 'font-weight: bold; color: #00AA00;'),
-  (3, 'user_rank_admin', 'font-weight: bold; color: #AA0000;'),
-  (4, 'user_rank_guest', '');
+INSERT INTO {{TABLE_PREFIX}}ranks(rank_title, rank_style) VALUES
+  ('user_rank_member', ''),
+  ('user_rank_mod', 'font-weight: bold; color: #00AA00;'),
+  ('user_rank_admin', 'font-weight: bold; color: #AA0000;'),
+  ('user_rank_guest', '');
 
 INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(1, 'Everyone', 3, 1),
   (2,'Administrators',3,1),
