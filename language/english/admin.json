@@ -830,6 +830,7 @@ var enano_lang = {
       avatar_lbl_remove: 'Delete this user\'s avatar',
       avatar_lbl_set_http: 'Replace avatar using a new image from a URL',
       avatar_lbl_set_file: 'Replace avatar using a new image from my computer',
+      avatar_lbl_set_gravatar: 'Replace avatar with Gravatar',
       
       heading_adminonly: 'Administrator-only options',
       

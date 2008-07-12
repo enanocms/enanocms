@@ -3480,7 +3480,7 @@ EOF;
               
               // give the server our values
               frm.' . $crypt_key . '.value = secret_hash;
-              frm.' . $dh_client_pubkey . '.value = dh_pub;
+              ' . ( $dh_supported ? 'frm.' . $dh_client_pubkey . '.value = dh_pub;' : '' ) . '
               
               // console.info("DiffieHellman: set public values");
               

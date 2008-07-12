@@ -24,6 +24,11 @@ function page_Admin_UserManager()
     return;
   }
   
+  require_once(ENANO_ROOT . '/includes/math.php');
+  require_once(ENANO_ROOT . '/includes/diffiehellman.php');
+  
+  $GLOBALS['dh_supported'] = $dh_supported;
+  
   //die('<pre>' . htmlspecialchars(print_r($_POST, true)) . '</pre>');
   
   if ( isset($_POST['action']['save']) )
@@ -311,6 +316,19 @@ function page_Admin_UserManager()
               // move failed - turn avatar off
               $to_update_users['user_has_avatar'] = '0';
             }
+            break;
+          case 'set_gravatar':
+            // set avatar to use Gravatar
+            // first, remove old image
+            if ( $has_avi )
+            {
+              @unlink($avi_path);
+            }
+            // set to gravatar mode
+            $to_update_users['user_has_avatar'] = '1';
+            $to_update_users['avatar_type'] = 'grv';
+            
+            $has_avi = 1;
             break;
         }
         
@@ -793,6 +811,7 @@ class Admin_UserManager_SmartForm
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    global $dh_supported;
     if ( file_exists( ENANO_ROOT . "/themes/$template->theme/admin_usermanager_form.tpl" ) )
     {
       $parser = $template->makeParser('admin_usermanager_form.tpl');
@@ -897,6 +916,9 @@ class Admin_UserManager_SmartForm
                       <input type="hidden" name="use_crypt" value="no" />
                       <input type="hidden" name="crypt_key" value="{PUBLIC_KEY}" />
                       <input type="hidden" name="crypt_data" value="" />
+                      <input type="hidden" name="dh_supported" value="{DH_SUPPORTED}" />
+                      <input type="hidden" name="dh_public" value="{DH_PUBLIC}" />
+                      <input type="hidden" name="dh_mypublic" value="" />
                       <table border="0" style="background-color: transparent;" cellspacing="0" cellpadding="0">
                         <tr>
                           <td colspan="2">
@@ -1039,22 +1061,30 @@ class Admin_UserManager_SmartForm
                   </td>
                   <td class="row1">
                     <script type="text/javascript">
-                      function admincp_users_avatar_set_{UUID}(obj)
+                      function admincp_users_avatar_set_{UUID}(elParent)
                       {
-                        switch(obj.value)
+                        switch(elParent.value)
                         {
                           case 'keep':
                           case 'remove':
                             $('avatar_upload_http_{UUID}').object.style.display = 'none';
                             $('avatar_upload_file_{UUID}').object.style.display = 'none';
+                            $('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
                             break;
                           case 'set_http':
                             $('avatar_upload_http_{UUID}').object.style.display = 'block';
                             $('avatar_upload_file_{UUID}').object.style.display = 'none';
+                            $('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
                             break;
                           case 'set_file':
                             $('avatar_upload_http_{UUID}').object.style.display = 'none';
                             $('avatar_upload_file_{UUID}').object.style.display = 'block';
+                            $('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
+                            break;
+                          case 'set_gravatar':
+                            $('avatar_upload_gravatar_{UUID}').object.style.display = 'block';
+                            $('avatar_upload_http_{UUID}').object.style.display = 'none';
+                            $('avatar_upload_file_{UUID}').object.style.display = 'none';
                             break;
                         }
                       }
@@ -1066,11 +1096,13 @@ class Admin_UserManager_SmartForm
                         {lang:usercp_avatar_lbl_url} <input type="text" name="avatar_http_url" size="40" value="http://" /><br />
                         <small>{lang:usercp_avatar_lbl_url_desc} {lang:usercp_avatar_limits}</small>
                       </div>
-                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_file" /> {lang:acpum_avatar_lbl_set_file}</label>
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_file" /> {lang:acpum_avatar_lbl_set_file}</label><br />
                       <div id="avatar_upload_file_{UUID}" style="display: none; margin: 10px 0 0 2.2em;">
                         {lang:usercp_avatar_lbl_file} <input type="file" name="avatar_file" size="40" value="http://" /><br />
                         <small>{lang:usercp_avatar_lbl_file_desc} {lang:usercp_avatar_limits}</small>
                       </div>
+                    <label><input onclick="admincp_users_avatar_set_{UUID}(this);" type="radio" name="avatar_action" value="set_gravatar" /> {lang:acpum_avatar_lbl_set_gravatar} <img alt=" " src="{GRAVATAR_URL}" /></label><br />
+                      <div id="avatar_upload_gravatar_{UUID}"></div>
                   </td>
                 </tr>
                 
@@ -1149,9 +1181,11 @@ class Admin_UserManager_SmartForm
         
         </form>
         
+        <!-- BEGINNOT same_user -->
         <script type="text/javascript">
         password_score_field(document.forms['useredit_{UUID}'].new_password);
         </script>
+        <!-- END same_user -->
         
         {AES_JAVASCRIPT}
       <!-- Conclusion of user edit form -->
@@ -1195,7 +1229,26 @@ EOF;
     }
     
     $form_action = makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'], true);
-    $aes_javascript = $session->aes_javascript("useredit_$this->uuid", 'new_password', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data');
+    $aes_javascript = $session->aes_javascript("useredit_$this->uuid", 'new_password', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data', 'dh_supported', 'dh_public', 'dh_mypublic');
+    
+    // FIXME should this be in logic rather than presentation code?
+    if ( $dh_supported )
+    {
+      global $_math;
+      
+      $dh_key_priv = dh_gen_private();
+      $dh_key_pub = dh_gen_public($dh_key_priv);
+      $dh_key_priv = $_math->str($dh_key_priv);
+      $dh_key_pub = $_math->str($dh_key_pub);
+      // store the keys in the DB for later fetching
+      $q = $db->sql_query('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+      if ( !$q )
+        $db->_die();
+    }
+    else
+    {
+      $dh_key_pub = '';
+    }
     
     $parser->assign_vars(array(
         'UUID' => $this->uuid,
@@ -1204,6 +1257,8 @@ EOF;
         'USER_ID' => $this->user_id,
         'MD5_CHALLENGE' => $session->dss_rand(),
         'PUBLIC_KEY' => $session->rijndael_genkey(),
+        'DH_SUPPORTED' => ( $dh_supported ? 'true' : 'false' ),
+        'DH_PUBLIC' => $dh_key_pub,
         'REAL_NAME' => $this->real_name,
         'SIGNATURE_FIELD' => $template->tinymce_textarea('signature', $this->signature, 10, 50),
         'USER_LEVEL_MEMBER' => USER_LEVEL_CHPREF,
@@ -1219,7 +1274,8 @@ EOF;
         'JOB' => $job,
         'HOBBIES' => $hobbies,
         'FORM_ACTION' => $form_action,
-        'REG_IP_ADDR' => $this->reg_ip_addr
+        'REG_IP_ADDR' => $this->reg_ip_addr,
+        'GRAVATAR_URL' => make_gravatar_url($this->email, 16)
       ));
     
     if ( $this->has_avatar )
