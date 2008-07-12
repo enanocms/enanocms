@@ -5,7 +5,8 @@ ALTER TABLE {{TABLE_PREFIX}}logs ADD COLUMN log_id SERIAL, ADD PRIMARY KEY ( log
 ALTER TABLE {{TABLE_PREFIX}}logs ADD COLUMN is_draft smallint NOT NULL DEFAULT 0;
 
 ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_rank int NOT NULL DEFAULT 1;
-@ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_timezone int NOT NULL DEFAULT 0;
+@ALTER TABLE {{TABLE_PREFIX}}users DROP user_timezone;
+ALTER TABLE {{TABLE_PREFIX}}users ADD COLUMN user_timezone int NOT NULL DEFAULT 0;
 
 ALTER TABLE {{TABLE_PREFIX}}themes
   ADD COLUMN group_list text DEFAULT NULL,
@@ -25,7 +26,7 @@ CREATE TABLE {{TABLE_PREFIX}}captcha(
   code varchar(64) NOT NULL DEFAULT '',
   session_data text,
   source_ip varchar(39),
-  user_id int(12),
+  user_id int,
   PRIMARY KEY ( code_id )
 );
 
