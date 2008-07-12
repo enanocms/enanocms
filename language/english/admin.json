@@ -839,6 +839,8 @@ var enano_lang = {
       field_active: 'Account is active and enabled',
       field_userlevel: 'User\'s site access level',
       field_userlevel_hint: 'If this is changed, the relevant group memberships will be updated accordingly.',
+      field_userrank: 'User\'s rank:',
+      field_userrank_hint: 'You can create more ranks using User Ranks and Titles. Ranks do not affect permissions (e.g. setting their rank to Administrator here will not give them administrator permissions).',
       field_reg_ip: 'Registered from IP:',
       
       field_deleteaccount_title: 'Delete user account',

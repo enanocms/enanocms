@@ -104,6 +104,14 @@ function page_Admin_UserManager()
       if ( $user_level < USER_LEVEL_MEMBER || $user_level > USER_LEVEL_ADMIN )
         $errors[] = 'Invalid user level';
       
+      $user_rank = $_POST['user_rank'];
+      if ( $user_rank !== 'NULL' )
+      {
+        $user_rank = intval($user_rank);
+        if ( !$user_rank )
+          $errors[] = 'Invalid user rank';
+      }
+      
       $imaddr_aim = htmlspecialchars($_POST['imaddr_aim']);
       $imaddr_msn = htmlspecialchars($_POST['imaddr_msn']);
       $imaddr_yahoo = htmlspecialchars($_POST['imaddr_yahoo']);
@@ -160,6 +168,7 @@ function page_Admin_UserManager()
         }
         $to_update_users['signature'] = $signature;
         $to_update_users['user_level'] = $user_level;
+        $to_update_users['user_rank'] = $user_rank;
         
         if ( isset($_POST['account_active']) )
         {
@@ -430,6 +439,7 @@ function page_Admin_UserManager()
       $form->real_name = $real_name;
       $form->signature = $signature;
       $form->user_level = $user_level;
+      $form->user_rank = $user_rank;
       $form->im = array(
           'aim' => $imaddr_aim,
           'yahoo' => $imaddr_yahoo,
@@ -471,7 +481,7 @@ function page_Admin_UserManager()
       echo 'No username provided';
       return false;
     }
-    $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, u.user_has_avatar, u.avatar_type, u.user_registration_ip, x.* FROM '.table_prefix.'users AS u
+    $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, u.user_rank, u.user_has_avatar, u.avatar_type, u.user_registration_ip, x.* FROM '.table_prefix.'users AS u
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL )
                            WHERE ( ' . ENANO_SQLFUNC_LOWERCASE . '(u.username) = \'' . $db->escape(strtolower($username)) . '\' OR u.username = \'' . $db->escape($username) . '\' ) AND u.user_id != 1;');
@@ -493,6 +503,7 @@ function page_Admin_UserManager()
       $form->real_name = $row['real_name'];
       $form->signature = $row['signature'];
       $form->user_level= $row['user_level'];
+      $form->user_rank = $row['user_rank'];
       $form->account_active = ( $row['account_active'] == 1 );
       $form->email_public   = ( $row['email_public'] == 1 );
       $form->has_avatar     = ( $row['user_has_avatar'] == 1 );
@@ -757,6 +768,13 @@ class Admin_UserManager_SmartForm
    */
   
   var $user_level = USER_LEVEL_MEMBER;
+  
+  /**
+   * User-specific user rank
+   * @var int
+   */
+  
+  var $user_rank = NULL;
   
   /**
    * Account activated
@@ -1137,6 +1155,18 @@ class Admin_UserManager_SmartForm
                   </td>
                 </tr>
                 
+                <tr>
+                  <td class="row2">
+                    {lang:acpum_field_userrank}<br />
+                    <small>{lang:acpum_field_userrank_hint}</small>
+                  </td>
+                  <td class="row1">
+                    <select name="user_rank">
+                      {RANK_LIST}
+                    </select>
+                  </td>
+                </tr>
+                
                 <!-- BEGIN have_reg_ip -->
                 <tr>
                   <td class="row2">
@@ -1250,6 +1280,16 @@ EOF;
       $dh_key_pub = '';
     }
     
+    // build rank list
+    $q = $db->sql_query('SELECT rank_id, rank_title FROM ' . table_prefix . 'ranks');
+    if ( !$q )
+      $db->_die();
+    $rank_list = '<option value="NULL"' . ( $this->user_rank === NULL ? ' selected="selected"' : '' ) . '>--</option>' . "\n";
+    while ( $row = $db->fetchrow() )
+    {
+      $rank_list .= '<option value="' . $row['rank_id'] . '"' . ( $row['rank_id'] == $this->user_rank ? ' selected="selected"' : '' ) . '>' . htmlspecialchars($lang->get($row['rank_title'])) . '</option>' . "\n";
+    }
+    
     $parser->assign_vars(array(
         'UUID' => $this->uuid,
         'USERNAME' => $this->username,
@@ -1275,6 +1315,7 @@ EOF;
         'HOBBIES' => $hobbies,
         'FORM_ACTION' => $form_action,
         'REG_IP_ADDR' => $this->reg_ip_addr,
+        'RANK_LIST' => $rank_list,
         'GRAVATAR_URL' => make_gravatar_url($this->email, 16)
       ));
     
