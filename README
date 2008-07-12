@@ -79,7 +79,7 @@ UPGRADING FROM PREVIOUS RELEASES
 
 This tarball includes a very basic migration script that you can use to change
 a 1.0.x installation into a 1.1.x one. Make sure you're using the latest 1.0.x
-release (1.0.3 at the time of this writing) BEFORE you run the migration
+release (1.0.4 at the time of this writing) BEFORE you run the migration
 script. DO NOT UPGRADE A PRODUCTION SITE.
 
 As of 1.1.2, basic upgrade functionality is included and is considered highly
@@ -88,7 +88,7 @@ experimental. Back up your entire database and Enano root before upgrading.
 TRANSLATING ENANO
 -----------------------------
 
-This is the only the third formal release of Enano that is localized. Right
+This is the only the fourth formal release of Enano that is localized. Right
 now since this is an alpha, you probably don't want to do any translation
 because you'll be doing a TON more strings at every release. HOWEVER, we're
 looking for people to sign up and volunteer for translation efforts later on.
