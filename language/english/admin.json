@@ -923,6 +923,8 @@ var enano_lang = {
       intro_para4: 'This screen lets you create, edit, and delete ranks. To assign them, edit the respective user or usergroup.',
       
       msg_select_rank: 'To edit a rank, select it on the left. Or, click Create New Rank to start a new rank.',
+      msg_rank_delete_confirm_title: 'Delete this rank?',
+      msg_rank_delete_confirm_body: 'This will completely remove this rank and unassociate any users and groups with it.',
       
       th_edit_rank: 'Edit rank: %rank_title%',
       th_create_rank: 'Create new rank',
@@ -933,6 +935,17 @@ var enano_lang = {
       field_style_basic_italic: 'Italic',
       field_style_basic_underline: 'Underline',
       field_style_color: 'Username color:',
+      field_preview: 'Preview:',
+      
+      btn_save: 'Save rank',
+      btn_create_submit: 'Create rank',
+      btn_create_init: 'Create new rank',
+      btn_delete: 'Delete rank',
+      
+      err_save_failed_title: 'Saving operation failed',
+      err_delete_failed_title: 'Deletion operation failed',
+      err_missing_rank_title: 'Please enter a title for this rank.',
+      err_cant_delete_system_rank: 'The rank you are trying to delete is an important system rank that cannot be deleted. However, you may customize the title and style of it to make it appear normal.',
     },
     acpsl: {
       heading_main: 'System security log',

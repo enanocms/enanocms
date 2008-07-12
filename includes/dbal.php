@@ -1104,7 +1104,56 @@ class postgresql {
   
   function insert_id()
   {
-    return @pg_last_oid();
+    // list of primary keys in Enano tables
+    // this is a bit hackish, but not much choice.
+    static $primary_keys = false;
+    if ( !is_array($primary_keys) )
+    {
+      $primary_keys = array(
+        table_prefix . 'comments' => 'comment_id',
+        table_prefix . 'logs' => 'log_id',
+        table_prefix . 'users' => 'user_id',
+        table_prefix . 'banlist' => 'ban_id',
+        table_prefix . 'files' => 'file_id',
+        table_prefix . 'buddies' => 'buddy_id',
+        table_prefix . 'privmsgs' => 'message_id',
+        table_prefix . 'sidebar' => 'item_id',
+        table_prefix . 'hits' => 'hit_id',
+        table_prefix . 'groups' => 'group_id',
+        table_prefix . 'group_members' => 'member_id',
+        table_prefix . 'acl' => 'rule_id',
+        table_prefix . 'page_groups' => 'pg_id',
+        table_prefix . 'page_group_members' => 'pg_member_id',
+        table_prefix . 'tags' => 'tag_id',
+        table_prefix . 'lockout' => 'id',
+        table_prefix . 'language' => 'lang_id',
+        table_prefix . 'language_strings' => 'string_id',
+        table_prefix . 'ranks' => 'rank_id',
+        table_prefix . 'captcha' => 'code_id',
+        table_prefix . 'diffiehellman' => 'key_id',
+        table_prefix . 'plugins' => 'plugin_id'
+      );
+      // allow plugins to patch this if needed
+      global $plugins;
+      $code = $plugins->setHook('pgsql_set_serial_list');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+    }
+    $last_was_insert = preg_match('/^INSERT INTO ([a-z0-9_]+)\(/i', $this->latest_query, $match);
+    if ( $last_was_insert )
+    {
+      // trick based on PunBB's PostgreSQL driver
+      $table =& $match[1];
+      if ( isset($primary_keys[$table]) )
+      {
+        $primary_key = "{$table}_{$primary_keys[$table]}_seq";
+        $q = pg_query("SELECT CURRVAL('$primary_key');");
+        return ( $q ) ? intval(@pg_fetch_result($q, 0)) : false;
+      }
+    }
+    return false;
   }
   
   function fetchrow($r = false) {

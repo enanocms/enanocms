@@ -4,7 +4,7 @@
 
 var RankEditorControl = function(rankdata)
 {
-  this.rankdata = rankdata;
+  this.rankdata = ( typeof(rankdata) == 'object' ) ? rankdata : {};
   
   // have the browser parse CSS for us and use an anchor to be as close
   // as possible in calculating CSS
@@ -25,6 +25,8 @@ var RankEditorControl = function(rankdata)
     editor.className = 'tblholder';
     // stash this editor instance in the parent div for later function calls
     editor.editor = this;
+    this.wrapperdiv = editor;
+    editor.style.width = '100%';
     
     // tables suck.
     var table = document.createElement('table');
@@ -48,6 +50,7 @@ var RankEditorControl = function(rankdata)
     }
     th_head.appendChild(document.createTextNode($lang.get(th_head_string, th_head_data)));
     tr_head.appendChild(th_head);
+    this.th_head = th_head;
     table.appendChild(tr_head);
     
     // row: rank title
@@ -64,6 +67,11 @@ var RankEditorControl = function(rankdata)
     f_rank_title.type = 'text';
     f_rank_title.size = '30';
     f_rank_title.value = ( this.editing ) ? this.rankdata.rank_title : '';
+    f_rank_title.editor = this;
+    f_rank_title.onkeyup = function()
+    {
+      this.editor.renderPreview();
+    }
     this.f_rank_title = f_rank_title;
     td_title_f.appendChild(f_rank_title);
     
@@ -90,6 +98,7 @@ var RankEditorControl = function(rankdata)
     f_basic_bold.onclick = function()
     {
       this.editor.style_sim_obj.style.fontWeight = ( this.checked ) ? 'bold' : null;
+      this.editor.renderPreview();
     }
     l_basic_bold.style.fontWeight = 'bold';
     l_basic_bold.appendChild(f_basic_bold);
@@ -105,6 +114,7 @@ var RankEditorControl = function(rankdata)
     f_basic_italic.onclick = function()
     {
       this.editor.style_sim_obj.style.fontStyle = ( this.checked ) ? 'italic' : null;
+      this.editor.renderPreview();
     }
     l_basic_italic.style.fontStyle = 'italic';
     l_basic_italic.appendChild(f_basic_italic);
@@ -120,6 +130,7 @@ var RankEditorControl = function(rankdata)
     f_basic_underline.onclick = function()
     {
       this.editor.style_sim_obj.style.textDecoration = ( this.checked ) ? 'underline' : null;
+      this.editor.renderPreview();
     }
     l_basic_underline.style.textDecoration = 'underline';
     l_basic_underline.appendChild(f_basic_underline);
@@ -152,6 +163,7 @@ var RankEditorControl = function(rankdata)
     f_rank_color.size = '7';
     f_rank_color.value = ( this.editing ) ? this.rgb2hex(this.style_sim_obj.style.color) : '';
     f_rank_color.style.backgroundColor = this.style_sim_obj.style.color;
+    f_rank_color.editor = this;
     this.f_rank_color = f_rank_color;
     f_rank_color.onkeyup = function(e)
     {
@@ -168,6 +180,15 @@ var RankEditorControl = function(rankdata)
       if ( this.value.length == 6 || this.value.length == 3 )
       {
         this.style.backgroundColor = '#' + this.value;
+        this.editor.style_sim_obj.style.color = '#' + this.value;
+        this.style.color = '#' + this.editor.determineLightness(this.value);
+        this.editor.renderPreview();
+      }
+      else if ( this.value.length == 0 )
+      {
+        this.style.backgroundColor = null;
+        this.editor.style_sim_obj.style.color = null;
+        this.editor.renderPreview();
       }
     }
     td_color_f.appendChild(f_rank_color);
@@ -175,6 +196,64 @@ var RankEditorControl = function(rankdata)
     tr_color.appendChild(td_color_l);
     tr_color.appendChild(td_color_f);
     table.appendChild(tr_color);
+    
+    // "field": preview
+    var tr_preview = document.createElement('tr');
+    var td_preview_l = document.createElement('td');
+    td_preview_l.className = 'row2';
+    td_preview_l.appendChild(document.createTextNode($lang.get('acpur_field_preview')));
+    tr_preview.appendChild(td_preview_l);
+    
+    var td_preview_f = document.createElement('td');
+    td_preview_f.className = 'row2';
+    var div_preview = document.createElement('a');
+    this.preview_div = div_preview;
+    div_preview.style.fontSize = 'x-large';
+    div_preview.appendChild(document.createTextNode(''));
+    div_preview.firstChild.nodeValue = ( this.editing ) ? this.rankdata.rank_title : '';
+    td_preview_f.appendChild(div_preview);
+    tr_preview.appendChild(td_preview_f);
+    
+    table.appendChild(tr_preview);
+    
+    // submit button
+    var tr_submit = document.createElement('tr');
+    var th_submit = document.createElement('th');
+    th_submit.className = 'subhead';
+    th_submit.setAttribute('colspan', '2');
+    var btn_submit = document.createElement('input');
+    btn_submit.type = 'submit';
+    btn_submit.value = ( this.editing ) ? $lang.get('acpur_btn_save') : $lang.get('acpur_btn_create_submit');
+    btn_submit.editor = this;
+    btn_submit.style.fontWeight = 'bold';
+    btn_submit.onclick = function(e)
+    {
+      this.editor.submitEvent(e);
+    }
+    this.btn_submit = btn_submit;
+    th_submit.appendChild(btn_submit);
+    
+    // delete button
+    if ( this.editing )
+    {
+      var btn_delete = document.createElement('input');
+      btn_delete.type = 'button';
+      btn_delete.value = $lang.get('acpur_btn_delete');
+      btn_delete.editor = this;
+      btn_delete.onclick = function(e)
+      {
+        this.editor.deleteEvent(e);
+      }
+      th_submit.appendChild(document.createTextNode(' '));
+      th_submit.appendChild(btn_delete);
+    }
+    
+    tr_submit.appendChild(th_submit);
+    
+    table.appendChild(tr_submit);
+    
+    // render preview
+    this.renderPreview();
     
     // finalize the editor table
     editor.appendChild(table);
@@ -186,6 +265,62 @@ var RankEditorControl = function(rankdata)
     return editor;
   }
   
+  /**
+   * Takes the existing editor div and transforms the necessary elements so that it goes from "create" mode to "edit" mode
+   * @param object Edit data - same format as the rankdata parameter to the constructor, but we should only need rank_id
+   */
+  
+  this.transformToEditor = function(rankdata)
+  {
+    // we need a rank ID
+    if ( typeof(rankdata.rank_id) != 'number' )
+      return false;
+    
+    if ( this.editing )
+      return false;
+    
+    this.editing = true;
+    
+    this.rankdata = rankdata;
+    this.rankdata.rank_title = this.f_rank_title.value;
+    this.rankdata.rank_style = this.getCSS();
+    
+    // transform various controls
+    this.th_head.firstChild.nodeValue = $lang.get('acpur_th_edit_rank', {
+        rank_title: $lang.get(this.rankdata.rank_title)
+      });
+    this.btn_submit.value = $lang.get('acpur_btn_save');
+    
+    // add the delete button
+    var th_submit = this.btn_submit.parentNode;
+    
+    var btn_delete = document.createElement('input');
+    btn_delete.type = 'button';
+    btn_delete.value = $lang.get('acpur_btn_delete');
+    btn_delete.editor = this;
+    btn_delete.onclick = function(e)
+    {
+      this.editor.deleteEvent(e);
+    }
+    th_submit.appendChild(document.createTextNode(' '));
+    th_submit.appendChild(btn_delete);
+    
+    return true;
+  }
+  
+  /**
+   * Takes a hex color, averages the three channels, and returns either 'ffffff' or '000000' depending on the luminosity of the color.
+   * @param string
+   * @return string
+   */
+  
+  this.determineLightness = function(hexval)
+  {
+    var rgb = this.hex2rgb(hexval);
+    var lumin = ( rgb[0] + rgb[1] + rgb[2] ) / 3;
+    return ( lumin > 60 ) ? '000000' : 'ffffff';
+  }
+  
   this.getJSONDataset = function()
   {
     
@@ -193,7 +328,43 @@ var RankEditorControl = function(rankdata)
   
   this.getCSS = function()
   {
-    
+    return this.style_sim_obj.getAttribute('style');
+  }
+  
+  this.renderPreview = function()
+  {
+    if ( !this.preview_div )
+      return false;
+    var color = ( this.style_sim_obj.style.color ) ? '#' + this.rgb2hex(this.style_sim_obj.style.color) : null;
+    this.preview_div.style.color = color;
+    this.preview_div.style.fontWeight = this.style_sim_obj.style.fontWeight;
+    this.preview_div.style.fontStyle = this.style_sim_obj.style.fontStyle;
+    this.preview_div.style.textDecoration = this.style_sim_obj.style.textDecoration;
+    this.preview_div.firstChild.nodeValue = $lang.get(this.f_rank_title.value);
+  }
+  
+  this.submitEvent = function(e)
+  {
+    if ( this.onsubmit )
+    {
+      this.onsubmit(e);
+    }
+    else
+    {
+      window.console.error('RankEditorControl: no onsubmit event specified');
+    }
+  }
+  
+  this.deleteEvent = function(e)
+  {
+    if ( this.ondelete )
+    {
+      this.ondelete(e);
+    }
+    else
+    {
+      window.console.error('RankEditorControl: no ondelete event specified');
+    }
   }
   
   /**
@@ -218,6 +389,31 @@ var RankEditorControl = function(rankdata)
     
     return r + g + b;
   }
+  
+  /**
+   * Get red, green, and blue values for the given hex color
+   * @param string
+   * @return array (numbered, e.g. not an object
+   */
+  
+  this.hex2rgb = function(hex)
+  {
+    hex = hex.replace(/^#/, '');
+    if ( hex.length != 3 && hex.length != 6 )
+    {
+      return hex;
+    }
+    if ( hex.length == 3 )
+    {
+      // is there a better way to do this?
+      hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+    }
+    hex = [ hex.substr(0, 2), hex.substr(2, 2), hex.substr(4, 2) ];
+    var red = parseInt(hex[0], 16);
+    var green = parseInt(hex[1], 16);
+    var blue = parseInt(hex[2], 16);
+    return [red, green, blue];
+  }
 }
 
 /**
@@ -226,9 +422,274 @@ var RankEditorControl = function(rankdata)
 
 function ajaxInitRankEdit(rank_id)
 {
-  var editor = new RankEditorControl({ rank_title: 'Foo', rank_id: rank_id, rank_style: 'color: #ff0000; font-weight: bold;' });
-  var ren
+  load_component('messagebox');
+  var json_packet = {
+    mode: 'get_rank',
+    rank_id: rank_id
+  };
+  json_packet = ajaxEscape(toJSONString(json_packet));
+  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        var response = String(ajax.responseText + '');
+        if ( response.substr(0, 1) != '{' )
+        {
+          handle_invalid_json(ajax.responseText);
+          return false;
+        }
+        try
+        {
+          var response = parseJSON(ajax.responseText);
+        }
+        catch(e)
+        {
+          handle_invalid_json(ajax.responseText);
+        }
+        var editor = new RankEditorControl(response);
+        editor.onsubmit = ajaxRankEditHandleSaveExisting;
+        editor.ondelete = ajaxRankEditHandleDelete;
+        var container = document.getElementById('admin_ranks_container_right');
+        container.innerHTML = '';
+        container.appendChild(editor.render());
+      }
+    }, true);
+}
+
+function ajaxInitRankCreate()
+{
+  load_component('messagebox');
+  var editor = new RankEditorControl();
+  editor.onsubmit = ajaxRankEditHandleSaveNew;
   var container = document.getElementById('admin_ranks_container_right');
   container.innerHTML = '';
   container.appendChild(editor.render());
+}
+
+function ajaxRankEditHandleSave(editor, switch_new)
+{
+  var whitey = whiteOutElement(editor.wrapperdiv);
+  
+  // pack it up, ...
+  var json_packet = {
+    mode: ( switch_new ) ? 'create_rank' : 'save_rank',
+    rank_title: editor.f_rank_title.value,
+    rank_style: editor.getCSS()
+  }
+  if ( !switch_new )
+  {
+    json_packet.rank_id = editor.rankdata.rank_id;
+  }
+  /// ... pack it in
+  var json_packet = ajaxEscape(toJSONString(json_packet));
+  
+  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        var response = String(ajax.responseText + '');
+        if ( response.substr(0, 1) != '{' )
+        {
+          handle_invalid_json(ajax.responseText);
+          return false;
+        }
+        try
+        {
+          var response = parseJSON(ajax.responseText);
+        }
+        catch(e)
+        {
+          handle_invalid_json(ajax.responseText);
+        }
+        if ( response.mode == 'success' )
+        {
+          whiteOutReportSuccess(whitey);
+          if ( switch_new )
+          {
+            //
+            // we have a few more things to do with a newly created rank.
+            //
+            
+            // 1. transform editor
+            editor.transformToEditor(response);
+            editor.onsubmit = ajaxRankEditHandleSaveExisting;
+            editor.ondelete = ajaxRankEditHandleDelete;
+            
+            // 2. append the new rank to the list
+            var create_link = document.getElementById('rankadmin_createlink');
+            if ( create_link )
+            {
+              var parent = create_link.parentNode;
+              var edit_link = document.createElement('a');
+              edit_link.href = '#rank_edit:' + response.rank_id;
+              edit_link.className = 'rankadmin-editlink';
+              edit_link.setAttribute('style', editor.getCSS());
+              edit_link.id = 'rankadmin_editlink_' + response.rank_id;
+              edit_link.rank_id = response.rank_id;
+              edit_link.appendChild(document.createTextNode($lang.get(editor.f_rank_title.value)));
+              parent.insertBefore(edit_link, create_link);
+              edit_link.onclick = function()
+              {
+                ajaxInitRankEdit(this.rank_id);
+              }
+            }
+          }
+          else
+          {
+            // update the rank title on the left
+            var edit_link = document.getElementById('rankadmin_editlink_' + editor.rankdata.rank_id);
+            if ( edit_link )
+            {
+              edit_link.firstChild.nodeValue = $lang.get(editor.f_rank_title.value);
+              edit_link.setAttribute('style', editor.getCSS());
+            }
+          }
+        }
+        else
+        {
+          whitey.parentNode.removeChild(whitey);
+          miniPromptMessage({
+              title: $lang.get('acpur_err_save_failed_title'),
+              message: response.error,
+              buttons: [
+                {
+                  text: $lang.get('etc_ok'),
+                  color: 'red',
+                  style: {
+                    fontWeight: 'bold'
+                  },
+                  onclick: function()
+                  {
+                    miniPromptDestroy(this);
+                  }
+                }
+              ]
+          });
+        }
+      }
+    }, true);
+}
+
+var ajaxRankEditHandleSaveExisting = function()
+{
+  ajaxRankEditHandleSave(this, false);
+}
+
+var ajaxRankEditHandleSaveNew = function()
+{
+  ajaxRankEditHandleSave(this, true);
+}
+
+var ajaxRankEditHandleDelete = function()
+{
+  var mp = miniPromptMessage({
+      title: $lang.get('acpur_msg_rank_delete_confirm_title'),
+      message: $lang.get('acpur_msg_rank_delete_confirm_body'),
+      buttons: [
+        {
+          text: $lang.get('acpur_btn_delete'),
+          color: 'red',
+          style: {
+            fontWeight: 'bold'
+          },
+          onclick: function()
+          {
+            var parent = miniPromptGetParent(this);
+            var editor = parent.editor;
+            setTimeout(function()
+              {
+                ajaxRankEditDeleteConfirmed(editor);
+              }, 1000);
+            miniPromptDestroy(parent);
+          }
+        },
+        {
+          text: $lang.get('etc_cancel'),
+          onclick: function()
+          {
+            miniPromptDestroy(this);
+          }
+        }
+      ]
+    });
+  console.debug(mp);
+  mp.editor = this;
+}
+
+function ajaxRankEditDeleteConfirmed(editor)
+{
+  var whitey = whiteOutElement(editor.wrapperdiv);
+  
+  load_component('SpryEffects');
+  
+  var json_packet = {
+    mode: 'delete_rank',
+    rank_id: editor.rankdata.rank_id
+  };
+  var rank_id = editor.rankdata.rank_id;
+  
+  json_packet = ajaxEscape(toJSONString(json_packet));
+  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        var response = String(ajax.responseText + '');
+        if ( response.substr(0, 1) != '{' )
+        {
+          handle_invalid_json(ajax.responseText);
+          return false;
+        }
+        try
+        {
+          var response = parseJSON(ajax.responseText);
+        }
+        catch(e)
+        {
+          handle_invalid_json(ajax.responseText);
+        }
+        if ( response.mode == 'success' )
+        {
+          // the deletion was successful, report success and kill off the editor
+          whiteOutReportSuccess(whitey);
+          setTimeout(function()
+            {
+              // nuke the rank title on the left
+              var edit_link = document.getElementById('rankadmin_editlink_' + editor.rankdata.rank_id);
+              if ( edit_link )
+              {
+                edit_link.parentNode.removeChild(edit_link);
+              }
+              // collapse and destroy the editor
+              new Spry.Effect.Blind(editor.wrapperdiv, { duration: 500, finish: function()
+                  {
+                    // when the animation finishes, nuke the whole thing
+                    var container = document.getElementById('admin_ranks_container_right');
+                    container.innerHTML = $lang.get('acpur_msg_select_rank');
+                  }
+                }).start();
+            }, 1500);
+        }
+        else
+        {
+          whitey.parentNode.removeChild(whitey);
+          miniPromptMessage({
+              title: $lang.get('acpur_err_delete_failed_title'),
+              message: response.error,
+              buttons: [
+                {
+                  text: $lang.get('etc_ok'),
+                  color: 'red',
+                  style: {
+                    fontWeight: 'bold'
+                  },
+                  onclick: function()
+                  {
+                    miniPromptDestroy(this);
+                  }
+                }
+              ]
+          });
+        }
+      }
+    }, true);
 }

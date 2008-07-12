@@ -800,6 +800,11 @@ a.rankadmin-editlink {
   display: block;
   font-size: large;
   padding: 3px;
+  text-decoration: none;
+}
+
+a.rankadmin-createlink {
+  border-top: 1px solid #a0a0a0;
 }
 
 a.rankadmin-editlink:hover {

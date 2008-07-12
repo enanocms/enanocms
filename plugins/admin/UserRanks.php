@@ -34,7 +34,176 @@ function page_Admin_UserRanks()
   
   if ( $paths->getParam(0) == 'action.json' )
   {
-    // ajax call
+    // ajax call, try to decode json request
+    header('Content-type: application/json');
+    
+    if ( !isset($_POST['r']) )
+    {
+      echo enano_json_encode(array(
+          'mode' => 'error',
+          'error' => 'Missing JSON request payload'
+        ));
+      return true;
+    }
+    try
+    {
+      $request = enano_json_decode($_POST['r']);
+    }
+    catch ( Exception $e )
+    {
+      echo enano_json_encode(array(
+          'mode' => 'error',
+          'error' => 'Invalid JSON request payload'
+        ));
+      return true;
+    }
+    
+    if ( !isset($request['mode']) )
+    {
+      echo enano_json_encode(array(
+          'mode' => 'error',
+          'error' => 'JSON request payload does not contain required parameter "mode"'
+        ));
+      return true;
+    }
+    
+    // we've got it
+    switch ( $request['mode'] )
+    {
+      case 'get_rank':
+        // easy enough, get a rank from the DB
+        $rank_id = intval(@$request['rank_id']);
+        if ( empty($rank_id) )
+        {
+          echo enano_json_encode(array(
+              'mode' => 'error',
+              'error' => 'Missing rank ID'
+            ));
+          return true;
+        }
+        // query and fetch
+        $q = $db->sql_query('SELECT rank_id, rank_title, rank_style FROM ' . table_prefix . "ranks WHERE rank_id = $rank_id;");
+        if ( !$q || $db->numrows() < 1 )
+          $db->die_json();
+        
+        $row = $db->fetchrow();
+        $db->free_result();
+        
+        // why does mysql do this?
+        $row['rank_id'] = intval($row['rank_id']);
+        echo enano_json_encode($row);
+        break;
+      case 'save_rank':
+        // easy enough, get a rank from the DB
+        $rank_id = intval(@$request['rank_id']);
+        // note - an empty rank_style field is permitted
+        if ( empty($rank_id) )
+        {
+          echo enano_json_encode(array(
+              'mode' => 'error',
+              'error' => 'Missing rank ID'
+            ));
+          return true;
+        }
+        
+        if ( empty($request['rank_title']) )
+        {
+          echo enano_json_encode(array(
+              'mode' => 'error',
+              'error' => $lang->get('acpur_err_missing_rank_title')
+            ));
+          return true;
+        }
+        
+        // perform update
+        $rank_title = $db->escape($request['rank_title']);
+        $rank_style = $db->escape(@$request['rank_style']);
+        $q = $db->sql_query('UPDATE ' . table_prefix . "ranks SET rank_title = '$rank_title', rank_style = '$rank_style' WHERE rank_id = $rank_id;");
+        
+        echo enano_json_encode(array(
+            'mode' => 'success'
+          ));
+        break;
+      case 'create_rank':
+        if ( empty($request['rank_title']) )
+        {
+          echo enano_json_encode(array(
+              'mode' => 'error',
+              'error' => $lang->get('acpur_err_missing_rank_title')
+            ));
+          return true;
+        }
+        
+        $rank_title = $db->escape($request['rank_title']);
+        $rank_style = $db->escape(@$request['rank_style']);
+        
+        // perform insert
+        $q = $db->sql_query('INSERT INTO ' . table_prefix . "ranks ( rank_title, rank_style ) VALUES\n"
+                          . "  ( '$rank_title', '$rank_style' );");
+        if ( !$q )
+          $db->die_json();
+        
+        $rank_id = $db->insert_id();
+        if ( !$rank_id )
+        {
+          echo enano_json_encode(array(
+              'mode' => 'error',
+              'error' => 'Refetch of rank ID failed'
+            ));
+          return true;
+        }
+        
+        echo enano_json_encode(array(
+            'mode' => 'success',
+            'rank_id' => $rank_id
+          ));
+        break;
+      case 'delete_rank':
+        // nuke a rank
+        $rank_id = intval(@$request['rank_id']);
+        if ( empty($rank_id) )
+        {
+          echo enano_json_encode(array(
+              'mode' => 'error',
+              'error' => 'Missing rank ID'
+            ));
+          return true;
+        }
+        
+        // is this rank protected (e.g. a system rank)?
+        if ( in_array($rank_id, $protected_ranks) )
+        {
+          echo enano_json_encode(array(
+              'mode' => 'error',
+              'error' => $lang->get('acpur_err_cant_delete_system_rank')
+            ));
+          return true;
+        }
+        
+        // unset any user and groups that might be using it
+        $q = $db->sql_query('UPDATE ' . table_prefix . "users SET user_rank = NULL WHERE user_rank = $rank_id;");
+        if ( !$q )
+          $db->die_json();
+        $q = $db->sql_query('UPDATE ' . table_prefix . "groups SET group_rank = NULL WHERE group_rank = $rank_id;");
+        if ( !$q )
+          $db->die_json();
+        
+        // now remove the rank itself
+        $q = $db->sql_query('DELETE FROM ' . table_prefix . "ranks WHERE rank_id = $rank_id;");
+        if ( !$q )
+          $db->_die();
+        
+        echo enano_json_encode(array(
+            'mode' => 'success'
+          ));
+        break;
+      default:
+        echo enano_json_encode(array(
+          'mode' => 'error',
+          'error' => 'Unknown requested operation'
+        ));
+      return true;
+    }
     return true;
   }
   
@@ -60,8 +229,9 @@ function page_Admin_UserRanks()
     // a string that isn't in the category_stringid format
     $rank_title = $lang->get($row['rank_title']);
     // FIXME: make sure htmlspecialchars() is escaping quotes and backslashes
-    echo '<a href="#rank_edit:' . $row['rank_id'] . '" onclick="ajaxInitRankEdit(' . $row['rank_id'] . '); return false;" class="rankadmin-editlink" style="' . htmlspecialchars($row['rank_style']) . '">' . htmlspecialchars($rank_title) . '</a> ';
+    echo '<a href="#rank_edit:' . $row['rank_id'] . '" onclick="ajaxInitRankEdit(' . $row['rank_id'] . '); return false;" class="rankadmin-editlink" style="' . htmlspecialchars($row['rank_style']) . '" id="rankadmin_editlink_' . $row['rank_id'] . '">' . htmlspecialchars($rank_title) . '</a> ';
   }
+  echo '<a href="#rank_create" onclick="ajaxInitRankCreate(); return false;" class="rankadmin-editlink rankadmin-createlink" id="rankadmin_createlink">' . $lang->get('acpur_btn_create_init') . '</a> ';
   echo '</div>';
   
   echo '<div class="rankadmin-right" id="admin_ranks_container_right">';

@@ -380,6 +380,8 @@ function miniPrompt(call_on_create)
         domObjChangeOpac(100, wrapper);
       }, 40);
   }
+  
+  return wrapper;
 }
 
 /**
@@ -477,28 +479,36 @@ function miniPromptTest()
 
 function miniPromptMessage(parms)
 {
-  if ( !parms.title || !parms.message || !parms.buttons )
+  if ( ( !parms.title && !parms.message ) || !parms.buttons )
     return false;
   
   return miniPrompt(function(parent)
     {
       try
       {
-        var h3 = document.createElement('h3');
-        h3.appendChild(document.createTextNode(parms.title));
-        var body = document.createElement('p');
-        var message = parms.message.split(unescape('%0A'));
-        for ( var i = 0; i < message.length; i++ )
+        if ( parms.title )
         {
-          body.appendChild(document.createTextNode(message[i]));
-          if ( i + 1 < message.length )
-            body.appendChild(document.createElement('br'));
+          var h3 = document.createElement('h3');
+          h3.appendChild(document.createTextNode(parms.title));
+        }
+        if ( parms.message )
+        {
+          var body = document.createElement('p');
+          var message = parms.message.split(unescape('%0A'));
+          for ( var i = 0; i < message.length; i++ )
+          {
+            body.appendChild(document.createTextNode(message[i]));
+            if ( i + 1 < message.length )
+              body.appendChild(document.createElement('br'));
+          }
         }
         
         parent.style.textAlign = 'center';
         
-        parent.appendChild(h3);
-        parent.appendChild(body);
+        if ( parms.title )
+          parent.appendChild(h3);
+        if ( parms.message )
+          parent.appendChild(body);
         parent.appendChild(document.createElement('br'));
         
         // construct buttons
