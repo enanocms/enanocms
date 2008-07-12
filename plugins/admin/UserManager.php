@@ -121,6 +121,7 @@ function page_Admin_UserManager()
       $occupation = htmlspecialchars($_POST['occupation']);
       $hobbies = htmlspecialchars($_POST['hobbies']);
       $email_public = ( isset($_POST['email_public']) ) ? '1' : '0';
+      $user_title = htmlspecialchars($_POST['user_title']);
       
       if ( !preg_match('/@([a-z0-9-]+)(\.([a-z0-9-\.]+))?/', $imaddr_msn) && !empty($imaddr_msn) )
       {
@@ -169,6 +170,7 @@ function page_Admin_UserManager()
         $to_update_users['signature'] = $signature;
         $to_update_users['user_level'] = $user_level;
         $to_update_users['user_rank'] = $user_rank;
+        $to_update_users['user_title'] = $user_title;
         
         if ( isset($_POST['account_active']) )
         {
@@ -440,6 +442,7 @@ function page_Admin_UserManager()
       $form->signature = $signature;
       $form->user_level = $user_level;
       $form->user_rank = $user_rank;
+      $form->user_title = $user_title;
       $form->im = array(
           'aim' => $imaddr_aim,
           'yahoo' => $imaddr_yahoo,
@@ -481,7 +484,7 @@ function page_Admin_UserManager()
       echo 'No username provided';
       return false;
     }
-    $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, u.user_rank, u.user_has_avatar, u.avatar_type, u.user_registration_ip, x.* FROM '.table_prefix.'users AS u
+    $q = $db->sql_query('SELECT u.user_id AS authoritative_uid, u.username, u.email, u.real_name, u.signature, u.account_active, u.user_level, u.user_rank, u.user_title, u.user_has_avatar, u.avatar_type, u.user_registration_ip, x.* FROM '.table_prefix.'users AS u
                            LEFT JOIN '.table_prefix.'users_extra AS x
                              ON ( u.user_id = x.user_id OR x.user_id IS NULL )
                            WHERE ( ' . ENANO_SQLFUNC_LOWERCASE . '(u.username) = \'' . $db->escape(strtolower($username)) . '\' OR u.username = \'' . $db->escape($username) . '\' ) AND u.user_id != 1;');
@@ -504,6 +507,7 @@ function page_Admin_UserManager()
       $form->signature = $row['signature'];
       $form->user_level= $row['user_level'];
       $form->user_rank = $row['user_rank'];
+      $form->user_title= $row['user_title'];
       $form->account_active = ( $row['account_active'] == 1 );
       $form->email_public   = ( $row['email_public'] == 1 );
       $form->has_avatar     = ( $row['user_has_avatar'] == 1 );
@@ -777,6 +781,13 @@ class Admin_UserManager_SmartForm
   var $user_rank = NULL;
   
   /**
+   * User's custom title
+   * @var int
+   */
+  
+  var $user_title = '';
+  
+  /**
    * Account activated
    * @var bool
    */
@@ -999,6 +1010,20 @@ class Admin_UserManager_SmartForm
                     {SIGNATURE_FIELD}
                   </td>
                 </tr>
+                
+                <tr>
+                  <td class="row2" style="width: 25%;">
+                    {lang:acpum_field_usertitle}<br />
+                    <small>
+                      {lang:acpum_field_usertitle_hint}
+                    </small>
+                  </td>
+                  <td class="row1" style="width: 75%;">
+                    <input type="text" name="user_title" value="{USER_TITLE}" />
+                  </td>
+                </tr>
+                
+                
                 
               <!-- / Basic options -->
               
@@ -1301,6 +1326,7 @@ EOF;
         'DH_PUBLIC' => $dh_key_pub,
         'REAL_NAME' => $this->real_name,
         'SIGNATURE_FIELD' => $template->tinymce_textarea('signature', $this->signature, 10, 50),
+        'USER_TITLE' => $this->user_title,
         'USER_LEVEL_MEMBER' => USER_LEVEL_CHPREF,
         'USER_LEVEL_MOD' => USER_LEVEL_MOD,
         'USER_LEVEL_ADMIN' => USER_LEVEL_ADMIN,

@@ -805,6 +805,9 @@ var enano_lang = {
       
       field_signature: 'Signature:',
       
+      field_usertitle: 'User title:',
+      field_usertitle_hint: 'Displayed below the avatar or username, and above the rank.',
+      
       heading_imcontact: 'Instant messenger contact information',
       
       field_aim: 'AIM handle:',
@@ -856,13 +859,14 @@ var enano_lang = {
       btn_edit_stage1: 'Edit group',
       heading_create_new: 'Create a new group',
       field_group_name: 'Group name:',
+      field_group_rank: 'Assigned rank:',
       btn_create_stage1: 'Continue',
       
       // Edit form
-      heading_edit_name: 'Edit group name',
+      heading_edit_name: 'Edit group basics',
       btn_cant_delete: 'Can\'t delete system group',
       btn_delete_group: 'Delete this group',
-      btn_save_name: 'Save name',
+      btn_save_name: 'Save changes',
       heading_edit_members: 'Edit group members',
       msg_no_members: 'This group has no members.',
       lbl_member_mod: 'Mod',
@@ -888,7 +892,7 @@ var enano_lang = {
       // More editor bits, validation messages
       err_nodelete_system_group: 'The group "%g_name%" could not be deleted because it is a system group required for site functionality.',
       msg_delete_success: 'The group "%g_name%" has been deleted. Return to the <a %a_flags%>group manager</a>.',
-      msg_name_update_success: 'The group name has been updated.',
+      msg_name_update_success: 'The group name and rank have been updated.',
       msg_user_added: 'The user "%username%" has been added to this usergroup.',
       err_username_not_exist: '<b>The user "%username%" could not be added.</b><br />This username does not exist.',
     },

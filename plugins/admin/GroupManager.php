@@ -130,7 +130,7 @@ function page_Admin_GroupManager()
   if(isset($_POST['do_edit']) || isset($_POST['edit_do']))
   {
     // Fetch the group name
-    $q = $db->sql_query('SELECT group_name,system_group FROM '.table_prefix.'groups WHERE group_id='.intval($_POST['group_edit_id']).';');
+    $q = $db->sql_query('SELECT group_name,system_group,group_rank FROM '.table_prefix.'groups WHERE group_id='.intval($_POST['group_edit_id']).';');
     if(!$q)
     {
       echo $db->get_error();
@@ -176,7 +176,19 @@ function page_Admin_GroupManager()
           echo '<p>' . $lang->get('acpug_err_group_name_invalid') . '</p>';
           return;
         }
-        $q = $db->sql_query('UPDATE '.table_prefix.'groups SET group_name=\''.$db->escape($_POST['group_name']).'\'
+        // determine rank
+        $group_rank =& $_POST['group_rank'];
+        if ( $_POST['group_rank'] !== 'NULL' )
+        {
+          $group_rank = intval($group_rank);
+          if ( empty($group_rank) )
+          {
+            echo '<p>Hacked rank ID</p>';
+            return;
+          }
+        }
+        $row['group_rank'] = $group_rank;
+        $q = $db->sql_query('UPDATE '.table_prefix.'groups SET group_name=\''.$db->escape($_POST['group_name']).'\',group_rank = ' . $group_rank . '
             WHERE group_id='.intval($_POST['group_edit_id']).';');
         if(!$q)
         {
@@ -201,11 +213,11 @@ function page_Admin_GroupManager()
       }
       if($db->numrows() > 0)
       {
-        while($row = $db->fetchrow($q))
+        while($delrow = $db->fetchrow($q))
         {
-          if(isset($_POST['edit_do']['del_' . $row['member_id']]))
+          if(isset($_POST['edit_do']['del_' . $delrow['member_id']]))
           {
-            $e = $db->sql_query('DELETE FROM '.table_prefix.'group_members WHERE member_id='.$row['member_id']);
+            $e = $db->sql_query('DELETE FROM '.table_prefix.'group_members WHERE member_id='.$delrow['member_id']);
             if(!$e)
             {
               echo $db->get_error();
@@ -250,6 +262,17 @@ function page_Admin_GroupManager()
     $sg_disabled = ( $row['system_group'] == 1 ) ?
              ' value="' . $lang->get('acpug_btn_cant_delete') . '" disabled="disabled" style="color: #FF9773" ' :
              ' value="' . $lang->get('acpug_btn_delete_group') . '" style="color: #FF3713" ';
+    
+    // build rank list
+    $q = $db->sql_query('SELECT rank_id, rank_title FROM ' . table_prefix . 'ranks');
+    if ( !$q )
+      $db->_die();
+    $rank_list = '<option value="NULL"' . ( $row['group_rank'] === NULL ? ' selected="selected"' : '' ) . '>--</option>' . "\n";
+    while ( $rank_row = $db->fetchrow() )
+    {
+      $rank_list .= '<option value="' . $rank_row['rank_id'] . '"' . ( $rank_row['rank_id'] == $row['group_rank'] ? ' selected="selected"' : '' ) . '>' . htmlspecialchars($lang->get($rank_row['rank_title'])) . '</option>' . "\n";
+    }
+             
     echo '<form action="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'" method="post" onsubmit="if(!submitAuthorized) return false;" enctype="multipart/form-data">';
     echo '<div class="tblholder">
           <table border="0" style="width:100%;" cellspacing="1" cellpadding="4">
@@ -257,6 +280,11 @@ function page_Admin_GroupManager()
           <tr>
             <td class="row1">
               ' . $lang->get('acpug_field_group_name') . ' <input type="text" name="group_name" value="'.$name.'" />
+            </td>
+          </tr>
+          <tr>
+            <td class="row1">
+              ' . $lang->get('acpug_field_group_rank') . ' <select name="group_rank" />' . $rank_list . '</select>
             </td>
           </tr>
           <tr>
