@@ -629,7 +629,7 @@ function unsetAjaxLoading()
 {
   if ( document.getElementById('ajaxloadicon') )
   {
-    document.getElementById('ajaxloadicon').src=scriptPath + '/images/spacer.gif';
+    document.getElementById('ajaxloadicon').src=cdnPath + '/images/spacer.gif';
   }
 }
 

@@ -33,12 +33,7 @@
         Loading...
       </div>
     </div>
-    <script type="text/javascript">
-      // This initializes the Javascript runtime when the DOM is ready - not when the page is
-      // done loading, because enano-lib-basic still has to load some 15 other script files
-      enano_init();
-      window.onload = function(e) {  };
-    </script>
+    {JS_FOOTER}
   </body>
 </html>
 

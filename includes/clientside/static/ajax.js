@@ -1054,7 +1054,7 @@ window.ajaxUpdateCheck = function(targetelement)
   var target = document.getElementById(targetelement);
   target.innerHTML = '';
   var img = document.createElement('img');
-  img.src = scriptPath + '/images/loading.gif';
+  img.src = cdnPath + '/images/loading.gif';
   img.alt = 'Loading...';
   target.appendChild(img);
   ajaxGet(makeUrlNS('Admin', 'Home/updates.xml'), function()

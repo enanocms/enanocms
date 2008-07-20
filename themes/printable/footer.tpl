@@ -9,18 +9,8 @@
                  -->
             <div id="credits">
               {COPYRIGHT}<br />
-              Powered by <a href="http://www.enanocms.org">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
+              Powered by <a href="http://enanocms.org">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
             </div>
             
-    <script type="text/javascript">
-      // This initializes the Javascript runtime when the DOM is ready - not when the page is
-      // done loading, because enano-lib-basic still has to load some 15 other script files
-      // check for the init function - this is a KHTML fix
-      if ( typeof ( enano_init ) == 'function' )
-      {
-        enano_init();
-        window.onload = function(e) {  };
-      }
-    </script>
   </body>
 </html>

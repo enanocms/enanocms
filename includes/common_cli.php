@@ -75,6 +75,9 @@ if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
   grinding_halt('Version mismatch', 'Trying to run Enano version '.$version.' on database version '.enano_version().', you might need to upgrade.');
 }
 
+// Set our CDN path
+define('cdnPath', getConfig('cdn_path', scriptPath));
+
 //
 // Low level maintenance
 //

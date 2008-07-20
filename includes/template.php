@@ -56,8 +56,8 @@ class template
     $this->plugin_blocks = Array();
     $this->theme_loaded = false;
     
-    $this->fading_button = '<div style="background-image: url('.scriptPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
-                              <a style="background-image: none; padding-right: 0;" href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
+    $this->fading_button = '<div style="background-image: url('.cdnPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
+                              <a style="background-image: none; padding-right: 0;" href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.cdnPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
                             </div>';
     
     $this->theme_list = Array();
@@ -986,6 +986,54 @@ class template
       eval($cmd);
     }
     
+    // Set up javascript includes
+    // these depend heavily on whether we have a CDN to work with or not
+    if ( getConfig('cdn_path') )
+    {
+      // we're on a CDN, point to static includes
+      // probably should have a way to compress stuff like this before uploading to CDN
+      $js_head = '<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/enano-lib-basic.js"></script>';
+      $js_foot = <<<JSEOF
+    <script type="text/javascript">
+      // This initializes the Javascript runtime when the DOM is ready - not when the page is
+      // done loading, because enano-lib-basic still has to load some 15 other script files
+      // check for the init function - this is a KHTML fix
+      // This doesn't seem to work properly in IE in 1.1.x - there are some problems with
+      // tinyMCE and l10n.
+      if ( typeof ( enano_init ) == 'function' && !IE )
+      {
+        enano_init();
+        window.onload = function(e) {  };
+      }
+    </script>
+JSEOF;
+    }
+    else
+    {
+      $cdnpath = cdnPath;
+      // point to jsres compressor
+      $js_head = <<<JSEOF
+      <!-- Only load a basic set of functions for now. Let the rest of the API load when the page is finished. -->
+      <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php?early"></script>
+JSEOF;
+      $js_foot = <<<JSEOF
+    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
+    <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php"></script>
+    <script type="text/javascript">
+      // This initializes the Javascript runtime when the DOM is ready - not when the page is
+      // done loading, because enano-lib-basic still has to load some 15 other script files
+      // check for the init function - this is a KHTML fix
+      // This doesn't seem to work properly in IE in 1.1.x - there are some problems with
+      // tinyMCE and l10n.
+      if ( typeof ( enano_init ) == 'function' && !IE )
+      {
+        enano_init();
+        window.onload = function(e) {  };
+      }
+    </script>
+JSEOF;
+    }
+    
     // Some additional sidebar processing
     if ( $this->sidebar_extra != '' )
     {
@@ -1077,8 +1125,9 @@ class template
       var title = \''. $urlname_jssafe .'\';
       var physical_title = \'' . $physical_urlname_jssafe . '\';
       var page_exists = '. ( ( $local_page_exists) ? 'true' : 'false' ) .';
-      var scriptPath = \''. scriptPath .'\';
-      var contentPath = \''.contentPath.'\';
+      var scriptPath = \'' . addslashes(scriptPath) . '\';
+      var contentPath = \'' . addslashes(contentPath) . '\';
+      var cdnPath = \'' . addslashes(cdnPath) . '\';
       var ENANO_SID = \'' . $SID . '\';
       var user_level = ' . $session->user_level . ';
       var auth_level = ' . $session->auth_level . ';
@@ -1128,6 +1177,7 @@ class template
       'TOOLBAR'=>$tb,
       'SCRIPTPATH'=>scriptPath,
       'CONTENTPATH'=>contentPath,
+      'CDNPATH' => cdnPath,
       'ADMIN_SID_QUES'=>$asq,
       'ADMIN_SID_AMP'=>$asa,
       'ADMIN_SID_AMP_HTML'=>$ash,
@@ -1147,6 +1197,8 @@ class template
       'TEMPLATE_DIR'=>scriptPath.'/themes/'.$this->theme,
       'THEME_ID'=>$this->theme,
       'STYLE_ID'=>$this->style,
+      'JS_HEADER' => $js_head,
+      'JS_FOOTER' => $js_foot,
       'JS_DYNAMIC_VARS'=>$js_dynamic,
       'UNREAD_PMS'=>$session->unread_pms,
       'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', '', true),
@@ -2444,8 +2496,8 @@ class template_nodb
     $this->toolbar_menu = '';
     $this->additional_headers = '<style type="text/css">div.pagenav { border-top: 1px solid #CCC; padding-top: 7px; margin-top: 10px; }</style>';
     
-    $this->fading_button = '<div style="background-image: url('.scriptPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
-                              <a href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.scriptPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
+    $this->fading_button = '<div style="background-image: url('.cdnPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
+                              <a href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.cdnPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
                             </div>';
     
     // get list of themes

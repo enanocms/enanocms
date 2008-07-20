@@ -15,6 +15,12 @@
 
 // define('ENANO_JS_DEBUG', 1);
 
+// if Enano's already loaded, we've been included from a helper script
+if ( defined('ENANO_CONFIG_FETCHED') )
+  define('ENANO_JSRES_SETUP_ONLY', 1);
+
+if ( !defined('ENANO_JSRES_SETUP_ONLY') ):
+
 /**
  * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it
  * from very early on in the script to measure the starting time of Enano.
@@ -73,6 +79,8 @@ chdir(ENANO_ROOT);
 define('ENANO_EXIT_AFTER_CONFIG', 1);
 require('includes/common.php');
 
+endif; // ENANO_JSRES_SETUP_ONLY
+
 // CONFIG
 
 // Files safe to run full (aggressive) compression on
@@ -101,9 +109,10 @@ $full_compress_safe = array(
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code
 $compress_unsafe = array('SpryEffects.js', 'json.js', 'fat.js', 'admin-menu.js', 'autofill.js');
 
-require('includes/js-compressor.php');
+require_once('includes/js-compressor.php');
 
 // try to gzip the output
+if ( !defined('ENANO_JSRES_SETUP_ONLY') ):
 $do_gzip = false;
 if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) )
 {
@@ -118,6 +127,9 @@ if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) )
 
 // Output format will always be JS
 header('Content-type: text/javascript');
+
+endif; // ENANO_JSRES_SETUP_ONLY
+
 $everything = "/* The code represented in this file is compressed for optimization purposes. The full source code is available in includes/clientside/static/. */\n\nvar ENANO_JSRES_COMPRESSED = true;\n\n";
 
 // if we only want the tiny version of the API (just enough to get by until the full one is loaded), send that
@@ -226,6 +238,12 @@ $expires = date('r', mktime(-1, -1, -1, -1, -1, intval(date('y'))+1));
 $everything = str_replace('/* JavaScriptCompressor 0.8 [www.devpro.it], thanks to Dean Edwards for idea [dean.edwards.name] */' . "\r\n", '', $everything);
 
 $date = date('r', $apex);
+
+if ( defined('ENANO_JSRES_SETUP_ONLY') )
+{
+  return; // we're done setting up, break out
+}
+
 header("Date: $date");
 header("Last-Modified: $date");
 header("ETag: \"$etag\"");

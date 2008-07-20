@@ -4,12 +4,11 @@
     <title>{PAGE_NAME} &bull; {SITE_NAME}</title>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
     {JS_DYNAMIC_VARS}
-    <link rel="stylesheet" type="text/css" href="{SCRIPTPATH}/includes/clientside/css/enano-shared.css" />
-    <link id="mdgCss" rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
-    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
-    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php"></script>
+    <link rel="stylesheet" type="text/css" href="{CDNPATH}/includes/clientside/css/enano-shared.css" />
+    <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
+    {JS_HEADER}
     <!--[if lt IE 7]>
-    <link rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css-extra/ie-fixes-{STYLE_ID}.css" />
+    <link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/ie-fixes-{STYLE_ID}.css" />
     <![endif]-->
     <script type="text/javascript">
     // <![CDATA[
@@ -77,7 +76,7 @@
     <div id="bg">
       <div id="rap">
         <div id="title">
-          <img id="clover" src="{SCRIPTPATH}/themes/{THEME_ID}/images/clover.png" alt=" " />
+          <img id="clover" src="{CDNPATH}/themes/{THEME_ID}/images/clover.png" alt=" " />
           <h1>{SITE_NAME}</h1>
           <h2>{SITE_DESC}</h2>
         </div>
@@ -101,7 +100,7 @@
         </div>
         <div id="maincontent">
           <div style="float: right;">
-            <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
+            <img alt=" " src="{CDNPATH}/images/spacer.gif" id="ajaxloadicon" />
           </div>
           <h2 id="pagetitle" <!-- BEGIN auth_rename --> ondblclick="ajaxRenameInline();" title="Double-click to rename this page" <!-- END auth_rename -->>{PAGE_NAME}</h2>
           <div id="ajaxEditContainer">

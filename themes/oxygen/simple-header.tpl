@@ -3,10 +3,10 @@
   <head>
     <title>{PAGE_NAME} &bull; {SITE_NAME}</title>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" type="text/css" id="mdgCss" />
+    <link rel="stylesheet" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" type="text/css" id="mdgCss" />
     {JS_DYNAMIC_VARS}
     <!-- This script automatically loads the other 15 JS files -->
-    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/static/enano-lib-basic.js"></script>
+    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php"></script>
     {ADDITIONAL_HEADERS}
   </head>
   <body>

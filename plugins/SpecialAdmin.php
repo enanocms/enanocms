@@ -317,6 +317,13 @@ function page_Admin_GeneralConfig() {
       setConfig('breadcrumb_mode', $_POST['breadcrumb_mode']);
     }
     
+    // CDN path
+    if ( preg_match('/^http:\/\//', $_POST['cdn_path']) || $_POST['cdn_path'] === '' )
+    {
+      // trim off a trailing slash
+      setConfig('cdn_path', preg_replace('#/$#', '', $_POST['cdn_path']));
+    }
+    
     setConfig('register_tou', RenderMan::preprocess_text($_POST['register_tou'], true, false));
     
     // Account lockout policy
@@ -565,6 +572,23 @@ function page_Admin_GeneralConfig() {
             }
           ?>
           </select>
+        </td>
+      </tr>
+    
+    <!-- CDN settings -->
+    
+      <tr>
+        <td class="row2">
+          <p>
+            <?php echo $lang->get('acpgc_field_cdn_path'); ?><br />
+            <small><?php echo $lang->get('acpgc_field_cdn_path_hint'); ?></small>
+          </p>
+          <p>
+            <small><?php echo $lang->get('acpgc_field_cdn_path_example'); ?></small>
+          </p>
+        </td>
+        <td class="row2">
+          <input type="text" name="cdn_path" value="<?php echo htmlspecialchars(getConfig('cdn_path', '')); ?>" style="width: 98%;" />
         </td>
       </tr>
       
@@ -1995,7 +2019,7 @@ function page_Special_Administration()
   }
   else
   {
-    $template->add_header('<script type="text/javascript" src="' . scriptPath . '/includes/clientside/static/admin-menu.js"></script>');
+    $template->add_header('<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/admin-menu.js"></script>');
     if( !isset( $_GET['noheaders'] ) ) 
     {
       $template->header();
@@ -2088,28 +2112,28 @@ EOF;
       'target'  : '_self',  // name of the frame links will be opened in
                   // other possible values are: _blank, _parent, _search, _self and _top
     
-      'icon_e'  : '<?php echo scriptPath; ?>/images/icons/empty.gif',      // empty image
-      'icon_l'  : '<?php echo scriptPath; ?>/images/icons/line.gif',       // vertical line
-      'icon_32' : '<?php echo scriptPath; ?>/images/icons/base.gif',       // root leaf icon normal
-      'icon_36' : '<?php echo scriptPath; ?>/images/icons/base.gif',       // root leaf icon selected
-      'icon_48' : '<?php echo scriptPath; ?>/images/icons/base.gif',       // root icon normal
-      'icon_52' : '<?php echo scriptPath; ?>/images/icons/base.gif',       // root icon selected
-      'icon_56' : '<?php echo scriptPath; ?>/images/icons/base.gif',       // root icon opened
-      'icon_60' : '<?php echo scriptPath; ?>/images/icons/base.gif',       // root icon selected
-      'icon_16' : '<?php echo scriptPath; ?>/images/icons/folder.gif',     // node icon normal
-      'icon_20' : '<?php echo scriptPath; ?>/images/icons/folderopen.gif', // node icon selected
-      'icon_24' : '<?php echo scriptPath; ?>/images/icons/folder.gif',     // node icon opened
-      'icon_28' : '<?php echo scriptPath; ?>/images/icons/folderopen.gif', // node icon selected opened
-      'icon_0'  : '<?php echo scriptPath; ?>/images/icons/page.gif',       // leaf icon normal
-      'icon_4'  : '<?php echo scriptPath; ?>/images/icons/page.gif',       // leaf icon selected
-      'icon_8'  : '<?php echo scriptPath; ?>/images/icons/page.gif',       // leaf icon opened
-      'icon_12' : '<?php echo scriptPath; ?>/images/icons/page.gif',       // leaf icon selected
-      'icon_2'  : '<?php echo scriptPath; ?>/images/icons/joinbottom.gif', // junction for leaf
-      'icon_3'  : '<?php echo scriptPath; ?>/images/icons/join.gif',       // junction for last leaf
-      'icon_18' : '<?php echo scriptPath; ?>/images/icons/plusbottom.gif', // junction for closed node
-      'icon_19' : '<?php echo scriptPath; ?>/images/icons/plus.gif',       // junction for last closed node
-      'icon_26' : '<?php echo scriptPath; ?>/images/icons/minusbottom.gif',// junction for opened node
-      'icon_27' : '<?php echo scriptPath; ?>/images/icons/minus.gif'       // junction for last opended node
+      'icon_e'  : '<?php echo cdnPath; ?>/images/icons/empty.gif',      // empty image
+      'icon_l'  : '<?php echo cdnPath; ?>/images/icons/line.gif',       // vertical line
+      'icon_32' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root leaf icon normal
+      'icon_36' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root leaf icon selected
+      'icon_48' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root icon normal
+      'icon_52' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root icon selected
+      'icon_56' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root icon opened
+      'icon_60' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root icon selected
+      'icon_16' : '<?php echo cdnPath; ?>/images/icons/folder.gif',     // node icon normal
+      'icon_20' : '<?php echo cdnPath; ?>/images/icons/folderopen.gif', // node icon selected
+      'icon_24' : '<?php echo cdnPath; ?>/images/icons/folder.gif',     // node icon opened
+      'icon_28' : '<?php echo cdnPath; ?>/images/icons/folderopen.gif', // node icon selected opened
+      'icon_0'  : '<?php echo cdnPath; ?>/images/icons/page.gif',       // leaf icon normal
+      'icon_4'  : '<?php echo cdnPath; ?>/images/icons/page.gif',       // leaf icon selected
+      'icon_8'  : '<?php echo cdnPath; ?>/images/icons/page.gif',       // leaf icon opened
+      'icon_12' : '<?php echo cdnPath; ?>/images/icons/page.gif',       // leaf icon selected
+      'icon_2'  : '<?php echo cdnPath; ?>/images/icons/joinbottom.gif', // junction for leaf
+      'icon_3'  : '<?php echo cdnPath; ?>/images/icons/join.gif',       // junction for last leaf
+      'icon_18' : '<?php echo cdnPath; ?>/images/icons/plusbottom.gif', // junction for closed node
+      'icon_19' : '<?php echo cdnPath; ?>/images/icons/plus.gif',       // junction for last closed node
+      'icon_26' : '<?php echo cdnPath; ?>/images/icons/minusbottom.gif',// junction for opened node
+      'icon_27' : '<?php echo cdnPath; ?>/images/icons/minus.gif'       // junction for last opended node
     };
     
     addOnloadHook(function()
@@ -2199,10 +2223,10 @@ function page_Special_EditSidebar()
   else 
   {
     
-    $template->add_header('<script type="text/javascript" src="'.scriptPath.'/includes/clientside/dbx.js"></script>');
-    $template->add_header('<script type="text/javascript" src="'.scriptPath.'/includes/clientside/dbx-key.js"></script>');
-    $template->add_header('<script type="text/javascript" src="'.scriptPath.'/includes/clientside/sbedit.js"></script>');
-    $template->add_header('<link rel="stylesheet" type="text/css" href="'.scriptPath.'/includes/clientside/dbx.css" />');
+    $template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/dbx.js"></script>');
+    $template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/dbx-key.js"></script>');
+    $template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/sbedit.js"></script>');
+    $template->add_header('<link rel="stylesheet" type="text/css" href="'.cdnPath.'/includes/clientside/dbx.css" />');
     
     $template->load_theme('oxygen', 'bleu');
     $template->init_vars();

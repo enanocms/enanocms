@@ -259,6 +259,12 @@ var enano_lang = {
       field_breadcrumb_mode_always: 'Always',
       field_breadcrumb_mode_never: 'Never',
       
+      // Section: CDN
+      
+      field_cdn_path: 'URL to <acronym title="Content Delivery Network">CDN</acronym> server:',
+      field_cdn_path_hint: 'A CDN, or Content Delivery Network, allows downloading of shared Enano components from a server designed to serve out only images, CSS, and script files. Since a browser can open separate connections for the page and for images and scripts, the page loads faster. Leave this blank to just use Enano\'s local files (default).',
+      field_cdn_path_example: 'Example: <tt>http://cdn.mycompany.com/enano/',
+      
       // Main section: users and communication
       heading_users: 'Users and communication',
       

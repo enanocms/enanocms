@@ -137,7 +137,7 @@ var current_ta  = false;
 var startwidth  = false;
 var startheight = false;
 var do_width    = false;
-var ajax_load_icon = scriptPath + '/images/loading.gif';
+var ajax_load_icon = cdnPath + '/images/loading.gif';
 var editor_use_modal_window = false;
 var Spry = {};
 
@@ -220,13 +220,13 @@ function load_component(file)
   _load_component_running = true;
   file = file.replace(/\.js$/, '');
   
-  console.info('Loading component %s via AJAX', file);
-  
-  if ( loaded_components[file] )
+  if ( loaded_components[file + '.js'] )
   {
     // already loaded
     return true;
   }
+  
+  console.info('Loading component %s via AJAX', file);
   
   load_show_win(file);
   
@@ -252,7 +252,7 @@ function load_component(file)
 
 function load_show_win(file)
 {
-  var img = '<img style="margin-right: 5px" src="' + scriptPath + '/images/loading.gif" />';
+  var img = '<img style="margin-right: 5px" src="' + cdnPath + '/images/loading.gif" />';
   if ( document.getElementById('_js_load_component') )
   {
     document.getElementById('_js_load_component').innerHTML = img + msg_loading_component.replace('%component%', file);
@@ -268,6 +268,7 @@ function load_show_win(file)
   ld.innerHTML = img + msg_loading_component.replace('%component%', file);
   ld.id = '_js_load_component';
   
+  // FYI: The base64 encoded image is a 70% opacity 1x1px white PNG.
   ld.style.backgroundImage = 'url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAA1JREFUCNdj+P///xkACcgDypG+nnEAAAAASUVORK5CYII=)';
   
   document.body.appendChild(ld);
@@ -343,6 +344,37 @@ function eval_global(_jsString)
   return true;
 }
 
+var autofill_check = function()
+{
+  var inputs = document.getElementsByTagName('input');
+  for ( var i = 0; i < inputs.length; i++ )
+  {
+    if ( inputs[i].className )
+    {
+      if ( inputs[i].className.match(/^autofill/) )
+      {
+        load_component('autofill');
+        return;
+      }
+    }
+    /*
+    else if ( typeof(inputs[i].onkeyup) == 'function' )
+    {
+      var f = new String(inputs[i].onkeyup);
+      if ( f.match(/AutofillUsername/) )
+      {
+        delete(f.onkeyup);
+        f.className = 'autofill username';
+        autofill_check();
+        return;
+      }
+    }
+    */
+  }
+}
+
+addOnloadHook(autofill_check);
+
 var head = document.getElementsByTagName('head')[0];
 
 // safari has window.console but not the .debug() method
@@ -377,7 +409,7 @@ for(var f in thefiles)
     // alert('kill switch and problem script');
     continue;
   }
-  script.src=scriptPath+"/includes/clientside/static/"+thefiles[f];
+  script.src=cdnPath+"/includes/clientside/static/"+thefiles[f];
   head.appendChild(script);
 }
 

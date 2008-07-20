@@ -475,7 +475,7 @@ class pathManager
       {
         $i++;
         $name = ( preg_match('/^[a-z0-9_]+$/', $key) ) ? $lang->get($c['name']) : $c['name'];
-        if ( $c['icon'] && $c['icon'] != scriptPath . '/images/spacer.gif' )
+        if ( $c['icon'] && $c['icon'] != cdnPath . '/images/spacer.gif' )
         {
           if ( is_array($c['icon']) )
           {
@@ -520,7 +520,7 @@ class pathManager
   {
     $xpos = 16 * ( $ix - 1 );
     $ypos = 16 * ( $iy - 1 );
-    return "<img alt=\"\" src=\"" . scriptPath . "/images/spacer.gif\" class=\"adminiconsprite\" style=\"border-width: 0; margin-right: 3px; background-position: -{$xpos}px -{$ypos}px;\" /> ";
+    return "<img alt=\"\" src=\"" . cdnPath . "/images/spacer.gif\" class=\"adminiconsprite\" style=\"border-width: 0; margin-right: 3px; background-position: -{$xpos}px -{$ypos}px;\" /> ";
   }
   
   /**
@@ -535,7 +535,7 @@ class pathManager
   {
     if ( !$icon )
     {
-      $icon = scriptPath . '/images/spacer.gif';
+      $icon = cdnPath . '/images/spacer.gif';
     }
     if(!isset($this->admin_tree[$section]))
     {

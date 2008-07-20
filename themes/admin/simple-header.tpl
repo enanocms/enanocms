@@ -39,7 +39,7 @@
         <td class="left"></td>
         <td class="main">
           <div style="float: right;">
-            <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
+            <img alt=" " src="{CDNPATH}/images/spacer.gif" id="ajaxloadicon" />
           </div>
           <h2 class="pagename">{PAGE_NAME}</h2>
           <div id="ajaxEditContainer">

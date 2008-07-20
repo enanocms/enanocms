@@ -263,6 +263,9 @@ if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
   grinding_halt('Version mismatch', '<p>It seems that the Enano release we\'re trying to run ('.$version.') is different from the version specified in your database ('.enano_version().'). Perhaps you need to <a href="'.scriptPath.'/install/upgrade.php">upgrade</a>?</p>');
 }
 
+// Set our CDN path
+define('cdnPath', getConfig('cdn_path', scriptPath));
+
 //
 // Low level maintenance
 //

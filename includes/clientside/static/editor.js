@@ -534,7 +534,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
     // ajaxSetEditorLoading();
     var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
     var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
-    img.src = scriptPath + '/images/loading.gif';
+    img.src = cdnPath + '/images/loading.gif';
     var d = new Date();
     var m = String(d.getMinutes());
     if ( m.length < 2 )

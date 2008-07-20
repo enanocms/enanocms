@@ -3,15 +3,14 @@
   <head>
     <title>{PAGE_NAME} &bull; {SITE_NAME}</title>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" type="text/css" href="{SCRIPTPATH}/includes/clientside/css/enano-shared.css" />
-    <link id="mdgCss" rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
+    <link rel="stylesheet" type="text/css" href="{CDNPATH}/includes/clientside/css/enano-shared.css" />
+    <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
     <!--[if IE]>
-    <link id="mdgCss" rel="stylesheet" type="text/css" href="{SCRIPTPATH}/themes/{THEME_ID}/css-ie/iefixes.css" />
+    <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-ie/iefixes.css" />
     <![endif]-->
     {JS_DYNAMIC_VARS}
-    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
-    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php"></script>
-    <script type="text/javascript" src="{SCRIPTPATH}/themes/admin/js/menu.js"></script>
+    {JS_HEADER}
+    <script type="text/javascript" src="{CDNPATH}/themes/admin/js/menu.js"></script>
     {ADDITIONAL_HEADERS}
     </head>
   <body>
@@ -40,7 +39,7 @@
         <td class="left"></td>
         <td class="main">
           <div style="float: right;">
-            <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" id="ajaxloadicon" />
+            <img alt=" " src="{CDNPATH}/images/spacer.gif" id="ajaxloadicon" />
           </div>
           <h2 class="pagename">{PAGE_NAME}</h2>
           <div id="ajaxEditContainer">

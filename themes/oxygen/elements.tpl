@@ -18,9 +18,9 @@
           <div class="recttop">
             <table border="0" width="100%" cellspacing="0" cellpadding="0" style="font-size: 1px;">
               <tr>
-                <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" style="background-image: url({SCRIPTPATH}/themes/oxygen/images/{STYLE_ID}/sprite-horiz.gif); background-position: 0 0; background-repeat: no-repeat;" width="12" height="12" /> </td>
+                <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{CDNPATH}/images/spacer.gif" style="background-image: url({CDNPATH}/themes/oxygen/images/{STYLE_ID}/sprite-horiz.gif); background-position: 0 0; background-repeat: no-repeat;" width="12" height="12" /> </td>
                 <td style="margin: 0; padding: 0; height: 12px;" class="recttoptop" onclick="var id = this.parentNode.parentNode.parentNode.parentNode.parentNode.id; var side = id.substr(0, id.indexOf('-')); collapseSidebar(side);"></td>
-                <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" style="background-image: url({SCRIPTPATH}/themes/oxygen/images/{STYLE_ID}/sprite-horiz.gif); background-position: -12px 0; background-repeat: no-repeat;" width="12" height="12" /> </td>
+                <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{CDNPATH}/images/spacer.gif" style="background-image: url({CDNPATH}/themes/oxygen/images/{STYLE_ID}/sprite-horiz.gif); background-position: -12px 0; background-repeat: no-repeat;" width="12" height="12" /> </td>
               </tr>
             </table>
           </div>
@@ -55,9 +55,9 @@
           <div class="rectbot">
             <table border="0" width="100%" cellspacing="0" cellpadding="0" style="font-size: 1px;">
               <tr>
-                <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" style="background-image: url({SCRIPTPATH}/themes/oxygen/images/{STYLE_ID}/sprite-horiz.gif); background-position: -24px 0; background-repeat: no-repeat;" width="12" height="12" /> </td>
+                <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{CDNPATH}/images/spacer.gif" style="background-image: url({CDNPATH}/themes/oxygen/images/{STYLE_ID}/sprite-horiz.gif); background-position: -24px 0; background-repeat: no-repeat;" width="12" height="12" /> </td>
                 <td style="margin: 0; padding: 0; height: 12px;" class="rectbottop"></td>
-                <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{SCRIPTPATH}/images/spacer.gif" style="background-image: url({SCRIPTPATH}/themes/oxygen/images/{STYLE_ID}/sprite-horiz.gif); background-position: -36px 0; background-repeat: no-repeat;" width="12" height="12" /> </td>
+                <td style="margin: 0; padding: 0; height: 12px;"> <img alt=" " src="{CDNPATH}/images/spacer.gif" style="background-image: url({CDNPATH}/themes/oxygen/images/{STYLE_ID}/sprite-horiz.gif); background-position: -36px 0; background-repeat: no-repeat;" width="12" height="12" /> </td>
               </tr>
             </table>
           </div>
