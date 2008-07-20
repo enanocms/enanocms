@@ -846,6 +846,8 @@ function page_Special_Autofill()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   
+  require_once(ENANO_ROOT . '/includes/search.php');
+  
   header('Content-type: text/javascript');
   
   $dataset = array();
