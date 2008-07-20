@@ -48,9 +48,6 @@ autofill_schemas.generic = {
 
 function autofill_init_element(element, params)
 {
-  if ( element.parentNode.id.match(/^autofill_wrap_/) )
-    return false;
-  
   if ( !Spry.Data );
     load_spry_data();
   
@@ -112,12 +109,13 @@ var autofill_onload = function()
       // inject our HTML wrapper
       var template = this.template.replace(new RegExp('--ID--', 'g'), element.id);
       var wrapper = element.parentNode; // document.createElement('div');
-      wrapper.id = 'autofill_wrap_' + element.id;
+      if ( !wrapper.id )
+        wrapper.id = 'autofill_wrap_' + element.id;
       
       // a bunch of hacks to add a spry wrapper
       wrapper.innerHTML = template + wrapper.innerHTML;
       
-      var autosuggest = new Spry.Widget.AutoSuggest("autofill_wrap_" + element.id, element.id + '_region', window.autofill_ds_username, 'name', {loadFromServer: true, urlParam: 'userinput', hoverSuggestClass: 'row2', minCharsType: 3});
+      var autosuggest = new Spry.Widget.AutoSuggest(wrapper.id, element.id + '_region', window.autofill_ds_username, 'name', {loadFromServer: true, urlParam: 'userinput', hoverSuggestClass: 'row2', minCharsType: 3});
       var regiondiv = document.getElementById(element.id + '_region');
       regiondiv.style.position = 'absolute';
       regiondiv.style.top = top + 'px';
