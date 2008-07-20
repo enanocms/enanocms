@@ -32,12 +32,13 @@ autofill_schemas.generic = {
     // inject our HTML wrapper
     var template = this.template.replace(new RegExp('--ID--', 'g'), element.id).replace(new RegExp('--CLASS--', 'g', fillclass));
     var wrapper = element.parentNode; // document.createElement('div');
-    wrapper.id = 'autofill_wrap_' + element.id;
+    if ( !wrapper.id )
+      wrapper.id = 'autofill_wrap_' + element.id;
     
     // a bunch of hacks to add a spry wrapper
     wrapper.innerHTML = template + wrapper.innerHTML;
     
-    var autosuggest = new Spry.Widget.AutoSuggest("autofill_wrap_" + element.id, element.id + '_region', window[ds_name], 'name', {loadFromServer: true, urlParam: 'userinput', hoverSuggestClass: 'row2', minCharsType: 3});
+    var autosuggest = new Spry.Widget.AutoSuggest(wrapper.id, element.id + '_region', window[ds_name], 'name', {loadFromServer: true, urlParam: 'userinput', hoverSuggestClass: 'row2', minCharsType: 3});
     var regiondiv = document.getElementById(element.id + '_region');
     regiondiv.style.position = 'absolute';
     regiondiv.style.top = top + 'px';
