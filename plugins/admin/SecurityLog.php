@@ -68,6 +68,8 @@ function page_Admin_SecurityLog()
 function get_security_log($num = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
   if ( $session->auth_level < USER_LEVEL_ADMIN )
   {
     $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'seclog_unauth\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
@@ -78,7 +80,7 @@ function get_security_log($num = false)
   
   $return = '<div class="tblholder" style="/* max-height: 500px; clip: rect(0px,auto,auto,0px); overflow: auto; */"><table border="0" cellspacing="1" cellpadding="4" width="100%">';
   $cls = 'row2';                                                                                               
-  $return .= '<tr><th style="width: 60%;">Type</th><th>Date</th><th>Username</th><th>IP Address</th></tr>';
+  $return .= '<tr><th style="width: 60%;">' . $lang->get('acpsl_col_type') . '</th><th>' . $lang->get('acpsl_col_date') . '</th><th>' . $lang->get('acpsl_col_username') . '</th><th>' . $lang->get('acpsl_col_ip') . '</th></tr>';
   $hash = sha1(microtime());
   if ( defined('ENANO_DEMO_MODE') )
   {
