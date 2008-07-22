@@ -49,7 +49,6 @@ function stg_load_files()
   return true;
 }
 
-// FIXME: l10n
 start_install_table();
 
 run_installer_stage('load', $lang->get('install_stg_load_title'), 'stg_load_files', $lang->get('install_stg_load_body'), false);

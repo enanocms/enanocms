@@ -49,7 +49,7 @@ if ( !$result )
     </p>
     <p>
       <!-- FIXME: l10n -->
-      <input type="submit" name="_cont" value="Go back" />
+      <input type="submit" name="_cont" value="<?php echo $lang->get('database_btn_go_back'); ?>" />
     </p>
   </form>
   <?php
@@ -80,7 +80,6 @@ function stg_load_files()
   return true;
 }
 
-// FIXME: l10n
 start_install_table();
 
 run_installer_stage('load', $lang->get('install_stg_load_title'), 'stg_load_files', $lang->get('install_stg_load_body'), false);

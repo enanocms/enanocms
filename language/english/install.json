@@ -76,6 +76,7 @@ var enano_lang_install = {
       req_magick: 'ImageMagick support',
       req_cachewriteable: 'Cache directory writable',
       req_fileswriteable: 'File uploads directory writable',
+      req_nodbdrivers: 'No database drivers are available.',
       
       req_desc_php: 'It seems that the version of PHP that your server is running is too old to support Enano properly. If this is your server, please upgrade to the most recent version of PHP, remembering to use the --with-mysql configure option if you compile it yourself. If this is not your server, please contact your webhost and ask them if it would be possible to upgrade PHP. If this is not possible, you will need to switch to a different webhost in order to use Enano.',
       req_desc_php5: 'Your server does not have support for PHP 5.2.0. While you may continue installing Enano, please be warned that as of December 31, 2007, all support for Enano on PHP 4 servers is discontinued. If you have at least PHP 5.0.0, support will still be available, but there are many security problems in PHP versions under 5.2.0 that Enano cannot effectively prevent.',
@@ -87,6 +88,7 @@ var enano_lang_install = {
       req_desc_magick: 'Enano uses ImageMagick to scale images into thumbnails. Because ImageMagick was not found on your server, Enano will use the width= and height= attributes on the &lt;img&gt; tag to scale images. This can cause somewhat of a performance increase, but bandwidth usage will be higher, especially if you use high-resolution images on your site.<br /><br />If you are sure that you have ImageMagick, you can set the location of the "convert" program using the administration panel after installation is complete.',
       req_desc_cachewriteable: 'Apparently the cache/ directory is not writable. Enano will still work, but you will not be able to cache thumbnails, meaning the server will need to re-render them each time they are requested. In some cases, this can cause a significant slowdown.',
       req_desc_fileswriteable: 'It seems that the directory where uploaded files are stored (%enano_root%/files) cannot be written by the server. Enano will still function, but file uploads will not function, and will be disabled by default.',
+      req_desc_nodbdrivers: 'You need to have at least one database driver working to install Enano. See the warnings on MySQL and PostgreSQL above for more information on installing these database drivers.',
       
       summary_success_title: 'Your server meets all the requirements for running Enano.',
       summary_success_body: 'Click the button below to continue the installation.',

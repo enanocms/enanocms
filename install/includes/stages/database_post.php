@@ -184,7 +184,6 @@ if ( $result )
   <form action="install.php?stage=website" method="post" name="install_db_post" onsubmit="return verify();">
   <input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
   <?php
-  // FIXME: l10n
   ?>
   <h3><?php echo $lang->get('database_msg_success_title'); ?></h3>
   <p><?php echo $lang->get('database_msg_success_body'); ?></p>
@@ -201,7 +200,6 @@ if ( $result )
 }
 else
 {
-  // FIXME: l10n
   ?>
   <form action="install.php?stage=database" method="post" name="database_info">
     <input type="hidden" name="language" value="<?php echo $lang_id; ?>" />

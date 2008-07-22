@@ -81,7 +81,7 @@ function config_write_test()
 
 <?php
 run_test('return version_compare(\'5.2.0\', PHP_VERSION, \'<=\');', $lang->get('sysreqs_req_php5'), $lang->get('sysreqs_req_desc_php5'), true);
-run_test('return function_exists(\'mysql_connect\');', $lang->get('sysreqs_req_mysql'), $lang->get('sysreqs_req_desc_mysql') );
+run_test('return function_exists(\'mysql_connect\');', $lang->get('sysreqs_req_mysql'), $lang->get('sysreqs_req_desc_mysql'), true);
 run_test('return function_exists(\'pg_connect\');', $lang->get('sysreqs_req_postgres'), $lang->get('sysreqs_req_desc_postgres'), true);
 run_test('return @ini_get(\'file_uploads\');', $lang->get('sysreqs_req_uploads'), $lang->get('sysreqs_req_desc_uploads') );
 run_test('return is_apache();', $lang->get('sysreqs_req_apache'), $lang->get('sysreqs_req_desc_apache'), true);
@@ -91,8 +91,7 @@ run_test('return is_writable(ENANO_ROOT.\'/cache/\');', $lang->get('sysreqs_req_
 run_test('return is_writable(ENANO_ROOT.\'/files/\');', $lang->get('sysreqs_req_fileswriteable'), $lang->get('sysreqs_req_desc_fileswriteable'), true);
 if ( !function_exists('mysql_connect') && !function_exists('pg_connect') )
 {
-  // FIXME: l10n
-  run_test('return false;', 'No database drivers are available.', 'You need to have at least one database driver working to install Enano. See the warnings on MySQL and PostgreSQL above for more information on installing these database drivers.', false);
+  run_test('return false;', $lang->get('sysreqs_req_nodbdrivers'), $lang->get('sysreqs_req_desc_nodbdrivers'), false);
 }
 echo '</table>';
 echo '<br />';
