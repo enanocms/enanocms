@@ -16,6 +16,7 @@ function page_Admin_LangManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $cache;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
@@ -493,6 +494,8 @@ function page_Admin_LangManager()
           $cache_file = ENANO_ROOT . "/cache/lang_{$lang_id}.php";
           if ( file_exists($cache_file) )
             @unlink($cache_file);
+          
+          $cache->purge("lang_{$lang_id}");
           
           // Remove strings
           $q = $db->sql_query('DELETE FROM ' . table_prefix . "language_strings WHERE lang_id = $lang_id;");
