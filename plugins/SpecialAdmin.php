@@ -70,6 +70,8 @@ function SpecialAdmin_include()
     // Set the theme
     $session->theme = 'admin';
     $session->style = 'default';
+    
+    $template->add_header('<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/admin-menu.js"></script>');
   }
 }
 
@@ -138,7 +140,7 @@ Received invalid XML response.
   }
   
   // Check for the installer scripts
-  if( ( file_exists(ENANO_ROOT.'/install.php') || file_exists(ENANO_ROOT.'/schema.sql') ) && !defined('ENANO_DEMO_MODE') )
+  if( file_exists(ENANO_ROOT.'/install/install.php') && !defined('ENANO_DEMO_MODE') )
   {
     echo '<div class="error-box">
             ' . $lang->get('acphome_msg_install_files') . '
@@ -2019,7 +2021,6 @@ function page_Special_Administration()
   }
   else
   {
-    $template->add_header('<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/admin-menu.js"></script>');
     if( !isset( $_GET['noheaders'] ) ) 
     {
       $template->header();
@@ -2153,10 +2154,10 @@ EOF;
         <td class="holder" valign="top">
           <div class="pad" style="padding-right: 20px;">
             <script type="text/javascript">
-            if ( !KILL_SWITCH )
-            {
-              new tree(TREE_ITEMS, TREE_TPL);
-            }
+              if ( !KILL_SWITCH )
+              {
+                new tree(TREE_ITEMS, TREE_TPL);
+              }
             </script>
           </div>
         </td>
@@ -2182,7 +2183,7 @@ EOF;
             $paths->cpage['module'] = $_GET['module'];
             if ( function_exists($fname) && $_GET['module'] != $paths->nslist['Special'] . 'Administration' )
             {
-              eval($fname.'();');
+              call_user_func($fname);
             }
           } 
           else 
@@ -2192,10 +2193,14 @@ EOF;
           ?>
           </div>
           <script type="text/javascript">
-            if ( KILL_SWITCH )
-            {
-              document.getElementById('ajaxPageContainer').innerHTML = '<div class="error-box">Because of the lack of AJAX support, support for Internet Explorer versions less than 6.0 has been disabled in Runt. You can download and use Mozilla Firefox (or Seamonkey under Windows 95); both have an up-to-date standards-compliant rendering engine that has been tested thoroughly with Enano.</div>';
-            }
+            addOnloadHook(function()
+              {
+                if ( KILL_SWITCH )
+                {
+                  document.getElementById('ajaxPageContainer').innerHTML = '<div class="error-box">Because of the lack of AJAX support, support for Internet Explorer versions less than 6.0 has been disabled in Runt. You can download and use Mozilla Firefox (or Seamonkey under Windows 95); both have an up-to-date standards-compliant rendering engine that has been tested thoroughly with Enano.</div>';
+                }
+              }
+            );
         </script>
         </td>
       </tr>
