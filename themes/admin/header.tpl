@@ -9,8 +9,7 @@
     <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-ie/iefixes.css" />
     <![endif]-->
     {JS_DYNAMIC_VARS}
-    {JS_HEADER}
-    <script type="text/javascript" src="{CDNPATH}/themes/admin/js/menu.js"></script>
+    <script type="text/javascript" src="{SCRIPTPATH}/includes/clientside/jsres.php"></script>
     {ADDITIONAL_HEADERS}
     </head>
   <body>
