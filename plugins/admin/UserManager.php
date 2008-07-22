@@ -475,6 +475,10 @@ function page_Admin_UserManager()
     {
       $username =& $_GET['user'];
     }
+    else if ( isset($_GET['username']) )
+    {
+      $username =& $_GET['username'];
+    }
     else if ( isset($_POST['username']) )
     {
       $username =& $_POST['username'];
