@@ -56,10 +56,6 @@ class template
     $this->plugin_blocks = Array();
     $this->theme_loaded = false;
     
-    $this->fading_button = '<div style="background-image: url('.cdnPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
-                              <a style="background-image: none; padding-right: 0;" href="http://enanocms.org/" onclick="window.open(this.href); return false;"><img style="border-width: 0;" alt=" " src="'.cdnPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
-                            </div>';
-    
     $this->theme_list = Array();
     $this->named_theme_list = Array();
     
@@ -195,6 +191,13 @@ class template
   function process_theme_acls()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    // generate the fading button - needs to be done after sessions are started
+    $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN ) ? ' title="' . $lang->get('sidebar_btn_enanopowered_admin_tip') . '"' : '';
+    $this->fading_button = '<div style="background-image: url('.cdnPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
+                              <a style="background-image: none; padding-right: 0;" href="http://enanocms.org/" onclick="window.open(this.href); return false;"' . $admintitle . '><img style="border-width: 0;" alt=" " src="'.cdnPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
+                            </div>';
     
     // For each theme, check ACLs and delete from RAM if not authorized
     foreach ( $this->theme_list as $i => $theme )
@@ -559,7 +562,7 @@ class template
         $ns = $lang->get('onpage_lbl_page_category');
         break;
       case "Anonymous":
-        $ns = 'external page';
+        $ns = $lang->get('onpage_lbl_page_external');
         break;
     }
     $this->namespace_string = $ns;
@@ -980,12 +983,6 @@ class template
       $ash = '';
     }
     
-    $code = $plugins->setHook('compile_template');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    
     // Set up javascript includes
     // these depend heavily on whether we have a CDN to work with or not
     if ( getConfig('cdn_path') )
@@ -1032,6 +1029,12 @@ JSEOF;
       }
     </script>
 JSEOF;
+    }
+    
+    $code = $plugins->setHook('compile_template');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
     }
     
     // Some additional sidebar processing
@@ -2189,10 +2192,9 @@ EOF;
   function initLinksWidget()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    
     // SourceForge/W3C buttons
     $ob = Array();
-    // FIXME: l10n
-    $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN ) ? 'title="You may disable this button in the admin panel under General Configuration."' : '';
     if(getConfig('sflogo_enabled')=='1')
     {
       $sflogo_secure = ( isset($_SERVER['HTTPS']) ) ? 'https' : 'http';
@@ -2639,6 +2641,9 @@ class template_nodb
       'TOOLBAR'=>$tb,
       'SCRIPTPATH'=>scriptPath,
       'CONTENTPATH'=>contentPath,
+      'CDNPATH' => scriptPath,
+      'JS_HEADER' => '<script type="text/javascript" src="' . scriptPath . '/includes/clientside/static/enano-lib-basic.js"></script>',
+      'JS_FOOTER' => '',
       'ADMIN_SID_QUES'=>$asq,
       'ADMIN_SID_AMP'=>$asa,
       'ADMIN_SID_AMP_HTML'=>'',

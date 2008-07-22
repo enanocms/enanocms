@@ -244,6 +244,7 @@ var enano_lang = {
       lbl_page_template: 'template',
       lbl_page_project: 'project page',
       lbl_page_category: 'category',
+      lbl_page_external: 'external page',
       
       btn_discussion: 'discussion (%num_comments%)',
       btn_discussion_unapp: 'discussion (%num_comments% total, %num_unapp% unapp.)',
@@ -497,6 +498,7 @@ var enano_lang = {
       btn_administration: 'Administration',
       btn_editsidebar: 'Edit the sidebar',
       btn_search_go: 'Go',
+      btn_enanopowered_admin_tip: 'You may disable this button in the admin panel under General Configuration.',
       
       btn_userpage: 'User page',
       btn_mycontribs: 'My contributions',
