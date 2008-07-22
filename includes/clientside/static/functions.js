@@ -153,71 +153,211 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
 
 function handle_invalid_json(response, customerror)
 {
-  var mainwin = $dynano('ajaxEditContainer').object;
-  mainwin.innerHTML = '';
+  load_component('messagebox');
+  load_component('SpryEffects');
+  load_component('fadefilter');
+  load_component('flyin');
+  load_component('l10n');
   
-  // Title
-  var h3 = document.createElement('h3');
-  h3.appendChild(document.createTextNode('The site encountered an error while processing your request.'));
-  mainwin.appendChild(h3);
+  darken();
   
-  if ( typeof(customerror) == 'string' )
-  {
-    var el = document.createElement('p');
-    el.appendChild(document.createTextNode(customerror));
-    mainwin.appendChild(el);
-  }
-  else
-  {
-    customerror  = 'We unexpectedly received the following response from the server. The response should have been in the JSON ';
-    customerror += 'serialization format, but the response wasn\'t composed only of the JSON response. There are three possible triggers ';
-    customerror += 'for this problem:';
-    var el = document.createElement('p');
-    el.appendChild(document.createTextNode(customerror));
-    mainwin.appendChild(el);
-    var ul = document.createElement('ul');
-    var li1 = document.createElement('li');
-    var li2 = document.createElement('li');
-    var li3 = document.createElement('li');
-    li1.appendChild(document.createTextNode('The server sent back a bad HTTP response code and thus sent an error page instead of running Enano. This indicates a possible problem with your server, and is not likely to be a bug with Enano.'));
-    var osc_exception = ( window.location.hostname == 'demo.opensourcecms.com' ) ? ' This is KNOWN to be the case with the OpenSourceCMS.com demo version of Enano.' : '';
-    li2.appendChild(document.createTextNode('The server sent back the expected JSON response, but also injected some code into the response that should not be there. Typically this consists of advertisement code. In this case, the administrator of this site will have to contact their web host to have advertisements disabled.' + osc_exception));
-    li3.appendChild(document.createTextNode('It\'s possible that Enano triggered a PHP error or warning. In this case, you may be looking at a bug in Enano.'));
-      
-    ul.appendChild(li1);
-    ul.appendChild(li2);
-    ul.appendChild(li3);
-    mainwin.appendChild(ul);
-  }
+  var box = document.createElement('div');
+  var mainwin = document.createElement('div');
+  var panel = document.createElement('div');
   
-  var p2 = document.createElement('p');
-  p2.appendChild(document.createTextNode('The response received from the server is as follows:'));
-  mainwin.appendChild(p2);
+  //
+  // main window
+  //
   
-  var pre = document.createElement('pre');
-  pre.appendChild(document.createTextNode(response));
-  mainwin.appendChild(pre);
+    mainwin.style.padding = '10px';
+    mainwin.style.width = '580px';
+    mainwin.style.height = '360px';
+    mainwin.style.clip = 'rect(0px,auto,auto,0px)';
+    mainwin.style.overflow = 'auto';
+    mainwin.style.backgroundColor = '#ffffff';
   
-  var p3 = document.createElement('p');
-  p3.appendChild(document.createTextNode('You may also choose to view the response as HTML. '));
-  var a = document.createElement('a');
-  a.appendChild(document.createTextNode('View as HTML...'));
-  a._resp = response;
-  a.id = 'invalidjson_link';
-  a.onclick = function()
-  {
-    var mb = new MessageBox(MB_YESNO | MB_ICONEXCLAMATION, 'Do you really want to view this response as HTML?', 'If the response was changed during transmission to include malicious code, you may be allowing that malicious code to run by viewing the response as HTML. Only do this if you have reviewed the response text and have found no suspicious code in it.');
-    mb.onclick['Yes'] = function()
+    // Title
+    var h3 = document.createElement('h3');
+    var h3_text = ( $lang.placeholder ) ? 'The site encountered an error while processing your request.' : $lang.get('ajax_badjson_title');
+    h3.appendChild(document.createTextNode(h3_text));
+    mainwin.appendChild(h3);
+    
+    if ( typeof(customerror) == 'string' )
     {
-      var html = $dynano('invalidjson_link').object._resp;
-      var win = window.open('about:blank', 'invalidjson_htmlwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes');
-      win.document.write(html);
+      var el = document.createElement('p');
+      el.appendChild(document.createTextNode(customerror));
+      mainwin.appendChild(el);
     }
-    return false;
+    else
+    {
+      var error = 'We unexpectedly received the following response from the server. The response should have been in the JSON ';
+      error += 'serialization format, but the response wasn\'t composed only of the JSON response. There are three possible triggers ';
+      error += 'for this problem:';
+      customerror = ( $lang.placeholder ) ? error : $lang.get('ajax_badjson_body');
+      var el = document.createElement('p');
+      el.appendChild(document.createTextNode(customerror));
+      mainwin.appendChild(el);
+      var ul = document.createElement('ul');
+      var li1 = document.createElement('li');
+      var li2 = document.createElement('li');
+      var li3 = document.createElement('li');
+      var li1_text = ( $lang.placeholder ) ? 'The server sent back a bad HTTP response code and thus sent an error page instead of running Enano. This indicates a possible problem with your server, and is not likely to be a bug with Enano.' : $lang.get('ajax_badjson_tip1');
+      var li2_text = ( $lang.placeholder ) ? 'The server sent back the expected JSON response, but also injected some code into the response that should not be there. Typically this consists of advertisement code. In this case, the administrator of this site will have to contact their web host to have advertisements disabled.' : $lang.get('ajax_badjson_tip2');
+      var li3_text = ( $lang.placeholder ) ? 'It\'s possible that Enano triggered a PHP error or warning. In this case, you may be looking at a bug in Enano.' : $lang.get('ajax_badjson_tip3');
+      var osc_ex_data = ( $lang.placeholder ) ? 'This is KNOWN to be the case with the OpenSourceCMS.com demo version of Enano.' : $lang.get('ajax_badjson_osc');
+      li1.appendChild(document.createTextNode(li1_text));
+      var osc_exception = ( window.location.hostname == 'demo.opensourcecms.com' ) ? ' ' + osc_ex_data : '';
+      li2.appendChild(document.createTextNode(li2_text + osc_exception));
+      li3.appendChild(document.createTextNode(li3_text));
+        
+      ul.appendChild(li1);
+      ul.appendChild(li2);
+      ul.appendChild(li3);
+      mainwin.appendChild(ul);
+    }
+    
+    var p2 = document.createElement('p');
+    var p2_text = ( $lang.placeholder ) ? 'The response received from the server is as follows:' : $lang.get('ajax_badjson_msg_response');
+    p2.appendChild(document.createTextNode(p2_text));
+    mainwin.appendChild(p2);
+    
+    var pre = document.createElement('pre');
+    pre.appendChild(document.createTextNode(response));
+    mainwin.appendChild(pre);
+    
+    var p3 = document.createElement('p');
+    var p3_text = $lang.placeholder ? 'You may also choose to view the response as HTML.' : $lang.get('ajax_badjson_msg_viewashtml');
+    p3.appendChild(document.createTextNode(p3_text + ' '));
+    var a = document.createElement('a');
+    var a_text = $lang.placeholder ? 'View as HTML' : $lang.get('ajax_badjson_btn_viewashtml');
+    a.appendChild(document.createTextNode(a_text + '...'));
+    a._resp = response;
+    a.onclick = function()
+    {
+      var vah_title = ( $lang.placeholder ) ? 'View the response as HTML?' : $lang.get('ajax_badjson_html_confirm_title');
+      var vah_body = ( $lang.placeholder ) ? 'If the server\'s response was modified by an attacker to include malicious code, viewing the response as HTML might allow that malicious code to run. Only continue if you have inspected the response text and verified that it is safe.' : $lang.get('ajax_badjson_html_confirm_body');
+      var btn_confirm = $lang.placeholder ? 'View as HTML' : $lang.get('ajax_badjson_btn_viewashtml');
+      var btn_cancel = $lang.placeholder ? 'Cancel' : $lang.get('etc_cancel');
+      var mp = miniPromptMessage({
+          title: vah_title,
+          message: vah_body,
+          buttons: [
+            {
+              text: btn_confirm,
+              color: 'blue',
+              style: {
+                fontWeight: 'bold'
+              },
+              onclick: function() {
+                var mp = miniPromptGetParent(this);
+                var win = window.open('about:blank', 'invalidjson_htmlwin', 'width=550,height=400,status=no,toolbars=no,toolbar=no,address=no,scroll=yes');
+                win.document.write(mp._response);
+                win.document.close();
+                miniPromptDestroy(this);
+              }
+            },
+            {
+              text: btn_cancel,
+              onclick: function() {
+                miniPromptDestroy(this);
+              }
+            }
+          ]
+        });
+      mp._response = this._resp;
+      return false;
+    }
+    a.href = '#';
+    p3.appendChild(a);
+    mainwin.appendChild(p3);
+  
+  //
+  // panel
+  //
+  
+    panel.style.backgroundColor = '#D0D0D0';
+    panel.style.textAlign = 'right';
+    panel.style.padding = '0 10px';
+    panel.style.lineHeight = '40px';
+    panel.style.width = '580px';
+    
+    var closer = document.createElement('input');
+    var btn_close = $lang.placeholder ? 'Close' : $lang.get('ajax_badjson_btn_close');
+    closer.type = 'button';
+    closer.value = btn_close;
+    closer.onclick = function()
+    {
+      var parentdiv = this.parentNode.parentNode;
+      var effect = new Spry.Effect.Blind(parentdiv, {
+          from: '100%',
+          to: '0%',
+          duration: '1000'
+        });
+      var observer = {
+        onPostEffect: function()
+          {
+            parentdiv.parentNode.removeChild(parentdiv);
+            enlighten();
+          }
+        };
+      effect.addObserver(observer);
+      effect.start();
+    }
+    panel.appendChild(closer);
+    
+  //
+  // put it together
+  //
+  
+    box.appendChild(mainwin);
+    box.appendChild(panel);
+    
+    // add it to the body to allow height/width calculation
+    
+    box.style.display = 'block';
+    box.style.position = 'absolute';
+    domObjChangeOpac(0, box);
+    
+    var body = document.getElementsByTagName('body')[0];
+    body.appendChild(box);
+    
+    
+    // calculate position of the box
+    // box should be exactly 640px high, 480px wide
+    var top = ( getHeight() / 2 ) - ( $(box).Height() / 2 ) + getScrollOffset();
+    var left = ( getWidth() / 2 ) - ( $(box).Width() / 2 );
+    console.debug('top = %d, left = %d', top, left);
+    box.style.top = top + 'px';
+    box.style.left = left + 'px';
+    
+    // we have width and height, set display to none and reset opacity
+    box.style.display = 'none';
+    domObjChangeOpac(100, box);
+    
+    setTimeout(function()
+      {
+        (new Spry.Effect.Blind(box, {
+            from: '0%',
+            to: '100%',
+            duration: 1000
+          })).start();
+      }, 1000);
+}
+
+/**
+ * Verify that a string is roughly a valid JSON object. Warning - this is only a very cheap syntax check.
+ * @param string
+ * @return bool true if JSON is valid
+ */
+
+function check_json_response(response)
+{
+  response = trim(response);
+  if ( response.substr(0, 1) == '{' && response.substr(response.length - 1, 1) == '}' )
+  {
+    return true;
   }
-  a.href = '#';
-  p3.appendChild(a);
-  mainwin.appendChild(p3);
+  return false;
 }
 
 function ajaxEscape(text)
@@ -816,4 +956,14 @@ function in_array(needle, haystack)
     if(haystack[i] == needle) return i;
   }
   return false;
+}
+
+/**
+ * Equivalent of PHP's time()
+ * @return int
+ */
+
+function unix_time()
+{
+  return parseInt((new Date()).getTime()/1000);
 }

@@ -31,7 +31,7 @@ function ajaxOpenACLManager(page_id, namespace)
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(ajax.responseText);
           return false;
@@ -66,7 +66,7 @@ function ajaxOpenDirectACLRule(rule_id)
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(ajax.responseText);
           return false;
@@ -388,7 +388,7 @@ function __aclJSONSubmitAjaxHandler(params)
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(ajax.responseText);
           return false;

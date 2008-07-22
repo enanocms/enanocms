@@ -127,7 +127,7 @@ function ajaxEditTheme(theme_id)
           {
             theme_list.innerHTML = '';
             var response = String(ajax.responseText + '');
-            if ( response.substr(0, 1) != '{' )
+            if ( !check_json_response(response) )
             {
               alert(response);
               return false;
@@ -495,7 +495,7 @@ function ajaxThemeManagerHandleUserAdd()
         
         // process response
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           alert(response);
           return false;
@@ -609,7 +609,7 @@ function ajaxThemeManagerHandleSaveRequest()
       {
         // process response
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           // For this we actually *expect* an HTML response.
           parent.innerHTML = response;
@@ -643,7 +643,7 @@ function ajaxThemeManagerHandleUninstallClick()
       {
         // process response
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           // For this we actually *expect* an HTML response.
           parent.innerHTML = response;

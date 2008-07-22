@@ -26,7 +26,7 @@ window.ajaxEditor = function(revid)
         unsetAjaxLoading();
         
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(response);
           return false;
@@ -580,7 +580,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
       {
         ajaxUnSetEditorLoading();
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(response);
           return false;
@@ -753,7 +753,7 @@ window.ajaxEditorRevertToLatestReal = function()
         ajaxUnSetEditorLoading();
         
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(response);
           return false;
@@ -972,7 +972,7 @@ window.ajaxEditorUseDraft = function()
         ajaxUnSetEditorLoading();
         
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(response);
           return false;
@@ -1001,12 +1001,3 @@ window.ajaxEditorUseDraft = function()
     }, true);
 }
 
-/**
- * Equivalent of PHP's time()
- * @return int
- */
-
-function unix_time()
-{
-  return parseInt((new Date()).getTime()/1000);
-}

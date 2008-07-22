@@ -321,7 +321,7 @@ window.ajaxLoginPerformRequest = function(json)
       {
         // parse response
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(response);
           return false;

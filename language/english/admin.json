@@ -186,7 +186,7 @@ var enano_lang = {
       welcome_line2: 'Using the links on the left you can control every aspect of your website\'s look and feel, plus you can manage users, work with pages, and install plugins to make your Enano installation even better.',
       msg_demo_title: 'Enano is running in demo mode.',
       msg_demo_body: 'If you borked something up, or if you\'re done testing, you can <a href="%reset_url%">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.',
-      msg_install_files: '<b>NOTE:</b> It appears that your install.php and/or schema.sql files still exist. It is HIGHLY RECOMMENDED that you delete or rename these files, to prevent getting your server hacked.',
+      msg_install_files: '<b>NOTE:</b> It appears that the install/ directory still exists in your Enano installation root. Even though sensitive tools try to avoid hacking attempts, it is highly recommended that you remove the entire install directory from your server for security reasons.',
       heading_updates: 'Check for updates',
       msg_updates_info: 'Periodically, new releases of Enano will be made available. Click the button below to check for updates to Enano. During this process, a request will be sent to the Enano CMS server (germantown.enanocms.org) over HTTP for an <a href="%updates_url%">XML file</a> containing a list of the latest releases. No information about your Enano installation will be transmitted.',
       btn_check_updates: 'Check for updates',
@@ -948,6 +948,7 @@ var enano_lang = {
       field_style_basic_italic: 'Italic',
       field_style_basic_underline: 'Underline',
       field_style_color: 'Username color:',
+      field_style_css: 'Additional CSS:',
       field_preview: 'Preview:',
       
       btn_save: 'Save rank',

@@ -178,7 +178,7 @@ window.ajaxRenameSubmit = function(obj)
       {
         whiteout.parentNode.removeChild(whiteout);
         var response = String(ajax.responseText);
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(response);
           return false;
@@ -416,7 +416,7 @@ window.ajaxRollback = function(id) {
       unsetAjaxLoading();
       
       var response = String(ajax.responseText + '');
-      if ( response.substr(0, 1) != '{' )
+      if ( !check_json_response(response) )
       {
         handle_invalid_json(response);
         return false;
@@ -1042,6 +1042,7 @@ var keepalive_onload = function()
 
 window.aboutKeepAlive = function()
 {
+  load_component('messagebox');
   new MessageBox(MB_OK|MB_ICONINFORMATION, $lang.get('user_keepalive_info_title'), $lang.get('user_keepalive_info_body'));
 }
 
@@ -1282,7 +1283,7 @@ window.ajaxPluginAction = function(action, plugin_filename, btnobj)
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(response);
           return false;

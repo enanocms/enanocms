@@ -5,6 +5,10 @@
 var RankEditorControl = function(rankdata)
 {
   this.rankdata = ( typeof(rankdata) == 'object' ) ? rankdata : {};
+  if ( !this.rankdata.rank_style )
+  {
+    this.rankdata.rank_style = '';
+  }
   
   // have the browser parse CSS for us and use an anchor to be as close
   // as possible in calculating CSS
@@ -197,15 +201,43 @@ var RankEditorControl = function(rankdata)
     tr_color.appendChild(td_color_f);
     table.appendChild(tr_color);
     
+    // field: additional CSS
+    var tr_css = document.createElement('tr');
+    
+    var td_css_l = document.createElement('td');
+    td_css_l.className = 'row2';
+    td_css_l.appendChild(document.createTextNode($lang.get('acpur_field_style_css')));
+    tr_css.appendChild(td_css_l);
+    
+    var td_css_f = document.createElement('td');
+    td_css_f.className = 'row2';
+    var f_css = document.createElement('input');
+    f_css.type = 'text';
+    f_css.value = this.stripBasicCSSAttributes(this.rankdata.rank_style);
+    f_css.style.width = '98%';
+    f_css.editor = this;
+    f_css.onkeyup = function()
+    {
+      if ( !(trim(this.value)).match(/^((([a-z-]+):(.+?);)+)?$/) )
+        return;
+      var newcss = this.editor.stripExtendedCSSAttributes(String(this.editor.style_sim_obj.getAttribute('style'))) + ' ' + this.value;
+      this.editor.preview_div.setAttribute('style', 'font-size: x-large; ' + newcss);
+      this.editor.style_sim_obj.setAttribute('style', newcss);
+    }
+    this.f_css = f_css;
+    td_css_f.appendChild(f_css);
+    tr_css.appendChild(td_css_f);
+    table.appendChild(tr_css);
+    
     // "field": preview
     var tr_preview = document.createElement('tr');
     var td_preview_l = document.createElement('td');
-    td_preview_l.className = 'row2';
+    td_preview_l.className = 'row1';
     td_preview_l.appendChild(document.createTextNode($lang.get('acpur_field_preview')));
     tr_preview.appendChild(td_preview_l);
     
     var td_preview_f = document.createElement('td');
-    td_preview_f.className = 'row2';
+    td_preview_f.className = 'row1';
     var div_preview = document.createElement('a');
     this.preview_div = div_preview;
     div_preview.style.fontSize = 'x-large';
@@ -321,9 +353,38 @@ var RankEditorControl = function(rankdata)
     return ( lumin > 60 ) ? '000000' : 'ffffff';
   }
   
-  this.getJSONDataset = function()
+  /**
+   * Strips out basic CSS attributes (color, font-weight, font-style, text-decoration) from a snippet of CSS.
+   * @param string
+   * @return string
+   */
+  
+  this.stripBasicCSSAttributes = function(css)
   {
-    
+    return trim(css.replace(/(color|font-weight|font-style|text-decoration): ?([A-z0-9# ,\(\)]+);/g, ''));
+  }
+  
+  /**
+   * Strips out all but basic CSS attributes.
+   * @param string
+   * @return string
+   */
+  
+  this.stripExtendedCSSAttributes = function(css)
+  {
+    var match;
+    var final_css = '';
+    var basics = ['color', 'font-weight', 'font-style', 'text-decoration'];
+    while ( match = css.match(/([a-z-]+):(.+?);/) )
+    {
+      if ( in_array(match[1], basics) )
+      {
+        final_css += ' ' + match[0] + ' ';
+      }
+      css = css.replace(match[0], '');
+    }
+    final_css = trim(final_css);
+    return final_css;
   }
   
   this.getCSS = function()
@@ -433,7 +494,7 @@ function ajaxInitRankEdit(rank_id)
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(ajax.responseText);
           return false;
@@ -488,7 +549,7 @@ function ajaxRankEditHandleSave(editor, switch_new)
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(ajax.responseText);
           return false;
@@ -634,7 +695,7 @@ function ajaxRankEditDeleteConfirmed(editor)
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
-        if ( response.substr(0, 1) != '{' )
+        if ( !check_json_response(response) )
         {
           handle_invalid_json(ajax.responseText);
           return false;
