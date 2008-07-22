@@ -339,8 +339,9 @@ function ajaxBuildThemeEditor(data, target)
     check.group_id = parseInt(i);
     var lbl_g_acl = document.createElement('label');
     lbl_g_acl.appendChild(check);
-    // FIXME: l10n on group name
-    lbl_g_acl.appendChild(document.createTextNode(g_name));
+    var str = 'groupcp_grp_' + g_name.toLowerCase();
+    var g_name_l10n = ( $lang.get(str) != str ) ? $lang.get(str) : g_name;
+    lbl_g_acl.appendChild(document.createTextNode(g_name_l10n));
     div_groups.appendChild(lbl_g_acl);
     div_groups.appendChild(document.createElement('br'));
   }
