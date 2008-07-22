@@ -161,11 +161,13 @@ class Language
         $this->merge($strings);
         $this->regen_caches(false);
       }
+      /*
       else
       {
         if ( !defined('ENANO_ALLOW_LOAD_NOLANG') )
           $db->_die('lang.php - No strings for language ' . $this->lang_code);
       }
+      */
     }
   }
   
