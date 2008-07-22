@@ -550,7 +550,7 @@ function miniPromptMessage(parms)
           setTimeout(function()
             {
               parms.buttons[0].input.focus();
-            }, 300);
+            }, 1000);
         }
       }
       catch ( e )

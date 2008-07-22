@@ -15,6 +15,10 @@ div.warning-box-mini              { background-image: url(../../../images/mini-w
 div.question-box-mini             { background-image: url(../../../images/mini-question.png); background-position: 5px center; background-repeat: no-repeat; background-color: #F4FFF4; border: 1px solid #406080; padding: 4px 4px 4px 26px; margin: 1em 0; min-height: 17px; }
 div.wait-box-mini                 { background-image: url(../../../images/mini-wait.png);     background-position: 5px center; background-repeat: no-repeat; background-color: #FFF4FF; border: 1px solid #406080; padding: 4px 4px 4px 26px; margin: 1em 0; min-height: 17px; }
 
+a img {
+  border-width: 0;
+}
+
 /* Similar to the Mediawikian alert box (usermessage) */
 
 div.alert {
@@ -773,6 +777,7 @@ div.miniprompt div.mp-buttons {
   background-color: #f0f0f0;
   cursor: pointer;
   margin: 0 3px;
+  text-decoration: none;
 }
 
 .abutton:hover {
