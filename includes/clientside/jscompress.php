@@ -65,13 +65,13 @@ if ( !defined('ENANO_CLI') )
   die_friendly('Not for web use', '<p>This script is designed to be run from a command-line environment.</p>');
 }
 
-if ( !getConfig('cdn_path') )
-{
-  die_friendly('CDN support not enabled', 'This script is for compressing the Enano Javascript runtimes for CDN use.');
-}
+// if ( !getConfig('cdn_path') )
+// {
+//   die_semicritical('CDN support not enabled', 'This script is for compressing the Enano Javascript runtimes for CDN use.');
+// }
 
 echo "\x1B[1mCreating zip file with compressed Javascript runtimes.\x1B[0m\n";
-echo "\x1B[0;32mWhen finished, upload the contents of enano-lib.zip to:\n\x1B[1;34m  " . getConfig('cdn_path') . "/includes/clientside/static/\x1B[0m\n";
+echo "\x1B[0;32mWhen finished, upload the contents of enano-lib.zip to:\n\x1B[1;34m  " . cdnPath . "/includes/clientside/static/\x1B[0m\n";
 
 echo "\x1B[0;33mChecking for zip support...";
 

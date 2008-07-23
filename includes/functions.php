@@ -756,7 +756,7 @@ function grinding_halt($t, $p)
     // unbold
     echo "\x1B[0m";
     echo "$p\n";
-    exit;
+    exit(1);
   }
   $theme = ( defined('ENANO_CONFIG_FETCHED') ) ? getConfig('theme_default') : 'oxygen';
   $style = ( defined('ENANO_CONFIG_FETCHED') ) ? '__foo__' : 'bleu';
