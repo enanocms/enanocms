@@ -5,6 +5,7 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
     {JS_DYNAMIC_VARS}
     <link rel="stylesheet" type="text/css" href="{CDNPATH}/includes/clientside/css/enano-shared.css" />
+    <link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/structure.css" />
     <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
     {JS_HEADER}
     <!--[if lt IE 7]>
@@ -76,7 +77,6 @@
     <div id="bg">
       <div id="rap">
         <div id="title">
-          <img id="clover" src="{CDNPATH}/themes/{THEME_ID}/images/clover.png" alt=" " />
           <h1>{SITE_NAME}</h1>
           <h2>{SITE_DESC}</h2>
         </div>
