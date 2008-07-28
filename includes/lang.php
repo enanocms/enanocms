@@ -68,6 +68,14 @@ class Language
   var $debug = false;
   
   /**
+   * List of available filters to pass variables through.
+   * @var array
+   * @access private
+   */
+  
+  protected $filters = array();
+  
+  /**
    * Constructor.
    * @param int|string Language ID or code to load.
    */
@@ -113,6 +121,16 @@ class Language
     $this->lang_id   = intval( $row['lang_id'] );
     $this->lang_code = $row['lang_code'];
     $this->lang_timestamp = $row['last_changed'];
+    
+    $this->register_filter('htmlsafe', 'htmlspecialchars');
+    $this->register_filter('urlencode', 'urlencode');
+    $this->register_filter('rawurlencode', 'rawurlencode');
+    
+    $code = $plugins->setHook('lang_init');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
   }
   
   /**
@@ -591,6 +609,30 @@ $lang_cache = ');
   }
   
   /**
+   * Registers a filter, a function that strings can be passed through to change the string somehow (e.g. htmlspecialchars)
+   * @param string Filter name. Lowercase alphanumeric (htmlsafe)
+   * @param callback Function to call.
+   * @return bool True on success, false if some error occurred
+   */
+  
+  public function register_filter($filter_name, $filter_function)
+  {
+    if ( !is_string($filter_function) && !is_array($filter_function) )
+    {
+      return false;
+    }
+    if ( ( is_string($filter_function) && !function_exists($filter_function) ) || ( is_array($filter_function) && !method_exists(@$filter_function[0], @$filter_function[1]) ) )
+    {
+      return false;
+    }
+    if ( !preg_match('/^[a-z0-9_]+$/', $filter_name) )
+    {
+      return false;
+    }
+    $this->filters[$filter_name] = $filter_function;
+  }
+  
+  /**
    * Fetches a language string from the cache in RAM. If it isn't there, it will call fetch() again and then try. If it still can't find it, it will ask for the string
    * in the default language. If even then the string can't be found, this function will return what was passed to it.
    *
@@ -679,30 +721,64 @@ $lang_cache = ');
   
   function substitute($string, $subs)
   {
-    preg_match_all('/%this\.([a-z0-9_]+)%/', $string, $matches);
+    preg_match_all('/%this\.([a-z0-9_]+)((?:\|(?:[a-z0-9_]+))*)%/', $string, $matches);
     if ( count($matches[0]) > 0 )
     {
       foreach ( $matches[1] as $i => $string_id )
       {
         $result = $this->get($string_id);
-        $string = str_replace($matches[0][$i], $result, $string);
+        $string = str_replace($matches[0][$i], $this->process_filters($result, $matches[2][$i]), $string);
       }
     }
-    preg_match_all('/%config\.([a-z0-9_]+)%/', $string, $matches);
+    preg_match_all('/%config\.([a-z0-9_]+)((?:\|(?:[a-z0-9_]+))*)%/', $string, $matches);
     if ( count($matches[0]) > 0 )
     {
       foreach ( $matches[1] as $i => $string_id )
       {
-        $result = getConfig($string_id);
-        $string = str_replace($matches[0][$i], $result, $string);
+        $result = getConfig($string_id, '');
+        $string = str_replace($matches[0][$i], $this->process_filters($result, $matches[2][$i]), $string);
       }
     }
-    foreach ( $subs as $key => $value )
+    preg_match_all('/%([a-z0-9_]+)((?:\|(?:[a-z0-9_]+))*)%/', $string, $matches);
+    if ( count($matches[0]) > 0 )
     {
-      $subs[$key] = strval($value);
-      $string = str_replace("%{$key}%", "{$subs[$key]}", $string);
+      foreach ( $matches[1] as $i => $string_id )
+      {
+        if ( isset($subs[$string_id]) )
+        {
+          $string = str_replace($matches[0][$i], $this->process_filters($subs[$string_id], $matches[2][$i]), $string);
+        }
+      }
     }
     return ( $this->debug ) ? "$string*" : $string;
+  }
+  
+  /**
+   * Processes filters to a language string.
+   * @param string Unprocessed string
+   * @param string Filter list (format: |filter1|filter2|filter3, initial pipe is important); can also be an array if you so desire
+   * @return string
+   */
+  
+  function process_filters($string, $filters)
+  {
+    if ( !empty($filters) )
+    {
+      $filters = trim($filters, '|');
+      $filters = explode('|', $filters);
+      foreach ( $filters as $filter )
+      {
+        if ( isset($this->filters[$filter]) )
+        {
+          $result = @call_user_func($this->filters[$filter], $string);
+          if ( is_string($result) )
+          {
+            $string = $result;
+          }
+        }
+      }
+    }
+    return $string;
   }
   
 } // class Language
