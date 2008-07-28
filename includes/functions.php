@@ -76,41 +76,44 @@ function setConfig($n, $v)
  * @return string
  */
 
-function makeUrl($t, $query = false, $escape = false)
+if ( !function_exists('makeUrl') )
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  $flags = '';
-  $sep = urlSeparator;
-  $t = sanitize_page_id($t);
-  if ( isset($_GET['printable'] ) )
+  function makeUrl($t, $query = false, $escape = false)
   {
-    $flags .= $sep . 'printable=yes';
-    $sep = '&';
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    $flags = '';
+    $sep = urlSeparator;
+    $t = sanitize_page_id($t);
+    if ( isset($_GET['printable'] ) )
+    {
+      $flags .= $sep . 'printable=yes';
+      $sep = '&';
+    }
+    if ( isset($_GET['theme'] ) )
+    {
+      $flags .= $sep . 'theme='.$session->theme;
+      $sep = '&';
+    }
+    if ( isset($_GET['style'] ) )
+    {
+      $flags .= $sep . 'style='.$session->style;
+      $sep = '&';
+    }
+    if ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) )
+    {
+      $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
+      $sep = '&';
+    }
+  
+    $url = $session->append_sid(contentPath.$t.$flags);
+    if($query)
+    {
+      $sep = strstr($url, '?') ? '&' : '?';
+      $url = $url . $sep . $query;
+    }
+  
+    return ($escape) ? htmlspecialchars($url) : $url;
   }
-  if ( isset($_GET['theme'] ) )
-  {
-    $flags .= $sep . 'theme='.$session->theme;
-    $sep = '&';
-  }
-  if ( isset($_GET['style'] ) )
-  {
-    $flags .= $sep . 'style='.$session->style;
-    $sep = '&';
-  }
-  if ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) )
-  {
-    $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
-    $sep = '&';
-  }
-
-  $url = $session->append_sid(contentPath.$t.$flags);
-  if($query)
-  {
-    $sep = strstr($url, '?') ? '&' : '?';
-    $url = $url . $sep . $query;
-  }
-
-  return ($escape) ? htmlspecialchars($url) : $url;
 }
 
 /**
@@ -122,71 +125,74 @@ function makeUrl($t, $query = false, $escape = false)
  * @return string
  */
 
-function makeUrlNS($n, $t, $query = false, $escape = false)
+if ( !function_exists('makeUrlNS') )
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  $flags = '';
-
-  if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
+  function makeUrlNS($n, $t, $query = false, $escape = false)
   {
-    $sep = urlSeparator;
-  }
-  else
-  {
-    $sep = (strstr($_SERVER['REQUEST_URI'], '?')) ? '&' : '?';
-  }
-  if ( isset( $_GET['printable'] ) ) {
-    $flags .= $sep . 'printable';
-    $sep = '&';
-  }
-  if ( isset( $_GET['theme'] ) )
-  {
-    $flags .= $sep . 'theme='.$session->theme;
-    $sep = '&';
-  }
-  if ( isset( $_GET['style'] ) )
-  {
-    $flags .= $sep . 'style='.$session->style;
-    $sep = '&';
-  }
-  if ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) )
-  {
-    $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
-    $sep = '&';
-  }
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    $flags = '';
   
-  $ns_prefix = "$n:";
-
-  if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
-  {
-    $ns_prefix = ( isset($paths->nslist[$n]) ) ? $paths->nslist[$n] : $n . substr($paths->nslist['Special'], -1);
-    $url = contentPath . $ns_prefix . $t . $flags;
-  }
-  else
-  {
-    // If the path manager hasn't been initted yet, take an educated guess at what the URI should be
-    $url = contentPath . $n . ':' . $t . $flags;
-  }
-
-  if($query)
-  {
-    if(strstr($url, '?'))
+    if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
     {
-      $sep =  '&';
+      $sep = urlSeparator;
     }
     else
     {
-      $sep = '?';
+      $sep = (strstr($_SERVER['REQUEST_URI'], '?')) ? '&' : '?';
     }
-    $url = $url . $sep . $query . $flags;
+    if ( isset( $_GET['printable'] ) ) {
+      $flags .= $sep . 'printable';
+      $sep = '&';
+    }
+    if ( isset( $_GET['theme'] ) )
+    {
+      $flags .= $sep . 'theme='.$session->theme;
+      $sep = '&';
+    }
+    if ( isset( $_GET['style'] ) )
+    {
+      $flags .= $sep . 'style='.$session->style;
+      $sep = '&';
+    }
+    if ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) )
+    {
+      $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
+      $sep = '&';
+    }
+    
+    $ns_prefix = "$n:";
+  
+    if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
+    {
+      $ns_prefix = ( isset($paths->nslist[$n]) ) ? $paths->nslist[$n] : $n . substr($paths->nslist['Special'], -1);
+      $url = contentPath . $ns_prefix . $t . $flags;
+    }
+    else
+    {
+      // If the path manager hasn't been initted yet, take an educated guess at what the URI should be
+      $url = contentPath . $n . ':' . $t . $flags;
+    }
+  
+    if($query)
+    {
+      if(strstr($url, '?'))
+      {
+        $sep =  '&';
+      }
+      else
+      {
+        $sep = '?';
+      }
+      $url = $url . $sep . $query . $flags;
+    }
+  
+    if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
+    {
+      $url = $session->append_sid($url);
+    }
+  
+    return ($escape) ? htmlspecialchars($url) : $url;
   }
-
-  if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
-  {
-    $url = $session->append_sid($url);
-  }
-
-  return ($escape) ? htmlspecialchars($url) : $url;
 }
 
 /**
@@ -949,19 +955,28 @@ EOF;
  * Prints out the file information box seen on File: pages. Doesn't take or return anything, but assumes that the page information is already set in $paths, and expects $paths->namespace to be File.
  */
 
-function show_file_info()
+function show_file_info($page = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   
+  $local_page_id = $paths->page_id;
+  $local_namespace = $paths->namespace;
+  
+  if ( is_object($page) )
+  {
+    $local_page = $page->page_id;
+    $local_namespace = $page->namespace;
+  }
+  
   // Prevent unnecessary work
-  if ( $paths->namespace != 'File' )
+  if ( $local_namespace != 'File' )
     return null;
   
-  $selfn = $paths->page_id;
+  $selfn = $local_page_id;
   if ( substr($paths->cpage['name'], 0, strlen($paths->nslist['File'])) == $paths->nslist['File'])
   {
-    $selfn = substr($paths->page_id, strlen($paths->nslist['File']), strlen($paths->page_id));
+    $selfn = substr($local_page_id, strlen($paths->nslist['File']), strlen($local_page_id));
   }
   $selfn = $db->escape($selfn);
   $q = $db->sql_query('SELECT f.mimetype,f.time_id,f.size,l.log_id FROM ' . table_prefix . "files AS f\n"
@@ -978,7 +993,7 @@ function show_file_info()
   {
     echo '<div class="mdg-comment" style="margin-left: 0;">
             <h3>' . $lang->get('onpage_filebox_heading') . '</h3>
-            <p>' . $lang->get('onpage_filebox_msg_not_found', array('upload_link' => makeUrlNS('Special', 'UploadFile/'.$paths->page_id))) . '</p>
+            <p>' . $lang->get('onpage_filebox_msg_not_found', array('upload_link' => makeUrlNS('Special', 'UploadFile/'.$local_page_id))) . '</p>
           </div>
           <br />';
     return;
@@ -3015,22 +3030,19 @@ function sanitize_tag($tag)
  * @return string Compressed data
  */
 
-if ( !function_exists('gzencode') )
+function enano_gzencode($data = "", $level = 6, $filename = "", $comments = "")
 {
-  function gzencode($data = "", $level = 6, $filename = "", $comments = "")
-  {
-    $flags = (empty($comment)? 0 : 16) + (empty($filename)? 0 : 8);
-    $mtime = time();
-    
-    if ( !function_exists('gzdeflate') )
-      return false;
-   
-    return (pack("C1C1C1C1VC1C1", 0x1f, 0x8b, 8, $flags, $mtime, 2, 0xFF) .
-            (empty($filename) ? "" : $filename . "\0") .
-            (empty($comment) ? "" : $comment . "\0") .
-            gzdeflate($data, $level) .
-            pack("VV", crc32($data), strlen($data)));
-  }
+  $flags = (empty($comment)? 0 : 16) + (empty($filename)? 0 : 8);
+  $mtime = time();
+  
+  if ( !function_exists('gzdeflate') )
+    return false;
+ 
+  return (pack("C1C1C1C1VC1C1", 0x1f, 0x8b, 8, $flags, $mtime, 2, 0xFF) .
+          (empty($filename) ? "" : $filename . "\0") .
+          (empty($comment) ? "" : $comment . "\0") .
+          gzdeflate($data, $level) .
+          pack("VV", crc32($data), strlen($data)));
 }
 
 /**
@@ -3043,13 +3055,14 @@ function gzip_output()
   
   //
   // Compress buffered output if required and send to browser
+  // Sorry, doesn't work in IE. What else is new?
   //
-  if ( $do_gzip && function_exists('gzdeflate') )
+  if ( $do_gzip && function_exists('gzdeflate') && !strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') )
   {
     $gzip_contents = ob_get_contents();
     ob_end_clean();
     
-    $return = @gzencode($gzip_contents);
+    $return = @enano_gzencode($gzip_contents);
     if ( $return )
     {
       header('Content-encoding: gzip');
@@ -3648,7 +3661,7 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
   if ( !file_exists($in_file) )
     return false;
   
-  if ( preg_match('/["\'\/\\]/', $in_file) || preg_match('/["\'\/\\]/', $out_file) )
+  if ( preg_match('/["\'\/\\\\]/', $in_file) || preg_match('/["\'\/\\\\]/', $out_file) )
     die('SECURITY: scale_image(): infile or outfile path is screwy');
   
   if ( file_exists($out_file) && !$unlink )
