@@ -76,7 +76,8 @@ if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
 }
 
 // Set our CDN path
-define('cdnPath', getConfig('cdn_path', scriptPath));
+if ( !defined('cdnPath') )
+  define('cdnPath', getConfig('cdn_path', scriptPath));
 
 //
 // Low level maintenance
@@ -137,13 +138,15 @@ $plugins = new pluginLoader();
 // Obtain list of plugins
 $plugins->loadAll();
 
+profiler_log('Fetched plugin list');
+
 global $plugins;
 
 // Load plugins from common because we can't give plugins full abilities in object context
 foreach ( $plugins->load_list as $f )
 {
-  if ( file_exists($f) )
-    include_once $f;
+  if ( file_exists(ENANO_ROOT . '/plugins/' . $f) )
+    include_once ENANO_ROOT . '/plugins/' . $f;
 }
 
 profiler_log('Loaded plugins');
