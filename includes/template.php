@@ -1188,7 +1188,7 @@ JSEOF;
       'ADMIN_SID_RAW'=> ( is_string($session->sid_super) ? $session->sid_super : '' ),
       'COPYRIGHT'=>RenderMan::parse_internal_links(getConfig('copyright_notice')),
       'TOOLBAR_EXTRAS'=>$this->toolbar_menu,
-      'REQUEST_URI'=>$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+      'REQUEST_URI'=>( defined('ENANO_CLI') ? '' : $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ),
       'STYLE_LINK'=>makeUrlNS('Special', 'CSS'.$p, null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
       'LOGIN_LINK'=>$login_link,
       'LOGOUT_LINK'=>$logout_link,
