@@ -45,7 +45,7 @@ foreach ( $cron_tasks as $interval => $tasks )
 $expiry_date = date('r', get_cron_next_run());
 
 $etag = sha1($expiry_date);
-  
+
 if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
 {
   if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )

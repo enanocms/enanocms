@@ -102,6 +102,7 @@ $full_compress_safe = array(
   'pwstrength.js',
   'flyin.js',
   'rank-manager.js',
+  'userpage.js',
   'template-compiler.js',
   'toolbar.js',
 );

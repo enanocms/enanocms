@@ -464,6 +464,11 @@ function getScrollOffset()
   return position;
 }
 
+function setScrollOffset(offset)
+{
+  window.scroll(0, offset);
+}
+
 // Function to fade classes info-box, warning-box, error-box, etc.
 
 function fadeInfoBoxes()
@@ -568,7 +573,8 @@ function whiteOutElement(el)
   
   blackout.style.backgroundColor = '#FFFFFF';
   domObjChangeOpac(60, blackout);
-  blackout.style.backgroundImage = 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
+  var background = ( $(el).Height() < 48 ) ? 'url(' + scriptPath + '/images/loading.gif)' : 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
+  blackout.style.backgroundImage = background;
   blackout.style.backgroundPosition = 'center center';
   blackout.style.backgroundRepeat = 'no-repeat';
   blackout.style.zIndex = getHighestZ() + 2;

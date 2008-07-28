@@ -627,30 +627,38 @@ window.ajaxEditorSave = function(is_draft, text_override)
         {
           if ( response.is_draft )
           {
-            document.getElementById('ajaxEditArea').used_draft = true;
-            document.getElementById('ajaxEditArea').needReset = true;
-            var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
-            var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
-            if ( response.is_draft == 'delete' )
+            try
             {
-              img.src = scriptPath + '/images/editor/savedraft.gif';
-              lbl.innerHTML = $lang.get('editor_btn_savedraft');
-              
-              var dn = $dynano('ajax_edit_draft_notice').object;
-              if ( dn )
+              document.getElementById('ajaxEditArea').used_draft = true;
+              document.getElementById('ajaxEditArea').needReset = true;
+              var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
+              var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
+              if ( response.is_draft == 'delete' )
               {
-                dn.parentNode.removeChild(dn);
+                img.src = scriptPath + '/images/editor/savedraft.gif';
+                lbl.innerHTML = $lang.get('editor_btn_savedraft');
+                
+                var dn = $dynano('ajax_edit_draft_notice').object;
+                if ( dn )
+                {
+                  dn.parentNode.removeChild(dn);
+                }
+              }
+              else
+              {
+                img.src = scriptPath + '/images/mini-info.png';
+                var d = new Date();
+                var m = String(d.getMinutes());
+                if ( m.length < 2 )
+                  m = '0' + m;
+                var time = d.getHours() + ':' + m;
+                lbl.innerHTML = $lang.get('editor_msg_draft_saved', { time: time });
               }
             }
-            else
+            catch(e)
             {
-              img.src = scriptPath + '/images/mini-info.png';
-              var d = new Date();
-              var m = String(d.getMinutes());
-              if ( m.length < 2 )
-                m = '0' + m;
-              var time = d.getHours() + ':' + m;
-              lbl.innerHTML = $lang.get('editor_msg_draft_saved', { time: time });
+              console.warn('Exception thrown during save, error dump follows');
+              console.debug(e);
             }
           }
           else
@@ -670,6 +678,12 @@ window.ajaxEditorSave = function(is_draft, text_override)
                   
                   ajaxEditorDestroyModalWindow();
                   document.getElementById('ajaxEditContainer').innerHTML = '<div class="usermessage">' + $lang.get('editor_msg_saved') + '</div>' + ajax.responseText;
+                  // if we're on a userpage, call the onload function to rebuild the tabs
+                  if ( typeof(userpage_onload) == 'function' )
+                  {
+                    window.userpage_blocks = [];
+                    userpage_onload();
+                  }
                   opacity('ajaxEditContainer', 0, 100, 1000);
                 }
               });

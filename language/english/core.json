@@ -156,8 +156,9 @@ var enano_lang = {
       lbl_password: 'Password:',
       
       msg_404_title: 'There is no page with this title yet.',
-      msg_404_body_userpage: 'This user has not created his or her user page yet.',
       msg_404_body: 'You have requested a page that doesn\'t exist yet.',
+      msg_404_title_userpage: 'No content',
+      msg_404_body_userpage: 'This user has not yet created any custom user page content.',
       msg_404_create: 'You can <a %create_flags%>create this page</a>, or return to the <a href="%mainpage_link%">homepage</a>.',
       msg_404_gohome: 'Return to the <a href="%mainpage_link%">homepage</a>.',
       msg_404_was_deleted: '<b>This page was deleted on %delete_time%.</b> The stated reason was:</p><blockquote>%delete_reason%</blockquote><p>You can probably <a %rollback_flags%>roll back</a> the deletion.',

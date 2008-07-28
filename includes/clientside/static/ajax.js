@@ -21,6 +21,12 @@ window.ajaxReset = function()
       document.getElementById('ajaxEditContainer').innerHTML = ajax.responseText;
       selectButtonMajor('article');
       unselectAllButtonsMinor();
+      // if we're on a userpage, call the onload function to rebuild the tabs
+      if ( typeof(userpage_onload) == 'function' )
+      {
+        window.userpage_blocks = [];
+        userpage_onload();
+      }
     }
   });
 }

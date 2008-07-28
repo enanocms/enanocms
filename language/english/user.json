@@ -128,6 +128,7 @@ var enano_lang = {
       
       msg_elev_timed_out: '<b>Your administrative session has timed out.</b> <a href="%login_link%" onclick="ajaxLogonToElev(); return false;">Log in again</a>',
       
+      reg_err_locked_out: 'Registration is disabled because you are currently locked out from logging in. Please wait %time% minutes before attempting to register again.',
       reg_err_captcha: 'The confirmation code you entered was incorrect.',
       reg_err_disabled_title: 'Registration disabled',
       reg_err_disabled_body: 'The administrator has disabled the registration of new accounts on this site.',
@@ -620,9 +621,9 @@ The %site_name% administration team
       ml_msg_matches: 'Search returned %matches% matches',
     },
     userpage: {
-      page_title: '%username%\'s user page',
+      page_title: '%username|htmlsafe%\'s user page',
       heading_basics: 'All about %username%',
-      lbl_joined: 'Joined:',
+      lbl_joined: 'Member since:',
       lbl_num_comments: 'Total comments:',
       lbl_real_name: 'Real name:',
       btn_administer_user: 'Administer user',
@@ -643,6 +644,8 @@ The %site_name% administration team
       lbl_hobbies: 'Enjoys:',
       msg_no_contact_info: '%username% hasn\'t posted any real-life contact information.',
       msg_user_not_exist: 'Additional information: user "%username%" does not exist.',
+      tab_profile: 'Profile',
+      tab_content: 'User page',
     }
   }
 };
