@@ -138,8 +138,8 @@ function userprefs_menu_init()
   userprefs_menu_add('Private messages', 'Trash', makeUrlNS('Special',    'Private_Messages#folder:trash'));
   */
   
-  $userprefs_menu_links['Profile/membership'] = makeUrlNS('Special', 'Preferences');
-  $userprefs_menu_links['Private messages']  = makeUrlNS('Special', 'PrivateMessages');
+  $userprefs_menu_links['usercp_sec_profile'] = makeUrlNS('Special', 'Preferences');
+  $userprefs_menu_links['usercp_sec_pm']  = makeUrlNS('Special', 'PrivateMessages');
   
   $code = $plugins->setHook('userprefs_jbox');
   foreach ( $code as $cmd )
