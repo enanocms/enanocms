@@ -267,7 +267,8 @@ CREATE TABLE {{TABLE_PREFIX}}lockout(
   ipaddr varchar(40) NOT NULL,
   action varchar(20) NOT NULL DEFAULT 'credential',
   timestamp int NOT NULL DEFAULT 0,
-  CHECK ( action IN ('credential', 'level') )
+  CHECK ( action IN ('credential', 'level') ),
+  PRIMARY KEY ( id )
 );
 
 -- Added in 1.1.1
@@ -277,7 +278,8 @@ CREATE TABLE {{TABLE_PREFIX}}language(
   lang_code varchar(16) NOT NULL,
   lang_name_DEFAULT varchar(64) NOT NULL,
   lang_name_native varchar(64) NOT NULL,
-  last_changed int NOT NULL DEFAULT 0
+  last_changed int NOT NULL DEFAULT 0,
+  PRIMARY KEY ( lang_id )
 );
 
 -- Added in 1.1.1
@@ -287,7 +289,8 @@ CREATE TABLE {{TABLE_PREFIX}}language_strings(
   lang_id int NOT NULL,
   string_category varchar(32) NOT NULL,
   string_name varchar(64) NOT NULL,
-  string_content text NOT NULL
+  string_content text NOT NULL,
+  PRIMARY KEY ( string_id )
 );
 
 -- Added in 1.1.1
@@ -295,7 +298,8 @@ CREATE TABLE {{TABLE_PREFIX}}language_strings(
 CREATE TABLE {{TABLE_PREFIX}}ranks(
   rank_id SERIAL,
   rank_title varchar(63) NOT NULL DEFAULT '',
-  rank_style varchar(255) NOT NULL DEFAULT ''
+  rank_style varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY ( rank_id )
 );
 
 -- Added in 1.1.1
@@ -306,7 +310,8 @@ CREATE TABLE {{TABLE_PREFIX}}captcha(
   code varchar(64) NOT NULL DEFAULT '',
   session_data text,
   source_ip varchar(39),
-  user_id int
+  user_id int,
+  PRIMARY KEY ( code_id )
 );
 
 -- Added in 1.1.3
@@ -390,10 +395,10 @@ INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);
   
 INSERT INTO {{TABLE_PREFIX}}ranks(rank_title, rank_style) VALUES
-  ('user_rank_member', ''),
-  ('user_rank_mod', 'font-weight: bold; color: #00AA00;'),
-  ('user_rank_admin', 'font-weight: bold; color: #AA0000;'),
-  ('user_rank_guest', '');
+  (1, 'user_rank_member', ''),
+  (2, 'user_rank_mod', 'font-weight: bold; color: #00AA00;'),
+  (3, 'user_rank_admin', 'font-weight: bold; color: #AA0000;'),
+  (4, 'user_rank_guest', '');
 
 INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(1, 'Everyone', 3, 1),
   (2,'Administrators',3,1),
