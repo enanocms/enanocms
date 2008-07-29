@@ -627,6 +627,9 @@ window.ajaxEditorSave = function(is_draft, text_override)
         {
           if ( response.is_draft )
           {
+            // for some reason this code is throwing "uncaught exception" errors under gecko
+            // firebug ain't tracing it, it'll be fixed soon enough though
+            // note that the errors still seem to show after adding the try{}catch{} blocks
             try
             {
               document.getElementById('ajaxEditArea').used_draft = true;

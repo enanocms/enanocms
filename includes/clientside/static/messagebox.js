@@ -531,6 +531,11 @@ function miniPromptMessage(parms)
               button.input.style[j] = button.style[j];
             }
           }
+          if ( button.image )
+          {
+            button.input.className += ' abutton_img';
+            button.input.style.backgroundImage = 'url(' + button.image + ')';
+          }
           button.input.onclick = function(e)
           {
             try
