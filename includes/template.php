@@ -194,7 +194,7 @@ class template
     global $lang;
     
     // generate the fading button - needs to be done after sessions are started
-    $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN ) ? ' title="' . $lang->get('sidebar_btn_enanopowered_admin_tip') . '"' : '';
+    $admintitle = ( $session->user_level >= USER_LEVEL_ADMIN && is_object(@$lang) ) ? ' title="' . $lang->get('sidebar_btn_enanopowered_admin_tip') . '"' : '';
     $this->fading_button = '<div style="background-image: url('.cdnPath.'/images/about-powered-enano-hover.png); background-repeat: no-repeat; width: 88px; height: 31px; margin: 0 auto 5px auto;">
                               <a style="background-image: none; padding-right: 0;" href="http://enanocms.org/" onclick="window.open(this.href); return false;"' . $admintitle . '><img style="border-width: 0;" alt=" " src="'.cdnPath.'/images/about-powered-enano.png" onmouseover="domOpacity(this, 100, 0, 500);" onmouseout="domOpacity(this, 0, 100, 500);" /></a>
                             </div>';
