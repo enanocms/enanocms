@@ -195,6 +195,15 @@ function page_Admin_PluginManager()
               break;
             case 'disable':
             case 'enable':
+              // We're not in demo mode. Right?
+              if ( defined('ENANO_DEMO_MODE') )
+              {
+                $return = array(
+                    'mode' => 'error',
+                    'error' => $lang->get('acppl_err_demo_mode')
+                  );
+                break;
+              }
               $flags_col = ( $request['mode'] == 'disable' ) ?
                             "plugin_flags | "  . PLUGIN_DISABLED :
                             "plugin_flags & ~" . PLUGIN_DISABLED;

@@ -54,7 +54,7 @@ class pluginLoader {
    * @var array
    */
   
-  var $system_plugins = Array('SpecialUserFuncs.php','SpecialUserPrefs.php','SpecialPageFuncs.php','SpecialAdmin.php','SpecialCSS.php','SpecialUpdownload.php','SpecialSearch.php','PrivateMessages.php','SpecialGroups.php', 'SpecialRecentChanges.php');
+  var $system_plugins = Array('SpecialUserFuncs.php','SpecialUserPrefs.php','SpecialPageFuncs.php','SpecialAdmin.php','SpecialCSS.php','SpecialUpdownload.php','SpecialSearch.php','PrivateMessages.php','SpecialGroups.php', 'SpecialRecentChanges.php', 'DemoMode.php');
   
   /**
    * Name kept for compatibility. Effectively a constructor. Calculates the list of plugins that should be loaded
@@ -510,6 +510,14 @@ class pluginLoader {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
+    if ( defined('ENANO_DEMO_MODE') )
+    {
+      return array(
+          'mode' => 'error',
+          'error' => $lang->get('acppl_err_demo_mode')
+        );
+    }
+    
     if ( !$plugin_list )
       $plugin_list = $this->get_plugin_list();
     
@@ -616,6 +624,14 @@ class pluginLoader {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    
+    if ( defined('ENANO_DEMO_MODE') )
+    {
+      return array(
+          'mode' => 'error',
+          'error' => $lang->get('acppl_err_demo_mode')
+        );
+    }
     
     if ( !$plugin_list )
       $plugin_list = $this->get_plugin_list();

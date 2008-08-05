@@ -443,6 +443,7 @@ var enano_lang = {
       err_upgrade_to_older: 'You are trying to upgrade to an older release of this plugin. This is unsupported and must be done manually.',
       err_upgrade_bad_query: 'There is a problem with one of the SQL queries the plugin is trying to make.',
       err_import_no_strings: 'This plugin doesn\'t have language support.',
+      err_demo_mode: 'You can\'t manipulate plugins in the Enano demo for security reasons.',
       
       msg_old_entries_title: 'Import old plugin installation data',
       msg_old_entries_body: 'There is still data from the old plugin structure in your database. You can import this to the new structure automatically using the button below.',
