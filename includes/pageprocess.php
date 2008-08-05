@@ -1929,68 +1929,72 @@ class PageProcessor
     $this->header();
     $this->do_breadcrumbs();
     
-    $msg = $paths->sysmsg('Page_not_found');
-    if ( $msg )
+    $msg = ( $pp = $paths->sysmsg('Page_not_found') ) ? $pp : '{STANDARD404}';
+    
+    $standard_404 = '';
+    
+    if ( $userpage )
     {
-      $msg = RenderMan::render($msg);
-      eval( '?>' . $msg );
+      $standard_404 .= '<h3>' . $lang->get('page_msg_404_title_userpage') . '</h3>
+             <p>' . $lang->get('page_msg_404_body_userpage');
     }
     else
     {
-      if ( $userpage )
+      $standard_404 .= '<h3>' . $lang->get('page_msg_404_title') . '</h3>
+             <p>' . $lang->get('page_msg_404_body');
+    }
+    if ( $session->get_permissions('create_page') )
+    {
+      $standard_404 .= ' ' . $lang->get('page_msg_404_create', array(
+          'create_flags' => 'href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;"',
+          'mainpage_link' => makeUrl(getConfig('main_page'), false, true)
+        ));
+    }
+    else
+    {
+      $standard_404 .= ' ' . $lang->get('page_msg_404_gohome', array(
+          'mainpage_link' => makeUrl(getConfig('main_page'), false, true)
+        ));
+    }
+    $standard_404 .= '</p>';
+    if ( $session->get_permissions('history_rollback') )
+    {
+      $e = $db->sql_query('SELECT * FROM ' . table_prefix . 'logs WHERE action=\'delete\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' ORDER BY time_id DESC;');
+      if ( !$e )
       {
-        echo '<h3>' . $lang->get('page_msg_404_title_userpage') . '</h3>
-               <p>' . $lang->get('page_msg_404_body_userpage');
+        $db->_die('The deletion log could not be selected.');
       }
-      else
+      if ( $db->numrows() > 0 )
       {
-        echo '<h3>' . $lang->get('page_msg_404_title') . '</h3>
-               <p>' . $lang->get('page_msg_404_body');
-      }
-      if ( $session->get_permissions('create_page') )
-      {
-        echo ' ' . $lang->get('page_msg_404_create', array(
-            'create_flags' => 'href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;"',
-            'mainpage_link' => makeUrl(getConfig('main_page'), false, true)
-          ));
-      }
-      else
-      {
-        echo ' ' . $lang->get('page_msg_404_gohome', array(
-            'mainpage_link' => makeUrl(getConfig('main_page'), false, true)
-          ));
-      }
-      echo '</p>';
-      if ( $session->get_permissions('history_rollback') )
-      {
-        $e = $db->sql_query('SELECT * FROM ' . table_prefix . 'logs WHERE action=\'delete\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' ORDER BY time_id DESC;');
-        if ( !$e )
+        $r = $db->fetchrow();
+        $standard_404 .= '<p>' . $lang->get('page_msg_404_was_deleted', array(
+                  'delete_time' => enano_date('d M Y h:i a', $r['time_id']),
+                  'delete_reason' => htmlspecialchars($r['edit_summary']),
+                  'rollback_flags' => 'href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['log_id']).'" onclick="ajaxRollback(\''.$r['log_id'].'\'); return false;"'
+                ))
+              . '</p>';
+        if ( $session->user_level >= USER_LEVEL_ADMIN )
         {
-          $db->_die('The deletion log could not be selected.');
-        }
-        if ( $db->numrows() > 0 )
-        {
-          $r = $db->fetchrow();
-          echo '<p>' . $lang->get('page_msg_404_was_deleted', array(
-                    'delete_time' => enano_date('d M Y h:i a', $r['time_id']),
-                    'delete_reason' => htmlspecialchars($r['edit_summary']),
-                    'rollback_flags' => 'href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['log_id']).'" onclick="ajaxRollback(\''.$r['log_id'].'\'); return false;"'
+          $standard_404 .= '<p>' . $lang->get('page_msg_404_admin_opts', array(
+                    'detag_link' => makeUrl($paths->page, 'do=detag', true)
                   ))
                 . '</p>';
-          if ( $session->user_level >= USER_LEVEL_ADMIN )
-          {
-            echo '<p>' . $lang->get('page_msg_404_admin_opts', array(
-                      'detag_link' => makeUrl($paths->page, 'do=detag', true)
-                    ))
-                  . '</p>';
-          }
         }
-        $db->free_result();
       }
-      echo '<p>
-              ' . $lang->get('page_msg_404_http_response') . '
-            </p>';
+      $db->free_result();
     }
+    $standard_404 .= '<p>
+            ' . $lang->get('page_msg_404_http_response') . '
+          </p>';
+          
+    $parser = $template->makeParserText($msg);
+    $parser->assign_vars(array(
+        'STANDARD404' => $standard_404
+      ));
+    
+    $msg = RenderMan::render($parser->run());
+    eval( '?>' . $msg );
+    
     $this->footer();
   }
   
