@@ -392,19 +392,21 @@ if ( !defined('IN_ENANO_INSTALL') )
   $session->start();
   
   // Grab language strings from the database
-  $lang->fetch();
-  profiler_log('Fetched language strings');
+  if ( is_object(@$lang) )
+  {
+    $lang->fetch();
+    profiler_log('Fetched language strings');
+  }
   
   // Add all of our built in special pages
-  SpecialUserFuncs_paths_init();
-  SpecialPageFuncs_paths_init();
-  SpecialAdmin_paths_init();
-  SpecialCSS_paths_init();
-  SpecialUpDownload_paths_init();
-  SpecialSearch_paths_init();
-  PrivateMessages_paths_init();
-  SpecialGroups_paths_init();
-  SpecialRecentChanges_paths_init();
+  foreach ( array('SpecialUserFuncs', 'SpecialPageFuncs', 'SpecialAdmin', 'SpecialCSS', 'SpecialUpDownload', 'SpecialSearch', 'PrivateMessages', 'SpecialGroups', 'SpecialRecentChanges') as $plugin )
+  {
+    $funcname = "{$plugin}_paths_init";
+    if ( function_exists($funcname) )
+    {
+      $funcname();
+    }
+  }
   profiler_log('Added special pages');
   
   // This is where plugins will want to add pages from 1.1.x on out. You can still add
@@ -421,15 +423,16 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   $paths->init();
   
-  // We're ready for whatever life throws us now.
+  // We're ready for whatever life throws us now, at least from an API point of view.
   define('ENANO_MAINSTREAM', '');
   
   // If the site is disabled, bail out, unless we're trying to log in or administer the site
   if(getConfig('site_disabled') == '1' && $session->user_level < USER_LEVEL_ADMIN)
   {
+    // is this one of the more critical special pages?
     if ( $paths->namespace == 'Admin' || ( $paths->namespace == 'Special' && ( $paths->page_id == 'CSS' || $paths->page_id == 'Administration' || $paths->page_id == 'Login' ) ) )
     {
-      // do nothing; allow execution to continue
+      // yeah, we need to keep this page available. do nothing; allow execution to continue
     }
     else
     {
