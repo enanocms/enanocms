@@ -325,24 +325,9 @@ function miniPrompt(call_on_create)
   if ( !aclDisableTransitionFX )
   {
     load_component('flyin');
+    load_component('SpryEffects');
   }
-  if ( document.getElementById('specialLayer_darkener') )
-  {
-    if ( document.getElementById('specialLayer_darkener').style.display != 'none' )
-    {
-      var opac = parseFloat(document.getElementById('specialLayer_darkener').style.opacity);
-      opac = opac * 100;
-      darken(aclDisableTransitionFX, opac);
-    }
-    else
-    {
-      darken(aclDisableTransitionFX, 40);
-    }
-  }
-  else
-  {
-    darken(aclDisableTransitionFX, 40);
-  }
+  var darkener = darken(aclDisableTransitionFX, 40, 'miniprompt_darkener');
   
   var wrapper = document.createElement('div');
   wrapper.className = 'miniprompt';
@@ -381,6 +366,17 @@ function miniPrompt(call_on_create)
       }, 40);
   }
   
+  // set the darkener's onclick to refocus/shake the miniprompt
+  darkener.miniprompt = wrapper;
+  darkener.onclick = function()
+  {
+    if ( !aclDisableTransitionFX )
+    {
+      // for some reason, spry's pulsate effects takes duration in ms instead of seconds.
+      (new Spry.Effect.Pulsate(this.miniprompt, { duration: 500, from: '100%', to: '70%' })).start();
+    }
+  }
+  
   return wrapper;
 }
 
@@ -411,7 +407,7 @@ function miniPromptGetParent(obj)
  * Destroys the first miniPrompt div encountered by recursively checking all parent nodes.
  * Usage: <a href="javascript:miniPromptDestroy(this);">click</a>
  * @param object:HTMLElement a child of the div.miniprompt
- * @param bool If true, does not call enlighten().
+ * @param bool (DEPRECATED) If true, does not call enlighten().
  */
 
 function miniPromptDestroy(obj, nofade)
@@ -422,8 +418,9 @@ function miniPromptDestroy(obj, nofade)
   
   // found it
   var parent = obj.parentNode;
-  if ( !nofade )
-    enlighten(aclDisableTransitionFX);
+  // if ( !nofade )
+  //   enlighten(aclDisableTransitionFX);
+  enlighten(aclDisableTransitionFX, 'miniprompt_darkener');
   if ( aclDisableTransitionFX )
   {
     parent.removeChild(obj);
@@ -552,10 +549,11 @@ function miniPromptMessage(parms)
         }
         if ( parms.buttons[0] )
         {
+          var timeout = ( aclDisableTransitionFX ) ? 10 : 1000;
           setTimeout(function()
             {
               parms.buttons[0].input.focus();
-            }, 1000);
+            }, timeout);
         }
       }
       catch ( e )
@@ -577,6 +575,7 @@ function testMPMessageBox()
         style: {
           fontWeight: 'bold'
         },
+        image: cdnPath + '/images/icons/abort.png',
         onclick: function() {
           miniPromptDestroy(this);
         }
@@ -584,6 +583,7 @@ function testMPMessageBox()
       {
         text: 'Retry',
         color: 'blue',
+        image: cdnPath + '/images/icons/retry.png',
         onclick: function() {
           miniPromptDestroy(this);
         }
@@ -591,6 +591,7 @@ function testMPMessageBox()
       {
         text: 'Ignore',
         color: 'green',
+        image: cdnPath + '/images/icons/ignore.png',
         onclick: function() {
           miniPromptDestroy(this);
         }

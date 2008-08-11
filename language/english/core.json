@@ -470,7 +470,7 @@ var enano_lang = {
       badjson_msg_viewashtml: 'You may also choose to view the response as HTML.',
       badjson_btn_viewashtml: 'View as HTML',
       badjson_html_confirm_title: 'View the response as HTML?',
-      badjson_html_confirm_body: 'If the server\'s response was modified by an attacker to include malicious code, viewing the response as HTML might allow that malicious code to run. Only continue if you have inspected the response text and verified that it is safe.',
+      badjson_html_confirm_body: 'If the server\'s response was modified by an attacker to include malicious code, viewing the response as HTML might allow that malicious code to run. Only continue if you have inspected the response text and verified that it is safe.\n\nThe information in JSON responses is typically only meant to be useful to developers and the Enano applets.',
       badjson_btn_close: 'Close',
       
       // Server-side responses

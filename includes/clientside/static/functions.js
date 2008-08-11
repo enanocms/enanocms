@@ -159,7 +159,7 @@ function handle_invalid_json(response, customerror)
   load_component('flyin');
   load_component('l10n');
   
-  darken();
+  darken(aclDisableTransitionFX);
   
   var box = document.createElement('div');
   var mainwin = document.createElement('div');
@@ -288,20 +288,28 @@ function handle_invalid_json(response, customerror)
     closer.onclick = function()
     {
       var parentdiv = this.parentNode.parentNode;
-      var effect = new Spry.Effect.Blind(parentdiv, {
-          from: '100%',
-          to: '0%',
-          duration: '1000'
-        });
-      var observer = {
-        onPostEffect: function()
-          {
-            parentdiv.parentNode.removeChild(parentdiv);
-            enlighten();
-          }
-        };
-      effect.addObserver(observer);
-      effect.start();
+      if ( aclDisableTransitionFX )
+      {
+        parentdiv.parentNode.removeChild(parentdiv);
+        enlighten(aclDisableTransitionFX);
+      }
+      else
+      {
+        var effect = new Spry.Effect.Blind(parentdiv, {
+            from: '100%',
+            to: '0%',
+            duration: '1000'
+          });
+        var observer = {
+          onPostEffect: function()
+            {
+              parentdiv.parentNode.removeChild(parentdiv);
+              enlighten();
+            }
+          };
+        effect.addObserver(observer);
+        effect.start();
+      }
     }
     panel.appendChild(closer);
     
@@ -316,6 +324,7 @@ function handle_invalid_json(response, customerror)
     
     box.style.display = 'block';
     box.style.position = 'absolute';
+    box.style.zIndex = getHighestZ() + 1;
     domObjChangeOpac(0, box);
     
     var body = document.getElementsByTagName('body')[0];
@@ -331,17 +340,25 @@ function handle_invalid_json(response, customerror)
     box.style.left = left + 'px';
     
     // we have width and height, set display to none and reset opacity
-    box.style.display = 'none';
-    domObjChangeOpac(100, box);
-    
-    setTimeout(function()
-      {
-        (new Spry.Effect.Blind(box, {
-            from: '0%',
-            to: '100%',
-            duration: 1000
-          })).start();
-      }, 1000);
+    if ( aclDisableTransitionFX )
+    {
+      domObjChangeOpac(100, box);
+      box.style.display = 'block';
+    }
+    else
+    {
+      box.style.display = 'none';
+      domObjChangeOpac(100, box);
+      
+      setTimeout(function()
+        {
+          (new Spry.Effect.Blind(box, {
+              from: '0%',
+              to: '100%',
+              duration: 1000
+            })).start();
+        }, 1000);
+    }
 }
 
 /**
@@ -721,7 +738,7 @@ function getHighestZ()
   {
     if(divs[i].style.zIndex > z) z = divs[i].style.zIndex;
   }
-  return z;
+  return parseInt(z);
 }
 
 var shift = false;

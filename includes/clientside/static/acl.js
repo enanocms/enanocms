@@ -13,6 +13,7 @@ function ajaxOpenACLManager(page_id, namespace)
   load_component('messagebox');
   load_component('fadefilter');
   load_component('template-compiler');
+  load_component('autofill');
   
   if(!page_id || !namespace)
   {
@@ -208,7 +209,7 @@ function __aclBuildSelector(groups)
   usrsel = document.createElement('input');
   usrsel.type = 'text';
   usrsel.name = 'username';
-  usrsel.onkeyup = function() { new AutofillUsername(this, undefined, true); };
+  usrsel.className = 'autofill username';
   usrsel.id = 'userfield_' + aclManagerID;
   try {
     usrsel.setAttribute("autocomplete","off");
@@ -337,6 +338,10 @@ function __aclBuildSelector(groups)
     theform.removeChild(theform.mode);
     theform.appendChild(mode);
   }
+  
+  autofill_init_element(usrsel, {
+      allow_anon: true
+    });
 }
 
 var aclDebugWin = false;

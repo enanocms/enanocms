@@ -1140,7 +1140,7 @@ JSEOF;
       var USER_LEVEL_MOD = ' . USER_LEVEL_MOD . ';
       var USER_LEVEL_ADMIN = ' . USER_LEVEL_ADMIN . ';
       var disable_redirect = ' . ( isset($_GET['redirect']) && $_GET['redirect'] == 'no' ? 'true' : 'false' ) . ';
-      var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? '1' : '0' ) . ';
+      var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? 'true' : 'false' ) . ';
       var csrf_token = "' . $session->csrf_token . '";
       var editNotice = \'' . ( (getConfig('wiki_edit_notice')=='1') ? str_replace("\n", "\\\n", RenderMan::render(getConfig('wiki_edit_notice_text'))) : '' ) . '\';
       var prot = ' . ( ($protected) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server

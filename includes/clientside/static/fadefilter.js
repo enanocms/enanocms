@@ -4,36 +4,37 @@
  * @param int When specified, represents the numeric opacity value to set the fade layer to. 1-100.
  */
 
-var darkener_index = 0;
+var darkener_index = [];
 
-function darken(nofade, opacVal)
+function darken(nofade, opacVal, layerid)
 {
+  layerid = ( layerid ) ? layerid : 'specialLayer_darkener';
   if(IE)
     nofade = true;
   if ( !opacVal )
     opacVal = 70;
-  darkener_index++;
-  if(document.getElementById('specialLayer_darkener'))
+  darkener_index[layerid] = ( typeof(darkener_index[layerid]) == 'number' ) ? darkener_index[layerid] + 1 : 1;
+  if(document.getElementById(layerid))
   {
     if(nofade)
     {
-      changeOpac(opacVal, 'specialLayer_darkener');
-      document.getElementById('specialLayer_darkener').style.display = 'block';
-      document.getElementById('specialLayer_darkener').myOpacVal = opacVal;
+      changeOpac(opacVal, layerid);
+      document.getElementById(layerid).style.display = 'block';
+      document.getElementById(layerid).myOpacVal = opacVal;
     }
     else
     {
-      if ( document.getElementById('specialLayer_darkener').style.display != 'none' )
+      if ( document.getElementById(layerid).style.display != 'none' )
       {
-        var currentOpac = document.getElementById('specialLayer_darkener').myOpacVal;
-        opacity('specialLayer_darkener', currentOpac, opacVal, 1000);
-        document.getElementById('specialLayer_darkener').myOpacVal = opacVal;
+        var currentOpac = document.getElementById(layerid).myOpacVal;
+        opacity(layerid, currentOpac, opacVal, 1000);
+        document.getElementById(layerid).myOpacVal = opacVal;
       }
       else
       {
-        document.getElementById('specialLayer_darkener').style.display = 'block';
-        document.getElementById('specialLayer_darkener').myOpacVal = opacVal;
-        opacity('specialLayer_darkener', 0, opacVal, 1000);
+        document.getElementById(layerid).style.display = 'block';
+        document.getElementById(layerid).myOpacVal = opacVal;
+        opacity(layerid, 0, opacVal, 1000);
       }
     }
   } else {
@@ -59,8 +60,8 @@ function darken(nofade, opacVal)
     thediv.style.backgroundColor = '#000000';
     thediv.style.width =  '100%';
     thediv.style.height = '100%';
-    thediv.zIndex = getHighestZ() + 5;
-    thediv.id = 'specialLayer_darkener';
+    thediv.style.zIndex = getHighestZ() + 5;
+    thediv.id = layerid;
     thediv.myOpacVal = opacVal;
     if(nofade)
     {
@@ -73,9 +74,10 @@ function darken(nofade, opacVal)
       body = document.getElementsByTagName('body');
       body = body[0];
       body.appendChild(thediv);
-      opacity('specialLayer_darkener', 0, opacVal, 1000);
+      opacity(layerid, 0, opacVal, 1000);
     }
   }
+  return document.getElementById(layerid);
 }
 
 /**
@@ -83,25 +85,27 @@ function darken(nofade, opacVal)
  * @param bool If true, disables the fade effect. Fades are always disabled if aclDisableTransitionFX is true and on IE.
  */
 
-function enlighten(nofade)
+function enlighten(nofade, layerid)
 {
+  layerid = ( layerid ) ? layerid : 'specialLayer_darkener';
+  
   if(IE)
     nofade = true;
-  darkener_index -= 1;
-  if ( darkener_index > 0 )
+  darkener_index[layerid] -= 1;
+  if ( darkener_index[layerid] > 0 )
     return false;
-  if(document.getElementById('specialLayer_darkener'))
+  if(document.getElementById(layerid))
   {
     if(nofade)
     {
-      document.getElementById('specialLayer_darkener').style.display = 'none';
+      document.getElementById(layerid).style.display = 'none';
     }
     else
     {
-      var from = document.getElementById('specialLayer_darkener').myOpacVal;
-      // console.info('Fading from ' + from);
-      opacity('specialLayer_darkener', from, 0, 1000);
-      setTimeout("document.getElementById('specialLayer_darkener').style.display = 'none';", 1000);
+      var from = document.getElementById(layerid).myOpacVal;
+      opacity(layerid, from, 0, 1000);
+      setTimeout("document.getElementById('" + layerid + "').style.display = 'none';", 1000);
     }
   }
+  return document.getElementById(layerid);
 }
