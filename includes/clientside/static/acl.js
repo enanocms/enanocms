@@ -538,6 +538,15 @@ function aclBuildRuleEditor(data, from_direct)
   
   html = '<h2>'+act_desc+'</h2>';
   html += '<p>' + $lang.get('acl_lbl_editwin_body', { target_type: target_type_t, target: target_name_t, scope_type: scope_type }) + '</p>';
+  
+  // preset management
+  var load_flags = 'href="#" onclick="aclShowPresetLoader(); return false;"';
+  var save_flags = 'href="#" onclick="aclShowPresetSave(); return false;"';
+  html += '<div style="float: right;">';
+  html += $lang.get('acl_btn_edit_presets', { load_flags: load_flags, save_flags: save_flags });
+  html += '</div>';
+  html += '<div style="clear: both;"></div>';
+  
   parser = new templateParser(data.template.acl_field_begin);
   html += parser.run();
   
@@ -853,7 +862,7 @@ function __aclSubmitManager(form)
       var warned_everyone = false;
       for(var i in aclPermList)
       {
-        selections[aclPermList[i]] = getRadioState(form, aclPermList[i], [1, 2, 3, 4]);
+        selections[aclPermList[i]] = getRadioState(form, aclPermList[i], ['i', 1, 2, 3, 4]);
         // If we're editing permissions for everyone on the entire site and the
         // admin selected to deny privileges, give a stern warning about it.
         if ( selections[aclPermList[i]] == 1 && aclDataCache.target_type == 1 /* ACL_TYPE_GROUP */ && aclDataCache.target_id == 1 && !warned_everyone )
@@ -1058,6 +1067,285 @@ function aclSetViewListExistingRespond(data)
     div.innerHTML = rule.score_string;
     main.appendChild(div);
   }
+}
+
+function aclShowPresetLoader()
+{
+  var prompt = miniPrompt(function(parent)
+    {
+      parent.innerHTML = '<img style="display: block; margin: 0 auto;" src="' + cdnPath + '/images/loading-big.gif" />';
+    });
+  var request = toJSONString({
+      mode: 'list_presets'
+    });
+  ajaxPost(stdAjaxPrefix + '&_mode=acljson', 'acl_params=' + ajaxEscape(request), function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        if ( !check_json_response(ajax.responseText) )
+        {
+          miniPromptDestroy(prompt);
+          return handle_invalid_json(ajax.responseText);
+        }
+        var response = parseJSON(ajax.responseText);
+        if ( response.mode == 'error' )
+        {
+          alert(response.error);
+          miniPromptDestroy(prompt);
+          return false;
+        }
+        prompt = prompt.firstChild.nextSibling;
+        prompt.style.textAlign = 'center';
+        prompt.innerHTML = '<h3>' + $lang.get('acl_lbl_preset_load_title') + '</h3>';
+        
+        if ( response.presets.length > 0 )
+        {
+          // selection box
+          var para = document.createElement('p');
+          var select = document.createElement('select');
+          
+          var option = document.createElement('option');
+          option.value = '0';
+          option.appendChild(document.createTextNode($lang.get('acl_lbl_preset_load')));
+          select.appendChild(option);
+          
+          for ( var i = 0; i < response.presets.length; i++ )
+          {
+            var preset = response.presets[i];
+            var option = document.createElement('option');
+            option.value = preset.rule_id;
+            option.preset_data = preset;
+            option.appendChild(document.createTextNode($lang.get(preset.preset_name)));
+            select.appendChild(option);
+          }
+          
+          para.appendChild(select);
+          prompt.appendChild(para);
+          
+          // buttons
+          var buttons = document.createElement('p');
+          
+          // load button
+          var btn_load = document.createElement('a');
+          btn_load.className = 'abutton abutton_green';
+          btn_load.style.fontWeight = 'bold';
+          btn_load.appendChild(document.createTextNode($lang.get('acl_btn_load_preset')));
+          btn_load.selectobj = select;
+          btn_load.onclick = function()
+          {
+            if ( this.selectobj.value == '0' )
+            {
+              alert($lang.get('acl_err_select_preset'));
+              return false;
+            }
+            // retrieve preset data
+            for ( var i = 0; i < this.selectobj.childNodes.length; i++ )
+            {
+              if ( this.selectobj.childNodes[i].tagName == 'OPTION' )
+              {
+                var node = this.selectobj.childNodes[i];
+                if ( node.value == this.selectobj.value )
+                {
+                  aclSetRulesAbsolute(node.preset_data.rules);
+                  break;
+                }
+              }
+            }
+            miniPromptDestroy(this);
+            return false;
+          }
+          btn_load.href = '#';
+          buttons.appendChild(btn_load);
+          
+          buttons.appendChild(document.createTextNode(' '));
+          
+          // cancel button
+          var btn_cancel = document.createElement('a');
+          btn_cancel.className = 'abutton';
+          btn_cancel.appendChild(document.createTextNode($lang.get('etc_cancel')));
+          btn_cancel.onclick = function()
+          {
+            miniPromptDestroy(this);
+            return false;
+          }
+          btn_cancel.href = '#';
+          buttons.appendChild(btn_cancel);
+          
+          prompt.appendChild(buttons);
+        }
+        else
+        {
+          // "no presets"
+          prompt.innerHTML += '<p>' + $lang.get('acl_msg_no_presets', { close_flags: 'href="#" onclick="miniPromptDestroy(this); return false;"' }) + '</p>';
+        }
+      }
+    });
+}
+
+function aclSetRulesAbsolute(rules)
+{
+  __aclSetAllRadios('i');
+  
+  var form = document.forms[aclManagerID + '_formobj'];
+  if (!form)
+  {
+    return false;
+  }
+  var inputs = form.getElementsByTagName('input');
+  var radios = new Array();
+  var dbg = '';
+  for(var i = 0; i < inputs.length; i++)
+  {
+    if(inputs[i].type == 'radio')
+      radios.push(inputs[i]);
+  }
+  for(var i in radios)
+  {
+    if ( typeof(rules[ radios[i]['name'] ]) == 'number' )
+    {
+      radios[i].checked = ( rules[radios[i]['name']] == radios[i].value );
+    }
+  }
+}
+
+function aclShowPresetSave()
+{
+  miniPrompt(function(parent)
+    {
+      parent.style.textAlign = 'center';
+      
+      parent.innerHTML = '<h3>' + $lang.get('acl_lbl_preset_save_title') + '</h3>';
+      var input = document.createElement('input');
+      input.id = aclManagerID + '_preset_save';
+      input.type = 'text';
+      input.size = '30';
+      input.onkeypress = function(e)
+      {
+        // javascript sucks. IE and several others throw myriad errors unless it's done this way.
+        if ( e )
+        if ( e.keyCode )
+        if ( e.keyCode == 13 )
+        {
+          if ( aclSavePreset() )
+          {
+            miniPromptDestroy(this);
+          }
+        }
+        else if ( e.keyCode == 27 )
+        {
+          miniPromptDestroy(this);
+        }
+      }
+      var para = document.createElement('p');
+      para.appendChild(input);
+      
+      parent.appendChild(para);
+      
+      // buttons
+      var buttons = document.createElement('p');
+      
+      // save button
+      var btn_save = document.createElement('a');
+      btn_save.className = 'abutton abutton_green';
+      btn_save.style.fontWeight = 'bold';
+      btn_save.appendChild(document.createTextNode($lang.get('acl_btn_save_preset')));
+      btn_save.selectobj = select;
+      btn_save.onclick = function()
+      {
+        if ( aclSavePreset() )
+        {
+          miniPromptDestroy(this);
+        }
+        return false;
+      }
+      btn_save.href = '#';
+      buttons.appendChild(btn_save);
+      
+      buttons.appendChild(document.createTextNode(' '));
+      
+      // cancel button
+      var btn_cancel = document.createElement('a');
+      btn_cancel.className = 'abutton';
+      btn_cancel.appendChild(document.createTextNode($lang.get('etc_cancel')));
+      btn_cancel.onclick = function()
+      {
+        miniPromptDestroy(this);
+        return false;
+      }
+      btn_cancel.href = '#';
+      buttons.appendChild(btn_cancel);
+      
+      parent.appendChild(buttons);
+      
+      var timeout = ( aclDisableTransitionFX ) ? 10 : 1000;
+      setTimeout(function()
+        {
+          input.focus();
+        }, timeout);
+    });
+}
+
+function aclSavePreset()
+{
+  var input = document.getElementById(aclManagerID + '_preset_save');
+  if ( trim(input.value) == '' )
+  {
+    alert($lang.get('acl_err_preset_name_empty'));
+    return false;
+  }
+  var form = document.forms[aclManagerID + '_formobj'], selections = {};
+  var dbg = '';
+  var warned_everyone = false;
+  for(var i in aclPermList)
+  {
+    selections[aclPermList[i]] = getRadioState(form, aclPermList[i], ['i', 1, 2, 3, 4]);
+    // If we're editing permissions for everyone on the entire site and the
+    // admin selected to deny privileges, give a stern warning about it.
+    if ( selections[aclPermList[i]] == 1 && aclDataCache.target_type == 1 /* ACL_TYPE_GROUP */ && aclDataCache.target_id == 1 && !warned_everyone )
+    {
+      warned_everyone = true;
+      if ( !confirm($lang.get('acl_msg_deny_everyone_confirm')) )
+      {
+        return false;
+      }
+    }
+    dbg += aclPermList[i] + ': ' + selections[aclPermList[i]] + "\n";
+    if(!selections[aclPermList[i]])
+    {
+      alert("Invalid return from getRadioState: "+i+": "+selections[i]+" ("+typeof(selections[i])+")");
+      return false;
+    }
+  }
+  
+  var packet = toJSONString({
+      mode: 'save_preset',
+      preset_name: input.value,
+      perms: selections
+    });
+  
+  var whitey = whiteOutElement(document.getElementById(aclManagerID));
+  
+  ajaxPost(stdAjaxPrefix + '&_mode=acljson', 'acl_params=' + ajaxEscape(packet), function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        if ( !check_json_response(ajax.responseText) )
+        {
+          whitey.parentNode.removeChild(whitey);
+          return handle_invalid_json(ajax.responseText);
+        }
+        var response = parseJSON(ajax.responseText);
+        if ( response.mode == 'error' )
+        {
+          whitey.parentNode.removeChild(whitey);
+          alert(response.error);
+          return false;
+        }
+        whiteOutReportSuccess(whitey);
+      }
+    });
+  
+  return true;
 }
 
 function array_keys(obj)

@@ -359,6 +359,7 @@ function handle_invalid_json(response, customerror)
             })).start();
         }, 1000);
     }
+  return false;
 }
 
 /**
@@ -611,11 +612,18 @@ function whiteOutReportSuccess(whitey)
 {
   // fade the status indicator in and then out
   whitey.style.backgroundImage = 'url(' + scriptPath + '/images/check.png)';
-  domOpacity(whitey, 60, 80, 500);
-  setTimeout(function()
-    {
-      domOpacity(whitey, 60, 0, 500);
-    }, 750);
+  if ( aclDisableTransitionFX )
+  {
+    domObjChangeOpac(80, whitey);
+  }
+  else
+  {
+    domOpacity(whitey, 60, 80, 500);
+    setTimeout(function()
+      {
+        domOpacity(whitey, 60, 0, 500);
+      }, 750);
+  }
   setTimeout(function()
     {
       whitey.parentNode.removeChild(whitey);

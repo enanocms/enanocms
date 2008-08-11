@@ -1965,6 +1965,55 @@ class PageUtils {
           }
           
           break;
+        case 'list_presets':
+          $presets = array();
+          $q = $db->sql_query('SELECT page_id AS preset_name, rule_id, rules FROM ' . table_prefix . "acl WHERE target_type = " . ACL_TYPE_PRESET . ";");
+          if ( !$q )
+            $db->die_json();
+          
+          while ( $row = $db->fetchrow() )
+          {
+            $row['rules'] = $session->string_to_perm($row['rules']);
+            $presets[] = $row;
+          }
+          
+          return array(
+            'mode' => 'list_existing',
+            'presets' => $presets
+          );
+          break;
+        case 'save_preset':
+          if ( empty($parms['preset_name']) )
+          {
+            return array(
+              'mode' => 'error',
+              'error' => $lang->get('acl_err_preset_name_empty')
+            );
+          }
+          $preset_name = $db->escape($parms['preset_name']);
+          $q = $db->sql_query('DELETE FROM ' . table_prefix . "acl WHERE target_type = " . ACL_TYPE_PRESET . " AND page_id = '$preset_name';");
+          if ( !$q )
+            $db->die_json();
+          
+          $perms = $session->perm_to_string($parms['perms']);
+          if ( !$perms )
+          {
+            return array(
+              'mode' => 'error',
+              'error' => $lang->get('acl_err_preset_is_blank')
+            );
+          }
+          
+          $perms = $db->escape($perms);
+          $q = $db->sql_query('INSERT INTO ' . table_prefix . "acl(page_id, target_type, rules) VALUES\n"
+                            . "  ( '$preset_name', " . ACL_TYPE_PRESET . ", '$perms' );");
+          if ( !$q )
+            $db->die_json();
+          
+          return array(
+              'mode' => 'success'
+            );
+          break;
         default:
           return Array('mode'=>'error','error'=>'Hacking attempt');
           break;

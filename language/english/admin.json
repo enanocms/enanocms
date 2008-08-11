@@ -94,6 +94,9 @@ var enano_lang = {
       err_zero_list: 'Supplied rule list has a length of zero',
       err_pleaseselect_targettype: 'Please select a target type.',
       err_pleaseselect_username: 'Please enter a username.',
+      err_select_preset: 'Please select a preset to load.',
+      err_preset_name_empty: 'Please enter a name for this preset.',
+      err_preset_is_blank: 'The preset you entered seems completely empty (i.e. all permissions set to "inherit")',
       
       radio_usergroup: 'A usergroup',
       radio_user: 'A specific user',
@@ -112,6 +115,9 @@ var enano_lang = {
       lbl_save_success_body: 'The permissions for %target_name% on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.',
       lbl_delete_success_title: 'Rule deleted',
       lbl_delete_success_body: 'The access rules for %target_name% on this page have been deleted.',
+      lbl_preset_load_title: 'Load a preset',
+      lbl_preset_load: 'Select a preset...',
+      lbl_preset_save_title: 'Enter a name for this preset',
       lbl_field_inherit: 'Inherit',
       lbl_field_deny: 'Deny',
       lbl_field_disallow: 'Disallow',
@@ -160,6 +166,8 @@ var enano_lang = {
       
       msg_list_score: 'Score: %score% (%desc%) %info%',
       
+      msg_no_presets: 'No presets are defined. Define a preset by setting all the ACL settings to what you want, and then hitting Save. <a %close_flags%>Close</a>',
+      
       btn_success_dismiss: 'dismiss',
       btn_success_close: 'close manager',
       btn_deleterule: 'Delete rule',
@@ -168,6 +176,9 @@ var enano_lang = {
       btn_returnto_userscope: 'Return to user/scope selection',
       btn_show_existing: '&raquo; View existing rules',
       btn_close: 'Close ACL wizard',
+      btn_edit_presets: 'Presets: <a %load_flags%>Load</a> | <a %save_flags%>Save</a>',
+      btn_load_preset: 'Load preset',
+      btn_save_preset: 'Save preset',
       
       inherit_enano_default: 'Enano defaults',
       inherit_global_everyone: 'Rule for everyone on the entire site',
@@ -210,7 +221,7 @@ var enano_lang = {
       field_site_desc: 'Site description:',
       field_main_page: 'Main page:',
       field_copyright: 'Copyright notice shown on pages:',
-      field_copyright_hint: 'Hint: If you\'re using Windows, you can make a "&copy;" symbol by holding ALT and pressing 0169 on the numeric keypad.',
+      field_copyright_hint: 'Hint: To make a copyright symbol (&copy;), type <tt>&amp;copy;</tt>.',
       field_contactemail: 'Contact e-mail',
       field_contactemail_hint: 'All e-mail sent from this site will appear to have come from the address shown here.',
       
@@ -564,7 +575,7 @@ var enano_lang = {
       btn_clear_all: 'Clear all caches',
       hint_clear_all: 'To force all caches (except image thumbnails) on the site to empty, click this button. Certain caches, such as language data, must be regenerated in order to fully refresh the cache. It is recommended that you use "%this.acpcm_btn_refresh_all%" below to clear all caches and then regenerate them.',
       btn_refresh_all: 'Refresh all caches',
-      hint_refresh_all: 'This will clear all caches (except image thumbnails) on the site to empty and then regenerate, except templates, which are cached on demand.',
+      hint_refresh_all: 'This will clear all caches (except image thumbnails) on the site to empty and then regenerate, except certain components that are cached on demand.',
       
       th_individual_caches: 'Individual caches',
       btn_clear: 'Clear',
