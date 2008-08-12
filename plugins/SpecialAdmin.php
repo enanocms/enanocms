@@ -118,11 +118,14 @@ Did not properly receive response from server. Response code: ' . $req->response
 Received invalid XML response.
 ]]></error></latest></enano>';
       }
-      if ( version_compare(enano_version(true), $match[2], '<') )
+      else
       {
-        $response = str_replace_once('</latest>', "  <haveupdates />\n  </latest>", $response);
+        if ( version_compare(enano_version(true), $match[2], '<') )
+        {
+          $response = str_replace_once('</latest>', "  <haveupdates />\n  </latest>", $response);
+        }
+        echo $response;
       }
-      echo $response;
     }
     return;
   }
