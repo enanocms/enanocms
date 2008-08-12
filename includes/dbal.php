@@ -267,7 +267,8 @@ class mysql {
       if ( !$this->check_query($q) )
       {
         $this->report_query($q);
-        grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
+        $debug = ( defined('ENANO_DEBUG') ) ? '<p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>' : '';
+        grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p>' . $debug);
       }
     }
     
@@ -300,11 +301,12 @@ class mysql {
     if ( !$this->check_query($q) )
     {
       $this->report_query($q);
-      grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p><p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>');
+      $debug = ( defined('ENANO_DEBUG') ) ? '<p>Query was:</p><pre>'.htmlspecialchars($q).'</pre>' : '';
+      grinding_halt('SQL Injection attempt', '<p>Enano has caught and prevented an SQL injection attempt. Your IP address has been recorded and the administrator has been notified.</p>' . $debug);
     }
     
     $time_start = microtime_float();
-    $r = mysql_unbuffered_query($q, $this->_conn);
+    $r = @mysql_unbuffered_query($q, $this->_conn);
     $this->query_times[$q] = microtime_float() - $time_start;
     $this->latest_result = $r;
     $this->disable_errorhandler();
