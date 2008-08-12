@@ -82,6 +82,7 @@ function jBoxSetup(obj)
                 var ul = obj.childNodes[i].nextSibling;
                 domObjChangeOpac(0, ul);
                 ul.style.display = 'block';
+                ul.style.zIndex = getHighestZ() + 2;
                 var dim = fetch_dimensions(ul);
                 if ( !ul.id )
                   ul.id = 'jBoxmenuobj_' + Math.floor(Math.random() * 10000000);
