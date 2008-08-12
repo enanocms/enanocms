@@ -36,6 +36,7 @@ var enano_lang = {
       login_nocrypt_title: 'Important note regarding cryptography:',
       login_nocrypt_body: 'Some countries do not allow the import or use of cryptographic technology. If you live in one of the countries listed below, you should <a href="%nocrypt_link%">log in without using encryption</a>.',
       login_nocrypt_countrylist: 'This restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.',
+      login_dh_notice: 'If your browser supports it, strong encryption will be used to protect your password as it it sent over the Internet. The encryption process takes from about 1 to 7 seconds, depending on the speed of your computer, while a key is being generated. Even if your browser prompts you about an unresponsive script, please allow the script to continue or your login may fail.',
       login_usecrypt_title: 'Encryption is currently turned off.',
       login_usecrypt_body: 'If you are not in one of the countries listed below, you should <a href="%usecrypt_link%">enable encryption</a> to secure the logon process.',
       login_usecrypt_countrylist: 'The cryptography restriction applies to the following countries: Belarus, China, India, Israel, Kazakhstan, Mongolia, Pakistan, Russia, Saudi Arabia, Singapore, Tunisia, Venezuela, and Vietnam.',

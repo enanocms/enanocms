@@ -121,6 +121,9 @@ function page_Special_Login()
   global $__login_status;
   global $lang;
   
+  require_once( ENANO_ROOT . '/includes/diffiehellman.php' );
+  global $dh_supported, $_math;
+  
   $pubkey = $session->rijndael_genkey();
   $challenge = $session->dss_rand();
   
@@ -180,9 +183,6 @@ function page_Special_Login()
     }
     
     // 1.1.3: generate diffie hellman key
-    require_once( ENANO_ROOT . '/includes/diffiehellman.php' );
-    global $dh_supported, $_math;
-    
     $response['dh_supported'] = $dh_supported;
     if ( $dh_supported )
     {
@@ -374,6 +374,14 @@ function page_Special_Login()
            
            echo '  </td>
            </tr>';
+         }
+         else if ( $level > USER_LEVEL_MEMBER && !strstr($_SERVER['HTTP_USER_AGENT'], 'iPhone') && $dh_supported )
+         {
+           echo '<tr>';
+           echo '<td class="row3" colspan="3">';
+           echo '<p>' . $lang->get('user_login_dh_notice') . '</p>';
+           echo '</td>';
+           echo '</tr>';
          }
          ?>
          
@@ -590,7 +598,6 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
 
 function SpecialLogin_SendResponse_PasswordReset($user_id, $passkey)
 {
-  
   $response = Array(
       'result' => 'success_reset',
       'user_id' => $user_id,
@@ -601,7 +608,6 @@ function SpecialLogin_SendResponse_PasswordReset($user_id, $passkey)
   echo $response;
   
   $db->close();
-  
   exit;
 }
 
@@ -658,6 +664,24 @@ function page_Special_Register()
   {
     $s = ($session->user_level >= USER_LEVEL_ADMIN) ? '<p>' . $lang->get('user_reg_err_disabled_body_adminblurb', array( 'reg_link' => makeUrl($paths->page, 'IWannaPlayToo&coppa=no', true) )) . '</p>' : '';
     die_friendly($lang->get('user_reg_err_disabled_title'), '<p>' . $lang->get('user_reg_err_disabled_body') . '</p>' . $s);
+  }
+  // are we locked out from logging in? if so, also lock out registration
+  if ( getConfig('lockout_policy') === 'lockout' )
+  {
+    $ip = $db->escape($_SERVER['REMOTE_ADDR']);
+    $threshold = time() - ( 60 * intval(getConfig('lockout_duration')) );
+    $limit = intval(getConfig('lockout_threshold'));
+    $q = $db->sql_query('SELECT * FROM ' . table_prefix . "lockout WHERE timestamp >= $threshold ORDER BY timestamp DESC;");
+    if ( !$q )
+      $db->_die();
+    if ( $db->numrows() >= $limit )
+    {
+      $row = $db->fetchrow();
+      $db->free_result();
+      $time_rem = intval(getConfig('lockout_duration')) - round((time() - $row['timestamp']) / 60);
+      die_friendly($lang->get('user_reg_err_disabled_title'), '<p>' . $lang->get('user_reg_err_locked_out', array('time' => $time_rem)) . '</p>');
+    }
+    $db->free_result();
   }
   if ( $session->user_level < USER_LEVEL_ADMIN && $session->user_logged_in )
   {
@@ -1782,15 +1806,6 @@ function page_Special_Memberlist()
           </table>
         </div>';
   
-  // formatter parameters
-  $formatter = new MemberlistFormatter();
-  $formatters = array(
-    'username' => array($formatter, 'username'),
-    'user_level' => array($formatter, 'user_level'),
-    'email' => array($formatter, 'email'),
-    'reg_time' => array($formatter, 'reg_time')
-    );
-  
   // User search             
   if ( isset($_GET['finduser']) )
   {
@@ -1855,13 +1870,27 @@ function page_Special_Memberlist()
   }
   
   // main selector
-  $q = $db->sql_unbuffered_query('SELECT u.user_id, u.username, u.reg_time, u.email, u.user_level, u.reg_time, x.email_public FROM '.table_prefix.'users AS u
+  $pgsql_additional_group_by = ( ENANO_DBLAYER == 'PGSQL' ) ? ', u.username, u.reg_time, u.email, u.user_level, u.user_has_avatar, u.avatar_type, x.email_public' : '';
+  $q = $db->sql_unbuffered_query('SELECT \'\' AS infobit, u.user_id, u.username, u.reg_time, u.email, u.user_level, u.user_has_avatar, u.avatar_type, x.email_public, COUNT(c.comment_id) AS num_comments FROM '.table_prefix.'users AS u
                                     LEFT JOIN '.table_prefix.'users_extra AS x
                                       ON ( u.user_id = x.user_id )
+                                    LEFT JOIN ' . table_prefix . 'comments AS c
+                                      ON ( u.user_id = c.user_id )
                                     WHERE ' . $username_where . ' AND u.username != \'Anonymous\'
+                                    GROUP BY u.user_id' . $pgsql_additional_group_by . '
                                     ORDER BY ' . $sort_sqllet . ' ' . $target_order . ';');
   if ( !$q )
     $db->_die();
+  
+  // formatter parameters
+  $formatter = new MemberlistFormatter();
+  $formatters = array(
+    'username' => array($formatter, 'username'),
+    'user_level' => array($formatter, 'user_level'),
+    'email' => array($formatter, 'email'),
+    'reg_time' => array($formatter, 'reg_time'),
+    'infobit' => array($formatter, 'infobit')
+    );
   
   $html = paginate(
             $q,                                                                                                       // MySQL result resource
@@ -1871,6 +1900,13 @@ function page_Special_Memberlist()
                <td class="{_css_class}">{user_level}</td>
                <td class="{_css_class}">{email}</small></td>
                <td class="{_css_class}">{reg_time}</td>
+             </tr>
+             <tr>
+               <td colspan="5" class="row3" style="text-align: left;">
+                 <div id="ml_moreinfo_{user_id}" style="display: none;">
+                   {infobit}
+                 </div>
+               </td>
              </tr>
              ',                                                                                                       // TPL code for rows
              $num_rows,                                                                                               // Number of results
@@ -1922,8 +1958,8 @@ class MemberlistFormatter
     global $lang;
     
     $userpage = $paths->nslist['User'] . sanitize_page_id($username);
-    $class = ( isPage($userpage) ) ? ' title="' . $lang->get('userfuncs_ml_tip_userpage') . '"' : ' class="wikilink-nonexistent" title="' . $lang->get('userfuncs_ml_tip_nouserpage') . '"';
-    $anchor = '<a href="' . makeUrlNS('User', sanitize_page_id($username)) . '"' . $class . '>' . htmlspecialchars($username) . '</a>';
+    $class = ( isPage($userpage) ) ? '' : ' class="wikilink-nonexistent"';
+    $anchor = '<a href="' . makeUrlNS('User', sanitize_page_id($username)) . '"' . $class . ' onclick="load_component(\'SpryEffects\'); var el = document.getElementById(\'ml_moreinfo_' . $row['user_id'] . '\'); if ( !el.fx ) el.fx = new Spry.Effect.Blind(el, { duration: 500, from: \'0%\', to: \'100%\', toggle: true }); el.fx.start(); return false;">' . htmlspecialchars($username) . '</a>';
     if ( $session->user_level >= USER_LEVEL_ADMIN )
     {
       $anchor .= ' <small>- <a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&username=' . urlencode($username), true) . '"
@@ -2018,6 +2054,34 @@ class MemberlistFormatter
   function reg_time($time, $row)
   {
     return $this->format_date($time);
+  }
+  function infobit($_, $row)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    $bit = '';
+    if ( $row['user_has_avatar'] == 1 )
+    {
+      $bit .= '<div style="float: left; margin-right: 10px;">
+        <img alt=" " src="' . make_avatar_url(intval($row['user_id']), $row['avatar_type'], $row['email']) . '" />
+      </div>';
+    }
+    $rank_data = $session->get_user_rank(intval($row['user_id']));
+    $userpage = $paths->nslist['User'] . sanitize_page_id($row['username']);
+    $title = ( isPage($userpage) ) ? ' title="' . $lang->get('userfuncs_ml_tip_userpage') . '"' : ' title="' . $lang->get('userfuncs_ml_tip_nouserpage') . '"';
+    $bit .= '<a' . $title . ' href="' . makeUrlNS('User', $row['username'], false, true) . '" style="font-size: x-large; ' . $rank_data['rank_style'] . '">' . htmlspecialchars($row['username']) . '</a><br />';
+    if ( $rank_data['user_title'] )
+      $bit .= htmlspecialchars($rank_data['user_title']) . '<br />';
+    if ( $rank_data['rank_title'] )
+      $bit .= '<small>' . htmlspecialchars($lang->get($rank_data['rank_title'])) . '</small><br />';
+    
+    $bit .= '<div style="text-align: right;">
+               <a href="' . makeUrlNS('Special', "PrivateMessages/Compose/To/{$row['username']}", false, true) . '" class="abutton abutton_blue"><img alt=" " src="' . cdnPath . '/images/icons/send_pm.png" /> ' . $lang->get('comment_btn_send_privmsg') . '</a>
+               <a href="' . makeUrlNS('Special', "PrivateMessages/FriendList/Add/{$row['username']}", false, true) . '" class="abutton abutton_green"><img alt=" " src="' . cdnPath . '/images/icons/add_buddy.png" /> ' . $lang->get('comment_btn_add_buddy') . '</a>
+             </div>';
+    
+    return $bit;
   }
 }
 
@@ -2143,6 +2207,9 @@ function page_Special_Avatar()
     header("Content-Type: image/$avi_type");
     // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
     header("Cache-Control: public");
+    // expire it 30 days from now
+    $expiry_time = time() + ( 86400 * 30 );
+    header("Expires: " . date('r', $expiry_time));
     
     $fh = @fopen($avi_path, 'r');
     if ( !$fh )
