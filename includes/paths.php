@@ -2,7 +2,7 @@
 
 /**
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.4 (Caoineag alpha 4)
+ * Version 1.1.5 (Caoineag alpha 5)
  * Copyright (C) 2006-2008 Dan Fuhry
  * paths.php - The part of Enano that actually manages content. Everything related to page handling and namespaces is in here.
  *
@@ -192,7 +192,7 @@ class pathManager
     if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') || defined('IN_ENANO_UPGRADE') )
     {
       $title = $this->parse_url(false);
-      if ( empty($title) )
+      if ( empty($title) && getConfig('main_page') != '' )
       {
         $this->main_page();
       }

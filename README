@@ -1,5 +1,5 @@
 Enano CMS
-Version 1.1.4
+Version 1.1.5
 -----------------------------
 
 Thanks for downloading Enano! If you're looking for an installation guide,
@@ -62,7 +62,7 @@ product name. This is for identity and support reasons - users may get
 confused as to which one is the "real" Enano CMS. We also strongly recommend
 that you include a notice of non-endorsement from Dan Fuhry and the Enano
 Foundation and a disclaimer of liability for damages incurred through the use
-of the software.
+of the software. The Enano Team will not provide support for forks.
 
 As permitted by the GPL, you may charge for the service of downloading Enano
 from your server; however, you may not prevent others from distributing Enano
@@ -71,24 +71,26 @@ or any modified version.
 CHANGES IN THIS RELEASE
 -----------------------------
 
-Please see <http://enanocms.org/Release_notes/1.1.4> for a list of changes in
+Please see <http://enanocms.org/Release_notes/1.1.5> for a list of changes in
 this release.
 
 UPGRADING FROM PREVIOUS RELEASES
 -----------------------------
 
-This tarball includes a very basic migration script that you can use to change
-a 1.0.x installation into a 1.1.x one. Make sure you're using the latest 1.0.x
-release (1.0.4 at the time of this writing) BEFORE you run the migration
-script. DO NOT UPGRADE A PRODUCTION SITE.
+This archive includes a script that can migrate an Enano 1.0.x installation to
+Enano 1.1. Before running the migration script, you should always be sure to
+upgrade to the latest version of Enano 1.0.x (1.0.4 "Ellyyllon" at the time of
+this writing). Migration is NOT REVERSIBLE. This is alpha-quality code. DO NOT
+UNDER ANY CIRCUMSTANCES UPGRADE A PRODUCTION SITE.
 
-As of 1.1.2, basic upgrade functionality is included and is considered highly
-experimental. Back up your entire database and Enano root before upgrading.
+As of Enano 1.1.2, upgrades from previous 1.1.x versions are supported. The API
+is considered fairly stable as of 1.1.4, but the interface is still a work in
+progress except for the installer UI core, which is quite close to final.
 
 TRANSLATING ENANO
 -----------------------------
 
-This is the only the fourth formal release of Enano that is localized. Right
+This is the only the fifth formal release of Enano that is localized. Right
 now since this is an alpha, you probably don't want to do any translation
 because you'll be doing a TON more strings at every release. HOWEVER, we're
 looking for people to sign up and volunteer for translation efforts later on.
@@ -120,6 +122,16 @@ While you can use 1.0.x themes under 1.1.x, some features (namely viewing IPs
 on comments and the default "Inherit" option in the ACL editor) will be missing
 unless you copy over comment.tpl and acledit.tpl respectively from Oxygen or
 one of the other themes included with this 1.1.x package.
+
+PLUGIN DEVELOPMENT
+-----------------------------
+
+The plugin API in Enano 1.1 has been dramatically revamped from 1.0. Some
+effort has been made to allow 1.0.x plugins that don't hook very deeply to
+continue to work; however with all of the new functionality (localization
+especially) we recommend that developers take the time to learn how to use the
+new plugin management platform. This system is fully documented in the large
+comment block in plugins/admin/PluginManager.php.
 
 GETTING SUPPORT
 -----------------------------

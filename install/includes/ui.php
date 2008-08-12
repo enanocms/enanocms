@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.4 (Caoineag alpha 4)
+ * Version 1.1.5 (Caoineag alpha 5)
  * Copyright (C) 2006-2008 Dan Fuhry
  * Installation package
  * ui.php - User interface for installations and upgrades
@@ -167,6 +167,7 @@ class Enano_Installer_UI
     $js_dynamic = '<script type="text/javascript">
         var title="' . $title . '";
         var scriptPath="'.scriptPath.'";
+        var cdnPath="'.scriptPath.'";
         var ENANO_SID="";
         var AES_BITS='.AES_BITS.';
         var AES_BLOCKSIZE=' . AES_BLOCKSIZE . ';
@@ -226,9 +227,11 @@ EOF;
   
   function show_footer()
   {
+    $scriptpath = scriptPath;
     echo <<<EOF
           <div id="copyright">
             Enano and its various components, related documentation, and artwork are copyright &copy; 2006-2008 Dan Fuhry.<br />
+            Copyrights for <a href="{$scriptpath}/licenses/">third-party components</a> are held by their respective authors.<br />
             This program is Free Software; see the file "GPL" included with this package for details.
           </div>
         </div> <!-- div#enano-body -->

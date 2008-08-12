@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.4 (Caoineag alpha 4)
+ * Version 1.1.5 (Caoineag alpha 5)
  * Copyright (C) 2006-2008 Dan Fuhry
  * pageutils.php - a class that handles raw page manipulations, used mostly by AJAX requests or their old-fashioned form-based counterparts
  *

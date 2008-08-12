@@ -75,7 +75,8 @@ CREATE TABLE {{TABLE_PREFIX}}session_keys(
   user_id int,
   auth_level smallint NOT NULL DEFAULT '0',
   source_ip varchar(39) NOT NULL DEFAULT '127.0.0.1',
-  time bigint DEFAULT '0'
+  time bigint DEFAULT '0',
+  key_type smallint NOT NULL DEFAULT 0
 );
 
 CREATE TABLE {{TABLE_PREFIX}}themes(

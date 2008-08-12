@@ -76,7 +76,8 @@ CREATE TABLE {{TABLE_PREFIX}}session_keys(
   user_id mediumint(8),
   auth_level tinyint(1) NOT NULL DEFAULT '0',
   source_ip varchar(39) NOT NULL DEFAULT '127.0.0.1',
-  time bigint(15) default '0'
+  time bigint(15) default '0',
+  key_type tinyint(3) NOT NULL DEFAULT 0
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}themes(

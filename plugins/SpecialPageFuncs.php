@@ -5,14 +5,14 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialpagefuncs_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.4",
+  "Version"      : "1.1.5",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.4 (Caoineag alpha 4)
+ * Version 1.1.5 (Caoineag alpha 5)
  * Copyright (C) 2006-2008 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License

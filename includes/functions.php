@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.4 (Caoineag alpha 4)
+ * Version 1.1.5 (Caoineag alpha 5)
  * Copyright (C) 2006-2008 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -1371,6 +1371,7 @@ function smtp_send_email_core($mail_to, $subject, $message, $headers = '')
 /**
  * Tell which version of Enano we're running.
  * @param bool $long if true, uses English version names (e.g. alpha, beta, release candidate). If false (default) uses abbreviations (1.0a1, 1.0b3, 1.0RC2, etc.)
+ * @param bool If true, prevents nightly build information from being appended, useful for upgrade/versioning checks.
  * @return string
  */
 
@@ -1413,6 +1414,7 @@ function enano_codename()
       '1.1.2'  => 'Caoineag alpha 2',
       '1.1.3'  => 'Caoineag alpha 3',
       '1.1.4'  => 'Caoineag alpha 4',
+      '1.1.5'  => 'Caoineag alpha 5',
     );
   $version = enano_version();
   if ( isset($names[$version]) )
@@ -2710,12 +2712,15 @@ function sanitize_page_id($page_id)
     }
   }
   
+  if ( empty($page_id) )
+    return '';
+  
   // Remove character escapes
   $page_id = dirtify_page_id($page_id);
 
   $pid_clean = preg_replace('/[\w\.\/:;\(\)@\[\]_-]/', 'X', $page_id);
   $pid_dirty = enano_str_split($pid_clean, 1);
-
+  
   foreach ( $pid_dirty as $id => $char )
   {
     if ( $char == 'X' )
