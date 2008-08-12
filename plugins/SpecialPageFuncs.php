@@ -87,6 +87,10 @@ function page_Special_CreatePage()
   global $lang;
   
   $whitelist_ns = array('Article', 'User', 'Help', 'Template', 'Category', 'Project');
+  if ( $session->user_level >= USER_LEVEL_ADMIN )
+  {
+    $whitelist_ns[] = 'System';
+  }
   $code = $plugins->setHook('page_create_ns_whitelist');
   foreach ( $code as $cmd )
   {
