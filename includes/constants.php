@@ -68,6 +68,15 @@ define('PAGE_GRP_TAGGED', 2);
 define('PAGE_GRP_NORMAL', 3);
 define('PAGE_GRP_REGEX', 4);
 
+// Session key types
+// Short keys last for getConfig('session_short_time', '720'); in minutes and auto-renew.
+// Long keys last for getConfig('session_remember_time', '30'); in days and do NOT auto-renew.
+// Elevated keys have a hard-coded 15-minute limit for security reasons and because
+// that's how Enano's done it since before beta 1.
+define('SK_SHORT', 0);
+define('SK_LONG', 1);
+define('SK_ELEV', 2);
+
 // Identifier for the default pseudo-language
 define('LANG_DEFAULT', 0);
 

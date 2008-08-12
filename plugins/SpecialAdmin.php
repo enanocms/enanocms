@@ -341,6 +341,15 @@ function page_Admin_GeneralConfig() {
     if ( in_array($_POST['lockout_policy'], array('disable', 'captcha', 'lockout')) )
       setConfig('lockout_policy', $_POST['lockout_policy']);
     
+    // Session time
+    foreach ( array('session_short_time', 'session_remember_time') as $k )
+    {
+      if ( strval(intval($_POST[$k])) === $_POST[$k] && intval($_POST[$k]) >= 0 )
+      {
+        setConfig($k, $_POST[$k]);
+      }
+    }
+    
     // Avatar settings
     setConfig('avatar_enable', ( isset($_POST['avatar_enable']) ? '1' : '0' ));
     // for these next three values, set the config value if it's a valid integer; this is
@@ -756,6 +765,36 @@ function page_Admin_GeneralConfig() {
         <td class="row1">
           <?php echo $lang->get('acpgc_field_email_smtp_username'); ?> <input value="<?php echo getConfig('smtp_user'); ?>" name="smtp_user" type="text" size="30" /><br />
           <?php echo $lang->get('acpgc_field_email_smtp_password'); ?> <input value="<?php if(getConfig('smtp_password') != false) echo 'XXXXXXXXXXXX'; ?>" name="smtp_pass" type="password" size="30" />
+        </td>
+      </tr>
+      
+    <!-- Session length -->
+    
+      <tr>
+        <th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_sessions'); ?></th>
+      </tr>
+      
+      <tr>
+        <td class="row3" colspan="2"><?php echo $lang->get('acpgc_hint_sessions_noelev'); ?></td>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <?php echo $lang->get('acpgc_field_short_time'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_short_time_hint'); ?></small>
+        </td>
+        <td class="row1">
+          <input type="text" name="session_short_time" value="<?php echo getConfig('session_short_time', '720'); ?>" size="4" />
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row2">
+          <?php echo $lang->get('acpgc_field_long_time'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_long_time_hint'); ?></small>
+        </td>
+        <td class="row2">
+          <input type="text" name="session_remember_time" value="<?php echo getConfig('session_remember_time', '30'); ?>" size="4" />
         </td>
       </tr>
         

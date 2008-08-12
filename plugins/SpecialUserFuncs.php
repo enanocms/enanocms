@@ -349,6 +349,52 @@ function page_Special_Login()
          }
          ?>
          <?php
+         if ( $level <= USER_LEVEL_MEMBER )
+         {
+           // "remember me" switch
+           // first order of business is to determine what the checkbox should say
+           $session_time = intval(getConfig('session_remember_time', '30'));
+           if ( $session_time === 0 )
+           {
+             // sessions are infinite
+             $text_remember = $lang->get('user_login_check_remember_infinite');
+           }
+           else
+           {
+             // is the number of days evenly divisible by 7? if so, use weeks
+             if ( $session_time % 7 == 0 )
+             {
+               $session_time = $session_time / 7;
+               $unit = 'week';
+             }
+             else
+             {
+               $unit = 'day';
+             }
+             // if it's not equal to 1, pluralize it
+             if ( $session_time != 1 )
+             {
+               $unit .= 's';
+             }
+             $text_remember = $lang->get('user_login_check_remember', array(
+                 'session_length' => $session_time,
+                 'length_units' => $lang->get("etc_unit_$unit")
+               ));
+           }
+           ?>
+           <tr>
+             <td class="row2">
+               <?php echo $lang->get('user_login_field_remember'); ?>
+             </td>
+             <td class="row1" colspan="2">
+               <label>
+                 <input type="checkbox" name="remember" tabindex="3" />
+                 <?php echo $text_remember; ?>
+               </label>
+             </td>
+           </tr>
+           <?php
+         }
          if ( $level <= USER_LEVEL_MEMBER && ( !isset($_GET['use_crypt']) || ( isset($_GET['use_crypt']) && $_GET['use_crypt']!='0' ) ) )
          {
            echo '<tr>
@@ -386,7 +432,7 @@ function page_Special_Login()
          ?>
          
          <tr>
-           <th colspan="3" style="text-align: center" class="subhead"><input type="submit" name="login" value="Log in" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '2'; ?>" /></th>
+           <th colspan="3" style="text-align: center" class="subhead"><input type="submit" name="login" value="Log in" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '4' : '2'; ?>" /></th>
          </tr>
       </table>
     </div>
@@ -479,7 +525,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     $captcha_code = ( isset($_POST['captcha_code']) ) ? $_POST['captcha_code'] : false;
     if ( $_POST['use_crypt'] == 'yes' )
     {
-      $result = $session->login_with_crypto($_POST['username'], $_POST['crypt_data'], $_POST['crypt_key'], $_POST['challenge_data'], intval($_POST['auth_level']), $captcha_hash, $captcha_code);
+      $result = $session->login_with_crypto($_POST['username'], $_POST['crypt_data'], $_POST['crypt_key'], $_POST['challenge_data'], intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
     }
     else if ( $_POST['use_crypt'] == 'yes_dh' )
     {
@@ -551,11 +597,11 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
       $password = $aes->decrypt($_POST['crypt_data'], $aes_key, ENC_HEX);
       
-      $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code);
+      $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
     }
     else
     {
-      $result = $session->login_without_crypto($_POST['username'], $_POST['pass'], false, intval($_POST['auth_level']), $captcha_hash, $captcha_code);
+      $result = $session->login_without_crypto($_POST['username'], $_POST['pass'], false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
     }
    
     if($result['success'])

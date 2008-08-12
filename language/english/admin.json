@@ -328,6 +328,14 @@ var enano_lang = {
       field_email_smtp_username: 'Username:',
       field_email_smtp_password: 'Password:',
       
+      // Section: Sessions
+      heading_sessions: 'User sessions',
+      hint_sessions_noelev: '<b>Remember:</b> Settings here only affect normal logins - you can\'t change the length of sessions that give you elevated privileges, such as the re-authentication that occurs when you access the administration panel. <a href="http://docs.enanocms.org/Help:Appendix_B">Read about Enano\'s security model</a>.',
+      field_short_time: 'Length of short sessions in minutes:',
+      field_short_time_hint: 'This is how long a user\'s session will last when they don\'t check the "remember me" checkbox. Short sessions are automatically renewed every time a page is loaded.',
+      field_long_time: 'Length of extended sessions in days:',
+      field_long_time_hint: 'This is how long a user\'s session will last when the "remember me" checkbox is selected during their login. Long sessions can\'t be renewed - they always last a fixed amount of time. Set this to 0 to make extended sessions infinite, e.g. they are only terminated when the user logs out manually (this may present a security risk).',
+      
       // Section: avatars
       heading_avatars: 'Avatars',
       avatars_intro: 'Avatars are small images that users can display on their profiles and in comments.',
@@ -388,7 +396,7 @@ var enano_lang = {
       // Section Defective By Design link
       heading_dbd: 'Defective By Design Anti-DRM button',
       dbd_intro: 'The Enano project is strongly against Digital Restrictions Management.',
-      dbd_explain: 'DRM removes the freedoms that every consumer should have: to freely copy and use digital media items they legally purchased to their own devices. Furthermore, DRM technologies can lock you into a specific brand or product, thus stifling interoperability. Showing your opposition to DRM is as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
+      dbd_explain: 'DRM infringes on consumer rights by using technical locks to prevent you from using your Fair Use rights granted by copyright law. This means that consumers are harmed when they can\'t copy purchased digital media to their own devices. Furthermore, since most DRM schemes are proprietary and designed to prevent interoperability, you can be locked you into a specific brand or product. You can help spread consumer awareness and show your opposition to DRM through this button. It\'s as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
       field_stopdrm: 'Help stop DRM by placing a link to DBD on the sidebar!',
       
       // Save button

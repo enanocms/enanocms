@@ -524,6 +524,59 @@ window.ajaxLoginBuildForm = function(data)
   // Done building the main part of the form
   form.appendChild(table);
   
+  // Field: remember login
+  if ( logindata.user_level <= USER_LEVEL_MEMBER )
+  {
+    var lbl_remember = document.createElement('label');
+    lbl_remember.style.fontSize = 'smaller';
+    lbl_remember.style.display = 'block';
+    lbl_remember.style.textAlign = 'center';
+    
+    // figure out what text to put in the "remember me" checkbox
+    // infinite session length?
+    if ( data.extended_time == 0 )
+    {
+      // yes, infinite
+      var txt_remember = $lang.get('user_login_ajax_check_remember_infinite');
+    }
+    else
+    {
+      if ( data.extended_time % 7 == 0 )
+      {
+        // number of days is a multiple of 7
+        // use weeks as our unit
+        var sess_time = data.extended_time / 7;
+        var unit = 'week';
+      }
+      else
+      {
+        // use days as our unit
+        var sess_time = data.extended_time;
+        var unit = 'day';
+      }
+      // more than one week or day?
+      if ( sess_time != 1 )
+        unit += 's';
+      
+      // assemble the string
+      var txt_remember = $lang.get('user_login_ajax_check_remember', {
+          session_length: sess_time,
+          length_units: $lang.get('etc_unit_' + unit)
+        });
+    }
+    var check_remember = document.createElement('input');
+    check_remember.type = 'checkbox';
+    // this onclick attribute changes the cookie whenever the checkbox or label is clicked
+    check_remember.setAttribute('onclick', 'var ck = ( this.checked ) ? "enable" : "disable"; createCookie("login_remember", ck, 3650);');
+    if ( readCookie('login_remember') != 'disable' )
+      check_remember.setAttribute('checked', 'checked');
+    check_remember.id = 'ajax_login_field_remember';
+    lbl_remember.appendChild(check_remember);
+    lbl_remember.innerHTML += ' ' + txt_remember;
+    
+    form.appendChild(lbl_remember);
+  }
+  
   // Field: enable Diffie Hellman
   if ( IE || is_iPhone )
   {
@@ -626,7 +679,7 @@ window.ajaxLoginBuildForm = function(data)
   }
 }
 
-window.ajaxLoginSubmitForm = function(real, username, password, captcha)
+window.ajaxLoginSubmitForm = function(real, username, password, captcha, remember)
 {
   // Perform AES test to make sure it's all working
   if ( !aes_self_test() )
@@ -647,6 +700,22 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha)
         var d = document.getElementById('autoCaptcha');
         d.parentNode.removeChild(d);
       }, to);
+  }
+  // "Remember session" switch
+  if ( typeof(remember) == 'boolean' )
+  {
+    var remember_session = remember;
+  }
+  else
+  {
+    if ( document.getElementById('ajax_login_field_remember') )
+    {
+      var remember_session = ( document.getElementById('ajax_login_field_remember').checked ) ? true : false;
+    }
+    else
+    {
+      var remember_session = false;
+    }
   }
   // Encryption: preprocessor
   if ( real )
@@ -695,7 +764,7 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha)
       // Wait while the browser updates the login window
       setTimeout(function()
         {
-          ajaxLoginSubmitForm(true, username, password, captcha);
+          ajaxLoginSubmitForm(true, username, password, captcha, remember_session);
         }, 200);
       return true;
     }
@@ -750,7 +819,8 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha)
       dh_public_key: logindata.key_dh,
       dh_client_key: dh_pub,
       dh_secret_hash: secret_hash,
-      level: logindata.user_level
+      level: logindata.user_level,
+      remember: remember_session
     }
   }
   else
@@ -761,7 +831,8 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha)
       captcha_code: captcha_code,
       captcha_hash: captcha_hash,
       key_aes: hex_md5(crypt_key),
-      level: logindata.user_level
+      level: logindata.user_level,
+      remember: remember_session
     }
   }
   ajaxLoginPerformRequest(json_packet);

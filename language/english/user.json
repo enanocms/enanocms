@@ -30,6 +30,7 @@ var enano_lang = {
       login_body_elev: 'You are requesting that a sensitive operation be performed. To continue, please re-enter your password to confirm your identity.',
       login_field_username: 'Username',
       login_field_password: 'Password',
+      login_field_remember: 'Remember session:',
       login_forgotpass_blurb: 'Forgot your password? <a href="%forgotpass_link%">No problem.</a>',
       login_createaccount_blurb: 'Maybe you need to <a href="%reg_link%">create an account</a>.',
       login_field_captcha: 'Code in image',
@@ -44,6 +45,8 @@ var enano_lang = {
       login_success_body: 'You have successfully logged into the %config.site_name% site as "%username%". Redirecting to %redir_target%...',
       login_success_body_mainpage: 'the main page',
       login_success_short: 'Success.',
+      login_check_remember: 'Keep me logged in on this computer for %session_length% %length_units% unless I log out',
+      login_check_remember_infinite: 'Keep me logged in on this computer until I log out',
       
       login_noact_title: 'Account error',
       login_noact_msg_intro: 'It appears that your user account has not yet been activated.',
@@ -70,6 +73,8 @@ var enano_lang = {
       login_ajax_msg_used_temp_pass: 'You have logged in using a temporary password. Before you can log in, you must finish resetting your password. Do you want to reset your real password now?',
       login_ajax_check_dh: 'Enable strong encryption during logon? <a href="http://docs.enanocms.org/Help:Appendix_B#dh" onclick="window.open(this.href); return false;">Learn more</a>',
       login_ajax_check_dh_ie: 'Use a standards-compliant browser to help protect your password. <a href="http://docs.enanocms.org/Help:Appendix_B#dh" onclick="window.open(this.href); return false;">Learn more</a>',
+      login_ajax_check_remember: 'Keep me logged in on this computer for %session_length% %length_units% unless I log out',
+      login_ajax_check_remember_infinite: 'Keep me logged in on this computer until I log out',
       
       err_login_generic_title: 'There was an error in the login process',
       err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',

@@ -563,56 +563,16 @@ class sessionManager {
    * @param string $aes_key The MD5 hash of the encryption key, hex-encoded
    * @param string $challenge The 256-bit MD5 challenge string - first 128 bits should be the hash, the last 128 should be the challenge salt
    * @param int $level The privilege level we're authenticating for, defaults to 0
-   * @param array $captcha_hash Optional. If we're locked out and the lockout policy is captcha, this should be the identifier for the code.
-   * @param array $captcha_code Optional. If we're locked out and the lockout policy is captcha, this should be the code the user entered.
+   * @param string $captcha_hash Optional. If we're locked out and the lockout policy is captcha, this should be the identifier for the code.
+   * @param string $captcha_code Optional. If we're locked out and the lockout policy is captcha, this should be the code the user entered.
+   * @param bool $remember Optional. If true, remembers the session for X days. Otherwise, assigns a short session. Defaults to false.
    * @param bool $lookup_key Optional. If true (default) this queries the database for the "real" encryption key. Else, uses what is given.
    * @return string 'success' on success, or error string on failure
    */
    
-  function login_with_crypto($username, $aes_data, $aes_key_id, $challenge, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false, $lookup_key = true)
+  function login_with_crypto($username, $aes_data, $aes_key_id, $challenge, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false, $remember = false, $lookup_key = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    
-    $privcache = $this->private_key;
-
-    if ( !defined('IN_ENANO_INSTALL') )
-    {
-      $timestamp_cutoff = time() - $duration;
-      $q = $this->sql('SELECT timestamp FROM '.table_prefix.'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
-      $fails = $db->numrows();
-      // Lockout stuff
-      $threshold = ( $_ = getConfig('lockout_threshold') ) ? intval($_) : 5;
-      $duration  = ( $_ = getConfig('lockout_duration') ) ? intval($_) : 15;
-      // convert to minutes
-      $duration  = $duration * 60;
-      $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
-      if ( $policy == 'captcha' && $captcha_hash && $captcha_code )
-      {
-        // policy is captcha -- check if it's correct, and if so, bypass lockout check
-        $real_code = $this->get_captcha($captcha_hash);
-      }
-      if ( $policy != 'disable' && !( $policy == 'captcha' && isset($real_code) && strtolower($real_code) == strtolower($captcha_code) ) )
-      {
-        $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
-        if ( $fails >= $threshold )
-        {
-          // ooh boy, somebody's in trouble ;-)
-          $row = $db->fetchrow();
-          $db->free_result();
-          return array(
-              'success' => false,
-              'error' => 'locked_out',
-              'lockout_threshold' => $threshold,
-              'lockout_duration' => ( $duration / 60 ),
-              'lockout_fails' => $fails,
-              'lockout_policy' => $policy,
-              'time_rem' => ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ),
-              'lockout_last_time' => $row['timestamp']
-            );
-        }
-      }
-      $db->free_result();
-    }
     
     // Instanciate the Rijndael encryption object
     $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
@@ -656,163 +616,8 @@ class sessionManager {
     // Decrypt our password
     $password = $aes->decrypt($aes_data, $bin_key, ENC_HEX);
     
-    // Initialize our success switch
-    $success = false;
-    
-    // Escaped username
-    $username = str_replace('_', ' ', $username);
-    $db_username_lower = $this->prepare_text(strtolower($username));
-    $db_username       = $this->prepare_text($username);
-    
-    // Select the user data from the table, and decrypt that so we can verify the password
-    $this->sql('SELECT password,old_encryption,user_id,user_level,theme,style,temp_password,temp_password_time FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username)=\''.$db_username_lower.'\' OR username=\'' . $db_username . '\';');
-    if($db->numrows() < 1)
-    {
-      // This wasn't logged in <1.0.2, dunno how it slipped through
-      if($level > USER_LEVEL_MEMBER)
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
-      else
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
-    
-      if ( $policy != 'disable' && !defined('IN_ENANO_INSTALL') )
-      {
-        $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
-        // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
-        $fails++;
-        // ooh boy, somebody's in trouble ;-)
-        return array(
-            'success' => false,
-            'error' => ( $fails >= $threshold ) ? 'locked_out' : 'invalid_credentials',
-            'lockout_threshold' => $threshold,
-            'lockout_duration' => ( $duration / 60 ),
-            'lockout_fails' => $fails,
-            'time_rem' => ( $duration / 60 ),
-            'lockout_policy' => $policy
-          );
-      }
-      
-      return array(
-          'success' => false,
-          'error' => 'invalid_credentials'
-        );
-    }
-    $row = $db->fetchrow();
-    
-    // Check to see if we're logging in using a temporary password
-    
-    if((intval($row['temp_password_time']) + 3600*24) > time() )
-    {
-      $temp_pass = $aes->decrypt( $row['temp_password'], $this->private_key, ENC_HEX );
-      if( $temp_pass == $password )
-      {
-        $url = makeUrlComplete('Special', 'PasswordReset/stage2/' . $row['user_id'] . '/' . $row['temp_password']);
-        
-        $code = $plugins->setHook('login_password_reset');
-        foreach ( $code as $cmd )
-        {
-          eval($cmd);
-        }
-        
-        redirect($url, '', '', 0);
-        exit;
-      }
-    }
-    
-    if($row['old_encryption'] == 1)
-    {
-      // The user's password is stored using the obsolete and insecure MD5 algorithm, so we'll update the field with the new password
-      if(md5($password) == $row['password'])
-      {
-        $pass_stashed = $aes->encrypt($password, $this->private_key, ENC_HEX);
-        $this->sql('UPDATE '.table_prefix.'users SET password=\''.$pass_stashed.'\',old_encryption=0 WHERE user_id='.$row['user_id'].';');
-        $success = true;
-      }
-    }
-    else
-    {
-      // Our password field is up-to-date with the >=1.0RC1 encryption standards, so decrypt the password in the table and see if we have a match; if so then do challenge authentication
-      $real_pass = $aes->decrypt(hexdecode($row['password']), $this->private_key, ENC_BINARY);
-      if($password === $real_pass && is_string($password))
-      {
-        // Yay! We passed AES authentication. Previously an MD5 challenge was done here, this was deemed redundant in 1.1.3.
-        // It didn't seem to provide any additional security...
-        $success = true;
-      }
-    }
-    if($success)
-    {
-      if($level > $row['user_level'])
-        return array(
-          'success' => false,
-          'error' => 'too_big_for_britches'
-        );
-
-      /*        
-      return array(
-        'success' => false,
-        'error' => 'Successful authentication, but session manager is in debug mode - remove the "return array(...);" in includes/sessions.php:' . ( __LINE__ - 2 )
-      );
-      */
-      
-      $sess = $this->register_session(intval($row['user_id']), $username, $password, $level);
-      if($sess)
-      {
-        $this->username = $username;
-        $this->user_id = intval($row['user_id']);
-        $this->theme = $row['theme'];
-        $this->style = $row['style'];
-        
-        if($level > USER_LEVEL_MEMBER)
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
-        else
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
-        
-        $code = $plugins->setHook('login_success');
-        foreach ( $code as $cmd )
-        {
-          eval($cmd);
-        }
-        return array(
-          'success' => true
-        );
-      }
-      else
-        return array(
-          'success' => false,
-          'error' => 'backend_fail'
-        );
-    }
-    else
-    {
-      if($level > USER_LEVEL_MEMBER)
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
-      else
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
-        
-      // Do we also need to increment the lockout countdown?
-      if ( $policy != 'disable' && !defined('IN_ENANO_INSTALL') )
-      {
-        $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
-        // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
-        $fails++;
-        return array(
-            'success' => false,
-            'error' => ( $fails >= $threshold ) ? 'locked_out' : 'invalid_credentials',
-            'lockout_threshold' => $threshold,
-            'lockout_duration' => ( $duration / 60 ),
-            'lockout_fails' => $fails,
-            'time_rem' => ( $duration / 60 ),
-            'lockout_policy' => $policy
-          );
-      }
-        
-      return array(
-        'success' => false,
-        'error' => 'invalid_credentials'
-      );
-    }
+    // Let the LoginAPI do the rest.
+    return $this->login_without_crypto($username, $password, false, $level, $captcha_hash, $captcha_code, $remember);
   }
   
   /**
@@ -823,9 +628,12 @@ class sessionManager {
    * @param string $password The password -OR- the MD5 hash of the password if $already_md5ed is true
    * @param bool $already_md5ed This should be set to true if $password is an MD5 hash, and should be false if it's plaintext. Defaults to false.
    * @param int $level The privilege level we're authenticating for, defaults to 0
+   * @param string $captcha_hash Optional. If we're locked out and the lockout policy is captcha, this should be the identifier for the code.
+   * @param string $captcha_code Optional. If we're locked out and the lockout policy is captcha, this should be the code the user entered.
+   * @param bool $remember Optional. If true, remembers the session for X days. Otherwise, assigns a short session. Defaults to false.
    */
   
-  function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false)
+  function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false, $remember = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -979,7 +787,7 @@ class sessionManager {
           'success' => false,
           'error' => 'too_big_for_britches'
         );
-      $sess = $this->register_session(intval($row['user_id']), $username, $real_pass, $level);
+      $sess = $this->register_session(intval($row['user_id']), $username, $real_pass, $level, $remember);
       if($sess)
       {
         if($level > USER_LEVEL_MEMBER)
@@ -1072,10 +880,11 @@ class sessionManager {
    * @param string $username
    * @param string $password
    * @param int $level The level of access to grant, defaults to USER_LEVEL_MEMBER
+   * @param bool $remember Whether the session should be long-term (true) or not (false). Defaults to short-term.
    * @return bool
    */
    
-  function register_session($user_id, $username, $password, $level = USER_LEVEL_MEMBER)
+  function register_session($user_id, $username, $password, $level = USER_LEVEL_MEMBER, $remember = false)
   {
     // Random key identifier
     $salt = md5(microtime() . mt_rand());
@@ -1086,10 +895,12 @@ class sessionManager {
     // Unencrypted session key
     $session_key = "u=$username;p=$passha1;s=$salt";
     
+    // Type of key
+    $key_type = ( $level > USER_LEVEL_MEMBER ) ? SK_ELEV : ( $remember ? SK_LONG : SK_SHORT );
+    
     // Encrypt the key
     $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $session_key = $aes->encrypt($session_key, $this->private_key, ENC_HEX);
-    $dec_DEBUG = $aes->decrypt($session_key, $this->private_key, ENC_HEX);
     
     // If we're registering an elevated-privilege key, it needs to be on GET
     if($level > USER_LEVEL_MEMBER)
@@ -1122,7 +933,7 @@ class sessionManager {
       die('Somehow an SQL injection attempt crawled into our session registrar! (2)');
     
     // All done!
-    $query = $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time) VALUES(\''.$keyhash.'\', \''.$salt.'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.');');
+    $query = $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time, key_type) VALUES(\''.$keyhash.'\', \''.$salt.'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.', ' . $key_type . ');');
     return true;
   }
   
@@ -1220,7 +1031,7 @@ class sessionManager {
     profiler_log("SessionManager: checking session: " . sha1($key) . ": decrypted session key to $decrypted_key");
     // using a normal call to $db->sql_query to avoid failing on errors here
     $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,' . "\n"
-                             . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_title,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms,' . "\n"
+                             . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_title,k.source_ip,k.time,k.auth_level,k.key_type,COUNT(p.message_id) AS num_pms,' . "\n"
                              . '    u.user_timezone, x.* FROM '.table_prefix.'session_keys AS k' . "\n"
                              . '  LEFT JOIN '.table_prefix.'users AS u' . "\n"
                              . '    ON ( u.user_id=k.user_id )' . "\n"
@@ -1234,7 +1045,7 @@ class sessionManager {
     
     if ( !$query && ( defined('IN_ENANO_INSTALL') or defined('IN_ENANO_UPGRADE') ) )
     {
-      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone FROM '.table_prefix.'session_keys AS k
+      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone, ' . SK_SHORT . ' AS key_type FROM '.table_prefix.'session_keys AS k
                              LEFT JOIN '.table_prefix.'users AS u
                                ON ( u.user_id=k.user_id )
                              LEFT JOIN '.table_prefix.'privmsgs AS p
@@ -1289,18 +1100,47 @@ class sessionManager {
       return false;
     }
     
-    $time_now = time();
-    $time_key = $row['time'] + 900;
-    if($time_now > $time_key && $row['auth_level'] > USER_LEVEL_MEMBER)
+    // timestamp check
+    switch ( $row['key_type'] )
     {
-      // Session timed out
-      // echo '(debug) $session->validate_session: super session timed out<br />';
-      $this->sw_timed_out = true;
-      return false;
+      case SK_SHORT:
+        $time_now = time();
+        $time_key = $row['time'] + ( 60 * intval(getConfig('session_short', '720')) );
+        if ( $time_now > $time_key )
+        {
+          // Session timed out
+          return false;
+        }
+        break;
+      case SK_LONG:
+        if ( intval(getConfig('session_remember_time', '0')) === 0 )
+        {
+          // sessions last infinitely, timestamp validation is therefore successful
+          break;
+        }
+        $time_now = time();
+        $time_key = $row['time'] + ( 86400 * intval(getConfig('session_remember_time', '30')) );
+        if ( $time_now > $time_key )
+        {
+          // Session timed out
+          return false;
+        }
+        break;
+      case SK_ELEV:
+        $time_now = time();
+        $time_key = $row['time'] + 900;
+        if($time_now > $time_key && $row['auth_level'] > USER_LEVEL_MEMBER)
+        {
+          // Session timed out
+          // echo '(debug) $session->validate_session: super session timed out<br />';
+          $this->sw_timed_out = true;
+          return false;
+        }
+        break;
     }
-    
-    // If this is an elevated-access session key, update the time
-    if( $row['auth_level'] > USER_LEVEL_MEMBER )
+        
+    // If this is an elevated-access or short-term session key, update the time
+    if( $row['key_type'] == SK_ELEV || $row['key_type'] == SK_SHORT )
     {
       $this->sql('UPDATE '.table_prefix.'session_keys SET time='.time().' WHERE session_key=\''.$keyhash.'\';');
     }
@@ -3617,6 +3457,8 @@ EOF;
         $response['username'] = ( $this->user_logged_in ) ? $this->username : false;
         $response['aes_key'] = $this->rijndael_genkey();
         
+        $response['extended_time'] = intval(getConfig('session_remember_time', '30'));
+        
         // Lockout info
         $response['locked_out'] = $locked_out;
         
@@ -3757,7 +3599,7 @@ EOF;
         
         // attempt the login
         // function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false)
-        $login_result = $this->login_without_crypto($username, $password, false, intval($req['level']), @$req['captcha_hash'], @$req['captcha_code']);
+        $login_result = $this->login_without_crypto($username, $password, false, intval($req['level']), @$req['captcha_hash'], @$req['captcha_code'], @$req['remember']);
         
         if ( $login_result['success'] )
         {
