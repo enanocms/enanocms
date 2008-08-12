@@ -25,9 +25,8 @@ autofill_schemas.generic = {
     // dataset name
     var ds_name = 'autofill_ds_' + fillclass;
     
-    var allow_anon = ( params.allow_anon ) ? '1' : '0';
     // setup the dataset
-    window[ds_name] = new Spry.Data.JSONDataSet(makeUrlNS('Special', 'Autofill', 'type=' + fillclass + '&allow_anon=' + allow_anon));
+    window[ds_name] = new Spry.Data.JSONDataSet(makeUrlNS('Special', 'Autofill', 'type=' + fillclass));
     
     // inject our HTML wrapper
     var template = this.template.replace(new RegExp('--ID--', 'g'), element.id).replace(new RegExp('--CLASS--', 'g', fillclass));
