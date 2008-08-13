@@ -601,7 +601,7 @@ window.ajaxLoginBuildForm = function(data)
       check_dh.setAttribute('checked', 'checked');
     check_dh.id = 'ajax_login_field_dh';
     lbl_dh.appendChild(check_dh);
-    lbl_dh.innerHTML += $lang.get('user_login_ajax_check_dh');
+    lbl_dh.innerHTML += ' ' + $lang.get('user_login_ajax_check_dh');
     form.appendChild(lbl_dh);
   }
   
@@ -873,6 +873,7 @@ window.ajaxLoginShowFriendlyError = function(response)
   errbox.style.width = '60%';
   errbox.style.top = top + 'px';
   errbox.style.left = left + 'px';
+  errbox.style.zIndex = getHighestZ();
   errbox.innerHTML = text;
   errbox.id = 'ajax_login_error_box';
   

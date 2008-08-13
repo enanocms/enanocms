@@ -50,7 +50,7 @@ function MessageBox(type, title, message)
     document.getElementById('specialLayer_darkener').style.zIndex = '5';
   }
   var master_div = document.createElement('div');
-  master_div.style.zIndex = String(getHighestZ() + 5);
+  master_div.style.zIndex = getHighestZ() + 1;
   var mydiv = document.createElement('div');
   mydiv.style.height = '200px';
   w = getWidth();
@@ -547,7 +547,8 @@ function miniPromptMessage(parms)
           }
           parent.appendChild(button.input);
         }
-        if ( parms.buttons[0] )
+        // don't focus this in opera - it looks kinda ugly
+        if ( parms.buttons[0] && !window.opera )
         {
           var timeout = ( aclDisableTransitionFX ) ? 10 : 1000;
           setTimeout(function()

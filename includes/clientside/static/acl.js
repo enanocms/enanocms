@@ -58,6 +58,12 @@ function ajaxOpenACLManager(page_id, namespace)
 
 function ajaxOpenDirectACLRule(rule_id)
 {
+  load_component('l10n');
+  load_component('messagebox');
+  load_component('fadefilter');
+  load_component('template-compiler');
+  load_component('autofill');
+  
   var params = {
     target_id: rule_id,
     mode: 'seltarget_id'
@@ -1228,7 +1234,19 @@ function aclShowPresetSave()
         {
           if ( aclSavePreset() )
           {
-            miniPromptDestroy(this);
+            if ( window.opera )
+            {
+              // damn weird opera bug.
+              var input = this;
+              setTimeout(function()
+                {
+                  miniPromptDestroy(input);
+                }, 10);
+            }
+            else
+            {
+              miniPromptDestroy(this);
+            }
           }
         }
         else if ( e.keyCode == 27 )

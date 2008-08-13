@@ -16,6 +16,7 @@ function darken(nofade, opacVal, layerid)
   darkener_index[layerid] = ( typeof(darkener_index[layerid]) == 'number' ) ? darkener_index[layerid] + 1 : 1;
   if(document.getElementById(layerid))
   {
+    document.getElementById(layerid).style.zIndex = getHighestZ() + 1;
     if(nofade)
     {
       changeOpac(opacVal, layerid);
@@ -60,7 +61,7 @@ function darken(nofade, opacVal, layerid)
     thediv.style.backgroundColor = '#000000';
     thediv.style.width =  '100%';
     thediv.style.height = '100%';
-    thediv.style.zIndex = getHighestZ() + 5;
+    thediv.style.zIndex = getHighestZ() + 1;
     thediv.id = layerid;
     thediv.myOpacVal = opacVal;
     if(nofade)

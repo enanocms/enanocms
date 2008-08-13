@@ -499,6 +499,7 @@ var placeholder_list = {
   ajaxChangeStyle: 'ajax.js',
   ajaxCatToTag: 'ajax.js',
   ajaxOpenACLManager: 'acl.js',
+  ajaxOpenDirectACLRule: 'acl.js',
   ajaxAdminPage: 'login.js',
   ajaxInitLogout: 'login.js',
   ajaxStartLogin: 'login.js',
