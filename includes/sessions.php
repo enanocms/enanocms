@@ -3275,9 +3275,11 @@ class sessionManager {
           
           function runEncryption()
           {
+            var frm = document.forms.'.$form_name.';
+            whiteOutForm(frm);
+            
             load_component(\'crypto\');
             var testpassed = ' . ( ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0') ? 'false; // CRYPTO-AUTH DISABLED ON USER REQUEST // ' : '' ) . '( aes_self_test() && md5_vm_test() );
-            var frm = document.forms.'.$form_name.';
             var use_diffiehellman = false;' . "\n";
     if ( $dh_supported && $dh_pubkey )
     {
@@ -3301,10 +3303,12 @@ EOF;
               {
                 el = el.parentNode;
               }
+              /*
               if ( el.tagName == "TABLE" )
               {
                 whiteOutElement(el);
               }
+              */
               
               frm.'.$use_crypt.'.value = \'yes_dh\';
               

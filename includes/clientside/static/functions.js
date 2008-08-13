@@ -583,7 +583,8 @@ function whiteOutElement(el)
   var height = $(el).Height();
   
   var blackout = document.createElement('div');
-  blackout.style.position = 'absolute';
+  // using fixed here allows modal windows to be blacked out
+  blackout.style.position = ( el.style.position == 'fixed' ) ? 'fixed' : 'absolute';
   blackout.style.top = top + 'px';
   blackout.style.left = left + 'px';
   blackout.style.width = width + 'px';
@@ -628,6 +629,54 @@ function whiteOutReportSuccess(whitey)
     {
       whitey.parentNode.removeChild(whitey);
     }, 1250);
+}
+
+/**
+ * Whites out a form and disables all buttons under it. Useful for onsubmit functions.
+ * @example
+ <code>
+ <form action="foo" onsubmit="whiteOutForm(this);">
+ </code>
+ * @param object Form object
+ * @return object Whiteout div
+ */
+
+function whiteOutForm(form)
+{
+  if ( !form.getElementsByTagName )
+    return false;
+  
+  // disable all buttons
+  var buttons = form.getElementsByTagName('input');
+  for ( var i = 0; i < buttons.length; i++ )
+  {
+    if ( buttons[i].type == 'button' || buttons[i].type == 'submit' || buttons[i].type == 'image' )
+    {
+      buttons[i].disabled = 'disabled';
+      // ... but also make a hidden element to preserve any flags
+      var clone = buttons[i].cloneNode(true);
+      clone.type = 'hidden';
+      clone.disabled = false;
+      console.debug(clone);
+      form.appendChild(clone);
+    }
+  }
+  var buttons = form.getElementsByTagName('button');
+  for ( var i = 0; i < buttons.length; i++ )
+  {
+    buttons[i].disabled = 'disabled';
+    // ... but also make a hidden element to preserve any flags
+    if ( buttons[i].name )
+    {
+      var clone = document.createElement('input');
+      clone.type = 'hidden';
+      clone.name = buttons[i].name;
+      clone.value = ( buttons[i].value ) ? buttons[i].value : '';
+      form.appendChild(clone);
+    }
+  }
+  
+  return whiteOutElement(form);
 }
 
 // other DHTML functions
