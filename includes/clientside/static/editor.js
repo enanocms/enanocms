@@ -3,7 +3,7 @@
 // Idle time required for autosave, in seconds
 var AUTOSAVE_TIMEOUT = 15;
 var AutosaveTimeoutObj = null;
-var editor_img_path = scriptPath + '/images/editor';
+var editor_img_path = cdnPath + '/images/editor';
 
 window.ajaxEditor = function(revid)
 {
@@ -68,13 +68,14 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
   // Destroy existing contents of page container
   if ( editor_use_modal_window )
   {
-    darken(true);
+    darken(true, 70, 'enano_editor_darkener');
     // Build a div with 80% width, centered, and 10px from the top of the window
     var edcon = document.createElement('div');
     edcon.style.position = 'absolute';
     edcon.style.backgroundColor = '#FFFFFF';
     edcon.style.padding = '10px';
     edcon.style.width = '80%';
+    edcon.style.zIndex = getHighestZ() + 1;
     edcon.id = 'ajaxEditContainerModal';
     
     // Positioning
@@ -451,9 +452,9 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
       img.src = editor_img_path + '/savedraft.gif';
       lbl.innerHTML = $lang.get('editor_btn_savedraft');
     }
-    if ( AutosaveTimeoutObj )
-      clearTimeout(AutosaveTimeoutObj);
-    AutosaveTimeoutObj = setTimeout('ajaxAutosaveDraft();', ( AUTOSAVE_TIMEOUT * 1000 ));
+    if ( window.AutosaveTimeoutObj )
+      clearTimeout(window.AutosaveTimeoutObj);
+    window.AutosaveTimeoutObj = setTimeout('ajaxAutosaveDraft();', ( AUTOSAVE_TIMEOUT * 1000 ));
   }
   
   if ( readonly )
@@ -511,7 +512,7 @@ window.ajaxEditorDestroyModalWindow = function()
     if ( edcon )
     {
       body.removeChild(edcon);
-      enlighten(true);
+      enlighten(true, 'enano_editor_darkener');
     }
   }
 }
@@ -627,41 +628,30 @@ window.ajaxEditorSave = function(is_draft, text_override)
         {
           if ( response.is_draft )
           {
-            // for some reason this code is throwing "uncaught exception" errors under gecko
-            // firebug ain't tracing it, it'll be fixed soon enough though
-            // note that the errors still seem to show after adding the try{}catch{} blocks
-            try
+            document.getElementById('ajaxEditArea').used_draft = true;
+            document.getElementById('ajaxEditArea').needReset = true;
+            var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
+            var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
+            if ( response.is_draft == 'delete' )
             {
-              document.getElementById('ajaxEditArea').used_draft = true;
-              document.getElementById('ajaxEditArea').needReset = true;
-              var img = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('img')[0];
-              var lbl = $dynano('ajax_edit_savedraft_btn').object.getElementsByTagName('span')[0];
-              if ( response.is_draft == 'delete' )
+              img.src = scriptPath + '/images/editor/savedraft.gif';
+              lbl.innerHTML = $lang.get('editor_btn_savedraft');
+              
+              var dn = $dynano('ajax_edit_draft_notice').object;
+              if ( dn )
               {
-                img.src = scriptPath + '/images/editor/savedraft.gif';
-                lbl.innerHTML = $lang.get('editor_btn_savedraft');
-                
-                var dn = $dynano('ajax_edit_draft_notice').object;
-                if ( dn )
-                {
-                  dn.parentNode.removeChild(dn);
-                }
-              }
-              else
-              {
-                img.src = scriptPath + '/images/mini-info.png';
-                var d = new Date();
-                var m = String(d.getMinutes());
-                if ( m.length < 2 )
-                  m = '0' + m;
-                var time = d.getHours() + ':' + m;
-                lbl.innerHTML = $lang.get('editor_msg_draft_saved', { time: time });
+                dn.parentNode.removeChild(dn);
               }
             }
-            catch(e)
+            else
             {
-              console.warn('Exception thrown during save, error dump follows');
-              console.debug(e);
+              img.src = scriptPath + '/images/mini-info.png';
+              var d = new Date();
+              var m = String(d.getMinutes());
+              if ( m.length < 2 )
+                m = '0' + m;
+              var time = d.getHours() + ':' + m;
+              lbl.innerHTML = $lang.get('editor_msg_draft_saved', { time: time });
             }
           }
           else
@@ -941,6 +931,8 @@ window.ajaxUnSetEditorLoading = function()
   {
     var blackout = document.getElementById('enano_editor_blackout');
     var body = document.getElementsByTagName('body')[0];
+    if ( !blackout )
+      return false;
     body.removeChild(blackout);
   }
 }
