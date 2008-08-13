@@ -1870,6 +1870,7 @@ class PageUtils {
                   . "    ON ( (a.target_type = " . ACL_TYPE_GROUP . " AND a.target_id = g.group_id) OR (g.group_id IS NULL) )\n"
                   . "  LEFT JOIN " . table_prefix . "page_groups as p\n"
                   . "    ON ( (a.namespace = '__PageGroup' AND a.page_id = p.pg_id) OR (p.pg_id IS NULL) )\n"
+                  . "  WHERE ( a.target_type = " . ACL_TYPE_USER . " OR a.target_type = " . ACL_TYPE_GROUP . " )\n"
                   . "  GROUP BY a.rule_id\n"
                   . "  ORDER BY a.target_type ASC, a.rule_id ASC;"
                 );
