@@ -19,7 +19,7 @@
  
 class pathManager
 {
-  public $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $anonymous_page;
+  public $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $external_api_page;
   
   /**
    * List of custom processing functions for namespaces. This is protected so trying to do anything with it will throw an error.
@@ -48,7 +48,7 @@ class pathManager
       'System'  =>'Enano:',
       'Template'=>'Template:',
       'Category'=>'Category:',
-      'Anonymous'=>'PhysicalRedirect:',
+      'API'=>'SystemAPI:',
       'Project' =>sanitize_page_id(getConfig('site_name')).':',
       );
     
@@ -237,13 +237,13 @@ class pathManager
         $title = basename($_SERVER['SCRIPT_NAME']);
       }
       $base_uri = str_replace( scriptPath . '/', '', $_SERVER['SCRIPT_NAME'] );
-      $this->page = $this->nslist['Anonymous'] . sanitize_page_id($base_uri);
-      $this->fullpage = $this->nslist['Anonymous'] . sanitize_page_id($base_uri);
-      $this->namespace = 'Anonymous';
+      $this->page = $this->nslist['API'] . sanitize_page_id($base_uri);
+      $this->fullpage = $this->nslist['API'] . sanitize_page_id($base_uri);
+      $this->namespace = 'API';
       $this->cpage = array(
           'name' => $title,
           'urlname' => sanitize_page_id($base_uri),
-          'namespace' => 'Anonymous',
+          'namespace' => 'API',
           'special' => 1,
           'visible' => 1,
           'comments_on' => 1,
@@ -251,8 +251,8 @@ class pathManager
           'delvotes' => 0,
           'delvote_ips' => ''
         );
-      $this->anonymous_page = true;
-      $code = $plugins->setHook('paths_anonymous_page');
+      $this->external_api_page = true;
+      $code = $plugins->setHook('paths_external_api_page');
       foreach ( $code as $cmd )
       {
         eval($cmd);
@@ -355,7 +355,7 @@ class pathManager
       {
         $this->cpage['protected'] = 1;
       }
-      if($this->namespace == 'Special' && !$this->anonymous_page)
+      if($this->namespace == 'Special' && !$this->external_api_page)
       {
         // Can't load nonexistent pages
         if( is_string(getConfig('main_page')) )

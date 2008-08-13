@@ -14,7 +14,6 @@
  */
 
 // Ban types
-
 define('BAN_IP', 1);
 define('BAN_USER', 2);
 define('BAN_EMAIL', 3);
@@ -113,7 +112,6 @@ define('USER_LEVEL_MEMBER', 2);
 define('USER_LEVEL_GUEST', 1);
 
 // Group status
-
 define('GROUP_CLOSED', 1);
 define('GROUP_REQUEST', 2);
 define('GROUP_HIDDEN', 3);

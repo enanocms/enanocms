@@ -561,7 +561,7 @@ class template
       case "Category":
         $ns = $lang->get('onpage_lbl_page_category');
         break;
-      case "Anonymous":
+      case "API":
         $ns = $lang->get('onpage_lbl_page_external');
         break;
     }
@@ -662,7 +662,7 @@ class template
       $tb .= $button->run();
     // View source button
     }
-    else if ( $session->check_acl_scope('view_source', $local_namespace) && $perms->get_permissions('view_source') && ( !$perms->get_permissions('edit_page') || !$perms->get_permissions('even_when_protected') && $paths->page_protected ) && $local_namespace != 'Anonymous') 
+    else if ( $session->check_acl_scope('view_source', $local_namespace) && $perms->get_permissions('view_source') && ( !$perms->get_permissions('edit_page') || !$perms->get_permissions('even_when_protected') && $paths->page_protected ) && $local_namespace != 'API') 
     {
       $button->assign_vars(array(
         'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_viewsource') . '" accesskey="e"',
@@ -922,7 +922,7 @@ class template
     }
     
     // Manage ACLs button
-    if ( !$paths->anonymous_page && $session->check_acl_scope('edit_acl', $local_namespace) && ( $perms->get_permissions('edit_acl') || ( defined('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL') &&  $session->user_level >= USER_LEVEL_ADMIN ) ) )
+    if ( !$paths->external_api_page && $session->check_acl_scope('edit_acl', $local_namespace) && ( $perms->get_permissions('edit_acl') || ( defined('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL') &&  $session->user_level >= USER_LEVEL_ADMIN ) ) )
     {
       $menubtn->assign_vars(array(
           'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { var s = ajaxOpenACLManager(); console.debug(s); return false; }" title="' . $lang->get('onpage_tip_aclmanager') . '" accesskey="m"',

@@ -313,7 +313,7 @@ class PageProcessor
       
       $this->footer();
     }
-    else if ( $this->namespace == 'Anonymous' )
+    else if ( $this->namespace == 'API' )
     {
       if ( $this->send_headers )
       {
@@ -566,7 +566,7 @@ class PageProcessor
     // It's not in there. Perform validation.
     
     // We can't create special, admin, or external pages.
-    if ( $this->namespace == 'Special' || $this->namespace == 'Admin' || $this->namespace == 'Anonymous' )
+    if ( $this->namespace == 'Special' || $this->namespace == 'Admin' || $this->namespace == 'API' )
     {
       $this->raise_error($lang->get('pagetools_create_err_nodb_namespace'));
       return false;
