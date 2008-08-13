@@ -1053,6 +1053,7 @@ JSEOF;
     $this->sidebar_extra = $this->sidebar_extra . $this->sidebar_widgets;
     
     $this->tpl_bool['fixed_menus'] = false;
+    $this->tpl_bool['export'] = false;
     $this->tpl_bool['right_sidebar'] = true;
     $this->tpl_bool['auth_rename'] = ( $local_page_exists && $session->check_acl_scope('rename', $local_namespace) && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ));
     $this->tpl_bool['enable_uploads'] = ( getConfig('enable_uploads') == '1' && $session->get_permissions('upload_files') ) ? true : false;
@@ -1650,21 +1651,7 @@ EOF;
     return $text;
   }
   
-  // Steps to turn this:
-  //   [[Project:Community Portal]]
-  // into this:
-  //   <a href="/Project:Community_Portal">Community Portal</a>
-  // Must be done WITHOUT creating eval'ed code!!!
-  
-  // 1. preg_replace \[\[([a-zA-Z0-9 -_:]*?)\]\] with <a href="'.contentPath.'\\1">\\1</a>
-  // 2. preg_match_all <a href="'.preg_quote(contentPath).'([a-zA-Z0-9 -_:]*?)">
-  // 3. For each match, replace matches with identifiers
-  // 4. For each match, str_replace ' ' with '_'
-  // 5. For each match, str_replace match_id:random_val with $matches[$match_id]
-  
-  // The template language is really a miniature programming language; with variables, conditionals, everything!
-  // So you can implement custom logic into your sidebar if you wish.
-  // "Real" PHP support coming soon :-D
+  // n00bish comments removed from here. 2008-03-13 @ 12:02AM when I had nothing else to do.
   
   /**
    * Takes a blob of HTML with the specially formatted template-oriented wikitext and formats it. Does not use eval().

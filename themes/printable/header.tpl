@@ -7,6 +7,11 @@
     <link id="mdgCss" rel="stylesheet" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" type="text/css" />
     {ADDITIONAL_HEADERS}
     
+    <style type="text/css" media="print">
+    span.normallink {
+      display: none;
+    }
+    </style>
   </head>
   <body>
     <div class="pad"><div class="contentDiv">
