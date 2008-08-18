@@ -803,6 +803,16 @@ class pathManager
     global $db, $session, $paths, $template, $plugins; // Common objects
     require_once(ENANO_ROOT . '/includes/search.php');
     
+    $progress = false;
+    if ( class_exists('ProgressBar') )
+    {
+      // CLI only.
+      $progress = new ProgressBar('Rebuilding search index: [', ']', 'Initializing...', 'green', 'blue', 'white', 'yellow');
+      $verbose = false;
+      $debug = false;
+      $progress->start();
+    }
+    
     @set_time_limit(0);
     
     $q = $db->sql_query('DELETE FROM ' . table_prefix . 'search_index;');
@@ -867,6 +877,11 @@ class pathManager
             if ( $debug )
               echo ", mem = $mu...";
             flush();
+          }
+          else if ( is_object($progress) )
+          {
+            $progress->update_text_quiet("$k/$num_pages {$row['namespace']}:{$row['page_id']}");
+            $progress->set($k, $num_pages);
           }
           
           // skip this page if it's not supposed to be indexed
@@ -942,6 +957,11 @@ class pathManager
       if ( isset($_SERVER['REQUEST_URI']) )
         echo '<br />';
       echo "\n";
+    }
+    else if ( is_object($progress) )
+    {
+      $progress->update_text('Complete.');
+      $progress->end();
     }
     return true;
   }

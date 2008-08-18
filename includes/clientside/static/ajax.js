@@ -222,24 +222,194 @@ window.ajaxDeletePage = function()
   if ( KILL_SWITCH )
     return true;
   load_component('l10n');
-  var reason = prompt($lang.get('ajax_delete_prompt_reason'));
-  if ( !reason || reason == '' )
+  load_component('messagebox');
+  load_component('SpryEffects');
+  
+  // stage 1: prompt for reason and confirmation
+  miniPrompt(function(parent)
+    {
+      // heading/title
+      var h3 = document.createElement('h3');
+      h3.appendChild(document.createTextNode($lang.get('ajax_delete_header')));
+      parent.appendChild(h3);
+      
+      // "please enter your reason"
+      var p1 = document.createElement('p');
+      p1.appendChild(document.createTextNode($lang.get('ajax_delete_prompt_reason')));
+      parent.appendChild(p1);
+      
+      // textbox + label thereof
+      var p2 = document.createElement('p');
+      var tb = document.createElement('input');
+      var dl = document.createElement('label');
+      
+      tb.type = 'text';
+      tb.size = '30';
+      tb.onkeyup = function(e)
+      {
+        if ( e )
+        if ( e.keyCode )
+        if ( e.keyCode == 13 )
+        {
+          if ( ajaxDeletePageSubmit(this) )
+          {
+            miniPromptDestroy(this);
+          }
+        }
+        else if ( e.keyCode == 27 )
+        {
+          miniPromptDestroy(this);
+        }
+      }
+      
+      dl.appendChild(document.createTextNode($lang.get('ajax_delete_lbl_reason') + ' '));
+      dl.appendChild(tb);
+      p2.appendChild(dl);
+      parent.appendChild(p2);
+      
+      // notice underneath
+      var p3 = document.createElement('p');
+      p3.style.fontSize = 'smaller';
+      p3.appendChild(document.createTextNode($lang.get('ajax_delete_msg_confirm')));
+      parent.appendChild(p3);
+      
+      // confirmation + submit/cancel (structure)
+      var divleft  = document.createElement('div');
+      var divright = document.createElement('div');
+      var divclear = document.createElement('div');
+      
+      divleft.style.cssFloat = 'left';
+      divleft.style.styleFloat = 'left';
+      
+      divright.style.cssFloat = 'right';
+      divright.style.styleFloat = 'right';
+      
+      divclear.style.clear = 'both';
+      
+      parent.appendChild(divleft);
+      parent.appendChild(divright);
+      parent.appendChild(divclear);
+      
+      // confirmation + submit/cancel (controls)
+      var cb = document.createElement('input');
+      var cl = document.createElement('label');
+      
+      cb.type = 'checkbox';
+      cb.checked = false;
+      
+      // a bit of a hack here, doesn't seem to work in fx3
+      cb.onblur = function(e)
+      {
+        var parent = this.parentNode.parentNode.parentNode;
+        var submitter = parent.getElementsByTagName('a')[0];
+        if ( submitter )
+          submitter.focus();
+      }
+      
+      cl.appendChild(cb);
+      cl.appendChild(document.createTextNode(' ' + $lang.get('ajax_delete_lbl_confirm')));
+      divleft.appendChild(cl);
+      
+      var btn_submit = document.createElement('a');
+      btn_submit.className = 'abutton abutton_red';
+      btn_submit.href = '#';
+      btn_submit.appendChild(document.createTextNode($lang.get('ajax_delete_btn_delete')));
+      btn_submit.onclick = function()
+      {
+        if ( ajaxDeletePageSubmit(this) )
+        {
+          miniPromptDestroy(this);
+        }
+        return false;
+      }
+      
+      var btn_cancel = document.createElement('a');
+      btn_cancel.className = 'abutton';
+      btn_cancel.href = '#';
+      btn_cancel.appendChild(document.createTextNode($lang.get('etc_cancel')));
+      btn_cancel.onclick = function()
+      {
+        miniPromptDestroy(this);
+        return false;
+      }
+      
+      divright.appendChild(btn_submit);
+      divright.appendChild(document.createTextNode(' '));
+      divright.appendChild(btn_cancel);
+      
+      var timeout = ( aclDisableTransitionFX ) ? 10 : 1000;
+      setTimeout(function()
+        {
+          tb.focus();
+        }, timeout);
+    });
+}
+
+window.ajaxDeletePageSubmit = function(prompt_obj)
+{
+  prompt_obj = miniPromptGetParent(prompt_obj).childNodes[1];
+  var inputs = prompt_obj.getElementsByTagName('input');
+  var reason = inputs[0];
+  var confirm = inputs[1];
+  
+  if ( trim(reason.value) == '' )
   {
+    // flash the background of the reason entry
+    if ( !reason.sfx )
+      reason.sfx = new Spry.Effect.Highlight(reason.parentNode);
+    
+    reason.sfx.start();
     return false;
   }
-  c = confirm($lang.get('ajax_delete_confirm'));
-  if(!c)
+  
+  if ( !confirm.checked )
   {
-    return;
+    // flash the background of the confirm checkbox
+    if ( !confirm.sfx )
+      confirm.sfx = new Spry.Effect.Highlight(confirm.parentNode);
+    
+    confirm.sfx.start();
+    return false;
   }
+  
+  prompt_obj.innerHTML = '<img alt="loading" style="display: block; margin: 0 auto;" src="' + cdnPath + '/images/loading-big.gif" />';
+  
+  // tenemos la confirmación y la razón - borre la página.
   setAjaxLoading();
-  ajaxPost(stdAjaxPrefix+'&_mode=deletepage', 'reason=' + ajaxEscape(reason), function() {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      alert(ajax.responseText);
-      window.location.reload();                                                                           
-    }
-  });
+  ajaxPost(stdAjaxPrefix + '&_mode=deletepage', 'reason=' + ajaxEscape(trim(reason.value)), function()
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        unsetAjaxLoading();
+        
+        // show the response in the same prompt window
+        prompt_obj.style.textAlign = 'center';
+        prompt_obj.innerHTML = '';
+        
+        var p1 = document.createElement('div');
+        p1.style.marginBottom = '15px';
+        p1.appendChild(document.createTextNode(ajax.responseText));
+        prompt_obj.appendChild(p1);
+        
+        var p2 = document.createElement('p');
+        var a = document.createElement('a');
+        a.className = 'abutton';
+        a.href = '#';
+        a.appendChild(document.createTextNode($lang.get('etc_close')));
+        a.onclick = function()
+        {
+          miniPromptDestroy(this);
+          window.location.reload();
+          return false;
+        }
+        p2.appendChild(a);
+        prompt_obj.appendChild(a);
+        
+        a.focus();
+      }
+    });
+  
+  return true;
 }
 
 window.ajaxDelVote = function()
