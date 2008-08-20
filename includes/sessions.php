@@ -886,6 +886,8 @@ class sessionManager {
    
   function register_session($user_id, $username, $password, $level = USER_LEVEL_MEMBER, $remember = false)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
     // Random key identifier
     $salt = md5(microtime() . mt_rand());
     
@@ -933,7 +935,11 @@ class sessionManager {
       die('Somehow an SQL injection attempt crawled into our session registrar! (2)');
     
     // All done!
-    $query = $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time, key_type) VALUES(\''.$keyhash.'\', \''.$salt.'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.', ' . $key_type . ');');
+    $query = $db->sql_query('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time, key_type) VALUES(\''.$keyhash.'\', \''.$salt.'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.', ' . $key_type . ');');
+    if ( !$query && defined('IN_ENANO_UPGRADE') )
+      // we're trying to upgrade so the key_type column is probably missing - try it again without specifying the key type
+      $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time) VALUES(\''.$keyhash.'\', \''.$salt.'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.');');
+      
     return true;
   }
   
