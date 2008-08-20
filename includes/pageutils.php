@@ -1162,6 +1162,8 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    global $cache;
+    
     if ( !$session->get_permissions('vote_delete') )
     {
       return $lang->get('etc_access_denied');
@@ -1214,6 +1216,11 @@ class PageUtils {
     
     $q = 'UPDATE ' . table_prefix.'pages SET delvotes=' . $cv . ',delvote_ips=\'' . $ips . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'';
     $w = $db->sql_query($q);
+    if ( !$w )
+      $db->_die();
+    
+    // all done, flush page cache to mark it up
+    $cache->purge('page_meta');
     
     return $lang->get('ajax_delvote_success');
   }
@@ -1229,15 +1236,21 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    global $cache;
+    
     if(!$session->get_permissions('vote_reset'))
     {
       return $lang->get('etc_access_denied');
     }
     $q = 'UPDATE ' . table_prefix.'pages SET delvotes=0,delvote_ips=\'' . $db->escape(serialize(array('ip'=>array(),'u'=>array()))) . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'';
     $e = $db->sql_query($q);
-    if(!$e) $db->_die('The number of delete votes was not reset.');
+    if ( !$e )
+    {
+      $db->_die('The number of delete votes was not reset.');
+    }
     else
     {
+      $cache->purge('page_meta');
       return $lang->get('ajax_delvote_reset_success');
     }
   }

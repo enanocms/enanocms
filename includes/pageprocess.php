@@ -640,6 +640,7 @@ class PageProcessor
   function rollback_log_entry($log_id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $cache;
     
     // Verify permissions
     if ( !$this->perms->get_permissions('history_rollback') )
@@ -698,6 +699,8 @@ class PageProcessor
         
         // FIXME: l10n
         // rollback_extra is required because usually only moderators can undo page deletion AND restore the content.
+        // potential flaw here - once recreated, can past revisions be restored by users without rollback_extra? should
+        // probably modify editor routine to deny revert access if the timestamp < timestamp of last deletion if any.
         if ( !$this->perms->get_permissions('history_rollback_extra') )
           return 'Administrative privileges are required for page undeletion.';
         
@@ -737,6 +740,8 @@ class PageProcessor
                           . "  ( '$this->page_id', '$this->namespace', '$page_text' );");
         if ( !$e )
           $db->die_json();
+        
+        $cache->purge('page_meta');
         
         return array(
             'success' => true,

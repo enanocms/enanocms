@@ -143,10 +143,13 @@ profiler_log('Fetched plugin list');
 global $plugins;
 
 // Load plugins from common because we can't give plugins full abilities in object context
-foreach ( $plugins->load_list as $f )
+if ( !defined('ENANO_NO_PLUGINS') )
 {
-  if ( file_exists(ENANO_ROOT . '/plugins/' . $f) )
-    include_once ENANO_ROOT . '/plugins/' . $f;
+  foreach ( $plugins->load_list as $f )
+  {
+    if ( file_exists(ENANO_ROOT . '/plugins/' . $f) )
+      include_once ENANO_ROOT . '/plugins/' . $f;
+  }
 }
 
 profiler_log('Loaded plugins');
