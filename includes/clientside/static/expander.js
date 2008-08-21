@@ -82,8 +82,8 @@ function expander_close(el)
     if ( child.tagName == 'LEGEND' )
     {
       var a = child.getElementsByTagName('a')[0];
-      $(a).rmClass('expander-open');
-      $(a).addClass('expander-closed');
+      $dynano(a).rmClass('expander-open');
+      $dynano(a).addClass('expander-closed');
       continue;
     }
     if ( child.style )
@@ -105,8 +105,8 @@ function expander_open(el)
     if ( child.tagName == 'LEGEND' )
     {
       var a = child.getElementsByTagName('a')[0];
-      $(a).rmClass('expander-closed');
-      $(a).addClass('expander-open');
+      $dynano(a).rmClass('expander-closed');
+      $dynano(a).addClass('expander-open');
       continue;
     }
     if ( child.expander_meta_old_state && child.style )

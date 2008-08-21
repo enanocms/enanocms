@@ -92,7 +92,8 @@ window.ajaxLoginInit = function(call_on_finish, user_level)
 {
   load_component('messagebox');
   load_component('flyin');
-  load_component('SpryEffects');
+  load_component('jquery');
+  load_component('jquery-ui');
   load_component('l10n');
   load_component('crypto');
   
@@ -365,7 +366,7 @@ window.ajaxLoginProcessResponse = function(response)
       ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
       document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
       var mb_parent = document.getElementById('messageBox').parentNode;
-      new Spry.Effect.Shake(mb_parent, {duration: 1500}).start();
+      $(mb_parent).effect("shake", {}, 1500);
       setTimeout(function()
         {
           document.getElementById('messageBox').style.backgroundColor = '#FFF';
@@ -386,7 +387,7 @@ window.ajaxLoginProcessResponse = function(response)
         ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
         document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
         var mb_parent = document.getElementById('messageBox').parentNode;
-        new Spry.Effect.Shake(mb_parent, {duration: 1500}).start();
+        $(mb_parent).effect("shake", {}, 1500);
         setTimeout(function()
           {
             document.getElementById('messageBox').style.backgroundColor = '#FFF';
@@ -855,7 +856,7 @@ window.ajaxLoginShowFriendlyError = function(response)
   // console.info('Drawing new error-box');
   
   // calculate position for the top of the box
-  var mb_bottom = $('messageBoxButtons').Top() + $('messageBoxButtons').Height();
+  var mb_bottom = $dynano('messageBoxButtons').Top() + $dynano('messageBoxButtons').Height();
   // if the box isn't done flying in yet, just estimate
   if ( mb_bottom < ( getHeight() / 2 ) )
   {

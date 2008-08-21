@@ -175,8 +175,8 @@ window.ajaxRenameSubmit = function(obj)
   
   var innerBox = getElementsByClassName(box, 'div', 'mp-body')[0];
   var whiteout = whiteOutElement(innerBox);
-  whiteout.style.width = ( $(whiteout).Width() - 78 ) + 'px';
-  whiteout.style.left = ( $(whiteout).Left() + 44 ) + 'px';
+  whiteout.style.width = ( $dynano(whiteout).Width() - 78 ) + 'px';
+  whiteout.style.left = ( $dynano(whiteout).Left() + 44 ) + 'px';
   
   ajaxPost(stdAjaxPrefix + '&_mode=rename', 'newtitle=' + ajaxEscape(newname), function()
     {
@@ -223,7 +223,8 @@ window.ajaxDeletePage = function()
     return true;
   load_component('l10n');
   load_component('messagebox');
-  load_component('SpryEffects');
+  load_component('jquery');
+  load_component('jquery-ui');
   
   // stage 1: prompt for reason and confirmation
   miniPrompt(function(parent)
@@ -355,20 +356,14 @@ window.ajaxDeletePageSubmit = function(prompt_obj)
   if ( trim(reason.value) == '' )
   {
     // flash the background of the reason entry
-    if ( !reason.sfx )
-      reason.sfx = new Spry.Effect.Highlight(reason.parentNode);
-    
-    reason.sfx.start();
+    $(reason.parentNode).effect("highlight", {}, 1000);
     return false;
   }
   
   if ( !confirm.checked )
   {
     // flash the background of the confirm checkbox
-    if ( !confirm.sfx )
-      confirm.sfx = new Spry.Effect.Highlight(confirm.parentNode);
-    
-    confirm.sfx.start();
+    $(confirm.parentNode).effect("highlight", {}, 1000);
     return false;
   }
   

@@ -325,7 +325,8 @@ function miniPrompt(call_on_create)
   if ( !aclDisableTransitionFX )
   {
     load_component('flyin');
-    load_component('SpryEffects');
+    load_component('jquery');
+    load_component('jquery-ui');
   }
   var darkener = darken(aclDisableTransitionFX, 40, 'miniprompt_darkener');
   
@@ -372,8 +373,7 @@ function miniPrompt(call_on_create)
   {
     if ( !aclDisableTransitionFX )
     {
-      // for some reason, spry's pulsate effects takes duration in ms instead of seconds.
-      (new Spry.Effect.Pulsate(this.miniprompt, { duration: 500, from: '100%', to: '70%' })).start();
+      $(this.miniprompt).effect("pulsate", { times: 2 }, 200);
     }
   }
   

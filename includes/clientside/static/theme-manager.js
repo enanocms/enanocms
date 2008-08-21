@@ -7,11 +7,11 @@ function ajaxToggleSystemThemes()
     var child = theme_list.childNodes[i];
     if ( child.tagName == 'DIV' )
     {
-      if ( $(child).hasClass('themebutton_theme_system') )
+      if ( $dynano(child).hasClass('themebutton_theme_system') )
       {
-        if ( $(child).hasClass('themebutton_theme_disabled') )
+        if ( $dynano(child).hasClass('themebutton_theme_disabled') )
         {
-          $(child).rmClass('themebutton_theme_disabled')
+          $dynano(child).rmClass('themebutton_theme_disabled')
         }
         if ( mode == 'show' )
         {

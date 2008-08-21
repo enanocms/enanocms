@@ -875,19 +875,23 @@ function page_Special_Autofill()
             );
             $key = array_merge($key, $session->get_user_rank($row['username']));
             $key['rank_title'] = $lang->get($key['rank_title']);
+            $key[0] = $row['username'];
             $dataset[] = $key;
+            // $dataset[] = array($row['username'], $row['username']);
+            // echo "{$row['username']}|{$row['username']}\n";
           }
         }
+        // return;
         break;
       case 'page':
         if ( isset($_GET['userinput']) && strlen($_GET['userinput']) >= 3 )
         {
           $search = '%' . escape_string_like($_GET['userinput']) . '%';
-          $q = $db->sql_query('SELECT urlname, namespace, name FROM ' . table_prefix . "users\n"
+          $q = $db->sql_query('SELECT urlname, namespace, name FROM ' . table_prefix . "pages\n"
                             . "  WHERE (\n"
                             . "       " . ENANO_SQLFUNC_LOWERCASE . "(urlname) LIKE '$search'\n"
                             . "    OR " . ENANO_SQLFUNC_LOWERCASE . "(name)    LIKE '$search'\n"
-                            . "  ) AND user_id > 1");
+                            . "  );");
           if ( !$q )
             $db->die_json();
           
@@ -895,7 +899,7 @@ function page_Special_Autofill()
           {
             $pathskey = ( isset($paths->nslist[$row['namespace']]) ? $paths->nslist[$row['namespace']] : $row['namespace'] . substr($paths->nslist['Special'], -1) ) . $row['urlname'];
             $key = array(
-              'page_id' => $pathskey,
+              0 => $pathskey,
               'pid_highlight'  => highlight_term($_GET['userinput'], dirtify_page_id($pathskey), '<b>', '</b>'),
               'name_highlight' => highlight_term($_GET['userinput'], $row['name'], '<b>', '</b>')
             );

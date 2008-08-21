@@ -107,7 +107,7 @@ function DN_switchToMCE(performWikiTransform)
   // If tinyMCE init hasn't been called yet, do it now.
   if ( !tinymce_initted )
   {
-    console.info('$().switchToMCE(): doing "exact"-type MCE init');
+    console.info('$dynano().switchToMCE(): doing "exact"-type MCE init');
     enano_tinymce_options.mode = 'exact';
     enano_tinymce_options.elements = this.object.id;
     initTinyMCE();
@@ -116,7 +116,7 @@ function DN_switchToMCE(performWikiTransform)
   }
   else
   {
-    console.info('$().switchToMCE(): tinyMCE already loaded, calling mceAddControl');
+    console.info('$dynano().switchToMCE(): tinyMCE already loaded, calling mceAddControl');
     tinymce.EditorManager.execCommand("mceAddControl", true, this.object.id);
     this.object.dnIsMCE = 'yes';
   }

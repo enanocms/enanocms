@@ -1201,6 +1201,7 @@ JSEOF;
       'TEMPLATE_DIR'=>scriptPath.'/themes/'.$this->theme,
       'THEME_ID'=>$this->theme,
       'STYLE_ID'=>$this->style,
+      'MAIN_PAGE' => getConfig('main_page'),
       'JS_HEADER' => $js_head,
       'JS_FOOTER' => $js_foot,
       'JS_DYNAMIC_VARS'=>$js_dynamic,
@@ -1247,6 +1248,7 @@ JSEOF;
   
   /**
    * Performs var init that is common to all pages (IOW, called only once)
+   * Not used yet because most stuff is either theme-dependent or page-dependent.
    * @access private
    */
   
@@ -1945,7 +1947,7 @@ EOF;
   function username_field($name, $value = false)
   {
     $randomid = md5( time() . microtime() . mt_rand() );
-    $text = '<input name="'.$name.'" class="autofill username" type="text" size="30" id="userfield_'.$randomid.'"';
+    $text = '<input name="'.$name.'" onkeyup="new AutofillUsername(this);" type="text" size="30" id="userfield_'.$randomid.'" autocomplete="off"';
     if($value) $text .= ' value="'.$value.'"';
     $text .= ' />';
     return $text;
@@ -1960,7 +1962,7 @@ EOF;
   function pagename_field($name, $value = false)
   {
     $randomid = md5( time() . microtime() . mt_rand() );
-    $text = '<input name="'.$name.'" class="autofill page" type="text" size="30" id="pagefield_'.$randomid.'"';
+    $text = '<input name="'.$name.'" onkeyup="new AutofillPage(this);" type="text" size="30" id="pagefield_'.$randomid.'" autocomplete="off"';
     if($value) $text .= ' value="'.$value.'"';
     $text .= ' />';
     return $text;
@@ -2052,7 +2054,7 @@ EOF;
    * @return array - key 0 is left, key 1 is right
    * @example list($left, $right) = $template->fetch_sidebar();
    */
-   
+  
   function fetch_sidebar()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -2071,6 +2073,7 @@ EOF;
         {
           $md = str_replace('$USERNAME$', $session->username, $md);
           $md = str_replace('$PAGEID$', $paths->page, $md);
+          $md = str_replace('$MAIN_PAGE$', getConfig('main_page'), $md);
         }
         return $data;
       }
@@ -2118,7 +2121,10 @@ EOF;
           break;
         case BLOCK_PLUGIN:
           $parser = $this->makeParserText('{CONTENT}');
-          $c = '<!-- PLUGIN -->' . (gettype($this->fetch_block($row['block_content'])) == 'string') ? $this->fetch_block($row['block_content']) : /* This used to say "can't find plugin block" but I think it's more friendly to just silently hide it. */ '';
+          $c = '<!-- PLUGIN -->' . (gettype($this->fetch_block($row['block_content'])) == 'string') ?
+                  $this->fetch_block($row['block_content']) :
+                  // This used to say "can't find plugin block" but I think it's more friendly to just silently hide it.
+                  '';
           break;
       }
       // is there a {restrict} or {hideif} block?
@@ -2169,9 +2175,16 @@ EOF;
       $cachestore = enano_json_encode($return);
       $cachestore = str_replace($session->username, '$USERNAME$', $cachestore);
       $cachestore = str_replace($paths->page, '$PAGEID$', $cachestore);
+      $cachestore = str_replace('__STATICLINK__', $paths->page, $cachestore);
+      $cachestore = str_replace('__MAINPAGELINK__', '$MAIN_PAGE$', $cachestore);
       $cachestore = enano_json_decode($cachestore);
       $cachestore['_theme_'] = $this->theme;
       $cache->store('anon_sidebar', $cachestore, 10);
+      
+      foreach ( $return as &$el )
+      {
+        $el = str_replace('__STATICLINK__', $paths->page, $el);
+      }
     }
     return $return;
   }

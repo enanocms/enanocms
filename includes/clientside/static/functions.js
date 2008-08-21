@@ -154,7 +154,8 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
 function handle_invalid_json(response, customerror)
 {
   load_component('messagebox');
-  load_component('SpryEffects');
+  load_component('jquery');
+  load_component('jquery-ui');
   load_component('fadefilter');
   load_component('flyin');
   load_component('l10n');
@@ -295,20 +296,11 @@ function handle_invalid_json(response, customerror)
       }
       else
       {
-        var effect = new Spry.Effect.Blind(parentdiv, {
-            from: '100%',
-            to: '0%',
-            duration: '1000'
-          });
-        var observer = {
-          onPostEffect: function()
-            {
-              parentdiv.parentNode.removeChild(parentdiv);
+        $(parentdiv).hide("blind", {}, 1000, function()
+          {
+            parentdiv.parentNode.removeChild(parentdiv);
               enlighten();
-            }
-          };
-        effect.addObserver(observer);
-        effect.start();
+          });
       }
     }
     panel.appendChild(closer);
@@ -333,8 +325,8 @@ function handle_invalid_json(response, customerror)
     
     // calculate position of the box
     // box should be exactly 640px high, 480px wide
-    var top = ( getHeight() / 2 ) - ( $(box).Height() / 2 ) + getScrollOffset();
-    var left = ( getWidth() / 2 ) - ( $(box).Width() / 2 );
+    var top = ( getHeight() / 2 ) - ( $dynano(box).Height() / 2 ) + getScrollOffset();
+    var left = ( getWidth() / 2 ) - ( $dynano(box).Width() / 2 );
     console.debug('top = %d, left = %d', top, left);
     box.style.top = top + 'px';
     box.style.left = left + 'px';
@@ -352,11 +344,7 @@ function handle_invalid_json(response, customerror)
       
       setTimeout(function()
         {
-          (new Spry.Effect.Blind(box, {
-              from: '0%',
-              to: '100%',
-              duration: 1000
-            })).start();
+          $(box).show("blind", {}, 1000);
         }, 1000);
     }
   return false;
@@ -577,10 +565,10 @@ function changeOpac(opacity, id)
 // draw a white ajax-ey "loading" box over an object
 function whiteOutElement(el)
 {
-  var top = $(el).Top();
-  var left = $(el).Left();
-  var width = $(el).Width();
-  var height = $(el).Height();
+  var top = $dynano(el).Top();
+  var left = $dynano(el).Left();
+  var width = $dynano(el).Width();
+  var height = $dynano(el).Height();
   
   var blackout = document.createElement('div');
   // using fixed here allows modal windows to be blacked out
@@ -592,7 +580,7 @@ function whiteOutElement(el)
   
   blackout.style.backgroundColor = '#FFFFFF';
   domObjChangeOpac(60, blackout);
-  var background = ( $(el).Height() < 48 ) ? 'url(' + scriptPath + '/images/loading.gif)' : 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
+  var background = ( $dynano(el).Height() < 48 ) ? 'url(' + scriptPath + '/images/loading.gif)' : 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
   blackout.style.backgroundImage = background;
   blackout.style.backgroundPosition = 'center center';
   blackout.style.backgroundRepeat = 'no-repeat';

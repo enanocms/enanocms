@@ -434,7 +434,7 @@ function page_Admin_PluginManager()
                   <div style=\"float: right;\">
                     <b>$status</b>
                   </div>
-                  <div style=\"cursor: pointer;\" onclick=\"if ( !this.fx ) { load_component('SpryEffects'); load_component('messagebox'); load_component('ajax'); this.fx = new Spry.Effect.Blind('plugininfo_$uuid', { duration: 500, from: '0%', to: '100%', toggle: true }); } this.fx.start();\">
+                  <div style=\"cursor: pointer;\" onclick=\"if ( !this.fx ) { load_component('jquery'); load_component('jquery-ui'); load_component('messagebox'); load_component('ajax'); this.fx = true; } $('#plugininfo_$uuid').toggle('blind', {}, 500);\">
                     $plugin_basics
                   </div>
                   <span class=\"menuclear\"></span>

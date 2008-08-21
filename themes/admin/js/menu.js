@@ -42,7 +42,7 @@ function admin_expand_real(expander, content, holder)
 function expander_set_height()
 {
   var expander = document.getElementById('sidebar-hide');
-  var magic = $('header').Height() + $('pagebar_main').Height();
+  var magic = $dynano('header').Height() + $dynano('pagebar_main').Height();
   var height = getHeight();
   var exheight = height - magic;
   expander.style.height = exheight + 'px';
@@ -68,7 +68,7 @@ function expander_onload()
 function expander_set_pos()
 {
   var winheight = getHeight();
-  var magic = $('header').Height() + $('pagebar_main').Height();
+  var magic = $dynano('header').Height() + $dynano('pagebar_main').Height();
   var top = getScrollOffset();
   if ( typeof(top) != 'number' )
   {

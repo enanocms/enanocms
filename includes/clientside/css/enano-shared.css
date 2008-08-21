@@ -827,23 +827,6 @@ div.rankadmin-right {
   float: left;
 }
 
-/* Spry auto-suggestion */
-.hideSuggestClass
-{
-	max-height: 200px;
-	overflow:auto;
-	display:none;
-	width: 175px;
-	margin: 0px;
-	cursor: pointer;
-	z-index: 1011;
-}
-
-.showSuggestClass .hideSuggestClass
-{
-	display: block !important;
-}
-
 .adminiconsprite {
   width: 16px;
   height: 16px;

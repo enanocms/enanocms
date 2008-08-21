@@ -139,7 +139,6 @@ var startheight = false;
 var do_width    = false;
 var ajax_load_icon = cdnPath + '/images/loading.gif';
 var editor_use_modal_window = false;
-var Spry = {};
 
 // You have an NSIS coder in your midst...
 var MB_OK = 1;
@@ -378,7 +377,6 @@ var autofill_check = function()
         return;
       }
     }
-    /*
     else if ( typeof(inputs[i].onkeyup) == 'function' )
     {
       var f = new String(inputs[i].onkeyup);
@@ -390,7 +388,6 @@ var autofill_check = function()
         return;
       }
     }
-    */
   }
 }
 

@@ -233,7 +233,7 @@ $ui->show_header();
     if ( !verify() )
     {
       document.body.scrollTop = 0;
-      new Spry.Effect.Shake('enano-body', {duration: 750}).start();
+      $('enano-body').effect('shake', {}, 750);
       document.getElementById('verify_error').className = 'error-box-mini';
       document.getElementById('verify_error').innerHTML = $lang.get('meta_msg_err_verification');
       return false;

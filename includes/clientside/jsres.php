@@ -98,7 +98,6 @@ $full_compress_safe = array(
   'dropdown.js',
   'paginate.js',
   'enano-lib-basic.js',
-  'SpryJSONDataSet.js',
   'pwstrength.js',
   'flyin.js',
   'rank-manager.js',
@@ -108,7 +107,7 @@ $full_compress_safe = array(
 );
 
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code
-$compress_unsafe = array('SpryEffects.js', 'json.js', 'fat.js', 'admin-menu.js', 'autofill.js');
+$compress_unsafe = array('json.js', 'fat.js', 'admin-menu.js', 'autofill.js', 'jquery.js', 'jquery-ui.js');
 
 require_once('includes/js-compressor.php');
 

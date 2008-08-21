@@ -17,7 +17,7 @@ var userpage_onload = function()
     var block = blocks[i];
     if ( /^tab:/.test(block.id) )
     {
-      $(block).addClass('userpage_block');
+      $dynano(block).addClass('userpage_block');
       var block_id = block.id.substr(4);
       userpage_blocks.push(block_id);
       if ( !first_block )
@@ -88,9 +88,9 @@ function userpage_select_block(block, nofade)
     var a = document.getElementById('userpage_blocklink_' + userpage_blocks[i]);
     if ( a )
     {
-      if ( $(a.parentNode).hasClass('userpage_tab_active') )
+      if ( $dynano(a.parentNode).hasClass('userpage_tab_active') )
       {
-        $(a.parentNode).rmClass('userpage_tab_active');
+        $dynano(a.parentNode).rmClass('userpage_tab_active');
       }
     }
   }
@@ -99,20 +99,19 @@ function userpage_select_block(block, nofade)
     var div = document.getElementById('tab:' + block);
     div.style.display = 'block';
   }
-  /*
   else
   {
+    // DISABLED: see "nofade = true;" above.
     // do this in a slightly fancier fashion
-    load_component('SpryEffects');
-    (new Spry.Effect.Blind('tab:' + current_block, { from: '100%', to: '0%', finish: function()
-        {
-          (new Spry.Effect.Blind('tab:' + block, { from: '0%', to: '100%' })).start();
-        }
-      })).start();
+    load_component('jquery');
+    load_component('jquery-ui');
+    $('#tab:' + current_block).hide("blind", {}, 500, function()
+    {
+      $('#tab:' + block).show("blind", {}, 500);
+    });
   }
-  */
   var a = document.getElementById('userpage_blocklink_' + block);
-  $(a.parentNode).addClass('userpage_tab_active');
+  $dynano(a.parentNode).addClass('userpage_tab_active');
   
   window.location.hash = 'tab:' + block;
   setScrollOffset(currentScroll);

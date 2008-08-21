@@ -4,8 +4,8 @@
  */
 
 //
-// **** 1.1.4: DEPRECATED ****
-// Replaced with Spry-based mechanism.
+// **** 1.1.5: DEPRECATED ****
+// Replaced with jQuery-based mechanism.
 //
 
 

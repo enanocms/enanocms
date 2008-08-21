@@ -110,19 +110,19 @@ $ui->show_header();
     if ( frm.site_name.value == '' )
     {
       fail = true;
-      new Spry.Effect.Shake($(frm.site_name).object, {duration: 750}).start();
+      $(frm.site_name).effect("shake", {}, 750);
       frm.site_name.focus();
     }
     if ( frm.site_desc.value == '' )
     {
-      new Spry.Effect.Shake($(frm.site_desc).object, {duration: 750}).start();
+      $(frm.site_desc).effect("shake", {}, 750);
       if ( !fail )
         frm.site_desc.focus();
       fail = true;
     }
     if ( frm.copyright.value == '' )
     {
-      new Spry.Effect.Shake($(frm.copyright).object, {duration: 750}).start();
+      $(frm.copyright).effect("shake", {}, 750);
       if ( !fail )
         frm.copyright.focus();
       fail = true;

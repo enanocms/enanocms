@@ -681,7 +681,8 @@ function ajaxRankEditDeleteConfirmed(editor)
 {
   var whitey = whiteOutElement(editor.wrapperdiv);
   
-  load_component('SpryEffects');
+  load_component('jquery');
+  load_component('jquery-ui');
   
   var json_packet = {
     mode: 'delete_rank',
@@ -721,13 +722,13 @@ function ajaxRankEditDeleteConfirmed(editor)
                 edit_link.parentNode.removeChild(edit_link);
               }
               // collapse and destroy the editor
-              new Spry.Effect.Blind(editor.wrapperdiv, { duration: 500, finish: function()
+              $(editor.wrapperdiv).hide("blind", {}, 500, function()
                   {
                     // when the animation finishes, nuke the whole thing
                     var container = document.getElementById('admin_ranks_container_right');
                     container.innerHTML = $lang.get('acpur_msg_select_rank');
                   }
-                }).start();
+                );
             }, 1500);
         }
         else
