@@ -863,7 +863,8 @@ function page_Special_Autofill()
         if ( isset($_GET['userinput']) && strlen($_GET['userinput']) >= 3 )
         {
           $search = '%' . escape_string_like($_GET['userinput']) . '%';
-          $q = $db->sql_query('SELECT username FROM ' . table_prefix . "users WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) LIKE '$search' AND user_id > 1");
+          $min_id = ( isset($_GET['allow_anon']) && $_GET['allow_anon'] == '1' ) ? '1' : '2';
+          $q = $db->sql_query('SELECT username FROM ' . table_prefix . "users WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) LIKE '$search' AND user_id >= $min_id");
           if ( !$q )
             $db->die_json();
           
@@ -898,6 +899,7 @@ function page_Special_Autofill()
           while ( $row = $db->fetchrow() )
           {
             $pathskey = ( isset($paths->nslist[$row['namespace']]) ? $paths->nslist[$row['namespace']] : $row['namespace'] . substr($paths->nslist['Special'], -1) ) . $row['urlname'];
+            
             $key = array(
               0 => $pathskey,
               'pid_highlight'  => highlight_term($_GET['userinput'], dirtify_page_id($pathskey), '<b>', '</b>'),

@@ -524,6 +524,12 @@ input:focus, textarea:focus, select:focus {
   padding: 3px;
 }
 
+input.ac_loading {
+  background-image: url(../../../images/loading.gif);
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
 label {
   padding: 3px;
   cursor: pointer;

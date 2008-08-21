@@ -4,6 +4,7 @@
 var AUTOSAVE_TIMEOUT = 15;
 var AutosaveTimeoutObj = null;
 var editor_img_path = cdnPath + '/images/editor';
+var editor_save_lock = false;
 
 window.ajaxEditor = function(revid)
 {
@@ -521,6 +522,11 @@ window.ajaxEditorSave = function(is_draft, text_override)
 {
   if ( !is_draft )
     ajaxSetEditorLoading();
+  if ( is_draft && editor_save_lock )
+    return false;
+  else
+    editor_save_lock = true;
+  
   var ta_content = ( text_override ) ? text_override : $dynano('ajaxEditArea').getContent();
   
   if ( !is_draft && ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' ) )
@@ -659,6 +665,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
             // The save was successful; reset flags and make another request for the new page content
             setAjaxLoading();
             editor_open = false;
+            editor_save_lock = false;
             enableUnload();
             changeOpac(0, 'ajaxEditContainer');
             ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function()

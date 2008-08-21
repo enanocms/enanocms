@@ -377,17 +377,6 @@ var autofill_check = function()
         return;
       }
     }
-    else if ( typeof(inputs[i].onkeyup) == 'function' )
-    {
-      var f = new String(inputs[i].onkeyup);
-      if ( f.match(/AutofillUsername/) )
-      {
-        delete(f.onkeyup);
-        f.className = 'autofill username';
-        autofill_check();
-        return;
-      }
-    }
   }
 }
 
@@ -495,6 +484,7 @@ var placeholder_list = {
   ajaxSetPassword: 'ajax.js',
   ajaxChangeStyle: 'ajax.js',
   ajaxCatToTag: 'ajax.js',
+  ajaxCatEdit: 'ajax.js',
   ajaxOpenACLManager: 'acl.js',
   ajaxOpenDirectACLRule: 'acl.js',
   ajaxAdminPage: 'login.js',
@@ -519,8 +509,26 @@ var placeholder_list = {
   ajaxToggleSystemThemes: 'theme-manager.js',
   ajaxInstallTheme: 'theme-manager.js',
   ajaxInitRankEdit: 'rank-manager.js',
-  ajaxInitRankCreate: 'rank-manager.js'
+  ajaxInitRankCreate: 'rank-manager.js',
+  autofill_init_element: 'autofill.js',
+  autofill_onload: 'autofill.js'
 };
+
+function AutofillUsername(el, p)
+{
+  p = p || {};
+  el.className = 'autofill username';
+  el.onkeyup = null;
+  autofill_init_element(el, p);
+}
+
+function AutofillPage(el, p)
+{
+  p = p || {};
+  el.className = 'autofill page';
+  el.onkeyup = null;
+  autofill_init_element(el, p);
+}
 
 var placeholder_instances = {};
 

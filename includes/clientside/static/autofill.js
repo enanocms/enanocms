@@ -4,7 +4,7 @@
  * can be created describing how to draw each row.
  */
 
-var autofill_schemas = {};
+var autofill_schemas = window.autofill_schemas || {};
 
 /**
  * SCHEMA - GENERIC
@@ -19,18 +19,43 @@ autofill_schemas.generic = {
   }
 }
 
+/**
+ * SCHEMA - USERNAME
+ */
+
 autofill_schemas.username = {
+  init: function(element, fillclass, params)
+  {
+    params = params || {};
+    var allow_anon = params.allow_anon ? '1' : '0';
+    $(element).autocomplete(makeUrlNS('Special', 'Autofill', 'type=' + fillclass + '&allow_anon=' + allow_anon) + '&userinput=', {
+        minChars: 3,
+        formatItem: function(row, _, __)
+        {
+          var html = row.name_highlight + ' &ndash; ';
+          html += '<span style="' + row.rank_style + '">' + row.rank_title + '</span>';
+          return html;
+        },
+        tableHeader: '<tr><th>' + $lang.get('user_autofill_heading_suggestions') + '</th></tr>',
+        showWhenNoResults: true,
+        noResultsHTML: '<tr><td class="row1" style="font-size: smaller;">' + $lang.get('user_autofill_msg_no_suggestions') + '</td></tr>',
+    });
+  }
+}
+
+autofill_schemas.page = {
   init: function(element, fillclass, params)
   {
     $(element).autocomplete(makeUrlNS('Special', 'Autofill', 'type=' + fillclass) + '&userinput=', {
         minChars: 3,
         formatItem: function(row, _, __)
         {
-          var html = row.name_highlight + '<br />';
-          html += '<span style="' + row.rank_style + '">' + row.rank_title + '</span>';
+          var html = '<u>' + row.name_highlight + '</u>';
+          html += ' &ndash; ' + row.pid_highlight;
           return html;
         },
-        tableHeader: '<tr><th>' + $lang.get('user_autofill_heading_suggestions') + '</th></tr>',
+        showWhenNoResults: true,
+        noResultsHTML: '<tr><td class="row1" style="font-size: smaller;">' + $lang.get('user_autofill_msg_no_suggestions') + '</td></tr>',
     });
   }
 }
@@ -48,7 +73,7 @@ window.autofill_onload = function()
   {
     // we have at least one input that needs to be made an autofill element.
     // is spry data loaded?
-    load_component('template-compiler');
+    load_component('l10n');
   }
   
   this.loaded = true;
@@ -59,8 +84,11 @@ window.autofill_onload = function()
   }
 }
 
-function autofill_init_element(element, params)
+window.autofill_init_element = function(element, params)
 {
+  if ( element.af_initted )
+    return false;
+  
   params = params || {};
   // assign an ID if it doesn't have one yet
   if ( !element.id )
@@ -84,14 +112,14 @@ function autofill_init_element(element, params)
   element.af_initted = true;
 }
 
-function AutofillUsername(el, allow_anon)
+window.AutofillUsername = function(el, allow_anon)
 {
   el.onkeyup = null;
   el.className = 'autofill username';
   autofill_init_element(el, { allow_anon: allow_anon });
 }
 
-function AutofillPage(el)
+window.AutofillPage = function(el)
 {
   el.onkeyup = null;
   el.className = 'autofill page';
@@ -100,6 +128,7 @@ function AutofillPage(el)
 
 addOnloadHook(function()
   {
+    load_component('l10n');
     load_component('jquery');
     load_component('jquery-ui');
     
@@ -130,10 +159,6 @@ addOnloadHook(function()
       if( options.width > 0 ) {
         $results.css("width", options.width);
       }
-      else
-      {
-        $results.css("width", "200px");
-      }
     
       // Add to body element
       $("body").append(results);
@@ -145,7 +170,9 @@ addOnloadHook(function()
       var active = -1;
       var cache = {};
       var keyb = false;
-      var hasFocus = false;
+      // hasFocus was false by default, see if making it true helps
+      var hasFocus = true;
+      var hasNoResults = false;
       var lastKeyPressCode = null;
       var mouseDownOnSelect = false;
       var hidingResults = false;
@@ -186,11 +213,14 @@ addOnloadHook(function()
         }
     
         // add the data items to the cache
-        for( var k in stMatchSets ) {
-          // increase the cache size
-          options.cacheLength++;
-          // add to the cache
-          addToCache(k, stMatchSets[k]);
+        if ( options.cacheLength )
+        {
+          for( var k in stMatchSets ) {
+            // increase the cache size
+            options.cacheLength++;
+            // add to the cache
+            addToCache(k, stMatchSets[k]);
+          }
         }
       }
     
@@ -254,7 +284,7 @@ addOnloadHook(function()
       function moveSelect(step) {
     
         var lis = $("td", results);
-        if (!lis) return;
+        if (!lis || hasNoResults) return;
     
         active += step;
     
@@ -355,7 +385,11 @@ addOnloadHook(function()
         });
         if ( !$results.is(":visible") )
         {
-          $results.show("blind", {}, 350);
+          $results.show("blind", {}, 200);
+        }
+        else
+        {
+          $results.show();
         }
       };
     
@@ -395,7 +429,15 @@ addOnloadHook(function()
           results.innerHTML = "";
     
           // if the field no longer has focus or if there are no matches, do not display the drop down
-          if( !hasFocus || data.length == 0 ) return hideResultsNow();
+          if( !hasFocus )
+          {
+            return hideResultsNow();
+          }
+          if ( data.length == 0 && !options.showWhenNoResults )
+          {
+            return hideResultsNow();
+          }
+          hasNoResults = false;
     
           if ($.browser.msie) {
             // we put a styled iframe behind the calendar so HTML SELECT elements don't show through
@@ -425,20 +467,44 @@ addOnloadHook(function()
         {
           ul.innerHTML = options.tableHeader;
         }
-    
+        
+        if ( num == 0 )
+        {
+          // not showing any results
+          if ( options.noResultsHTML )
+            ul.innerHTML += options.noResultsHTML;
+          
+          hasNoResults = true;
+          return ul;
+        }
+        
         // limited results to a max number
         if( (options.maxItemsToShow > 0) && (options.maxItemsToShow < num) ) num = options.maxItemsToShow;
-    
+        
         for (var i=0; i < num; i++) {
           var row = data[i];
           if (!row) continue;
+          
+          console.debug('row good ', row);
+          
+          if ( typeof(row[0]) != 'string' )
+          {
+            // last ditch resort if it's a 1.1.4 autocomplete plugin that doesn't provide an automatic result.
+            // hopefully this doesn't slow it down a lot.
+            for ( var i in row )
+            {
+              if ( i == "0" || i == 0 )
+                break;
+              row[0] = row[i];
+              break;
+            }
+          }
           
           var li = document.createElement("tr");
           var td = document.createElement("td");
           td.selectValue = row[0];
           $(td).addClass('row1');
           $(td).css("font-size", "smaller");
-          console.debug(ul, li, td);
           
           if ( options.formatItem )
           {
@@ -449,14 +515,6 @@ addOnloadHook(function()
             td.innerHTML = row[0];
           }
           li.appendChild(td);
-          var extra = null;
-          if (row.length > 1) {
-            extra = [];
-            for (var j=1; j < row.length; j++) {
-              extra[extra.length] = row[j];
-            }
-          }
-          td.extra = extra;
           ul.appendChild(li);
           
           $(td).hover(
@@ -467,37 +525,8 @@ addOnloadHook(function()
             e.stopPropagation();
             selectItem(this)
           });
-          
-          /*
-          var li = document.createElement("li");
-          if (options.formatItem) {
-            li.innerHTML = options.formatItem(row, i, num);
-            li.selectValue = row[0];
-          } else {
-            li.innerHTML = row[0];
-            li.selectValue = row[0];
-          }
-          var extra = null;
-          if (row.length > 1) {
-            extra = [];
-            for (var j=1; j < row.length; j++) {
-              extra[extra.length] = row[j];
-            }
-          }
-          li.extra = extra;
-          ul.appendChild(li);
-          
-          $(li).hover(
-            function() { $("li", ul).removeClass("ac_over"); $(this).addClass("ac_over"); active = $("li", ul).indexOf($(this).get(0)); },
-            function() { $(this).removeClass("ac_over"); }
-          ).click(function(e) { 
-            e.preventDefault();
-            e.stopPropagation();
-            selectItem(this)
-          });
-          */
-          
         }
+        
         $(ul).mousedown(function() {
           mouseDownOnSelect = true;
         }).mouseup(function() {
@@ -664,7 +693,7 @@ addOnloadHook(function()
         matchCase: 0,
         matchSubset: 1,
         matchContains: 0,
-        cacheLength: 1,
+        cacheLength: false,
         mustMatch: 0,
         extraParams: {},
         loadingClass: "ac_loading",
@@ -672,6 +701,7 @@ addOnloadHook(function()
         selectOnly: false,
         maxItemsToShow: -1,
         autoFill: false,
+        showWhenNoResults: false,
         width: 0
       }, options);
       options.width = parseInt(options.width, 10);

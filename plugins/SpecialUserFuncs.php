@@ -699,6 +699,11 @@ function page_Special_Register()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   
+  if ( $session->user_logged_in )
+  {
+    $paths->main_page();
+  }
+  
   // form field trackers
   $username = '';
   $email = '';
@@ -1772,6 +1777,11 @@ function page_Special_PasswordReset()
     $template->footer();
     return true;
   }
+  if ( $session->user_logged_in )
+  {
+    $paths->main_page();
+  }
+  
   if(isset($_POST['do_reset']))
   {
     if($session->mail_password_reset($_POST['username']))
