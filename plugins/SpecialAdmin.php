@@ -403,7 +403,7 @@ function page_Admin_GeneralConfig() {
       
       <tr><td class="row1" style="width: 50%;"><?php echo $lang->get('acpgc_field_site_name'); ?></td>  <td class="row1" style="width: 50%;"><input type="text" name="site_name" size="30" value="<?php echo htmlspecialchars(getConfig('site_name')); ?>" /></td></tr>
       <tr><td class="row2"><?php echo $lang->get('acpgc_field_site_desc'); ?></td>               <td class="row2"><input type="text" name="site_desc" size="30" value="<?php echo htmlspecialchars(getConfig('site_desc')); ?>" /></td></tr>
-      <tr><td class="row1"><?php echo $lang->get('acpgc_field_main_page'); ?></td>                      <td class="row1"><?php echo $template->pagename_field('main_page', htmlspecialchars(str_replace('_', ' ', getConfig('main_page')))); ?></td></tr>
+      <tr><td class="row1"><?php echo $lang->get('acpgc_field_main_page'); ?></td>                      <td class="row1"><?php echo $template->pagename_field('main_page', sanitize_page_id(getConfig('main_page'))); ?></td></tr>
       <tr><td class="row2"><?php echo $lang->get('acpgc_field_copyright'); ?></td><td class="row2"><input type="text" name="copyright" size="30" value="<?php echo htmlspecialchars(getConfig('copyright_notice')); ?>" /></td></tr>
       <tr><td class="row1" colspan="2"><?php echo $lang->get('acpgc_field_copyright_hint'); ?></td></tr>
       <tr><td class="row2"><?php echo $lang->get('acpgc_field_contactemail'); ?><br /><small><?php echo $lang->get('acpgc_field_contactemail_hint'); ?></small></td><td class="row2"><input name="contact_email" type="text" size="40" value="<?php echo htmlspecialchars(getConfig('contact_email')); ?>" /></td></tr>
