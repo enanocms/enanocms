@@ -152,6 +152,7 @@ addOnloadHook(function()
       // Create results
       var results = document.createElement("div");
       $(results).addClass('tblholder').css('z-index', getHighestZ() + 1).css('margin-top', 0);
+      $(results).css('clip', 'rect(0px,auto,auto,0px)').css('overflow', 'auto').css('max-height', '300px');
     
       // Create jQuery object for results
       // var $results = $(results);
@@ -241,7 +242,8 @@ addOnloadHook(function()
           case 13: // return
             if( selectCurrent() ){
               // make sure to blur off the current field
-              $input.get(0).blur();
+              // (Enano edit - why do we want this, again?)
+              // $input.get(0).blur();
               e.preventDefault();
             }
             break;
@@ -297,6 +299,33 @@ addOnloadHook(function()
         lis.removeClass("row2");
     
         $(lis[active]).addClass("row2");
+        
+        // scroll the results div
+        // are we going up or down?
+        var td_top = $dynano(lis[active]).Top() - $dynano(results).Top();
+        var td_height = $dynano(lis[active]).Height();
+        var td_bottom = td_top + td_height;
+        var visibleTopBoundary = getScrollOffset(results);
+        var results_height = $dynano(results).Height();
+        var visibleBottomBoundary = visibleTopBoundary + results_height;
+        var scrollTo = false;
+        console.debug('td top = %d, td height = %d, td bottom = %d, visibleTopBoundary = %d, results_height = %d, visibleBottomBoundary = %d, step = %d',
+                       td_top, td_height, td_bottom, visibleTopBoundary, results_height, visibleBottomBoundary, step);
+        if ( td_top < visibleTopBoundary && step < 0 )
+        {
+          // going up: scroll the results div to just higher than the result we're trying to see
+          scrollTo = td_top - 7;
+        }
+        else if ( td_bottom > visibleBottomBoundary && step > 0 )
+        {
+          // going down is a little harder, we want the result to be at the bottom
+          scrollTo = td_top - results_height + td_height + 7;
+        }
+        if ( scrollTo )
+        {
+          console.debug('scrolling the results div to %d', scrollTo);
+          results.scrollTop = scrollTo;
+        }
     
         // Weird behaviour in IE
         // if (lis[active] && lis[active].scrollIntoView) {
@@ -484,8 +513,6 @@ addOnloadHook(function()
         for (var i=0; i < num; i++) {
           var row = data[i];
           if (!row) continue;
-          
-          console.debug('row good ', row);
           
           if ( typeof(row[0]) != 'string' )
           {

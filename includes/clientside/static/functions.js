@@ -452,10 +452,16 @@ function domObjChangeOpac(opacity, id) {
     object.filter = "alpha(opacity=" + opacity + ")";
 }
 
-function getScrollOffset()
+function getScrollOffset(el)
 {
   var position;
-  if (self.pageYOffset)
+  var s = el || self;
+  el = el || document;
+  if ( el.scrollTop )
+  {
+    position = el.scrollTop;
+  }
+  else if (s.pageYOffset)
   {
     position = self.pageYOffset;
   }

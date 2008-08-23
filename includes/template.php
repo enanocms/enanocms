@@ -1947,7 +1947,7 @@ EOF;
   function username_field($name, $value = false)
   {
     $randomid = md5( time() . microtime() . mt_rand() );
-    $text = '<input name="'.$name.'" class="autofill username" type="text" size="30" id="userfield_'.$randomid.'" autocomplete="off"';
+    $text = '<input name="'.$name.'" class="autofill username" onkeyup="new AutofillUsername(this);" type="text" size="30" id="userfield_'.$randomid.'" autocomplete="off"';
     if($value) $text .= ' value="'.$value.'"';
     $text .= ' />';
     return $text;
@@ -1962,7 +1962,7 @@ EOF;
   function pagename_field($name, $value = false)
   {
     $randomid = md5( time() . microtime() . mt_rand() );
-    $text = '<input name="'.$name.'" class="autofill page" type="text" size="30" id="pagefield_'.$randomid.'" autocomplete="off"';
+    $text = '<input name="'.$name.'" class="autofill page" onkeyup="new AutofillPage(this);" type="text" size="30" id="pagefield_'.$randomid.'" autocomplete="off"';
     if($value) $text .= ' value="'.$value.'"';
     $text .= ' />';
     return $text;
