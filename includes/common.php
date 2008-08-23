@@ -265,7 +265,12 @@ if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
 
 // Set our CDN path
 if ( !defined('cdnPath') )
-  define('cdnPath', getConfig('cdn_path', scriptPath));
+{
+  $cdnpath = getConfig('cdn_path', scriptPath);
+  if ( empty($cdnpath) )
+    $cdnpath = scriptPath;
+  define('cdnPath', $cdnpath);
+}
 
 //
 // Low level maintenance
