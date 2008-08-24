@@ -7,6 +7,9 @@ var userpage_onload = function()
   var wrapper = document.getElementById('userpage_wrap');
   var links = document.getElementById('userpage_links');
   
+  if ( !wrapper )
+    return false;
+  
   wrapper.className = 'userpage_wrap';
   links.className = 'userpage_links';
   
