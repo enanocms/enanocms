@@ -2093,7 +2093,7 @@ function page_Special_Administration()
                 onclick: function()
                 {
                   var tigraentry = document.getElementById('i_div0_0').parentNode;
-                  var tigraobj = $(tigraentry);
+                  var tigraobj = $dynano(tigraentry);
                   var div = document.createElement('div');
                   div.style.backgroundColor = '#FFFFFF';
                   domObjChangeOpac(70, div);
