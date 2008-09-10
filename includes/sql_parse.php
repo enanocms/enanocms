@@ -73,9 +73,14 @@ class SQL_Parser
       {
         throw new Exception('SQL file doesn\'t exist');
       }
+      
     }
     $this->sql_array = false;
     $this->tpl_strings = array();
+    
+    // convert \r\n in the schema to \n, in case some FTP client or zip utility ran unix2dos for us
+    // thanks to InvisGhost for reporting this error
+    $this->sql_string = str_replace("\r\n", "\n", $this->sql_string);
   }
   
   /**
