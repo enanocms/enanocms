@@ -92,6 +92,12 @@ define('TOKEN_PARENTHLEFT', 3);
 define('TOKEN_PARENTHRIGHT', 4);
 define('TOKEN_NOT', 5);
 
+// DST constants
+define('FIRST_SUNDAY', 1);
+define('SECOND_SUNDAY', 2);
+define('THIRD_SUNDAY', 3);
+define('LAST_SUNDAY', 4);
+
 //
 // User types - don't touch these
 //
@@ -617,3 +623,12 @@ $GLOBALS[ "JPEG_Segment_Names" ] = array(
   0xFE =>  "COM",   0x01 =>  "TEM",   0x02 =>  "RES",
 );
 
+// DST profiles
+global $dst_profiles;
+$dst_profiles = array(
+    'off' => '0;0;0;0;60',
+    'usa' => '3;' . SECOND_SUNDAY . ';11;' . FIRST_SUNDAY . ';60',
+    'europe' => '3;' . LAST_SUNDAY . ';10;' . LAST_SUNDAY . ';60',
+    'australia' => '10;' . LAST_SUNDAY . ';3;' . LAST_SUNDAY . ';60',
+    'tasmania' => '10;' . FIRST_SUNDAY . ';3;' . LAST_SUNDAY . ';60'
+  );

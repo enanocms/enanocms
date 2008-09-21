@@ -271,28 +271,114 @@ function enano_date($string, $timestamp = false)
   if ( !is_int($timestamp) && !is_double($timestamp) && strval(intval($timestamp)) !== $timestamp )
     $timestamp = time();
   
-  /*
-  // List of valid characters for date()
-  $date_chars = 'dDjlNSwzWFmMntLoYyaABgGhHisueIOPTZFcrU';
-  // Split them into an array
-  $date_chars = enano_str_split($date_chars);
-  // Emulate date() formatting by replacing date characters with their
-  // percentage-signed counterparts, but not escaped characters which
-  // shouldn't be parsed.
-  foreach ( $date_chars as $char )
-  {
-    $string = str_replace($char, "%$char", $string);
-    $string = str_replace("\\%$char", $char, $string);
-  }
-  */
-  
   // perform timestamp offset
   global $timezone;
   // it's gonna be in minutes, so multiply by 60 to offset the unix timestamp
   $timestamp = $timestamp + ( $timezone * 60 );
   
+  // are we in DST?
+  global $dst_params;
+  if ( check_timestamp_dst($timestamp, $dst_params[0], $dst_params[1], $dst_params[2], $dst_params[3]) )
+  {
+    // offset for DST
+    $timestamp += ( $dst_params[4] * 60 );
+  }
+  
   // Let PHP do the work for us =)
   return gmdate($string, $timestamp);
+}
+
+/**
+ * Determine if a timestamp is within DST.
+ * @param int Timestamp
+ * @param int Start month (1-12) of DST
+ * @param int Which Sunday DST starts on (*_SUNDAY constants)
+ * @param int End month of DST
+ * @param int Which Sunday DST ends on
+ * @return bool
+ */
+
+function check_timestamp_dst($time, $start_month, $start_sunday, $end_month, $end_sunday)
+{
+  static $sundays = array(FIRST_SUNDAY, SECOND_SUNDAY, THIRD_SUNDAY, LAST_SUNDAY);
+  
+  // perform timestamp offset
+  global $timezone;
+  // it's gonna be in minutes, so multiply by 60 to offset the unix timestamp
+  $time = $time + ( $timezone * 60 );
+  $year = intval(gmdate('Y', $time));
+  
+  // one-pass validation
+  if ( !in_array($start_sunday, $sundays) || !in_array($end_sunday, $sundays) ||
+       $start_month < 1 || $start_month > 12 || $end_month < 1 || $end_month > 12 )
+    return false;
+    
+  // get timestamp of the selected sunday (start)
+  $dst_start = get_sunday_timestamp($start_month, $start_sunday, $year);
+  $dst_end   = get_sunday_timestamp($end_month, $end_sunday, $year);
+  
+  if ( $dst_start > $dst_end )
+  {
+    // start time is past the end time, this means we're in the southern hemisphere
+    // as a result, if we're within the range, DST is NOT in progress.
+    return !( $time >= $dst_start && $time <= $dst_end );
+  }
+  
+  return $time >= $dst_start && $time <= $dst_end;
+}
+
+/**
+ * Returns a timestamp for the given *_SUNDAY index.
+ * @param int Month
+ * @param int Which Sunday (FIRST, SECOND, THIRD, or LAST)
+ * @param int Year that we're doing our calculations in
+ * @return int
+ */
+
+function get_sunday_timestamp($month, $sunday, $year)
+{
+  $days_in_month = array(
+    1 => 31,
+    2 => $year % 4 == 0 && ( $year % 100 != 0 || ( $year % 100 == 0 && $year % 400 == 0 ) ) ? 29 : 28,
+    3 => 31,
+    4 => 30,
+    5 => 31,
+    6 => 30,
+    7 => 31,
+    8 => 31,
+    9 => 30,
+    10 => 31,
+    11 => 30,
+    12 => 31
+  );
+  
+  $result = mktime(0, 0, 0, $month, 1, $year);
+  
+  // hack. allows a specific day of the month to be set instead of a sunday. not a good place to do this.
+  if ( is_string($sunday) && substr($sunday, -1) === 'd' )
+  {
+    $result += 86400 * ( intval($sunday) - 1);
+    return $result;
+  }
+  
+  $tick = 0;
+  $days_remaining = $days_in_month[$month];
+  while ( true )
+  {
+    if ( date('D', $result) == 'Sun' )
+    {
+      $tick++;
+      if ( ( $tick == 1 && $sunday == FIRST_SUNDAY ) ||
+           ( $tick == 2 && $sunday == SECOND_SUNDAY ) ||
+           ( $tick == 3 && $sunday == THIRD_SUNDAY ) ||
+           ( $sunday == LAST_SUNDAY && $days_remaining < 7 ) )
+        break;
+    }
+    $days_remaining--;
+    $result += 86400;
+  }
+  
+  return $result;
 }
 
 /**

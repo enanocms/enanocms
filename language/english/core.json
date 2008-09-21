@@ -692,7 +692,14 @@ var enano_lang = {
       title_13: '[UTC + 13] Tonga Time, Phoenix Islands Time',
       title_14: '[UTC + 14] Line Island Time',
       // This is a JSON string that lists all the timezones that are defined here.
-      list: '{"n12":-12,"n11":-11,"n10":-10,"n9p5":-9.5,"n9":-9,"n8":-8,"n7":-7,"n6":-6,"n5":-5,"n4":-4,"n3p5":-3.5,"n3":-3,"n2":-2,"n1":-1,"0":0,"1":1,"2":2,"3":3,"3p5":3.5,"4":4,"4p5":4.5,"5":5,"5p5":5.5,"5p75":5.75,"6":6,"6p5":6.5,"7":7,"8":8,"8p75":8.75,"9":9,"9p5":9.5,"10":10,"10p5":10.5,"11":11,"11p5":11.5,"12":12,"12p75":12.75,"13":13,"14":14}'
+      list: '{"n12":-12,"n11":-11,"n10":-10,"n9p5":-9.5,"n9":-9,"n8":-8,"n7":-7,"n6":-6,"n5":-5,"n4":-4,"n3p5":-3.5,"n3":-3,"n2":-2,"n1":-1,"0":0,"1":1,"2":2,"3":3,"3p5":3.5,"4":4,"4p5":4.5,"5":5,"5p5":5.5,"5p75":5.75,"6":6,"6p5":6.5,"7":7,"8":8,"8p75":8.75,"9":9,"9p5":9.5,"10":10,"10p5":10.5,"11":11,"11p5":11.5,"12":12,"12p75":12.75,"13":13,"14":14}',
+      
+      // DST profiles
+      dst_off: 'My region doesn\'t use DST',
+      dst_usa: 'United States: second Sunday of March to first Sunday of November',
+      dst_europe: 'Europe: last Sunday of March to last Sunday of October',
+      dst_australia: 'Australia (except Tasmania): last Sunday of October to last Sunday of March',
+      dst_tasmania: 'Tasmania: first Sunday of October to last Sunday of March'
     },
     etc: {
       redirect_title: 'Redirecting...',

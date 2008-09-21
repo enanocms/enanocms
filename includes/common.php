@@ -170,6 +170,10 @@ global $lang;
 global $timezone;
 $timezone = 0;
 
+// DST settings
+global $dst_params;
+$dst_params = array(0, 0, 0, 0, 60);
+
 // Divert to CLI loader if running from CLI
 if ( isset($argc) && isset($argv) )
 {
@@ -390,7 +394,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   // One quick security check...
   if ( !is_valid_ip($_SERVER['REMOTE_ADDR']) )
   {
-    die('SECURITY: spoofed IP address');
+    die('SECURITY: spoofed IP address: ' . htmlspecialchars($_SERVER['REMOTE_ADDR']));
   }
 
   // All checks passed! Start the main components up.  

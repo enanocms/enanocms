@@ -473,7 +473,15 @@ class sessionManager {
           }
         }
         $user = true;
+        
+        // set timezone params
         $GLOBALS['timezone'] = $userdata['user_timezone'];
+        $GLOBALS['dst_params'] = explode(';', $userdata['user_dst']);
+        foreach ( $GLOBALS['dst_params'] as &$parm )
+        {
+          if ( substr($parm, -1) != 'd' )
+            $parm = intval($parm);
+        }
         
         // Set language
         if ( !defined('ENANO_ALLOW_LOAD_NOLANG') )
@@ -1038,7 +1046,7 @@ class sessionManager {
     // using a normal call to $db->sql_query to avoid failing on errors here
     $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,' . "\n"
                              . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_title,k.source_ip,k.time,k.auth_level,k.key_type,COUNT(p.message_id) AS num_pms,' . "\n"
-                             . '    u.user_timezone, x.* FROM '.table_prefix.'session_keys AS k' . "\n"
+                             . '    u.user_timezone, u.user_dst, x.* FROM '.table_prefix.'session_keys AS k' . "\n"
                              . '  LEFT JOIN '.table_prefix.'users AS u' . "\n"
                              . '    ON ( u.user_id=k.user_id )' . "\n"
                              . '  LEFT JOIN '.table_prefix.'users_extra AS x' . "\n"
@@ -1051,7 +1059,7 @@ class sessionManager {
     
     if ( !$query && ( defined('IN_ENANO_INSTALL') or defined('IN_ENANO_UPGRADE') ) )
     {
-      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone, ' . SK_SHORT . ' AS key_type FROM '.table_prefix.'session_keys AS k
+      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone, \'0;0;0;0;60\' AS user_dst, ' . SK_SHORT . ' AS key_type FROM '.table_prefix.'session_keys AS k
                              LEFT JOIN '.table_prefix.'users AS u
                                ON ( u.user_id=k.user_id )
                              LEFT JOIN '.table_prefix.'privmsgs AS p
@@ -2707,7 +2715,8 @@ class sessionManager {
       if ( !$q )
         $db->_die();
       
-      $groups = array();
+      // The l10n engine takes care of this later.
+      $groups = array(1 => 'Everyone');
       
       if ( $row = $db->fetchrow() )
       {
@@ -2983,7 +2992,7 @@ class sessionManager {
     {
       if ( isset($perm2[$i]) )
       {
-        if ( $is_everyone && !$defaults_used[$i] )
+        if ( $is_everyone && isset($defaults_used[$i]) && $defaults_used[$i] === false )
           continue;
         // Decide precedence
         if ( isset($defaults_used[$i]) )
