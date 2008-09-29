@@ -271,6 +271,17 @@ class RenderMan {
       eval($cmd);
     }
     
+    //$template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
+    $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
+    $i = 0;
+    while ( preg_match($template_regex, $text) )
+    {
+      $i++;
+      if ( $i == 5 )
+        break;
+      $text = RenderMan::include_templates($text);
+    }
+    
     if ( !$plaintext )
     {
       // Process images
@@ -285,17 +296,6 @@ class RenderMan {
       {
         $text = str_replace('(_'.$m.'_)', $paths->getParam((int)$m), $text);
       }
-    }
-    
-    //$template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
-    $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
-    $i = 0;
-    while ( preg_match($template_regex, $text) )
-    {
-      $i++;
-      if ( $i == 5 )
-        break;
-      $text = RenderMan::include_templates($text);
     }
     
     // Before shipping it out to the renderer, replace spaces in between headings and paragraphs:
@@ -495,9 +495,18 @@ class RenderMan {
     foreach ( $matches[0] as $i => $match )
     {
       list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
+      if ( ($pos = strrpos($page_id, '#')) !== false )
+      {
+        $hash = substr($page_id, $pos);
+        $page_id = substr($page_id, 0, $pos);
+      }
+      else
+      {
+        $hash = '';
+      }
       $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
       
-      $url = makeUrl($pid_clean, false, true);
+      $url = makeUrl($pid_clean, false, true) . $hash;
       $inner_text = $matches[2][$i];
       $quot = '"';
       $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
