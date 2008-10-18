@@ -44,7 +44,25 @@ function SpecialAdmin_paths_init()
     ));
 }
 
+$plugins->attachHook('session_started', 'SpecialAdmin_theme_init();');
 $plugins->attachHook('common_post', 'SpecialAdmin_include();');
+
+function SpecialAdmin_theme_init()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  // Admin pages that were too enormous to be in this file were split off into the plugins/admin/ directory in 1.0.1.
+  // Only load these files if we're looking to load the admin panel
+  list($pid, $ns) = RenderMan::strToPageID($paths->get_pageid_from_url());
+  if ( $ns == 'Admin' || ( $pid == 'Administration' && $ns == 'Special' ) )
+  {
+    // Set the theme
+    $session->theme = 'admin';
+    $session->style = 'default';
+    
+    $template->add_header('<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/admin-menu.js"></script>');
+  }
+}
 
 function SpecialAdmin_include()
 {
@@ -66,12 +84,6 @@ function SpecialAdmin_include()
     require(ENANO_ROOT . '/plugins/admin/ThemeManager.php');
     require(ENANO_ROOT . '/plugins/admin/PluginManager.php');
     require(ENANO_ROOT . '/plugins/admin/CacheManager.php');
-    
-    // Set the theme
-    $session->theme = 'admin';
-    $session->style = 'default';
-    
-    $template->add_header('<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/admin-menu.js"></script>');
   }
 }
 
