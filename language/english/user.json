@@ -75,6 +75,9 @@ var enano_lang = {
       login_ajax_check_dh_ie: 'Use a standards-compliant browser to help protect your password. <a href="http://docs.enanocms.org/Help:Appendix_B#dh" onclick="window.open(this.href); return false;">Learn more</a>',
       login_ajax_check_remember: 'Keep me logged in on this computer for %session_length% %length_units% unless I log out',
       login_ajax_check_remember_infinite: 'Keep me logged in on this computer until I log out',
+      login_ajax_err_crypto: 'Encryption failed.',
+      login_ajax_err_crypto_details: 'Details available on console.',
+      login_ajax_err_crypto_link: 'Use full login form',
       
       err_login_generic_title: 'There was an error in the login process',
       err_key_not_found: 'Enano couldn\'t look up the encryption key used to encrypt your password. This most often happens if a cache rotation occurred during your login attempt, or if you refreshed the login page.',
