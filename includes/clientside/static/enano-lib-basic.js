@@ -447,6 +447,9 @@ addOnloadHook(function() {
       case 'rename':
         ajaxRename();
         break;
+      case 'aclmanager':
+        ajaxOpenACLManager();
+        break;
     }
   }
 });

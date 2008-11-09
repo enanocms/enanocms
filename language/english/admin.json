@@ -107,6 +107,8 @@ var enano_lang = {
       lbl_scope: 'What should this access rule control?',
       lbl_welcome_title: 'Manage page access',
       lbl_welcome_body: 'Please select who should be affected by this access rule.',
+      lbl_trace_title: 'View effective permissions',
+      lbl_trace_body: 'See what permissions are effective and where. <a href="http://docs.enanocms.org/Help:4.2" onclick="window.open(this.href); return false;">Learn about precedence and scope</a>',
       lbl_editwin_title_create: 'Create access rule',
       lbl_editwin_title_edit: 'Editing permissions',
       lbl_editwin_body: 'This panel allows you to edit what the %target_type% "<b>%target%</b>" can do on <b>%scope_type%</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.',
@@ -133,6 +135,8 @@ var enano_lang = {
                    <li><b>Deny</b> means that the user is denied access to the item. This setting overrides all other permissions.</li>
                    <li><b>Inherit</b> forces the permission to be unset and thus inherited from the defaults. Setting every permission to Inherit is the same as deleting the rule.</li>
                  </ul>',
+      lbl_trace_user: 'See permissions for:',
+      lbl_trace_page: 'On page:',
       
       scope_type_wholesite: 'this entire site',
       scope_type_thispage: 'this page',
@@ -163,10 +167,11 @@ var enano_lang = {
       msg_list_on_page: ' on page: %page_name%',
       msg_list_on_page_group: ' for page group: %page_group%',
       msg_list_entire_site: ' for the entire site',
-      
       msg_list_score: 'Score: %score% (%desc%) %info%',
-      
       msg_no_presets: 'No presets are defined. Define a preset by setting all the ACL settings to what you want, and then hitting Save. <a %close_flags%>Close</a>',
+      msg_debug_main_title: 'View effective permissions',
+      msg_debug_main_body: 'This tool allows you to see what actual permissions are in use. It can be helpful if you are struggling to determine why a certain action is being allowed or denied. There are two views available for this window: you can either view the information sorted by individual actions, or group actions by which rule sets them.',
+      msg_trace_key: 'Color guide',
       
       btn_success_dismiss: 'dismiss',
       btn_success_close: 'close manager',
@@ -175,10 +180,15 @@ var enano_lang = {
       btn_returnto_editor: 'Return to ACL editor',
       btn_returnto_userscope: 'Return to user/scope selection',
       btn_show_existing: '&raquo; View existing rules',
+      btn_view_effective: '&raquo; Show diagnostic tools',
       btn_close: 'Close ACL wizard',
       btn_edit_presets: 'Presets: <a %load_flags%>Load</a> | <a %save_flags%>Save</a>',
       btn_load_preset: 'Load preset',
       btn_save_preset: 'Save preset',
+      btn_edit_rule: 'edit',
+      btn_view_key: 'View color key',
+      btn_sort_perm: 'Sort individually',
+      btn_sort_rule: 'Sort by rule',
       
       inherit_enano_default: 'Enano defaults',
       inherit_global_everyone: 'Rule for everyone on the entire site',
@@ -190,6 +200,17 @@ var enano_lang = {
       inherit_local_everyone: 'Rule for everyone on this page',
       inherit_local_group: 'Rule for the group "%group_name%" on this page',
       inherit_local_user: 'Rule for this user on this page',
+      
+      inherit_key_enano_default: '%this.acl_inherit_enano_default% (most broad)',
+      inherit_key_global_everyone: '%this.acl_inherit_global_everyone%',
+      inherit_key_global_group: 'Rule for a user group on the entire site',
+      inherit_key_global_user: '%this.acl_inherit_global_user%',
+      inherit_key_pg_everyone: 'Rule for everyone in a specific page group',
+      inherit_key_pg_group: 'Rule for a usergroup on a specific page group',
+      inherit_key_pg_user: 'Rule for this user in a specific page group',
+      inherit_key_local_everyone: '%this.acl_inherit_local_everyone%',
+      inherit_key_local_group: 'Rule for a specific usergroup on this page',
+      inherit_key_local_user: '%this.acl_inherit_local_user% (most specific)',
     },
     acphome: {
       heading_main: 'Welcome to Runt, the Enano administration panel.',
@@ -396,7 +417,7 @@ var enano_lang = {
       // Section Defective By Design link
       heading_dbd: 'Defective By Design Anti-DRM button',
       dbd_intro: 'The Enano project is strongly against Digital Restrictions Management.',
-      dbd_explain: 'DRM infringes on consumer rights by using technical locks to prevent you from using your Fair Use rights granted by copyright law. This means that consumers are harmed when they can\'t copy purchased digital media to their own devices. Furthermore, since most DRM schemes are proprietary and designed to prevent interoperability, you can be locked you into a specific brand or product. You can help spread consumer awareness and show your opposition to DRM through this button. It\'s as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
+      dbd_explain: 'DRM infringes on consumer rights by using technical locks to prevent you from using your Fair Use rights granted by copyright law. This means that consumers are harmed in many ways, for example when they can\'t copy purchased digital media to their own devices. Furthermore, since most DRM schemes are proprietary and designed to prevent interoperability, you can be locked you into a specific brand or product. You can help spread consumer awareness and show your opposition to DRM through this button. It\'s as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
       field_stopdrm: 'Help stop DRM by placing a link to DBD on the sidebar!',
       
       // Save button

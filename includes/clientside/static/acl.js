@@ -165,11 +165,25 @@ function __aclBuildSelector(groups)
   editbtn.href = '#';
   editbtn.innerHTML = $lang.get('acl_btn_show_existing');
   editbtn_wrapper.appendChild(editbtn);
+  
+  // tracer button
+  var tracebtn = document.createElement('a');
+  tracebtn.href = '#';
+  tracebtn.innerHTML = $lang.get('acl_btn_view_effective');
+  editbtn_wrapper.appendChild(document.createElement('br'));
+  editbtn_wrapper.appendChild(tracebtn);
+  
   main.appendChild(editbtn_wrapper);
   
   editbtn.onclick = function()
   {
     aclSetViewListExisting();
+    return false;
+  }
+  
+  tracebtn.onclick = function()
+  {
+    aclSetViewDebugTools();
     return false;
   }
   
@@ -525,6 +539,9 @@ function __aclJSONSubmitAjaxHandler(params)
           case 'list_existing':
             aclSetViewListExistingRespond(data);
             break;
+          case 'trace':
+            aclDrawTraceWrapper(data);
+            break;
           default:
             handle_invalid_json(ajax.responseText);
             break;
@@ -658,7 +675,7 @@ function __aclBuildGroupsHTML(groups)
 
 function __aclBuildWizardWindow()
 {
-  darken(aclDisableTransitionFX);
+  darken(aclDisableTransitionFX, 70, 'acldarkener');
   box = document.createElement('div');
   box.style.width = '640px'
   box.style.height = '440px';
@@ -781,13 +798,13 @@ function killACLManager()
   {
     if ( aclDisableTransitionFX )
     {
-      enlighten(true);
+      enlighten(true, 'acldarkener');
       el.parentNode.removeChild(el);
     }
     else
     {
       opacity(aclManagerID, 100, 0, 500);
-      setTimeout('var el = document.getElementById(aclManagerID); el.parentNode.removeChild(el); enlighten();', 750);
+      setTimeout('var el = document.getElementById(aclManagerID); el.parentNode.removeChild(el); enlighten(false, "acldarkener");', 750);
     }
   }
 }
@@ -895,6 +912,14 @@ function __aclSubmitManager(form)
       obj['page_id'] = aclDataCache.page_id;
       obj['namespace'] = aclDataCache.namespace;
       __aclJSONSubmitAjaxHandler(obj);
+      break;
+    case 'trace':
+      var params = {
+        mode: 'trace',
+        user: document.getElementById(aclManagerID + 'trace_user').value,
+        page: document.getElementById(aclManagerID + 'trace_page').value
+      };
+      __aclJSONSubmitAjaxHandler(params);
       break;
     default:
       alert("JSON form submit: invalid mode string "+mode+", stopping execution");
@@ -1073,6 +1098,361 @@ function aclSetViewListExistingRespond(data)
     div.innerHTML = rule.score_string;
     main.appendChild(div);
   }
+}
+
+function aclSetViewDebugTools()
+{
+  // selection window for viewing effective permissions
+  var main = document.getElementById(aclManagerID + '_main');
+  main.innerHTML = '';
+ 
+  // set the submission handler to trace
+  var thefrm = document.forms[form.name];
+  var modeobj = form_fetch_field(thefrm, 'mode');
+  modeobj.value = 'trace';
+  
+  // show the back button
+  document.getElementById(aclManagerID + '_back').style.display = 'inline';
+  
+  //
+  // start building
+  //
+  
+  // selection interface
+  var selector = document.createElement('div');
+  
+    var table = document.createElement('table');
+    
+    // username
+    var tr_user = document.createElement('tr');
+    var td_user_l = document.createElement('td');
+    var lbl_user = document.createElement('label');
+    lbl_user.setAttribute('for', aclManagerID + 'trace_user');
+    lbl_user.appendChild(document.createTextNode($lang.get('acl_lbl_trace_user')));
+    td_user_l.appendChild(lbl_user);
+    tr_user.appendChild(td_user_l);
+    
+    var td_user_i = document.createElement('td');
+    var i_user = document.createElement('input');
+    i_user.type = 'text';
+    i_user.id = aclManagerID + 'trace_user';
+    i_user.onkeyup = function() { new AutofillUsername(this); };
+    i_user.size = '20';
+    td_user_i.appendChild(i_user);
+    tr_user.appendChild(td_user_i);
+    
+    table.appendChild(tr_user);
+    
+    // page
+    var tr_page = document.createElement('tr');
+    var td_page_l = document.createElement('td');
+    var lbl_page = document.createElement('label');
+    lbl_page.setAttribute('for', aclManagerID + 'trace_page');
+    lbl_page.appendChild(document.createTextNode($lang.get('acl_lbl_trace_page')));
+    td_page_l.appendChild(lbl_page);
+    tr_page.appendChild(td_page_l);
+    
+    var td_page_i = document.createElement('td');
+    var i_page = document.createElement('input');
+    i_page.type = 'text';
+    i_page.id = aclManagerID + 'trace_page';
+    i_page.onkeyup = function() { new AutofillPage(this); };
+    i_page.size = '20';
+    td_page_i.appendChild(i_page);
+    tr_page.appendChild(td_page_i);
+    
+    table.appendChild(tr_page);
+    
+    selector.appendChild(table);
+  
+  // wrapper
+  
+  var container = document.createElement('div');
+  
+    container.style.margin = 'auto';
+    container.style.width = '360px';
+    container.style.paddingTop = '90px';
+    
+    var head = document.createElement('h2');
+    head.appendChild(document.createTextNode($lang.get('acl_lbl_trace_title')));
+    
+    var desc = document.createElement('p');
+    desc.innerHTML = $lang.get('acl_lbl_trace_body');
+    
+    container.appendChild(head);
+    container.appendChild(desc);
+    container.appendChild(selector);
+  
+  main.appendChild(container);
+}
+
+function aclTraceKey()
+{
+  var div = document.createElement('div');
+  $(div).addClass('tblholder');
+  var table = document.createElement('table');
+  $(table).attr('cellspacing', '1').attr('cellpadding', '4');
+  
+  var inherit_list = ['enano_default', 'global_everyone', 'global_group', 'global_user', 'pg_everyone', 'pg_group', 'pg_user', 'local_everyone', 'local_group', 'local_user'];
+  for ( var i = 0; i < inherit_list.length; i++ )
+  {
+    var t = inherit_list[i];
+    var tr = document.createElement('tr');
+    var td_key = document.createElement('td');
+    $(td_key).addClass('acl_' + t).addClass('acl_inherit_key');
+    tr.appendChild(td_key);
+    var td_explain = document.createElement('td');
+    $(td_explain).addClass(i % 2 == 0 ? 'row1' : 'row2');
+    td_explain.appendChild(document.createTextNode($lang.get('acl_inherit_key_' + t)));
+    tr.appendChild(td_explain);
+    table.appendChild(tr);
+  }
+  div.appendChild(table);
+  return div;
+}
+
+function aclTraceModalKey()
+{
+  load_component('messagebox');
+  miniPrompt(function(parent)
+    {
+      // heading
+      var h3 = document.createElement('h3');
+      h3.appendChild(document.createTextNode($lang.get('acl_msg_trace_key')));
+      parent.appendChild(h3);
+      
+      var key = aclTraceKey();
+      parent.appendChild(key);
+      
+      var p = document.createElement('p');
+      $(p).css('text-align', 'center');
+      
+      var closer = document.createElement('a');
+      $(closer).addClass('abutton').addClass('abutton_red').css('font-weight', 'bold');
+      closer.appendChild(document.createTextNode($lang.get('etc_close')));
+      closer.href = '#';
+      $(closer).click(function(e)
+        {
+          miniPromptDestroy(this);
+          return false;
+        });
+      
+      p.appendChild(closer);
+      parent.appendChild(p);
+    });
+}
+
+function aclDrawTraceWrapper(data)
+{
+  var trace_by_perm = aclDrawTraceByPerm(data);
+  var trace_by_rule = aclDrawTraceByRule(data);
+  
+  trace_by_perm.id = 'aclDebugTraceViewPerm';
+  trace_by_rule.id = 'aclDebugTraceViewRule';
+  
+  var start_with_rule = ( readCookie('acl_trace_view') == 'rule' );
+  
+  if ( start_with_rule )
+  {
+    trace_by_perm.style.display = 'none';
+  }
+  else
+  {
+    trace_by_rule.style.display = 'none';
+  }
+  
+  // selection window for viewing effective permissions
+  var main = document.getElementById(aclManagerID + '_main');
+  main.innerHTML = '';
+  
+  var wrapper = document.createElement('div');
+  $(wrapper).css('padding-bottom', '20px');
+  
+  var floatlink = document.createElement('div');
+  $(floatlink).css('float', 'right').css('margin-left', '20px').css('margin-bottom', '20px').css('text-align', 'right');
+  var a_toggle = document.createElement('a');
+  $(a_toggle).attr('id', 'aclDebugTraceViewToggle');
+  a_toggle.innerHTML = '&raquo; ';
+  a_toggle.innerHTML += start_with_rule ? $lang.get('acl_btn_sort_perm') : $lang.get('acl_btn_sort_rule');
+  a_toggle.href = '#';
+  floatlink.appendChild(a_toggle);
+  floatlink.appendChild(document.createElement('br'));
+  var a_key = document.createElement('a');
+  $(a_key).css('font-size', 'smaller');
+  a_key.innerHTML = '&raquo; ';
+  a_key.innerHTML += $lang.get('acl_btn_view_key');
+  a_key.href = '#';
+  floatlink.appendChild(a_key);
+  wrapper.appendChild(floatlink);
+  
+  var h3 = document.createElement('h3');
+  h3.appendChild(document.createTextNode($lang.get('acl_msg_debug_main_title')));
+  wrapper.appendChild(h3);
+  var p = document.createElement('p');
+  p.appendChild(document.createTextNode($lang.get('acl_msg_debug_main_body')));
+  wrapper.appendChild(p);
+  
+  wrapper.appendChild(trace_by_perm);
+  wrapper.appendChild(trace_by_rule);
+  
+  main.appendChild(wrapper);
+  
+  $(a_toggle).click(function(e)
+    {
+      aclTraceToggleViews();
+      return false;
+    });
+  
+  $(a_key).click(function(e)
+    {
+      aclTraceModalKey();
+      return false;
+    });
+}
+
+function aclTraceToggleViews()
+{
+  var trace_by_perm = document.getElementById('aclDebugTraceViewPerm');
+  var trace_by_rule = document.getElementById('aclDebugTraceViewRule');
+  
+  var toggler = document.getElementById('aclDebugTraceViewToggle');
+  var newtext;
+  
+  if ( trace_by_perm.style.display == 'none' )
+  {
+    newtext = $lang.get('acl_btn_sort_rule');
+    $(trace_by_rule).hide('blind', {}, 750, function()
+      {
+        $(trace_by_perm).show('blind', {}, 750);
+      });
+    createCookie('acl_trace_view', 'perm');
+  }
+  else
+  {
+    newtext = $lang.get('acl_btn_sort_perm');
+    $(trace_by_perm).hide('blind', {}, 750, function()
+      {
+        $(trace_by_rule).show('blind', {}, 750);
+      });
+    createCookie('acl_trace_view', 'rule');
+  }
+  $(toggler).fadeOut(500, function()
+    {
+      this.innerHTML = '&raquo; ' + newtext;
+      $(this).fadeIn(500);
+    });
+}
+
+function aclDrawTraceByPerm(data)
+{
+  var wrapper = document.createElement('div');
+  // wrapper.style.display = 'none';
+  
+  // temporarily append wrapper to body to allow onclick to work
+  // var body = document.getElementsByTagName('body')[0];
+  // body.appendChild(wrapper);  
+  
+  for ( var i in data.perms )
+  {
+    var perm = data.perms[i];
+    var item = document.createElement('div');
+    item.className = perm.divclass;
+    
+    // first row - permission name + current setting
+    // use innerHTML here to allow for HTML in localized permission types
+    item.innerHTML += '<b>' + perm.perm_name + ' - ' + perm.perm_value + '</b>';
+    item.appendChild(document.createElement('br'));
+    
+    // second row - permission localized name + rule ID
+    var sm = document.createElement('small');
+    sm.innerHTML = perm.perm_src;
+    
+    item.appendChild(sm);
+    
+    wrapper.appendChild(item);
+    
+    // whole row is now in the document
+    if ( perm.rule_id != -1 )
+    {
+      sm.innerHTML += ' [';
+      // rule is editable
+      var editlink = document.createElement('a');
+      editlink.href = 'javascript:ajaxOpenDirectACLRule(' + perm.rule_id + ');';
+      editlink.appendChild(document.createTextNode($lang.get('acl_btn_edit_rule')));
+      sm.appendChild(editlink);
+      sm.innerHTML += ']';
+    }
+  }
+  
+  // var ret = wrapper.cloneNode(true);
+  // body.removeChild(wrapper);
+  // wrapper = false;
+  // ret.style.display = 'block';
+  // console.debug(ret);
+  // return ret;
+  return wrapper;
+}
+
+function aclDrawTraceByRule(data)
+{
+  var wrapper = document.createElement('div');
+  var groupdata = {};
+  
+  for ( var i in data.perms )
+  {
+    var perm = data.perms[i];
+    if ( !groupdata[perm['rule_id']] )
+    {
+      groupdata[perm['rule_id']] = {
+        meta: {
+          divclass: perm.divclass,
+          perm_src: perm.perm_src,
+          rule_id: perm.rule_id
+        },
+        rules: {}
+      };
+    }
+    groupdata[perm['rule_id']]['rules'][i] = perm;
+  }
+  
+  console.debug('draw by rule - group data: ', groupdata);
+  
+  for ( var i in groupdata )
+  {
+    var group = groupdata[i];
+    var grp = document.createElement('div');
+    var head = document.createElement('div');
+    head.className = group.meta.divclass;
+    var span = document.createElement('span');
+    span.style.fontSize = 'larger';
+    span.appendChild(document.createTextNode(group.meta.perm_src));
+    head.appendChild(span);
+    if ( group.meta.rule_id != -1 )
+    {
+      head.innerHTML += ' [';
+      // rule is editable
+      var editlink = document.createElement('a');
+      editlink.href = 'javascript:ajaxOpenDirectACLRule(' + group.meta.rule_id + ');';
+      editlink.appendChild(document.createTextNode($lang.get('acl_btn_edit_rule')));
+      head.appendChild(editlink);
+      head.innerHTML += ']';
+    }
+    grp.appendChild(head);
+    for ( var i in group.rules )
+    {
+      var rule = group.rules[i];
+      var rulediv = document.createElement('div');
+      rulediv.style.padding = '3px 12px';
+      rulediv.innerHTML += rule.perm_name + ': ';
+      var b = document.createElement('strong');
+      b.appendChild(document.createTextNode(rule.perm_value));
+      rulediv.appendChild(b);
+      grp.appendChild(rulediv);
+    }
+    wrapper.appendChild(grp);
+  }
+  
+  return wrapper;
 }
 
 function aclShowPresetLoader()
