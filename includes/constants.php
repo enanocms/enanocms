@@ -234,11 +234,16 @@ $system_table_list = Array(
     'language',
     'language_strings',
     'lockout',
-    'search_index'
+    'search_index',
+    'captcha',
+    'diffiehellman',
+    'plugins',
+    'ranks'
   );
 
-if ( defined('table_prefix') )
+if ( defined('table_prefix') && !defined('ENANO_TABLELIST_PREFIXED') )
 {
+  define('ENANO_TABLELIST_PREFIXED', 1);
   foreach ( $system_table_list as $i => $_ )
   {
     $system_table_list[$i] = table_prefix . $system_table_list[$i];
