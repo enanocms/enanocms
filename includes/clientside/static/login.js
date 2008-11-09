@@ -72,6 +72,7 @@ var AJAX_STATUS_LOADING_KEY = 1;
 var AJAX_STATUS_GENERATING_KEY = 2;
 var AJAX_STATUS_LOGGING_IN = 3;
 var AJAX_STATUS_SUCCESS = 4;
+var AJAX_STATUS_ERROR = 5;
 var AJAX_STATUS_DESTROY = 65535;
 
 /**
@@ -296,6 +297,53 @@ window.ajaxLoginSetStatus = function(status)
       // Insert the entire message into the login window
       logindata.mb_inner.innerHTML = '';
       logindata.mb_inner.appendChild(div);
+      
+      break;
+      
+    case AJAX_STATUS_ERROR:
+      // Create the status div
+      var div = document.createElement('div');
+      div.id = 'ajax_login_status';
+      div.style.marginTop = '10px';
+      div.style.textAlign = 'center';
+      
+      // The circly ball ajaxy image + status message
+      var status_msg = $lang.get('user_login_ajax_err_crypto');
+      
+      // Insert the status message
+      div.appendChild(document.createTextNode(status_msg));
+      
+      // Append a br or two to space things properly
+      div.appendChild(document.createElement('br'));
+      div.appendChild(document.createElement('br'));
+      
+      var img = document.createElement('img');
+      img.src = ( ajax_login_successimg_path ) ? ajax_login_successimg_path : scriptPath + '/images/checkbad.png';
+      div.appendChild(img);
+      
+      // Append a br or two to space things properly
+      div.appendChild(document.createElement('br'));
+      div.appendChild(document.createElement('br'));
+      
+      // The circly ball ajaxy image + status message
+      var detail_msg = $lang.get('user_login_ajax_err_crypto_details');
+      var full_link = $lang.get('user_login_ajax_err_crypto_link');
+      var link = document.createElement('a');
+      link.href = makeUrlNS('Special', 'Login/' + title);
+      link.appendChild(document.createTextNode(full_link));
+      var span = document.createElement('span');
+      span.style.fontSize = 'smaller';
+      
+      // Insert the message
+      span.appendChild(document.createTextNode(detail_msg + ' '));
+      span.appendChild(link);
+      div.appendChild(span);
+      
+      // Insert the entire message into the login window
+      logindata.mb_inner.innerHTML = '';
+      logindata.mb_inner.appendChild(div);
+      
+      break;
       
     case AJAX_STATUS_DESTROY:
     case null:
@@ -588,6 +636,14 @@ window.ajaxLoginBuildForm = function(data)
     lbl_dh.innerHTML = $lang.get('user_login_ajax_check_dh_ie');
     form.appendChild(lbl_dh);
   }
+  else if ( !data.allow_diffiehellman )
+  {
+    // create hidden control - server requested that DiffieHellman be disabled (usually means not supported)
+    var check_dh = document.createElement('input');
+    check_dh.type = 'hidden';
+    check_dh.id = 'ajax_login_field_dh';
+    form.appendChild(check_dh);
+  }
   else
   {
     var lbl_dh = document.createElement('label');
@@ -744,6 +800,7 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
       return false;
     }
   }
+  
   if ( !username )
   {
     var username = document.getElementById('ajax_login_field_username').value;
@@ -756,6 +813,9 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
   {
     var captcha = document.getElementById('ajax_login_field_captcha').value;
   }
+  
+  try
+  {
   
   if ( do_dh )
   {
@@ -835,6 +895,14 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
       level: logindata.user_level,
       remember: remember_session
     }
+  }
+  }
+  catch(e)
+  {
+    ajaxLoginSetStatus(AJAX_STATUS_ERROR);
+    console.error('Exception caught in login process; backtrace follows');
+    console.debug(e);
+    return false;
   }
   ajaxLoginPerformRequest(json_packet);
 }

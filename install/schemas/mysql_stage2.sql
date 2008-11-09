@@ -115,6 +115,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_timezone int(12) UNSIGNED NOT NULL DEFAULT 0,
   user_title varchar(64) DEFAULT NULL,
   user_group mediumint(5) NOT NULL DEFAULT 1,
+  user_dst varchar(11) NOT NULL DEFAULT '0;0;0;0;60',
   PRIMARY KEY  (user_id)
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 

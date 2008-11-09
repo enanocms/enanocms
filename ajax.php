@@ -469,6 +469,7 @@
       break;
     case "preview":
       require_once(ENANO_ROOT.'/includes/pageutils.php');
+      $template->init_vars();
       echo PageUtils::genPreview($_POST['text']);
       break;
     case "pagediff":

@@ -145,6 +145,7 @@ class RenderMan {
         $p = '<b>Notice:</b> RenderMan::getTemplate(): Parameter '.$m.' is not set';
       }
       $text = str_replace('(_'.$m.'_)', $p, $text);
+      $text = str_replace('{{' . ( $m + 1 ) . '}}', $p, $text);
     }
     $text = RenderMan::include_templates($text);
     return $text;
@@ -252,7 +253,7 @@ class RenderMan {
       $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
     }
     
-    preg_match_all('/<lang code="([a-z0-9_]+)">([\w\W]+?)<\/lang>/', $text, $langmatch);
+    preg_match_all('/<lang code="([a-z0-9_-]+)">([\w\W]+?)<\/lang>/', $text, $langmatch);
     foreach ( $langmatch[0] as $i => $match )
     {
       if ( $langmatch[1][$i] == $lang->lang_code )
@@ -271,6 +272,17 @@ class RenderMan {
       eval($cmd);
     }
     
+    //$template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
+    $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
+    $i = 0;
+    while ( preg_match($template_regex, $text) )
+    {
+      $i++;
+      if ( $i == 5 )
+        break;
+      $text = RenderMan::include_templates($text);
+    }
+    
     if ( !$plaintext )
     {
       // Process images
@@ -285,17 +297,6 @@ class RenderMan {
       {
         $text = str_replace('(_'.$m.'_)', $paths->getParam((int)$m), $text);
       }
-    }
-    
-    //$template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
-    $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
-    $i = 0;
-    while ( preg_match($template_regex, $text) )
-    {
-      $i++;
-      if ( $i == 5 )
-        break;
-      $text = RenderMan::include_templates($text);
     }
     
     // Before shipping it out to the renderer, replace spaces in between headings and paragraphs:
@@ -495,9 +496,18 @@ class RenderMan {
     foreach ( $matches[0] as $i => $match )
     {
       list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
+      if ( ($pos = strrpos($page_id, '#')) !== false )
+      {
+        $hash = substr($page_id, $pos);
+        $page_id = substr($page_id, 0, $pos);
+      }
+      else
+      {
+        $hash = '';
+      }
       $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
       
-      $url = makeUrl($pid_clean, false, true);
+      $url = makeUrl($pid_clean, false, true) . $hash;
       $inner_text = $matches[2][$i];
       $quot = '"';
       $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
@@ -564,54 +574,43 @@ class RenderMan {
    * [bar] => dolor sit amet
    */
   
-  public static function parse_template_vars($input)
+  public static function parse_template_vars($input, $newlinemode = true)
   {
-    if ( !preg_match('/^(\|[ ]*([A-z0-9_]+)([ ]*)=([ ]*)(.+?))*$/is', trim($input)) )
+    $parms = array();
+    $input = trim($input);
+    if ( $newlinemode )
     {
-      $using_pipes = false;
-      $input = explode("\n", trim( $input ));
+      $result = preg_match_all('/
+                                  (?:^|[\s]*)\|?    # start of parameter - string start or series of spaces
+                                  [ ]*              
+                                  (?:               
+                                    ([A-z0-9_]+)    # variable name
+                                    [ ]* = [ ]*     # assignment
+                                  )?                # this is optional - if the parameter name is not given, a numerical index is assigned
+                                  (.+)              # value
+                                /x', trim($input), $matches);
     }
     else
     {
-      $using_pipes = true;
-      $input = substr($input, 1);
-      $input = explode("|", trim( $input ));
-    }
-    $parms = Array();
-    $current_line = '';
-    $current_parm = '';
-    foreach ( $input as $num => $line )
+      $result = preg_match_all('/
+                                  (?:^|[ ]*)\|         # start of parameter - string start or series of spaces
+                                  [ ]*
+                                  (?:
+                                    ([A-z0-9_]+)       # variable name
+                                    [ ]* = [ ]*        # assignment
+                                  )?                   # name section is optional - if the parameter name is not given, a numerical index is assigned
+                                  ([^\|]+|.+?\n[ ]*\|) # value
+                                /x', trim($input), $matches);
+    }                   
+    if ( $result )
     {
-      if ( preg_match('/^[ ]*([A-z0-9_]+)([ ]*)=([ ]*)(.+?)$/is', $line, $matches) )
+      $pi = 0;
+      for ( $i = 0; $i < count($matches[0]); $i++ )
       {
-        $parm =& $matches[1];
-        $text =& $matches[4];
-        if ( $parm == $current_parm )
-        {
-          $current_line .= $text;
-        }
-        else
-        {
-          // New parameter
-          if ( $current_parm != '' )
-            $parms[$current_parm] = $current_line;
-          $current_line = $text;
-          $current_parm = $parm;
-        }
+        $matches[1][$i] = trim($matches[1][$i]);
+        $parmname = !empty($matches[1][$i]) ? $matches[1][$i] : strval(++$pi);
+        $parms[ $parmname ] = $matches[2][$i];
       }
-      else if ( $num == 0 )
-      {
-        // Syntax error
-        return false;
-      }
-      else
-      {
-        $current_line .= "\n$line";
-      }
-    }
-    if ( !empty($current_parm) && !empty($current_line) )
-    {
-      $parms[$current_parm] = $current_line;
     }
     return $parms;
   }
@@ -624,8 +623,8 @@ class RenderMan {
    * @example
    * <code>
    $text = '{{Template
-     parm1 = Foo
-     parm2 = Bar
+       | parm1 = Foo
+       | parm2 = Bar
      }}';
    $text = RenderMan::include_templates($text);
    * </code>
@@ -635,17 +634,26 @@ class RenderMan {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     // $template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
-    $template_regex = "/\{\{(.+)(((\n|[ ]*\|)[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
+    // matches:
+    //  1 - template name
+    //  2 - parameter section
+    $template_regex = "/
+                         \{\{                     # opening
+                           ([^\n\t\a\r]+)         # template name
+                           ((?:(?:[\s]+\|?)[ ]*(?:[A-z0-9_]+)[ ]*=[ ]*?(?:.+))*) # parameters
+                         \}\}                     # closing
+                       /isxU";
     if ( $count = preg_match_all($template_regex, $text, $matches) )
     {
       //die('<pre>' . print_r($matches, true) . '</pre>');
       for ( $i = 0; $i < $count; $i++ )
       {
         $matches[1][$i] = sanitize_page_id($matches[1][$i]);
+        $newlinemode = ( substr($matches[2][$i], 0, 1) == "\n" );
         $parmsection = trim($matches[2][$i]);
         if ( !empty($parmsection) )
         {
-          $parms = RenderMan::parse_template_vars($parmsection);
+          $parms = RenderMan::parse_template_vars($parmsection, $newlinemode);
           if ( !is_array($parms) )
             // Syntax error
             $parms = array();

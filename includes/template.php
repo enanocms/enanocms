@@ -2051,84 +2051,59 @@ EOF;
   
   /**
    * Fetches the contents of both sidebars.
-   * @return array - key 0 is left, key 1 is right
+   * @return array - key 0 is left, key 1 is right, key 2 is the HTML that makes up an empty sidebar
    * @example list($left, $right) = $template->fetch_sidebar();
    */
   
   function fetch_sidebar()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    global $cache;
     
-    $left = '';
-    $right = '';
-    
-    // check the cache
-    if ( !$session->user_logged_in && $data = $cache->fetch('anon_sidebar') )
+    // first, check the cache
+    if ( $result = $this->fetch_cached_sidebar() )
     {
-      if ( @$data['_theme_'] === $this->theme )
-      {
-        unset($data['_theme_']);
-        foreach ( $data as &$md )
-        {
-          $md = str_replace('$USERNAME$', $session->username, $md);
-          $md = str_replace('$PAGEID$', $paths->page, $md);
-          $md = str_replace('$MAIN_PAGE$', getConfig('main_page'), $md);
-        }
-        return $data;
-      }
+      return $result;
     }
     
+    profiler_log('Started sidebar parsing');
+    
+    // init our block contents
+    $left = '';
+    $right = '';
+    $min = '';
+    
+    // also might want the links block
     if ( !$this->fetch_block('Links') )
       $this->initLinksWidget();
     
-    $q = $db->sql_query('SELECT item_id,sidebar_id,block_name,block_type,block_content FROM '.table_prefix.'sidebar' . "\n"
-                           . '  WHERE item_enabled=1 ORDER BY sidebar_id ASC, item_order ASC;');
-    if(!$q) $db->_die('The sidebar text data could not be selected.');
-    
+    // templates to work with
     $vars = $this->extract_vars('elements.tpl');
     
-    if(isset($vars['sidebar_top'])) 
+    // sidebar_top and sidebar_bottom are HTML that is prepended/appended to sidebar content. Themes can
+    // choose whether or not to display a sidebar depending on whether the sidebar is empty ( $left == $min )
+    // or not using the sidebar_left and sidebar_right template booleans (the oxygen theme does this).
+    if ( isset($vars['sidebar_top']) ) 
     {
       $top = $this->parse($vars['sidebar_top']);
       $left  .= $top;
       $right .= $top;
+      $min .= $top;
     }
     
-    while($row = $db->fetchrow())
+    // grab the blocks from the DB
+    $q = $db->sql_query('SELECT item_id,sidebar_id,block_name,block_type,block_content FROM '.table_prefix.'sidebar' . "\n"
+                           . '  WHERE item_enabled=1 ORDER BY sidebar_id ASC, item_order ASC;');
+    if ( !$q )
+      $db->_die('The sidebar text data could not be selected.');
+    
+    // explicitly specify $q in case a plugin or PHP block makes a query
+    while ( $row = $db->fetchrow($q) )
     {
-      switch($row['block_type'])
-      {
-        case BLOCK_WIKIFORMAT:
-        default:
-          $parser = $this->makeParserText($vars['sidebar_section']);
-          $c = RenderMan::render($row['block_content']);
-          break;
-        case BLOCK_TEMPLATEFORMAT:
-          $parser = $this->makeParserText($vars['sidebar_section']);
-          $c = $this->tplWikiFormat($row['block_content']);
-          break;
-        case BLOCK_HTML:
-          $parser = $this->makeParserText($vars['sidebar_section_raw']);
-          $c = $row['block_content'];
-          break;
-        case BLOCK_PHP:
-          $parser = $this->makeParserText($vars['sidebar_section_raw']);
-          ob_start();
-          @eval($row['block_content']);
-          $c = ob_get_contents();
-          ob_end_clean();
-          break;
-        case BLOCK_PLUGIN:
-          $parser = $this->makeParserText('{CONTENT}');
-          $c = '<!-- PLUGIN -->' . (gettype($this->fetch_block($row['block_content'])) == 'string') ?
-                  $this->fetch_block($row['block_content']) :
-                  // This used to say "can't find plugin block" but I think it's more friendly to just silently hide it.
-                  '';
-          break;
-      }
+      // format the block
+      $block_content = $this->format_sidebar_block($row, $vars, $parser);
+      
       // is there a {restrict} or {hideif} block?
-      if ( preg_match('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', $c, $match) )
+      if ( preg_match('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', $block_content, $match) )
       {
         // we have one, check the condition
         $type =& $match[1];
@@ -2140,53 +2115,253 @@ EOF;
           continue;
         }
         // didn't get a match, so hide the conditional logic
-        $c = str_replace_once($match[0], '', $c);
+        // FIXME: this needs to be verbose about syntax errors
+        $block_content = str_replace_once($match[0], '', $block_content);
       }
       
-      $parser->assign_vars(Array( 'TITLE'=>$this->tplWikiFormat($row['block_name']), 'CONTENT'=>$c ));
-      $run = $parser->run();
+      // if we made it here, this block definitely needs to be displayed. send it to the
+      // parser (set by format_sidebar_block) and decide where to append it (but not in that order ;))
+      $appender = false;
+      
+      if ( $row['sidebar_id'] == SIDEBAR_LEFT )
+      {
+        $appender =& $left;
+      }
+      else if ( $row['sidebar_id'] == SIDEBAR_RIGHT )
+      {
+        $appender =& $right;
+      }
+      else
+      {
+        // uhoh, block_id isn't valid. maybe a plugin wants to put this block somewhere else?
+        $code = $plugins->setHook('sidebar_block_id');
+        foreach ( $code as $cmd )
+        {
+          eval($cmd);
+        }
+        // if $appender wasn't set by a plugin, don't parse this block to save some CPU cycles
+        if ( !$appender )
+        {
+          continue;
+        }
+      }
+      
+      // assign variables to parser
+      $block_name = $this->tplWikiFormat($row['block_name']);
+      $parser->assign_vars(array(
+          // be nice and format the title (FIXME, does this use a lot of CPU time? still needs l10n in some cases though)
+          'TITLE' => $block_name,
+          'CONTENT' => $block_content
+        ));
+      $parsed = $parser->run();
+      
+      // plugins are parsed earlier due to the way disabled/missing plugins that add sidebar blocks are
+      // handled, so the {TITLE} var won't be replaced until now. this allows completely eliminating a
+      // block if it's not available
       if ( $row['block_type'] == BLOCK_PLUGIN )
       {
-        $run = str_replace('{TITLE}', $this->tplWikiFormat($row['block_name']), $run);
+        $parsed = str_replace('{TITLE}', $block_name, $parsed);
       }
-      if    ($row['sidebar_id'] == SIDEBAR_LEFT ) $left  .= $run;
-      elseif($row['sidebar_id'] == SIDEBAR_RIGHT) $right .= $run;
-      unset($parser);
+      
+      // done parsing - append and continue
+      $appender .= $parsed;
+      
+      // we're done with this - unset it because it's a reference and we don't want it overwritten.
+      // also free the parser to get some RAM back
+      unset($appender, $parser);
     }
-    $db->free_result();
+    
+    // lastly, append any footer HTML
     if(isset($vars['sidebar_bottom'])) 
     {
       $bottom = $this->parse($vars['sidebar_bottom']);
       $left  .= $bottom;
       $right .= $bottom;
+      $min   .= $bottom;
     }
-    $min = '';
-    if(isset($vars['sidebar_top'])) 
+    
+    $return = array($left, $right, $min);
+    
+    // allow any plugins to append what they want to the return
+    $code = $plugins->setHook('sidebar_fetch_return');
+    foreach ( $code as $cmd )
     {
-      $min .= $top;
+      eval($cmd);
     }
-    if(isset($vars['sidebar_bottom']))
+    
+    // cache the result if appropriate
+    $this->cache_compiled_sidebar($return);
+    
+    profiler_log('Finished sidebar parsing');
+    
+    return $return;
+  }
+  
+  /**
+   * Runs the appropriate formatting routine on a sidebar row.
+   * @param array Row in sidebar table
+   * @param array Template variable set from elements.tpl
+   * @param null Pass by reference, will be filled with the parser according to the block's type (sidebar_section or sidebar_section_raw)
+   * @return string HTML + directives like {restrict} or {hideif}
+   */
+  
+  function format_sidebar_block($row, $vars, &$parser)
+  {
+    // import globals in case a PHP block wants to call the Enano API
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $parser = null;
+    
+    switch($row['block_type'])
     {
-      $min .= $bottom;
+      case BLOCK_WIKIFORMAT:
+        $parser = $this->makeParserText($vars['sidebar_section']);
+        $c = RenderMan::render($row['block_content']);
+        break;
+        
+      case BLOCK_TEMPLATEFORMAT:
+        $parser = $this->makeParserText($vars['sidebar_section']);
+        $c = $this->tplWikiFormat($row['block_content']);
+        break;
+        
+      case BLOCK_HTML:
+        $parser = $this->makeParserText($vars['sidebar_section_raw']);
+        $c = $row['block_content'];
+        break;
+        
+      case BLOCK_PHP:
+        // PHP blocks need to be sent directly to eval()
+        $parser = $this->makeParserText($vars['sidebar_section_raw']);
+        ob_start();
+        @eval($row['block_content']);
+        $c = ob_get_contents();
+        ob_end_clean();
+        break;
+        
+      case BLOCK_PLUGIN:
+        $parser = $this->makeParserText('{CONTENT}');
+        $c = '<!-- PLUGIN -->' . (gettype($this->fetch_block($row['block_content'])) == 'string') ?
+                $this->fetch_block($row['block_content']) :
+                // This used to say "can't find plugin block" but I think it's more friendly to just silently hide it.
+                '';
+        break;
+      default:
+        // unknown block type - can a plugin handle it?
+        $code = $plugins->setHook('format_sidebar_block');
+        foreach ( $code as $cmd )
+        {
+          eval($cmd);
+        }
+        if ( !isset($c) )
+        {
+          // default to wiki formatting (this was going to be straight HTML but this is done for backwards compatibility reasons)
+          $c = RenderMan::render($row['block_content']);
+        }
+        if ( !$parser )
+        {
+          // no parser defined, use the "raw" section by default (plugins are more likely to want raw content
+          // rather than a list of links, and they can set the parser to use sidebar_section if they want)
+          $parser = $this->makeParserText($vars['sidebar_section_raw']);
+        }
+        
+        break;
     }
-    $return = Array($left, $right, $min);
-    if ( getConfig('cache_thumbs') == '1' && !$session->user_logged_in )
+    
+    return $c;
+  }
+  
+  /**
+   * Returns the list of things that should not be cached (sorry, I was listening to "The Thing That Should Not Be" by Metallica when I
+   * wrote this routine. You should get a copy of Master of Puppets, it's a damn good album.)
+   * @return array
+   */
+  
+  function get_cache_replacements()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    return array(
+          '$LOGIN_LINK$' => $this->tpl_strings['LOGIN_LINK'],
+          '$MAIN_PAGE$' => $this->tpl_strings['MAIN_PAGE'],
+          '$USERNAME$' => $session->username
+        );
+  }
+  
+  /**
+   * Attempts to load a cached compiled sidebar.
+   * @return array Same format as fetch_sidebar()
+   */
+  
+  function fetch_cached_sidebar()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $cache;
+    
+    $cached = false;
+    if ( ($result = $cache->fetch('anon_sidebar')) && !$session->user_logged_in )
     {
-      $cachestore = enano_json_encode($return);
-      $cachestore = str_replace($session->username, '$USERNAME$', $cachestore);
-      $cachestore = str_replace($paths->page, '$PAGEID$', $cachestore);
-      $cachestore = str_replace('__STATICLINK__', $paths->page, $cachestore);
-      $cachestore = str_replace('__MAINPAGELINK__', '$MAIN_PAGE$', $cachestore);
-      $cachestore = enano_json_decode($cachestore);
-      $cachestore['_theme_'] = $this->theme;
-      $cache->store('anon_sidebar', $cachestore, 10);
-      
-      foreach ( $return as &$el )
+      if ( isset($result[$this->theme]) )
       {
-        $el = str_replace('__STATICLINK__', $paths->page, $el);
+        $cached = $result[$this->theme];
       }
     }
-    return $return;
+    
+    // if we haven't been able to fetch yet, see if a plugin wants to give us something
+    if ( !$cached )
+    {
+      $code = $plugins->setHook('fetch_cached_sidebar');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+    } 
+    
+    if ( is_array($cached) )
+    {
+      // fetch certain variables that can't be stored in the cache and quickly substitute
+      $replace = $this->get_cache_replacements();
+      foreach ( $cached as &$val )
+      {
+        $val = strtr($val, $replace);
+      }
+      
+      // done processing, send it back
+      return $cached;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Caches a completely compiled sidebar, if appropriate
+   * @param array Effectively, return from fetch_sidebar()
+   */
+  
+  function cache_compiled_sidebar($sidebar)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $cache;
+    
+    // check if conditions are right
+    if ( !$session->user_logged_in && getConfig('cache_thumbs') === '1' )
+    {
+      // load any existing cache to make sure other themes' cached sidebars aren't discarded
+      $cached = ( $_ = $cache->fetch('anon_sidebar') ) ? $_ : array();
+      
+      // replace variables
+      $replace = array_flip($this->get_cache_replacements());
+      
+      foreach ( $sidebar as &$section )
+      {
+        $section = strtr($section, $replace);
+      }
+      
+      // compile
+      $cached[$this->theme] = $sidebar;
+      
+      // store
+      $cache->store('anon_sidebar', $cached, 15);
+    }
   }
   
   function initLinksWidget()

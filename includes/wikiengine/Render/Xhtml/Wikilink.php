@@ -56,6 +56,11 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
 
     function token($options)
     {
+      ##
+      ## THIS IS NOT WHAT YOU ARE LOOKING FOR!!
+      ## All of this code is deprecated. Patch RenderMan::parse_internal_links() instead!
+      ##
+      
         global $session;
         if ( $session->sid_super )
         {
@@ -120,16 +125,8 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
             // the HREF.  we support both the old form where
             // the page always comes at the end, and the new
             // form that uses %s for sprintf()
-            $href = $this->getConf('view_url');
-
-            if (strpos($href, '%s') === false) {
-                // use the old form (page-at-end)
-                $href = $href . $page . $anchor;
-            } else {
-                // use the new form (sprintf format string)
-                $href = sprintf($href, $page . $anchor);
-            }
-
+            $href = makeUrl($page, false, true);
+            
             // get the CSS class and generate output
             $css = $this->formatConf(' class="%s"', 'css');
 
@@ -143,22 +140,13 @@ class Text_Wiki_Render_Xhtml_Wikilink extends Text_Wiki_Render {
             // the HREF.  we support both the old form where
             // the page always comes at the end, and the new
             // form that uses %s for sprintf()
-            $href = $this->getConf('view_url');
-
-            if (strpos($href, '%s') === false) {
-                // use the old form (page-at-end)
-                $href = $href . $page . $anchor;
-            } else {
-                // use the new form (sprintf format string)
-                $href = sprintf($href, $page . $anchor);
-            }
+            $href = makeUrl($page, false, true);
 
             // get the CSS class and generate output
             $css = $this->formatConf(' class="%s"', 'css');
 
-            $start = '<a'.$css.' href="'.$href.$as.'"'.$nobg.' class="wikilink-nonexistent">';
+            $start = '<a'.$css.' href="'.$href.'"'.$nobg.' class="wikilink-nonexistent">';
             $end = '</a>';
-            
         }
         if (!strlen($text)) {
             $start .= $this->textEncode($options['page']);

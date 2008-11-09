@@ -162,7 +162,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
   }
   
   // Draft notice
-  if ( response.have_draft )
+  if ( response.have_draft && !readonly )
   {
     var dn = document.createElement('div');
     dn.className = 'warning-box';

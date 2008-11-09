@@ -652,6 +652,22 @@ function page_Special_Preferences()
             <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_timezone'); ?><br /><small><?php echo $lang->get('usercp_publicinfo_field_timezone_hint'); ?></small></td>
             <td class="row1"><?php echo $tz_select; ?></td>
           </tr>
+          <tr>
+            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_dst'); ?></td>
+            <td class="row1">
+              <select name="dst">
+                <?php
+                global $dst_profiles, $dst_params;
+                $user_dst = implode(';', $dst_params);
+                foreach ( $dst_profiles as $region => $data )
+                {
+                  $selected = ( $data === $user_dst ) ? ' selected="selected"' : '';
+                  echo '<option value="' . $data . '"' . $selected . '>' . $lang->get("tz_dst_$region") . '</option>';
+                }
+                ?>
+              </select>
+            </td>
+          </tr>
           <?php
           if ( $session->get_permissions('custom_user_title') ):
           ?>
