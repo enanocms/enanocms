@@ -1244,6 +1244,9 @@ function aclTraceModalKey()
 
 function aclDrawTraceWrapper(data)
 {
+  // hide the next button
+  document.getElementById(aclManagerID + '_next').style.display = 'none';
+  
   var trace_by_perm = aclDrawTraceByPerm(data);
   var trace_by_rule = aclDrawTraceByRule(data);
   
