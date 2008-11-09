@@ -1308,7 +1308,6 @@ JSEOF;
   function footer($simple = false)
   {
     echo $this->getFooter($simple);
-    ob_end_flush();
   }
   
   function getHeader()
