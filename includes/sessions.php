@@ -1766,29 +1766,33 @@ class sessionManager {
       $this->sql('INSERT INTO '.table_prefix.'users_extra(user_id) VALUES(' . $user_id . ');');
     }
     
-    // Grant edit and very limited mod access to the userpage
-    $acl_data = array(
-        'read' => AUTH_ALLOW,
-        'view_source' => AUTH_ALLOW,
-        'edit_page' => AUTH_ALLOW,
-        'post_comments' => AUTH_ALLOW,
-        'edit_comments' => AUTH_ALLOW, // only allows editing own comments
-        'history_view' => AUTH_ALLOW,
-        'history_rollback' => AUTH_ALLOW,
-        'rename' => AUTH_ALLOW,
-        'delete_page' => AUTH_ALLOW,
-        'tag_create' => AUTH_ALLOW,
-        'tag_delete_own' => AUTH_ALLOW,
-        'tag_delete_other' => AUTH_ALLOW,
-        'edit_cat' => AUTH_ALLOW,
-        'create_page' => AUTH_ALLOW
-      );
-    $acl_data = $db->escape($this->perm_to_string($acl_data));
-    $userpage = $db->escape(sanitize_page_id($user_orig));
-    $cols = "target_type, target_id, page_id, namespace, rules";
-    $vals = ACL_TYPE_USER . ", $user_id, '$userpage', 'User', '$acl_data'";
-    $q = "INSERT INTO ".table_prefix."acl($cols) VALUES($vals);";
-    $this->sql($q);
+    // Config option added, 1.1.5
+    if ( getConfig('userpage_grant_acl', '1') == '1' )             
+    {
+      // Grant edit and very limited mod access to the userpage
+      $acl_data = array(
+          'read' => AUTH_ALLOW,
+          'view_source' => AUTH_ALLOW,
+          'edit_page' => AUTH_ALLOW,
+          'post_comments' => AUTH_ALLOW,
+          'edit_comments' => AUTH_ALLOW, // only allows editing own comments
+          'history_view' => AUTH_ALLOW,
+          'history_rollback' => AUTH_ALLOW,
+          'rename' => AUTH_ALLOW,
+          'delete_page' => AUTH_ALLOW,
+          'tag_create' => AUTH_ALLOW,
+          'tag_delete_own' => AUTH_ALLOW,
+          'tag_delete_other' => AUTH_ALLOW,
+          'edit_cat' => AUTH_ALLOW,
+          'create_page' => AUTH_ALLOW
+        );
+      $acl_data = $db->escape($this->perm_to_string($acl_data));
+      $userpage = $db->escape(sanitize_page_id($user_orig));
+      $cols = "target_type, target_id, page_id, namespace, rules";
+      $vals = ACL_TYPE_USER . ", $user_id, '$userpage', 'User', '$acl_data'";
+      $q = "INSERT INTO ".table_prefix."acl($cols) VALUES($vals);";
+      $this->sql($q);
+    }
     
     // Require the account to be activated?
     if ( $coppa )

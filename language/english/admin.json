@@ -233,6 +233,7 @@ var enano_lang = {
     },
     acpgc: {
       err_avatar_dir_invalid: 'You have entered an invalid avatar directory.',
+      err_avatar_dir_not_exist: 'The avatar directory you entered does not exist in the filesystem.',
       msg_save_success: 'Your changes to the site configuration have been saved.',
       
       // Section: global site options
@@ -381,6 +382,12 @@ var enano_lang = {
       field_avatar_gravatar_rating_x: 'X (hardcore sexual images, extremely disturbing violence)',
       field_avatar_directory: 'Avatar storage directory:',
       field_avatar_directory_hint: 'This should be relative to your Enano root and should contain only alphanumeric characters and forward slashes, even if your server runs Windows.',
+      
+      // Section: misc options
+      heading_usermisc: 'Other user options',
+      field_userpage_acl_title: 'New users can edit their user pages:',
+      field_userpage_acl_hint: 'This setting will cause Enano to grant certain rights to newly registered users, effective only on their user page. These rights include creating their page, editing their page, and posting comments. Since it generates a new ACL rule, you are able to override new permissions. This setting will only take effect on new users - it does not affect the permissions of those already registered.',
+      field_userpage_acl: 'Grant editing rights to new users on their user pages',
       
       // Main section: sidebar links
       heading_sidebar: 'Sidebar links',
