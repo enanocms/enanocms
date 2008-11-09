@@ -118,7 +118,7 @@ function page_Special_UploadFile()
     
     $utime = time();
            
-    $filename = $db->escape($filename);
+    $filename = $db->escape(sanitize_page_id($filename));
     $ext = substr($filename, strrpos($filename, '.'), strlen($filename));
     $flen = filesize($file['tmp_name']);
     
@@ -219,7 +219,8 @@ function page_Special_DownloadFile()
   {
     $tid = '';
   }
-  $filename = $db->escape($filename);
+  $filename = $db->escape(sanitize_page_id($filename));
+  
   $q = $db->sql_query('SELECT page_id,size,mimetype,time_id,file_extension,file_key FROM '.table_prefix.'files WHERE filename=\''.$filename.'\''.$tid.' ORDER BY time_id DESC;');
   if ( !$q )
   {
