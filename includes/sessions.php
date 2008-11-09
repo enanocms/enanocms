@@ -3400,22 +3400,25 @@ EOF;
    * @return array LoginAPI response
    */
   
-  function process_login_request($req)
+  function process_login_request($req, $_dbgtmp = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Setup EnanoMath and Diffie-Hellman
-    require_once(ENANO_ROOT.'/includes/math.php');
-    
     global $dh_supported;
-    $dh_supported = true;
-    try
+    if ( !function_exists('dh_gen_private') )
     {
-      require_once(ENANO_ROOT . '/includes/diffiehellman.php');
-    }
-    catch ( Exception $e )
-    {
-      $dh_supported = false;
+      require_once(ENANO_ROOT.'/includes/math.php');
+      
+      $dh_supported = true;
+      try
+      {
+        require_once(ENANO_ROOT . '/includes/diffiehellman.php');
+      }
+      catch ( Exception $e )
+      {
+        $dh_supported = false;
+      }
     }
     global $_math;
     
