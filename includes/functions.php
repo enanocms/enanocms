@@ -3148,7 +3148,7 @@ function gzip_output()
   // Compress buffered output if required and send to browser
   // Sorry, doesn't work in IE. What else is new?
   //
-  if ( $do_gzip && function_exists('gzdeflate') && !strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') )
+  if ( $do_gzip && function_exists('gzdeflate') && !strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') && !headers_sent() )
   {
     $gzip_contents = ob_get_contents();
     ob_end_clean();
@@ -3752,8 +3752,8 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
   if ( !file_exists($in_file) )
     return false;
   
-  if ( preg_match('/["\'\/\\\\]/', $in_file) || preg_match('/["\'\/\\\\]/', $out_file) )
-    die('SECURITY: scale_image(): infile or outfile path is screwy');
+  $in_file = escapeshellarg($in_file);
+  $out_file = escapeshellarg($out_file);
   
   if ( file_exists($out_file) && !$unlink )
     return false;

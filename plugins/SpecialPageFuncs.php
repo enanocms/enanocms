@@ -582,8 +582,10 @@ function page_Special_About_Enano()
     $platform = 'Windows NT';
   else if(file_exists('C:\Windows\system\krnl386.exe'))
     $platform = 'Windows 9x/DOS';
+  else if(file_exists('/System/Library/CoreServices/SystemVersion.plist'))
+    $platform = 'Mac OS X';
   else if(file_exists('/bin/bash'))
-    $platform = 'Other GNU/Mac OS X';
+    $platform = 'Other GNU';
   else if(is_dir('/bin'))
     $platform = 'Other POSIX';
   $template->header();

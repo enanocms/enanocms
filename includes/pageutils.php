@@ -2028,6 +2028,53 @@ class PageUtils {
               'mode' => 'success'
             );
           break;
+        case 'trace':
+          list($targetpid, $targetns) = RenderMan::strToPageID($parms['page']);
+          $perms = $session->fetch_page_acl_user($parms['user'], $targetpid, $targetns);
+          $perm_table = array(
+              AUTH_ALLOW => 'acl_lbl_field_allow',
+              AUTH_WIKIMODE => 'acl_lbl_field_wikimode',
+              AUTH_DISALLOW => 'acl_lbl_field_disallow',
+              AUTH_DENY => 'acl_lbl_field_deny'
+            );
+          
+          $return = array(
+            'mode' => 'trace',
+            'perms' => array()
+          );
+          
+          foreach ( $perms->perm_resolve_table as $perm_type => $lookup_data )
+          {
+            if ( !$session->check_acl_scope($perm_type, $targetns) )
+              continue;
+            
+            $src_l10n = $lang->get($session->acl_inherit_lang_table[$lookup_data['src']], $lookup_data);
+            $divclass = preg_replace('/^acl_inherit_/', '', $session->acl_inherit_lang_table[$lookup_data['src']]);
+            $perm_string = $lang->get($perm_table[$perms->perms[$perm_type]]);
+            $perm_name = $lang->get($session->acl_descs[$perm_type]);
+            
+            $return['perms'][$perm_type] = array(
+                'divclass' => "acl_inherit acl_$divclass",
+                'perm_type' => $perm_type,
+                'perm_name' => $perm_name,
+                'perm_value' => $perm_string,
+                'perm_src' => $src_l10n,
+                'rule_id' => intval($lookup_data['rule_id'])
+              );
+          }
+          
+          // group rules if possible
+          $return['groups'] = array();
+          foreach ( $return['perms'] as $rule )
+          {
+            if ( !isset($return['groups'][$rule['rule_id']]) )
+            {
+              $return['groups'][$rule['rule_id']] = array();
+            }
+            $return['groups'][$rule['rule_id']][] = $rule['perm_type'];
+          }
+          
+          break;
         default:
           return Array('mode'=>'error','error'=>'Hacking attempt');
           break;

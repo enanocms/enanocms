@@ -887,3 +887,26 @@ div.userpage_block {
   padding: 10px;
 }
 
+/*
+ * ACL tracing tools
+ */
+
+div.acl_inherit {
+  padding: 5px;
+  margin-bottom: 1px;
+}
+
+td.acl_inherit_key {
+  width: 15px;
+}
+
+.acl_enano_default   { background-color: #FFFFC6; }
+.acl_global_everyone { background-color: #D6D6FF; }
+.acl_global_group    { background-color: #C6C6FF; }
+.acl_global_user     { background-color: #B6B6FF; }
+.acl_pg_everyone     { background-color: #D6FFD6; }
+.acl_pg_group        { background-color: #C6FFC6; }
+.acl_pg_user         { background-color: #B6FFB6; }
+.acl_local_everyone  { background-color: #FFD6D6; }
+.acl_local_group     { background-color: #FFC6C6; }
+.acl_local_user      { background-color: #FFB6B6; }

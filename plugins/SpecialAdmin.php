@@ -393,8 +393,10 @@ function page_Admin_GeneralConfig() {
     }
     else
     {
-      echo '<div class="error-box">' . $lang->get('acpgc_err_avatar_dir_invalid') . '</div>';
+      echo '<div class="error-box">' . $lang->get('acpgc_err_avatar_dir_not_exist') . '</div>';
     }
+    
+    setConfig('userpage_grant_acl', ( isset($_POST['userpage_grant_acl']) ? '1' : '0' ));
     
     echo '<div class="info-box">' . $lang->get('acpgc_msg_save_success') . '</div><br />';
     
@@ -924,6 +926,27 @@ function page_Admin_GeneralConfig() {
         </td>
         <td class="row2">
           <input type="text" name="avatar_directory" size="30" <?php if ( $x = getConfig('avatar_directory') ) echo "value=\"$x\" "; else echo "value=\"files/avatars\" "; ?>/>
+        </td>
+      </tr>
+      
+    <!-- Misc. options -->
+    
+      <tr>
+        <th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_usermisc'); ?></th>
+      </tr>
+      
+      <tr>
+        <td class="row1">
+          <b><?php echo $lang->get('acpgc_field_userpage_acl_title'); ?></b><br />
+          <small>
+            <?php echo $lang->get('acpgc_field_userpage_acl_hint'); ?>
+          </small>
+        </td>
+        <td class="row1">
+          <label>
+            <input type="checkbox" name="userpage_grant_acl" <?php if ( getConfig('userpage_grant_acl', '1') == '1' ) echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_userpage_acl'); ?>
+          </label>
         </td>
       </tr>
         

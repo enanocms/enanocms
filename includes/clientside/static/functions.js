@@ -160,7 +160,7 @@ function handle_invalid_json(response, customerror)
   load_component('flyin');
   load_component('l10n');
   
-  darken(aclDisableTransitionFX);
+  darken(aclDisableTransitionFX, 70, 'invalidjsondarkener');
   
   var box = document.createElement('div');
   var mainwin = document.createElement('div');
@@ -292,14 +292,14 @@ function handle_invalid_json(response, customerror)
       if ( aclDisableTransitionFX )
       {
         parentdiv.parentNode.removeChild(parentdiv);
-        enlighten(aclDisableTransitionFX);
+        enlighten(aclDisableTransitionFX, 'invalidjsondarkener');
       }
       else
       {
         $(parentdiv).hide("blind", {}, 1000, function()
           {
             parentdiv.parentNode.removeChild(parentdiv);
-              enlighten();
+              enlighten(aclDisableTransitionFX, 'invalidjsondarkener');
           });
       }
     }

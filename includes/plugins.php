@@ -82,7 +82,10 @@ class pluginLoader {
     
     while ( $row = $db->fetchrow() )
     {
-      $this->load_list[] = $row['plugin_filename'];
+      if ( file_exists(ENANO_ROOT . "/plugins/{$row['plugin_filename']}") )
+      {
+        $this->load_list[] = $row['plugin_filename'];
+      }
     }
     
     $this->loaded_plugins = $this->get_plugin_list($this->load_list);

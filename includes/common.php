@@ -236,6 +236,16 @@ if ( isset($_GET['do']) && $_GET['do'] == 'diag' && isset($_GET['sub']) )
   }
 }
 
+// Build the list of system tables (this is mostly done in constants.php, but that's before table_prefix is known)
+if ( defined('table_prefix') && !defined('ENANO_TABLELIST_PREFIXED') )
+{
+  define('ENANO_TABLELIST_PREFIXED', 1);
+  foreach ( $system_table_list as $i => $_ )
+  {
+    $system_table_list[$i] = table_prefix . $system_table_list[$i];
+  }
+}
+
 // Select and fetch the site configuration
 $e = $db->sql_query('SELECT config_name, config_value FROM '.table_prefix.'config;');
 if ( !$e )
