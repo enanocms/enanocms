@@ -414,7 +414,7 @@ window.ajaxLoginProcessResponse = function(response)
       ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
       document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
       var mb_parent = document.getElementById('messageBox').parentNode;
-      $(mb_parent).effect("shake", {}, 1500);
+      $(mb_parent).effect("shake", {}, 200);
       setTimeout(function()
         {
           document.getElementById('messageBox').style.backgroundColor = '#FFF';
