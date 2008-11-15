@@ -292,6 +292,7 @@ function load_show_win(file)
   ld.style.backgroundImage = 'url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAA1JREFUCNdj+P///xkACcgDypG+nnEAAAAASUVORK5CYII=)';
   
   document.body.appendChild(ld);
+  document.body.style.cursor = 'wait';
 }
 
 function load_hide_win()
@@ -300,6 +301,7 @@ function load_hide_win()
   if ( !ld )
     return false;
   ld.parentNode.removeChild(ld);
+  document.body.style.cursor = 'default';
 }
 
 // evaluate a snippet of code in the global context, used for dynamic component loading
