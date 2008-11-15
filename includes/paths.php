@@ -192,7 +192,7 @@ class pathManager
     if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') || defined('IN_ENANO_UPGRADE') )
     {
       $title = $this->parse_url(false);
-      if ( empty($title) && getConfig('main_page') != '' )
+      if ( empty($title) && get_main_page() != '' )
       {
         $this->main_page();
       }
@@ -358,9 +358,9 @@ class pathManager
       if($this->namespace == 'Special' && !$this->external_api_page)
       {
         // Can't load nonexistent pages
-        if( is_string(getConfig('main_page')) )
+        if( is_string(get_main_page()) )
         {
-          $main_page = makeUrl(getConfig('main_page'));
+          $main_page = makeUrl(get_main_page());
         }
         else
         {
@@ -408,9 +408,9 @@ class pathManager
   
   function main_page()
   {
-    if( is_string(getConfig('main_page')) )
+    if( is_string(get_main_page()) )
     {
-      $main_page = makeUrl(getConfig('main_page'));
+      $main_page = makeUrl(get_main_page());
     }
     else
     {

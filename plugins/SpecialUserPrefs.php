@@ -269,11 +269,11 @@ function page_Special_Preferences()
               {
                 if ( getConfig('account_activation') == 'user' )
                 {
-                  redirect(makeUrl(getConfig('main_page')), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
+                  redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
                 }
                 else if ( getConfig('account_activation') == 'admin' )
                 {
-                  redirect(makeUrl(getConfig('main_page')), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
+                  redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
                 }
               }
               $session->login_without_crypto($session->username, $newpass);
@@ -298,11 +298,11 @@ function page_Special_Preferences()
               {
                 if ( getConfig('account_activation') == 'user' )
                 {
-                  redirect(makeUrl(getConfig('main_page')), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
+                  redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
                 }
                 else if ( getConfig('account_activation') == 'admin' )
                 {
-                  redirect(makeUrl(getConfig('main_page')), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
+                  redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
                 }
               }
               else

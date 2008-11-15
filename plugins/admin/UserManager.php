@@ -1114,24 +1114,24 @@ class Admin_UserManager_SmartForm
                         {
                           case 'keep':
                           case 'remove':
-                            $('avatar_upload_http_{UUID}').object.style.display = 'none';
-                            $('avatar_upload_file_{UUID}').object.style.display = 'none';
-                            $('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_http_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_file_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
                             break;
                           case 'set_http':
-                            $('avatar_upload_http_{UUID}').object.style.display = 'block';
-                            $('avatar_upload_file_{UUID}').object.style.display = 'none';
-                            $('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_http_{UUID}').object.style.display = 'block';
+                            \$dynano('avatar_upload_file_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
                             break;
                           case 'set_file':
-                            $('avatar_upload_http_{UUID}').object.style.display = 'none';
-                            $('avatar_upload_file_{UUID}').object.style.display = 'block';
-                            $('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_http_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_file_{UUID}').object.style.display = 'block';
+                            \$dynano('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
                             break;
                           case 'set_gravatar':
-                            $('avatar_upload_gravatar_{UUID}').object.style.display = 'block';
-                            $('avatar_upload_http_{UUID}').object.style.display = 'none';
-                            $('avatar_upload_file_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_gravatar_{UUID}').object.style.display = 'block';
+                            \$dynano('avatar_upload_http_{UUID}').object.style.display = 'none';
+                            \$dynano('avatar_upload_file_{UUID}').object.style.display = 'none';
                             break;
                         }
                       }

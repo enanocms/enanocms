@@ -19,7 +19,14 @@ window.ajaxLogonToMember = function()
     return true;
   ajaxLoginInit(function(k)
     {
-      window.location.reload();
+      if ( on_main_page )
+      {
+        window.location = makeUrl(main_page_members);
+      }
+      else
+      {
+        window.location.reload();
+      }
     }, USER_LEVEL_MEMBER);
 }
 

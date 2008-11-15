@@ -59,7 +59,7 @@ $lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/user.json');
 if ( enano_version() == installer_enano_version() )
 {
   $ui->show_header();
-  $link_home = makeUrl(getConfig('main_page'), false, true);
+  $link_home = makeUrl(get_main_page(), false, true);
   echo '<h3>' . $lang->get('upgrade_err_current_title') . '</h3>' .
        '<p>' . $lang->get('upgrade_err_current_body', array('mainpage_link' => $link_home)) . '</p>' .
        '<p>' . $lang->get('upgrade_err_current_body_para2', array('mainpage_link' => $link_home)) . '</p>';
@@ -255,7 +255,7 @@ else if ( isset($_GET['stage']) && @$_GET['stage'] == 'postpimp' )
   // demote privileges
   $session->logout(USER_LEVEL_ADMIN);
   
-  $link_home = makeUrl(getConfig('main_page'), false, true);
+  $link_home = makeUrl(get_main_page(), false, true);
   echo '<h3>' . $lang->get('upgrade_post_status_finish_title') . '</h3>';
   echo '<p>' . $lang->get('upgrade_post_status_finish_body', array('mainpage_link' => $link_home)) . '</p>';
 }

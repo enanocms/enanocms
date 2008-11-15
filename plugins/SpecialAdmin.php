@@ -246,9 +246,15 @@ function page_Admin_GeneralConfig() {
     // Global site options
     setConfig('site_name', $_POST['site_name']);
     setConfig('site_desc', $_POST['site_desc']);
-    setConfig('main_page', str_replace(' ', '_', $_POST['main_page']));
+    setConfig('main_page', sanitize_page_id($_POST['main_page']));
     setConfig('copyright_notice', $_POST['copyright']);
     setConfig('contact_email', $_POST['contact_email']);
+    
+    setConfig('main_page_alt_enable', ( isset($_POST['main_page_alt_enable']) && $_POST['main_page_alt_enable'] === '1' ? '1' : '0' ));
+    if ( !empty($_POST['main_page_alt']) )
+    {
+      setConfig('main_page_alt', sanitize_page_id($_POST['main_page_alt']));
+    }
     
     // Wiki mode
     if(isset($_POST['wikimode']))                setConfig('wiki_mode', '1');
@@ -413,14 +419,76 @@ function page_Admin_GeneralConfig() {
     <!-- Global options -->
     
       <tr><th colspan="2"><?php echo $lang->get('acpgc_heading_main'); ?></th></tr>
-      <tr><th colspan="2" class="subhead"><?php echo $lang->get('acpgc_heading_submain'); ?></th></tr>
       
-      <tr><td class="row1" style="width: 50%;"><?php echo $lang->get('acpgc_field_site_name'); ?></td>  <td class="row1" style="width: 50%;"><input type="text" name="site_name" size="30" value="<?php echo htmlspecialchars(getConfig('site_name')); ?>" /></td></tr>
-      <tr><td class="row2"><?php echo $lang->get('acpgc_field_site_desc'); ?></td>               <td class="row2"><input type="text" name="site_desc" size="30" value="<?php echo htmlspecialchars(getConfig('site_desc')); ?>" /></td></tr>
-      <tr><td class="row1"><?php echo $lang->get('acpgc_field_main_page'); ?></td>                      <td class="row1"><?php echo $template->pagename_field('main_page', sanitize_page_id(getConfig('main_page'))); ?></td></tr>
-      <tr><td class="row2"><?php echo $lang->get('acpgc_field_copyright'); ?></td><td class="row2"><input type="text" name="copyright" size="30" value="<?php echo htmlspecialchars(getConfig('copyright_notice')); ?>" /></td></tr>
-      <tr><td class="row1" colspan="2"><?php echo $lang->get('acpgc_field_copyright_hint'); ?></td></tr>
-      <tr><td class="row2"><?php echo $lang->get('acpgc_field_contactemail'); ?><br /><small><?php echo $lang->get('acpgc_field_contactemail_hint'); ?></small></td><td class="row2"><input name="contact_email" type="text" size="40" value="<?php echo htmlspecialchars(getConfig('contact_email')); ?>" /></td></tr>
+      <tr>
+        <th colspan="2" class="subhead"><?php echo $lang->get('acpgc_heading_submain'); ?></th>
+      </tr>
+      
+      <!-- site name -->
+      
+      <tr>
+        <td class="row1" style="width: 50%;">
+          <?php echo $lang->get('acpgc_field_site_name'); ?>
+        </td>
+        <td class="row1" style="width: 50%;">
+          <input type="text" name="site_name" size="30" value="<?php echo htmlspecialchars(getConfig('site_name')); ?>" />
+        </td>
+      </tr>
+      
+      <!-- site tagline -->
+      <tr>
+        <td class="row2">
+          <?php echo $lang->get('acpgc_field_site_desc'); ?>
+        </td>
+        <td class="row2">
+          <input type="text" name="site_desc" size="30" value="<?php echo htmlspecialchars(getConfig('site_desc')); ?>" />
+        </td>
+      </tr>
+      
+      <!-- main page -->
+      <tr>
+        <td class="row1">
+          <?php echo $lang->get('acpgc_field_main_page'); ?></td>
+        <td class="row1">
+          <?php echo $template->pagename_field('main_page', sanitize_page_id(getConfig('main_page'))); ?><br />
+            <label><input type="radio" name="main_page_alt_enable" value="0" onclick="$('#main_page_alt_tr').hide();" <?php if ( getConfig('main_page_alt_enable', '0') == '0' ) echo 'checked="checked" '; ?>/> <?php echo $lang->get('acpgc_field_main_page_option_same'); ?></label><br />
+            <label><input type="radio" name="main_page_alt_enable" value="1" onclick="$('#main_page_alt_tr').show();" <?php if ( getConfig('main_page_alt_enable', '0') == '1' ) echo 'checked="checked" '; ?>/> <?php echo $lang->get('acpgc_field_main_page_option_members'); ?></label>
+        </td>
+      </tr>
+      <tr id="main_page_alt_tr"<?php if ( getConfig('main_page_alt_enable', '0') == '0' ) echo ' style="display: none;"'; ?>>
+        <td class="row3">
+          <?php echo $lang->get('acpgc_field_main_page_members'); ?>
+        </td>
+        <td class="row3">
+          <?php echo $template->pagename_field('main_page_alt', sanitize_page_id(getConfig('main_page_alt', /* default alt to current main page */ getConfig('main_page', 'Main_Page')))); ?>
+        </td>
+      </tr>
+      
+      <!-- copyright notice -->
+      <tr>
+        <td class="row2">
+            <?php echo $lang->get('acpgc_field_copyright'); ?>
+        </td>
+        <td class="row2">
+          <input type="text" name="copyright" size="30" value="<?php echo htmlspecialchars(getConfig('copyright_notice')); ?>" />
+        </td>
+      </tr>
+      <tr>
+        <td class="row1" colspan="2">
+          <?php echo $lang->get('acpgc_field_copyright_hint'); ?>
+        </td>
+      </tr>
+      
+      <!-- contact e-mail -->
+      <tr>
+        <td class="row2">
+          <?php echo $lang->get('acpgc_field_contactemail'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_contactemail_hint'); ?></small>
+        </td>
+        <td class="row2">
+          <input name="contact_email" type="text" size="40" value="<?php echo htmlspecialchars(getConfig('contact_email')); ?>" />
+        </td>
+      </tr>
       
     <!-- Wiki mode -->
       
@@ -2084,7 +2152,7 @@ function page_Admin_AdminLogout()
   
   $session->logout(USER_LEVEL_ADMIN);
   echo '<h3>' . $lang->get('acplo_heading_main') . '</h3>
-         <p>' . $lang->get('acplo_msg_logout_complete', array('mainpage_link' => makeUrl(getConfig('main_page')))) . '</p>';
+         <p>' . $lang->get('acplo_msg_logout_complete', array('mainpage_link' => makeUrl(get_main_page()))) . '</p>';
 }
 
 function page_Special_Administration()
@@ -2534,11 +2602,14 @@ function page_Special_EditSidebar()
           </form>
           
           <script type="text/javascript">
-            var divs = getElementsByClassName(document, 'div', 'sbadd_block');
-            for(var i in divs)
-            {
-              if(divs[i].id != 'blocktype_<?php echo BLOCK_WIKIFORMAT; ?>') setTimeout("document.getElementById('"+divs[i].id+"').style.display = 'none';", 500);
-            }
+            addOnloadHook(function()
+              {
+                var divs = getElementsByClassName(document, 'div', 'sbadd_block');
+                for(var i in divs)
+                {
+                  if(divs[i].id != 'blocktype_<?php echo BLOCK_WIKIFORMAT; ?>') setTimeout("document.getElementById('"+divs[i].id+"').style.display = 'none';", 500);
+                }
+              });
           </script>
           
           <?php
@@ -2769,7 +2840,8 @@ function page_Special_EditSidebar()
           break;
         case BLOCK_PLUGIN:
           $parser = $template->makeParserText($vars['sidebar_section_raw']);
-          $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : $lang->get('sbedit_msg_plugin_not_loaded');
+          $c = ($template->fetch_block($row['block_content'], true)) ? $template->fetch_block($row['block_content'], true) : $lang->get('sbedit_msg_plugin_not_loaded');
+          
           break;
       }
       $c = preg_replace('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', '', $c);
@@ -2804,7 +2876,7 @@ function page_Special_EditSidebar()
             <input type="submit" name="save" style="font-weight: bold;" value="' . $lang->get('etc_save_changes') . '" />
             <input type="submit" name="revert" style="font-weight: normal;" value="' . $lang->get('sbedit_btn_revert') . '" onclick="return confirm($lang.get(\'sbedit_msg_discard_order_confirm\'))" />
             <br />
-            <a href="'.makeUrl($paths->page, 'action=new&id=0', true).'">' . $lang->get('sbedit_btn_create_new_stage1') . '</a>  |  <a href="'.makeUrl(getConfig('main_page'), false, true).'">' . $lang->get('sbedit_btn_main_page') . '</a>
+            <a href="'.makeUrl($paths->page, 'action=new&id=0', true).'">' . $lang->get('sbedit_btn_create_new_stage1') . '</a>  |  <a href="'.makeUrl(get_main_page(), false, true).'">' . $lang->get('sbedit_btn_main_page') . '</a>
           </div>
         </form>
          ';

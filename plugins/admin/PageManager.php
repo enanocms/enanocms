@@ -149,7 +149,7 @@ function page_Admin_PageManager()
             // Field: page URL string
             $page_urlname = $_POST['page_urlname'];
             $page_urlname = trim($_POST['page_urlname']);
-            if ( empty($page_urlname) && getConfig('main_page') !== '' )
+            if ( empty($page_urlname) && get_main_page() !== '' )
             {
               $errors[] = $lang->get('acppm_err_invalid_url_string');
             }

@@ -260,6 +260,27 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
 }
 
 /**
+ * Returns the full page ID string of the main page.
+ * @return string
+ */
+
+function get_main_page($force_logged_in = false)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $logged_in = false;
+  if ( is_object($session) && !$force_logged_in )
+  {
+    $logged_in = $session->user_logged_in;
+  }
+  else if ( $force_logged_in )
+  {
+    $logged_in = true;
+  }
+  return $logged_in ? getConfig('main_page_alt', getConfig('main_page')) : getConfig('main_page');
+}
+
+/**
  * Enano replacement for date(). Accounts for individual users' timezone preferences.
  * @param string Date-formatted string
  * @param int Optional - UNIX timestamp value to use. If omitted, the current time is used.

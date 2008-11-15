@@ -359,47 +359,59 @@ class PageProcessor
         }
       }
     }
-    else // (disabled for compatibility reasons) if ( in_array($this->namespace, array('Article', 'User', 'Project', 'Help', 'File', 'Category')) && $this->page_exists )
+    else
     {
-      // Send as regular page
-      if ( $this->send_headers )
+      $this->send_from_db($strict_no_headers);
+    }
+  }
+  
+  /**
+   * Sends the page through by fetching it from the database.
+   */
+   
+  function send_from_db($strict_no_headers = false)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    // Send as regular page
+    if ( $this->send_headers )
+    {
+      $template->init_vars($this);
+    }
+    
+    $text = $this->fetch_text();
+    
+    if ( $text == 'err_no_text_rows' )
+    {
+      $this->err_no_rows();
+      return false;
+    }
+    else
+    {
+      $redirect = ( isset($_GET['redirect']) ) ? $_GET['redirect'] : 'YES YOU IDIOT';
+      if ( preg_match('/^#redirect \[\[([^\]]+)\]\]/i', $text, $match) && $redirect != 'no' )
       {
-        $template->init_vars($this);
-      }
-      
-      $text = $this->fetch_text();
-      
-      if ( $text == 'err_no_text_rows' )
-      {
-        $this->err_no_rows();
-        return false;
-      }
-      else
-      {
-        $redirect = ( isset($_GET['redirect']) ) ? $_GET['redirect'] : 'YES YOU IDIOT';
-        if ( preg_match('/^#redirect \[\[([^\]]+)\]\]/i', $text, $match) && $redirect != 'no' )
+        // Redirect page!
+        $page_to = sanitize_page_id($match[1]);
+        $page_id_data = RenderMan::strToPageID($page_to);
+        if ( count($this->redirect_stack) >= 3 )
         {
-          // Redirect page!
-          $page_to = sanitize_page_id($match[1]);
-          $page_id_data = RenderMan::strToPageID($page_to);
-          if ( count($this->redirect_stack) >= 3 )
-          {
-            $this->render( (!$strict_no_headers), '<div class="usermessage"><b>' . $lang->get('page_err_redirects_exceeded') . '</b></div>' );
-          }
-          else
-          {
-            $result = $this->_handle_redirect($page_id_data[0], $page_id_data[1]);
-            if ( $result !== true )
-            {
-              // There was some error during the redirect process - usually an infinite redirect
-              $this->render( (!$strict_no_headers), '<div class="usermessage"><b>' . $result . '</b></div>' );
-            }
-          }
+          $this->render( (!$strict_no_headers), '<div class="usermessage"><b>' . $lang->get('page_err_redirects_exceeded') . '</b></div>' );
         }
         else
         {
-          $this->render( (!$strict_no_headers) );
+          $result = $this->_handle_redirect($page_id_data[0], $page_id_data[1]);
+          if ( $result !== true )
+          {
+            // There was some error during the redirect process - usually an infinite redirect
+            $this->render( (!$strict_no_headers), '<div class="usermessage"><b>' . $result . '</b></div>' );
+          }
         }
+      }
+      else
+      {
+        $this->render( (!$strict_no_headers) );
       }
     }
   }
@@ -1952,13 +1964,13 @@ class PageProcessor
     {
       $standard_404 .= ' ' . $lang->get('page_msg_404_create', array(
           'create_flags' => 'href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;"',
-          'mainpage_link' => makeUrl(getConfig('main_page'), false, true)
+          'mainpage_link' => makeUrl(get_main_page(), false, true)
         ));
     }
     else
     {
       $standard_404 .= ' ' . $lang->get('page_msg_404_gohome', array(
-          'mainpage_link' => makeUrl(getConfig('main_page'), false, true)
+          'mainpage_link' => makeUrl(get_main_page(), false, true)
         ));
     }
     $standard_404 .= '</p>';
@@ -2041,16 +2053,16 @@ class PageProcessor
       {
         // Display the "home" link first.
         $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-        if ( $pathskey !== getConfig('main_page') )
-          echo '<a href="' . makeUrl(getConfig('main_page'), false, true) . '">';
+        if ( $pathskey !== get_main_page() )
+          echo '<a href="' . makeUrl(get_main_page(), false, true) . '">';
         echo $lang->get('onpage_btn_breadcrumbs_home');
-        if ( $pathskey !== getConfig('main_page') )
+        if ( $pathskey !== get_main_page() )
           echo '</a>';
       }
       foreach ( $breadcrumb_data as $i => $crumb )
       {
         $cumulative = implode('/', array_slice($breadcrumb_data, 0, ( $i + 1 )));
-        if ( $show_home && $cumulative === getConfig('main_page') )
+        if ( $show_home && $cumulative === get_main_page() )
           continue;
         if ( $show_home || $i > 0 )
           echo ' &raquo; ';

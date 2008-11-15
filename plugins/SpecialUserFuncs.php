@@ -624,7 +624,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
             'username' => $session->username,
             'redir_target' => $lang->get('user_login_success_body_mainpage')
           );
-        redirect( makeUrl(getConfig('main_page'), false, true), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
+        redirect( makeUrl(get_main_page(), false, true), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
       }
     }
     else
@@ -674,7 +674,7 @@ function page_Special_Logout()
   $l = $session->logout();
   if ( $l == 'success' )
   {
-    $url = makeUrl(getConfig('main_page'), false, true);
+    $url = makeUrl(get_main_page(), false, true);
     if ( $paths->getParam(1) )
     {
       $pi = explode('/', $paths->getAllParams());
@@ -1442,7 +1442,7 @@ function page_Special_ChangeStyle()
       $ret = ( isset($_POST['return_to']) ) ? $_POST['return_to'] : $paths->getParam(0);
       if ( !$ret )
       {
-        $ret = getConfig('main_page');
+        $ret = get_main_page();
       }
       ?>
         <form action="<?php echo makeUrl($paths->page); ?>" method="post">
@@ -1665,7 +1665,7 @@ function page_Special_PasswordReset()
       if($q)
       {
         $session->login_without_crypto($row['username'], $data);
-        echo '<p>' . $lang->get('userfuncs_passreset_stage2_success', array('url_mainpage' => makeUrl(getConfig('main_page')))) . '</p>';
+        echo '<p>' . $lang->get('userfuncs_passreset_stage2_success', array('url_mainpage' => makeUrl(get_main_page()))) . '</p>';
       }
       else
       {

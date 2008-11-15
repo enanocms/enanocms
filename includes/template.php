@@ -14,7 +14,7 @@
  
 class template
 {
-  var $tpl_strings, $tpl_bool, $vars_assign_history, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $namespace_string, $style_list, $theme_loaded, $initted_to_page_id, $initted_to_namespace;
+  var $tpl_strings, $tpl_bool, $vars_assign_history, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $plugin_blocks_content, $namespace_string, $style_list, $theme_loaded, $initted_to_page_id, $initted_to_namespace;
   
   var $initted_to_theme = array(
       'theme' => false,
@@ -54,6 +54,7 @@ class template
     $this->toolbar_menu = '';
     $this->additional_headers = '';
     $this->plugin_blocks = Array();
+    $this->plugin_blocks_content = array();
     $this->theme_loaded = false;
     
     $this->theme_list = Array();
@@ -185,7 +186,7 @@ class template
   }
   
   /**
-   * Systematically deletes themes if they're blocked by theme security settings. Called when session->start() finishes.
+   * Systematically deletes themes from available list if they're blocked by theme security settings. Called when session->start() finishes.
    */
   
   function process_theme_acls()
@@ -305,6 +306,7 @@ class template
     
     $parser->assign_vars(Array('TITLE' => '{TITLE}','CONTENT' => $h));
     $this->plugin_blocks[$t] = $parser->run();
+    $this->plugin_blocks_content[$t] = $h;
     $this->sidebar_widgets .= $parser->run();
   }
   function add_header($html)
@@ -344,7 +346,7 @@ class template
         // If it was removed, it's probably blocked by an ACL, or it was uninstalled
         !isset($this->named_theme_list[$this->theme]) ||
         // Check if the theme is disabled
-        ( isset($this->named_theme_list[$this->theme]) && $this->named_theme_list[$this->theme]['enabled'] == 0 ) )
+        ( isset($this->named_theme_list[$this->theme]) && isset($this->named_theme_list[$this->theme]['enabled']) && $this->named_theme_list[$this->theme]['enabled'] == 0 ) )
         // Above all, if it's a system theme, don't inhibit the loading process.
         && !in_array($this->theme, $this->system_themes)
       )
@@ -1105,6 +1107,14 @@ JSEOF;
     
     $admin_link = $parser->run();
     
+    $parser->assign_vars(Array(
+        'HREF'=>makeUrlNS('Special', 'EditSidebar'),
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxLoginNavTo(\'Special\', \'EditSidebar\', ' . USER_LEVEL_ADMIN . ')); return false; }"',
+        'TEXT'=>$lang->get('sidebar_btn_editsidebar'),
+      ));
+    
+    $sidebar_link = $parser->run();
+    
     $SID = ($session->sid_super) ? $session->sid_super : '';
     
     $urlname_clean = str_replace('\'', '\\\'', str_replace('\\', '\\\\', dirtify_page_id($local_fullpage)));
@@ -1128,6 +1138,8 @@ JSEOF;
       // SKIN DEVELOPERS: The template variable for this code block is {JS_DYNAMIC_VARS}. This MUST be inserted BEFORE the tag that links to the main Javascript lib.
       var title = \''. $urlname_jssafe .'\';
       var physical_title = \'' . $physical_urlname_jssafe . '\';
+      var on_main_page = ' . ( $local_page == get_main_page() ? 'true' : 'false' ) . ';
+      var main_page_members = \'' . addslashes(get_main_page(true)) . '\';
       var page_exists = '. ( ( $local_page_exists) ? 'true' : 'false' ) .';
       var scriptPath = \'' . addslashes(scriptPath) . '\';
       var contentPath = \'' . addslashes(contentPath) . '\';
@@ -1173,39 +1185,40 @@ JSEOF;
       $js_dynamic .= "\n    //]]>\n    </script>";
       
     $tpl_strings = Array(
-      'PAGE_NAME'=>htmlspecialchars($local_cdata['name']),
-      'PAGE_URLNAME'=> $urlname_clean,
-      'SITE_NAME'=>htmlspecialchars(getConfig('site_name')),
-      'USERNAME'=>$session->username,
-      'SITE_DESC'=>htmlspecialchars(getConfig('site_desc')),
-      'TOOLBAR'=>$tb,
-      'SCRIPTPATH'=>scriptPath,
-      'CONTENTPATH'=>contentPath,
+      'PAGE_NAME' => htmlspecialchars($local_cdata['name']),
+      'PAGE_URLNAME' =>  $urlname_clean,
+      'SITE_NAME' => htmlspecialchars(getConfig('site_name')),
+      'USERNAME' => $session->username,
+      'SITE_DESC' => htmlspecialchars(getConfig('site_desc')),
+      'TOOLBAR' => $tb,
+      'SCRIPTPATH' => scriptPath,
+      'CONTENTPATH' => contentPath,
       'CDNPATH' => cdnPath,
-      'ADMIN_SID_QUES'=>$asq,
-      'ADMIN_SID_AMP'=>$asa,
-      'ADMIN_SID_AMP_HTML'=>$ash,
-      'ADMIN_SID_AUTO'=>$as2,
-      'ADMIN_SID_RAW'=> ( is_string($session->sid_super) ? $session->sid_super : '' ),
-      'COPYRIGHT'=>RenderMan::parse_internal_links(getConfig('copyright_notice')),
-      'TOOLBAR_EXTRAS'=>$this->toolbar_menu,
-      'REQUEST_URI'=>( defined('ENANO_CLI') ? '' : $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ),
-      'STYLE_LINK'=>makeUrlNS('Special', 'CSS'.$p, null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
-      'LOGIN_LINK'=>$login_link,
-      'LOGOUT_LINK'=>$logout_link,
-      'ADMIN_LINK'=>$admin_link,
-      'THEME_LINK'=>$theme_link,
-      'SEARCH_ACTION'=>makeUrlNS('Special', 'Search'),
-      'INPUT_TITLE'=>( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->nslist[$local_namespace] . $local_page_id ) . '" />' : ''),
-      'INPUT_AUTH'=>( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : ''),
-      'TEMPLATE_DIR'=>scriptPath.'/themes/'.$this->theme,
-      'THEME_ID'=>$this->theme,
-      'STYLE_ID'=>$this->style,
-      'MAIN_PAGE' => getConfig('main_page'),
+      'ADMIN_SID_QUES' => $asq,
+      'ADMIN_SID_AMP' => $asa,
+      'ADMIN_SID_AMP_HTML' => $ash,
+      'ADMIN_SID_AUTO' => $as2,
+      'ADMIN_SID_RAW' =>  ( is_string($session->sid_super) ? $session->sid_super : '' ),
+      'COPYRIGHT' => RenderMan::parse_internal_links(getConfig('copyright_notice')),
+      'TOOLBAR_EXTRAS' => $this->toolbar_menu,
+      'REQUEST_URI' => ( defined('ENANO_CLI') ? '' : $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ),
+      'STYLE_LINK' => makeUrlNS('Special', 'CSS'.$p, null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
+      'LOGIN_LINK' => $login_link,
+      'LOGOUT_LINK' => $logout_link,
+      'ADMIN_LINK' => $admin_link,
+      'THEME_LINK' => $theme_link,
+      'SIDEBAR_LINK' => $sidebar_link,
+      'SEARCH_ACTION' => makeUrlNS('Special', 'Search'),
+      'INPUT_TITLE' => ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->nslist[$local_namespace] . $local_page_id ) . '" />' : ''),
+      'INPUT_AUTH' => ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : ''),
+      'TEMPLATE_DIR' => scriptPath.'/themes/'.$this->theme,
+      'THEME_ID' => $this->theme,
+      'STYLE_ID' => $this->style,
+      'MAIN_PAGE' => get_main_page(),
       'JS_HEADER' => $js_head,
       'JS_FOOTER' => $js_foot,
-      'JS_DYNAMIC_VARS'=>$js_dynamic,
-      'UNREAD_PMS'=>$session->unread_pms,
+      'JS_DYNAMIC_VARS' => $js_dynamic,
+      'UNREAD_PMS' => $session->unread_pms,
       'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', '', true),
       'REPORT_URI' => makeUrl($local_fullpage, 'do=sql_report', true)
       );
@@ -2042,10 +2055,17 @@ EOF;
    * @return string
    */
    
-  function fetch_block($id)
+  function fetch_block($id, $just_the_innards_maam = false)
   {
-    if(isset($this->plugin_blocks[$id])) return $this->plugin_blocks[$id];
-    else return false;
+    if ( $just_the_innards_maam )
+    {
+      $source =& $this->plugin_blocks_content;
+    }
+    else
+    {
+      $source =& $this->plugin_blocks;
+    }
+    return isset($source[$id]) ? $source[$id] : false;
   }
   
   /**
