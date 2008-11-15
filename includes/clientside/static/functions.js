@@ -1019,6 +1019,46 @@ function dirtify_page_id(page_id)
   return page_id;
 }
 
+/*
+    the getElementsByClassName function I pilfered from this guy.  It's
+    a useful function that'll return any/all tags with a specific css class.
+
+    Written by Jonathan Snook, http://www.snook.ca/jonathan
+    Add-ons by Robert Nyman, http://www.robertnyman.com
+    
+    Modified to match all elements that match the class name plus an integer after the name
+    This is used in Enano to allow sliding sidebar widgets that use their own CSS
+*/
+function getElementsByClassName(oElm, strTagName, strClassName)
+{
+    // first it gets all of the specified tags
+    var arrElements = (strTagName == "*" && document.all) ? document.all : oElm.getElementsByTagName(strTagName);
+    
+    // then it sets up an array that'll hold the results
+    var arrReturnElements = new Array();
+
+    // some regex stuff you don't need to worry about
+    strClassName = strClassName.replace(/\-/g, "\\-");
+
+    var oRegExp = new RegExp("(^|\\s)" + strClassName + "([0-9]*)(\\s|$)");
+    var oElement;
+    
+    // now it iterates through the elements it grabbed above
+    for(var i=0; i<arrElements.length; i++)
+    {
+        oElement = arrElements[i];
+
+        // if the class matches what we're looking for it ads to the results array
+        if(oElement.className.match(oRegExp))
+        {
+            arrReturnElements.push(oElement);
+        }
+    }
+
+    // then it kicks the results back to us
+    return (arrReturnElements)
+}
+
 /**
  * Equivalent to PHP's in_array function.
  */
