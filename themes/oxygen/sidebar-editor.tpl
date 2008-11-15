@@ -39,9 +39,7 @@
               
             </div>
             <div class="dbx-content dbx-content2">
-              <ul><li>
-                {CONTENT}
-              </li></ul>
+              {CONTENT}
             </div>
           </div>
 <!-- ENDVAR sidebar_section_raw -->
