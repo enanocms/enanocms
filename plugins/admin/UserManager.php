@@ -77,13 +77,66 @@ function page_Admin_UserManager()
         if ( $_POST['changing_pw'] == 'yes' )
         {
           $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-          $key_hex_md5 = $_POST['crypt_key'];
-          $key_hex = $session->fetch_public_key($key_hex_md5);
-          if ( $key_hex )
+          if ( $_POST['dh_supported'] === 'true' )
           {
-            $key_bin = hexdecode($key_hex);
-            $data_hex = $_POST['crypt_data'];
-            $password = $aes->decrypt($data_hex, $key_bin, ENC_HEX);
+            $my_public = $_POST['dh_public'];
+            $remote_public = $_POST['dh_mypublic'];
+            
+            // Check the key
+            if ( !preg_match('/^[0-9]+$/', $my_public) || !preg_match('/^[0-9]+$/', $remote_public) )
+            {
+              $errors[] = $lang->get('user_err_dh_key_not_numeric');
+            }
+            else
+            {
+              // We have our own public key - cross reference it with the private key in the database
+              $q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$my_public';");
+              if ( !$q )
+                $db->_die();
+              
+              if ( $db->numrows() < 1 )
+              {
+                $errors[] = $lang->get('user_err_dh_key_not_found');
+              }
+              else
+              {
+                list($my_private, $key_id) = $db->fetchrow_num($q);
+                $db->free_result();
+                // now that we have this key it can be disposed of
+                $q = $db->sql_query("DELETE FROM " . table_prefix . "diffiehellman WHERE key_id = $key_id;");
+                if ( !$q )
+                  $db->_die();
+                // get the shared secret
+                $dh_secret = dh_gen_shared_secret($my_private, $remote_public);
+                global $_math;
+                $dh_secret = $_math->str($dh_secret);
+                
+                // make sure we calculated everything right
+                $secret_check = sha1($dh_secret);
+                if ( $secret_check !== $_POST['crypt_key'] )
+                {
+                  // uh-oh.
+                  $errors[] = $lang->get('user_err_dh_key_not_found');
+                }
+                else
+                {
+                  $aes_key = substr(sha256($dh_secret), 0, ( AES_BITS / 4 ));
+                  $aes_key = hexdecode($aes_key);
+                  $password = $aes->decrypt($_POST['crypt_data'], $aes_key, ENC_HEX);
+                }
+              }
+            }
+          }
+          else if ( $_POST['dh_supported'] === 'false' )
+          {
+            $key_hex_md5 = $_POST['crypt_key'];
+            $key_hex = $session->fetch_public_key($key_hex_md5);
+            if ( $key_hex )
+            {
+              $key_bin = hexdecode($key_hex);
+              $data_hex = $_POST['crypt_data'];
+              $password = $aes->decrypt($data_hex, $key_bin, ENC_HEX);
+            }
           }
           else
           {
