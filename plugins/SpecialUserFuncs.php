@@ -2015,7 +2015,7 @@ class MemberlistFormatter
     
     $userpage = $paths->nslist['User'] . sanitize_page_id($username);
     $class = ( isPage($userpage) ) ? '' : ' class="wikilink-nonexistent"';
-    $anchor = '<a href="' . makeUrlNS('User', sanitize_page_id($username)) . '"' . $class . ' onclick="load_component(\'SpryEffects\'); var el = document.getElementById(\'ml_moreinfo_' . $row['user_id'] . '\'); if ( !el.fx ) el.fx = new Spry.Effect.Blind(el, { duration: 500, from: \'0%\', to: \'100%\', toggle: true }); el.fx.start(); return false;">' . htmlspecialchars($username) . '</a>';
+    $anchor = '<a href="' . makeUrlNS('User', sanitize_page_id($username)) . '"' . $class . ' onclick="load_component(\'jquery\'); load_component(\'jquery-ui\'); var el = document.getElementById(\'ml_moreinfo_' . $row['user_id'] . '\'); $(el).toggle(\'blind\'); return false;">' . htmlspecialchars($username) . '</a>';
     if ( $session->user_level >= USER_LEVEL_ADMIN )
     {
       $anchor .= ' <small>- <a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&username=' . urlencode($username), true) . '"
