@@ -89,6 +89,10 @@
         textbox.onkeyup = function(e) { if(!e) return; if(e.keyCode == 13) ajaxRenameInlineSave(); if(e.keyCode == 27) ajaxRenameInlineCancel(); };
         elem.parentNode.insertBefore(textbox, elem);
         document.onclick = ajaxRenameInlineCancel;
+        
+        load_component('l10n');
+        load_component('fadefilter');
+        load_component('messagebox');
       }
       function ajaxRenameInlineSave()
       {
@@ -102,8 +106,23 @@
         elem1.style.display = 'block';
         if(!value || value=='') return;
         ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+ajaxEscape(value), function() {
-          if(ajax.readyState == 4) {
-            alert(ajax.responseText);
+          if ( ajax.readyState == 4 )
+          {
+            var response = String(ajax.responseText);
+            if ( !check_json_response(response) )
+            {
+              handle_invalid_json(response);
+              return false;
+            }
+            response = parseJSON(response);
+            if ( response.success )
+            {
+              new MessageBox( MB_OK|MB_ICONINFORMATION, $lang.get('ajax_rename_success_title'), $lang.get('ajax_rename_success_body', { page_name_new: value }) );
+            }
+            else
+            {
+              alert(response.error);
+            }
           }
         });
       }
