@@ -154,9 +154,42 @@ class RenderMan {
   public static function fetch_template_text($id)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    $fetch_ns = 'Template';
     if(!isset($paths->pages[$paths->nslist['Template'].$id])) 
     {
-      return '[['.$paths->nslist['Template'].$id.']]';
+      // Transclusion of another page
+      // 1.1.5: Now You, Too, Can Be A Template, Even If You're Just A Plain Old Article! (TM)
+      $nssep = substr($paths->nslist['Special'], -1);
+      $nslist = $paths->nslist;
+      foreach ( $nslist as &$ns )
+      {
+        if ( $ns == '' )
+          $ns = $nssep;
+      }
+      $prefixlist = array_flip($nslist);
+      foreach ( $nslist as &$ns )
+      {
+        $ns = preg_quote($ns);
+      }
+      $nslist = implode('|', $nslist);
+      if ( preg_match("/^($nslist)(.*?)$/", $id, $match) )
+      {
+        // in practice this should always be true but just to be safe...
+        if ( isset($prefixlist[$match[1]]) )
+        {
+          $new_id = $paths->nslist[ $prefixlist[$match[1]] ] . sanitize_page_id($match[2]);
+          if ( !isset($paths->pages[$new_id]) )
+          {
+            return "[[$new_id]]";
+          }
+          $fetch_ns = $prefixlist[$match[1]];
+          $id = sanitize_page_id($match[2]);
+        }
+      }
+      else
+      {
+        return '[['.$paths->nslist['Template'].$id.']]';
+      }
     }
     if(isset($paths->template_cache[$id]))
     {
@@ -164,7 +197,7 @@ class RenderMan {
     }
     else
     {
-      $text = RenderMan::getPage($id, 'Template', 0, false, false, false, false);
+      $text = RenderMan::getPage($id, $fetch_ns, 0, false, false, false, false);
       $paths->template_cache[$id] = $text;
     }
     
