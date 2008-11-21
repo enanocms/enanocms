@@ -3094,16 +3094,18 @@ class sessionManager {
    * @return bool
    */
    
-  function acl_check_deps($type)
+  function acl_check_deps($type, $debug = false)
   {
-    if(!isset($this->acl_deps[$type])) // This will only happen if the permissions table is hacked or improperly accessed
+    // This will only happen if the permissions table is hacked or improperly accessed
+    if(!isset($this->acl_deps[$type]))
       return true;
+    // Permission has no dependencies?
     if(sizeof($this->acl_deps[$type]) < 1)
       return true;
+    // go through them all and build a flat list of dependencies
     $deps = $this->acl_deps[$type];
     while(true)
     {
-      $full_resolved = true;
       $j = sizeof($deps);
       for ( $i = 0; $i < $j; $i++ )
       {
@@ -3116,15 +3118,23 @@ class sessionManager {
         $j = sizeof($deps);
       }
     }
-    //die('<pre>'.print_r($deps, true).'</pre>');
+    $debugdata = array();
     foreach($deps as $d)
     {
-      if ( !$this->get_permissions($d) )
+      // Our dependencies are fully resolved, so tell get_permissions() to not recursively call this function
+      if ( !$this->get_permissions($d, true) )
       {
-        return false;
+        if ( $debug )
+        {
+          $debugdata[] = $d;
+        }
+        else
+        {
+          return false;
+        }
       }
     }
-    return true;
+    return $debug ? $debugdata : true;
   }
   
   /**
@@ -3934,7 +3944,7 @@ class Session_ACLPageInfo {
     $this->page_id = $page_id;
     $this->namespace = $namespace;
     
-    $pathskey = $paths->nslist[$this->namespace].$this->page_id;
+    $pathskey = $paths->nslist[$this->namespace].sanitize_page_id($this->page_id);
     $ppwm = 2;
     if ( isset($paths->pages[$pathskey]) )
     {
@@ -3949,7 +3959,7 @@ class Session_ACLPageInfo {
       $this->wiki_mode = false;
     else if ( $ppwm == 2 )
     {
-      if ( $session->user_logged_in )
+      if ( $this->user_id > 1 )
       {
         $this->wiki_mode = ( getConfig('wiki_mode') == '1' );
       }
@@ -4046,19 +4056,22 @@ class Session_ACLPageInfo {
   /**
    * Tell us if the dependencies for a given permission are met.
    * @param string The ACL permission ID
+   * @param bool If true, does not return a boolean value, but instead returns array of dependencies that fail
    * @return bool
    */
    
-  function acl_check_deps($type)
+  function acl_check_deps($type, $debug = false)
   {
-    if(!isset($this->acl_deps[$type])) // This will only happen if the permissions table is hacked or improperly accessed
-      return true;
+    // This will only happen if the permissions table is hacked or improperly accessed
+    if(!isset($this->acl_deps[$type]))
+      return $debug ? array() : true;
+    // Permission has no dependencies?
     if(sizeof($this->acl_deps[$type]) < 1)
-      return true;
+      return $debug ? array() : true;
+    // go through them all and build a flat list of dependencies
     $deps = $this->acl_deps[$type];
     while(true)
     {
-      $full_resolved = true;
       $j = sizeof($deps);
       for ( $i = 0; $i < $j; $i++ )
       {
@@ -4071,15 +4084,23 @@ class Session_ACLPageInfo {
         $j = sizeof($deps);
       }
     }
-    //die('<pre>'.print_r($deps, true).'</pre>');
+    $debugdata = array();
     foreach($deps as $d)
     {
-      if ( !$this->get_permissions($d) )
+      // Our dependencies are fully resolved, so tell get_permissions() to not recursively call this function
+      if ( !$this->get_permissions($d, true) )
       {
-        return false;
+        if ( $debug )
+        {
+          $debugdata[] = $d;
+        }
+        else
+        {
+          return false;
+        }
       }
     }
-    return true;
+    return $debug ? $debugdata : true;
   }
   
   /**

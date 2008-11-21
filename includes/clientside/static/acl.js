@@ -1385,6 +1385,27 @@ function aclDrawTraceByPerm(data)
       sm.appendChild(editlink);
       sm.innerHTML += ']';
     }
+    
+    if ( perm.bad_deps.length > 0 )
+    {
+      var bd = document.createElement('span');
+      $(bd).addClass('acl_failed_deps');
+      var failed_deps = '';
+      for ( var i = 0; i < perm.bad_deps.length; i++ )
+      {
+        if ( i > 0 )
+          failed_deps += ', ';
+        failed_deps += data.perms[perm.bad_deps[i]].perm_name;
+      }
+      var title = document.createElement('span');
+      $(title).addClass('title');
+      title.appendChild(document.createTextNode($lang.get('acl_msg_failed_deps')));
+      bd.appendChild(title);
+      bd.appendChild(document.createTextNode(failed_deps));
+      
+      item.appendChild(document.createElement('br'));
+      item.appendChild(bd);
+    }
   }
   
   // var ret = wrapper.cloneNode(true);
@@ -1418,8 +1439,6 @@ function aclDrawTraceByRule(data)
     groupdata[perm['rule_id']]['rules'][i] = perm;
   }
   
-  console.debug('draw by rule - group data: ', groupdata);
-  
   for ( var i in groupdata )
   {
     var group = groupdata[i];
@@ -1451,6 +1470,27 @@ function aclDrawTraceByRule(data)
       b.appendChild(document.createTextNode(rule.perm_value));
       rulediv.appendChild(b);
       grp.appendChild(rulediv);
+      
+      if ( rule.bad_deps.length > 0 )
+      {
+        var bd = document.createElement('span');
+        $(bd).addClass('acl_failed_deps');
+        var failed_deps = '';
+        for ( var i = 0; i < rule.bad_deps.length; i++ )
+        {
+          if ( i > 0 )
+            failed_deps += ', ';
+          failed_deps += data.perms[rule.bad_deps[i]].perm_name;
+        }
+        var title = document.createElement('span');
+        $(title).addClass('title');
+        title.appendChild(document.createTextNode($lang.get('acl_msg_failed_deps')));
+        bd.appendChild(title);
+        bd.appendChild(document.createTextNode(failed_deps));
+        
+        rulediv.appendChild(document.createElement('br'));
+        rulediv.appendChild(bd);
+      }
     }
     wrapper.appendChild(grp);
   }

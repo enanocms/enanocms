@@ -910,3 +910,12 @@ td.acl_inherit_key {
 .acl_local_everyone  { background-color: #FFD6D6; }
 .acl_local_group     { background-color: #FFC6C6; }
 .acl_local_user      { background-color: #FFB6B6; }
+
+span.acl_failed_deps {
+  font-weight: bold;
+  font-size: smaller;
+}
+
+span.acl_failed_deps span.title {
+  color: #ff0000;
+}

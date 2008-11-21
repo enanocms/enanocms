@@ -2061,7 +2061,8 @@ class PageUtils {
                   'perm_name' => $perm_name,
                   'perm_value' => $perm_string,
                   'perm_src' => $src_l10n,
-                  'rule_id' => intval($lookup_data['rule_id'])
+                  'rule_id' => intval($lookup_data['rule_id']),
+                  'bad_deps' => $perms->acl_check_deps($perm_type, true)
                 );
             }
             

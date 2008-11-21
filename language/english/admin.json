@@ -172,6 +172,7 @@ var enano_lang = {
       msg_debug_main_title: 'View effective permissions',
       msg_debug_main_body: 'This tool allows you to see what actual permissions are in use. It can be helpful if you are struggling to determine why a certain action is being allowed or denied. There are two views available for this window: you can either view the information sorted by individual actions, or group actions by which rule sets them.',
       msg_trace_key: 'Color guide',
+      msg_failed_deps: 'Failed dependencies: ',
       
       btn_success_dismiss: 'dismiss',
       btn_success_close: 'close manager',
