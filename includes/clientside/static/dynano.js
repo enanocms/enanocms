@@ -1,4 +1,4 @@
-// The "Dynano" Javascript framework. Similar in syntax to JQuery but only has what Enano needs.
+// The "Dynano" Javascript framework. Similar in syntax to JQuery but highly Enano-specific (TinyMCE, etc).
 
 var $ = function(id)
 {
@@ -19,6 +19,12 @@ function DNobj(id)
     this.object = false;
     return this;
   }
+  if ( this.object.Dynano )
+  {
+    return this.object.Dynano;
+  }
+  this.object.Dynano = this;
+  
   this.height = __DNObjGetHeight(this.object);
   this.width = __DNObjGetWidth(this.object);
   
@@ -29,6 +35,7 @@ function DNobj(id)
     this.destroyMCE = DN_destroyMCE;
     this.getContent = DN_mceFetchContent;
     this.setContent = DN_mceSetContent;
+    this.makeSwitchable = DN_makeSwitchableTA;
   }
 }
 function __DNObjGetHeight(o) {
@@ -179,6 +186,91 @@ function DN_mceSetContent(text)
   else
   {
     this.object.value = text;
+  }
+}
+
+var P_BOTTOM = 1;
+var P_TOP = 2;
+
+function DN_makeSwitchableTA(pos)
+{
+  if ( this.toggler )
+    return false;
+  
+  if ( !pos )
+    pos = P_BOTTOM;
+  
+  load_component('l10n');
+  var cookiename = 'enano_editor_mode';
+  
+  var toggler = document.createElement('div');
+  toggler.dynano = this;
+  this.toggler = toggler;
+  
+  if ( !this.object.id )
+    this.object.id = 'dynano_auto_' + Math.floor(Math.random() * 1000000);
+  
+  toggler.s_mode_text = $lang.get('editor_btn_wikitext');
+  toggler.s_mode_graphical = $lang.get('editor_btn_graphical');
+  
+  toggler.set_text = function()
+  {
+    if ( this.dynano.object.dnIsMCE == 'yes' )
+      this.dynano.destroyMCE();
+    
+    this.innerHTML = '';
+    this.appendChild(document.createTextNode(this.s_mode_text + ' | '));
+    
+    var link = document.createElement('a');
+    link.href = '#';
+    link.onclick = function()
+    {
+      this.parentNode.set_graphical();
+      return false;
+    }
+    link.appendChild(document.createTextNode(this.s_mode_graphical));
+    this.appendChild(link);
+    
+    createCookie('enano_editor_mode', 'text', 365);
+  }
+  
+  toggler.set_graphical = function()
+  {
+    this.dynano.switchToMCE();
+    this.innerHTML = '';
+    
+    var link = document.createElement('a');
+    link.href = '#';
+    link.onclick = function()
+    {
+      this.parentNode.set_text();
+      return false;
+    }
+    link.appendChild(document.createTextNode(this.s_mode_text));
+    this.appendChild(link);
+    
+    this.appendChild(document.createTextNode(' | ' + this.s_mode_graphical));
+    createCookie('enano_editor_mode', 'tinymce', 365);
+  }
+  
+  toggler.style.styleFloat = 'right';
+  toggler.style.cssFloat = 'right';
+  if ( pos == P_BOTTOM )
+  {
+    insertAfter(this.object.parentNode, toggler, this.object);
+  }
+  else
+  {
+    this.object.parentNode.insertBefore(toggler, this.object);
+  }
+  
+  if ( readCookie(cookiename) == 'tinymce' )
+  {
+    toggler.set_graphical();
+  }
+  else
+  {
+    toggler.set_text();
   }
 }
 

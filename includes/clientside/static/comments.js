@@ -154,6 +154,10 @@ window.renderComments = function(data)
   }
     
   document.getElementById('ajaxEditContainer').innerHTML = html;
+  if ( document.getElementById('commentform_message') )
+  {
+    document.getElementById('commentform_message').allow_wysiwyg = data.auth_edit_wysiwyg
+  }
   
   for ( i = 0; i < data.comments.length; i++ )
   {
@@ -261,6 +265,8 @@ window.displayCommentForm = function()
 {
   document.getElementById('leave_comment_button').style.display = 'none';
   document.getElementById('comment_form').style.display = 'block';
+  if ( $dynano('commentform_message').object.allow_wysiwyg )
+    $dynano('commentform_message').makeSwitchable();
 }
 
 window.hideCommentForm = function()
@@ -289,6 +295,7 @@ window.editComment = function(id, link)
   ta.value = src;
   ta.id = 'comment_edit_'+id;
   cmt.appendChild(ta);
+  $dynano(ta).makeSwitchable();
   
   link.style.fontWeight = 'bold';
   link.innerHTML = $lang.get('comment_btn_save');
@@ -336,7 +343,7 @@ window.submitComment = function()
 {
   var name = document.getElementById('commentform_name').value;
   var subj = document.getElementById('commentform_subject').value;
-  var text = document.getElementById('commentform_message').value;
+  var text = $dynano('commentform_message').getContent();
   if ( document.getElementById('commentform_captcha') )
   {
     var captcha_code = document.getElementById('commentform_captcha').value;
@@ -349,11 +356,15 @@ window.submitComment = function()
   }
   if ( subj == '' )
   {
+    load_component('messagebox');
+    load_component('fadefilter');
     new MessageBox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter a subject for your comment.');
     return false;
   }
   if ( text == '' )
   {
+    load_component('messagebox');
+    load_component('fadefilter');
     new MessageBox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter some text for the body of your comment .');
     return false;
   }

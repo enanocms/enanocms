@@ -171,6 +171,7 @@ class Comments
         $ret['auth_mod_comments'] = $this->perms->get_permissions('mod_comments');
         $ret['auth_post_comments'] = $this->perms->get_permissions('post_comments');
         $ret['auth_edit_comments'] = $this->perms->get_permissions('edit_comments');
+        $ret['auth_edit_wysiwyg'] = $this->perms->get_permissions('edit_wysiwyg');
         $ret['user_id'] = $session->user_id;
         $ret['username'] = $session->username;
         $ret['logged_in'] = $session->user_logged_in;
