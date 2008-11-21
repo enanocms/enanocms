@@ -309,8 +309,6 @@ addOnloadHook(function()
         var results_height = $dynano(results).Height();
         var visibleBottomBoundary = visibleTopBoundary + results_height;
         var scrollTo = false;
-        console.debug('td top = %d, td height = %d, td bottom = %d, visibleTopBoundary = %d, results_height = %d, visibleBottomBoundary = %d, step = %d',
-                       td_top, td_height, td_bottom, visibleTopBoundary, results_height, visibleBottomBoundary, step);
         if ( td_top < visibleTopBoundary && step < 0 )
         {
           // going up: scroll the results div to just higher than the result we're trying to see
