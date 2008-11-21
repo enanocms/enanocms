@@ -294,6 +294,7 @@ function jsres_cache_check($js_file, $file_contents)
     {
       if ( $cache_file['md5'] === $file_md5 )
       {
+        header("X-Cache-Status: cache HIT, hash $file_md5");
         $loaded_cache = true;
         $file_contents = $cache_file['src'];
       }
@@ -315,7 +316,16 @@ function jsres_cache_check($js_file, $file_contents)
         ));
       fwrite($handle, $payload);
       fclose($handle);
+      header("X-Cache-Status: cache MISS, new generated");
     }
+    else
+    {
+      header("X-Cache-Status: cache MISS, not generated");
+    }
+  }
+  else if ( !$loaded_cache )
+  {
+    header("X-Cache-Status: cache MISS, not generated");
   }
   
   return $file_contents;
