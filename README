@@ -44,25 +44,22 @@ Most of the PHP code in Enano was written by Dan Fuhry. Some parts were borrowed
 from other projects that are also released under Free licenses; see the various
 files under the licenses/ directory included with this release for details.
 
-Please be reminded that if you create a commercial fork of Enano, that while
-all of the components included with Enano are licensed in such a way that you
-are allowed to do so, you must make the project in its entirety available under
-the GNU General Public License, notwithstanding licenses for specific
-components of Enano named in /licenses/index.html and in various source code
-files.
+MODIFIED DISTRIBUTIONS / FORKS
+-----------------------------
 
-We also ask that if you fork Enano, you provide attribution to the Enano team
-by including the following notice on the (renamed) Special:About_Enano page:
+Please note that the Enano team does not provide any support for modified or
+"modded" releases. So if you modify the Enano sources at all, you will not
+receive any support from official sources. If you distribute your modified
+versions, providing support is entirely up to you. You also must remove any
+links to official Enano support channels contained in the source code if you
+distribute any modified version of Enano. We also respectfully request that you
+not call any modified distributions "Enano" or any deviation thereof; while the
+term "Enano" is not a registered trademark, we do ask that you respect it.
 
-  "This software is based on Enano CMS, copyright (C) 2006-2008 Dan Fuhry."
-
-While you have no legal obligation to do so, we ask that any forks of Enano
-be renamed so that they do not contain the word "Enano" anywhere in the
-product name. This is for identity and support reasons - users may get
-confused as to which one is the "real" Enano CMS. We also strongly recommend
-that you include a notice of non-endorsement from Dan Fuhry and the Enano
-Foundation and a disclaimer of liability for damages incurred through the use
-of the software. The Enano Team will not provide support for forks.
+Please note that the official Enano artwork is copyrighted and not under the
+GPL. If you distribute any modified version of Enano, you must change the
+artwork. (If you're seeking to include Enano as part of a larger software
+distribution, such as GNU/Linux or BSD, e-mail Dan for special terms.)
 
 As permitted by the GPL, you may charge for the service of downloading Enano
 from your server; however, you may not prevent others from distributing Enano
