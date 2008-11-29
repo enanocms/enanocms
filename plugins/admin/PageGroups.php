@@ -255,8 +255,6 @@ function page_Admin_PageGroups()
           document.getElementById('pg_create_normal_2').style.display = 'block';
         }
         
-        addOnloadHook(pg_createform_init);
-        
         function pg_create_more_fields()
         {
           var targettd = document.getElementById('pg_create_normal_2');
@@ -414,6 +412,8 @@ function page_Admin_PageGroups()
             </div>';
       
       echo '</form>';
+      
+      echo '<script type="text/javascript">pg_createform_init();</script>';
       return;
     }
     else if ( isset($_POST['action']['del']) )
