@@ -8,6 +8,8 @@ window.ajaxComments = function(parms)
   load_component('l10n');
   load_component('paginate');
   load_component('template-compiler');
+  load_component('toolbar');
+  load_component('flyin');
   setAjaxLoading();
   var pid = strToPageID(title);
   if(!parms)
