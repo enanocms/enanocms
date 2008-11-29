@@ -250,10 +250,12 @@ function load_component(file)
     // async request, so if status != 200 at this point then we're screwed
     if ( ajax.readyState == 4 && ajax.status == 200 )
     {
-      onload_hooks = new Array();
+      if ( onload_complete )
+        onload_hooks = new Array();
       eval_global(ajax.responseText);
       load_hide_win();
-      runOnloadHooks();
+      if ( onload_complete )
+        runOnloadHooks();
     }
   }
   catch(e)
