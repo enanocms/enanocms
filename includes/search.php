@@ -954,9 +954,9 @@ function inject_custom_search_results(&$query, &$query_phrase, &$scores, &$page_
     $where_any =& $where['any'];
     $where_req =& $where['req'];
     $where_not =& $where['not'];
-    $title_col = ( $case_sensitive ) ? $options['titlecolumn'] : 'lcase(' . $options['titlecolumn'] . ')';
+    $title_col = ( $case_sensitive ) ? $options['titlecolumn'] : ENANO_SQLFUNC_LOWERCASE . '(' . $options['titlecolumn'] . ')';
     if ( isset($options['datacolumn']) )
-      $desc_col = ( $case_sensitive ) ? $options['datacolumn'] : 'lcase(' . $options['datacolumn'] . ')';
+      $desc_col = ( $case_sensitive ) ? $options['datacolumn'] : ENANO_SQLFUNC_LOWERCASE . '(' . $options['datacolumn'] . ')';
     else
       $desc_col = "''";
     foreach ( $terms['any'] as $term )
