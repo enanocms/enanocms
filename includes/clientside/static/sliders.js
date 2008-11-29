@@ -3,178 +3,90 @@
 // our global vars
 // the delay between the slide in/out, and a little inertia
 
+/*
+pseudocode:
+  oninit():
+    i = 0
+    for every div with class "slideblock", do
+      if ( cookie['mdgSliderState_' || i] == 'closed' )
+        hide(div)
+        
+      div.trigger.addEvent onclick():
+        if ( div.hidden )
+          div.show()
+          cookie['mdgSliderState_' || i] = 'open'
+        else
+          div.hide()
+          cookie['mdgSliderState_' || i] = 'closed
+          
+      i++
+    
+*/
+
+
 var sliders_initted = false;
       
 var initSliders = function()
 {
-  sliders_initted = true;
-  if ( KILL_SWITCH )
+  if ( KILL_SWITCH || IE )
     return false;
-    // detect whether the user has ie or not, how we get the height is different 
-    var useragent = navigator.userAgent.toLowerCase();
-    var ie = ((useragent.indexOf('msie') != -1) && (useragent.indexOf('opera') == -1) && (useragent.indexOf('webtv') == -1));
+  
+  var divs = getElementsByClassName(document, "div", "slideblock");
+  var divs2 = getElementsByClassName(document, "div", "slideblock2");
+  for ( var i = 0; i < divs2.length; i++ )
+  {
+    divs.push(divs2[i]);
+  }
+  delete divs2;
+  
+  if ( divs.length < 1 )
+    return false;
+  
+  for ( var i = 0; i < divs.length; i++ )
+  {
+    var div = divs[i];
+    // set a unique id for this slider
+    div.metaid = i;
     
-    if(ie)
-      return;
-    
-    var divs = getElementsByClassName(document, "div", "slideblock");
-    
-    for(var i=0; i<divs.length; i++)
+    var cookiename = 'mdgSliderState_' + i;
+    if ( readCookie(cookiename) == 'closed' )
     {
-        // set a unique id for this slider
-        divs[i].metaid = i;
-        
-        // get the original height
-        var baseheight = (ie) ? divs[i].offsetHeight + "px" : document.defaultView.getComputedStyle(divs[i], null).getPropertyValue('height', null);
-
-        // use cookies to toggle whether to display it or not
-        var id = ( divs[i].parentNode.firstChild.nextSibling ) ? divs[i].parentNode.firstChild.nextSibling.firstChild : divs[i].parentNode.parentNode.firstChild.nextSibling.firstChild;
-        
-        if ( !id.nextSibling )
-          return;
-        
-        if(id.innerHTML || id.nextSibling.length < 1) id = id.innerHTML;
-        else id = id.nextSibling.innerHTML; // Gecko fix
-        
-        var cookieName = 'mdgSliderState_'+i; // id.replace(' ', '_');
-        //alert(cookieName + ': ' + readCookie(cookieName));
-        if(readCookie(cookieName)=='closed')
-        {
-          divs[i].style.display = "none";
-        }
-        else
-        {
-          divs[i].style.display = "block";
-        }
-
-        // "save" our div height, because once it's display is set to none we can't get the original height again
-        var d = new div();
-        d.el = divs[i];
-        d.ht = baseheight.substring(0, baseheight.indexOf("p"));
-
-        // store our saved version
-        divheights[i] = d;        
+      div.style.display = 'none';
     }
+    
+    var el = div.previousSibling;
+    if ( !el )
+      continue;
+    while ( el.tagName != 'DIV' )
+      el = el.previousSibling;
+    var toggler = el.getElementsByTagName('a')[0];
+    if ( !toggler )
+      continue;
+    toggler.onclick = function()
+    {
+      load_component('jquery');
+      load_component('jquery-ui');
+      
+      var mydiv = this.parentNode.nextSibling;
+      while ( mydiv.tagName != 'DIV' )
+        mydiv = mydiv.nextSibling;
+      if ( mydiv.style.display == 'none' )
+      {
+        $(mydiv).show('blind');
+        var cookiename = 'mdgSliderState_' + mydiv.metaid;
+        createCookie(cookiename, 'open', 365);
+      }
+      else
+      {
+        $(mydiv).hide('blind');
+        var cookiename = 'mdgSliderState_' + mydiv.metaid;
+        createCookie(cookiename, 'closed', 365);
+      }
+      
+      return false;
+    }
+  }
 }
 
 addOnloadHook(initSliders);
-
-// this is one of our divs, it just has a DOM reference to the element and the original height
-function div(_el, _ht)
-{
-    this.el = _el;
-    this.ht = _ht;
-}
-
-function toggle(t)
-{
-  if(IE)
-    return false;
-  if ( KILL_SWITCH )
-    return false;
-  if ( !sliders_initted )
-    initSliders();
-    // reset our inertia base and interval
-    inertiabase = inertiabaseoriginal;
-    clearInterval(slideinterval);
-
-    // get our block
-    block = t.parentNode.nextSibling;
-
-    // for mozilla, it doesn't like whitespace between elements
-    if(block.className == undefined)
-        block = t.parentNode.nextSibling.nextSibling;
-      
-    if(block.style.display == "none")
-    {
-        block.style.display = "block";
-        block.style.height = "1px";
-
-        // our goal and current height
-        targetheight = divheight(block);
-        heightnow = 1;
-        
-        // remember toggled state
-        cookieName = 'mdgSliderState_'+block.metaid; // t.innerHTML.replace(' ', '_');
-        createCookie(cookieName, 'open', 3650);
-
-        // our interval
-        slideinterval = setInterval(slideout, slideintervalinc);
-    }
-    else
-    {
-        // our goal and current height
-        targetheight = 1;
-        heightnow = divheight(block);
-        
-        // remember toggled state
-        cookieName = 'mdgSliderState_'+block.metaid; // t.innerHTML.replace(' ', '_');
-        createCookie(cookieName, 'closed', 3650);
-
-        // our interval
-        slideinterval = setInterval(slidein, slideintervalinc);
-    }
-}
-
-// this is our slidein function the interval uses, it keeps subtracting
-// from the height till it's 1px then it hides it
-function slidein()
-{
-    if(heightnow > targetheight)
-    {
-        // reduce the height by intertiabase * inertiainc
-        heightnow -= inertiabase;
-
-        // increase the intertiabase by the amount to keep it changing
-        inertiabase += inertiainc;
-
-        // it's possible to exceed the height we want so we use a ternary - (condition) ? when true : when false;
-        block.style.height = (heightnow > 1) ? heightnow + "px" : targetheight + "px";
-    }
-    else
-    {
-        // finished, so hide the div properly and kill the interval
-        clearInterval(slideinterval);
-        block.style.display = "none";
-    }
-}
-
-// this is the function our slideout interval uses, it keeps adding
-// to the height till it's fully displayed
-function slideout()
-{
-    block.style.display = 'block';
-    if(heightnow < targetheight)
-    {
-        // increases the height by the inertia stuff
-        heightnow += inertiabase;
-
-        // increase the inertia stuff
-        inertiabase += inertiainc;
-
-        // it's possible to exceed the height we want so we use a ternary - (condition) ? when true : when false;
-        block.style.height = (heightnow < targetheight) ? heightnow + "px" : targetheight + "px";
-        
-    }
-    else
-    {
-        // finished, so make sure the height is what it's meant to be (inertia can make it off a little)
-        // then kill the interval
-        clearInterval(slideinterval);
-        block.style.height = targetheight + "px";
-    }
-}
-
-// returns the height of the div from our array of such things
-function divheight(d)
-{
-    for(var i=0; i<divheights.length; i++)
-    {
-        if(divheights[i].el == d)
-        {
-            return divheights[i].ht;
-        }
-    }
-}
-
 

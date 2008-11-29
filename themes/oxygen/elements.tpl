@@ -31,7 +31,7 @@
               <div class="heading">
                 <!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
                 <br style="display: none;" /><br style="display: none;" />
-                <a class="head" onclick="toggle(this); return false" href="#">{TITLE}</a>
+                <a class="head" href="#">{TITLE}</a>
                 <!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
                 <br style="display: none;" /><br style="display: none;" />
               </div>
@@ -43,7 +43,7 @@
               <div class="heading">
                 <!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
                 <br style="display: none;" /><br style="display: none;" />
-                <a class="head" onclick="toggle(this); return false" href="#">{TITLE}</a>
+                <a class="head" href="#">{TITLE}</a>
                 <!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
                 <br style="display: none;" /><br style="display: none;" />
               </div>
