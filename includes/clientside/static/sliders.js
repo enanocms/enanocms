@@ -58,7 +58,13 @@ var initSliders = function()
     if ( !el )
       continue;
     while ( el.tagName != 'DIV' )
+    {
       el = el.previousSibling;
+      if ( !el )
+        break;
+    }
+    if ( !el )
+      continue;
     var toggler = el.getElementsByTagName('a')[0];
     if ( !toggler )
       continue;
