@@ -105,6 +105,12 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
   global $lang;
   
   $warnings = array();
+  
+  //
+  // STAGE 0: PARSE SEARCH QUERY
+  // Identify all terms of the query. Separate between what is required and what is not, and what should be sent through the index as
+  // opposed to straight-out LIKE-selected.
+  //
 
   $query = parse_search_query($query, $warnings);
 
@@ -538,6 +544,8 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
   // pages and add text, etc. as necessary.
   // Plugins are COMPLETELY responsible for using the search terms and handling Boolean logic properly
 
+  inject_custom_search_results($query, $query_phrase, $scores, $page_data, $case_sensitive, $word_list);
+  
   $code = $plugins->setHook('search_global_inner');
   foreach ( $code as $cmd )
   {
@@ -920,6 +928,188 @@ function get_stopwords()
                      'the');
   
   return $stopwords;
+}
+
+/**
+ * Private function to inject custom results into a search.
+ */
+
+function inject_custom_search_results(&$query, &$query_phrase, &$scores, &$page_data, &$case_sensitive, &$word_list)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  global $search_handlers;
+  
+  // global functions
+  $terms = array(
+      'any' => array_merge($query['any'], $query_phrase['any']),
+      'req' => array_merge($query['req'], $query_phrase['req']),
+      'not' => $query['not']
+    );
+  
+  foreach ( $search_handlers as &$options )
+  {
+    $where = array('any' => array(), 'req' => array(), 'not' => array());
+    $where_any =& $where['any'];
+    $where_req =& $where['req'];
+    $where_not =& $where['not'];
+    $title_col = ( $case_sensitive ) ? $options['titlecolumn'] : 'lcase(' . $options['titlecolumn'] . ')';
+    if ( isset($options['datacolumn']) )
+      $desc_col = ( $case_sensitive ) ? $options['datacolumn'] : 'lcase(' . $options['datacolumn'] . ')';
+    else
+      $desc_col = "''";
+    foreach ( $terms['any'] as $term )
+    {
+      $term = escape_string_like($term);
+      if ( !$case_sensitive )
+        $term = strtolower($term);
+      $where_any[] = "( $title_col LIKE '%{$term}%' OR $desc_col LIKE '%{$term}%' )";
+    }
+    foreach ( $terms['req'] as $term )
+    {
+      $term = escape_string_like($term);
+      if ( !$case_sensitive )
+        $term = strtolower($term);
+      $where_req[] = "( $title_col LIKE '%{$term}%' OR $desc_col LIKE '%{$term}%' )";
+    }
+    foreach ( $terms['not'] as $term )
+    {
+      $term = escape_string_like($term);
+      if ( !$case_sensitive )
+        $term = strtolower($term);
+      $where_not[] = "$title_col NOT LIKE '%{$term}%' AND $desc_col NOT LIKE '%{$term}%'";
+    }
+    if ( empty($where_any) )
+      unset($where_any, $where['any']);
+    if ( empty($where_req) )
+      unset($where_req, $where['req']);
+    if ( empty($where_not) )
+      unset($where_not, $where['not']);
+    
+    $where_any = '(' . implode(' OR ', $where_any) . '' . ( isset($where['req']) || isset($where['not']) ? ' OR 1 = 1' : '' ) . ')';
+    
+    if ( isset($where_req) )
+      $where_req = implode(' AND ', $where_req);
+    if ( isset($where_not) )
+    $where_not = implode( 'AND ', $where_not);
+    
+    $where = implode(' AND ', $where);
+    
+    $columns = $options['titlecolumn'];
+    if ( isset($options['datacolumn']) )
+      $columns .= ", {$options['datacolumn']}";
+    if ( isset($options['additionalcolumns']) )
+      $columns .= ', ' . implode(', ', $options['additionalcolumns']);
+    
+    $sql = "SELECT $columns FROM " . table_prefix . "{$options['table']} WHERE ( $where ) $additionalwhere;";
+  
+    if ( !($q = $db->sql_unbuffered_query($sql)) )
+    {
+      $db->_die('Automatically generated search query');
+    }
+    
+    if ( $row = $db->fetchrow() )
+    {
+      do
+      {
+        $parser = $template->makeParserText($options['uniqueid']);
+        $parser->assign_vars($row);
+        $idstring = $parser->run();
+        
+        // Score this result
+        foreach ( $word_list as $term )
+        {
+          if ( $case_sensitive )
+          {
+            if ( strstr($row[$options['titlecolumn']], $term) )
+            {
+              ( isset($scores[$idstring]) ) ? $scores[$idstring] += 1.5 : $scores[$idstring] = 1.5;
+            }
+            else if ( isset($options['datacolumn']) && strstr($row[$options['datacolumn']], $term) )
+            {
+              ( isset($scores[$idstring]) ) ? $scores[$idstring]++ : $scores[$idstring] = 1;
+            }
+          }
+          else
+          {
+            if ( stristr($row[$options['titlecolumn']], $term) )
+            {
+              ( isset($scores[$idstring]) ) ? $scores[$idstring] += 1.5 : $scores[$idstring] = 1.5;
+            }
+            else if ( isset($options['datacolumn']) && stristr($row[$options['datacolumn']], $term) )
+            {
+              ( isset($scores[$idstring]) ) ? $scores[$idstring]++ : $scores[$idstring] = 1;
+            }
+          }
+        }
+        // Generate text...
+        $text = '';
+        if ( isset($options['datacolumn']) && !isset($options['formatcallback']) )
+        {
+          $text = highlight_and_clip_search_result(htmlspecialchars($row[$options['datacolumn']]), $word_list);
+        }
+        else if ( isset($options['formatcallback']) )
+        {
+          if ( is_callable($options['formatcallback']) )
+          {
+            $text = @call_user_func($options['formatcallback'], $row, $word_list);
+          }
+          else
+          {
+            $parser = $template->makeParserText($options['formatcallback']);
+            $parser->assign_vars($row);
+            $text = $parser->run();
+          }
+        }
+        
+        // Inject result
+        
+        if ( isset($scores[$idstring]) )
+        {
+          $parser = $template->makeParserText($options['linkformat']['page_id']);
+          $parser->assign_vars($row);
+          $page_id = $parser->run();
+          
+          $parser = $template->makeParserText($options['linkformat']['namespace']);
+          $parser->assign_vars($row);
+          $namespace = $parser->run();
+          
+          $page_data[$idstring] = array(
+            'page_name' => highlight_search_result(htmlspecialchars($row[$options['titlecolumn']]), $word_list),
+            'page_text' => $text,
+            'score' => $scores[$idstring],
+            'page_id' => $page_id,
+            'namespace' => $namespace,
+          );
+          
+          // Any additional flags that need to be added to the result?
+          // The small usually-bracketed text to the left of the title
+          if ( isset($options['resultnote']) )
+          {
+            $page_data[$idstring]['page_note'] = $options['resultnote'];
+          }
+          // Should we include the length?
+          if ( isset($options['datacolumn']) )
+          {
+            $page_data[$idstring]['page_length'] = strlen($row[$options['datacolumn']]);
+          }
+          else
+          {
+            $page_data[$idstring]['page_length'] = 0;
+            $page_data[$idstring]['zero_length'] = true;
+          }
+          // Anything to append to result links?
+          if ( isset($options['linkformat']['append']) )
+          {
+            $page_data[$idstring]['url_append'] = $options['linkformat']['append'];
+          }
+        }
+      }
+      while ( $row = $db->fetchrow($q) );
+      $db->free_result($q);
+    }
+  }
 }
 
 ?>

@@ -175,12 +175,12 @@ LONGSTRING;
          'PAGE_TEXT' => $result['page_text'],
          'PAGE_LENGTH' => $result['page_length'],
          'RELEVANCE_SCORE' => $result['score'],
-         'RESULT_URL' => makeUrlNS($result['namespace'], $result['page_id'], false, true),
+         'RESULT_URL' => makeUrlNS($result['namespace'], $result['page_id'], false, true) . ( isset($result['url_append']) ? $result['url_append'] : '' ),
          'PAGE_LENGTH_UNIT' => $length_unit,
          'PAGE_URL' => $url,
          'PAGE_NOTE' => ( isset($result['page_note']) ? $result['page_note'] . ' ' : '' )
         ));
-      $has_content = ( $result['namespace'] == 'Special' );
+      $has_content = ( $result['namespace'] == 'Special' || !empty($result['zero_length']) );
       
       $code = $plugins->setHook('search_global_results');
       foreach ( $code as $cmd )

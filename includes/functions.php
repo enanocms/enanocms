@@ -3045,6 +3045,77 @@ function highlight_term($needle, $haystack, $start_tag = '<b>', $end_tag = '</b>
 }
 
 /**
+ * Registers a new type of search result. Because this is so tricky to do but keep clean, this function takes an associative array as its
+ * only parameter. This array configures the function. The required keys are:
+ *  - table: the database table to search
+ *  - titlecolumn: the column that will be used as the title of the search result. This will have a weight of 1.5
+ *  - uniqueid: a TPL-format string, variables being column names, that will be unique for every result. This should contain a string that
+ *              will be specific to your *type* of search result in addition to a primary key or other unique identifier.
+ *  - linkformat: an array with the keys page_id and namespace which are where your result will link, plus the following additional options:
+ *     - append: added to the full generated URL
+ *     - query: query string without initial "?"
+ * Additional options:
+ *  - datacolumn
+ *  - additionalcolumns: additional data to select if you want to use a custom formatting callback
+ *  - formatcallback: a callback or TPL string. If a callback, it will be called with the parameters being the current result row and an
+ *                    array of words in case you want to highlight anything; the callback will be expected to return a string containing
+ *                    a fully formatted and sanitized blob of HTML. If formatcallback is a TPL string, variables will be named after table
+ *                    columns.
+ *  - additionalwhere: additional SQL to inject into WHERE clause, in the format of "AND foo = bar"
+ * @example Working example of adding users to search results:
+ <code>
+  register_search_handler(array(
+      'table' => 'users',
+      'titlecolumn' => 'username',
+      'uniqueid' => 'ns=User;cid={username}',
+      'additionalcolumns' => array('user_id'),
+      'resultnote' => '[Member]',
+      'linkformat' => array(
+          'page_id' => '{username}',
+          'namespace' => 'User'
+        ),
+      'formatcallback' => 'format_user_search_result',
+    ));
+  
+  function format_user_search_result($row)
+  {
+    global $session, $lang;
+    $rankdata = $session->get_user_rank(intval($row['user_id']));
+    $rankspan = '<span style="' . $rankdata['rank_style'] . '">' . $lang->get($rankdata['rank_title']) . '</span>';
+    if ( empty($rankdata['user_title']) )
+    {
+      return $rankspan;
+    }
+    else
+    {
+      return '"' . htmlspecialchars($rankdata['user_title']) . "\" (<b>$rankspan</b>)";
+    }
+  }
+ </code>
+ * @param array Options array - see function documentation
+ * @return null
+ */
+
+global $search_handlers;
+$search_handlers = array();
+
+function register_search_handler($options)
+{
+  global $search_handlers;
+  
+  $required = array('table', 'titlecolumn', 'uniqueid', 'linkformat');
+  foreach ( $required as $key )
+  {
+    if ( !isset($options[$key]) )
+    {
+      throw new Exception("Required search handler option '$key' is missing");
+    }
+  }
+  $search_handlers[] = $options;
+  return null;
+}
+
+/**
  * From http://us2.php.net/urldecode - decode %uXXXX
  * @param string The urlencoded string
  * @return string
