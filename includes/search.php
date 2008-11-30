@@ -1002,6 +1002,8 @@ function inject_custom_search_results(&$query, &$query_phrase, &$scores, &$page_
     if ( isset($options['additionalcolumns']) )
       $columns .= ', ' . implode(', ', $options['additionalcolumns']);
     
+    $additionalwhere = ( isset($options['additionalwhere']) ) ? $options['additionalwhere'] : '';
+    
     $sql = "SELECT $columns FROM " . table_prefix . "{$options['table']} WHERE ( $where ) $additionalwhere;";
   
     if ( !($q = $db->sql_unbuffered_query($sql)) )
