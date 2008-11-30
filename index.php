@@ -51,7 +51,21 @@
   switch($_GET['do'])
   {
     default:
-      die_friendly('Invalid action', '<p>The action "'.htmlspecialchars($_GET['do']).'" is not defined. Return to <a href="'.makeUrl($paths->page).'">viewing this page\'s text</a>.</p>');
+      $code = $plugins->setHook('page_action');
+      ob_start();
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      if ( $contents = ob_get_contents() )
+      {
+        ob_end_clean();
+        echo $contents;
+      }
+      else
+      {
+        die_friendly('Invalid action', '<p>The action "'.htmlspecialchars($_GET['do']).'" is not defined. Return to <a href="'.makeUrl($paths->page).'">viewing this page\'s text</a>.</p>');
+      }
       break;
     case 'view':
       // echo PageUtils::getpage($paths->page, true, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
