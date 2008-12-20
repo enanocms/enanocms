@@ -3442,6 +3442,24 @@ function parse_ip_range($range)
 
 function parse_ip_range_regex($range)
 {
+  if ( strstr($range, ':') )
+  {
+    return parse_ipv6_range_regex($range);
+  }
+  else
+  {
+    return parse_ipv4_range_regex($range);
+  }
+}
+
+/**
+ * Parses a valid IPv4 address range into a regular expression.
+ * @param string IP range string
+ * @return string
+ */
+
+function parse_ipv4_range_regex($range)
+{
   // Regular expression to test the range string for validity
   $regex = '/^(([0-9]+(-[0-9]+)?)(\|([0-9]+(-[0-9]+)?))*)\.'
            . '(([0-9]+(-[0-9]+)?)(\|([0-9]+(-[0-9]+)?))*)\.'
@@ -3498,6 +3516,255 @@ function parse_ip_range_regex($range)
   $return = substr($return, 0, -2);
   $return .= '$';
   return $return;
+}
+
+/**
+ * Parses a valid IPv6 address range into a regular expression.
+ * @param string IP range string
+ * @return string
+ */
+
+function parse_ipv6_range_regex($range)
+{
+  $range = strtolower(trim($range));
+  $valid = '/^';
+  $valid .= '(?:[0-9a-f]{0,4}|[0-9a-f]{1,4}-[0-9a-f]{1,4}):';
+  $valid .= '(?:[0-9a-f]{0,4}|[0-9a-f]{1,4}-[0-9a-f]{1,4}):';
+  $valid .= '(?:[0-9a-f]{0,4}|[0-9a-f]{1,4}-[0-9a-f]{1,4}:|:)?';
+  $valid .= '(?:[0-9a-f]{0,4}|[0-9a-f]{1,4}-[0-9a-f]{1,4}:|:)?';
+  $valid .= '(?:[0-9a-f]{0,4}|[0-9a-f]{1,4}-[0-9a-f]{1,4}:|:)?';
+  $valid .= '(?:[0-9a-f]{0,4}|[0-9a-f]{1,4}-[0-9a-f]{1,4}:|:)?';
+  $valid .= '(?:[0-9a-f]{0,4}|[0-9a-f]{1,4}-[0-9a-f]{1,4}:|:)?';
+  $valid .= '(?:[0-9a-f]{0,4}|[0-9a-f]{1,4}-[0-9a-f]{1,4})$/';
+  if ( !preg_match($valid, $range) )
+    return false;
+  
+  // expand address range.
+  // this takes short ranges like:
+  //   2001:470-471:054-b02b::5-bb
+  // up to:
+  //   2001:0470-0471:0054-b02b:0000:0000:0000:0005-00bb
+  $range = explode(':', $range);
+  $expanded = '';
+  $size = count($range);
+  foreach ( $range as $byteset )
+  {
+    if ( empty($byteset) )
+    {
+      // ::
+      while ( $size < 9 )
+      {
+        $expanded .= '0000:';
+        $size++;
+      }
+    }
+    else
+    {
+      if ( strstr($byteset, '-') ) 
+      {
+        // this is a range
+        $sides = explode('-', $byteset);
+        foreach ( $sides as &$bytepair )
+        {
+          while ( strlen($bytepair) < 4 )
+          {
+            $bytepair = "0$bytepair";
+          }
+        }
+        $byteset = implode('-', $sides);
+      }
+      else
+      {
+        while ( strlen($byteset) < 4 )
+        {
+          $byteset = "0$byteset";
+        }
+      }
+      $expanded .= "$byteset:";
+    }
+  }
+  $expanded = explode(':', rtrim($expanded, ':'));
+  
+  // ready to dive in and start generating range regexes.
+  // this has to be pretty optimized... we want to end up with regexes like:
+  // range: 54-b12b
+  /*
+  /005[4-9a-f]|
+  00[6-9a-f][0-9a-f]|
+  0[1-9a-f][0-9a-f][0-9a-f]|
+  [1-9a][0-9a-f][0-9a-f][0-9a-f]|
+  b[0-0][0-1][0-9a-f]|
+  b0[0-1][0-9a-f]|
+  b02[0-9a-b]/x
+  */
+  foreach ( $expanded as &$word )
+  {
+    if ( strstr($word, '-') )
+    {
+      // oh... damn.
+      $word = '(?:' . generate_hex_numeral_range($word) . ')';
+    }
+  }
+
+  // return print_r($expanded, true);  
+  return '^' . implode(':', $expanded) . '$';
+}
+
+/**
+ * Take a hex numeral range and parse it in to a PCRE.
+ * @param string
+ * @return string
+ * @access private
+ */
+
+function generate_hex_numeral_range($word)
+{
+  list($low, $high) = explode('-', $word);
+  
+  if ( hexdec($low) > hexdec($high) )
+  {
+    $_ = $low;
+    $low = $high;
+    $high = $_;
+    unset($_);
+  }
+  
+  while ( strlen($low) < strlen($high) )
+  {
+    $low = "0$low";
+  }
+  
+  // trim off everything that's the same
+  $trimmed = '';
+  $len = strlen($low);
+  for ( $i = 0; $i < $len; $i++ )
+  {
+    if ( $low{0} === $high{0} )
+    {
+      $trimmed .= $low{0};
+      $low = substr($low, 1);
+      $high = substr($high, 1);
+    }
+    else
+    {
+      break;
+    }
+  }
+  
+  $len = strlen($high);
+  if ( $len == 1 )
+  {
+    // this does happen sometimes, so we can save a bit of CPU power here.
+    return $trimmed . __hexdigitrange($low, $high);
+  }
+    
+  $return = '';
+  // lower half
+  for ( $i = $len - 1; $i > 0; $i-- )
+  {
+    if ( $low{$i} == 'f' )
+      continue;
+    $return .= $trimmed;
+    for ( $j = 0; $j < $len; $j++ )
+    {
+      if ( $j < $i )
+      {
+        $return .= $low{$j};
+      }
+      else if ( $j == $i && ( $i == $len - 1 || $low{$j} == 'f' ) )
+      {
+        $return .= __hexdigitrange($low{$j}, 'f');
+      }
+      else if ( $j == $i && $i != $len - 1 )
+      {
+        $return .= __hexdigitrange(dechex(hexdec($low{$j}) + 1), 'f');
+      }
+      else
+      {
+        $return .= __hexdigitrange('0', 'f');
+      }
+    }
+    $return .= '|';
+  }
+  // middle block
+  if ( hexdec($low{0}) + 1 < hexdec($high{0}) )
+  {
+    if ( hexdec($low{0}) + 1 < hexdec($high{0}) - 1 )
+      $return .= $trimmed . __hexdigitrange(dechex(hexdec($low{0}) + 1), dechex(hexdec($high{0}) - 1));
+    else
+      $return .= $trimmed . __hexdigitrange($low{0}, $high{0});
+    if ( $len - 1 > 0 )
+      $return .= '[0-9a-f]{' . ( $len - 1 ) . '}|';
+  }
+  // higher half
+  for ( $i = 1; $i < $len; $i++ )
+  {
+    if ( $high{$i} == '0' )
+      continue;
+    $return .= $trimmed;
+    for ( $j = 0; $j < $len; $j++ )
+    {
+      if ( $j < $i )
+      {
+        $return .= $high{$j};
+      }
+      else if ( $j == $i && ( $i == $len - 1 || $high{$j} == '0' ) )
+      {
+        $return .= __hexdigitrange('0', $high{$j});
+      }
+      else if ( $j == $i && $i != $len - 1 )
+      {
+        $return .= __hexdigitrange('0', dechex(hexdec($high{$j}) - 1));
+      }
+      else if ( $j > $i )
+      {
+        $return .= __hexdigitrange('0', 'f');
+      }
+      else
+      {
+        die("I don't know what to do! i $i j $j");
+      }
+    }
+    $return .= '|';
+  }
+  
+  return rtrim($return, '|');
+}
+
+function __hexdigitrange($low, $high)
+{
+  if ( $low == $high )
+    return $low;
+  if ( empty($low) )
+    $low = '0';
+  
+  $low_type = ( preg_match('/[0-9]/', $low) ) ? 'num' : 'alph';
+  $high_type = ( preg_match('/[0-9]/', $high) ) ? 'num' : 'alph';
+  if ( ( $low_type == 'num' && $high_type == 'num') || ( $low_type == 'alph' && $high_type == 'alph' ) )
+  {
+    return "[$low-$high]";
+  }
+  else if ( $low_type == 'num' && $high_type == 'alph' )
+  {
+    $ret = '[';
+    
+    if ( $low == '9' )
+      $ret .= '9';
+    else
+      $ret .= "$low-9";
+    if ( $high == 'a' )
+      $ret .= 'a';
+    else
+      $ret .= "a-$high";
+      
+    $ret .= "]";
+    return $ret;
+  }
+  else if ( $low_type == 'alph' && $high_type == 'num' )
+  {
+    // ???? this should never happen
+    return __hexdigitrange($high, $low); 
+  }
 }
 
 /**
