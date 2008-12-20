@@ -1136,7 +1136,7 @@ function aclSetViewDebugTools()
     var i_user = document.createElement('input');
     i_user.type = 'text';
     i_user.id = aclManagerID + 'trace_user';
-    i_user.onkeyup = function() { new AutofillUsername(this); };
+    i_user.onkeyup = function() { new AutofillUsername(this, true); };
     i_user.size = '20';
     td_user_i.appendChild(i_user);
     tr_user.appendChild(td_user_i);
