@@ -521,7 +521,9 @@ window.ajaxEditorDestroyModalWindow = function()
 window.ajaxEditorSave = function(is_draft, text_override)
 {
   if ( !is_draft )
+  {
     ajaxSetEditorLoading();
+  }
   if ( is_draft && editor_save_lock )
     return false;
   else
@@ -659,6 +661,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
               var time = d.getHours() + ':' + m;
               lbl.innerHTML = $lang.get('editor_msg_draft_saved', { time: time });
             }
+            editor_save_lock = false;
           }
           else
           {
