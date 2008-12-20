@@ -434,6 +434,8 @@ class template
         'style' => $this->style
       );
     
+    require(ENANO_ROOT . "/themes/{$this->theme}/theme.cfg");
+    
     if ( $local_page_exists && isset($paths->pages[$local_page]) )
     {
       $local_cdata =& $paths->pages[$local_page];
@@ -1421,7 +1423,7 @@ JSEOF;
    * @param $from_internal bool Internal switch, just omit (@todo document)
    */
   
-  function assign_bool($vars)
+  function assign_bool($vars, $from_internal = false)
   {
     foreach ( $vars as $key => $value )
     {
@@ -1744,7 +1746,7 @@ EOF;
 (
   (?:https?|ftp|irc):\/\/                            # protocol
   (?:[^@\s\]"\':]+@)?                                # username (FTP only but whatever)
-  (?:(?:(?:[a-z0-9-]+\.)*)[a-z0-9\[\]:]+)           # hostname
+  (?:(?:(?:[a-z0-9-]+\.)*)[a-z0-9\[\]:]+)            # hostname
   (?::[0-9]+)?                                       # port number
   (?:\/[A-z0-9_%\|~`!\!@#\$\^&?=\*\(\):;\.,\/-]*)?   # path
 )
