@@ -65,7 +65,7 @@ class EnanoMath_GMP
   
   function random($len)
   {
-    return gmp_random($len);
+    return gmp_random($len / 8);
   }
   
   /**
