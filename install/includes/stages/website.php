@@ -153,7 +153,7 @@ $ui->show_header();
   {
     ?>
       <div class="usermessage">
-        <b><?php echo $lang->get('website_msg_modwrite_enabled'); ?></b><br />
+        <b><?php echo $lang->get('website_msg_modrewrite_enabled'); ?></b><br />
         <?php if ( $patch_necessary ): ?>
           <?php echo $lang->get('website_msg_modrewrite_necessary'); ?>
         <?php else: ?>
