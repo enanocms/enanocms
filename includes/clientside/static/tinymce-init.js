@@ -34,23 +34,24 @@ var tinymce_initted = false;
 
 var enano_tinymce_options = {
   mode : "none",
-  plugins : 'table,save,safari,pagebreak,style,layer,advhr,insertdatetime,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras' + do_popups,
+  plugins : 'table,save,safari,pagebreak,style,layer,advhr,insertdatetime,searchreplace,spellchecker,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras' + do_popups,
   theme : 'advanced',
   skin : _skin,
   theme_advanced_resize_horizontal : false,
   theme_advanced_resizing : true,
   theme_advanced_toolbar_location : "top",
   theme_advanced_toolbar_align : "left",
-  theme_advanced_buttons1 : "save,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,forecolor,backcolor,|,formatselect,|,fontselect,fontsizeselect",
+  theme_advanced_buttons1 : "save,|,bold,italic,underline,strikethrough,|,spellchecker,|,justifyleft,justifycenter,justifyright,justifyfull,|,forecolor,backcolor,|,formatselect,|,fontselect,fontsizeselect",
   theme_advanced_buttons3_add_before : "tablecontrols,separator",
   theme_advanced_buttons3_add_after : "|,fullscreen",
   theme_advanced_statusbar_location : 'bottom',
   noneditable_noneditable_class : 'mce_readonly',
-  content_css : css_url
+  content_css : css_url,
+  spellchecker_rpc_url : scriptPath + '/includes/clientside/tinymce/plugins/spellchecker/rpc.php',
 };
 
 var enano_tinymce_gz_options = {
-	plugins : 'table,save,safari,pagebreak,style,layer,advhr,insertdatetime,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras' + do_popups,
+	plugins : 'table,save,safari,pagebreak,style,layer,advhr,insertdatetime,searchreplace,spellchecker,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras' + do_popups,
 	themes : 'advanced',
 	languages : 'en',
 	disk_cache : true,
