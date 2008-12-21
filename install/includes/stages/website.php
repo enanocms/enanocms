@@ -167,8 +167,9 @@ $ui->show_header();
     if ( $patch_necessary ):
     ?>
       <div class="usermessage">
-        <b><?php echo $lang->get('website_msg_modwrite_disabled'); ?></b><br />
+        <b><?php echo $lang->get('website_msg_modrewrite_disabled'); ?></b><br />
         <?php echo $lang->get('website_msg_modrewrite_maybeneeded'); ?>
+      </div>
     <?php
     endif;
   }
