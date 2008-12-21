@@ -421,7 +421,7 @@ class mysql {
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $row = mysql_fetch_assoc($r);
     $this->disable_errorhandler();
-    return $row;
+    return integerize_array($row);
   }
   
   function fetchrow_num($r = false) {
@@ -430,7 +430,7 @@ class mysql {
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $row = mysql_fetch_row($r);
     $this->disable_errorhandler();
-    return $row;
+    return integerize_array($row);
   }
   
   function numrows($r = false) {
@@ -1165,7 +1165,7 @@ class postgresql {
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $row = pg_fetch_assoc($r);
     $this->disable_errorhandler();
-    return $row;
+    return integerize_array($row);
   }
   
   function fetchrow_num($r = false) {
@@ -1174,7 +1174,7 @@ class postgresql {
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $row = pg_fetch_row($r);
     $this->disable_errorhandler();
-    return $row;
+    return integerize_array($row);
   }
   
   function numrows($r = false) {

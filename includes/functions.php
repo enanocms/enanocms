@@ -719,6 +719,31 @@ function enano_safe_array_merge($arr1, $arr2)
   return $arr3;
 }
 
+/**
+ * Looks at all values in an array and casts them to integers if they are strings with digits. Recursive.
+ * @param array Array to process
+ * @return array
+ */
+
+function integerize_array($arr)
+{
+  if ( !is_array($arr) )
+    return $arr;
+  
+  foreach ( $arr as &$val )
+  {
+    if ( is_string($val) && ctype_digit($val) && strlen($val) < 10 )
+    {
+      $val = intval($val);
+    }
+    else if ( is_array($val) )
+    {
+      $val = integerize_array($val);
+    }
+  }
+  return $arr;
+}
+
 // Convert IP address to hex string
 // Input:  127.0.0.1  (string)
 // Output: 0x7f000001 (string)
@@ -2876,7 +2901,8 @@ function dirtify_page_id($page_id)
   $page_id = str_replace(' ', '_', $page_id);
 
   // Exception for userpages for IP addresses
-  if ( is_valid_ip($page_id) )
+  $pid_ip_check = ( is_object($paths) ) ? preg_replace('+^' . preg_quote($paths->nslist['User']) . '+', '', $page_id) : $page_id;
+  if ( is_valid_ip($pid_ip_check) )
   {
     return $page_id;
   }

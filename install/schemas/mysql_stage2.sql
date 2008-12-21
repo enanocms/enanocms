@@ -112,6 +112,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   avatar_type ENUM('jpg', 'png', 'gif', 'grv') NOT NULL DEFAULT 'png',
   user_registration_ip varchar(39),
   user_rank int(12) UNSIGNED DEFAULT NULL,
+  user_rank_userset tinyint(1) NOT NULL DEFAULT 0,
   user_timezone int(12) UNSIGNED NOT NULL DEFAULT 0,
   user_title varchar(64) DEFAULT NULL,
   user_group mediumint(5) NOT NULL DEFAULT 1,

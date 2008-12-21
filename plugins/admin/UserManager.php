@@ -225,6 +225,11 @@ function page_Admin_UserManager()
         $to_update_users['user_rank'] = $user_rank;
         $to_update_users['user_title'] = $user_title;
         
+        if ( $user_rank > 0 )
+        {
+          $to_update_users['user_rank_userset'] = '0';
+        }
+        
         if ( isset($_POST['account_active']) )
         {
           $to_update_users['account_active'] = "1";

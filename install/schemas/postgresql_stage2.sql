@@ -112,6 +112,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   avatar_type varchar(3) NOT NULL,
   user_registration_ip varchar(39),
   user_rank int DEFAULT NULL,
+  user_rank_userset smallint NOT NULL DEFAULT 0,
   user_timezone int NOT NULL DEFAULT 0,
   user_title varchar(64) DEFAULT NULL,
   user_group int NOT NULL DEFAULT 1,

@@ -2349,9 +2349,11 @@ class sessionManager {
          . "       COALESCE(ru.rank_id,    rg.rank_id,    rl.rank_id,    rd.rank_id   ) AS rank_id,\n"
          . "       COALESCE(ru.rank_title, rg.rank_title, rl.rank_title, rd.rank_title) AS rank_title,\n"
          . "       COALESCE(ru.rank_style, rg.rank_style, rl.rank_style, rd.rank_style) AS rank_style,\n"
-         . "       rg.rank_id AS group_rank_id,"
-         . "       ( ru.rank_id IS NULL AND rg.rank_id IS NULL ) AS using_default,"
-         . "       ( ru.rank_id IS NULL AND rg.rank_id IS NOT NULL ) AS using_group,"
+         . "       rg.rank_id AS group_rank_id,\n"
+         . "       ( ru.rank_id IS NULL AND rg.rank_id IS NULL ) AS using_default,\n"
+         . "       ( ru.rank_id IS NULL AND rg.rank_id IS NOT NULL ) AS using_group,\n"
+         . "       ( ru.rank_id IS NOT NULL ) AS using_user,\n"
+         . "       u.user_rank_userset,\n"
          . "       $gid_col\n"
          . "  FROM " . table_prefix . "users AS u\n"
          . "  LEFT JOIN " . table_prefix . "groups AS g\n"
@@ -2393,7 +2395,7 @@ class sessionManager {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     global $user_ranks;
-    // cache info if possible
+    // cache info in RAM if possible
     static $_cache = array();
     
     if ( is_int($id) && $id == 0 )
@@ -2407,7 +2409,7 @@ class sessionManager {
       // invalid parameter
       return false;
       
-    // check the cache
+    // check the RAM cache
     if ( isset($_cache[$id]) )
       return $_cache[$id];
     
@@ -2555,6 +2557,109 @@ class sessionManager {
     
     unset($row['user_rank'], $row['group_rank'], $row['group_list'], $row['using_default'], $row['using_group'], $row['user_level'], $row['user_group'], $row['username']);
     return $row;
+  }
+  
+  /**
+   * Get the list of ranks that a user is allowed to use. Returns false if they cannot change it.
+   * @param string|int User ID or username
+   * @return array Associative by rank ID
+   */
+  
+  function get_user_possible_ranks($id)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // cache info in RAM if possible
+    static $_cache = array();
+    
+    if ( is_int($id) && $id == 0 )
+      $id = 1;
+    
+    if ( is_int($id) )
+      $col = "u.user_id = $id";
+    else if ( is_string($id) )
+      $col = ENANO_SQLFUNC_LOWERCASE . "(username) = " . ENANO_SQLFUNC_LOWERCASE . "('" . $db->escape($id) . "')";
+    else
+      // invalid parameter
+      return false;
+      
+    // check the RAM cache
+    if ( isset($_cache[$id]) )
+      return $_cache[$id];
+    
+    $sql = $this->generate_rank_sql("\n  WHERE $col");
+    
+    $q = $this->sql($sql);
+    // any results?
+    if ( $db->numrows() < 1 )
+    {
+      // nuttin'.
+      $db->free_result();
+      $_cache[$id] = false;
+      return false;
+    }
+    
+    // Found something.
+    $row = $db->fetchrow();
+    $db->free_result();
+    
+    if ( $row['using_user'] && !$row['user_rank_userset'] )
+    {
+      // The user's rank was set manually by an admin.
+      $result = array(
+        array(
+          'rank_id' => $row['rank_id'],
+          'rank_title' => $row['rank_title'],
+          'rank_style' => $row['rank_style'],
+          'rank_type' => 'user'
+          )
+        );
+      $_cache[$id] = $result;
+      return $result;
+    }
+    
+    // copy the result to a more permanent array so we can reference this later
+    $current_settings = $row;
+    unset($row);
+    
+    $result = array();
+    
+    // first rank available to us will be the one set by the user's user level
+    if ( isset($this->level_rank_table[$current_settings['user_level']]) )
+    {
+      $q = $this->sql('SELECT rank_id, rank_title, rank_style FROM ' . table_prefix . "ranks WHERE rank_id = {$this->level_rank_table[$this->user_level]};");
+      if ( $db->numrows() > 0 )
+      {
+        $row = $db->fetchrow();
+        $row['rank_type'] = 'ulevel';
+        
+        $result[] = $row;
+      }
+      $db->free_result();
+    }
+    
+    // for each group the user is in, figure out if it has a rank associated with it
+    $group_list = explode(',', $current_settings['group_list']);
+    foreach ( $group_list as $group_id )
+    {
+      $group_id = intval($group_id);
+      $q = $this->sql('SELECT r.rank_id, r.rank_title, r.rank_style FROM ' . table_prefix . "groups AS g\n"
+                    . "  LEFT JOIN " . table_prefix . "ranks AS r\n"
+                    . "    ON ( g.group_rank = r.rank_id )\n"
+                    . "  WHERE g.group_id = $group_id\n"
+                    . "    AND r.rank_id IS NOT NULL;");
+      if ( $db->numrows() > 0 )
+      {
+        $row = $db->fetchrow();
+        $row['rank_type'] = 'group';
+        
+        $result[] = $row;
+      }
+      $db->free_result();
+    }
+    
+    $_cache[$id] = $result;
+    return $result;
   }
   
   #
@@ -3571,7 +3676,7 @@ EOF;
         {
           return array(
             'mode' => 'error',
-            'error' => 'ERR_DH_HASH_NO_MATCH'
+            'error' => 'ERR_DH_HASH_NO_MATCH',
           );
         }
         

@@ -155,6 +155,7 @@ function page_Special_Preferences()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   global $timezone;
+  global $cache;
   
   // We need a login to continue
   if ( !$session->user_logged_in )
@@ -468,6 +469,9 @@ function page_Special_Preferences()
       echo '</form>';
       break;
     case "Profile":
+      $available_ranks = $session->get_user_possible_ranks($session->user_id);
+      $current_rank = $session->get_user_rank($session->user_id);
+      
       if ( isset($_POST['submit']) )
       {
         $real_name = htmlspecialchars($_POST['real_name']);
@@ -475,6 +479,12 @@ function page_Special_Preferences()
         
         $timezone = intval($_POST['timezone']);
         $tz_local = $timezone + 1440;
+        
+        $dst = $db->escape($_POST['dst']);
+        if ( !preg_match('/^[0-9]+;[0-9]+;[0-9]+;[0-9]+;[0-9]+$/', $dst) )
+          $dst = '0;0;0;0;60';
+        
+        $GLOBALS['dst_params'] = explode(';', $dst);
         
         $imaddr_aim = htmlspecialchars($_POST['imaddr_aim']);
         $imaddr_aim = $db->escape($imaddr_aim);
@@ -547,8 +557,36 @@ function page_Special_Preferences()
           }
           $user_title_col = ", user_title = $colval";
         }
+        $user_rank_col = '';
+        if ( intval($_POST['user_rank']) != $current_rank['rank_id'] && count($available_ranks) > 1 )
+        {
+          if ( $_POST['user_rank'] == 'NULL' )
+          {
+            $user_rank_col = ", user_rank = NULL, user_rank_userset = 0";
+          }
+          else
+          {
+            $new_rank = intval($_POST['user_rank']);
+            $rank_allowed = false;
+            foreach ( $available_ranks as $rank )
+            {
+              if ( $rank['rank_id'] == $new_rank )
+              {
+                $rank_allowed = true;
+                break;
+              }
+            }
+            if ( $rank_allowed )
+            {
+              $user_rank_col = ", user_rank = $new_rank, user_rank_userset = 1";
+              // hack
+              $current_rank['rank_id'] = $new_rank;
+              $cache->purge('ranks');
+            }
+          }
+        }
         
-        $q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name', user_timezone = $tz_local{$user_title_col} WHERE user_id=$session->user_id;");
+        $q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name', user_timezone = {$tz_local}, user_dst = '$dst'{$user_title_col}{$user_rank_col} WHERE user_id=$session->user_id;");
         if ( !$q )
           $db->_die();
         
@@ -571,6 +609,7 @@ function page_Special_Preferences()
           $db->free_result();
           
           // unload / reload $lang, this verifies that the selected language works
+          // enano should die a violent death if the language fails to load
           unset($GLOBALS['lang']);
           unset($lang);
           $lang_id = intval($lang_id);
@@ -680,6 +719,29 @@ function page_Special_Preferences()
                 <input type="text" name="user_title" value="<?php echo htmlspecialchars($session->user_title); ?>" />
               </td>
             </tr>
+          <?php
+          endif;
+          if ( count($available_ranks) > 1 ):
+          ?>
+          <tr>
+            <td class="row2">
+              <?php echo $lang->get('usercp_publicinfo_field_rank_title'); ?><br />
+              <small><?php echo $lang->get('usercp_publicinfo_field_rank_hint'); ?></small>
+            </td>
+            <td class="row1">
+              <select name="user_rank">
+                <?php
+                foreach ( $available_ranks as $rank )
+                {
+                  $sel = ( $rank['rank_id'] == $current_rank['rank_id'] ) ? ' selected="selected"' : '';
+                  echo '<option' . $sel . ' value="' . $rank['rank_id'] . '" style="' . htmlspecialchars($rank['rank_style']) . '">';
+                  echo htmlspecialchars($lang->get($rank['rank_title']));
+                  echo '</option>';
+                }
+                ?>
+              </select>
+            </td>
+          </tr>
           <?php
           endif;
           ?>

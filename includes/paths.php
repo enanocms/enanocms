@@ -619,7 +619,13 @@ class pathManager
     global $cache;
     
     // store data (TTL 20 minutes)
-    $cache->store('page_meta', $md_array, 20);
+    try
+    {
+      $cache->store('page_meta', $md_array, 20);
+    }
+    catch ( Exception $e )
+    {
+    }
     
     return true;
   }
