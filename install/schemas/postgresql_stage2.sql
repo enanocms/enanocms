@@ -397,7 +397,7 @@ INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name,
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);
   
-INSERT INTO {{TABLE_PREFIX}}ranks(rank_title, rank_style) VALUES
+INSERT INTO {{TABLE_PREFIX}}ranks(rank_id, rank_title, rank_style) VALUES
   (1, 'user_rank_member', ''),
   (2, 'user_rank_mod', 'font-weight: bold; color: #00AA00;'),
   (3, 'user_rank_admin', 'font-weight: bold; color: #AA0000;'),

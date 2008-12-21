@@ -1055,7 +1055,7 @@ class sessionManager {
                              . '    ON ( p.message_to=u.username AND p.message_read=0 )' . "\n"
                              . '  WHERE k.session_key=\''.$keyhash.'\'' . "\n"
                              . '    AND k.salt=\''.$salt.'\'' . "\n"
-                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_timezone,u.user_title,k.source_ip,k.time,k.auth_level,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public, x.disable_js_fx;');
+                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_timezone,u.user_title,u.user_dst,k.source_ip,k.time,k.auth_level,k.key_type,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public, x.disable_js_fx;');
     
     if ( !$query && ( defined('IN_ENANO_INSTALL') or defined('IN_ENANO_UPGRADE') ) )
     {
@@ -2370,7 +2370,7 @@ class sessionManager {
          . "      )\n"
          . "  LEFT JOIN " . table_prefix . "ranks AS rd\n"
          . "    ON ( rd.rank_id = 1 )$append\n"
-         . "  GROUP BY u.user_id, u.username, u.user_level, u.user_group, u.user_rank, u.user_title, g.group_rank,\n"
+         . "  GROUP BY u.user_id, u.username, u.user_level, u.user_group, u.user_rank, u.user_title, u.user_rank_userset, g.group_rank,\n"
          . "       ru.rank_id, ru.rank_title, ru.rank_style,rg.rank_id, rg.rank_title, rg.rank_style,\n"
          . "       rl.rank_id, rl.rank_title, rl.rank_style,rd.rank_id, rd.rank_title, rd.rank_style;";
     
