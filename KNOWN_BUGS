@@ -4,4 +4,6 @@ Enano 1.1.5 - Known Bugs and Issues
   about, but did not have time to fix before this release was
   scheduled. Hopefully all of these will be fixed in the next release.
 
-- Javascript components load very, very slowly.
+- Despite this being an alpha, the team doesn't know of any bugs per
+  se in all of Enano. WTF?? Yeah, right. Help us find 'em and post
+  on the forum or drop by #enano on freenode.
