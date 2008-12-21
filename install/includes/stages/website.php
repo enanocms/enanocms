@@ -147,8 +147,34 @@ $ui->show_header();
   $scriptpath_full = 'http' . ( $https ? 's' : '' ) . '://' . $_SERVER['HTTP_HOST'] . scriptPath . '/';
   ?>
   
-  <table border="0" cellspacing="0" cellpadding="10">
+  <?php
+  $patch_necessary = ( strtolower(PHP_OS) == 'win32' && substr(@$_SERVER['SERVER_SOFTWARE'], 'Apache/2.2') );
+  if ( defined('WINDOWS_MOD_REWRITE_WORKAROUNDS') )
+  {
+    ?>
+      <div class="usermessage">
+        <b><?php echo $lang->get('website_msg_modwrite_enabled'); ?></b><br />
+        <?php if ( $patch_necessary ): ?>
+          <?php echo $lang->get('website_msg_modrewrite_necessary'); ?>
+        <?php else: ?>
+          <?php echo $lang->get('website_msg_modrewrite_unnecessary'); ?>
+        <?php endif; ?>
+      </div>
+    <?php
+  }
+  else
+  {
+    if ( $patch_necessary ):
+    ?>
+      <div class="usermessage">
+        <b><?php echo $lang->get('website_msg_modwrite_disabled'); ?></b><br />
+        <?php echo $lang->get('website_msg_modrewrite_maybeneeded'); ?>
+    <?php
+    endif;
+  }
+  ?>
   
+  <table border="0" cellspacing="0" cellpadding="10">
     <tr>
       <td>
         <b><?php echo $lang->get('website_field_name'); ?></b><br />

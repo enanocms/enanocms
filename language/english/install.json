@@ -216,6 +216,11 @@ var enano_lang_install = {
       msg_bestmethod_rewrite: 'The installer has detected that using rewritten URLs is the best level that will work.',
       msg_bestmethod_shortened: 'The installer has detected that using shortened URLs is the best level that will work.',
       msg_bestmethod_standard: 'The installer has detected that using standard URLs is the only level that will work.',
+      msg_modrewrite_enabled: 'Your copy of Enano has the Windows mod_rewrite workaround patch enabled.',
+      msg_modrewrite_necessary: 'If you don\'t plan to use the Tiny URLs option below, you should go back and re-download Enano without this workaround enabled. The mod_rewrite issues Enano faces under Windows are caused by a security change in Apache 2.2 that is not present in Apache 2.0. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
+      msg_modrewrite_unnecessary: 'The Enano installer has detected that you\'re probably not running Apache 2.2 under Windows. You don\'t need this workaround unless you\'re using this specific software stack. Unless you\'re sure that you are running Apache 2.2 under Windows on your server, it is recommended that you disable the <tt>WINDOWS_MOD_REWRITE_WORKAROUNDS</tt> constant in includes/constants.php. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
+      msg_modrewrite_disabled: 'Your server is running Apache 2.2 on Windows, but the Windows mod_rewrite workaround patch is disabled.',
+      msg_modrewrite_maybeneeded: 'Do not use Rewritten URLs unless you re-download Enano with the Windows Patch enabled or uncomment the <tt>WINDOWS_MOD_REWRITE_WORKAROUNDS</tt> line in <tt>includes/constants.php</tt>. Otherwise you may have trouble accessing login and administration pages due to a bug in Apache. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
       
       field_name: 'Pick a name',
       field_name_hint: 'Now for the fun part - it\'s time to name your website. Try to pick something that doesn\'t include any special characters, since this can make project-page URLs look botched.',

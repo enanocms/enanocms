@@ -38,18 +38,19 @@ class pathManager
     
     // DEFINE NAMESPACES HERE
     // The key names should NOT EVER be changed, or Enano will be very broken
+    $namespace_delimiter = ( defined('WINDOWS_MOD_REWRITE_WORKAROUNDS') ) ? '.' : ':';
     $this->nslist = Array(
-      'Article' =>'',
-      'User'    =>'User:',
-      'File'    =>'File:',
-      'Help'    =>'Help:',
-      'Admin'   =>'Admin:',
-      'Special' =>'Special:',
-      'System'  =>'Enano:',
-      'Template'=>'Template:',
-      'Category'=>'Category:',
-      'API'=>'SystemAPI:',
-      'Project' =>sanitize_page_id(getConfig('site_name')).':',
+      'Article'  => '',
+      'User'     => 'User' . $namespace_delimiter,
+      'File'     => 'File' . $namespace_delimiter,
+      'Help'     => 'Help' . $namespace_delimiter,
+      'Admin'    => 'Admin' . $namespace_delimiter,
+      'Special'  => 'Special' . $namespace_delimiter,
+      'System'   => 'Enano' . $namespace_delimiter,
+      'Template' => 'Template' . $namespace_delimiter,
+      'Category' => 'Category' . $namespace_delimiter,
+      'API'      => 'SystemAPI' . $namespace_delimiter,
+      'Project'  => sanitize_page_id(getConfig('site_name')) . $namespace_delimiter,
       );
     
     // ACL types

@@ -143,6 +143,8 @@ define('MAX_PMS_PER_BATCH', 7); // The maximum number of users that users can se
 define('SEARCH_RESULTS_PER_PAGE', 10);
 define('MYSQL_MAX_PACKET_SIZE', 1048576); // 1MB; this is the default in MySQL 4.x I think
 define('ENANO_SUPPORT_AVATARS', 1);
+// don't change this next line in upstream (it has to be auto-patched by the dynamic download script)
+// define('WINDOWS_MOD_REWRITE_WORKAROUNDS', '');
 
 // Sidebar
 
