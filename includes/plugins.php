@@ -462,7 +462,15 @@ class pluginLoader {
   function update_plugins_cache($plugin_info)
   {
     global $cache;
-    return $cache->store('plugins', $plugin_info, -1);
+    try
+    {
+      $result = $cache->store('plugins', $plugin_info, -1);
+    }
+    catch ( Exception $e )
+    {
+      return false;
+    }
+    return $result;
   }
   
   /**
