@@ -1007,7 +1007,7 @@ class sessionManager {
     // This is a VERY special case we are allowing. It lets the installer create languages using the Enano API.
     if ( !defined('ENANO_ALLOW_LOAD_NOLANG') )
     {
-      $language = ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) ) ? $_GET['lang'] : intval(getConfig('default_language'));
+      $language = ( isset($_GET['lang']) && preg_match('/^[a-z0-9-_]+$/', @$_GET['lang']) ) ? $_GET['lang'] : intval(getConfig('default_language'));
       $lang = new Language($language);
       @setlocale(LC_ALL, $lang->lang_code);
     }

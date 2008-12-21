@@ -2152,6 +2152,8 @@ function page_Special_LangExportJSON()
     $lang_local =& $lang;
   else
     $lang_local = new Language($lang_id);
+    
+  $lang_local->get('meta_meta');
   
   $lang_strings = enano_json_encode($lang_local->strings);
   $etag = substr(sha1($lang_strings), 0, 20) . '-' . dechex($lang_local->lang_timestamp);
@@ -2179,7 +2181,7 @@ function page_Special_LangExportJSON()
   echo "if ( typeof(enano_lang) != 'object' )
   var enano_lang = new Object();
 
-enano_lang[{$lang->lang_id}] = " . $lang_strings . ";";
+enano_lang[{$lang_local->lang_id}] = " . $lang_strings . ";";
 
   gzip_output();
   
