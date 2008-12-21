@@ -9,11 +9,7 @@ function ajaxOpenACLManager(page_id, namespace)
   if(IE)
     return true;
   
-  load_component('l10n');
-  load_component('messagebox');
-  load_component('fadefilter');
-  load_component('template-compiler');
-  load_component('autofill');
+  load_component(['l10n', 'messagebox', 'fadefilter', 'template-compiler', 'autofill', 'jquery', 'jquery-ui']);
   
   if(!page_id || !namespace)
   {
@@ -58,11 +54,7 @@ function ajaxOpenACLManager(page_id, namespace)
 
 function ajaxOpenDirectACLRule(rule_id)
 {
-  load_component('l10n');
-  load_component('messagebox');
-  load_component('fadefilter');
-  load_component('template-compiler');
-  load_component('autofill');
+  load_component(['l10n', 'messagebox', 'fadefilter', 'template-compiler', 'autofill']);
   
   var params = {
     target_id: rule_id,

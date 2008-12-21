@@ -12,9 +12,7 @@ window.ajaxEditor = function(revid)
     return true;
   if ( editor_open )
     return true;
-  load_component('l10n');
-  load_component('template-compiler');
-  load_component('messagebox');
+  load_component(['l10n', 'template-compiler', 'messagebox']);
   selectButtonMinor('edit');
   selectButtonMajor('article');
   setAjaxLoading();

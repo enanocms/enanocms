@@ -98,12 +98,7 @@ var AJAX_STATE_LOADING_KEY = 2;
 
 window.ajaxLoginInit = function(call_on_finish, user_level)
 {
-  load_component('messagebox');
-  load_component('flyin');
-  load_component('jquery');
-  load_component('jquery-ui');
-  load_component('l10n');
-  load_component('crypto');
+  load_component(['messagebox', 'flyin', 'jquery', 'jquery-ui', 'l10n', 'crypto']);
   
   logindata = {};
   
@@ -1055,8 +1050,7 @@ window.ajaxShowCaptcha = function(code)
 
 window.ajaxInitLogout = function()
 {
-  load_component('messagebox');
-  load_component('l10n');
+  load_component(['messagebox', 'l10n', 'flyin', 'fadefilter']);
   var mb = new MessageBox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title'), $lang.get('user_logout_confirm_body'));
   mb.onclick['Yes'] = function()
     {

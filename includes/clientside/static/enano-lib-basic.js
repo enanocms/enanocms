@@ -216,24 +216,65 @@ var loaded_components = {};
 var _load_component_running = false;
 function load_component(file)
 {
-  _load_component_running = true;
-  file = file.replace(/\.js$/, '');
-  
-  if ( loaded_components[file + '.js'] )
+  var multiple = false;
+  if ( typeof(file) == 'object' )
   {
-    // already loaded
-    return true;
+    if ( ENANO_JSRES_COMPRESSED )
+    {
+      multiple = true;
+      for ( var i = 0; i < file.length; i++ )
+      {
+        file[i] = (file[i].replace(/\.js$/, '')) + '.js';
+        if ( loaded_components[file[i]] )
+        {
+          file[i] = false;
+        }
+      }
+      var file2 = [];
+      for ( var i = 0; i < file.length; i++ )
+      {
+        if ( file[i] )
+          file2.push(file[i]);
+      }
+      file = file2;
+      delete(file2);
+      if ( file.length < 1 )
+      {
+        return true;
+      }
+      var file_flat = implode(',', file);
+    }
+    else
+    {
+      for ( var i = 0; i < file.length; i++ )
+      {
+        load_component(file[i]);
+      }
+      return true;
+    }
+  }
+  _load_component_running = true;
+  if ( !multiple )
+  {
+    file = file.replace(/\.js$/, '');
+  
+    if ( loaded_components[file + '.js'] )
+    {
+      // already loaded
+      return true;
+    }
   }
   
-  console.info('Loading component %s via AJAX', file);
+  console.info('Loading component %s via AJAX', ( multiple ? file_flat : file ));
   
-  load_show_win(file);
+  load_show_win(( multiple ? file_flat : file ));
   
   // get an XHR instance
   var ajax = ajaxMakeXHR();
   
-  file = file + '.js';
-  var uri = ( ENANO_JSRES_COMPRESSED ) ? scriptPath + '/includes/clientside/jsres.php?f=' + file : scriptPath + '/includes/clientside/static/' + file;
+  if ( !multiple )
+    file = file + '.js';
+  var uri = ( ENANO_JSRES_COMPRESSED ) ? scriptPath + '/includes/clientside/jsres.php?f=' + (multiple ? file_flat : file ) : scriptPath + '/includes/clientside/static/' + file;
   try
   {
     ajax.open('GET', uri, false);
@@ -267,7 +308,10 @@ function load_component(file)
     throw('load_component(): XHR for component ' + file + ' failed');
   }
   
-  loaded_components[file] = true;
+  if ( !multiple )
+  {
+    loaded_components[file] = true;
+  }
   _load_component_running = false;
   return true;
 }
@@ -280,7 +324,7 @@ function load_show_win(file)
     document.getElementById('_js_load_component').innerHTML = img + msg_loading_component.replace('%component%', file);
     return;
   }
-  file = file.replace(/\.js$/, '');
+  file = file.replace(/\.js$/, '').replace(/\.js,/g, ', ');
   var ld = document.createElement('div');
   ld.style.padding = '10px';
   ld.style.height = '12px';

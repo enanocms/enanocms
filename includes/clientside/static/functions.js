@@ -153,12 +153,7 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
 
 function handle_invalid_json(response, customerror)
 {
-  load_component('messagebox');
-  load_component('jquery');
-  load_component('jquery-ui');
-  load_component('fadefilter');
-  load_component('flyin');
-  load_component('l10n');
+  load_component(['messagebox', 'jquery', 'jquery-ui', 'fadefilter', 'flyin', 'l10n']);
   
   darken(aclDisableTransitionFX, 70, 'invalidjsondarkener');
   

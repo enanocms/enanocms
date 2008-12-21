@@ -78,8 +78,7 @@ window.ajaxRename = function()
     return true;
   
   // updated - 1.1.4 to use miniPrompt
-  load_component('l10n');
-  load_component('messagebox');
+  load_component(['l10n', 'messagebox', 'flyin', 'fadefilter']);
   miniPrompt(ajaxRenameConstructDialog);
 }
 
@@ -221,10 +220,7 @@ window.ajaxDeletePage = function()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  load_component('l10n');
-  load_component('messagebox');
-  load_component('jquery');
-  load_component('jquery-ui');
+  load_component(['l10n', 'messagebox', 'jquery', 'jquery-ui', 'fadefilter', 'flyin']);
   
   // stage 1: prompt for reason and confirmation
   miniPrompt(function(parent)
@@ -409,8 +405,7 @@ window.ajaxDeletePageSubmit = function(prompt_obj)
 
 window.ajaxDelVote = function()
 {
-  load_component('l10n');
-  load_component('messagebox');
+  load_component(['l10n', 'messagebox', 'flyin', 'fadefilter']);
   
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -450,8 +445,7 @@ window.ajaxDelVote = function()
 
 window.ajaxResetDelVotes = function()
 {
-  load_component('l10n');
-  load_component('messagebox');
+  load_component(['l10n', 'messagebox', 'flyin', 'fadefilter']);
   
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
@@ -619,8 +613,7 @@ window.ajaxClearLogs = function()
   if ( KILL_SWITCH )
     return true;
   
-  load_component('l10n');
-  load_component('messagebox');
+  load_component(['l10n', 'messagebox', 'flyin', 'fadefilter']);
   
   miniPromptMessage({
       title: $lang.get('ajax_clearlogs_confirm_title'),
@@ -745,8 +738,7 @@ window.ajaxChangeStyle = function()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  load_component('l10n');
-  load_component('messagebox');
+  load_component(['l10n', 'messagebox', 'flyin', 'fadefilter']);
   
   var inner_html = '';
   inner_html += '<p><label>' + $lang.get('ajax_changestyle_lbl_theme') + ' ';
@@ -1213,7 +1205,7 @@ var keepalive_onload = function()
 
 window.aboutKeepAlive = function()
 {
-  load_component('messagebox');
+  load_component(['messagebox', 'flyin', 'fadefilter']);
   new MessageBox(MB_OK|MB_ICONINFORMATION, $lang.get('user_keepalive_info_title'), $lang.get('user_keepalive_info_body'));
 }
 

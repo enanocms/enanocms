@@ -70,8 +70,7 @@ var initSliders = function()
       continue;
     toggler.onclick = function()
     {
-      load_component('jquery');
-      load_component('jquery-ui');
+      load_component(['jquery', 'jquery-ui']);
       
       var mydiv = this.parentNode.nextSibling;
       while ( mydiv.tagName != 'DIV' )

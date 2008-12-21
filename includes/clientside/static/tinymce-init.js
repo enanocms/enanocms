@@ -61,7 +61,7 @@ var enano_tinymce_gz_options = {
 
 if ( !KILL_SWITCH && !DISABLE_MCE )
 {
-  var uri = scriptPath + '/includes/clientside/tinymce/tiny_mce_gzip.js';
+  var uri = scriptPath + '/includes/clientside/tinymce/tiny_mce_gzip.js?3211';
   var sc = document.createElement('script');
   sc.src = uri;
   sc.type = 'text/javascript';

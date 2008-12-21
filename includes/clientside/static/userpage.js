@@ -106,8 +106,7 @@ function userpage_select_block(block, nofade)
   {
     // DISABLED: see "nofade = true;" above.
     // do this in a slightly fancier fashion
-    load_component('jquery');
-    load_component('jquery-ui');
+    load_component(['jquery', 'jquery-ui']);
     $('#tab:' + current_block).hide("blind", {}, 500, function()
     {
       $('#tab:' + block).show("blind", {}, 500);

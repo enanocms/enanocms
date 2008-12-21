@@ -128,9 +128,7 @@ window.AutofillPage = function(el)
 
 addOnloadHook(function()
   {
-    load_component('l10n');
-    load_component('jquery');
-    load_component('jquery-ui');
+    load_component(['l10n', 'jquery', 'jquery-ui']);
     
     if ( !window.jQuery )
     {

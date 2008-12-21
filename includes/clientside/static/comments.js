@@ -5,11 +5,7 @@ var comment_render_track = 0;
 
 window.ajaxComments = function(parms)
 {
-  load_component('l10n');
-  load_component('paginate');
-  load_component('template-compiler');
-  load_component('toolbar');
-  load_component('flyin');
+  load_component(['l10n', 'paginate', 'template-compiler', 'toolbar', 'flyin']);
   setAjaxLoading();
   var pid = strToPageID(title);
   if(!parms)
@@ -358,15 +354,13 @@ window.submitComment = function()
   }
   if ( subj == '' )
   {
-    load_component('messagebox');
-    load_component('fadefilter');
+    load_component(['messagebox', 'fadefilter']);
     new MessageBox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter a subject for your comment.');
     return false;
   }
   if ( text == '' )
   {
-    load_component('messagebox');
-    load_component('fadefilter');
+    load_component(['messagebox', 'fadefilter']);
     new MessageBox(MB_OK|MB_ICONSTOP, 'Input validation failed', 'Please enter some text for the body of your comment .');
     return false;
   }

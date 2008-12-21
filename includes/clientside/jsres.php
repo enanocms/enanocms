@@ -185,16 +185,38 @@ if ( isset($_GET['f']) )
 {
   // requested a single file
   $js_file =& $_GET['f'];
-  if ( !preg_match('/^[a-z0-9_-]+\.js$/i', $js_file) )
+  if ( strstr($js_file, ',') )
   {
-    header('HTTP/1.1 404 Not Found');
-    exit('Not found');
+    $filelist = explode(',', $js_file);
+    unset($js_file);
+    $everything = '';
+    foreach ( $filelist as $js_file )
+    {
+      if ( !preg_match('/^[a-z0-9_-]+\.js$/i', $js_file) )
+      {
+        header('HTTP/1.1 404 Not Found');
+        exit('Not found');
+      }
+      
+      $apex = filemtime("includes/clientside/static/$js_file");
+      
+      $file_contents = file_get_contents("includes/clientside/static/$js_file");
+      $everything .= jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true;';
+    }
   }
-  
-  $apex = filemtime("includes/clientside/static/$js_file");
-  
-  $file_contents = file_get_contents("includes/clientside/static/$js_file");
-  $everything = jsres_cache_check($js_file, $file_contents);
+  else
+  {
+    if ( !preg_match('/^[a-z0-9_-]+\.js$/i', $js_file) )
+    {
+      header('HTTP/1.1 404 Not Found');
+      exit('Not found');
+    }
+    
+    $apex = filemtime("includes/clientside/static/$js_file");
+    
+    $file_contents = file_get_contents("includes/clientside/static/$js_file");
+    $everything = jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true;';
+  }
 }
 else
 {
@@ -294,7 +316,7 @@ function jsres_cache_check($js_file, $file_contents)
     {
       if ( $cache_file['md5'] === $file_md5 )
       {
-        header("X-Cache-Status: cache HIT, hash $file_md5");
+        @header("X-Cache-Status: cache HIT, hash $file_md5");
         $loaded_cache = true;
         $file_contents = $cache_file['src'];
       }
@@ -316,16 +338,16 @@ function jsres_cache_check($js_file, $file_contents)
         ));
       fwrite($handle, $payload);
       fclose($handle);
-      header("X-Cache-Status: cache MISS, new generated");
+      @header("X-Cache-Status: cache MISS, new generated");
     }
     else
     {
-      header("X-Cache-Status: cache MISS, not generated");
+      @header("X-Cache-Status: cache MISS, not generated");
     }
   }
   else if ( !$loaded_cache )
   {
-    header("X-Cache-Status: cache MISS, not generated");
+    @header("X-Cache-Status: cache MISS, not generated");
   }
   
   return $file_contents;

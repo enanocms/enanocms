@@ -681,8 +681,7 @@ function ajaxRankEditDeleteConfirmed(editor)
 {
   var whitey = whiteOutElement(editor.wrapperdiv);
   
-  load_component('jquery');
-  load_component('jquery-ui');
+  load_component(['jquery', 'jquery-ui']);
   
   var json_packet = {
     mode: 'delete_rank',

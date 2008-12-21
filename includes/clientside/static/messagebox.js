@@ -324,9 +324,7 @@ function miniPrompt(call_on_create)
 {
   if ( !aclDisableTransitionFX )
   {
-    load_component('flyin');
-    load_component('jquery');
-    load_component('jquery-ui');
+    load_component(['flyin', 'jquery', 'jquery-ui', 'fadefilter']);
   }
   var darkener = darken(aclDisableTransitionFX, 40, 'miniprompt_darkener');
   
