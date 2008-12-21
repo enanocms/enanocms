@@ -536,6 +536,7 @@ var placeholder_list = {
   ajaxChangeStyle: 'ajax.js',
   ajaxCatToTag: 'ajax.js',
   ajaxCatEdit: 'ajax.js',
+  ajaxReverseDNS: 'ajax.js',
   ajaxOpenACLManager: 'acl.js',
   ajaxOpenDirectACLRule: 'acl.js',
   ajaxAdminPage: 'login.js',
