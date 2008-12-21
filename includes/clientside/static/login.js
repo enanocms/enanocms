@@ -98,7 +98,7 @@ var AJAX_STATE_LOADING_KEY = 2;
 
 window.ajaxLoginInit = function(call_on_finish, user_level)
 {
-  load_component(['messagebox', 'flyin', 'jquery', 'jquery-ui', 'l10n', 'crypto']);
+  load_component(['messagebox', 'flyin', 'fadefilter', 'jquery', 'jquery-ui', 'l10n', 'crypto']);
   
   logindata = {};
   

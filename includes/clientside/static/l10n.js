@@ -74,14 +74,15 @@ var Language = function(lang_id)
   
 }
 
-var $lang = {
-  get: function(t) { return t; },
-  placeholder: true
-};
-
 var language_onload = function()
 {
   $lang = new Language(ENANO_LANG_ID);
 }
 
-addOnloadHook(language_onload);
+var $lang = {
+  get: function(t, s) {
+    language_onload();
+    return $lang.get(t, s);
+  },
+  placeholder: true
+};
