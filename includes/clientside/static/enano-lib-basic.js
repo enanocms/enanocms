@@ -563,7 +563,8 @@ var placeholder_list = {
   ajaxInitRankEdit: 'rank-manager.js',
   ajaxInitRankCreate: 'rank-manager.js',
   autofill_init_element: 'autofill.js',
-  autofill_onload: 'autofill.js'
+  autofill_onload: 'autofill.js',
+  paginator_goto: 'paginate.js'
 };
 
 function AutofillUsername(el, p)

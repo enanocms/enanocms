@@ -270,6 +270,8 @@ window.jspaginator_goto = function(pagin_id, jump_to)
 
 window.paginator_goto = function(parentobj, this_page, num_pages, perpage, url_string)
 {
+  load_component('flyin');
+  
   var height = $dynano(parentobj).Height();
   var width  = $dynano(parentobj).Width();
   var left   = $dynano(parentobj).Left();
