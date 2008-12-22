@@ -275,8 +275,8 @@ function page_Admin_PluginManager()
                   if ( $row['config_value'] == '0' )
                   {
                     $fn_db = $db->escape($plugin_filename);
-                    $q = $db->sql_query('UPDATE ' . table_prefix . "plugins SET plugin_flags = plugin_flags | " . PLUGIN_DISABLED . " WHERE plugin_filename = '$fn_db';");
-                    if ( !$q )
+                    $e = $db->sql_query('UPDATE ' . table_prefix . "plugins SET plugin_flags = plugin_flags | " . PLUGIN_DISABLED . " WHERE plugin_filename = '$fn_db';");
+                    if ( !$e )
                       $db->die_json();
                   }
                 }

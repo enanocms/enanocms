@@ -520,6 +520,7 @@ class pluginLoader {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    global $cache;
     
     if ( defined('ENANO_DEMO_MODE') )
     {
@@ -620,6 +621,8 @@ class pluginLoader {
     );
     
     endswitch;
+    
+    $cache->purge('plugins');
     
     return $return;
   }
@@ -737,6 +740,8 @@ class pluginLoader {
     );
     
     endswitch;
+    
+    $cache->purge('plugins');
     
     return $return;
   }
@@ -960,6 +965,8 @@ class pluginLoader {
     );
     
     endswitch;
+    
+    $cache->purge('plugins');
     
     return $return;
   }
