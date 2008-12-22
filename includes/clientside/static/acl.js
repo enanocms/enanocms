@@ -9,7 +9,7 @@ function ajaxOpenACLManager(page_id, namespace)
   if(IE)
     return true;
   
-  load_component(['l10n', 'messagebox', 'fadefilter', 'template-compiler', 'autofill', 'jquery', 'jquery-ui']);
+  load_component(['l10n', 'messagebox', 'fadefilter', 'template-compiler', 'jquery', 'jquery-ui', 'autofill']);
   
   if(!page_id || !namespace)
   {
