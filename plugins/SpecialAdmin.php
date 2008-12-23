@@ -110,7 +110,7 @@ function page_Admin_Home() {
   if ( $paths->getParam(0) == 'updates.xml' )
   {
     require_once(ENANO_ROOT . '/includes/http.php');
-    $req = new Request_HTTP('germantown.enanocms.org', '/meta/updates.xml');
+    $req = new Request_HTTP('ktulu.enanocms.org', '/meta/updates.xml');
     $response = $req->get_response_body();
     header('Content-type: application/xml');
     if ( $req->response_code != HTTP_OK )
@@ -2236,11 +2236,31 @@ function page_Special_Administration()
         return false;
       }
       document.getElementById('ajaxPageContainer').innerHTML = '<div class="wait-box">Loading page...</div>';
-      ajaxGet('<?php echo scriptPath; ?>/ajax.php?title='+t+'&_mode=getpage&noheaders&auth=<?php echo $session->sid_super; ?>', function() {
+      ajaxGet('<?php echo scriptPath; ?>/ajax.php?title='+t+'&_mode=getpage&noheaders&auth=' + ENANO_SID, function() {
           if ( ajax.readyState == 4 && ajax.status == 200 ) {
-            document.getElementById('ajaxPageContainer').innerHTML = ajax.responseText;
-            fadeInfoBoxes();
-            autofill_onload();
+            var response = String(ajax.responseText + '');
+            if ( check_json_response(response) )
+            {
+              response = parseJSON(response);
+              if ( response.mode == 'error' )
+              {
+                if ( response.error == 'need_auth_to_admin' )
+                {
+                  load_component('login');
+                  ajaxDynamicReauth(t);
+                }
+                else
+                {
+                  alert(response.error);
+                }
+              }
+            }
+            else
+            {
+              document.getElementById('ajaxPageContainer').innerHTML = ajax.responseText;
+              fadeInfoBoxes();
+              autofill_onload();
+            }
           }
         });
     }
