@@ -507,6 +507,23 @@ function ajaxInitRankEdit(rank_id)
         {
           handle_invalid_json(ajax.responseText);
         }
+        if ( response.error )
+        {
+          if ( response.error == 'need_auth_to_admin' )
+          {
+            load_component('login');
+            var rid = rank_id;
+            ajaxDynamicReauth(function()
+              {
+                ajaxInitRankEdit(rid);
+              });
+          }
+          else
+          {
+            alert(response.error);
+          }
+          return false;
+        }
         var editor = new RankEditorControl(response);
         editor.onsubmit = ajaxRankEditHandleSaveExisting;
         editor.ondelete = ajaxRankEditHandleDelete;
@@ -609,23 +626,34 @@ function ajaxRankEditHandleSave(editor, switch_new)
         else
         {
           whitey.parentNode.removeChild(whitey);
-          miniPromptMessage({
-              title: $lang.get('acpur_err_save_failed_title'),
-              message: response.error,
-              buttons: [
-                {
-                  text: $lang.get('etc_ok'),
-                  color: 'red',
-                  style: {
-                    fontWeight: 'bold'
-                  },
-                  onclick: function()
+          if ( response.error == 'need_auth_to_admin' )
+          {
+            load_component('login');
+            ajaxDynamicReauth(function()
+              {
+                ajaxRankEditHandleSave(editor, switch_new);
+              });
+          }
+          else
+          {
+            miniPromptMessage({
+                title: $lang.get('acpur_err_save_failed_title'),
+                message: response.error,
+                buttons: [
                   {
-                    miniPromptDestroy(this);
+                    text: $lang.get('etc_ok'),
+                    color: 'red',
+                    style: {
+                      fontWeight: 'bold'
+                    },
+                    onclick: function()
+                    {
+                      miniPromptDestroy(this);
+                    }
                   }
-                }
-              ]
-          });
+                ]
+            });
+          }
         }
       }
     }, true);
@@ -733,23 +761,34 @@ function ajaxRankEditDeleteConfirmed(editor)
         else
         {
           whitey.parentNode.removeChild(whitey);
-          miniPromptMessage({
-              title: $lang.get('acpur_err_delete_failed_title'),
-              message: response.error,
-              buttons: [
-                {
-                  text: $lang.get('etc_ok'),
-                  color: 'red',
-                  style: {
-                    fontWeight: 'bold'
-                  },
-                  onclick: function()
+          if ( response.error == 'need_auth_to_admin' )
+          {
+            load_component('login');
+            ajaxDynamicReauth(function()
+              {
+                ajaxRankEditDeleteConfirmed(editor);
+              });
+          }
+          else
+          {
+            miniPromptMessage({
+                title: $lang.get('acpur_err_delete_failed_title'),
+                message: response.error,
+                buttons: [
                   {
-                    miniPromptDestroy(this);
+                    text: $lang.get('etc_ok'),
+                    color: 'red',
+                    style: {
+                      fontWeight: 'bold'
+                    },
+                    onclick: function()
+                    {
+                      miniPromptDestroy(this);
+                    }
                   }
-                }
-              ]
-          });
+                ]
+            });
+          }
         }
       }
     }, true);

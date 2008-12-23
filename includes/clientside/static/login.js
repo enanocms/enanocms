@@ -1169,14 +1169,24 @@ window.ajaxDynamicReauth = function(adminpage)
       var replace = new RegExp(old_sid, 'g');
       body.innerHTML = body.innerHTML.replace(replace, k);
       ENANO_SID = k;
-      if ( targetpage )
+      mb_current_obj.destroy();
+      console.debug(targetpage);
+      if ( typeof(targetpage) == 'string' )
       {
-        mb_current_obj.destroy();
         ajaxPage(targetpage);
+      }
+      else if ( typeof(targetpage) == 'function' )
+      {
+        targetpage();
       }
     }, USER_LEVEL_ADMIN);
   ajaxLoginShowFriendlyError({
       error_code: 'admin_session_timed_out',
       respawn_info: {}
   });
+}
+
+window.ajaxRenewSession = function()
+{
+  ajaxDynamicReauth(false);
 }
