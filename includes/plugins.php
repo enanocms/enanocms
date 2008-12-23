@@ -623,6 +623,8 @@ class pluginLoader {
     endswitch;
     
     $cache->purge('plugins');
+    $cache->purge('page_meta');
+    $cache->purge('anon_sidebar');
     
     return $return;
   }
@@ -742,6 +744,8 @@ class pluginLoader {
     endswitch;
     
     $cache->purge('plugins');
+    $cache->purge('page_meta');
+    $cache->purge('anon_sidebar');
     
     return $return;
   }
@@ -967,6 +971,8 @@ class pluginLoader {
     endswitch;
     
     $cache->purge('plugins');
+    $cache->purge('page_meta');
+    $cache->purge('anon_sidebar');
     
     return $return;
   }

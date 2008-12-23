@@ -379,6 +379,8 @@ class pathManager
     // This is used in the admin panel to keep track of form submission targets
     $this->cpage['module'] = $this->cpage['urlname'];
     
+    $this->cpage['require_admin'] = ( $this->cpage['namespace'] === 'Admin' );
+    
     // Page is set up, call any hooks
     $code = $plugins->setHook('page_set');
     foreach ( $code as $cmd )
@@ -401,6 +403,8 @@ class pathManager
       if ( preg_match('/^[a-z0-9]+_[a-z0-9_]+$/', $flags['name']) )
         $flags['name'] = $lang->get($flags['name']);
     }
+    
+    $flags['require_admin'] = ( $flags['namespace'] === 'Admin' );
     
     $pages_len = sizeof($this->pages) / 2;
     $this->pages[$pages_len] = $flags;

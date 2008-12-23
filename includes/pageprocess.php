@@ -202,6 +202,7 @@ class PageProcessor
     
     $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
     $strict_no_headers = false;
+    $admin_fail = false;
     if ( $this->namespace == 'Admin' && strstr($this->page_id, '/') )
     {
       if ( $this->send_headers )
@@ -238,6 +239,32 @@ class PageProcessor
           }
         }
       }
+      if ( isset($paths->pages[$pathskey]['require_admin']) && $paths->pages[$pathskey]['require_admin'] )
+      {
+        if ( $session->auth_level < USER_LEVEL_ADMIN )
+        {
+          $admin_fail = true;
+        }
+      }
+    }
+    else if ( $this->namespace === $paths->namespace && $this->page_id == $paths->page_id )
+    {
+      if ( isset($paths->cpage['require_admin']) && $paths->cpage['require_admin'] )
+      {
+        if ( $session->auth_level < USER_LEVEL_ADMIN )
+        {
+          $admin_fail = true;
+        }
+      }
+    }
+    if ( $admin_fail )
+    {
+      header('Content-type: text/javascript');
+      echo enano_json_encode(array(
+          'mode' => 'error',
+          'error' => 'need_auth_to_admin'
+        ));
+      return true;
     }
     if ( $this->page_exists && $this->namespace != 'Special' && $this->namespace != 'Admin' && $do_stats )
     {

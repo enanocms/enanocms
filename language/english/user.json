@@ -93,6 +93,7 @@ var enano_lang = {
       err_backend_fail: 'You entered the right credentials and everything was validated, but for some reason Enano couldn\'t register your session. This is an internal problem with the site and you are encouraged to contact site administration.',
       err_locked_out: 'You have used up all %config.lockout_threshold% allowed login attempts. Please wait %time_rem% minute%plural% before attempting to log in again%captcha_blurb%.',
       err_locked_out_captcha_blurb: ', or enter the visual confirmation code shown above in the appropriate box',
+      err_admin_session_timed_out: 'Your session has timed out; please log in again using the form above.',
       
       logout_success_title: 'Logged out',
       logout_success_body: 'You have been successfully logged out, and all cookies have been cleared. You will now be transferred to the main page.',

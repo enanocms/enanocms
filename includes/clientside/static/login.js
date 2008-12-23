@@ -1158,3 +1158,25 @@ window.ajaxAdminUser = function(username)
   var loc = makeUrlNS('Special', 'Administration', 'module=' + namespace_list['Admin'] + 'UserManager&src=get&user=' + ajaxEscape(username));
   window.location = loc;
 }
+
+window.ajaxDynamicReauth = function(adminpage)
+{
+  var old_sid = ENANO_SID;
+  var targetpage = adminpage;
+  ajaxLogonInit(function(k)
+    {
+      var body = document.getElementsByTagName('body')[0];
+      var replace = new RegExp(old_sid, 'g');
+      body.innerHTML = body.innerHTML.replace(replace, k);
+      ENANO_SID = k;
+      if ( targetpage )
+      {
+        mb_current_obj.destroy();
+        ajaxPage(targetpage);
+      }
+    }, USER_LEVEL_ADMIN);
+  ajaxLoginShowFriendlyError({
+      error_code: 'admin_session_timed_out',
+      respawn_info: {}
+  });
+}
