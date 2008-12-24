@@ -190,7 +190,11 @@ td#mainhead a { text-decoration: none; color: #000000; }
 td#mainhead a:hover { text-decoration: none; color: #000000; border-bottom: 1px dotted #406080; }
 
 /* Text, headings, and links inside the main div (usually #ajaxEditContainer but used some other places as well) */
-div.contentDiv h2 {
+div.contentDiv h1 {
+  margin-top: 0.3em;
+}
+
+div.contentDiv h1, div.contentDiv h2 {
   border-bottom: 1px solid #90B0D0;
   margin-bottom: 0;
 }
@@ -544,9 +548,18 @@ label:hover {
 }
 
 input#pageheading {
-  font-size: 14pt;
+  font-family: trebuchet ms, verdana, arial, helvetica, sans-serif;
+  font-size: 18pt;
+  font-weight: bold;
+  border-width: 0 0 1px 0;
+  width: 100%;
   border-bottom: 1px solid #90B0D0;
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0;
+}
+
+input#pageheading:focus {
+  background-color: #fafafa;
 }
 
 input[type ^="button"], input[type ^="submit"], button {

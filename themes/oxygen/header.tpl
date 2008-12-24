@@ -87,12 +87,13 @@
         textbox.id = 'pageheading';
         textbox.size = name.length + 7;
         textbox.onkeyup = function(e) { if(!e) return; if(e.keyCode == 13) ajaxRenameInlineSave(); if(e.keyCode == 27) ajaxRenameInlineCancel(); };
+        textbox.oldname = name;
         elem.parentNode.insertBefore(textbox, elem);
         document.onclick = ajaxRenameInlineCancel;
         
-        load_component('l10n');
-        load_component('fadefilter');
-        load_component('messagebox');
+        load_component(['l10n', 'fadefilter', 'messagebox']);
+        textbox.focus();
+        textbox.select();
       }
       function ajaxRenameInlineSave()
       {
@@ -104,10 +105,12 @@
         elem1.removeChild(elem1.firstChild);
         elem1.appendChild(document.createTextNode(value));
         elem1.style.display = 'block';
-        if(!value || value=='') return;
+        if(!value || value=='' || value==elem2.oldname) return;
+        setAjaxLoading();
         ajaxPost(stdAjaxPrefix+'&_mode=rename', 'newtitle='+ajaxEscape(value), function() {
           if ( ajax.readyState == 4 )
           {
+            unsetAjaxLoading();
             var response = String(ajax.responseText);
             if ( !check_json_response(response) )
             {
@@ -169,7 +172,10 @@
         <tr><td id="mdg-l"></td><td>
         <table border="0" width="100%" id="title" cellspacing="0" cellpadding="0">
             <tr>
-              <td id="mainhead"><h2><a href="{SCRIPTPATH}/{ADMIN_SID_QUES}">{SITE_NAME}</a></h2><h4>{SITE_DESC}</h4></td>
+              <td id="mainhead">
+                <h2><a href="{SCRIPTPATH}/{ADMIN_SID_QUES}">{SITE_NAME}</a></h2>
+                <h4>{SITE_DESC}</h4>
+              </td>
             </tr>            
           </table>
         </td><td id="mdg-r"></td></tr>
@@ -199,5 +205,5 @@
           <div style="float: right;">
             <img alt=" " src="{CDNPATH}/images/spacer.gif" id="ajaxloadicon" />
           </div>
-          <h2 <!-- BEGIN auth_rename --> ondblclick="ajaxRenameInline();" title="Double-click to rename this page" <!-- END auth_rename --> id="h2PageName">{PAGE_NAME}</h2>
+          <h1 <!-- BEGIN auth_rename --> ondblclick="ajaxRenameInline();" title="{lang:onpage_btn_rename_inline}" <!-- END auth_rename --> id="h2PageName">{PAGE_NAME}</h1>
             <div id="ajaxEditContainer">

@@ -254,6 +254,7 @@ var enano_lang = {
       btn_history: 'history',
       btn_moreoptions: 'more options',
       btn_breadcrumbs_home: 'Home',
+      btn_rename_inline: 'Double-click to rename this page',
       
       btn_rename: 'rename',
       btn_printable: 'view printable version',
