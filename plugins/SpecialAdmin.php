@@ -163,7 +163,7 @@ Received invalid XML response.
   }
   
   echo '<h3>' . $lang->get('acphome_heading_updates') . '</h3>';
-  echo '<p>' . $lang->get('acphome_msg_updates_info', array('updates_url' => 'http://germantown.enanocms.org/meta/updates.xml')) . '</p>';
+  echo '<p>' . $lang->get('acphome_msg_updates_info', array('updates_url' => 'http://ktulu.enanocms.org/meta/updates.xml')) . '</p>';
   echo '<div id="update_check_container"><input type="button" onclick="ajaxUpdateCheck(this.parentNode.id);" value="' . $lang->get('acphome_btn_check_updates') . '" /></div>';
   
   // Inactive users
@@ -2304,9 +2304,7 @@ EOF;
     
     addOnloadHook(function()
       {
-        load_component('ajax');
-        load_component('l10n');
-        load_component('autofill');
+        load_component(['fat', 'ajax', 'l10n', 'autofill', 'jquery', 'jquery-ui']);
         keepalive_onload();
       });
     
