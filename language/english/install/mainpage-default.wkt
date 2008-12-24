@@ -1,11 +1,17 @@
-=== Enano has been successfully installed and is working. ===
+=== Thanks for helping to test Enano. ===
 
-If you can see this message, it means that you've finished the Enano setup process and are ready to start building your website. Congratulations!
+If you're reading this, you just installed the beta version of [http://enanocms.org/Caoineag Enano 1.2.0], the next-generation release of Enano. Congratulations!
+
+If you find any bugs, we'd really like it if you let us know either via the [http://forum.enanocms.org/ forum] or [irc://irc.freenode.net/#enano IRC]. Enano's a big project, so tracking down bugs is hard and we need your help to do it.
+
+== Support (or lack thereof) ==
+
+Because this is a beta release, we can't provide any mainstream support for you. We can publish workarounds for bugs, but we can't help you figure out why a plugin doesn't work or why your server's generating a 403 error. If you need help getting started with Enano, use [http://enanocms.org/download?series=1.0 a stable release].
+
+== New to Enano? ==
 
 To edit this front page, click the Log In button to the left, enter the credentials you provided during the installation, and click the Edit This Page button that appears on the blue toolbar just above this text. You can also [http://docs.enanocms.org/Help:2.4 learn more] about editing pages.
 
 To create more pages, use the Create a Page button to the left. If you enabled wiki mode, you don't have to log in first, however your IP address will be shown in the page history.
 
 Visit the [http://docs.enanocms.org/Help:Contents Enano documentation project website] to learn more about administering your site effectively and keeping things secure.
-
-'''NOTE:''' You have just installed an unstable version of Enano. This release is completely unsupported and may contain security issues or serious usability bugs. You should not use this release on a production website. The Enano team will not provide any type of support at all for this experimental release.
