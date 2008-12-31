@@ -3254,6 +3254,70 @@ function enano_gzencode($data = "", $level = 6, $filename = "", $comments = "")
           pack("VV", crc32($data), strlen($data)));
 }
 
+$php_errors = array();
+
+/**
+ * Enano's PHP error handler.
+ * handler  ( int $errno  , string $errstr  [, string $errfile  [, int $errline  [, array $errcontext  ]]] )
+ * @access private
+ */
+
+function enano_handle_error($errno, $errstr, $errfile, $errline)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $er = error_reporting();
+  if ( ! $er & $errno || $er == 0 )
+  {
+    return true;
+  }
+  global $do_gzip, $php_errors;
+  
+  if ( defined('ENANO_DEBUG') )
+  {
+    // turn off gzip and echo out error immediately for debug installs
+    $do_gzip = false;
+  }
+  
+  $error_type = 'error';
+  if ( in_array($errno, array(E_WARNING, E_USER_WARNING)) )
+    $error_type = 'warning';
+  else if ( in_array($errno, array(E_NOTICE, E_USER_NOTICE)) )
+    $error_type = 'notice';
+  
+  if ( @is_object(@$plugins) )
+  {
+    $code = $plugins->setHook('php_error');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+  }
+  
+  // bypass errors in date() and mktime() (Enano has its own code for this anyway)
+  if ( strstr($errstr, "It is not safe to rely on the system's timezone settings. Please use the date.timezone setting, the TZ environment variable or the date_default_timezone_set() function. In case you used any of those methods and you are still getting this warning, you most likely misspelled the timezone identifier.") )
+  {
+    return true;
+  }
+  
+  if ( $do_gzip )
+  {
+    $php_errors[] = array(
+        'num' => $errno,
+        'type' => $error_type,
+        'error' => $errstr,
+        'file' => $errfile,
+        'line' => $errline
+      );
+  }
+  else
+  {
+    echo "[ <b>PHP $error_type:</b> $errstr in <b>$errfile</b>:<b>$errline</b> ]<br />";
+  }
+}
+
+set_error_handler('enano_handle_error');
+
 /**
  * Gzips the output buffer.
  */
@@ -3270,6 +3334,17 @@ function gzip_output()
   {
     $gzip_contents = ob_get_contents();
     ob_end_clean();
+    
+    global $php_errors;
+    if ( !empty($php_errors) )
+    {
+      $errors = '';
+      foreach ( $php_errors as $error )
+      {
+        $errors .= "[ <b>PHP {$error['type']}:</b> {$error['error']} in <b>{$error['file']}</b>:<b>{$error['line']}</b> ]<br />";
+      }
+      $gzip_contents = str_replace("</body>", "$errors</body>", $gzip_contents);
+    }
     
     $return = @enano_gzencode($gzip_contents);
     if ( $return )

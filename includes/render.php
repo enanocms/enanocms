@@ -286,7 +286,7 @@ class RenderMan {
       $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
     }
     
-    preg_match_all('/<lang code="([a-z0-9_-]+)">([\w\W]+?)<\/lang>/', $text, $langmatch);
+    preg_match_all('/<lang (?:code|id)="([a-z0-9_-]+)">([\w\W]+?)<\/lang>/', $text, $langmatch);
     foreach ( $langmatch[0] as $i => $match )
     {
       if ( $langmatch[1][$i] == $lang->lang_code )
@@ -314,6 +314,12 @@ class RenderMan {
       if ( $i == 5 )
         break;
       $text = RenderMan::include_templates($text);
+    }
+    
+    $code = $plugins->setHook('render_wikiformat_posttemplates');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
     }
     
     if ( !$plaintext )

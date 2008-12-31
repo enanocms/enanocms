@@ -13,7 +13,6 @@
  *
  * @package Enano
  * @subpackage Frontend
- *
  */
  
   define('ENANO_INTERFACE_INDEX', '');

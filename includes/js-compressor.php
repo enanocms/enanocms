@@ -270,7 +270,7 @@ class JavaScriptCompressor {
 		array_push($this->__sources, array('code'=>$code, 'name'=>$name));
 	}
 	function __wordsParser($str, &$d) {
-		if(is_null($key = array_shift($key = array_keys($d,$str))))
+		if(@is_null($key = array_shift($key = array_keys($d,$str))))
 			$key = array_push($d, $str) - 1;
 		return $key;
 	}

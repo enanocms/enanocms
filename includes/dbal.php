@@ -132,8 +132,6 @@ class mysql {
   
   function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false)
   {
-    $this->enable_errorhandler();
-    
     if ( !defined('ENANO_SQL_CONSTANTS') )
     {
       define('ENANO_SQL_CONSTANTS', '');
@@ -220,15 +218,11 @@ class mysql {
     }
     
     // We're in!
-    $this->disable_errorhandler();
     return true;
   }
   
   function sql_query($q, $log_query = true)
   {
-    if ( $log_query || defined('ENANO_DEBUG') )
-      $this->enable_errorhandler();
-    
     if ( $this->debug && function_exists('debug_backtrace') )
     {
       $backtrace = @debug_backtrace();
@@ -279,15 +273,11 @@ class mysql {
     
     $this->latest_result = $r;
     
-    if ( $log_query )
-      $this->disable_errorhandler();
     return $r;
   }
   
   function sql_unbuffered_query($q, $log_query = true)
   {
-    $this->enable_errorhandler();
-    
     $this->num_queries++;
     if ( $log_query || defined('ENANO_DEBUG') )
       $this->query_backtrace[] = '(UNBUFFERED) ' . $q;
@@ -309,7 +299,6 @@ class mysql {
     $r = @mysql_unbuffered_query($q, $this->_conn);
     $this->query_times[$q] = microtime_float() - $time_start;
     $this->latest_result = $r;
-    $this->disable_errorhandler();
     return $r;
   }
   
@@ -366,22 +355,18 @@ class mysql {
    
   function sql_data_seek($pos, $result = false)
   {
-    $this->enable_errorhandler();
     if(!$result)
       $result = $this->latest_result;
     if(!$result)
     {
-      $this->disable_errorhandler();
       return false;
     }
     if(mysql_data_seek($result, $pos))
     {
-      $this->disable_errorhandler();
       return true;
     }
     else
     {
-      $this->disable_errorhandler();
       return false;
     }
   }
@@ -415,53 +400,42 @@ class mysql {
   }
   
   function fetchrow($r = false) {
-    $this->enable_errorhandler();
     if(!$this->_conn) return false;
     if(!$r) $r = $this->latest_result;
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $row = mysql_fetch_assoc($r);
-    $this->disable_errorhandler();
     return integerize_array($row);
   }
   
   function fetchrow_num($r = false) {
-    $this->enable_errorhandler();
     if(!$r) $r = $this->latest_result;
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $row = mysql_fetch_row($r);
-    $this->disable_errorhandler();
     return integerize_array($row);
   }
   
   function numrows($r = false) {
-    $this->enable_errorhandler();
     if(!$r) $r = $this->latest_result;
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $n = mysql_num_rows($r);
-    $this->disable_errorhandler();
     return $n;
   }
   
   function escape($str)
   {
-    $this->enable_errorhandler();
     $str = mysql_real_escape_string($str);
-    $this->disable_errorhandler();
     return $str;
   }
   
   function free_result($result = false)
   {
-    $this->enable_errorhandler();
     if(!$result)
       $result = $this->latest_result;
     if(!$result)
     {
-      $this->disable_errorhandler();
       return null;
     }
     @mysql_free_result($result);
-    $this->disable_errorhandler();
     return null;
   }
   
@@ -798,28 +772,6 @@ class postgresql {
 	var $rowset = array();
   var $errhandler;
   
-  function enable_errorhandler()
-  {
-    // echo "DBAL: enabling error handler<br />";
-    if ( function_exists('debug_backtrace') )
-    {
-      $this->errhandler = set_error_handler('db_error_handler');
-    }
-  }
-  
-  function disable_errorhandler()
-  {
-    // echo "DBAL: disabling error handler<br />";
-    if ( $this->errhandler )
-    {
-      set_error_handler($this->errhandler);
-    }
-    else
-    {
-      restore_error_handler();
-    }
-  }
-  
   function sql_backtrace()
   {
     return implode("\n-------------------------------------------------------------------\n", $this->query_backtrace);
@@ -881,8 +833,6 @@ class postgresql {
   
   function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false)
   {
-    $this->enable_errorhandler();
-    
     if ( !defined('ENANO_SQL_CONSTANTS') )
     {
       define('ENANO_SQL_CONSTANTS', '');
@@ -954,14 +904,11 @@ class postgresql {
     $this->debug = ( defined('ENANO_DEBUG') );
     
     // We're in!
-    $this->disable_errorhandler();
     return true;
   }
   
   function sql_query($q)
   {
-    $this->enable_errorhandler();
-    
     if ( $this->debug && function_exists('debug_backtrace') )
     {
       $backtrace = @debug_backtrace();
@@ -999,7 +946,6 @@ class postgresql {
     $r = pg_query($q);
     $this->query_times[$q] = microtime_float() - $time_start;
     $this->latest_result = $r;
-    $this->disable_errorhandler();
     return $r;
   }
   
@@ -1061,22 +1007,18 @@ class postgresql {
    
   function sql_data_seek($pos, $result = false)
   {
-    $this->enable_errorhandler();
     if(!$result)
       $result = $this->latest_result;
     if(!$result)
     {
-      $this->disable_errorhandler();
       return false;
     }
     if(pg_result_seek($result, $pos))
     {
-      $this->disable_errorhandler();
       return true;
     }
     else
     {
-      $this->disable_errorhandler();
       return false;
     }
   }
@@ -1159,53 +1101,42 @@ class postgresql {
   }
   
   function fetchrow($r = false) {
-    $this->enable_errorhandler();
     if(!$this->_conn) return false;
     if(!$r) $r = $this->latest_result;
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $row = pg_fetch_assoc($r);
-    $this->disable_errorhandler();
     return integerize_array($row);
   }
   
   function fetchrow_num($r = false) {
-    $this->enable_errorhandler();
     if(!$r) $r = $this->latest_result;
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $row = pg_fetch_row($r);
-    $this->disable_errorhandler();
     return integerize_array($row);
   }
   
   function numrows($r = false) {
-    $this->enable_errorhandler();
     if(!$r) $r = $this->latest_result;
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     $n = pg_num_rows($r);
-    $this->disable_errorhandler();
     return $n;
   }
   
   function escape($str)
   {
-    $this->enable_errorhandler();
     $str = pg_escape_string($str);
-    $this->disable_errorhandler();
     return $str;
   }
   
   function free_result($result = false)
   {
-    $this->enable_errorhandler();
     if(!$result)
       $result = $this->latest_result;
     if(!$result)
     {
-      $this->disable_errorhandler();
       return null;
     }
     @pg_free_result($result);
-    $this->disable_errorhandler();
     return null;
   }
   

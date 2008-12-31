@@ -1376,7 +1376,7 @@ JSEOF;
       $t = str_replace('[[EnanoPoweredLink]]', $lang->get('page_enano_powered', array('about_uri' => $this->tpl_strings['URL_ABOUT_ENANO'])), $t);
       $t = str_replace('[[EnanoPoweredLinkLong]]', $lang->get('page_enano_powered_long', array('about_uri' => $this->tpl_strings['URL_ABOUT_ENANO'])), $t);
       
-      if ( defined('ENANO_DEBUG') )
+      if ( defined('ENANO_PROFILE') )
       {
         $t = str_replace('</body>', '<div id="profile" style="margin: 10px;">' . profiler_make_html() . '</div></body>', $t);
         // ob_end_clean();
@@ -2983,8 +2983,10 @@ class template_nodb
       $t = str_replace('[[NumQueriesLoc]]', $q_loc, $t);
       $t = str_replace('[[GenTimeLoc]]', $t_loc, $t);
       
-      if ( defined('ENANO_DEBUG') )
+      if ( defined('ENANO_PROFILE') )
+      {
         $t = str_replace('</body>', '<div id="profile" style="margin: 10px;">' . profiler_make_html() . '</div></body>', $t);
+      }
       
       echo $t;
     }
