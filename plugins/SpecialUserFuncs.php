@@ -789,8 +789,20 @@ function page_Special_Register()
           $password = $_POST['password'];
         }
         
-        // CAPTCHA code was correct, create the account
-        // ... and check for errors returned from the crypto API
+        $error =& $s;
+        
+        /**
+         * Validation of POST data coming from registration. Put an error message in the variable $error to stop registration.
+         * @hook ucp_register_validate
+         */
+        
+        $code = $plugins->setHook('ucp_register_validate');
+        foreach ( $code as $cmd )
+        {
+          eval($cmd);
+        }
+        
+        // All things verified, create account
         if ( !$s )
           $s = $session->create_user($_POST['username'], $password, $_POST['email'], $_POST['real_name'], $coppa);
       }
@@ -925,9 +937,24 @@ function page_Special_Register()
                 <small><?php echo $lang->get('user_reg_msg_realname_optional'); ?></small>
               </td>
               <td class="row3" style="width: 50%;">
-                <input tabindex="5" type="text" name="real_name" size="30" value="<?php echo $realname; ?>" /></td><td class="row3" style="max-width: 24px;">
+                <input tabindex="5" type="text" name="real_name" size="30" value="<?php echo $realname; ?>" />
+              </td>
+              <td class="row3" style="max-width: 24px;">
               </td>
             </tr>
+            
+            <?php
+            /**
+             * Allows adding fields to the user registration form. Form is built with Enano tables, 3 columns. (Rightmost can be left empty or if you're using Javascript validation an image you can update with your own Javascript code)
+             * @hook ucp_register_form
+             */
+            
+            $code = $plugins->setHook('ucp_register_form');
+            foreach ( $code as $cmd )
+            {
+              eval($cmd);
+            }
+            ?>
             
             <!-- FIELD: CAPTCHA image -->
             <tr>
