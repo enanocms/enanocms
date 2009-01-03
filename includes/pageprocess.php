@@ -19,7 +19,7 @@
  * @package Enano
  * @subpackage UI
  * @copyright 2007 Dan Fuhry
- * @license GNU General Public License <http://www.gnu.org/licenses/gpl.html>
+ * @license GNU General Public License <http://www.gnu.org/licenses/gpl-2.0.html>
  */
 
 class PageProcessor
@@ -32,6 +32,13 @@ class PageProcessor
   
   var $page_id;
   var $namespace;
+  
+  /**
+   * The instance of the namespace processor for the namespace we're doing.
+   * @var object
+   */
+  
+  var $ns;
   
   /**
    * The title of the page sent to the template parser
@@ -193,6 +200,7 @@ class PageProcessor
     }
     
     // Is there a custom function registered for handling this namespace?
+    // DEPRECATED (even though it only saw its way into one alpha release.)
     if ( $proc = $paths->get_namespace_processor($this->namespace) )
     {
       // yes, just call that
@@ -226,6 +234,7 @@ class PageProcessor
       {
         $this->send_headers = false;
         $strict_no_headers = true;
+        $GLOBALS['output'] = new Output_Naked();
       }
       if ( isset($paths->pages[$pathskey]['password']) )
       {
@@ -271,125 +280,15 @@ class PageProcessor
       require_once(ENANO_ROOT.'/includes/stats.php');
       doStats($this->page_id, $this->namespace);
     }
-    if ( $this->namespace == 'Special' || $this->namespace == 'Admin' )
+    
+    // We are all done. Ship off the page.
+    
+    if ( $this->send_headers )
     {
-      if ( $this->send_headers )
-      {
-        $template->init_vars($this);
-      }
-      
-      $this->revision_time = time();
-      
-      if ( !$this->page_exists )
-      {
-        $func_name = "page_{$this->namespace}_{$this->page_id}";
-        
-        die_semicritical($lang->get('page_msg_admin_404_title'), $lang->get('page_msg_admin_404_body', array('func_name' => $func_name)), (!$this->send_headers));
-      }
-      $func_name = "page_{$this->namespace}_{$this->page_id}";
-      if ( function_exists($func_name) )
-      {
-        $result = @call_user_func($func_name);
-        return $result;
-      }
-      else
-      {
-        $title = $lang->get('page_err_custompage_function_missing_title');
-        $message = $lang->get('page_err_custompage_function_missing_body', array( 'function_name' => $fname ));
-                    
-        if ( $this->send_headers )
-        {
-          $template->tpl_strings['PAGE_NAME'] = $title;
-          $template->header();
-          echo "<p>$message</p>";
-          $template->footer();
-        }
-        else
-        {
-          echo "<h2>$title</h2>
-                <p>$message</p>";
-        }
-        return false;
-      }
+      $template->init_vars($this);
     }
-    else if ( $this->namespace == 'User' && strpos($this->page_id, '/') === false )
-    {
-      if ( $this->send_headers )
-      {
-        $template->init_vars($this);
-      }
-      
-      $this->_handle_userpage();
-    }
-    else if ( ( $this->namespace == 'Template' || $this->namespace == 'System' ) && $this->page_exists )
-    {
-      if ( $this->send_headers )
-      {
-        $template->init_vars($this);
-      }
-      
-      $this->header();
-      
-      $text = $this->fetch_text();
-      $text = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '\\1', $text);
-      $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
-      
-      $text = RenderMan::render( $text );
-      
-      eval( '?>' . $text );
-      
-      $this->footer();
-    }
-    else if ( $this->namespace == 'API' )
-    {
-      if ( $this->send_headers )
-      {
-        $template->init_vars($this);
-      }
-      
-      $uri = scriptPath . '/' . $this->page_id;
-      if ( !$this->send_headers )
-      {
-        $sep = ( strstr($uri, '?') ) ? '&' : '?';
-        $uri .= "{$sep}noheaders";
-      }
-      redirect( $uri, '', '', 0 );
-    }
-    else if ( !$this->page_exists )
-    {
-      // Perhaps this is hooked?
-      ob_start();
-      
-      $code = $plugins->setHook('page_not_found');
-      foreach ( $code as $cmd )
-      {
-        eval($cmd);
-      }
-      
-      $ob = ob_get_contents();
-      
-      if ( empty($ob) )
-      {
-        if ( $this->send_headers )
-        {
-          $template->init_vars($this);
-        }
-        $this->err_page_not_existent();
-      }
-      else
-      {
-        // Something sent content, so we'll assume the page exist...ed at least according to the plugin
-        if ( $this->namespace != 'Special' && $this->namespace != 'Admin' && $do_stats )
-        {
-          require_once(ENANO_ROOT.'/includes/stats.php');
-          doStats($this->page_id, $this->namespace);
-        }
-      }
-    }
-    else
-    {
-      $this->send_from_db($strict_no_headers);
-    }
+    
+    $this->ns->send();
   }
   
   /**
@@ -450,6 +349,8 @@ class PageProcessor
   
   function fetch_source()
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
     if ( !$this->perms->get_permissions('view_source') )
     {
       return false;
@@ -457,6 +358,17 @@ class PageProcessor
     if ( !$this->page_exists )
     {
       return '';
+    }
+    $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
+    if ( isset($paths->pages[$pathskey]) )
+    {
+      if ( isset($paths->pages[$pathskey]['password']) )
+      {
+        if ( $paths->pages[$pathskey]['password'] != sha1('') && $paths->pages[$pathskey]['password'] !== $this->password && !empty($paths->pages[$pathskey]['password']) )
+        {
+          return false;
+        }
+      }
     }
     return $this->fetch_text();
   }
@@ -1013,48 +925,10 @@ class PageProcessor
     
     $this->perms = $session->fetch_page_acl( $page_id, $namespace );
     
-    // Exception for Admin: pages
-    if ( $this->namespace == 'Admin' )
-    {
-      $fname = "page_Admin_{$this->page_id}";
-    }
+    // resolve namespace
+    $this->ns = namespace_factory($this->page_id, $this->namespace, $this->revision_id);
     
-    // Does the page "exist"?
-    $pathskey = $paths->nslist[$namespace] . $page_id_cleaned;
-    
-    if ( $paths->page_id == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
-    {
-      $this->page_exists = false;
-    }
-    else if ( !isset( $paths->pages[ $pathskey ] ) && ( ( $this->namespace == 'Admin' && !function_exists($fname) ) || ( $this->namespace != 'Admin' ) ) )
-    {
-      $this->page_exists = false;
-    }
-    else
-    {
-      $this->page_exists = true;
-    }
-    
-    // Compatibility with older databases
-    if ( strstr($this->page_id, '.2e') && !$this->page_exists )
-    {
-      $page_id = str_replace('.2e', '.', $page_id);
-      
-      if ( $paths->page_id == $page_id && $paths->namespace == $namespace && !$paths->page_exists && ( $this->namespace != 'Admin' || ($this->namespace == 'Admin' && !function_exists($fname) ) ) )
-      {
-        $this->page_exists = false;
-      }
-      else if ( !isset( $paths->pages[ $paths->nslist[$namespace] . $page_id ] ) && ( $this->namespace == 'Admin' && !function_exists($fname) ) )
-      {
-        $this->page_exists = false;
-      }
-      else
-      {
-        $this->page_exists = true;
-      }
-      
-    }
-    
+    $this->page_exists = $this->ns->exists();
     $this->title = get_page_title_ns($this->page_id, $this->namespace);
     
     profiler_log("PageProcessor [{$this->namespace}:{$this->page_id}]: Ran _setup()");
@@ -1068,129 +942,22 @@ class PageProcessor
   function render($incl_inner_headers = true, $_errormsg = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    global $lang;
+    global $output, $lang;
     
-    $text = $this->fetch_text();
-    
-    $text = preg_replace('/([\s]*)__NOBREADCRUMBS__([\s]*)/', '', $text);
-    $text = preg_replace('/([\s]*)__NOTOC__([\s]*)/', '', $text);
-    
-    $redir_enabled = false;
-    if ( preg_match('/^#redirect \[\[([^\]]+?)\]\]/i', $text, $match ) )
+    if ( count($this->redirect_stack) > 0 )
     {
-      $redir_enabled = true;
-      
-      $oldtarget = RenderMan::strToPageID($match[1]);
-      $oldtarget[0] = sanitize_page_id($oldtarget[0]);
-      
-      $url = makeUrlNS($oldtarget[1], $oldtarget[0], false, true);
-      $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
-      $page_data = $paths->pages[$page_id_key];
-      $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
-      if ( !isset($page_data['name']) )
+      $stack = array_reverse($this->redirect_stack);
+      foreach ( $stack as $oldtarget )
       {
-        $cls = 'class="wikilink-nonexistent"';
+        $url = makeUrlNS($oldtarget[1], $oldtarget[0], 'redirect=no', true);
+        $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
+        $page_data = $paths->pages[$page_id_key];
+        $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
+        $a = '<a href="' . $url . '">' . $title . '</a>';
+        $output->add_after_header('<small>' . $lang->get('page_msg_redirected_from', array('from' => $a)) . '<br /></small>');
       }
-      else
-      {
-        $cls = '';
-      }
-      $a = '<a ' . $cls . ' href="' . $url . '">' . $title . '</a>';
-      $redir_html = '<br /><div class="mdg-infobox">
-              <table border="0" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td valign="top">
-                    <img alt="Cute wet-floor icon" src="'.scriptPath.'/images/redirector.png" />
-                  </td>
-                  <td valign="top" style="padding-left: 10px;">
-                    ' . $lang->get('page_msg_this_is_a_redirector', array( 'redirect_target' => $a )) . '
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <br />
-            <hr style="margin-left: 1em; width: 200px;" />';
-      $text = str_replace($match[0], '', $text);
-      $text = trim($text);
     }
-    
-    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars( $this->title );
-    
-    $this->header();
-    $this->do_breadcrumbs();
-    
-    if ( $_errormsg )
-    {
-      echo $_errormsg;
-    }
-    
-    if ( $incl_inner_headers )
-    {
-      if ( count($this->redirect_stack) > 0 )
-      {
-        $stack = array_reverse($this->redirect_stack);
-        foreach ( $stack as $oldtarget )
-        {
-          $url = makeUrlNS($oldtarget[1], $oldtarget[0], 'redirect=no', true);
-          $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
-          $page_data = $paths->pages[$page_id_key];
-          $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
-          $a = '<a href="' . $url . '">' . $title . '</a>';
-          echo '<small>' . $lang->get('page_msg_redirected_from', array('from' => $a)) . '<br /></small>';
-        }
-      }
-      display_page_headers();
-    }
-    
-    if ( $this->revision_id )
-    {
-      echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;">
-              <b>' . $lang->get('page_msg_archived_title') . '</b><br />
-              ' . $lang->get('page_msg_archived_body', array(
-                  'archive_date' => enano_date('F d, Y', $this->revision_time),
-                  'archive_time' => enano_date('h:i a', $this->revision_time),
-                  'current_link' => makeUrlNS($this->namespace, $this->page_id),
-                  'restore_link' => makeUrlNS($this->namespace, $this->page_id, 'do=edit&amp;revid='.$this->revision_id),
-                  'restore_onclick' => 'ajaxEditor(\''.$this->revision_id.'\'); return false;',
-                )) . '
-            </div>';
-    }
-    
-    if ( $redir_enabled )
-    {
-      echo $redir_html;
-    }
-    
-    $code = $plugins->setHook('pageprocess_render_head');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    
-    if ( $incl_inner_headers )
-    {
-      $text = '?>' . RenderMan::render($text);
-    }
-    else
-    {
-      $text = '?>' . $text;
-      $text = preg_replace('/<nowiki>(.*?)<\/nowiki>/s', '\\1', $text);
-    }
-    
-    eval ( $text );
-    
-    $code = $plugins->setHook('pageprocess_render_tail');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    
-    if ( $incl_inner_headers )
-    {
-      display_page_footers();
-    }
-    
-    $this->footer();
+    $this->ns->send($incl_inner_headers, $_errormsg);
   }
   
   /**
@@ -1222,582 +989,7 @@ class PageProcessor
   
   function fetch_text()
   {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    
-    if ( !empty($this->text_cache) )
-    {
-      return $this->text_cache;
-    }
-    
-    if ( $this->revision_id > 0 && is_int($this->revision_id) )
-    {
-    
-      $q = $db->sql_query('SELECT page_text, char_tag, time_id FROM '.table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' AND log_id=' . $this->revision_id . ';');
-      if ( !$q )
-      {
-        $this->send_error('Error during SQL query.', true);
-      }
-      if ( $db->numrows() < 1 )
-      {
-        // Compatibility fix for old pages with dots in the page ID
-        if ( strstr($this->page_id, '.2e') )
-        {
-          $db->free_result();
-          $page_id = str_replace('.2e', '.', $this->page_id);
-          $q = $db->sql_query('SELECT page_text, char_tag, time_id FROM '.table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $this->namespace . '\' AND log_id=' . $this->revision_id . ';');
-          if ( !$q )
-          {
-            $this->send_error('Error during SQL query.', true);
-          }
-          if ( $db->numrows() < 1 )
-          {
-            $this->page_exists = false;
-            return 'err_no_text_rows';
-          }
-        }
-        else
-        {
-          $this->page_exists = false;
-          return 'err_no_text_rows';
-        }
-      }
-      else
-      {
-        $row = $db->fetchrow();
-      }
-      
-      $db->free_result();
-      
-    }
-    else
-    {
-      $q = $db->sql_query('SELECT t.page_text, t.char_tag, l.time_id FROM '.table_prefix."page_text AS t\n"
-                        . "  LEFT JOIN " . table_prefix . "logs AS l\n"
-                        . "    ON ( l.page_id = t.page_id AND l.namespace = t.namespace )\n"
-                        . "  WHERE t.page_id='$this->page_id' AND t.namespace='$this->namespace'\n"
-                        . "  ORDER BY l.time_id DESC LIMIT 1;");
-      if ( !$q )
-      {
-        $this->send_error('Error during SQL query.', true);
-      }
-      if ( $db->numrows() < 1 )
-      {
-        // Compatibility fix for old pages with dots in the page ID
-        if ( strstr($this->page_id, '.2e') )
-        {
-          $db->free_result();
-          $page_id = str_replace('.2e', '.', $this->page_id);
-          $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $this->namespace . '\';');
-          if ( !$q )
-          {
-            $this->send_error('Error during SQL query.', true);
-          }
-          if ( $db->numrows() < 1 )
-          {
-            $this->page_exists = false;
-            return 'err_no_text_rows';
-          }
-        }
-        else
-        {
-          $this->page_exists = false;
-          return 'err_no_text_rows';
-        }
-      }
-      
-      $row = $db->fetchrow();
-      $db->free_result();
-      
-    }
-    
-    if ( !empty($row['char_tag']) )
-    {
-      // This page text entry uses the old text-escaping format
-      $from = array(
-          "{APOS:{$row['char_tag']}}",
-          "{QUOT:{$row['char_tag']}}",
-          "{SLASH:{$row['char_tag']}}"
-        );
-      $to = array("'", '"',  '\\');
-      $row['page_text'] = str_replace($from, $to, $row['page_text']);
-    }
-    
-    $this->text_cache = $row['page_text'];
-    
-    if ( isset($row['time_id']) )
-    {
-      $this->revision_time = intval($row['time_id']);
-    }
-    
-    return $row['page_text'];
-    
-  }
-  
-  /**
-   * Handles the extra overhead required for user pages.
-   * @access private
-   */
-   
-  function _handle_userpage()
-  {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    global $email;
-    global $lang;
-    
-    /**
-     * PLUGGING INTO USER PAGES
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * Userpages are highly programmable and extendable using a number of
-     * hooks. These hooks are:
-     *
-     *   - userpage_sidebar_left
-     *   - userpage_sidebar_right
-     *   - userpage_tabs_links
-     *   - userpage_tabs_body
-     *
-     * You can add a variety of sections to user pages, including new tabs
-     * and new sections on the tables. To add a tab, attach to
-     * userpage_tabs_links and echo out:
-     *
-     *   <li><a href="#tab:YOURTABID">YOUR TAB TEXT</a></li>
-     *
-     * Then hook into userpage_tabs_body and echo out:
-     *
-     *   <div id="tab:YOURTABID">YOUR TAB CONTENT</div>
-     *
-     * The userpage javascript runtime will take care of everything else,
-     * meaning transitions, click events, etc. Currently it's not possible
-     * to add custom click events to tabs, but any DOM-related JS that needs
-     * to run in your tab can be run onload and the effects will be seen when
-     * your tab is clicked. YOURTABID should be lowercase alphanumeric and
-     * have a short prefix so as to assure that it remains specific to your
-     * plugin.
-     *
-     * To hook into the "profile" tab, use userpage_sidebar_{left,right}. Just
-     * echo out table cells as normal. The table on the left (the wide one) has
-     * four columns, and the one on the right has one column.
-     * 
-     * See plugins.php for a guide on creating and attaching to hooks.
-     */
-    
-    $page_urlname = dirtify_page_id($this->page_id);
-    if ( $this->page_id == $paths->page_id && $this->namespace == $paths->namespace )
-    {
-      $page_name = ( isset($paths->cpage['name']) ) ? $paths->cpage['name'] : $this->page_id;
-    }
-    else
-    {
-      $page_name = ( isset($paths->pages[$this->page_id]) ) ? $paths->pages[$this->page_id]['name'] : $this->page_id;
-    }
-    
-    $target_username = strtr($page_urlname, 
-      Array(
-        '_' => ' ',
-        '<' => '&lt;',
-        '>' => '&gt;'
-        ));
-    
-    $target_username = preg_replace('/^' . str_replace('/', '\\/', preg_quote($paths->nslist['User'])) . '/', '', $target_username);
-    list($target_username) = explode('/', $target_username);
-    
-    if ( ( $page_name == str_replace('_', ' ', $this->page_id) || $page_name == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) ) || !$this->page_exists )
-    {
-      $page_name = $lang->get('userpage_page_title', array('username' => $target_username));
-    }
-    else
-    {
-      // User has a custom title for their userpage
-      $page_name = $paths->pages[ $paths->nslist[$this->namespace] . $this->page_id ]['name'];
-    }
-    
-    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($page_name);
-    
-    $q = $db->sql_query('SELECT u.username, u.user_id AS authoritative_uid, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.*, COUNT(c.comment_id) AS n_comments
-                           FROM '.table_prefix.'users u
-                           LEFT JOIN '.table_prefix.'users_extra AS x
-                             ON ( u.user_id = x.user_id OR x.user_id IS NULL ) 
-                           LEFT JOIN '.table_prefix.'comments AS c
-                             ON ( ( c.user_id=u.user_id AND c.name=u.username AND c.approved=1 ) OR ( c.comment_id IS NULL AND c.approved IS NULL ) )
-                           WHERE u.username=\'' . $db->escape($target_username) . '\'
-                           GROUP BY u.username, u.user_id, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
-    if ( !$q )
-      $db->_die();
-    
-    $user_exists = true;
-    
-    if ( $db->numrows() < 1 )
-    {
-      $user_exists = false;
-    }
-    else
-    {
-      $userdata = $db->fetchrow();
-      if ( $userdata['authoritative_uid'] == 1 )
-      {
-        // Hide data for anonymous user
-        $user_exists = false;
-        unset($userdata);
-      }
-    }
-    
-    // get the user's rank
-    if ( $user_exists )
-    {
-      $rank_data = $session->get_user_rank(intval($userdata['authoritative_uid']));
-    }
-    else
-    {
-      // get the rank data for the anonymous user (placeholder basically)
-      $rank_data = $session->get_user_rank(1);
-    }
-    
-    // add the userpage script to the header
-    $template->add_header('<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/userpage.js"></script>');
-    
-    $this->header();
-    
-    // if ( $send_headers )
-    // {
-    //  display_page_headers();
-    // }
-   
-    //
-    // BASIC INFORMATION
-    // Presentation of username/rank/avatar/basic info
-    //
-    
-    if ( $user_exists )
-    {
-    
-      ?>
-      <div id="userpage_wrap">
-        <ul id="userpage_links">
-          <li><a href="#tab:profile"><?php echo $lang->get('userpage_tab_profile'); ?></a></li>
-          <li><a href="#tab:content"><?php echo $lang->get('userpage_tab_content'); ?></a></li>
-          <?php
-          $code = $plugins->setHook('userpage_tabs_links');
-          foreach ( $code as $cmd )
-          {
-            eval($cmd);
-          }
-          ?>
-        </ul>
-        
-        <div id="tab:profile">
-      
-      <?php
-      
-      echo '<table border="0" cellspacing="0" cellpadding="0">
-              <tr>';
-                
-      echo '    <td valign="top">';
-      
-      echo '<div class="tblholder">
-              <table border="0" cellspacing="1" cellpadding="4">';
-              
-      // heading
-      echo '    <tr>
-                  <th colspan="' . ( $session->user_level >= USER_LEVEL_ADMIN ? '3' : '4' ) . '">
-                    ' . $lang->get('userpage_heading_basics', array('username' => htmlspecialchars($target_username))) . '
-                  </th>
-                  ' . (
-                    $session->user_level >= USER_LEVEL_ADMIN ?
-                    '<th class="subhead" style="width: 25%;"><a href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'UserManager&src=get&user=' . urlencode($target_username), true) . '" onclick="ajaxAdminUser(\'' . addslashes($target_username) . '\'); return false;">&raquo; ' . $lang->get('userpage_btn_administer_user') . '</a></th>'
-                      : ''
-                  ) . '
-                </tr>';
-                
-      // avi/rank/username
-      echo '    <tr>
-                  <td class="row3" colspan="4">
-                    ' . (
-                        $userdata['user_has_avatar'] == 1 ?
-                        '<div style="float: left; margin-right: 10px;">
-                          <img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $userdata['username'])) . '" src="' . make_avatar_url(intval($userdata['authoritative_uid']), $userdata['avatar_type'], $userdata['email']) . '" />
-                         </div>'
-                        : ''
-                      ) . '
-                      <span style="font-size: x-large; ' . $rank_data['rank_style'] . '">' . htmlspecialchars($userdata['username']) . '</span>
-                      ' . ( !empty($rank_data['user_title']) ? '<br />' . htmlspecialchars($rank_data['user_title']) : '' ) . '
-                      ' . ( !empty($rank_data['rank_title']) ? '<br />' . htmlspecialchars($lang->get($rank_data['rank_title'])) : '' ) . '
-                  </td>
-                </tr>';
-                
-      // join date & total comments
-      echo '<tr>';
-      echo '  <td class="row2" style="text-align: right; width: 25%;">
-                ' . $lang->get('userpage_lbl_joined') . '
-              </td>
-              <td class="row1" style="text-align: left; width: 25%;">
-                ' . enano_date('F d, Y h:i a', $userdata['reg_time']) . '
-              </td>';
-      echo '  <td class="row2" style="text-align: right; width: 25%;">
-                ' . $lang->get('userpage_lbl_num_comments') . '
-              </td>
-              <td class="row1" style="text-align: left; width: 25%;">
-                ' . $userdata['n_comments'] . '
-              </td>';
-      echo '</tr>';
-      
-      // real name
-      if ( !empty($userdata['real_name']) )
-      {
-        echo '<tr>
-                <td class="row2" style="text-align: right;">
-                  ' . $lang->get('userpage_lbl_real_name') . '
-                </td>
-                <td class="row1" colspan="3" style="text-align: left;">
-                  ' . htmlspecialchars($userdata['real_name']) . '
-                </td>
-              </tr>';
-      }
-                
-      // latest comments
-      
-      echo '<tr><th class="subhead" colspan="4">' . $lang->get('userpage_heading_comments', array('username' => htmlspecialchars($target_username))) . '</th></tr>';
-      $q = $db->sql_query('SELECT page_id, namespace, subject, time FROM '.table_prefix.'comments WHERE name=\'' . $db->escape($target_username) . '\' AND user_id=' . $userdata['authoritative_uid'] . ' AND approved=1 ORDER BY time DESC LIMIT 7;');
-      if ( !$q )
-        $db->_die();
-      
-      $comments = Array();
-      $no_comments = false;
-      
-      if ( $row = $db->fetchrow() )
-      {
-        do 
-        {
-          $row['time'] = enano_date('F d, Y', $row['time']);
-          $comments[] = $row;
-        }
-        while ( $row = $db->fetchrow() );
-      }
-      else
-      {
-        $no_comments = true;
-      }
-      
-      echo '<tr><td class="row3" colspan="4">';
-      echo '<div style="border: 1px solid #000000; padding: 0px; width: 100%; clip: rect(0px,auto,auto,0px); overflow: auto; background-color: transparent;" class="tblholder">';
-      
-      echo '<table border="0" cellspacing="1" cellpadding="4" style="width: 200%;"><tr>';
-      $class = 'row1';
-      
-      $tpl = '  <td class="{CLASS}">
-                  <a href="{PAGE_LINK}" <!-- BEGINNOT page_exists -->class="wikilink-nonexistent"<!-- END page_exists -->>{PAGE}</a><br />
-                  <small>{lang:userpage_comments_lbl_posted} {DATE}<br /></small>
-                  <b><a href="{COMMENT_LINK}">{SUBJECT}</a></b>
-                </td>';
-      $parser = $template->makeParserText($tpl);
-      
-      if ( count($comments) > 0 )
-      {
-        foreach ( $comments as $comment )
-        {
-          $c_page_id = $paths->nslist[ $comment['namespace'] ] . sanitize_page_id($comment['page_id']);
-          if ( isset($paths->pages[ $c_page_id ]) )
-          {
-            $parser->assign_bool(array(
-              'page_exists' => true
-              ));
-            $page_title = htmlspecialchars($paths->pages[ $c_page_id ]['name']);
-          }
-          else
-          {
-            $parser->assign_bool(array(
-              'page_exists' => false
-              ));
-            $page_title = htmlspecialchars(dirtify_page_id($c_page_id));
-          }
-          $parser->assign_vars(array(
-              'CLASS' => $class,
-              'PAGE_LINK' => makeUrlNS($comment['namespace'], sanitize_page_id($comment['page_id'])),
-              'PAGE' => $page_title,
-              'SUBJECT' => $comment['subject'],
-              'DATE' => $comment['time'],
-              'COMMENT_LINK' => makeUrlNS($comment['namespace'], sanitize_page_id($comment['page_id']), 'do=comments', true)
-            ));
-          $class = ( $class == 'row3' ) ? 'row1' : 'row3';
-          echo $parser->run();
-        }
-      }
-      else
-      {
-        echo '<td class="' . $class . '">' . $lang->get('userpage_msg_no_comments') . '</td>';
-      }
-      echo '</tr></table>';
-      
-      echo '</div>';
-      echo '</td></tr>';
-      
-      $code = $plugins->setHook('userpage_sidebar_left');
-      foreach ( $code as $cmd )
-      {
-        eval($cmd);
-      }
-              
-      echo '  </table>
-            </div>';
-            
-      echo '</td>';
-      
-      //
-      // CONTACT INFORMATION
-      //
-      
-      echo '    <td valign="top" style="width: 150px; padding-left: 10px;">';
-      
-      echo '<div class="tblholder">
-              <table border="0" cellspacing="1" cellpadding="4">';
-      
-      //
-      // Main part of sidebar
-      //
-      
-      // Contact information
-      
-      echo '<tr><th class="subhead">' . $lang->get('userpage_heading_contact') . '</th></tr>';
-      
-      $class = 'row3';
-      
-      if ( $userdata['email_public'] == 1 )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        $email_link = $email->encryptEmail($userdata['email']);
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_email') . ' ' . $email_link . '</td></tr>';
-      }
-      
-      $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-      if ( $session->user_logged_in )
-      {
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_btn_send_pm', array('username' => htmlspecialchars($target_username), 'pm_link' => makeUrlNS('Special', 'PrivateMessages/Compose/to/' . $this->page_id, false, true))) . '</td></tr>';
-      }
-      else
-      {
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_btn_send_pm_guest', array('username' => htmlspecialchars($target_username), 'login_flags' => 'href="' . makeUrlNS('Special', 'Login/' . $paths->nslist[$this->namespace] . $this->page_id) . '" onclick="ajaxStartLogin(); return false;"')) . '</td></tr>';
-      }
-      
-      if ( !empty($userdata['user_aim']) )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_aim') . ' ' . $userdata['user_aim'] . '</td></tr>';
-      }
-      
-      if ( !empty($userdata['user_yahoo']) )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_yim') . ' ' . $userdata['user_yahoo'] . '</td></tr>';
-      }
-      
-      if ( !empty($userdata['user_msn']) )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        $email_link = $email->encryptEmail($userdata['user_msn']);
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_wlm') . ' ' . $email_link . '</td></tr>';
-      }
-      
-      if ( !empty($userdata['user_xmpp']) )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        $email_link = $email->encryptEmail($userdata['user_xmpp']);
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_xmpp') . ' ' . $email_link . '</td></tr>';
-      }
-      
-      // Real life
-      
-      echo '<tr><th class="subhead">' . $lang->get('userpage_heading_real_life', array('username' => htmlspecialchars($target_username))) . '</th></tr>';
-      
-      if ( !empty($userdata['user_location']) )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_location') . ' ' . $userdata['user_location'] . '</td></tr>';
-      }
-      
-      if ( !empty($userdata['user_job']) )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_job') . ' ' . $userdata['user_job'] . '</td></tr>';
-      }
-      
-      if ( !empty($userdata['user_hobbies']) )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_hobbies') . ' ' . $userdata['user_hobbies'] . '</td></tr>';
-      }
-      
-      if ( empty($userdata['user_location']) && empty($userdata['user_job']) && empty($userdata['user_hobbies']) )
-      {
-        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
-        echo '<tr><td class="'.$class.'">' . $lang->get('userpage_msg_no_contact_info', array('username' => htmlspecialchars($target_username))) . '</td></tr>';
-      }
-      
-      $code = $plugins->setHook('userpage_sidebar_right');
-      foreach ( $code as $cmd )
-      {
-        eval($cmd);
-      }
-      
-      echo '  </table>
-            </div>';
-      echo '</td>';
-      
-      //
-      // End of profile
-      //
-      
-      echo '</tr></table>';
-      
-      echo '</div>'; // tab:profile
-    
-    }
-    
-    // User's own content
-    
-    $send_headers = $this->send_headers;
-    $this->send_headers = false;
-    
-    echo '<span class="menuclear"></span>';
-    
-    echo '<div id="tab:content">';
-    
-    if ( $this->page_exists )
-    {
-      $this->render();
-    }
-    else
-    {
-      $this->err_page_not_existent(true);
-    }
-    
-    echo '</div>'; // tab:content
-    
-    $code = $plugins->setHook('userpage_tabs_body');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    
-    if ( $user_exists )
-    {
-      echo '</div>'; // userpage_wrap
-    }
-    else
-    {
-      if ( !is_valid_ip($target_username) )
-      {
-        echo '<p>' . $lang->get('userpage_msg_user_not_exist', array('username' => htmlspecialchars($target_username))) . '</p>';
-      }
-    }
-    
-    // if ( $send_headers )
-    // {
-    //  display_page_footers();
-    // }
-    
-    $this->send_headers = $send_headers;
-    unset($send_headers);
-    
-    $this->footer();
-    
+    return $this->ns->fetch_text();
   }
   
   /**
@@ -1910,13 +1102,13 @@ class PageProcessor
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    $title = 'Password required';
+    $title = $lang->get('page_msg_passrequired_title');
     $message = ( empty($this->password) ) ?
                  '<p>' . $lang->get('page_msg_passrequired') . '</p>' :
                  '<p>' . $lang->get('page_msg_pass_wrong') . '</p>';
     $message .= '<form action="' . makeUrlNS($this->namespace, $this->page_id) . '" method="post">
                    <p>
-                     <label>' . $lang->get('page_lbl_password') . ' <input name="pagepass" type="password" /></label>&nbsp;&nbsp;<input type="submit" value="Submit" />
+                     <label>' . $lang->get('page_lbl_password') . ' <input name="pagepass" type="password" /></label>&nbsp;&nbsp;<input type="submit" value="' . $lang->get('page_btn_password_submit') . '" />
                    </p>
                  </form>';
     if ( $this->send_headers )
@@ -1955,158 +1147,6 @@ class PageProcessor
     {
       echo "<h2>$title</h2>
             <p>$message</p>";
-    }
-  }
-  
-  /**
-   * Tell the user the page doesn't exist, and present them with their options.
-   * @access private
-   */
-   
-  function err_page_not_existent($userpage = false)
-  {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    global $lang;
-    
-    @header('HTTP/1.1 404 Not Found');
-    
-    $this->header();
-    $this->do_breadcrumbs();
-    
-    $msg = ( $pp = $paths->sysmsg('Page_not_found') ) ? $pp : '{STANDARD404}';
-    
-    $standard_404 = '';
-    
-    if ( $userpage )
-    {
-      $standard_404 .= '<h3>' . $lang->get('page_msg_404_title_userpage') . '</h3>
-             <p>' . $lang->get('page_msg_404_body_userpage');
-    }
-    else
-    {
-      $standard_404 .= '<h3>' . $lang->get('page_msg_404_title') . '</h3>
-             <p>' . $lang->get('page_msg_404_body');
-    }
-    if ( $session->get_permissions('create_page') )
-    {
-      $standard_404 .= ' ' . $lang->get('page_msg_404_create', array(
-          'create_flags' => 'href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;"',
-          'mainpage_link' => makeUrl(get_main_page(), false, true)
-        ));
-    }
-    else
-    {
-      $standard_404 .= ' ' . $lang->get('page_msg_404_gohome', array(
-          'mainpage_link' => makeUrl(get_main_page(), false, true)
-        ));
-    }
-    $standard_404 .= '</p>';
-    if ( $session->get_permissions('history_rollback') )
-    {
-      $e = $db->sql_query('SELECT * FROM ' . table_prefix . 'logs WHERE action=\'delete\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' ORDER BY time_id DESC;');
-      if ( !$e )
-      {
-        $db->_die('The deletion log could not be selected.');
-      }
-      if ( $db->numrows() > 0 )
-      {
-        $r = $db->fetchrow();
-        $standard_404 .= '<p>' . $lang->get('page_msg_404_was_deleted', array(
-                  'delete_time' => enano_date('d M Y h:i a', $r['time_id']),
-                  'delete_reason' => htmlspecialchars($r['edit_summary']),
-                  'rollback_flags' => 'href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['log_id']).'" onclick="ajaxRollback(\''.$r['log_id'].'\'); return false;"'
-                ))
-              . '</p>';
-        if ( $session->user_level >= USER_LEVEL_ADMIN )
-        {
-          $standard_404 .= '<p>' . $lang->get('page_msg_404_admin_opts', array(
-                    'detag_link' => makeUrl($paths->page, 'do=detag', true)
-                  ))
-                . '</p>';
-        }
-      }
-      $db->free_result();
-    }
-    $standard_404 .= '<p>
-            ' . $lang->get('page_msg_404_http_response') . '
-          </p>';
-          
-    $parser = $template->makeParserText($msg);
-    $parser->assign_vars(array(
-        'STANDARD404' => $standard_404
-      ));
-    
-    $msg = RenderMan::render($parser->run());
-    eval( '?>' . $msg );
-    
-    $this->footer();
-  }
-  
-  /**
-   * Echoes out breadcrumb data, if appropriate.
-   * @access private
-   */
-  
-  function do_breadcrumbs()
-  {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    global $lang;
-    
-    if ( strpos($this->text_cache, '__NOBREADCRUMBS__') !== false )
-      return false;
-    
-    $mode = getConfig('breadcrumb_mode');
-    
-    if ( $mode == 'never' )
-      // Breadcrumbs are disabled
-      return true;
-      
-    // Minimum depth for breadcrumb display
-    $threshold = ( $mode == 'always' ) ? 0 : 1;
-    
-    $breadcrumb_data = explode('/', $this->page_id);
-    if ( count($breadcrumb_data) > $threshold )
-    {
-      // If we're not on a subpage of the main page, add "Home" to the list
-      $show_home = false;
-      if ( $mode == 'always' )
-      {
-        $show_home = true;
-      }
-      echo '<!-- Start breadcrumbs -->
-            <div class="breadcrumbs">
-              ';
-      if ( $show_home )
-      {
-        // Display the "home" link first.
-        $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-        if ( $pathskey !== get_main_page() )
-          echo '<a href="' . makeUrl(get_main_page(), false, true) . '">';
-        echo $lang->get('onpage_btn_breadcrumbs_home');
-        if ( $pathskey !== get_main_page() )
-          echo '</a>';
-      }
-      foreach ( $breadcrumb_data as $i => $crumb )
-      {
-        $cumulative = implode('/', array_slice($breadcrumb_data, 0, ( $i + 1 )));
-        if ( $show_home && $cumulative === get_main_page() )
-          continue;
-        if ( $show_home || $i > 0 )
-          echo ' &raquo; ';
-        $title = ( isPage($cumulative) ) ? get_page_title($cumulative) : get_page_title($crumb);
-        if ( $i + 1 == count($breadcrumb_data) )
-        {
-          echo htmlspecialchars($title);
-        }
-        else
-        {
-          $exists = ( isPage($cumulative) ) ? '' : ' class="wikilink-nonexistent"';
-          echo '<a href="' . makeUrl($cumulative, false, true) . '"' . $exists . '>' . htmlspecialchars($title) . '</a>';
-        }
-      }
-      echo '</div>
-            <!-- End breadcrumbs -->
-            ';
     }
   }
   

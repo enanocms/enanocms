@@ -270,7 +270,8 @@ header("Date: $date");
 header("Last-Modified: $date");
 header("ETag: \"$etag\"");
 header("Expires: $expires");
-header("Content-Length: " . strlen($everything));
+if ( !$do_gzip )
+  header("Content-Length: " . strlen($everything));
 
 $local_end = microtime_float();
 $local_gentime = $local_end - $local_start;

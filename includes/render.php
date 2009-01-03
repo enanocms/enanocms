@@ -49,6 +49,11 @@ class RenderMan {
       unset($perms);
       unset($perms); // PHP <5.1.5 Zend bug
       $perms = $session->fetch_page_acl($page_id, $namespace);
+      if ( !$perms )
+      {
+        $session->init_permissions();
+        $perms = $session->fetch_page_acl($page_id, $namespace);
+      };
     }
     
     if(!$perms->get_permissions('read'))

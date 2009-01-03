@@ -136,6 +136,7 @@ require_once(ENANO_ROOT.'/includes/dbal.php');
 require_once(ENANO_ROOT.'/includes/paths.php');
 require_once(ENANO_ROOT.'/includes/sessions.php');
 require_once(ENANO_ROOT.'/includes/template.php');
+require_once(ENANO_ROOT.'/includes/output.php');
 require_once(ENANO_ROOT.'/includes/plugins.php');
 require_once(ENANO_ROOT.'/includes/cache.php');
 require_once(ENANO_ROOT.'/includes/lang.php');
@@ -144,6 +145,7 @@ require_once(ENANO_ROOT.'/includes/rijndael.php');
 require_once(ENANO_ROOT.'/includes/email.php');
 require_once(ENANO_ROOT.'/includes/json2.php');
 require_once(ENANO_ROOT.'/includes/pageprocess.php');
+require_once(ENANO_ROOT.'/includes/namespaces/default.php');
 require_once(ENANO_ROOT.'/includes/tagcloud.php');
 
 strip_magic_quotes_gpc();
@@ -441,6 +443,14 @@ if ( !defined('IN_ENANO_INSTALL') )
   profiler_log('Ran session_started hook');
   
   $paths->init();
+  
+  // setup output format
+  if ( defined('ENANO_OUTPUT_FORMAT') )
+    $class = 'Output_' . ENANO_OUTPUT_FORMAT;
+  else
+    $class = ( isset($_GET['noheaders']) ) ? 'Output_Naked' : 'Output_HTML';
+    
+  $output = new $class();
   
   // We're ready for whatever life throws us now, at least from an API point of view.
   define('ENANO_MAINSTREAM', '');

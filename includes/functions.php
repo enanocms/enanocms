@@ -277,7 +277,7 @@ function get_main_page($force_logged_in = false)
   {
     $logged_in = true;
   }
-  return $logged_in ? getConfig('main_page_alt', getConfig('main_page')) : getConfig('main_page');
+  return $logged_in && getConfig('main_page_alt_enable', '0') == '1' ? getConfig('main_page_alt', getConfig('main_page')) : getConfig('main_page');
 }
 
 /**
@@ -523,10 +523,10 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
 function csrf_request_confirm()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
+  global $lang, $output;
   
   // If the token was overridden with the correct one, the user confirmed the action using this form. Continue exec.
-  if ( isset($_POST['cstok']) || isset($_GET ['cstok']) )
+  if ( isset($_POST['cstok']) || isset($_GET['cstok']) )
   {
     // using the if() check makes sure that the token isn't in a cookie, since $_REQUEST includes $_COOKIE.
     $token_check =& $_REQUEST['cstok'];
@@ -537,8 +537,8 @@ function csrf_request_confirm()
     }
   }
   
-  $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($lang->get('user_csrf_confirm_title'));
-  $template->header();
+  $output->set_title($lang->get('user_csrf_confirm_title'));
+  $output->header();
   
   // initial info
   echo '<p>' . $lang->get('user_csrf_confirm_body') . '</p>';
@@ -564,9 +564,9 @@ function csrf_request_confirm()
   // insert the right CSRF token
   echo '<input type="hidden" name="cstok" value="' . $session->csrf_token . '" />';
   echo '<p><input type="submit" value="' . $lang->get('user_csrf_confirm_btn_continue') . '" /></p>';
-  echo '</form>';
+  echo '</form><script type="text/javascript">addOnloadHook(function(){load_component(\'expander\');});</script>';
   
-  $template->footer();
+  $output->footer();
   
   exit;
 }
@@ -638,6 +638,35 @@ function isPage($p) {
 }
 
 /**
+ * Returns the appropriate Namespace_* object for a page.
+ * @param string Page ID
+ * @param string Namespace
+ * @param int Revision ID
+ */
+
+function namespace_factory($page_id, $namespace, $revision_id = 0)
+{
+  if ( !class_exists("Namespace_$namespace") )
+  {
+    if ( file_exists(ENANO_ROOT . "/includes/namespaces/" . strtolower($namespace) . ".php") )
+    {
+      require(ENANO_ROOT . "/includes/namespaces/" . strtolower($namespace) . ".php");
+    }
+  }
+  if ( class_exists("Namespace_$namespace") )
+  {
+    $class = "Namespace_$namespace";
+    $ns = new $class($page_id, $namespace, $revision_id);
+    return $ns;
+  }
+  else
+  {
+    $ns = new Namespace_Default($page_id, $namespace, $revision_id);
+    return $ns;
+  }
+}
+
+/**
  * These are some old functions that were used with the Midget codebase. They are deprecated and should not be used any more.
  */
 
@@ -683,22 +712,10 @@ function arrayItemTop($arr, $keyname) {
 }
 
 function arrayItemBottom($arr, $keyname) {
-  $keylist = array_keys($arr);
-  $keyflop = array_flip($keylist);
-  $idx = $keyflop[$keyname];
-  $sz = sizeof($arr); $sz--;
-  while( $orig != $arr[$keylist[$sz]] ) {
-    // echo 'Keyname: '.$keylist[$idx] . '<br />'; flush(); ob_flush(); // Debugger
-    if($idx > $sz) return $arr;
-    if($keylist[$idx] == '' || $keylist[$idx] < 0 || !$keylist[$idx]) {
-      echo 'Infinite loop caught in arrayItemBottom(<br /><pre>';
-      print_r($arr);
-      echo '</pre><br />, '.$keyname.');<br /><br />EnanoCMS: Critical error during function call, exiting to prevent excessive server load.';
-      exit;
-    }
-    $arr = arrayItemDown($arr, $keylist[$idx]);
-    $idx++;
-  }
+  $b = $arr[$keyname];
+  unset($arr[$keyname]);
+  $arr[$keyname] = $b;
+  unset($b);
   return $arr;
 }
 
@@ -822,18 +839,11 @@ function die_semicritical($t, $p, $no_wrapper = false)
     exit;
   }
   
-  $theme = ( defined('ENANO_CONFIG_FETCHED') ) ? getConfig('theme_default') : 'oxygen';
-  $style = ( defined('ENANO_CONFIG_FETCHED') ) ? '__foo__' : 'bleu';
-  
-  $tpl = new template_nodb();
-  $tpl->load_theme($theme, $style);
-  $tpl->tpl_strings['SITE_NAME'] = getConfig('site_name');
-  $tpl->tpl_strings['SITE_DESC'] = getConfig('site_desc');
-  $tpl->tpl_strings['COPYRIGHT'] = getConfig('copyright_notice');
-  $tpl->tpl_strings['PAGE_NAME'] = $t;
-  $tpl->header();
+  $output = new Output_Safe();
+  $output->set_title($t);
+  $output->header();
   echo $p;
-  $tpl->footer();
+  $output->footer();
 
   exit;
 }
@@ -918,169 +928,7 @@ function grinding_halt($t, $p)
 
 function show_category_info()
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  
-  if ( $paths->namespace == 'Category' )
-  {
-    // Show member pages and subcategories
-    $q = $db->sql_query('SELECT p.urlname, p.namespace, p.name, p.namespace=\'Category\' AS is_category FROM '.table_prefix.'categories AS c
-                           LEFT JOIN '.table_prefix.'pages AS p
-                             ON ( p.urlname = c.page_id AND p.namespace = c.namespace )
-                           WHERE c.category_id=\'' . $db->escape($paths->page_id) . '\'
-                           ORDER BY is_category DESC, p.name ASC;');
-    if ( !$q )
-    {
-      $db->_die();
-    }
-    echo '<h3>' . $lang->get('onpage_cat_heading_subcategories') . '</h3>';
-    echo '<div class="tblholder">';
-    echo '<table border="0" cellspacing="1" cellpadding="4">';
-    echo '<tr>';
-    $ticker = 0;
-    $counter = 0;
-    $switched = false;
-    $class  = 'row1';
-    while ( $row = $db->fetchrow() )
-    {
-      if ( $row['is_category'] == 0 && !$switched )
-      {
-        if ( $counter > 0 )
-        {
-          // Fill-in
-          while ( $ticker < 3 )
-          {
-            $ticker++;
-            echo '<td class="' . $class . '" style="width: 33.3%;"></td>';
-          }
-        }
-        else
-        {
-          echo '<td class="' . $class . '">' . $lang->get('onpage_cat_msg_no_subcategories') . '</td>';
-        }
-        echo '</tr></table></div>' . "\n\n";
-        echo '<h3>' . $lang->get('onpage_cat_heading_pages') . '</h3>';
-        echo '<div class="tblholder">';
-        echo '<table border="0" cellspacing="1" cellpadding="4">';
-        echo '<tr>';
-        $counter = 0;
-        $ticker = -1;
-        $switched = true;
-      }
-      $counter++;
-      $ticker++;
-      if ( $ticker == 3 )
-      {
-        echo '</tr><tr>';
-        $ticker = 0;
-        $class = ( $class == 'row3' ) ? 'row1' : 'row3';
-      }
-      echo "<td class=\"{$class}\" style=\"width: 33.3%;\">"; // " to workaround stupid jEdit bug
-      
-      $link = makeUrlNS($row['namespace'], sanitize_page_id($row['urlname']));
-      echo '<a href="' . $link . '"';
-      $key = $paths->nslist[$row['namespace']] . sanitize_page_id($row['urlname']);
-      if ( !isPage( $key ) )
-      {
-        echo ' class="wikilink-nonexistent"';
-      }
-      echo '>';
-      $title = get_page_title_ns($row['urlname'], $row['namespace']);
-      echo htmlspecialchars($title);
-      echo '</a>';
-      
-      echo "</td>";
-    }
-    if ( !$switched )
-    {
-      if ( $counter > 0 )
-      {
-        // Fill-in
-        while ( $ticker < 2 )
-        {
-          $ticker++;
-          echo '<td class="' . $class . '" style="width: 33.3%;"></td>';
-        }
-      }
-      else
-      {
-        echo '<td class="' . $class . '">' . $lang->get('onpage_cat_msg_no_subcategories') . '</td>';
-      }
-      echo '</tr></table></div>' . "\n\n";
-      echo '<h3>' . $lang->get('onpage_cat_heading_pages') . '</h3>';
-      echo '<div class="tblholder">';
-      echo '<table border="0" cellspacing="1" cellpadding="4">';
-      echo '<tr>';
-      $counter = 0;
-      $ticker = 0;
-      $switched = true;
-    }
-    if ( $counter > 0 )
-    {
-      // Fill-in
-      while ( $ticker < 2 )
-      {
-        $ticker++;
-        echo '<td class="' . $class . '" style="width: 33.3%;"></td>';
-      }
-    }
-    else
-    {
-      echo '<td class="' . $class . '">' . $lang->get('onpage_cat_msg_no_pages') . '</td>';
-    }
-    echo '</tr></table></div>' . "\n\n";
-  }
-  
-  if ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' )
-  {
-    echo '<div class="mdg-comment" style="margin: 10px 0 0 0;" id="category_box_wrapper">';
-    echo '<div style="float: right;">';
-    echo '(<a href="#" onclick="ajaxCatToTag(); return false;">' . $lang->get('tags_catbox_link') . '</a>)';
-    echo '</div>';
-    echo '<div id="mdgCatBox">' . $lang->get('catedit_catbox_lbl_categories') . ' ';
-    
-    $where = '( c.page_id=\'' . $db->escape($paths->page_id) . '\' AND c.namespace=\'' . $db->escape($paths->namespace) . '\' )';
-    $prefix = table_prefix;
-    $sql = <<<EOF
-SELECT c.category_id FROM {$prefix}categories AS c
-  LEFT JOIN {$prefix}pages AS p
-    ON ( ( p.urlname = c.page_id AND p.namespace = c.namespace ) OR ( p.urlname IS NULL AND p.namespace IS NULL ) )
-  WHERE $where
-  ORDER BY p.name ASC, c.page_id ASC;
-EOF;
-    $q = $db->sql_query($sql);
-    if ( !$q )
-      $db->_die();
-    
-    if ( $row = $db->fetchrow() )
-    {
-      $list = array();
-      do
-      {
-        $cid = sanitize_page_id($row['category_id']);
-        $title = get_page_title_ns($cid, 'Category');
-        $link = makeUrlNS('Category', $cid);
-        $list[] = '<a href="' . $link . '">' . htmlspecialchars($title) . '</a>';
-      }
-      while ( $row = $db->fetchrow() );
-      echo implode(', ', $list);
-    }
-    else
-    {
-      echo $lang->get('catedit_catbox_lbl_uncategorized');
-    }
-    
-    $can_edit = ( $session->get_permissions('edit_cat') && ( !$paths->page_protected || $session->get_permissions('even_when_protected') ) );
-    if ( $can_edit )
-    {
-      $edit_link = '<a href="' . makeUrl($paths->page, 'do=catedit', true) . '" onclick="ajaxCatEdit(); return false;">' . $lang->get('catedit_catbox_link_edit') . '</a>';
-      echo ' [ ' . $edit_link . ' ]';
-    }
-    
-    echo '</div></div>';
-    
-  }
-  
+  throw new Exception('show_category_info() is deprecated. Use Namespace_*::display_categories().');
 }
 
 /**
@@ -1089,146 +937,7 @@ EOF;
 
 function show_file_info($page = false)
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  
-  $local_page_id = $paths->page_id;
-  $local_namespace = $paths->namespace;
-  
-  if ( is_object($page) )
-  {
-    $local_page = $page->page_id;
-    $local_namespace = $page->namespace;
-  }
-  
-  // Prevent unnecessary work
-  if ( $local_namespace != 'File' )
-    return null;
-  
-  $selfn = $local_page_id;
-  if ( substr($paths->cpage['name'], 0, strlen($paths->nslist['File'])) == $paths->nslist['File'])
-  {
-    $selfn = substr($local_page_id, strlen($paths->nslist['File']), strlen($local_page_id));
-  }
-  $selfn = $db->escape($selfn);
-  $q = $db->sql_query('SELECT f.mimetype,f.time_id,f.size,l.log_id FROM ' . table_prefix . "files AS f\n"
-                    . "  LEFT JOIN " . table_prefix . "logs AS l\n"
-                    . "    ON ( l.time_id = f.time_id AND ( l.action = 'reupload' OR l.action IS NULL ) )\n"
-                    . "  WHERE f.page_id = '$selfn'\n"
-                    . "    ORDER BY f.time_id DESC;");
-  if ( !$q )
-  {
-    $db->_die('The file type could not be fetched.');
-  }
-  
-  if ( $db->numrows() < 1 )
-  {
-    echo '<div class="mdg-comment" style="margin-left: 0;">
-            <h3>' . $lang->get('onpage_filebox_heading') . '</h3>
-            <p>' . $lang->get('onpage_filebox_msg_not_found', array('upload_link' => makeUrlNS('Special', 'UploadFile/'.$local_page_id))) . '</p>
-          </div>
-          <br />';
-    return;
-  }
-  $r = $db->fetchrow();
-  $mimetype = $r['mimetype'];
-  $datestring = enano_date('F d, Y h:i a', (int)$r['time_id']);
-  echo '<div class="mdg-comment" style="margin-left: 0;">
-          <h3>' . $lang->get('onpage_filebox_heading') . '</h3>
-          <p>' . $lang->get('onpage_filebox_lbl_type') . ' '.$r['mimetype'].'<br />';
-  
-  $size = $r['size'] . ' ' . $lang->get('etc_unit_bytes');
-  if ( $r['size'] >= 1048576 )
-  {
-    $size .= ' (' . ( round($r['size'] / 1048576, 1) ) . ' ' . $lang->get('etc_unit_megabytes_short') . ')';
-  }
-  else if ( $r['size'] >= 1024 )
-  {
-    $size .= ' (' . ( round($r['size'] / 1024, 1) ) . ' ' . $lang->get('etc_unit_kilobytes_short') . ')';
-  }
-  
-  echo $lang->get('onpage_filebox_lbl_size', array('size' => $size));
-  
-  echo '<br />' . $lang->get('onpage_filebox_lbl_uploaded') . ' ' . $datestring . '</p>';
-  if ( substr($mimetype, 0, 6) != 'image/' && ( substr($mimetype, 0, 5) != 'text/' || $mimetype == 'text/html' || $mimetype == 'text/javascript' ) )
-  {
-    echo '<div class="warning-box">
-            ' . $lang->get('onpage_filebox_msg_virus_warning') . '
-          </div>';
-  }
-  if ( substr($mimetype, 0, 6) == 'image/' )
-  {
-    echo '<p>
-            <a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn).'">
-              <img style="border: 0;" alt="'.$paths->page.'" src="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.htmlspecialchars(urlSeparator).'preview').'" />
-            </a>
-          </p>';
-  }
-  echo '<p>
-          <a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">
-            ' . $lang->get('onpage_filebox_btn_download') . '
-          </a>';
-  if(!$paths->page_protected && ( $paths->wiki_mode || $session->get_permissions('upload_new_version') ))
-  {
-    echo '  |  <a href="'.makeUrlNS('Special', 'UploadFile'.'/'.$selfn).'">
-            ' . $lang->get('onpage_filebox_btn_upload_new') . '
-          </a>';
-  }
-  echo '</p>';
-  if ( $db->numrows() > 1 )
-  {
-    // requery, sql_result_seek() doesn't work on postgres
-    $db->free_result();
-    $q = $db->sql_query('SELECT f.mimetype,f.time_id,f.size,l.log_id FROM ' . table_prefix . "files AS f\n"
-                    . "  LEFT JOIN " . table_prefix . "logs AS l\n"
-                    . "    ON ( l.time_id = f.time_id AND ( l.action = 'reupload' OR l.action IS NULL ) )\n"
-                    . "  WHERE f.page_id = '$selfn'\n"
-                    . "    ORDER BY f.time_id DESC;");
-    if ( !$q )
-      $db->_die();
-    
-    echo '<h3>' . $lang->get('onpage_filebox_heading_history') . '</h3><p>';
-    $last_rollback_id = false;
-    while ( $r = $db->fetchrow() )
-    {
-      echo '(<a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">' . $lang->get('onpage_filebox_btn_this_version') . '</a>) ';
-      if ( $session->get_permissions('history_rollback') && $last_rollback_id )
-        echo ' (<a href="#rollback:' . $last_rollback_id . '" onclick="ajaxRollback(\''.$last_rollback_id.'\'); return false;">' . $lang->get('onpage_filebox_btn_revert') . '</a>) ';
-      else if ( $session->get_permissions('history_rollback') && !$last_rollback_id )
-        echo ' (' . $lang->get('onpage_filebox_btn_current') . ') ';
-      $last_rollback_id = $r['log_id'];
-      $mimetype = $r['mimetype'];
-      $datestring = enano_date('F d, Y h:i a', (int)$r['time_id']);
-      
-      echo $datestring.': '.$r['mimetype'].', ';
-      
-      $fs = $r['size'];
-      $fs = (int)$fs;
-      
-      if($fs >= 1048576)
-      {
-        $fs = round($fs / 1048576, 1);
-        $size = $fs . ' ' . $lang->get('etc_unit_megabytes_short');
-      }
-      else
-      if ( $fs >= 1024 )
-      {
-        $fs = round($fs / 1024, 1);
-        $size = $fs . ' ' . $lang->get('etc_unit_kilobytes_short');
-      }
-      else
-      {
-        $size = $fs . ' ' . $lang->get('etc_unit_bytes');
-      }
-      
-      echo $size;
-      
-      echo '<br />';
-    }
-    echo '</p>';
-  }
-  $db->free_result();
-  echo '</div><br />';
+  throw new Exception('show_file_info() is deprecated. Use Namespace_File::show_info().');
 }
 
 /**
@@ -1262,14 +971,17 @@ function display_page_headers()
 function display_page_footers()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  if(isset($_GET['nofooters'])) return;
+  
+  if ( isset($_GET['nofooters']) )
+  {
+    return;
+  }
+  
   $code = $plugins->setHook('send_page_footers');
   foreach ( $code as $cmd )
   {
     eval($cmd);
   }
-  show_file_info();
-  show_category_info();
 }
 
 /**
@@ -2915,6 +2627,8 @@ function dirtify_page_id($page_id)
     $char = strtolower($char);
     $char = intval(hexdec($char));
     $char = chr($char);
+    if ( preg_match('/^[\w\.\/:;\(\)@\[\]_-]$/', $char) )
+      continue;
     $page_id = str_replace($matches[0][$id], $char, $page_id);
   }
   

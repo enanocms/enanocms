@@ -323,12 +323,13 @@ class PageUtils {
   
   /**
    * Generates an HTML table with history information in it.
-   * @param $page_id the page ID
-   * @param $namespace the namespace
+   * @param string the page ID
+   * @param string the namespace
+   * @param string page password
    * @return string
    */
   
-  public static function histlist($page_id, $namespace)
+  public static function histlist($page_id, $namespace, $password = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -339,6 +340,21 @@ class PageUtils {
     ob_start();
     
     $pname = $paths->nslist[$namespace] . $page_id;
+    
+    if ( !isPage($pname) )
+    {
+      return 'DNE';
+    }
+    
+    if ( isset($paths->pages[$pname]['password']) )
+    {
+      $password_exists = ( !empty($paths->pages[$pname]['password']) && $paths->pages[$pname]['password'] !== sha1('') );
+      if ( $password_exists && $password !== $paths->pages[$pname]['password'] )
+      {
+        return '<p>' . $lang->get('history_err_wrong_password') . '</p>';
+      }
+    }
+    
     $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
     $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
     
@@ -1491,7 +1507,7 @@ class PageUtils {
   public static function setpass($page_id, $namespace, $pass)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    global $lang;
+    global $lang, $cache;
     // Determine permissions
     if($paths->pages[$paths->nslist[$namespace].$page_id]['password'] != '')
       $a = $session->get_permissions('password_reset');
@@ -1513,6 +1529,7 @@ class PageUtils {
     {
       die('PageUtils::setpass(): Error during update query: '.$db->get_error()."\n\nSQL Backtrace:\n".$db->sql_backtrace());
     }
+    $cache->purge('page_meta');
     // Is the new password blank?
     if ( $p == '' )
     {

@@ -151,9 +151,11 @@ var enano_lang = {
       msg_rb_success_delete: 'The deletion of this page, which occurred on %dateline%, has been undone. This page has been restored, but comments and categorization data may have been lost.',
       msg_rb_success_reupload: 'The file has been restored to the version uploaded on %dateline%.',
       
+      msg_passrequired_title: 'Password required',
       msg_passrequired: 'Access to this page requires a password. Please enter the password for this page below:',
       msg_pass_wrong: 'The password you entered for this page was incorrect. Please enter the password for this page below:',
       lbl_password: 'Password:',
+      btn_password_submit: 'Submit',
       
       msg_404_title: 'There is no page with this title yet.',
       msg_404_body: 'You have requested a page that doesn\'t exist yet.',
@@ -408,7 +410,8 @@ var enano_lang = {
       log_delete: 'Deleted page',
       log_uploadnew: 'Uploaded new file version',
       lbl_comparingrevisions: 'Comparing revisions:',
-      summary_none_given: 'No edit summary provided.'
+      summary_none_given: 'No edit summary provided.',
+      err_wrong_password: 'Please enter the password for this page before viewing its history.'
     },
     catedit: {
       title: 'Select which categories this page should be included in.',

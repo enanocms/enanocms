@@ -16,7 +16,7 @@
  * Class that handles comments. Has HTML/Javascript frontend support.
  * @package Enano CMS
  * @subpackage Comment manager
- * @license GNU General Public License <http://www.gnu.org/licenses/gpl.html>
+ * @license GNU General Public License <http://www.gnu.org/licenses/gpl-2.0.html>
  */
 
 class Comments

@@ -32,6 +32,7 @@
       $revid = ( isset($_GET['revid']) ) ? intval($_GET['revid']) : 0;
       $page = new PageProcessor($paths->page_id, $paths->namespace, $revid);
       $page->password = $password;
+      
       $have_draft = false;
       if ( $src = $page->fetch_source() )
       {
@@ -151,6 +152,8 @@
       break;
     case "getpage":
       // echo PageUtils::getpage($paths->page, false, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
+      $output = new Output_Striptease();
+      
       $revision_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
       $page = new PageProcessor( $paths->page_id, $paths->namespace, $revision_id );
       
