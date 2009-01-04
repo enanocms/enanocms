@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  * Installation package
  * upgrade.php - Upgrade interface
@@ -19,7 +19,7 @@ define('IN_ENANO', 1);
 // The list of versions in THIS AND PREVIOUS branches, in chronological order.
 $enano_versions = array();
 $enano_versions['1.0'] = array('1.0', '1.0.1', '1.0.2b1', '1.0.2', '1.0.3', '1.0.4', '1.0.5');
-$enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5');
+$enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6');
 
 // Turn on every imaginable API hack to make common load on older databases
 define('IN_ENANO_UPGRADE', 1);

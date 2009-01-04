@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  * sessions.php - everything related to security and user management
  *
@@ -501,7 +501,7 @@ class sessionManager {
           }
           else
           {
-            $key = strrev($_REQUEST['auth']);
+            $key = $_REQUEST['auth'];
             if ( !empty($key) && ( strlen($key) / 2 ) % 4 == 0 )
             {
               $super = $this->validate_session($key);
@@ -645,7 +645,14 @@ class sessionManager {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $pass_hashed = ( $already_md5ed ) ? $password : md5($password);
+    if ( $already_md5ed )
+    {
+      // No longer supported
+      return array(
+          'mode' => 'error',
+          'error' => '$already_md5ed is no longer supported (set this parameter to false and make sure the password you send to $session->login_without_crypto() is not hashed)'
+        );
+    }
     
     // Replace underscores with spaces in username
     // (Added in 1.0.2)
@@ -654,7 +661,7 @@ class sessionManager {
     // Perhaps we're upgrading Enano?
     if($this->compat)
     {
-      return $this->login_compat($username, $pass_hashed, $level);
+      return $this->login_compat($username, md5($password), $level);
     }
     
     if ( !defined('IN_ENANO_INSTALL') )
@@ -710,7 +717,13 @@ class sessionManager {
     $success = false;
     
     // Retrieve the real password from the database
-    $this->sql('SELECT password,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix.'users WHERE ' . ENANO_SQLFUNC_LOWERCASE . '(username)=\''.$this->prepare_text(strtolower($username)).'\';');
+    $username_db = $db->escape(strtolower($username));
+    if ( !$db->sql_query('SELECT password,password_salt,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix."users\n"
+                       . "  WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db';") )
+    {
+      $this->sql('SELECT password,\'\' AS password_salt,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix."users\n"
+               . "  WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db';");
+    }
     if($db->numrows() < 1)
     {
       // This wasn't logged in <1.0.2, dunno how it slipped through
@@ -747,8 +760,8 @@ class sessionManager {
     
     if((intval($row['temp_password_time']) + 3600*24) > time() )
     {
-      $temp_pass = $aes->decrypt( $row['temp_password'], $this->private_key, ENC_HEX );
-      if( md5($temp_pass) == $pass_hashed )
+      $temp_pass = hmac_sha1($password, $row['password_salt']);
+      if( $temp_pass === $row['temp_password'] )
       {
         $code = $plugins->setHook('login_password_reset');
         foreach ( $code as $cmd )
@@ -759,31 +772,41 @@ class sessionManager {
         return array(
             'success' => false,
             'error' => 'valid_reset',
-            'redirect_url' => makeUrlComplete('Special', 'PasswordReset/stage2/' . $row['user_id'] . '/' . $row['temp_password'])
+            'redirect_url' => makeUrlComplete('Special', 'PasswordReset/stage2/' . $row['user_id'] . '/' . $this->pk_encrypt($password))
           );
       }
     }
     
-    if($row['old_encryption'] == 1)
+    if ( $row['old_encryption'] == 1 )
     {
       // The user's password is stored using the obsolete and insecure MD5 algorithm - we'll update the field with the new password
-      if($pass_hashed == $row['password'] && !$already_md5ed)
+      if(md5($password) === $row['password'])
       {
-        $pass_stashed = $aes->encrypt($password, $this->private_key, ENC_HEX);
-        $this->sql('UPDATE '.table_prefix.'users SET password=\''.$pass_stashed.'\',old_encryption=0 WHERE user_id='.$row['user_id'].';');
+        $hmac_secret = AESCrypt::randkey(20);
+        $password_hmac = hmac_sha1($password, $hmac_secret);
+        $this->sql('UPDATE '.table_prefix."users SET password = '$password_hmac', password_salt = '$hmac_secret', old_encryption = 0 WHERE user_id={$row['user_id']};");
         $success = true;
       }
-      elseif($pass_hashed == $row['password'] && $already_md5ed)
+    }
+    else if ( $row['old_encryption'] == 2 )
+    {
+      // Our password field uses the 1.0RC1-1.1.5 encryption format
+      $real_pass = $aes->decrypt($row['password'], $this->private_key);
+      if($password === $real_pass)
       {
-        // We don't have the real password so don't bother with encrypting it, just call it success and get out of here
+        $success = true;
+        $hmac_secret = AESCrypt::randkey(20);
+        $password_hmac = hmac_sha1($password, $hmac_secret);
+        $this->sql('UPDATE '.table_prefix."users SET password = '$password_hmac', password_salt = '$hmac_secret', old_encryption = 0 WHERE user_id={$row['user_id']};");
         $success = true;
       }
     }
     else
     {
-      // Our password field is up-to-date with the >=1.0RC1 encryption standards, so decrypt the password in the table and see if we have a match
-      $real_pass = $aes->decrypt($row['password'], $this->private_key);
-      if($pass_hashed == md5($real_pass))
+      // Password uses HMAC-SHA1
+      $user_challenge = hmac_sha1($password, $row['password_salt']);
+      $password_hmac =& $row['password'];
+      if ( $user_challenge === $password_hmac )
       {
         $success = true;
       }
@@ -795,7 +818,7 @@ class sessionManager {
           'success' => false,
           'error' => 'too_big_for_britches'
         );
-      $sess = $this->register_session(intval($row['user_id']), $username, $real_pass, $level, $remember);
+      $sess = $this->register_session($row['user_id'], $username, $password_hmac, $level, $remember);
       if($sess)
       {
         if($level > USER_LEVEL_MEMBER)
@@ -886,37 +909,34 @@ class sessionManager {
    * Basically the session key is a hex-encoded cookie (encrypted with the site's private key) that says "u=[username];p=[sha1 of password];s=[unique key id]"
    * @param int $user_id
    * @param string $username
-   * @param string $password
+   * @param string $password_hmac The HMAC of the user's password, right from the database
    * @param int $level The level of access to grant, defaults to USER_LEVEL_MEMBER
    * @param bool $remember Whether the session should be long-term (true) or not (false). Defaults to short-term.
    * @return bool
    */
    
-  function register_session($user_id, $username, $password, $level = USER_LEVEL_MEMBER, $remember = false)
+  function register_session($user_id, $username, $password_hmac, $level = USER_LEVEL_MEMBER, $remember = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Random key identifier
-    $salt = md5(microtime() . mt_rand());
+    $salt = '';
+    for ( $i = 0; $i < 32; $i++ )
+    {
+      $salt .= chr(mt_rand(32, 127));
+    }
     
-    // SHA1 hash of password, stored in the key
-    $passha1 = sha1($password);
-    
-    // Unencrypted session key
-    $session_key = "u=$username;p=$passha1;s=$salt";
+    // Session key
+    $session_key = hmac_sha1($password_hmac, $salt);
     
     // Type of key
     $key_type = ( $level > USER_LEVEL_MEMBER ) ? SK_ELEV : ( $remember ? SK_LONG : SK_SHORT );
-    
-    // Encrypt the key
-    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-    $session_key = $aes->encrypt($session_key, $this->private_key, ENC_HEX);
     
     // If we're registering an elevated-privilege key, it needs to be on GET
     if($level > USER_LEVEL_MEMBER)
     {
       // Reverse it - cosmetic only ;-)
-      $hexkey = strrev($session_key);
+      $hexkey = $session_key;
       $this->sid_super = $hexkey;
       $_GET['auth'] = $hexkey;
     }
@@ -943,10 +963,10 @@ class sessionManager {
       die('Somehow an SQL injection attempt crawled into our session registrar! (2)');
     
     // All done!
-    $query = $db->sql_query('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time, key_type) VALUES(\''.$keyhash.'\', \''.$salt.'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.', ' . $key_type . ');');
+    $query = $db->sql_query('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time, key_type) VALUES(\''.$keyhash.'\', \''.$db->escape($salt).'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.', ' . $key_type . ');');
     if ( !$query && defined('IN_ENANO_UPGRADE') )
       // we're trying to upgrade so the key_type column is probably missing - try it again without specifying the key type
-      $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time) VALUES(\''.$keyhash.'\', \''.$salt.'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.');');
+      $this->sql('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time) VALUES(\''.$keyhash.'\', \''.$db->escape($salt).'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.');');
       
     return true;
   }
@@ -1025,9 +1045,33 @@ class sessionManager {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     profiler_log("SessionManager: checking session: " . sha1($key));
+    
+    if ( strlen($key) > 48 )
+    {
+      return $this->validate_aes_session($key);
+    }
+    
+    profiler_log("SessionManager: checking session: " . $key);
+    
+    return $this->validate_session_shared($key, '');
+  }
+  
+  /**
+   * Validates an old-format AES session key. DO NOT USE THIS. Will return false if called outside of an upgrade.
+   * @param string Session key
+   * @return array
+   */
+  
+  protected function validate_aes_session($key)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // No valid use except during upgrades
+    if ( !preg_match('/^upg-/', enano_version()) || !defined('IN_ENANO_UPGRADE') )
+      return false;
+    
     $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
     $decrypted_key = $aes->decrypt($key, $this->private_key, ENC_HEX);
-    
     if ( !$decrypted_key )
     {
       // die_semicritical('AES encryption error', '<p>Something went wrong during the AES decryption process.</p><pre>'.print_r($decrypted_key, true).'</pre>');
@@ -1042,24 +1086,59 @@ class sessionManager {
     }
     $keyhash = md5($key);
     $salt = $db->escape($keydata[3]);
-    profiler_log("SessionManager: checking session: " . sha1($key) . ": decrypted session key to $decrypted_key");
+    
+    return $this->validate_session_shared($keyhash, $salt, true);
+  }
+  
+  /**
+   * Shared portion of session validation. Do not try to call this.
+   * @return array
+   * @access private
+   */
+  
+  protected function validate_session_shared($key, $salt, $loose_call = false)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
     // using a normal call to $db->sql_query to avoid failing on errors here
-    $query = $db->sql_query('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,' . "\n"
-                             . '    u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_title,k.source_ip,k.time,k.auth_level,k.key_type,COUNT(p.message_id) AS num_pms,' . "\n"
-                             . '    u.user_timezone, u.user_dst, x.* FROM '.table_prefix.'session_keys AS k' . "\n"
-                             . '  LEFT JOIN '.table_prefix.'users AS u' . "\n"
-                             . '    ON ( u.user_id=k.user_id )' . "\n"
-                             . '  LEFT JOIN '.table_prefix.'users_extra AS x' . "\n"
-                             . '    ON ( u.user_id=x.user_id OR x.user_id IS NULL )' . "\n"
-                             . '  LEFT JOIN '.table_prefix.'privmsgs AS p' . "\n"
-                             . '    ON ( p.message_to=u.username AND p.message_read=0 )' . "\n"
-                             . '  WHERE k.session_key=\''.$keyhash.'\'' . "\n"
-                             . '    AND k.salt=\''.$salt.'\'' . "\n"
-                             . '  GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,u.user_lang,u.user_timezone,u.user_title,u.user_dst,k.source_ip,k.time,k.auth_level,k.key_type,x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public, x.disable_js_fx;');
+    $columns_select  = "u.user_id AS uid, u.username, u.password, u.password_salt, u.email, u.real_name, u.user_level, u.theme,\n"
+                      . "  u.style,u.signature, u.reg_time, u.account_active, u.activation_key, u.user_lang, u.user_title, k.salt, k.source_ip,\n"
+                      . "  k.time, k.auth_level, k.key_type, COUNT(p.message_id) AS num_pms, u.user_timezone, u.user_dst, x.*";
+    
+    $columns_groupby = "u.user_id, u.username, u.password, u.email, u.real_name, u.user_level, u.theme, u.style, u.signature,\n"
+                      . "           u.reg_time, u.account_active, u.activation_key, u.user_lang, u.user_timezone, u.user_title, u.user_dst,\n"
+                      . "           k.salt, k.source_ip, k.time, k.auth_level, k.key_type, x.user_id, x.user_aim, x.user_yahoo, x.user_msn,\n"
+                      . "           x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public,\n"
+                      . "           x.disable_js_fx";
+    
+    $joins = "  LEFT JOIN " . table_prefix . "users AS u\n"
+            . "    ON ( u.user_id=k.user_id )\n"
+            . "  LEFT JOIN " . table_prefix . "users_extra AS x\n"
+            . "    ON ( u.user_id=x.user_id OR x.user_id IS NULL )\n"
+            . "  LEFT JOIN " . table_prefix . "privmsgs AS p\n"
+            . "    ON ( p.message_to=u.username AND p.message_read=0 )\n";
+    if ( !$loose_call )
+    {
+      $key_md5 = md5($key);
+      $query = $db->sql_query("SELECT $columns_select\n"
+                            . "FROM " . table_prefix . "session_keys AS k\n"
+                            . $joins
+                            . "  WHERE k.session_key='$key_md5'\n"
+                            . "  GROUP BY $columns_groupby;");
+    }
+    else
+    {
+      $query = $db->sql_query("SELECT $columns_select\n"
+                            . "FROM " . table_prefix . "session_keys AS k\n"
+                            . $joins
+                            . "  WHERE k.session_key='$key'\n"
+                            . "    AND k.salt='$salt'\n"
+                            . "  GROUP BY $columns_groupby;");
+    }
     
     if ( !$query && ( defined('IN_ENANO_INSTALL') or defined('IN_ENANO_UPGRADE') ) )
     {
-      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone, \'0;0;0;0;60\' AS user_dst, ' . SK_SHORT . ' AS key_type FROM '.table_prefix.'session_keys AS k
+      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,\'\' AS password_salt,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone, \'0;0;0;0;60\' AS user_dst, ' . SK_SHORT . ' AS key_type FROM '.table_prefix.'session_keys AS k
                              LEFT JOIN '.table_prefix.'users AS u
                                ON ( u.user_id=k.user_id )
                              LEFT JOIN '.table_prefix.'privmsgs AS p
@@ -1078,7 +1157,8 @@ class sessionManager {
       return false;
     }
     $row = $db->fetchrow();
-    profiler_log("SessionManager: checking session: " . sha1($key) . ": selected and fetched results");
+    profiler_log("SessionManager: session check: selected and fetched results");
+    
     $row['user_id'] =& $row['uid'];
     $ip = $_SERVER['REMOTE_ADDR'];
     if($row['auth_level'] > $row['user_level'])
@@ -1103,15 +1183,21 @@ class sessionManager {
         return false;
     }
     
-    // Do the password validation
-    $real_pass = $aes->decrypt($row['password'], $this->private_key, ENC_HEX);
-    
-    //die('<pre>'.print_r($keydata, true).'</pre>');
-    if(sha1($real_pass) != $keydata[2])
+    // $loose_call is turned on only from validate_aes_session
+    if ( !$loose_call )
     {
-      // Failed password check
-      // echo '(debug) $session->validate_session: encrypted password is wrong<br />Real password: '.$real_pass.'<br />Real hash: '.sha1($real_pass).'<br />User hash: '.$keydata[2];
-      return false;
+      $correct_key = hexdecode(hmac_sha1($row['password'], $row['salt']));
+      $user_key = hexdecode($key);
+      if ( $correct_key !== $user_key || !is_string($user_key) )
+      {
+        return false;
+      }
+    }
+    else
+    {
+      // if this is a "loose call", this only works once (during the final upgrade stage). Destroy the contents of session_keys.
+      if ( $row['auth_level'] == USER_LEVEL_ADMIN )
+        $this->sql('DELETE FROM ' . table_prefix . "session_keys;");
     }
     
     // timestamp check
@@ -1156,7 +1242,7 @@ class sessionManager {
     // If this is an elevated-access or short-term session key, update the time
     if( $row['key_type'] == SK_ELEV || $row['key_type'] == SK_SHORT )
     {
-      $this->sql('UPDATE '.table_prefix.'session_keys SET time='.time().' WHERE session_key=\''.$keyhash.'\';');
+      $this->sql('UPDATE '.table_prefix.'session_keys SET time='.time().' WHERE session_key=\''.md5($key).'\';');
     }
     
     $user_extra = array();
@@ -1169,7 +1255,7 @@ class sessionManager {
     $this->user_extra = $user_extra;
     // Leave the rest to PHP's automatic garbage collector ;-)
     
-    $row['password'] = md5($real_pass);
+    $row['password'] = '';
     $row['user_timezone'] = intval($row['user_timezone']) - 1440;
     
     profiler_log("SessionManager: finished session check");
@@ -1256,12 +1342,8 @@ class sessionManager {
       {
         return 'success';
       }
-      // See if we can get rid of the cached decrypted session key
-      $key_bin = hex2bin(strrev($this->sid_super));
-      $key_hash = sha1($key_bin . '::' . $this->private_key);
-      aes_decrypt_cache_destroy($key_hash);
       // Destroy elevated privileges
-      $keyhash = md5(strrev($this->sid_super));
+      $keyhash = md5($this->sid_super);
       $this->sql('DELETE FROM '.table_prefix.'session_keys WHERE session_key=\''.$keyhash.'\' AND user_id=\'' . $this->user_id . '\';');
       $this->sid_super = false;
       $this->auth_level = USER_LEVEL_MEMBER;
@@ -1996,8 +2078,18 @@ class sessionManager {
    
   function register_temp_password($user_id, $password)
   {
-    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-    $temp_pass = $aes->encrypt($password, $this->private_key, ENC_HEX);
+    global $db;
+    if ( !is_int($user_id) )
+      return false;
+    
+    $this->sql('SELECT password_salt FROM ' . table_prefix . "users WHERE user_id = $user_id;");
+    if ( $db->numrows() < 1 )
+      return false;
+    
+    list($salt) = $db->fetchrow_num();
+    $db->free_result();
+    
+    $temp_pass = hmac_sha1($password, $salt);
     $this->sql('UPDATE '.table_prefix.'users SET temp_password=\'' . $temp_pass . '\',temp_password_time='.time().' WHERE user_id='.intval($user_id).';');
   }
   
@@ -2282,6 +2374,27 @@ class sessionManager {
     
     // Yay! We're done
     return 'success';
+  }
+  
+  /**
+   * Sets a user's password.
+   * @param int|string User ID or username
+   * @param string New password
+   */
+  
+  function set_password($user, $password)
+  {
+    // Generate new password and salt
+    $hmac_secret = hexencode(AESCrypt::randkey(20), '', '');
+    $password_hmac = hmac_sha1($password, $hmac_secret);
+    
+    // Figure out how we want to specify the user
+    $uidcol = is_int($user) ? "user_id = $user" : ENANO_SQLFUNC_LOWERCASE . "(username) = '" . strtolower($this->prepare_text($user)) . "'";
+    
+    // Perform update
+    $this->sql('UPDATE ' . table_prefix . "users SET old_encryption = 0, password = '$password_hmac', password_salt = '$hmac_secret' WHERE $uidcol;");
+    
+    return true;
   }
   
   /**
@@ -3389,7 +3502,7 @@ class sessionManager {
   }
   
   /**
-   * Generates some Javascript that calls the AES encryption library.
+   * Generates some Javascript that calls the AES encryption library. Put this after your </form>.
    * @param string The name of the form
    * @param string The name of the password field
    * @param string The name of the field that switches encryption on or off
@@ -3402,15 +3515,16 @@ class sessionManager {
    * @return string
    */
    
-  function aes_javascript($form_name, $pw_field, $use_crypt, $crypt_key, $crypt_data, $challenge, $dh_supported = false, $dh_pubkey = false, $dh_client_pubkey = false)
+  function aes_javascript($form_name, $pw_field, $use_crypt = 'use_crypt', $crypt_key = 'crypt_key', $crypt_data = 'crypt_data', $challenge = 'challenge_data', $dh_supported = 'dh_supported', $dh_pubkey = 'dh_public_key', $dh_client_pubkey = 'dh_client_public_key')
   {
     $code = '
       <script type="text/javascript">
           
-          function runEncryption()
+          function runEncryption(nowhiteout)
           {
             var frm = document.forms.'.$form_name.';
-            whiteOutForm(frm);
+            if ( !nowhiteout )
+              whiteOutForm(frm);
             
             load_component(\'crypto\');
             var testpassed = ' . ( ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0') ? 'false; // CRYPTO-AUTH DISABLED ON USER REQUEST // ' : '' ) . '( aes_self_test() && md5_vm_test() );
@@ -3427,6 +3541,25 @@ EOF;
             if ( frm[\'' . $dh_supported . '\'] )
             {
               frm[\'' . $dh_supported . '\'].value = ( use_diffiehellman ) ? "true" : "false";
+            }
+            
+            if ( frm["' . $pw_field . '_confirm"] )
+            {
+              pass1 = frm.' . $pw_field . '.value;
+              pass2 = frm.' . $pw_field . '_confirm.value;
+              if ( pass1 != pass2 )
+              {
+                load_component("l10n");
+                alert($lang.get("userfuncs_passreset_err_no_match"));
+                return false;
+              }
+              if ( pass1.length < 6 )
+              {
+                load_component("l10n");
+                alert($lang.get("userfuncs_passreset_err_too_short"));
+                return false;
+              }
+              frm.' . $pw_field . '_confirm.value = "";
             }
             
             if ( testpassed && use_diffiehellman )
@@ -3506,11 +3639,129 @@ EOF;
               frm.'.$crypt_data.'.value = cryptstring;
               frm.'.$pw_field.'.value = \'\';
             }
-            return false;
           }
         </script>
         ';
     return $code;
+  }
+  
+  /**
+   * Generates the HTML form elements required for an encrypted logon experience.
+   * @return string
+   */
+  
+  function generate_aes_form()
+  {
+    $return = '<input type="hidden" name="use_crypt" value="no" />';
+    $return .= '<input type="hidden" name="crypt_key" value="' . $this->rijndael_genkey() . '" />';
+    $return .= '<input type="hidden" name="crypt_data" value="" />';
+    $return .= '<input type="hidden" name="challenge_data" value="' . $this->dss_rand() . '" />';
+    
+    require_once(ENANO_ROOT . '/includes/math.php');
+    require_once(ENANO_ROOT . '/includes/diffiehellman.php');
+    
+    global $dh_supported, $_math;
+    if ( $dh_supported )
+    {
+      $dh_key_priv = dh_gen_private();
+      $dh_key_pub = dh_gen_public($dh_key_priv);
+      $dh_key_priv = $_math->str($dh_key_priv);
+      $dh_key_pub = $_math->str($dh_key_pub);
+      // store the keys in the DB
+      $this->sql('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+      
+      $return .=  "<input type=\"hidden\" name=\"dh_supported\" value=\"true\" />
+            <input type=\"hidden\" name=\"dh_public_key\" value=\"$dh_key_pub\" />
+            <input type=\"hidden\" name=\"dh_client_public_key\" value=\"\" />";
+    }
+    else
+    {
+      $return .=  "<input type=\"hidden\" name=\"dh_supported\" value=\"false\" />";
+    }
+    return $return;
+  }
+  
+  /**
+   * If you used all the same form fields as the normal login interface, this will take care of DiffieHellman for you and return the key.
+   * @param string Password field name (defaults to "password")
+   * @return string
+   */
+  
+  function get_aes_post($fieldname = 'password')
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+    if ( $_POST['use_crypt'] == 'yes' )
+    {
+      $crypt_key = $this->fetch_public_key($_POST['crypt_key']);
+      if ( !$crypt_key )
+      {
+        throw new Exception($lang->get('user_err_key_not_found'));
+      }
+      $crypt_key = hexdecode($crypt_key);
+      $data = $aes->decrypt($_POST['crypt_data'], $crypt_key, ENC_HEX);
+    }
+    else if ( $_POST['use_crypt'] == 'yes_dh' )
+    {
+      require_once(ENANO_ROOT . '/includes/math.php');
+      require_once(ENANO_ROOT . '/includes/diffiehellman.php');
+      
+      global $dh_supported, $_math;
+        
+      if ( !$dh_supported )
+      {
+        throw new Exception('Server does not support DiffieHellman, denying request');
+      }
+      
+      // Fetch private key
+      $dh_public = $_POST['dh_public_key'];
+      if ( !preg_match('/^[0-9]+$/', $dh_public) )
+      {
+        throw new Exception('ERR_DH_KEY_NOT_INTEGER');
+      }
+      $q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$dh_public';");
+      if ( !$q )
+        $db->die_json();
+      
+      if ( $db->numrows() < 1 )
+      {
+        throw new Exception('ERR_DH_KEY_NOT_FOUND');
+      }
+      
+      list($dh_private, $dh_key_id) = $db->fetchrow_num();
+      $db->free_result();
+      
+      // We have the private key, now delete the key pair, we no longer need it
+      $q = $db->sql_query('DELETE FROM ' . table_prefix . "diffiehellman WHERE key_id = $dh_key_id;");
+      if ( !$q )
+        $db->die_json();
+      
+      // Generate the shared secret
+      $dh_secret = dh_gen_shared_secret($dh_private, $_POST['dh_client_public_key']);
+      $dh_secret = $_math->str($dh_secret);
+      
+      // Did we get all our math right?
+      $dh_secret_check = sha1($dh_secret);
+      $dh_hash = $_POST['crypt_key'];
+      if ( $dh_secret_check !== $dh_hash )
+      {
+        throw new Exception('ERR_DH_HASH_NO_MATCH');
+      }
+      
+      // All good! Generate the AES key
+      $aes_key = substr(sha256($dh_secret), 0, ( AES_BITS / 4 ));
+      
+      // decrypt user info
+      $aes_key = hexdecode($aes_key);
+      $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+      $data = $aes->decrypt($_POST['crypt_data'], $aes_key, ENC_HEX);
+    }
+    else
+    {
+      $data = $_POST[$fieldname];
+    }
+    return $data;
   }
   
   /**
@@ -3736,7 +3987,7 @@ EOF;
         
         // If we're logging in with a temp password, attach to the login_password_reset hook to send our JSON response
         // A bit hackish since it just dies with the response :-(
-        $plugins->attachHook('login_password_reset', '$this->process_login_request(array(\'mode\' => \'respond_password_reset\', \'user_id\' => $row[\'user_id\'], \'temp_password\' => $row[\'temp_password\']));');
+        $plugins->attachHook('login_password_reset', '$this->process_login_request(array(\'mode\' => \'respond_password_reset\', \'user_id\' => $row[\'user_id\'], \'temp_password\' => $this->pk_encrypt($password)));');
         
         // attempt the login
         // function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false)

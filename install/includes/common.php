@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  * Installation package
  * common.php - Installer common functions
@@ -16,8 +16,8 @@
 
 // Our version number. This needs to be changed for any custom releases.
 $installer_version = array(
-  'version' => '1.1.5',
-  'type' => 'alpha'
+  'version' => '1.1.6',
+  'type' => 'beta'
   // If type is set to "rc", "beta", or "alpha", optionally another version number can be issued with the key 'sub':
   // 'sub' => '3' will produce Enano 1.1.1a3 / Enano 1.1.1 alpha 3
 );
@@ -105,6 +105,7 @@ require_once(ENANO_ROOT . '/includes/functions.php');
 require_once(ENANO_ROOT . '/includes/json.php');
 require_once(ENANO_ROOT . '/includes/constants.php');
 require_once(ENANO_ROOT . '/includes/rijndael.php');
+require_once(ENANO_ROOT . '/includes/hmac.php');
 
 // If we have at least PHP 5, load json2
 if ( version_compare(PHP_VERSION, '5.0.0', '>=') )

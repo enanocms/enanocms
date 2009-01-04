@@ -12,7 +12,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  *
  * This program is Free Software; you can redistribute it and/or modify it under the terms of the GNU General Public License
@@ -226,13 +226,9 @@ function page_Special_Preferences()
           $email_changed = true;
         }
         // Obtain password
-        if ( $_POST['use_crypt'] == 'yes' && !empty($_POST['crypt_data']) )
+        if ( !empty($_POST['crypt_data']) || !empty($_POST['newpass']) )
         {
-          $key = $session->fetch_public_key($_POST['crypt_key']);
-          if ( !$key )
-            die('Can\'t lookup key');
-          $key = hexdecode($key);
-          $newpass = $aes->decrypt($_POST['crypt_data'], $key, ENC_HEX);
+          $newpass = $session->get_aes_post('newpass');
           // At this point we know if we _want_ to change the password...
           
           // We can't check the password to see if it matches the confirmation
@@ -255,14 +251,15 @@ function page_Special_Preferences()
               if ( $score_inp < $score_min )
                 $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_password_too_weak', array('score' => $score_inp)) . '</div>';
             }
+            if ( $_POST['use_crypt'] == 'no' && $newpass != $_POST['newpass_confirm'] )
+            {
+              $errors .= '<div class="error-box">' . $lang->get('usercp_emailpassword_err_password_no_match') . '</div>';
+            }
             // Encrypt new password
             if ( empty($errors) )
             {
-              $newpass_enc = $session->pk_encrypt($newpass, ENC_HEX);
               // Perform the swap
-              $q = $db->sql_query('UPDATE '.table_prefix.'users SET password=\'' . $newpass_enc . '\' WHERE user_id=' . $session->user_id . ';');
-              if ( !$q )
-                $db->_die();
+              $session->set_password($session->username, $newpass);
               // Log out and back in
               $username = $session->username;
               $session->logout();
@@ -280,39 +277,6 @@ function page_Special_Preferences()
               $session->login_without_crypto($session->username, $newpass);
               redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_pass_success'), $lang->get('usercp_emailpassword_msg_password_changed'), 5);
             }
-          }
-        }
-        else
-        {
-          switch('foo') // allow breaking out of our section...i can't wait until PHP6 (goto support!)
-          {
-            case 'foo':
-              $pass = $_POST['newpass'];
-              if ( $pass != $_POST['newpass_conf'] )
-              {
-                $errors .= '<div class="error-box">' . $lang->get('usercp_emailpassword_err_password_no_match') . '</div>';
-                break;
-              }
-              
-              $session->logout();
-              if ( $email_changed )
-              {
-                if ( getConfig('account_activation') == 'user' )
-                {
-                  redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
-                }
-                else if ( getConfig('account_activation') == 'admin' )
-                {
-                  redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
-                }
-              }
-              else
-              {
-                $session->login_without_crypto($session->username, $newpass);
-                redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_pass_success'), $lang->get('usercp_emailpassword_msg_password_changed'), 5);
-              }
-              
-              return;
           }
         }
       }
@@ -359,8 +323,6 @@ function page_Special_Preferences()
       echo '<form action="' . makeUrlNS('Special', 'Preferences/EmailPassword') . '" method="post" onsubmit="return runEncryption();" name="empwform" >';
       
       // Password change form
-      $pubkey = $session->rijndael_genkey();
-      
       echo '<fieldset>
         <legend>' . $lang->get('usercp_emailpassword_grp_chpasswd') . '</legend>
         ' . $lang->get('usercp_emailpassword_field_newpass') . '<br />
@@ -368,7 +330,7 @@ function page_Special_Preferences()
         <br />
         <br />
         ' . $lang->get('usercp_emailpassword_field_newpass_confirm') . '<br />
-        <input type="password" name="newpass_conf" size="30" tabindex="2" />
+        <input type="password" name="newpass_confirm" size="30" tabindex="2" />
         ' . ( getConfig('pw_strength_enable') == '1' ? '<br /><br /><div id="pwmeter"></div>
         <small>' . $lang->get('usercp_emailpassword_msg_password_min_score') . '</small>' : '' ) . '
       </fieldset><br />
@@ -381,75 +343,24 @@ function page_Special_Preferences()
         ' . $lang->get('usercp_emailpassword_field_newemail_confirm') . '<br />
           <input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail_conf" size="30" tabindex="4" />
       </fieldset>
-      <input type="hidden" name="use_crypt" value="no" />
-      <input type="hidden" name="crypt_key" value="' . $pubkey . '" />
-      <input type="hidden" name="crypt_data" value="" />
       <br />
       <div style="text-align: right;"><input type="submit" name="submit" value="' . $lang->get('etc_save_changes') . '" tabindex="5" /></div>';
       
+      echo $session->generate_aes_form();
       echo '</form>';
       
       // ENCRYPTION CODE
       ?>
-      <script type="text/javascript">
       <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
+      <script type="text/javascript">
       addOnloadHook(function()
         {
           password_score_field(document.forms.empwform.newpass);
         });
-      <?php endif; ?>
-        
-        function runEncryption()
-        {
-          load_component('crypto');
-          var aes_testpassed = aes_self_test();
-          
-          var frm = document.forms.empwform;
-          if ( frm.newpass.value.length < 1 )
-            return true;
-          
-          pass1 = frm.newpass.value;
-          pass2 = frm.newpass_conf.value;
-          if ( pass1 != pass2 )
-          {
-            alert($lang.get('usercp_emailpassword_err_password_no_match'));
-            return false;
-          }
-          if ( pass1.length < 6 && pass1.length > 0 )
-          {
-            alert($lang.get('usercp_emailpassword_err_password_too_short'));
-            return false;
-          }
-          
-          if(aes_testpassed)
-          {
-            frm.use_crypt.value = 'yes';
-            var cryptkey = frm.crypt_key.value;
-            frm.crypt_key.value = hex_md5(cryptkey);
-            cryptkey = hexToByteArray(cryptkey);
-            if(!cryptkey || ( ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ) && cryptkey.length != keySizeInBits / 8 )
-            {
-              frm.submit.disabled = true;
-              len = ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ? '\nLen: '+cryptkey.length : '';
-              alert('The key is messed up\nType: '+typeof(cryptkey)+len);
-            }
-            pass = frm.newpass.value;
-            pass = stringToByteArray(pass);
-            cryptstring = rijndaelEncrypt(pass, cryptkey, 'ECB');
-            if(!cryptstring)
-            {
-              return false;
-            }
-            cryptstring = byteArrayToHex(cryptstring);
-            frm.crypt_data.value = cryptstring;
-            frm.newpass.value = "";
-            frm.newpass_conf.value = "";
-          }
-          return true;
-        }
       </script>
+      <?php endif; ?>
       <?php
-      
+      echo $session->aes_javascript('empwform', 'newpass');
       break;
     case 'Signature':
       if ( isset($_POST['new_sig']) )

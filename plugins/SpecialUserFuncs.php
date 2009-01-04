@@ -12,7 +12,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -120,12 +120,6 @@ function page_Special_Login()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $__login_status;
   global $lang;
-  
-  require_once( ENANO_ROOT . '/includes/diffiehellman.php' );
-  global $dh_supported, $_math;
-  
-  $pubkey = $session->rijndael_genkey();
-  $challenge = $session->dss_rand();
   
   $locked_out = false;
   // are we locked out?
@@ -436,10 +430,6 @@ function page_Special_Login()
          </tr>
       </table>
     </div>
-      <input type="hidden" name="challenge_data" value="<?php echo $challenge; ?>" />
-      <input type="hidden" name="use_crypt" value="no" />
-      <input type="hidden" name="crypt_key" value="<?php echo $pubkey; ?>" />
-      <input type="hidden" name="crypt_data" value="" />
       <input type="hidden" name="auth_level" value="<?php echo (string)$level; ?>" />
       <?php if ( $level <= USER_LEVEL_MEMBER ): ?>
       <script type="text/javascript">
@@ -451,34 +441,11 @@ function page_Special_Login()
       </script>
       <?php endif; ?>
       <?php
-      // 1.1.4
-      
-      require_once( ENANO_ROOT . '/includes/diffiehellman.php' );
-      
-      global $dh_supported, $_math;
-      if ( $dh_supported )
-      {
-        $dh_key_priv = dh_gen_private();
-        $dh_key_pub = dh_gen_public($dh_key_priv);
-        $dh_key_priv = $_math->str($dh_key_priv);
-        $dh_key_pub = $_math->str($dh_key_pub);
-        // store the keys in the DB
-        $q = $db->sql_query('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
-        if ( !$q )
-          $db->_die();
-        
-        echo "<input type=\"hidden\" name=\"dh_supported\" value=\"true\" />
-              <input type=\"hidden\" name=\"dh_public_key\" value=\"$dh_key_pub\" />
-              <input type=\"hidden\" name=\"dh_client_public_key\" value=\"\" />";
-      }
-      else
-      {
-        echo "<input type=\"hidden\" name=\"dh_supported\" value=\"false\" />";
-      }
+      echo $session->generate_aes_form();
       ?>
     </form>
     <?php
-      echo $session->aes_javascript('loginform', 'pass', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data', 'dh_supported', 'dh_public_key', 'dh_client_public_key');
+      echo $session->aes_javascript('loginform', 'pass');
     ?>
   <?php
   $template->footer();
@@ -516,93 +483,28 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
   }
   if ( isset($_GET['act']) && $_GET['act'] == 'ajaxlogin' )
   {
-    echo 'This version of the Enano LoginAPI is deprecated. Please use the action.json method instead.';
+    echo 'This version of the Enano LoginAPI is deprecated. Please clear your browser\'s cache and try your login again. Developers, please use the action.json method instead.';
     return true;
   }
   if(isset($_POST['login']))
   {
     $captcha_hash = ( isset($_POST['captcha_hash']) ) ? $_POST['captcha_hash'] : false;
     $captcha_code = ( isset($_POST['captcha_code']) ) ? $_POST['captcha_code'] : false;
-    if ( $_POST['use_crypt'] == 'yes' )
+    
+    try
     {
-      $result = $session->login_with_crypto($_POST['username'], $_POST['crypt_data'], $_POST['crypt_key'], $_POST['challenge_data'], intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
+      $password = $session->get_aes_post('pass');
     }
-    else if ( $_POST['use_crypt'] == 'yes_dh' )
+    catch ( Exception $e )
     {
-      // retrieve and decrypt the password using DiffieHellman
-      
-      require_once( ENANO_ROOT . '/includes/diffiehellman.php' );
-      global $dh_supported, $_math;
-      
-      if ( !$dh_supported )
-      {
-        die_semicritical('DiffieHellman error', 'Server does not support DiffieHellman, denying logon request');
-      }
-      
-      // Fetch private key
-      $dh_public = $_POST['dh_public_key'];
-      if ( !preg_match('/^[0-9]+$/', $dh_public) )
-      {
-        $__login_status = array(
-          'success' => false,
-          'error' => 'ERR_DH_KEY_NOT_INTEGER',
-          'debug' => "public key: $dh_public"
-        );
-        return false;
-      }
-      $q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$dh_public';");
-      if ( !$q )
-        $db->die_json();
-      
-      if ( $db->numrows() < 1 )
-      {
-        $__login_status = array(
-          'success' => false,
-          'error' => 'ERR_DH_KEY_NOT_FOUND',
-          'debug' => "public key: $dh_public"
-        );
-        return false;
-      }
-      
-      list($dh_private, $dh_key_id) = $db->fetchrow_num();
-      $db->free_result();
-      
-      // We have the private key, now delete the key pair, we no longer need it
-      $q = $db->sql_query('DELETE FROM ' . table_prefix . "diffiehellman WHERE key_id = $dh_key_id;");
-      if ( !$q )
-        $db->die_json();
-      
-      // Generate the shared secret
-      $dh_secret = dh_gen_shared_secret($dh_private, $_POST['dh_client_public_key']);
-      $dh_secret = $_math->str($dh_secret);
-      
-      // Did we get all our math right?
-      $dh_secret_check = sha1($dh_secret);
-      $dh_hash = $_POST['crypt_key'];
-      if ( $dh_secret_check !== $dh_hash )
-      {
-        $__login_status = array(
-          'success' => false,
-          'error' => 'ERR_DH_HASH_NO_MATCH',
-          'debug' => "dh_secret_check = $dh_secret_check\ndh_hash_input = $dh_hash"
-        );
-        return false;
-      }
-      
-      // All good! Generate the AES key
-      $aes_key = substr(sha256($dh_secret), 0, ( AES_BITS / 4 ));
-      
-      // decrypt user info
-      $aes_key = hexdecode($aes_key);
-      $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-      $password = $aes->decrypt($_POST['crypt_data'], $aes_key, ENC_HEX);
-      
-      $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
+      $__login_status = array(
+        'mode' => 'error',
+        'error' => $e->getMessage()
+      );
+      return false;
     }
-    else
-    {
-      $result = $session->login_without_crypto($_POST['username'], $_POST['pass'], false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
-    }
+    
+    $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
    
     if($result['success'])
     {
@@ -1598,6 +1500,9 @@ function page_Special_PasswordReset()
   $template->header();
   if($paths->getParam(0) == 'stage2')
   {
+    require_once(ENANO_ROOT . '/includes/math.php');
+    require_once(ENANO_ROOT . '/includes/diffiehellman.php');
+    
     $user_id = intval($paths->getParam(1));
     $encpass = $paths->getParam(2);
     if ( $user_id < 2 )
@@ -1613,7 +1518,7 @@ function page_Special_PasswordReset()
       return false;
     }
     
-    $q = $db->sql_query('SELECT username,temp_password_time FROM '.table_prefix.'users WHERE user_id='.$user_id.' AND temp_password=\'' . $encpass . '\';');
+    $q = $db->sql_query('SELECT username,temp_password_time,temp_password,password_salt FROM '.table_prefix.'users WHERE user_id='.$user_id.';');
     if($db->numrows() < 1)
     {
       echo '<p>Invalid credentials</p>';
@@ -1622,6 +1527,16 @@ function page_Special_PasswordReset()
     }
     $row = $db->fetchrow();
     $db->free_result();
+    
+    $temp_pass = $session->pk_decrypt($encpass);
+    $temp_hmac = hmac_sha1($temp_pass, $row['password_salt']);
+    
+    if ( $temp_hmac !== $row['temp_password'] )
+    {
+      echo '<p>Invalid credentials</p>';
+      $template->footer();
+      return false;
+    }
     
     if ( ( intval($row['temp_password_time']) + ( 3600 * 24 ) ) < time() )
     {
@@ -1632,47 +1547,28 @@ function page_Special_PasswordReset()
     
     if ( isset($_POST['do_stage2']) )
     {
-      $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-      if($_POST['use_crypt'] == 'yes')
-      {
-        $crypt_key = $session->fetch_public_key($_POST['crypt_key']);
-        if(!$crypt_key)
-        {
-          echo $lang->get('user_err_key_not_found');
-          $template->footer();
-          return false;
-        }
-        $crypt_key = hexdecode($crypt_key);
-        $data = $aes->decrypt($_POST['crypt_data'], $crypt_key, ENC_HEX);
-        if(strlen($data) < 6)
-        {
-          echo $lang->get('userfuncs_passreset_err_too_short');
-          $template->footer();
-          return false;
-        }
-      }
-      else
-      {
-        $data = $_POST['pass'];
-        $conf = $_POST['pass_confirm'];
-        if($data != $conf)
-        {
-          echo $lang->get('userfuncs_passreset_err_no_match');
-          $template->footer();
-          return false;
-        }
-        if(strlen($data) < 6)
-        {
-          echo $lang->get('userfuncs_passreset_err_too_short');
-          $template->footer();
-          return false;
-        }
-      }
+      $data = $session->get_aes_post('pass');
+      
       if(empty($data))
       {
         echo 'ERROR: Sanity check failed!';
         $template->footer();
         return false;
+      }
+      if ( strlen($data) < 6 )
+      {
+        echo '<p>' . $lang->get('userfuncs_passreset_err_too_short') . '</p>';
+        $template->footer();
+        return false;
+      }
+      if ( $_POST['use_crypt'] == 'no' )
+      {
+        if ( $_POST['pass'] !== $_POST['pass_confirm'] )
+        {
+          echo '<p>' . $lang->get('userfuncs_passreset_err_no_match') . '</p>';
+          $template->footer();
+          return false;
+        }
       }
       if ( getConfig('pw_strength_enable') == '1' )
       {
@@ -1686,8 +1582,10 @@ function page_Special_PasswordReset()
           return false;
         }
       }
-      $encpass = $session->pk_encrypt($data, ENC_HEX);
-      $q = $db->sql_query('UPDATE '.table_prefix.'users SET password=\'' . $encpass . '\',temp_password=\'\',temp_password_time=0 WHERE user_id='.$user_id.';');
+      
+      $session->set_password($user_id, $data);
+      
+      $q = $db->sql_query('UPDATE '.table_prefix.'users SET temp_password=\'\',temp_password_time=0 WHERE user_id = '.$user_id.';');
       
       if($q)
       {
@@ -1704,10 +1602,8 @@ function page_Special_PasswordReset()
     }
     
     // Password reset form
-    $pubkey = $session->rijndael_genkey();
-    
     $evt_get_score = ( getConfig('pw_strength_enable') == '1' ) ? 'onkeyup="password_score_field(this);" ' : '';
-    $pw_meter =      ( getConfig('pw_strength_enable') == '1' ) ? '<tr><td class="row1">' . $lang->get('userfuncs_passreset_stage2_lbl_strength') . '</td><td class="row1"><div id="pwmeter"></div><script type="text/javascript">password_score_field(document.forms.resetform.pass);</script></td></tr>' : '';
+    $pw_meter =      ( getConfig('pw_strength_enable') == '1' ) ? '<tr><td class="row1">' . $lang->get('userfuncs_passreset_stage2_lbl_strength') . '</td><td class="row1"><div id="pwmeter"></div></td></tr>' : '';
     $pw_blurb =      ( getConfig('pw_strength_enable') == '1' && intval(getConfig('pw_strength_minimum')) > -10 ) ? '<br /><small>' . $lang->get('userfuncs_passreset_stage2_blurb_strength') . '</small>' : '';
     
     ?>
@@ -1721,86 +1617,23 @@ function page_Special_PasswordReset()
           <?php echo $pw_meter; ?>
           <tr>
             <td colspan="2" class="row3" style="text-align: center;">
-              <input type="hidden" name="use_crypt" value="no" />
-              <input type="hidden" name="crypt_key" value="<?php echo $pubkey; ?>" />
-              <input type="hidden" name="crypt_data" value="" />
+              
               <input type="submit" name="do_stage2" value="<?php echo $lang->get('userfuncs_passreset_stage2_btn_submit'); ?>" />
             </td>
           </tr>
         </table>
       </div>
+      <?php echo $session->generate_aes_form(); ?>
     </form>
     <script type="text/javascript">
-    if ( !KILL_SWITCH )
-    {
-      disableJSONExts();
-      str = '';
-      for(i=0;i<keySizeInBits/4;i++) str+='0';
-      var key = hexToByteArray(str);
-      var pt = hexToByteArray(str);
-      var ct = rijndaelEncrypt(pt, key, "ECB");
-      var ct = byteArrayToHex(ct);
-      switch(keySizeInBits)
+    addOnloadHook(function()
       {
-        case 128:
-          v = '66e94bd4ef8a2c3b884cfa59ca342b2e';
-          break;
-        case 192:
-          v = 'aae06992acbf52a3e8f4a96ec9300bd7aae06992acbf52a3e8f4a96ec9300bd7';
-          break;
-        case 256:
-          v = 'dc95c078a2408989ad48a21492842087dc95c078a2408989ad48a21492842087';
-          break;
-      }
-      var testpassed = ( ct == v && md5_vm_test() );
-      var frm = document.forms.resetform;
-      if(testpassed)
-      {
-        frm.use_crypt.value = 'yes';
-        var cryptkey = frm.crypt_key.value;
-        frm.crypt_key.value = hex_md5(cryptkey);
-        cryptkey = hexToByteArray(cryptkey);
-        if(!cryptkey || ( ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ) && cryptkey.length != keySizeInBits / 8 )
-        {
-          frm._login.disabled = true;
-          len = ( typeof cryptkey == 'string' || typeof cryptkey == 'object' ) ? '\nLen: '+cryptkey.length : '';
-          alert('The key is messed up\nType: '+typeof(cryptkey)+len);
-        }
-      }
-      function runEncryption()
-      {
-        var frm = document.forms.resetform;
-        pass1 = frm.pass.value;
-        pass2 = frm.pass_confirm.value;
-        if ( pass1 != pass2 )
-        {
-          alert($lang.get('userfuncs_passreset_err_no_match'));
-          return false;
-        }
-        if ( pass1.length < 6 )
-        {
-          alert($lang.get('userfuncs_passreset_err_too_short'));
-          return false;
-        }
-        if(testpassed)
-        {
-          pass = frm.pass.value;
-          pass = stringToByteArray(pass);
-          cryptstring = rijndaelEncrypt(pass, cryptkey, 'ECB');
-          if(!cryptstring)
-          {
-            return false;
-          }
-          cryptstring = byteArrayToHex(cryptstring);
-          frm.crypt_data.value = cryptstring;
-          frm.pass.value = "";
-          frm.pass_confirm.value = "";
-        }
-        return true;
-      }
-    }
+        load_component('pwstrength');
+        password_score_field(document.forms.resetform.pass);
+      });
     </script>
     <?php
+    echo $session->aes_javascript('resetform', 'pass', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data', 'dh_supported', 'dh_public_key', 'dh_client_public_key');
     $template->footer();
     return true;
   }

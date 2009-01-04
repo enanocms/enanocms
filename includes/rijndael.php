@@ -1658,24 +1658,29 @@ class AESCrypt
    * @return string a BINARY key
    */
   
-  function randkey($len = 32)
+  static function randkey($len = 32)
   {
-    $key = '';
-    for($i=0;$i<$len;$i++)
-    {
-      $key .= chr(mt_rand(0, 255));
-    }
     if ( @file_exists('/dev/urandom') && @is_readable('/dev/urandom') )
     {
       // Let's use something a little more secure
       $ur = @fopen('/dev/urandom', 'r');
       if ( !$ur )
-        return $key;
+        return self::randkey_safe($len);
       $ukey = @fread($ur, $len);
       fclose($ur);
       if ( strlen($ukey) != $len )
-        return $key;
+        return self::randkey_safe($len);
       return $ukey;
+    }
+    return self::randkey_safe($len);
+  }
+  
+  static function randkey_safe($len = 32)
+  {
+    $key = '';
+    for($i=0;$i<$len;$i++)
+    {
+      $key .= chr(mt_rand(0, 255));
     }
     return $key;
   }

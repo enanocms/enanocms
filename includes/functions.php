@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -1259,6 +1259,7 @@ function enano_codename()
       '1.1.3'  => 'Caoineag alpha 3',
       '1.1.4'  => 'Caoineag alpha 4',
       '1.1.5'  => 'Caoineag alpha 5',
+      '1.1.6'  => 'Caoineag beta 1'
     );
   $version = enano_version();
   if ( isset($names[$version]) )

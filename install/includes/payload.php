@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  * Installation package
  * payload.php - Installer payload (the installation logic)
@@ -96,11 +96,12 @@ function stg_load_schema()
     return $sql_parser->parse();
   
   $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+  $hmac_secret = hexencode(AESCrypt::randkey(20), '', '');
   
   $site_key = stg_make_private_key();
   $site_key = hexdecode($site_key);
   $admin_pass_clean = stg_password_decode();
-  $admin_pass = $aes->encrypt($admin_pass_clean, $site_key, ENC_HEX);
+  $admin_pass = hmac_sha1($admin_pass_clean, $hmac_secret);
   
   unset($admin_pass_clean); // Security
   
@@ -137,6 +138,7 @@ function stg_load_schema()
       'VERSION'              => $installer_version['version'],
       'ADMIN_USER'           => $db->escape($_POST['username']),
       'ADMIN_PASS'           => $admin_pass,
+      'ADMIN_PASS_SALT'      => $hmac_secret,
       'ADMIN_EMAIL'          => $db->escape($_POST['email']),
       'REAL_NAME'            => '', // This has always been stubbed.
       'ADMIN_EMBED_PHP'      => strval(AUTH_DISALLOW),

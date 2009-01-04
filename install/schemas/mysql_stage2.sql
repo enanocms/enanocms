@@ -93,7 +93,8 @@ CREATE TABLE {{TABLE_PREFIX}}themes(
 CREATE TABLE {{TABLE_PREFIX}}users(
   user_id mediumint(8) NOT NULL auto_increment,
   username text,
-  password varchar(255),
+  password varchar(40),
+  password_salt varchar(40) NOT NULL DEFAULT '',
   email text,
   real_name text,
   user_level tinyint(1) NOT NULL DEFAULT 2,
@@ -373,9 +374,9 @@ INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_st
   ('oxygen', 'Oxygen', 1, 'bleu.css', 1),
   ('stpatty', 'St. Patty', 2, 'shamrock.css', 1);
 
-INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, email, real_name, user_level, theme, style, signature, reg_time, account_active, user_registration_ip) VALUES
-  (1, 'Anonymous', 'invalid-pass-hash', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0, '{{IP_ADDRESS}}'),
-  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', UNIX_TIMESTAMP(), 1, '{{IP_ADDRESS}}');
+INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, password_salt, email, real_name, user_level, theme, style, signature, reg_time, account_active, user_registration_ip) VALUES
+  (1, 'Anonymous', 'invalid-pass-hash', '', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0, '{{IP_ADDRESS}}'),
+  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_PASS_SALT}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', UNIX_TIMESTAMP(), 1, '{{IP_ADDRESS}}');
   
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);

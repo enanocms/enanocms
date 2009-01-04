@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -76,72 +76,7 @@ function page_Admin_UserManager()
         $password = false;
         if ( $_POST['changing_pw'] == 'yes' )
         {
-          $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-          if ( $_POST['dh_supported'] === 'true' )
-          {
-            $my_public = $_POST['dh_public'];
-            $remote_public = $_POST['dh_mypublic'];
-            
-            // Check the key
-            if ( !preg_match('/^[0-9]+$/', $my_public) || !preg_match('/^[0-9]+$/', $remote_public) )
-            {
-              $errors[] = $lang->get('user_err_dh_key_not_numeric');
-            }
-            else
-            {
-              // We have our own public key - cross reference it with the private key in the database
-              $q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$my_public';");
-              if ( !$q )
-                $db->_die();
-              
-              if ( $db->numrows() < 1 )
-              {
-                $errors[] = $lang->get('user_err_dh_key_not_found');
-              }
-              else
-              {
-                list($my_private, $key_id) = $db->fetchrow_num($q);
-                $db->free_result();
-                // now that we have this key it can be disposed of
-                $q = $db->sql_query("DELETE FROM " . table_prefix . "diffiehellman WHERE key_id = $key_id;");
-                if ( !$q )
-                  $db->_die();
-                // get the shared secret
-                $dh_secret = dh_gen_shared_secret($my_private, $remote_public);
-                global $_math;
-                $dh_secret = $_math->str($dh_secret);
-                
-                // make sure we calculated everything right
-                $secret_check = sha1($dh_secret);
-                if ( $secret_check !== $_POST['crypt_key'] )
-                {
-                  // uh-oh.
-                  $errors[] = $lang->get('user_err_dh_key_not_found');
-                }
-                else
-                {
-                  $aes_key = substr(sha256($dh_secret), 0, ( AES_BITS / 4 ));
-                  $aes_key = hexdecode($aes_key);
-                  $password = $aes->decrypt($_POST['crypt_data'], $aes_key, ENC_HEX);
-                }
-              }
-            }
-          }
-          else if ( $_POST['dh_supported'] === 'false' )
-          {
-            $key_hex_md5 = $_POST['crypt_key'];
-            $key_hex = $session->fetch_public_key($key_hex_md5);
-            if ( $key_hex )
-            {
-              $key_bin = hexdecode($key_hex);
-              $data_hex = $_POST['crypt_data'];
-              $password = $aes->decrypt($data_hex, $key_bin, ENC_HEX);
-            }
-          }
-          else
-          {
-            $errors[] = $lang->get('acpum_err_no_aes_key');
-          }
+          $password = $session->get_aes_post('new_password');
         }
         
         $email = $_POST['email'];
@@ -939,13 +874,7 @@ class Admin_UserManager_SmartForm
             <!-- BEGINNOT same_user -->
             if ( form.changing_pw.value == 'yes' )
             {
-              if ( form.new_password.value != form.new_password_confirm.value )
-              {
-                alert(\$lang.get('user_reg_err_alert_password_nomatch'));
-                return false;
-              }
-              form.new_password_confirm.value = '';
-              runEncryption();
+              return runEncryption(true);
             }
             <!-- END same_user -->
             return true;
@@ -1003,13 +932,7 @@ class Admin_UserManager_SmartForm
                         {lang:acpum_msg_same_user_password} <a href="#" onclick="userform_{UUID}_chpasswd_cancel(); return false;">{lang:etc_cancel}</a>
                       <!-- BEGINELSE same_user -->
                       <input type="hidden" name="changing_pw" value="no" />
-                      <input type="hidden" name="challenge_data" value="{MD5_CHALLENGE}" />
-                      <input type="hidden" name="use_crypt" value="no" />
-                      <input type="hidden" name="crypt_key" value="{PUBLIC_KEY}" />
-                      <input type="hidden" name="crypt_data" value="" />
-                      <input type="hidden" name="dh_supported" value="{DH_SUPPORTED}" />
-                      <input type="hidden" name="dh_public" value="{DH_PUBLIC}" />
-                      <input type="hidden" name="dh_mypublic" value="" />
+                      {AES_FORM}
                       <table border="0" style="background-color: transparent;" cellspacing="0" cellpadding="0">
                         <tr>
                           <td colspan="2">
@@ -1346,26 +1269,7 @@ EOF;
     }
     
     $form_action = makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'], true);
-    $aes_javascript = $session->aes_javascript("useredit_$this->uuid", 'new_password', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data', 'dh_supported', 'dh_public', 'dh_mypublic');
-    
-    // FIXME should this be in logic rather than presentation code?
-    if ( $dh_supported )
-    {
-      global $_math;
-      
-      $dh_key_priv = dh_gen_private();
-      $dh_key_pub = dh_gen_public($dh_key_priv);
-      $dh_key_priv = $_math->str($dh_key_priv);
-      $dh_key_pub = $_math->str($dh_key_pub);
-      // store the keys in the DB for later fetching
-      $q = $db->sql_query('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
-      if ( !$q )
-        $db->_die();
-    }
-    else
-    {
-      $dh_key_pub = '';
-    }
+    $aes_javascript = $session->aes_javascript("useredit_$this->uuid", 'new_password');
     
     // build rank list
     $q = $db->sql_query('SELECT rank_id, rank_title FROM ' . table_prefix . 'ranks');
@@ -1382,10 +1286,7 @@ EOF;
         'USERNAME' => $this->username,
         'EMAIL' => $this->email,
         'USER_ID' => $this->user_id,
-        'MD5_CHALLENGE' => $session->dss_rand(),
-        'PUBLIC_KEY' => $session->rijndael_genkey(),
-        'DH_SUPPORTED' => ( $dh_supported ? 'true' : 'false' ),
-        'DH_PUBLIC' => $dh_key_pub,
+        'AES_FORM' => $session->generate_aes_form(),
         'REAL_NAME' => $this->real_name,
         'SIGNATURE_FIELD' => $template->tinymce_textarea('signature', $this->signature, 10, 50),
         'USER_TITLE' => $this->user_title,

@@ -12,7 +12,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  * SpecialUpdownload.php - handles uploading and downloading of user-uploaded files - possibly the most rigorously security-enforcing script in all of Enano, although sessions.php comes in a close second
  *

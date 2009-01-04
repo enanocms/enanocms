@@ -2,7 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.5 (Caoineag alpha 5)
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2008 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -44,7 +44,7 @@ define('ENANO_COMMON_ROOT_LOADED', 1);
 // be the expected output of enano_version(), which will always be in the
 // format of 1.0.2, 1.0.2a1, 1.0.2b1, 1.0.2RC1
 // You'll want to change this for custom distributions.
-$version = '1.1.5';
+$version = '1.1.6';
 
 /**
  * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it
@@ -147,6 +147,7 @@ require_once(ENANO_ROOT.'/includes/json2.php');
 require_once(ENANO_ROOT.'/includes/pageprocess.php');
 require_once(ENANO_ROOT.'/includes/namespaces/default.php');
 require_once(ENANO_ROOT.'/includes/tagcloud.php');
+require_once(ENANO_ROOT.'/includes/hmac.php');
 
 strip_magic_quotes_gpc();
 
