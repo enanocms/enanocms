@@ -782,22 +782,27 @@ class sessionManager {
       // The user's password is stored using the obsolete and insecure MD5 algorithm - we'll update the field with the new password
       if(md5($password) === $row['password'])
       {
-        $hmac_secret = AESCrypt::randkey(20);
-        $password_hmac = hmac_sha1($password, $hmac_secret);
-        $this->sql('UPDATE '.table_prefix."users SET password = '$password_hmac', password_salt = '$hmac_secret', old_encryption = 0 WHERE user_id={$row['user_id']};");
+        if ( !defined('IN_ENANO_UPGRADE') )
+        {
+          $hmac_secret = hexencode(AESCrypt::randkey(20), '', '');
+          $password_hmac = hmac_sha1($password, $hmac_secret);
+          $this->sql('UPDATE '.table_prefix."users SET password = '$password_hmac', password_salt = '$hmac_secret', old_encryption = 0 WHERE user_id={$row['user_id']};");
+        }
         $success = true;
       }
     }
-    else if ( $row['old_encryption'] == 2 )
+    else if ( $row['old_encryption'] == 2 || defined('ENANO_UPGRADE_USE_AES_PASSWORDS') )
     {
       // Our password field uses the 1.0RC1-1.1.5 encryption format
       $real_pass = $aes->decrypt($row['password'], $this->private_key);
       if($password === $real_pass)
       {
-        $success = true;
-        $hmac_secret = AESCrypt::randkey(20);
-        $password_hmac = hmac_sha1($password, $hmac_secret);
-        $this->sql('UPDATE '.table_prefix."users SET password = '$password_hmac', password_salt = '$hmac_secret', old_encryption = 0 WHERE user_id={$row['user_id']};");
+        if ( !defined('IN_ENANO_UPGRADE') )
+        {
+          $hmac_secret = hexencode(AESCrypt::randkey(20), '', '');
+          $password_hmac = hmac_sha1($password, $hmac_secret);
+          $this->sql('UPDATE '.table_prefix."users SET password = '$password_hmac', password_salt = '$hmac_secret', old_encryption = 0 WHERE user_id={$row['user_id']};");
+        }
         $success = true;
       }
     }
@@ -818,7 +823,7 @@ class sessionManager {
           'success' => false,
           'error' => 'too_big_for_britches'
         );
-      $sess = $this->register_session($row['user_id'], $username, $password_hmac, $level, $remember);
+      $sess = $this->register_session($row['user_id'], $username, ( isset($password_hmac) ? $password_hmac : $password ), $level, $remember);
       if($sess)
       {
         if($level > USER_LEVEL_MEMBER)
@@ -927,7 +932,14 @@ class sessionManager {
     }
     
     // Session key
-    $session_key = hmac_sha1($password_hmac, $salt);
+    if ( defined('ENANO_UPGRADE_USE_AES_PASSWORDS') )
+    {
+      $session_key = $this->pk_encrypt("u=$username;p=" . sha1($password_hmac) . ";s=$salt");
+    }
+    else
+    {
+      $session_key = hmac_sha1($password_hmac, $salt);
+    }
     
     // Type of key
     $key_type = ( $level > USER_LEVEL_MEMBER ) ? SK_ELEV : ( $remember ? SK_LONG : SK_SHORT );
@@ -935,10 +947,8 @@ class sessionManager {
     // If we're registering an elevated-privilege key, it needs to be on GET
     if($level > USER_LEVEL_MEMBER)
     {
-      // Reverse it - cosmetic only ;-)
-      $hexkey = $session_key;
-      $this->sid_super = $hexkey;
-      $_GET['auth'] = $hexkey;
+      $this->sid_super = $session_key;
+      $_GET['auth'] = $session_key;
     }
     else
     {
@@ -1067,21 +1077,20 @@ class sessionManager {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // No valid use except during upgrades
-    if ( !preg_match('/^upg-/', enano_version()) || !defined('IN_ENANO_UPGRADE') )
+    if ( !preg_match('/^upg-/', enano_version()) && !defined('IN_ENANO_UPGRADE') )
       return false;
     
-    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-    $decrypted_key = $aes->decrypt($key, $this->private_key, ENC_HEX);
+    $decrypted_key = $this->pk_decrypt($key);
     if ( !$decrypted_key )
     {
       // die_semicritical('AES encryption error', '<p>Something went wrong during the AES decryption process.</p><pre>'.print_r($decrypted_key, true).'</pre>');
       return false;
     }
     
-    $n = preg_match('/^u='.$this->valid_username.';p=([A-Fa-f0-9]+?);s=([A-Fa-f0-9]+?)$/', $decrypted_key, $keydata);
+    $n = preg_match('/^u='.$this->valid_username.';p=([A-Fa-f0-9]+?);s=(.{32})$/', $decrypted_key, $keydata);
     if($n < 1)
     {
-      // echo '(debug) $session->validate_session: Key does not match regex<br />Decrypted key: '.$decrypted_key;
+      echo '(debug) $session->validate_session: Key does not match regex<br />Decrypted key: '.$decrypted_key;
       return false;
     }
     $keyhash = md5($key);
@@ -1143,7 +1152,7 @@ class sessionManager {
                                ON ( u.user_id=k.user_id )
                              LEFT JOIN '.table_prefix.'privmsgs AS p
                                ON ( p.message_to=u.username AND p.message_read=0 )
-                             WHERE k.session_key=\''.$keyhash.'\'
+                             WHERE k.session_key=\''.$key.'\'
                                AND k.salt=\''.$salt.'\'
                              GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level;');
     }
@@ -1196,7 +1205,7 @@ class sessionManager {
     else
     {
       // if this is a "loose call", this only works once (during the final upgrade stage). Destroy the contents of session_keys.
-      if ( $row['auth_level'] == USER_LEVEL_ADMIN )
+      if ( $row['auth_level'] == USER_LEVEL_ADMIN && preg_match('/^upg-/', enano_version()) )
         $this->sql('DELETE FROM ' . table_prefix . "session_keys;");
     }
     

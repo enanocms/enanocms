@@ -38,6 +38,8 @@ require_once('includes/libenanoinstall.php');
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');
 
+define('ENANO_UPGRADE_USE_AES_PASSWORDS', in_array(enano_version(), array('1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5')));
+
 $ui = new Enano_Installer_UI('Enano upgrader', false);
 
 $stg_welcome = $ui->add_stage('Welcome', true);
