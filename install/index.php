@@ -115,8 +115,9 @@ define('HAVE_PHP5', version_compare(PHP_VERSION, '5.0.0', '>='));
                   }
                   else
                   {
+                    $upgrade_script = file_exists('./install/onlineupgrade.php') ? 'onlineupgrade.php' : 'upgrade.php';
                     if ( HAVE_PHP5 && !isset($_GET['debug_warn_php4']) )
-                      echo '<li><a href="upgrade.php" class="upgrade icon">Upgrade</a></li>';
+                      echo '<li><a href="' . $upgrade_script . '" class="upgrade icon">Upgrade</a></li>';
                     else
                       echo '<li>
                     <span class="upgrade-disabled icon icon-disabled">
