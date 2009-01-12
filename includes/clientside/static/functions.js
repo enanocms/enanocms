@@ -48,6 +48,8 @@ function strToPageID(string)
 
 function append_sid(url)
 {
+  var match = url.match(/#(.*?)$/);
+  url = url.replace(/#(.*?)$/, '');
   sep = ( url.indexOf('?') > 0 ) ? '&' : '?';
   if(ENANO_SID.length > 10)
   {
@@ -57,6 +59,10 @@ function append_sid(url)
   if ( pagepass.length > 0 )
   {
     url = url + sep + 'pagepass=' + pagepass;
+  }
+  if ( match )
+  {
+    url = url + match[0];
   }
   return url;
 }
@@ -600,8 +606,18 @@ function whiteOutElement(el)
 
 function whiteOutReportSuccess(whitey)
 {
+  whiteOutDestroyWithImage(whitey, cdnPath + '/images/check.png');
+}
+
+function whiteOutReportFailure(whitey)
+{
+  whiteOutDestroyWithImage(whitey, cdnPath + '/images/checkbad.png');
+}
+
+function whiteOutDestroyWithImage(whitey, image)
+{
   // fade the status indicator in and then out
-  whitey.style.backgroundImage = 'url(' + scriptPath + '/images/check.png)';
+  whitey.style.backgroundImage = 'url(' + image + ')';
   if ( aclDisableTransitionFX )
   {
     domObjChangeOpac(80, whitey);
@@ -616,7 +632,9 @@ function whiteOutReportSuccess(whitey)
   }
   setTimeout(function()
     {
-      whitey.parentNode.removeChild(whitey);
+      if ( whitey )
+        if ( whitey.parentNode )
+          whitey.parentNode.removeChild(whitey);
     }, 1250);
 }
 
