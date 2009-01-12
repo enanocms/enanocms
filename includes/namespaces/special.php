@@ -50,8 +50,8 @@ class Namespace_Special extends Namespace_Default
       die_semicritical($lang->get('page_msg_admin_404_title'), $lang->get('page_msg_admin_404_body', array('func_name' => $func_name)), true);
     
     $title = $lang->get('page_err_custompage_function_missing_title');
-    $message = $lang->get('page_err_custompage_function_missing_body', array( 'function_name' => $fname ));
-                
+    $message = $lang->get('page_err_custompage_function_missing_body', array( 'function_name' => $func_name ));
+    
     $output->set_title($title);
     $output->header();
     echo "<p>$message</p>";
