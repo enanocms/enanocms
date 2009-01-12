@@ -296,9 +296,7 @@ function messagebox_click(obj, mb)
   }
   if(typeof mb.onclick[val] == 'function')
   {
-    o = mb.onclick[val];
-    o();
-    o = false;
+    (mb.onclick[val])();
   }
 }
 

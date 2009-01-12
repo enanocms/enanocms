@@ -393,9 +393,16 @@ window.ajaxLoginProcessResponse = function(response)
   // Did the server send a plaintext error?
   if ( response.mode == 'error' )
   {
-    logindata.mb_object.destroy();
-    var error_msg = $lang.get('user_' + ( response.error.toLowerCase() ));
-    new MessageBox(MB_ICONSTOP | MB_OK, $lang.get('user_err_login_generic_title'), error_msg);
+    if ( logindata.mb_object )
+    {
+      logindata.mb_object.destroy();
+      var error_msg = $lang.get('user_' + ( response.error.toLowerCase() ));
+      new MessageBox(MB_ICONSTOP | MB_OK, $lang.get('user_err_login_generic_title'), error_msg);
+    }
+    else
+    {
+      alert(response.error);
+    }
     return false;
   }
   // Main mode switch
@@ -444,6 +451,12 @@ window.ajaxLoginProcessResponse = function(response)
             ajaxLoginBuildForm(response.respawn_info);
             // don't show an error here, just silently respawn
           }, 2500);
+      }
+      break;
+    case 'logout_success':
+      if ( ENANO_SID )
+      {
+        ajaxLoginReplaceSIDInline(false, ENANO_SID, USER_LEVEL_MEMBER);
       }
       break;
     case 'noop':
@@ -1159,16 +1172,17 @@ window.ajaxAdminUser = function(username)
   window.location = loc;
 }
 
-window.ajaxDynamicReauth = function(adminpage)
+window.ajaxDynamicReauth = function(adminpage, level)
 {
   var old_sid = ENANO_SID;
   var targetpage = adminpage;
+  if ( !level )
+  {
+    level = USER_LEVEL_ADMIN;
+  }
   ajaxLogonInit(function(k)
     {
-      var body = document.getElementsByTagName('body')[0];
-      var replace = new RegExp(old_sid, 'g');
-      body.innerHTML = body.innerHTML.replace(replace, k);
-      ENANO_SID = k;
+      ajaxLoginReplaceSIDInline(k, old_sid, level);
       mb_current_obj.destroy();
       console.debug(targetpage);
       if ( typeof(targetpage) == 'string' )
@@ -1179,7 +1193,7 @@ window.ajaxDynamicReauth = function(adminpage)
       {
         targetpage();
       }
-    }, USER_LEVEL_ADMIN);
+    }, level);
   ajaxLoginShowFriendlyError({
       error_code: 'admin_session_timed_out',
       respawn_info: {}
@@ -1189,4 +1203,126 @@ window.ajaxDynamicReauth = function(adminpage)
 window.ajaxRenewSession = function()
 {
   ajaxDynamicReauth(false);
+}
+
+window.ajaxTrashElevSession = function()
+{
+  load_component(['messagebox', 'fadefilter', 'l10n', 'flyin', 'jquery', 'jquery-ui']);
+  miniPromptMessage({
+    title: $lang.get('user_logout_confirm_title_elev'),
+    message: $lang.get('user_logout_confirm_body_elev'),
+    buttons: [
+      {
+        text: $lang.get('user_logout_confirm_btn_logout'),
+        color: 'red',
+        style: {
+          fontWeight: 'bold'
+        },
+        onclick: function()
+        {
+          ajaxLoginPerformRequest({
+              mode:  'logout',
+              level: auth_level,
+              csrf_token: csrf_token
+          });
+          miniPromptDestroy(this);
+        }
+      },
+      {
+        text: $lang.get('etc_cancel'),
+        onclick: function()
+        {
+          miniPromptDestroy(this);
+        }
+      }
+    ]
+  });
+}
+
+/**
+ * Take an SID and patch all internal links on the page.
+ * @param string New key. If false, removes keys from the page.
+ * @param string Old key. If false, only appends the new SID (more work as it uses DOM, use when dynamically going up to elevated)
+ * @param int New level, not a huge deal but sets auth_level. Try to specify it as some functions depend on it.
+ */
+
+window.ajaxLoginReplaceSIDInline = function(key, oldkey, level)
+{
+  var host = String(window.location.hostname);
+  var exp = new RegExp('^https?://' + host.replace('.', '\.') + contentPath.replace('.', '\.'), 'g');
+  var rexp = new RegExp('^https?://' + host.replace('.', '\.'), 'g');
+  
+  if ( key )
+  {
+    if ( oldkey )
+    {
+      var body = document.getElementsByTagName('body')[0];
+      var replace = new RegExp(oldkey, 'g');
+      body.innerHTML = body.innerHTML.replace(replace, key);
+      ENANO_SID = key;
+    }
+    else
+    {
+      // append SID to all internal links
+      ENANO_SID = key;
+      
+      var links = document.getElementsByTagName('a');
+      for ( var i = 0; i < links.length; i++ )
+      {
+        if ( links[i].href.match(exp, links[i]) && links[i].href.indexOf('#') == -1 )
+        {
+          var newurl = (String(append_sid(links[i].href))).replace(rexp, '');
+          links[i].href = newurl;
+        }
+      }
+      
+      var forms = document.getElementsByTagName('form');
+      for ( var i = 0; i < forms.length; i++ )
+      {
+        if ( forms[i].method.toLowerCase() == 'post' )
+        {
+          if ( forms[i].action.match(exp, links[i]) )
+          {
+            var newurl = (String(append_sid(forms[i].action))).replace(rexp, '');
+            forms[i].action = newurl;
+          }
+        }
+        else
+        {
+          if ( !forms[i].auth )
+          {
+            var auth = document.createElement('input');
+            auth.type = 'hidden';
+            auth.name = 'auth';
+            auth.value = key;
+            forms[i].appendChild(auth);
+          }
+          else
+          {
+            forms[i].auth.value = key;
+          }
+        }
+      }
+    }
+    if ( level )
+    {
+      auth_level = level;
+    }
+  }
+  else
+  {
+    auth_level = USER_LEVEL_MEMBER;
+    ENANO_SID = false;
+    if ( oldkey )
+    {
+      var links = document.getElementsByTagName('a');
+      for ( var i = 0; i < links.length; i++ )
+      {
+        if ( links[i].href.match(exp, links[i]) && links[i].href.indexOf('#') == -1 )
+        {
+          links[i].href = links[i].href.replace(/\?auth=([a-f0-9]+)(&|#|$)/, '$2').replace(/&auth=([a-f0-9]+)/, '').replace(rexp, '');
+        }
+      }
+    }
+  }
 }

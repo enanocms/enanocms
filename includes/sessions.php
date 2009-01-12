@@ -4046,6 +4046,35 @@ EOF;
             'respawn_info' => $this->process_login_request(array('mode' => 'getkey'))
           )));
         break;
+      case 'logout':
+        if ( !$this->started )
+          $this->start();
+        if ( !isset($req['csrf_token']) )
+          return array(
+              'mode' => 'error',
+              'error' => 'Invalid CSRF token'
+            );
+        
+        if ( $req['csrf_token'] !== $this->csrf_token )
+          return array(
+              'mode' => 'error',
+              'error' => 'Invalid CSRF token'
+            );
+        $level = isset($req['level']) && is_int($req['level']) ? $req['level'] : USER_LEVEL_MEMBER;
+        if ( ($result = $this->logout($level)) === 'success' )
+        {
+          return array(
+            'mode' => 'logout_success'
+          );
+        }
+        else
+        {
+          return array(
+            'mode' => 'error',
+            'error' => $result
+          );
+        }
+        break;
     }
     
   }
