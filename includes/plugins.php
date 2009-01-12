@@ -557,10 +557,36 @@ class pluginLoader {
     $schema = $this->parse_plugin_blocks( ENANO_ROOT . '/plugins/' . $filename, 'install' );
     
     $sql = array();
+    global $dbdriver;
     if ( !empty($schema) )
     {
+      // Decide which schema to use
+      $use_schema = false;
+      foreach ( $schema as $current_schema )
+      {
+        if ( isset($current_schema['dbms']) && $current_schema['dbms'] === $dbdriver )
+        {
+          $use_schema =& $current_schema['value'];
+          break;
+        }
+      }
+      if ( !$use_schema )
+      {
+        if ( !isset($schema[0]['dbms']) )
+        {
+          $use_schema =& $schema[0]['value'];
+        }
+        else
+        {
+          $return = array(
+            'mode' => 'error',
+            'error' => $lang->get('acppl_err_dmbs_not_supported', array('dbdriver' => $db->dbms_name))
+          );
+          break;
+        }
+      }
       // parse SQL
-      $parser = new SQL_Parser($schema[0]['value'], true);
+      $parser = new SQL_Parser($use_schema, true);
       $parser->assign_vars(array(
         'TABLE_PREFIX' => table_prefix
         ));
@@ -640,6 +666,7 @@ class pluginLoader {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    global $cache;
     
     if ( defined('ENANO_DEMO_MODE') )
     {
@@ -683,10 +710,36 @@ class pluginLoader {
     $schema = $this->parse_plugin_blocks( ENANO_ROOT . '/plugins/' . $filename, 'uninstall' );
     
     $sql = array();
+    global $dbdriver;
     if ( !empty($schema) )
     {
+      // Decide which schema to use
+      $use_schema = false;
+      foreach ( $schema as $current_schema )
+      {
+        if ( isset($current_schema['dbms']) && $current_schema['dbms'] === $dbdriver )
+        {
+          $use_schema =& $current_schema['value'];
+          break;
+        }
+      }
+      if ( !$use_schema )
+      {
+        if ( !isset($schema[0]['dbms']) )
+        {
+          $use_schema =& $schema[0]['value'];
+        }
+        else
+        {
+          $return = array(
+            'mode' => 'error',
+            'error' => $lang->get('acppl_err_dmbs_not_supported', array('dbdriver' => $db->dbms_name))
+          );
+          break;
+        }
+      }
       // parse SQL
-      $parser = new SQL_Parser($schema[0]['value'], true);
+      $parser = new SQL_Parser($use_schema, true);
       $parser->assign_vars(array(
         'TABLE_PREFIX' => table_prefix
         ));
