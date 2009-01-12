@@ -83,6 +83,19 @@ function jBoxSetup(obj)
                 domObjChangeOpac(0, ul);
                 ul.style.display = 'block';
                 ul.style.zIndex = getHighestZ() + 2;
+                var links = ul.getElementsByTagName('a');
+                for ( var j = 0; j < links.length; j++ )
+                {
+                  links[j].onmouseup = function()
+                  {
+                    var ul = this;
+                    while ( ul.tagName != 'UL' && ul.tagName != 'DIV' && ul.tagName != 'BODY' )
+                      ul = ul.parentNode;
+                    if ( ul.tagName == 'BODY' )
+                      return false;
+                    jBoxHideMenu(ul.previousSibling, ul);
+                  }
+                }
                 var dim = fetch_dimensions(ul);
                 if ( !ul.id )
                   ul.id = 'jBoxmenuobj_' + Math.floor(Math.random() * 10000000);
@@ -204,20 +217,24 @@ function jBoxOutHandlerBin(obj, event)
   
   if (!isOverObj(a, false, event) && !isOverObj(ul, true, event))
   {
-    $dynano(a).rmClass('liteselected');
-    
-    if ( jBox_slide_enable )
-    {
-      slideIn(ul);
-    }
-    else
-    {
-      ul.style.display = 'none';
-    }
-    
+    jBoxHideMenu(a, ul);
   }
   
   return true;
+}
+
+function jBoxHideMenu(a, ul)
+{
+  $dynano(a).rmClass('liteselected');
+    
+  if ( jBox_slide_enable )
+  {
+    slideIn(ul);
+  }
+  else
+  {
+    ul.style.display = 'none';
+  }
 }
 
 // Slide an element downwards until it is at full height.
