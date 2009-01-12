@@ -33,7 +33,7 @@ function installer_enano_version($long = false)
   $v = $installer_version['version'];
   if ( isset($installer_version['sub']) )
   {
-    $v .= ( $short ) ? $keywords[$installer_version['type']] : " {$installer_version['type']} ";
+    $v .= ( !$long ) ? $keywords[$installer_version['type']] : " {$installer_version['type']} ";
     $v .= $installer_version['sub'];
   }
   return $v;
@@ -79,7 +79,7 @@ if ( isset($_SERVER['REQUEST_URI']) && !defined('scriptPath') )
 
 // is Enano already installed?
 @include(ENANO_ROOT . '/config.php');
-if ( defined('ENANO_INSTALLED') && defined('ENANO_DANGEROUS') )
+if ( defined('ENANO_INSTALLED') && defined('ENANO_DANGEROUS') && !isset($_GET['debug_warn_php4']) )
 {
   $title = 'Installation locked';
   require('includes/common.php');
