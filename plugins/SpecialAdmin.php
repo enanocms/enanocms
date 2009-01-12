@@ -2279,17 +2279,17 @@ EOF;
                   // other possible values are: _blank, _parent, _search, _self and _top
     
       'icon_e'  : '<?php echo cdnPath; ?>/images/icons/empty.gif',      // empty image
-      'icon_l'  : '<?php echo cdnPath; ?>/images/icons/line.gif',       // vertical line
-      'icon_32' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root leaf icon normal
-      'icon_36' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root leaf icon selected
-      'icon_48' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root icon normal
-      'icon_52' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root icon selected
-      'icon_56' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root icon opened
-      'icon_60' : '<?php echo cdnPath; ?>/images/icons/base.gif',       // root icon selected
-      'icon_16' : '<?php echo cdnPath; ?>/images/icons/folder.gif',     // node icon normal
-      'icon_20' : '<?php echo cdnPath; ?>/images/icons/folderopen.gif', // node icon selected
-      'icon_24' : '<?php echo cdnPath; ?>/images/icons/folder.gif',     // node icon opened
-      'icon_28' : '<?php echo cdnPath; ?>/images/icons/folderopen.gif', // node icon selected opened
+      'icon_l'  : '<?php echo cdnPath; ?>/images/spacer.gif',           // vertical line
+      'icon_32' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root leaf icon normal
+      'icon_36' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root leaf icon selected
+      'icon_48' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root icon normal
+      'icon_52' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root icon selected
+      'icon_56' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root icon opened
+      'icon_60' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root icon selected
+      'icon_16' : '<?php echo cdnPath; ?>/images/spacer.gif',           // node icon normal
+      'icon_20' : '<?php echo cdnPath; ?>/images/spacer.gif',           // node icon selected
+      'icon_24' : '<?php echo cdnPath; ?>/images/spacer.gif',           // node icon opened
+      'icon_28' : '<?php echo cdnPath; ?>/images/spacer.gif',           // node icon selected opened
       'icon_0'  : '<?php echo cdnPath; ?>/images/icons/page.gif',       // leaf icon normal
       'icon_4'  : '<?php echo cdnPath; ?>/images/icons/page.gif',       // leaf icon selected
       'icon_8'  : '<?php echo cdnPath; ?>/images/icons/page.gif',       // leaf icon opened
