@@ -41,6 +41,7 @@ class mysql {
   var $row = array();
 	var $rowset = array();
   var $errhandler;
+  var $dbms_name = 'MySQL';
   
   function enable_errorhandler()
   {
@@ -105,7 +106,7 @@ class mysql {
   
   function die_json($loc = false)
   {
-    $e = addslashes(htmlspecialchars(mysql_error()));
+    $e = str_replace("\n", "\\n", addslashes(htmlspecialchars(mysql_error())));
     $q = str_replace("\n", "\\n", addslashes($this->latest_query));
     $loc = ( $loc ) ? addslashes("\n\nDescription or location of error: $loc") : "";
     $loc .= "\n\nPlease report the full text of this error to the administrator of the site. If you believe that this is a bug with the software, please contact support@enanocms.org.";
@@ -771,6 +772,7 @@ class postgresql {
   var $row = array();
 	var $rowset = array();
   var $errhandler;
+  var $dbms_name = 'PostgreSQL';
   
   function sql_backtrace()
   {
@@ -809,9 +811,12 @@ class postgresql {
   
   function die_json()
   {
-    $e = addslashes(htmlspecialchars(pg_last_error()));
-    $q = addslashes($this->latest_query);
-    $t = "{'mode':'error','error':'An error occurred during database query.\nQuery was:\n  $q\n\nError returned by PostgreSQL: $e'}";
+    $e = str_replace("\n", "\\n", addslashes(htmlspecialchars(pg_last_error())));
+    $q = str_replace("\n", "\\n", addslashes($this->latest_query));
+    $loc = ( $loc ) ? addslashes("\n\nDescription or location of error: $loc") : "";
+    $loc .= "\n\nPlease report the full text of this error to the administrator of the site. If you believe that this is a bug with the software, please contact support@enanocms.org.";
+    $loc = str_replace("\n", "\\n", $loc);
+    $t = "{\"mode\":\"error\",\"error\":\"An error occurred during database query.\\nQuery was:\\n  $q\\n\\nError returned by MySQL: $e$loc\"}";
     die($t);
   }
   
