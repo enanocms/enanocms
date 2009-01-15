@@ -30,6 +30,14 @@ if ( !defined('ENANO_CLI') )
   exit;
 }
 
+if ( defined('ENANO_INSTALLED') )
+{
+  // start up the API to let it error out if something's wrong
+  require(ENANO_ROOT . '/includes/common.php');
+  
+  installer_fail('Enano is already installed. Uninstall it by deleting config.php and creating a blank file called config.new.php.');
+}
+
 // parse command line args
 foreach ( array('silent', 'driver', 'dbhost', 'dbuser', 'dbpasswd', 'dbname', 'db_prefix', 'user', 'pass', 'email', 'sitename', 'sitedesc', 'copyright', 'urlscheme', 'lang_id', 'scriptpath') as $var )
 {
