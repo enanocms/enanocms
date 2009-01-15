@@ -178,9 +178,9 @@ global $dst_params;
 $dst_params = array(0, 0, 0, 0, 60);
 
 // Divert to CLI loader if running from CLI
-if ( isset($argc) && isset($argv) )
+if ( defined('ENANO_CLI') || ( isset($argc) && isset($argv) ) )
 {
-  if ( is_int($argc) && is_array($argv) && !isset($_SERVER['REQUEST_URI']) )
+  if ( defined('ENANO_CLI') || ( is_int($argc) && is_array($argv) && !isset($_SERVER['REQUEST_URI']) ) )
   {
     require(ENANO_ROOT . '/includes/common_cli.php');
     return;

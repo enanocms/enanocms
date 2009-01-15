@@ -315,14 +315,17 @@ class mysql {
     $ts = microtime_float();
     
     // remove properly escaped quotes
+    $q = str_replace('\\\\', '', $q);
     $q = str_replace(array("\\\"", "\\'"), '', $q);
     
     // make sure quotes match
     foreach ( array("'", '"') as $quote )
     {
-      if ( get_char_count($q, $quote) % 2 == 1 )
+      $n_quotes = get_char_count($q, $quote);
+      if ( $n_quotes % 2 == 1 )
       {
         // mismatched quotes
+        if ( $debug ) echo "Found mismatched quotes in query; parsed:\n$q\n";
         return false;
       }
       // this quote is now confirmed to be matching; we can safely move all quoted strings out and replace with a token

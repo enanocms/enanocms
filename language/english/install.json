@@ -15,7 +15,7 @@
 
 var enano_lang_install = {
   categories: [
-    'meta', 'language', 'welcome', 'license', 'sysreqs', 'database', 'dbmysql', 'dbpgsql', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp', 'upgrade'
+    'meta', 'language', 'welcome', 'license', 'sysreqs', 'database', 'dbmysql', 'dbpgsql', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp', 'upgrade', 'cli'
   ],
   strings: {
     meta: {
@@ -84,7 +84,7 @@ var enano_lang_install = {
       req_desc_mysql: 'It seems that your PHP installation does not have the MySQL extension enabled. If this is your own server, you may need to just enable the "libmysql.so" extension in php.ini. If you do not have the MySQL extension installed, you will need to either use your distribution\'s package manager to install it, or you will have to compile PHP from source. If you compile PHP from source, please remember to use the "--with-mysql" configure option, and you will have to have the MySQL development files installed (they usually are). If this is not your server, please contact your hosting company and ask them to install the PHP MySQL extension.',
       req_desc_uploads: 'It seems that your server does not support uploading files. Enano *requires* this functionality in order to work properly. Please ask your server administrator to set the "file_uploads" option in php.ini to "On".',
       req_desc_apache: 'Apparently your server is running a web server other than Apache. Enano will work nontheless, but there are some known bugs with non-Apache servers, and the "fancy" URLs will not work properly. The "Standard URLs" option will be set on the website configuration page, only change it if you are absolutely certain that your server is running Apache.',
-      req_desc_config: 'It looks like the configuration file, config.new.php, is not writable. Enano needs to be able to write to this file in order to install.<br /><br /><b>If you are installing Enano on a SourceForge web site:</b><br />SourceForge mounts the web partitions read-only now, so you will need to use the project shell service to symlink config.php to a file in the /tmp/persistent directory.',
+      req_desc_config: 'It looks like the configuration file, config.new.php, is not writable. Enano needs to be able to write to this file in order to install. <br /><br /><b>If you are installing Enano on a SourceForge web site:</b> <br />SourceForge mounts the web partitions read-only now, so you will need to use the project shell service to symlink config.php to a file in the /tmp/persistent directory.',
       req_desc_magick: 'Enano uses ImageMagick to scale images into thumbnails. Because ImageMagick was not found on your server, Enano will use the width= and height= attributes on the &lt;img&gt; tag to scale images. This can cause somewhat of a performance increase, but bandwidth usage will be higher, especially if you use high-resolution images on your site.<br /><br />If you are sure that you have ImageMagick, you can set the location of the "convert" program using the administration panel after installation is complete.',
       req_desc_cachewriteable: 'Apparently the cache/ directory is not writable. Enano will still work, but you will not be able to cache thumbnails, meaning the server will need to re-render them each time they are requested. In some cases, this can cause a significant slowdown.',
       req_desc_fileswriteable: 'It seems that the directory where uploaded files are stored (%enano_root%/files) cannot be written by the server. Enano will still function, but file uploads will not function, and will be disabled by default.',
@@ -399,6 +399,67 @@ var enano_lang_install = {
       stg_flushcache_body: 'The upgrader failed to delete some cached data. You may experience some problems with file corruption or badly drawn pages until the caches expire, which is often no longer than 20 minutes.',
       stg_setversion_title: 'Set Enano version and log upgrade',
       stg_setversion_body: 'There was a problem finalizing the upgrade and inserting logs. You really shouldn\'t ever see this message, but calling setConfig(\'enano_version\', installer_enano_version()) should get you rolling again since everything else is probably done by now.',
+    },
+    cli: {
+      welcome_line1: '<c 1>Welcome to the <c 34>Enano</c></c> CMS<c 1> installation wizard.</c>\n',
+      welcome_line2: 'Installing Enano version <c 1>%enano_version%</c> on PHP <c 1>%php_version%</c>\n',
+      
+      prompt_dbdriver: 'Database type (mysql or postgresql)',
+      prompt_dbhost: 'Hostname of database server',
+      prompt_dbuser: 'Database username',
+      prompt_dbpasswd: 'Database password',
+      prompt_dbname: 'Database name',
+      prompt_tblpfx: 'Table prefix',
+      prompt_user: 'Enano administrator username',
+      prompt_pass: 'Enano administrator password',
+      prompt_email: 'Contact e-mail',
+      prompt_sitename: 'Site name',
+      prompt_sitedesc: 'Site description',
+      prompt_copyright: 'Copyright notice',
+      prompt_urlscheme: 'URL scheme (standard, short, or rewrite)',
+      prompt_scriptpath: 'Now we need the path to Enano, relative to your website\'s document root,\nwithout a trailing slash. This should be based on the URL your site will\nuse. For example, if your site is http://yoursite.com/enano/, use the value\n"/enano" here. Leave this blank if Enano is in your document root, e.g.\nhttp://yoursite.com/index.php?title=Enano_page.\nSite URL',
+      prompt_confirm: 'Enter again to confirm',
+      msg_echo_warning: '(WARNING, will be echoed)',
+      
+      default_site_name: 'Enano site',
+      default_site_desc: 'My first Enano site',
+      default_copyright: '&copy; %year%',
+      
+      msg_testing_db: 'Testing database connectivity...',
+      
+      stage_sysreqs: '<c 34;1>Checking system.</c>\n',
+      test_pass: '<c 1;32>PASS</c>',
+      test_warn: '<c 1;33>FAIL</c>',
+      test_fail: '<c 1;31>FAIL</c>',
+      
+      msg_tests_passed: '<c 32><c 1>All tests passed.</c> Installing Enano.</c>\n',
+      msg_installing_db_stage1: '<c 1>Installing database, stage 1...</c>',
+      msg_parsing_schema: '<c 1>Preparing installation payload...</c>',
+      msg_installing_db_stage2: '<c 1>Installing database, stage 2...</c>',
+      msg_writing_config: '<c 1>Generating config file...</c>',
+      msg_starting_api: '<c 1>Starting up the Enano API...</c>',
+      msg_importing_language: '<c 1>Importing default language...</c>',
+      msg_initting_logs: '<c 1>Initializing logs...</c>',
+      msg_cleaning_up: '<c 1>Removing temporary data...</c>',
+      msg_initting_index: '<c 1>Initializing search index...</c>',
+      msg_renaming_config: '<c 1>Renaming config file...</c>',
+      
+      msg_ok: '<c 1;32>OK</c>',
+      msg_install_success: '<c 1;32>Congratulations!</c> <c 1>Enano was successfully installed.</c>\n<c 34>Now, navigate your browser to your Enano installation to make sure everything\nworks right. If you encounter problems, contact the Enano Team for support at\nhttp://forum.enanocms.org or in #enano on irc.freenode.net.</c> <c 34;1>Be sure to\nmention that you used the CLI installer.</c>\n',
+      
+      err_pass_no_match: '  <c 1>Passwords do not match.</c>\n',
+      err_db_connect_fail: 'Could not connect to the database',
+      err_sysreqs_fail: 'One or more system requirement checks has failed.',
+      err_no_drivers: 'Support for at least one database driver is required.',
+      err_schema_load: 'Could not load the database schema file.',
+      err_db_query: 'A database error occurred; see the message above for details.',
+      err_query_sanity_failed: 'The sanity check on a database query failed.',
+      err_writing_config: 'Could not write the configuration file.',
+      err_importing_language: 'Could not import the default language.',
+      err_initting_logs: 'Could not initialize Enano\'s logs.',
+      err_cleaning_up: 'Could not clean up the temporary data.',
+      err_initting_index: 'Could not initialize the search index.',
+      err_renaming_config: 'Could not rename config.new.php to config.php; please do this manually.',
     }
   }
 }

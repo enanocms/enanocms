@@ -25,7 +25,7 @@
 //
 
 // Note to important functions and the template class that we're running via CLI
-define('ENANO_CLI', 1);
+@define('ENANO_CLI', 1);
 
 // The first thing we need to do is start the database connection. At this point, for all we know, Enano might not
 // even be installed. If this connection attempt fails and it's because of a missing or corrupt config file, the

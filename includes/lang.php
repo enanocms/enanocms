@@ -452,7 +452,7 @@ $lang_cache = ');
     
     $first_lang = $supported_langs[0];
     
-    return $this->import_array($langdata[$first_lang]);
+    return $this->import_array($langdata[$first_lang], false, true);
   }
   
   /**

@@ -155,4 +155,13 @@ if ( count($languages) < 1 )
 // List of available DB drivers
 $supported_drivers = array('mysql', 'postgresql');
 
+// Divert to CLI loader if running from CLI
+if ( isset($argc) && isset($argv) )
+{
+  if ( is_int($argc) && is_array($argv) && !isset($_SERVER['REQUEST_URI']) )
+  {
+    define('ENANO_CLI', '');
+  }
+}
+
 ?>

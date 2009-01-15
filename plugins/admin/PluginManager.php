@@ -123,7 +123,7 @@ function page_Admin_PluginManager()
   if ( $paths->getParam(0) == 'action.json' )
   {
     // Set to application/json to discourage advertisement scripts
-    header('Content-Type: application/json');
+    header('Content-Type: text/javascript');
     
     // Init return data
     $return = array('mode' => 'error', 'error' => 'undefined');

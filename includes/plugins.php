@@ -648,6 +648,8 @@ class pluginLoader {
     
     endswitch;
     
+    $this->reimport_plugin_strings($filename, $plugin_list);
+    
     $cache->purge('plugins');
     $cache->purge('page_meta');
     $cache->purge('anon_sidebar');
