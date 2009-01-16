@@ -456,9 +456,9 @@ $wkt = $db->escape($wkt);
 
 $vars = array(
     'TABLE_PREFIX'         => table_prefix,
-    'SITE_NAME'            => $sitename,
-    'SITE_DESC'            => $sitedesc,
-    'COPYRIGHT'            => $copyright,
+    'SITE_NAME'            => $db->escape($sitename),
+    'SITE_DESC'            => $db->escape($sitedesc),
+    'COPYRIGHT'            => $db->escape($copyright),
     'WIKI_MODE'            => '0',
     'ENABLE_CACHE'         => ( is_writable( ENANO_ROOT . '/cache/' ) ? '1' : '0' ),
     'VERSION'              => installer_enano_version(),
