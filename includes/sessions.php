@@ -122,13 +122,6 @@ class sessionManager {
   var $reg_time;
   
   /**
-   * MD5 hash of the current user's password, if applicable
-   * @var string OR bool false
-   */
-   
-  var $password_hash;
-  
-  /**
    * The number of unread private messages this user has.
    * @var int
    */
@@ -443,7 +436,6 @@ class sessionManager {
         $this->user_logged_in = true;
         $this->user_id =       intval($userdata['user_id']);
         $this->username =      $userdata['username'];
-        $this->password_hash = $userdata['password'];
         $this->user_level =    intval($userdata['user_level']);
         $this->real_name =     $userdata['real_name'];
         $this->email =         $userdata['email'];
@@ -1488,8 +1480,7 @@ class sessionManager {
    
   function grab_password_hash()
   {
-    if(!$this->password_hash) return false;
-    return $this->password_hash;
+    return false;
   }
   
   /**
