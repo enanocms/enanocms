@@ -709,24 +709,14 @@ window.ajaxLoginBuildForm = function(data)
   logindata.mb_inner.appendChild(div);
   
   // Post operations: field focus
-  if ( IE )
-  {
-    setTimeout(
-      function()
-      {
-        if ( logindata.loggedin_username )
-          document.getElementById('ajax_login_field_password').focus();
-        else
-          document.getElementById('ajax_login_field_username').focus();
-      }, 200);        
-  }
-  else
-  {
-    if ( data.username )
-      f_password.focus();
-    else
-      f_username.focus();
-  }
+  setTimeout(
+    function()
+    {
+      if ( logindata.loggedin_username )
+        document.getElementById('ajax_login_field_password').focus();
+      else
+        document.getElementById('ajax_login_field_username').focus();
+    }, 750);        
   
   // Post operations: show captcha window
   if ( show_captcha )
