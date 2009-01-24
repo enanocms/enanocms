@@ -314,7 +314,10 @@ $result = $dbal->connect(true, $dbhost, $dbuser, $dbpasswd, $dbname);
 if ( !$result )
 {
   if ( !$silent )
+  {
     echo parse_shellcolor_string($lang->get('cli_test_fail')) . "\n";
+    echo "[$driver] " . $dbal->sql_error() . "\n";
+  }
   installer_fail($lang->get('cli_err_db_connect_fail'));
 }
 
