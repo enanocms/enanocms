@@ -290,6 +290,9 @@ EOF;
 # Enable mod_rewrite
 RewriteEngine on
 
+# Required under some aliased setups
+RewriteBase $scriptpath
+
 # Don't rewrite if the user requested a real directory or file
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
