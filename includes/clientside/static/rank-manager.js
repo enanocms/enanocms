@@ -489,7 +489,7 @@ function ajaxInitRankEdit(rank_id)
     rank_id: rank_id
   };
   json_packet = ajaxEscape(toJSONString(json_packet));
-  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function()
+  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -561,7 +561,7 @@ function ajaxRankEditHandleSave(editor, switch_new)
   /// ... pack it in
   var json_packet = ajaxEscape(toJSONString(json_packet));
   
-  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function()
+  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -718,7 +718,7 @@ function ajaxRankEditDeleteConfirmed(editor)
   var rank_id = editor.rankdata.rank_id;
   
   json_packet = ajaxEscape(toJSONString(json_packet));
-  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function()
+  ajaxPost(makeUrlNS('Admin', 'UserRanks/action.json'), 'r=' + json_packet, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {

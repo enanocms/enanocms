@@ -17,5 +17,7 @@
  * Thanks to Stephan for helping out with l10n in the installer (his work is in includes/stages/*.php).
  */
 
-require(dirname(__FILE__) . '/includes/cli-core.php');
+echo "INSTALLER STARTED\n";
+$result = require(dirname(__FILE__) . '/includes/cli-core.php');
+exit( $result ? 0 : 1 );
 

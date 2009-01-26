@@ -24,7 +24,7 @@ function ajaxOpenACLManager(page_id, namespace)
     };
   params = toJSONString(params);
   params = ajaxEscape(params);
-  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function(ajax) {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
@@ -61,7 +61,7 @@ function ajaxOpenDirectACLRule(rule_id)
     mode: 'seltarget_id'
   };
   params = ajaxEscape(toJSONString(params));
-  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function(ajax) {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
@@ -113,7 +113,7 @@ function ajaxACLSwitchToSelector()
   }
   params = toJSONString(params);
   params = ajaxEscape(params);
-  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function(ajax) {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         document.getElementById(aclManagerID+'_main').innerHTML = '';
@@ -401,7 +401,7 @@ function __aclJSONSubmitAjaxHandler(params)
 {
   params = toJSONString(params);
   params = ajaxEscape(params);
-  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function(ajax) {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
         var response = String(ajax.responseText + '');
@@ -482,7 +482,7 @@ function __aclJSONSubmitAjaxHandler(params)
             };
           params = toJSONString(params);
           params = ajaxEscape(params);
-          ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function() {
+          ajaxPost(stdAjaxPrefix+'&_mode=acljson', 'acl_params='+params, function(ajax) {
               if ( ajax.readyState == 4 && ajax.status == 200 )
               {
                 document.getElementById(aclManagerID+'_main').innerHTML = '';
@@ -1499,7 +1499,7 @@ function aclShowPresetLoader()
   var request = toJSONString({
       mode: 'list_presets'
     });
-  ajaxPost(stdAjaxPrefix + '&_mode=acljson', 'acl_params=' + ajaxEscape(request), function()
+  ajaxPost(stdAjaxPrefix + '&_mode=acljson', 'acl_params=' + ajaxEscape(request), function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -1758,7 +1758,7 @@ function aclSavePreset()
   
   var whitey = whiteOutElement(document.getElementById(aclManagerID));
   
-  ajaxPost(stdAjaxPrefix + '&_mode=acljson', 'acl_params=' + ajaxEscape(packet), function()
+  ajaxPost(stdAjaxPrefix + '&_mode=acljson', 'acl_params=' + ajaxEscape(packet), function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
