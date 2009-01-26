@@ -472,6 +472,19 @@ for(var f in thefiles)
 /*!END_INCLUDER*/
 
 addOnloadHook(function() {
+  if ( $_REQUEST['auth'] )
+  {
+    var key = $_REQUEST['auth'];
+    var loc = String(window.location);
+    loc = loc.replace(/#.+$/, '').replace(/&auth=[0-9a-f]+/, '').replace(/\?auth=[0-9a-f]+(&)?/, '$1');
+    if ( key != 'false' )
+    {
+      var sep = loc.indexOf('?') != -1 ? '&' : '?';
+      loc = loc + sep + 'auth=' + key;
+    }
+    console.debug(loc);
+    window.location = loc;
+  }
   if ( $_REQUEST['do'] )
   {
     var act = $_REQUEST['do'];

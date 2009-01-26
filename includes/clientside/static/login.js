@@ -366,7 +366,7 @@ window.ajaxLoginPerformRequest = function(json)
 {
   json = toJSONString(json);
   json = ajaxEscape(json);
-  ajaxPost(makeUrlNS('Special', 'Login/action.json'), 'r=' + json, function()
+  ajaxPost(makeUrlNS('Special', 'Login/action.json'), 'r=' + json, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -1298,6 +1298,7 @@ window.ajaxLoginReplaceSIDInline = function(key, oldkey, level)
     {
       auth_level = level;
     }
+    window.location.hash = '#auth:' + key;
   }
   else
   {
@@ -1314,5 +1315,6 @@ window.ajaxLoginReplaceSIDInline = function(key, oldkey, level)
         }
       }
     }
+    window.location.hash = '#auth:false';
   }
 }
