@@ -3716,7 +3716,7 @@ EOF;
       
       // Fetch private key
       $dh_public = $_POST['dh_public_key'];
-      if ( !preg_match('/^[0-9]+$/', $dh_public) )
+      if ( !ctype_digit($dh_public) )
       {
         throw new Exception('ERR_DH_KEY_NOT_INTEGER');
       }
@@ -3888,7 +3888,7 @@ EOF;
         $dh_hash = $req['dh_secret_hash'];
         
         // Check the key
-        if ( !preg_match('/^[0-9]+$/', $dh_public) || !preg_match('/^[0-9]+$/', $req['dh_client_key']) )
+        if ( !ctype_digit($dh_public) || !ctype_digit($req['dh_client_key']) )
         {
           return array(
             'mode' => 'error',

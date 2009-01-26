@@ -60,7 +60,7 @@ function page_Special_PrivateMessages()
       break;
     case 'View':
       $id = $argv[1];
-      if ( !preg_match('#^([0-9]+)$#', $id) )
+      if ( !ctype_digit($id) )
       {
         die_friendly('Message error', '<p>Invalid message ID</p>');
       }
@@ -106,7 +106,7 @@ function page_Special_PrivateMessages()
       break;
     case 'Move':
       $id = $argv[1];
-      if ( !preg_match('#^([0-9]+)$#', $id) )
+      if ( !ctype_digit($id) )
       {
         die_friendly('Message error', '<p>Invalid message ID</p>');
       }
@@ -136,7 +136,7 @@ function page_Special_PrivateMessages()
       break;
     case 'Delete':
       $id = $argv[1];
-      if ( !preg_match('#^([0-9]+)$#', $id) )
+      if ( !ctype_digit($id) )
       {
         die_friendly('Message error', '<p>Invalid message ID</p>');
       }
@@ -365,7 +365,7 @@ function page_Special_PrivateMessages()
       break;
     case 'Edit':
       $id = $argv[1];
-      if ( !preg_match('#^([0-9]+)$#', $id) )
+      if ( !ctype_digit($id) )
       {
         die_friendly('Message error', '<p>Invalid message ID</p>');
       }

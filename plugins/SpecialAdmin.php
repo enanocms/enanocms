@@ -354,10 +354,10 @@ function page_Admin_GeneralConfig() {
     setConfig('register_tou', RenderMan::preprocess_text($_POST['register_tou'], true, false));
     
     // Account lockout policy
-    if ( preg_match('/^[0-9]+$/', $_POST['lockout_threshold']) )
+    if ( ctype_digit($_POST['lockout_threshold']) )
       setConfig('lockout_threshold', $_POST['lockout_threshold']);
     
-    if ( preg_match('/^[0-9]+$/', $_POST['lockout_duration']) )
+    if ( ctype_digit($_POST['lockout_duration']) )
       setConfig('lockout_duration', $_POST['lockout_duration']);
     
     if ( in_array($_POST['lockout_policy'], array('disable', 'captcha', 'lockout')) )

@@ -47,7 +47,7 @@ function page_Admin_LangManager()
         
         // Is this parameter in the form of an integer?
         // (designed to ease validation later)
-        if ( preg_match('/^[0-9]+$/', $parm) )
+        if ( ctype_digit($parm) )
           // Yes, run intval(), this enabling is_int()-ish checks
           $parm = intval($parm);
         

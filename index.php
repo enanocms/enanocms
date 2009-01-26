@@ -281,7 +281,7 @@
       break;
     case 'rollback':
       $id = (isset($_GET['id'])) ? $_GET['id'] : false;
-      if(!$id || !preg_match('#^([0-9]+)$#', $id)) die_friendly('Invalid action ID', '<p>The URL parameter "id" is not an integer. Exiting to prevent nasties like SQL injection, etc.</p>');
+      if(!$id || !ctype_digit($id)) die_friendly('Invalid action ID', '<p>The URL parameter "id" is not an integer. Exiting to prevent nasties like SQL injection, etc.</p>');
       
       $id = intval($id);
       
