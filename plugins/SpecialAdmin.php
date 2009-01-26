@@ -304,6 +304,10 @@ function page_Admin_GeneralConfig() {
     if(isset($_POST['enable-comments']))  setConfig('enable_comments', '1');
     else                                  setConfig('enable_comments', '0');
     setConfig('comments_need_login', $_POST['comments_need_login']);
+    if ( in_array($_POST['comment_spam_policy'], array('moderate', 'reject', 'accept')) )
+    {
+      setConfig('comment_spam_policy', $_POST['comment_spam_policy']);
+    }
     
     // Powered by link
     if ( isset($_POST['enano_powered_link']) ) setConfig('powered_btn', '1');
@@ -601,6 +605,27 @@ function page_Admin_GeneralConfig() {
           <label>
             <input name="comments_need_login" type="radio" value="2" <?php if(getConfig('comments_need_login')=='2') echo 'checked="checked" '; ?>/>
             <?php echo $lang->get('acpgc_field_comment_allow_guests_no'); ?>
+          </label>
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="row2">
+          <?php echo $lang->get('acpgc_field_comment_spam_policy'); ?><br />
+          <small><?php echo $lang->get('acpgc_field_comment_spam_policy_hint'); ?></small>
+        </td>
+        <td class="row2">
+          <label>
+            <input name="comment_spam_policy" type="radio" value="moderate" <?php if ( getConfig('comment_spam_policy', 'moderate') == 'moderate' ) echo 'checked="checked"'; ?>/>
+            <?php echo $lang->get('acpgc_field_comment_spam_policy_moderate'); ?>
+          </label>
+          <label>
+            <input name="comment_spam_policy" type="radio" value="reject" <?php if ( getConfig('comment_spam_policy', 'moderate') == 'reject' ) echo 'checked="checked"'; ?>/>
+            <?php echo $lang->get('acpgc_field_comment_spam_policy_reject'); ?>
+          </label>
+          <label>
+            <input name="comment_spam_policy" type="radio" value="accept" <?php if ( getConfig('comment_spam_policy', 'moderate') == 'accept' ) echo 'checked="checked"'; ?>/>
+            <?php echo $lang->get('acpgc_field_comment_spam_policy_accept'); ?>
           </label>
         </td>
       </tr>

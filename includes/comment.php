@@ -123,7 +123,7 @@ class Comments
             $count_total++;
             ( $row['approved'] == 1 ) ? $count_appr++ : $count_unappr++;
             
-            if ( !$this->perms->get_permissions('mod_comments') && $row['approved'] == 0 )
+            if ( !$this->perms->get_permissions('mod_comments') && $row['approved'] != COMMENT_APPROVED )
               continue;
             
             // Localize the rank
@@ -142,7 +142,7 @@ class Comments
                 <div id="posthide_'.$seed.'" style="display: none;">
                   ' . $row['comment_data'] . '
                 </div>
-                <p><span style="opacity: 0.4; filter: alpha(opacity=40);">Post from foe hidden.</span> <span style="text-align: right;"><a href="#showpost" onclick="document.getElementById(\'posthide_'.$seed.'\').style.display=\'block\'; this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode); return false;">Display post</a></span></p>
+                <p><span style="opacity: 0.4; filter: alpha(opacity=40);">' . $lang->get('comment_msg_foe_comment_hidden') . '</span> <span style="text-align: right;"><a href="#showpost" onclick="document.getElementById(\'posthide_'.$seed.'\').style.display=\'block\'; this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode); return false;">' . $lang->get('comment_btn_display_foe_comment') . '</a></span></p>
               ';
               $row['comment_data'] = $wrapper;
             }
@@ -193,7 +193,7 @@ class Comments
         break;
       case 'edit':
         $cid = (string)$data['id'];
-        if ( !preg_match('#^([0-9]+)$#i', $cid) || intval($cid) < 1 )
+        if ( !ctype_digit($cid) || intval($cid) < 1 )
         {
           echo '{"mode":"error","error":"HACKING ATTEMPT"}';
           return false;
@@ -228,7 +228,7 @@ class Comments
         break;
       case 'delete':
         $cid = (string)$data['id'];
-        if ( !preg_match('#^([0-9]+)$#i', $cid) || intval($cid) < 1 )
+        if ( !ctype_digit($cid) || intval($cid) < 1 )
         {
           echo '{"mode":"error","error":"HACKING ATTEMPT"}';
           return false;
@@ -266,15 +266,26 @@ class Comments
         
         // Guest authorization
         if ( getConfig('comments_need_login') == '2' && !$session->user_logged_in )
-          $errors[] = 'You need to log in before posting comments.';
+          $errors[] = $lang->get('comment_err_need_login');
         
         // CAPTCHA code
         if ( getConfig('comments_need_login') == '1' && !$session->user_logged_in )
         {
           $real_code = $session->get_captcha($data['captcha_id']);
-          if ( strtolower($real_code) != strtolower($data['captcha_code']) )
-            $errors[] = 'The confirmation code you entered was incorrect.';
+          if ( strtolower($real_code) !== strtolower($data['captcha_code']) )
+            $errors[] = $lang->get('comment_err_captcha_wrong');
           $session->kill_captcha();
+        }
+        
+        // Spam check
+        $spam_policy = getConfig('comment_spam_policy', 'moderate');
+        $sc_name = ( $session->user_logged_in ) ? $session->username : $data['name'];
+        $sc_mail = ( $session->user_logged_in ) ? $session->email : false;
+        $sc_url  = ( $session->user_logged_in ) ? $session->user_extra['user_homepage'] : false;
+        $spamcheck = $spam_policy === 'accept' ? true : spamalyze($data['text'], $sc_name, $sc_mail, $sc_url);
+        if ( !$spamcheck && $spam_policy === 'reject' )
+        {
+          $errors[] = $lang->get('comment_err_spamcheck_failed_rejected');
         }
         
         if ( count($errors) > 0 )
@@ -295,7 +306,9 @@ class Comments
           $src = $text;
           $sql_text = $db->escape($text);
           $text = RenderMan::render($text);
-          $appr = ( getConfig('approve_comments') == '1' ) ? '0' : '1';
+          $appr = ( getConfig('approve_comments') == '1' ) ? COMMENT_UNAPPROVED : COMMENT_APPROVED;
+          if ( $appr === COMMENT_APPROVED && $spam_policy === 'moderate' && !$spamcheck )
+            $appr = COMMENT_SPAM;
           $time = time();
           $date = enano_date('F d, Y h:i a', $time);
           $ip = $_SERVER['REMOTE_ADDR'];
@@ -358,7 +371,7 @@ class Comments
         }
         
         $cid = (string)$data['id'];
-        if ( !preg_match('#^([0-9]+)$#i', $cid) || intval($cid) < 1 )
+        if ( !ctype_digit($cid) || intval($cid) < 1 )
         {
           echo '{"mode":"error","error":"HACKING ATTEMPT"}';
           return false;

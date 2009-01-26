@@ -611,36 +611,30 @@ class template
       {
         $db->_die();
       }
-      $nc = $db->numrows();
-      $nu = 0;
-      $na = 0;
+      $num_comments = $db->numrows();
+      $approval_counts = array(COMMENT_UNAPPROVED => 0, COMMENT_APPROVED => 0, COMMENT_SPAM => 0);
       
       while ( $r = $db->fetchrow() )
       {  
-        if ( !$r['approved'] )
-        {
-          $nu++;
-        }
-        else
-        {
-          $na++;
-        }
+        $approval_counts[$r['approved']]++;
       }
       
       $db->free_result();
-      $n = ( $session->check_acl_scope('mod_comments', $local_namespace) && $perms->get_permissions('mod_comments') ) ? (string)$nc : (string)$na;
-      if ( $session->check_acl_scope('mod_comments', $local_namespace) && $perms->get_permissions('mod_comments') && $nu > 0 )
+      // $n = ( $session->check_acl_scope('mod_comments', $local_namespace) && $perms->get_permissions('mod_comments') ) ? (string)$num_comments : (string)$na;
+      if ( $session->check_acl_scope('mod_comments', $local_namespace) && $perms->get_permissions('mod_comments') && ( $approval_counts[COMMENT_UNAPPROVED] + $approval_counts[COMMENT_SPAM] ) > 0 )
       {
         $subst = array(
-            'num_comments' => $nc,
-            'num_unapp' => $nu
+            'num_comments' => $num_comments,
+            'num_app' => $approval_counts[COMMENT_APPROVED],
+            'num_unapp' => $approval_counts[COMMENT_UNAPPROVED],
+            'num_spam' => $approval_counts[COMMENT_SPAM]
           );
         $btn_text = $lang->get('onpage_btn_discussion_unapp', $subst);
       }
       else
       {
         $subst = array(
-          'num_comments' => $nc
+          'num_comments' => $num_comments
         );
         $btn_text = $lang->get('onpage_btn_discussion', $subst);
       }

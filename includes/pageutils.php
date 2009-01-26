@@ -694,7 +694,7 @@ class PageUtils {
       $i++;
       $strings = Array();
       $bool = Array();
-      if ( $session->get_permissions('mod_comments') || $row['approved'] )
+      if ( $session->get_permissions('mod_comments') || $row['approved'] == COMMENT_APPROVED )
       {
         $list .= $i . ' : { \'comment\' : unescape(\''.rawurlencode($row['comment_data']).'\'), \'name\' : unescape(\''.rawurlencode($row['name']).'\'), \'subject\' : unescape(\''.rawurlencode($row['subject']).'\'), }, ';
         

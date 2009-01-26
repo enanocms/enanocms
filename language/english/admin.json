@@ -279,6 +279,11 @@ var enano_lang = {
       field_comment_allow_guests_yes: 'Yes',
       field_comment_allow_guests_captcha: 'Require visual confirmation',
       field_comment_allow_guests_no: 'No (require login)',
+      field_comment_spam_policy: 'Spam policy:',
+      field_comment_spam_policy_hint: 'This requres a <a href="http://enanocms.org/Category:Spam_filtering">spam filtering plugin</a> to be installed.',
+      field_comment_spam_policy_moderate: 'Moderate comments (default)',
+      field_comment_spam_policy_reject: 'Reject post',
+      field_comment_spam_policy_accept: 'Ignore and accept posts',
       
       // Section: disable site
       heading_disablesite: 'Disable all site access',

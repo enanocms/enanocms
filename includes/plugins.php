@@ -121,8 +121,9 @@ class pluginLoader {
    * @param array Deprecated.
    */
   
-  function setHook($name, $opts = Array()) {
-    if(isset($this->hook_list[$name]) && is_array($this->hook_list[$name]))
+  function setHook($name, $opts = Array())
+  {
+    if ( !empty($this->hook_list[$name]) && is_array($this->hook_list[$name]) )
     {
       return array(implode("\n", $this->hook_list[$name]));
     }
@@ -149,8 +150,9 @@ class pluginLoader {
    </code>
    */
   
-  function attachHook($name, $code) {
-    if(!isset($this->hook_list[$name]))
+  function attachHook($name, $code)
+  {
+    if ( !isset($this->hook_list[$name]) )
     {
       $this->hook_list[$name] = Array();
     }

@@ -54,7 +54,8 @@ window.ajaxComments = function(parms)
           materializeComment(response);
           break;
         case 'error':
-          new MessageBox(MB_OK|MB_ICONSTOP, ( response.title ? response.title : 'Error fetching comment data' ), response.error);
+          load_component(['messagebox', 'fadefilter', 'flyin']);
+          new MessageBox(MB_OK|MB_ICONSTOP, ( response.title ? response.title : $lang.get('comment_ajax_err_generic_title') ), response.error);
           break;
         default:
           alert(ajax.responseText);
@@ -180,8 +181,10 @@ var _render_comment = function(this_comment, data)
   tplvars.DATA = this_comment.comment_data;
   tplvars.SIGNATURE = this_comment.signature;
   
-  if ( this_comment.approved != '1' )
+  if ( this_comment.approved == '0' )
     tplvars.SUBJECT += ' <span style="color: #D84308">' + $lang.get('comment_msg_note_unapp') + '</span>';
+  else if ( this_comment.approved == '2' )
+    tplvars.SUBJECT += ' <span style="color: #D84308">' + $lang.get('comment_msg_note_spam') + '</span>';
   
   // Name
   tplvars.NAME = this_comment.name;

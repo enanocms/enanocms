@@ -211,11 +211,20 @@ var enano_lang = {
       msg_count_unapp_one: 'However, there is <span id="comment_count_unapp_inner">1</span> additional comment awaiting approval.',
       msg_count_unapp_plural: 'However, there are <span id="comment_count_unapp_inner">%num_unapp%</span> additional comments awaiting approval.',
       
+      msg_foe_comment_hidden: 'Post from foe hidden.',
+      btn_display_foe_comment: 'Display post',
+      
       msg_note_unapp: '(Unapproved)',
+      msg_note_spam: '(Spam)',
       
       msg_ip_address: 'IP address:',
       
       msg_delete_confirm: 'Do you really want to delete this comment?',
+      
+      err_captcha_wrong: 'The confirmation code you entered was incorrect.',
+      err_spamcheck_failed_rejected: 'Your comment was rejected because it appears to be spam.',
+      err_spamcheck_failed_flagged: 'Your comment was posted, but it appears to be spam and has been flagged as such for a moderator to review.',
+      ajax_err_generic_title: 'Error fetching comment data',
       
       postform_title: 'Got something to say?',
       postform_blurb: 'If you have comments or suggestions on this article, you can shout it out here.',
@@ -250,7 +259,7 @@ var enano_lang = {
       lbl_page_external: 'external page',
       
       btn_discussion: 'discussion (%num_comments%)',
-      btn_discussion_unapp: 'discussion (%num_comments% total, %num_unapp% unapp.)',
+      btn_discussion_unapp: '<span title="Approved: %num_app% | Unapproved: %num_unapp% | Spam: %num_spam%">discussion (%num_comments%) [!]</span>',
       btn_edit: 'edit this page',
       btn_viewsource: 'view source',
       btn_history: 'history',
@@ -332,6 +341,7 @@ var enano_lang = {
       err_no_permission: 'You do not have permission to edit this page.',
       err_page_protected: 'This page is protected, and you do not have permission to edit protected pages.',
       err_captcha_wrong: 'The confirmation code you entered is incorrect.',
+      err_spamcheck_failed: 'Your edit was rejected because it looks like spam.',
       
       msg_editor_heading: 'Editing page',
       msg_saved: 'Your changes to this page have been saved.',

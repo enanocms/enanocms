@@ -198,6 +198,11 @@ class PageProcessor
         return false;
       }
     }
+    if ( $this->revision_id > 0 && !$this->perms->get_permissions('history_view') )
+    {
+      $this->err_access_denied();
+      return false;
+    }
     
     // Is there a custom function registered for handling this namespace?
     // DEPRECATED (even though it only saw its way into one alpha release.)
@@ -441,6 +446,13 @@ class PageProcessor
         $this->raise_error($lang->get('editor_err_page_protected'));
         return false;
       }
+    }
+    
+    // Spam check
+    if ( !spamalyze($text) )
+    {
+      $this->raise_error($lang->get('editor_err_spamcheck_failed'));
+      return false;
     }
     
     //

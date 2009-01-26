@@ -67,6 +67,11 @@ define('PAGE_GRP_TAGGED', 2);
 define('PAGE_GRP_NORMAL', 3);
 define('PAGE_GRP_REGEX', 4);
 
+// Comment types
+define('COMMENT_APPROVED', 1);
+define('COMMENT_UNAPPROVED', 0);
+define('COMMENT_SPAM', 2);
+
 // Session key types
 // Short keys last for getConfig('session_short_time', '720'); in minutes and auto-renew.
 // Long keys last for getConfig('session_remember_time', '30'); in days and do NOT auto-renew.

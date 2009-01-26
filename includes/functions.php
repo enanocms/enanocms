@@ -2164,6 +2164,46 @@ function htmlalternatives($string)
 }
 
 /**
+ * Portal function allowing spam-filtering plugins.
+ * Hooking guide:
+ *   - Attach to spam_check
+ *   - Return either true or false - true if the message is spam-free, false if it fails your test
+ * @example
+ <code>
+ $plugins->attachHook('spam_check', 'return my_spam_check($string);');
+ function my_spam_check($string)
+ {
+   if ( stristr($string, 'viagra') )
+     return false;
+   
+   return true;
+ }
+ </code>
+ * @param string String to check for spam
+ * @param string Author name
+ * @param string Author e-mail
+ * @param string Author website
+ * @param string Author IP
+ * @return bool
+ */
+
+function spamalyze($string, $name = false, $email = false, $url = false, $ip = false)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  if ( !$ip )
+    $ip =& $_SERVER['REMOTE_ADDR'];
+  
+  $code = $plugins->setHook('spam_check');
+  foreach ( $code as $cmd )
+  {
+    $result = eval($cmd);
+    if ( !$result )
+      return false;
+  }
+  return true;
+}
+
+/**
  * Paginates (breaks into multiple pages) a MySQL result resource, which is treated as unbuffered.
  * @param resource The MySQL result resource. This should preferably be an unbuffered query.
  * @param string A template, with variables being named after the column name
