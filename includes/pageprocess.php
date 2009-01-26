@@ -492,10 +492,11 @@ class PageProcessor
   /**
    * Creates the page if it doesn't already exist.
    * @param string Optional page title.
+   * @param bool Visibility (allow indexing) flag
    * @return bool True on success, false on failure.
    */
   
-  function create_page($title = false)
+  function create_page($title = false, $visible = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -540,7 +541,7 @@ class PageProcessor
         'namespace' => $this->namespace,
         'name' => $name,
         'special' => 0,
-        'visible' => 1,
+        'visible' => $visible ? 1 : 0,
         'comments_on' => 1,
         'protected' => ( $this->namespace == 'System' ? 1 : 0 ),
         'delvotes' => 0,
@@ -557,8 +558,8 @@ class PageProcessor
     $blank_array = $db->escape(serialize(array()));
     
     // Query 1: Metadata entry
-    $q = $db->sql_query('INSERT INTO ' . table_prefix . "pages(name, urlname, namespace, protected, delvotes, delvote_ips, wiki_mode)\n"
-                        . "VALUES ( '$name', '$page_id', '$namespace', $protect, 0, '$blank_array', 2 );");
+    $q = $db->sql_query('INSERT INTO ' . table_prefix . "pages(name, urlname, namespace, visible, protected, delvotes, delvote_ips, wiki_mode)\n"
+                      . "  VALUES ( '$name', '$page_id', '$namespace', {$metadata['visible']}, $protect, 0, '$blank_array', 2 );");
     if ( !$q )
       $db->_die('PageProcessor page creation - metadata stage');
     
@@ -577,6 +578,9 @@ class PageProcessor
     
     // Update the cache
     $paths->update_metadata_cache();
+    
+    // Make sure that when/if we save the page later in this instance it doesn't get re-created
+    $this->page_exists = true;
     
     // Page created. We're good!
     return true;
