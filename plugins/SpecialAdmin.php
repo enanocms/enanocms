@@ -408,6 +408,13 @@ function page_Admin_GeneralConfig() {
     
     setConfig('userpage_grant_acl', ( isset($_POST['userpage_grant_acl']) ? '1' : '0' ));
     
+    // Allow plugins to save their changes
+    $code = $plugins->setHook('acp_general_save');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     echo '<div class="info-box">' . $lang->get('acpgc_msg_save_success') . '</div><br />';
     
   }
@@ -618,11 +625,11 @@ function page_Admin_GeneralConfig() {
           <label>
             <input name="comment_spam_policy" type="radio" value="moderate" <?php if ( getConfig('comment_spam_policy', 'moderate') == 'moderate' ) echo 'checked="checked"'; ?>/>
             <?php echo $lang->get('acpgc_field_comment_spam_policy_moderate'); ?>
-          </label>
+          </label><br /> 
           <label>
             <input name="comment_spam_policy" type="radio" value="reject" <?php if ( getConfig('comment_spam_policy', 'moderate') == 'reject' ) echo 'checked="checked"'; ?>/>
             <?php echo $lang->get('acpgc_field_comment_spam_policy_reject'); ?>
-          </label>
+          </label><br />
           <label>
             <input name="comment_spam_policy" type="radio" value="accept" <?php if ( getConfig('comment_spam_policy', 'moderate') == 'accept' ) echo 'checked="checked"'; ?>/>
             <?php echo $lang->get('acpgc_field_comment_spam_policy_accept'); ?>
@@ -712,6 +719,15 @@ function page_Admin_GeneralConfig() {
           <input type="text" name="cdn_path" value="<?php echo htmlspecialchars(getConfig('cdn_path', '')); ?>" style="width: 98%;" />
         </td>
       </tr>
+      
+    <!-- Allow plugins to add code -->
+      <?php
+      $code = $plugins->setHook('acp_general_basic');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      ?>
       
     </table>
     </div>
@@ -1042,10 +1058,19 @@ function page_Admin_GeneralConfig() {
           </label>
         </td>
       </tr>
+      
+    <!-- Allow plugins to add code -->
+      <?php
+      $code = $plugins->setHook('acp_general_users');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      ?>
         
     </table>
     </div>
-        
+    
     <div class="tblholder">
     <table border="0" width="100%" cellspacing="1" cellpadding="4">
     
@@ -1159,10 +1184,28 @@ function page_Admin_GeneralConfig() {
         </td>
       </tr>
       
+    <!-- Allow plugins to add code -->
+      <?php
+      $code = $plugins->setHook('acp_general_sidebar');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      ?>
+      
     <!-- Save button -->
     
     </table>
     </div>
+    
+    <!-- Allow plugins to add code -->
+      <?php
+      $code = $plugins->setHook('acp_general_tail');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      ?>
         
     <div class="tblholder">
     <table border="0" width="100%" cellspacing="1" cellpadding="4">
