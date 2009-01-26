@@ -19,7 +19,7 @@ window.ajaxComments = function(parms)
   if(comment_template)
     parms.have_template = true;
   parms = ajaxEscape(toJSONString(parms));
-  ajaxPost(stdAjaxPrefix+'&_mode=comments', 'data=' + parms, function() {
+  ajaxPost(stdAjaxPrefix+'&_mode=comments', 'data=' + parms, function(ajax) {
     if ( ajax.readyState == 4 && ajax.status == 200 ) {
       unsetAjaxLoading();
       selectButtonMajor('discussion');

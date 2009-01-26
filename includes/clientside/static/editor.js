@@ -18,7 +18,7 @@ window.ajaxEditor = function(revid)
   setAjaxLoading();
   
   var rev_id_uri = ( revid ) ? '&revid=' + revid : '';
-  ajaxGet(stdAjaxPrefix + '&_mode=getsource' + rev_id_uri, function()
+  ajaxGet(stdAjaxPrefix + '&_mode=getsource' + rev_id_uri, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -581,7 +581,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
   }
   
   json_packet = ajaxEscape(toJSONString(json_packet));
-  ajaxPost(stdAjaxPrefix + '&_mode=savepage_json', 'r=' + json_packet, function()
+  ajaxPost(stdAjaxPrefix + '&_mode=savepage_json', 'r=' + json_packet, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -669,7 +669,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
             editor_save_lock = false;
             enableUnload();
             changeOpac(0, 'ajaxEditContainer');
-            ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function()
+            ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function(ajax)
               {
                 if ( ajax.readyState == 4 && ajax.status == 200 )
                 {
@@ -736,7 +736,7 @@ window.ajaxEditorGenPreview = function()
   {
     opacity('enano_editor_preview', 100, 0, 500);
   }
-  ajaxPost(stdAjaxPrefix + '&_mode=preview', 'text=' + ta_content, function()
+  ajaxPost(stdAjaxPrefix + '&_mode=preview', 'text=' + ta_content, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -761,7 +761,7 @@ window.ajaxEditorRevertToLatest = function()
 window.ajaxEditorRevertToLatestReal = function()
 {
   ajaxSetEditorLoading();
-  ajaxGet(stdAjaxPrefix + '&_mode=getsource', function()
+  ajaxGet(stdAjaxPrefix + '&_mode=getsource', function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -803,7 +803,7 @@ window.ajaxEditorShowDiffs = function()
   {
     opacity('enano_editor_preview', 100, 0, 500);
   }
-  ajaxPost(stdAjaxPrefix + '&_mode=diff_cur', 'text=' + ta_content, function()
+  ajaxPost(stdAjaxPrefix + '&_mode=diff_cur', 'text=' + ta_content, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -982,7 +982,7 @@ window.ajaxEditorUseDraft = function()
   if ( !aed )
     return false;
   ajaxSetEditorLoading();
-  ajaxGet(stdAjaxPrefix + '&_mode=getsource&get_draft=1', function()
+  ajaxGet(stdAjaxPrefix + '&_mode=getsource&get_draft=1', function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {

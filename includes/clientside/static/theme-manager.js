@@ -46,7 +46,7 @@ function ajaxInstallTheme(theme_id)
       theme_id: theme_id
     });
   // we've finished nukeing the existing interface, request editor data
-  ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + ajaxEscape(req), function()
+  ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + ajaxEscape(req), function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -121,7 +121,7 @@ function ajaxEditTheme(theme_id)
           theme_id: theme_id
         });
       // we've finished nukeing the existing interface, request editor data
-      ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + ajaxEscape(req), function()
+      ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + ajaxEscape(req), function(ajax)
         {
           if ( ajax.readyState == 4 && ajax.status == 200 )
           {
@@ -484,7 +484,7 @@ function ajaxThemeManagerHandleUserAdd()
       mode: 'uid_lookup',
       username: f_useradd.value
     });
-  ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + ajaxEscape(req), function()
+  ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + ajaxEscape(req), function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -604,7 +604,7 @@ function ajaxThemeManagerHandleSaveRequest()
   
   // Request the save
   var parent = document.getElementById('ajaxPageContainer');
-  ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + json_send, function()
+  ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + json_send, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {
@@ -638,7 +638,7 @@ function ajaxThemeManagerHandleUninstallClick()
   
   // Request the action
   var parent = document.getElementById('ajaxPageContainer');
-  ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + json_send, function()
+  ajaxPost(makeUrlNS('Admin', 'ThemeManager/action.json'), 'r=' + json_send, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
       {

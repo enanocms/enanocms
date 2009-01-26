@@ -105,16 +105,20 @@ function ajaxGet(uri, f, call_editor_safe) {
     editor_open = false;
     enableUnload();
   }
-  ajax = ajaxMakeXHR();
+  var ajax = ajaxMakeXHR();
   if ( !ajax )
   {
     console.error('ajaxMakeXHR() failed');
     return false;
   }
-  ajax.onreadystatechange = f;
+  ajax.onreadystatechange = function()
+  {
+    f(ajax);
+  };
   ajax.open('GET', uri, true);
   ajax.setRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" );
   ajax.send(null);
+  window.ajax = ajax;
 }
 
 function ajaxPost(uri, parms, f, call_editor_safe) {
@@ -133,13 +137,16 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
     editor_open = false;
     enableUnload();
   }
-  ajax = ajaxMakeXHR();
+  var ajax = ajaxMakeXHR();
   if ( !ajax )
   {
     console.error('ajaxMakeXHR() failed');
     return false;
   }
-  ajax.onreadystatechange = f;
+  ajax.onreadystatechange = function()
+  {
+    f(ajax);
+  };
   ajax.open('POST', uri, true);
   ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   // Setting Content-length in Safari triggers a warning
@@ -149,6 +156,7 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
   }
   ajax.setRequestHeader("Connection", "close");
   ajax.send(parms);
+  window.ajax = ajax;
 }
 
 /**
