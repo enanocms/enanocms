@@ -190,7 +190,11 @@ td#mainhead a { text-decoration: none; color: #000000; }
 td#mainhead a:hover { text-decoration: none; color: #000000; border-bottom: 1px dotted #408060; }
 
 /* Text, headings, and links inside the main div (usually #ajaxEditContainer but used some other places as well) */
-div.contentDiv h2 {
+div.contentDiv h1 {
+  margin-top: 0.3em;
+}
+
+div.contentDiv h1, div.contentDiv h2 {
   border-bottom: 1px solid #90D0B0;
   margin-bottom: 0;
 }
@@ -379,7 +383,7 @@ div.tblholder th a {
 }
 
 div.tblholder th a:hover {
-  color: #FF00FF !important;
+  color: #FFFF00 !important;
   text-decoration: underline !important;
 }
 
@@ -524,6 +528,12 @@ input:focus, textarea:focus, select:focus {
   padding: 3px;
 }
 
+input.ac_loading {
+  background-image: url(../../../images/loading.gif);
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
 label {
   padding: 3px;
   cursor: pointer;
@@ -538,13 +548,23 @@ label:hover {
 }
 
 input#pageheading {
-  font-size: 14pt;
+  font-family: trebuchet ms, verdana, arial, helvetica, sans-serif;
+  font-size: 18pt;
+  font-weight: bold;
+  border-width: 0 0 1px 0;
+  width: 100%;
   border-bottom: 1px solid #90D0B0;
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0;
+}
+
+input#pageheading:focus {
+  background-color: #fafafa;
 }
 
 input[type ^="button"], input[type ^="submit"], button {
-  background-image: url(../images/buttonbg.gif);
+  background-image: url(../images/mint/sprite-horiz.gif);
+  background-position: 0% -60px;
   background-repeat: repeat-x;
   color: #202020;
 }
@@ -648,7 +668,8 @@ div#ajaxEditContainer pre {
 div.toolbar {
   border: 1px solid #3b9c61;
   background-color: #D0D0D0;
-  background-image: url(../images/tb-bkg.gif);
+  background-image: url(../images/mint/sprite-horiz.gif);
+  background-position: 0 -90px;
   padding: 1px 0;
   height: 22px;
   font-family: arial, sans-serif;
@@ -683,13 +704,14 @@ div.toolbar a {
 div.toolbar a:hover, div.toolbar a:focus {
   border: 1px solid #008000;
   background-color: #ceedce;
-  background-image: url(../images/tb-frg.gif);
+  background-image: url(../images/mint/sprite-horiz.gif);
+  background-position: 0 -118px;
   color: #000000;
   text-decoration: none;
 }
 div.toolbar a:active {
   background-color: #E0E0E0;
-  background-image: url(../images/tb-psh.gif);
+  background-position: 0 -138px;
 }
 div.toolbar img {
   margin: 0;
@@ -773,3 +795,29 @@ div.toolbar_vert li span {
   padding-right: 5px;
 }
 
+/*
+ * Userpage styles
+ */
+
+ul.userpage_links li {
+  background-image: url('../images/buttonbg.gif');
+  background-repeat: repeat-x;
+}
+
+ul.userpage_links li a {
+  color: #202020;
+}
+
+ul.userpage_links li.userpage_tab_active {
+  background-image: url('../images/buttonbg-lite.gif');
+}
+
+ul.userpage_links li:hover {
+  background-image: url('../images/buttonbg-lite.gif');
+  border-color: #404040 #404040 #ffffff #404040;
+  border-bottom-width: 0;
+}
+
+ul.userpage_links li.userpage_tab_active:hover {
+  border-bottom-width: 1px;
+}
