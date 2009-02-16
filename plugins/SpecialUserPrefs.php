@@ -431,7 +431,7 @@ function page_Special_Preferences()
           $imaddr_msn = "$imaddr_msn@hotmail.com";
         }
         
-        if ( substr($homepage, 0, 7) != 'http://' )
+        if ( !preg_match('#^https?://#', $homepage) )
         {
           $homepage = "http://$homepage";
         }
