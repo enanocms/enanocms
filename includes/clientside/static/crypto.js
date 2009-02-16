@@ -1732,66 +1732,6 @@ function decrypt(block, expandedKey) {
   return unpackBytes(block);
 }
 
-// This method takes a byte array (byteArray) and converts it to a string by
-// applying String.fromCharCode() to each value and concatenating the result.
-// The resulting string is returned. Note that this function SKIPS zero bytes
-// under the assumption that they are padding added in formatPlaintext().
-// Obviously, do not invoke this method on raw data that can contain zero
-// bytes. It is really only appropriate for printable ASCII/Latin-1 
-// values. Roll your own function for more robust functionality :)
-
-function byteArrayToString(byteArray) {
-  var result = "";
-  for(var i=0; i<byteArray.length; i++)
-    if (byteArray[i] != 0) 
-      result += String.fromCharCode(byteArray[i]);
-  return result;
-}
-
-// This function takes an array of bytes (byteArray) and converts them
-// to a hexadecimal string. Array element 0 is found at the beginning of 
-// the resulting string, high nibble first. Consecutive elements follow
-// similarly, for example [16, 255] --> "10ff". The function returns a 
-// string.
-
-function byteArrayToHex(byteArray) {
-  var result = "";
-  if (!byteArray)
-    return;
-  for (var i=0; i<byteArray.length; i++)
-    result += ((byteArray[i]<16) ? "0" : "") + byteArray[i].toString(16);
-
-  return result;
-}
-
-// This function converts a string containing hexadecimal digits to an 
-// array of bytes. The resulting byte array is filled in the order the
-// values occur in the string, for example "10FF" --> [16, 255]. This
-// function returns an array. 
-
-function hexToByteArray(hexString) {
-  /*
-  var byteArray = [];
-  if (hexString.length % 2)             // must have even length
-    return;
-  if (hexString.indexOf("0x") == 0 || hexString.indexOf("0X") == 0)
-    hexString = hexString.substring(2);
-  for (var i = 0; i<hexString.length; i += 2) 
-    byteArray[Math.floor(i/2)] = parseInt(hexString.slice(i, i+2), 16);
-  return byteArray;
-  */
-  var bytes = new Array();
-  hexString = str_split(hexString, 2);
-  //alert(hexString.toString());
-  //return false;
-  for( var i in hexString )
-  {
-    bytes[bytes.length] = parseInt(hexString[i], 16);
-  }
-  //alert(bytes.toString());
-  return bytes;
-}
-
 // This function packs an array of bytes into the four row form defined by
 // Rijndael. It assumes the length of the array of bytes is divisible by
 // four. Bytes are filled in according to the Rijndael spec (starting with
@@ -1967,12 +1907,90 @@ function rijndaelDecrypt(ciphertext, key, mode) {
   return pt;
 }
 
+// This method takes a byte array (byteArray) and converts it to a string by
+// applying String.fromCharCode() to each value and concatenating the result.
+// The resulting string is returned. Note that this function SKIPS zero bytes
+// under the assumption that they are padding added in formatPlaintext().
+// Obviously, do not invoke this method on raw data that can contain zero
+// bytes. It is really only appropriate for printable ASCII/Latin-1 
+// values. Roll your own function for more robust functionality :)
+
+function byteArrayToString(byteArray) {
+  var result = "";
+  for ( var i=0; i < byteArray.length; i++ )
+    if (byteArray[i] != 0) 
+      result += '%' + byteArray[i].toString(16);
+  return decodeURIComponent(result);
+}
+
+// This function takes an array of bytes (byteArray) and converts them
+// to a hexadecimal string. Array element 0 is found at the beginning of 
+// the resulting string, high nibble first. Consecutive elements follow
+// similarly, for example [16, 255] --> "10ff". The function returns a 
+// string.
+
+function byteArrayToHex(byteArray) {
+  var result = "";
+  if (!byteArray)
+    return;
+  for (var i=0; i<byteArray.length; i++)
+    result += ((byteArray[i]<16) ? "0" : "") + byteArray[i].toString(16);
+
+  return result;
+}
+
+// This function converts a string containing hexadecimal digits to an 
+// array of bytes. The resulting byte array is filled in the order the
+// values occur in the string, for example "10FF" --> [16, 255]. This
+// function returns an array. 
+
+function hexToByteArray(hexString) {
+  /*
+  var byteArray = [];
+  if (hexString.length % 2)             // must have even length
+    return;
+  if (hexString.indexOf("0x") == 0 || hexString.indexOf("0X") == 0)
+    hexString = hexString.substring(2);
+  for (var i = 0; i<hexString.length; i += 2) 
+    byteArray[Math.floor(i/2)] = parseInt(hexString.slice(i, i+2), 16);
+  return byteArray;
+  */
+  var bytes = new Array();
+  hexString = str_split(hexString, 2);
+  //alert(hexString.toString());
+  //return false;
+  for( var i in hexString )
+  {
+    bytes[bytes.length] = parseInt(hexString[i], 16);
+  }
+  //alert(bytes.toString());
+  return bytes;
+}
+
 function stringToByteArray(text)
 {
-  result = new Array();
-  for ( i=0; i<text.length; i++ )
+  // Modified for Enano 2009-02-16 to be Unicode-safe
+  var result = new Array();
+  text = encodeURIComponent(text);
+  for ( var i = 0; i < text.length; i++ )
   {
-    result[result.length] = text.charCodeAt(i);
+    var ch = text.charCodeAt(i);
+    var a = false;
+    if ( ch == 37 ) // "%"
+    {
+      var hexch = text.substr(i, 3);
+      if ( hexch.match(/^%[a-f0-9][a-f0-9]$/i) )
+      {
+        console.debug('hexch: ', hexch);
+        result[result.length] = (unescape(hexch)).charCodeAt(0);
+        a = true;
+        i += 2;
+      }
+    }
+    if ( !a )
+    {
+      result[result.length] = ch;
+    }
   }
   return result;
 }
