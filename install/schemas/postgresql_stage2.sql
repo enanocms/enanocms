@@ -11,15 +11,15 @@
 -- postgresql_stage2.sql - PostgreSQL installation schema, main payload
 
 CREATE TABLE {{TABLE_PREFIX}}categories(
-  page_id varchar(64),
-  namespace varchar(64),
+  page_id varchar(512),
+  namespace varchar(16),
   category_id varchar(64)
 );
 
 CREATE TABLE {{TABLE_PREFIX}}comments(
   comment_id SERIAL,
-  page_id text,
-  namespace text,
+  page_id varchar(512),
+  namespace varchar(16),
   subject text,
   comment_data text,
   name text,
@@ -36,8 +36,8 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   action varchar(16),
   time_id int NOT NULL DEFAULT '0',
   date_string varchar(63),
-  page_id text,
-  namespace text,
+  page_id varchar(512),
+  namespace varchar(16),
   page_text text,
   char_tag varchar(40),
   author varchar(63),
@@ -48,7 +48,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
 );
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(
-  page_id varchar(255),
+  page_id varchar(512),
   namespace varchar(16) NOT NULL DEFAULT 'Article',
   page_text text,
   char_tag varchar(63)
@@ -62,6 +62,7 @@ CREATE TABLE {{TABLE_PREFIX}}pages(
   special smallint DEFAULT '0',
   visible smallint DEFAULT '1',
   comments_on smallint DEFAULT '1',
+  page_format varchar(16) NOT NULL DEFAULT 'wikitext',
   protected smallint NOT NULL DEFAULT 0,
   wiki_mode smallint NOT NULL DEFAULT 2,
   delvotes int NOT NULL DEFAULT 0,
@@ -149,7 +150,7 @@ CREATE TABLE {{TABLE_PREFIX}}banlist(
 CREATE TABLE {{TABLE_PREFIX}}files(
   file_id SERIAL,
   time_id int NOT NULL,
-  page_id varchar(63) NOT NULL,
+  page_id varchar(512) NOT NULL,
   filename varchar(127) DEFAULT NULL,
   size bigint NOT NULL,
   mimetype varchar(63) DEFAULT NULL,
@@ -193,8 +194,8 @@ CREATE TABLE {{TABLE_PREFIX}}hits(
   hit_id SERIAL,
   username varchar(63) NOT NULL,
   time int NOT NULL DEFAULT 0,
-  page_id varchar(63),
-  namespace varchar(63),
+  page_id varchar(512),
+  namespace varchar(16),
   PRIMARY KEY ( hit_id ) 
 );
 
@@ -227,8 +228,8 @@ CREATE TABLE {{TABLE_PREFIX}}acl(
   rule_id SERIAL,
   target_type smallint NOT NULL,
   target_id int NOT NULL,
-  page_id varchar(255),
-  namespace varchar(24),
+  page_id varchar(512),
+  namespace varchar(16),
   rules text,
   PRIMARY KEY ( rule_id ) 
 );
@@ -248,8 +249,8 @@ CREATE TABLE {{TABLE_PREFIX}}page_groups(
 CREATE TABLE {{TABLE_PREFIX}}page_group_members(
   pg_member_id SERIAL,
   pg_id int NOT NULL,
-  page_id varchar(63) NOT NULL,
-  namespace varchar(63) NOT NULL DEFAULT 'Article',
+  page_id varchar(512) NOT NULL,
+  namespace varchar(16) NOT NULL DEFAULT 'Article',
   PRIMARY KEY ( pg_member_id )
 );
 
@@ -258,8 +259,8 @@ CREATE TABLE {{TABLE_PREFIX}}page_group_members(
 CREATE TABLE {{TABLE_PREFIX}}tags(
   tag_id SERIAL,
   tag_name varchar(63) NOT NULL DEFAULT 'bla',
-  page_id varchar(255) NOT NULL,
-  namespace varchar(255) NOT NULL,
+  page_id varchar(512) NOT NULL,
+  namespace varchar(16) NOT NULL,
   user_id int NOT NULL DEFAULT 1,
   PRIMARY KEY ( tag_id )
 );

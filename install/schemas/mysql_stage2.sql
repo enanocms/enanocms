@@ -11,15 +11,15 @@
 -- mysql_stage2.sql - MySQL installation schema, main payload
 
 CREATE TABLE {{TABLE_PREFIX}}categories(
-  page_id varchar(64),
-  namespace varchar(64),
+  page_id varchar(512),
+  namespace varchar(16),
   category_id varchar(64)
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}comments(
   comment_id int(12) NOT NULL auto_increment,
-  page_id text,
-  namespace text,
+  page_id varchar(512),
+  namespace varchar(16),
   subject text,
   comment_data text,
   name text,
@@ -36,19 +36,20 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   action varchar(16),
   time_id int(12) NOT NULL DEFAULT '0',
   date_string varchar(63),
-  page_id text,
-  namespace text,
+  page_id varchar(512),
+  namespace varchar(16),
   page_text text,
   char_tag varchar(40),
   author varchar(63),
   edit_summary text,
   minor_edit tinyint(1),
+  page_format varchar(16) NOT NULL DEFAULT 'wikitext',
   is_draft tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY ( log_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
 CREATE TABLE {{TABLE_PREFIX}}page_text(
-  page_id varchar(255),
+  page_id varchar(512),
   namespace varchar(16) NOT NULL DEFAULT 'Article',
   page_text text,
   char_tag varchar(63),
@@ -63,6 +64,7 @@ CREATE TABLE {{TABLE_PREFIX}}pages(
   special tinyint(1) default '0',
   visible tinyint(1) default '1',
   comments_on tinyint(1) default '1',
+  page_format varchar(16) NOT NULL DEFAULT 'wikitext',
   protected tinyint(1) NOT NULL DEFAULT 0,
   wiki_mode tinyint(1) NOT NULL DEFAULT 2,
   delvotes int(10) NOT NULL DEFAULT 0,
@@ -148,7 +150,7 @@ CREATE TABLE {{TABLE_PREFIX}}banlist(
 CREATE TABLE {{TABLE_PREFIX}}files(
   file_id int(12) NOT NULL auto_increment,
   time_id int(12) NOT NULL,
-  page_id varchar(63) NOT NULL,
+  page_id varchar(512) NOT NULL,
   filename varchar(127) default NULL,
   size bigint(15) NOT NULL,
   mimetype varchar(63) default NULL,
@@ -192,8 +194,8 @@ CREATE TABLE {{TABLE_PREFIX}}hits(
   hit_id bigint(20) NOT NULL auto_increment,
   username varchar(63) NOT NULL,
   time int(12) NOT NULL DEFAULT 0,
-  page_id varchar(63),
-  namespace varchar(63),
+  page_id varchar(512),
+  namespace varchar(16),
   PRIMARY KEY ( hit_id ) 
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
@@ -226,8 +228,8 @@ CREATE TABLE {{TABLE_PREFIX}}acl(
   rule_id int(12) UNSIGNED NOT NULL auto_increment,
   target_type tinyint(1) UNSIGNED NOT NULL,
   target_id int(12) UNSIGNED NOT NULL,
-  page_id varchar(255),
-  namespace varchar(24),
+  page_id varchar(512),
+  namespace varchar(16),
   rules text,
   PRIMARY KEY ( rule_id ) 
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
@@ -247,8 +249,8 @@ CREATE TABLE {{TABLE_PREFIX}}page_groups(
 CREATE TABLE {{TABLE_PREFIX}}page_group_members(
   pg_member_id int(12) NOT NULL auto_increment,
   pg_id mediumint(8) NOT NULL,
-  page_id varchar(63) NOT NULL,
-  namespace varchar(63) NOT NULL DEFAULT 'Article',
+  page_id varchar(512) NOT NULL,
+  namespace varchar(16) NOT NULL DEFAULT 'Article',
   PRIMARY KEY ( pg_member_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
@@ -257,8 +259,8 @@ CREATE TABLE {{TABLE_PREFIX}}page_group_members(
 CREATE TABLE {{TABLE_PREFIX}}tags(
   tag_id int(12) NOT NULL auto_increment,
   tag_name varchar(63) NOT NULL DEFAULT 'bla',
-  page_id varchar(255) NOT NULL,
-  namespace varchar(255) NOT NULL,
+  page_id varchar(512) NOT NULL,
+  namespace varchar(16) NOT NULL,
   user_id mediumint(8) NOT NULL DEFAULT 1,
   PRIMARY KEY ( tag_id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
@@ -337,29 +339,24 @@ CREATE TABLE {{TABLE_PREFIX}}plugins (
   PRIMARY KEY ( plugin_id )
 ) ENGINE `MyISAM` CHARACTER SET `utf8` COLLATE `utf8_bin`;
 
+-- Added in 1.1.6: Indices for several tables
+-- The size of 317 is a trial-and-error-produced value based on MySQL's index column size limit
+-- of 1000 bytes. It's low like that because of the UTF-8 character set being used.
+ALTER TABLE {{TABLE_PREFIX}}logs ADD INDEX {{TABLE_PREFIX}}logs_page_idx (page_id(317), namespace);
+ALTER TABLE {{TABLE_PREFIX}}logs ADD INDEX {{TABLE_PREFIX}}logs_time_idx (time_id);
+ALTER TABLE {{TABLE_PREFIX}}comments ADD INDEX {{TABLE_PREFIX}}comments_page_idx (page_id(317), namespace);
+
+-- The default config. Kind of important.
+-- P.S. the allowed_mime_types value is a compressed bitfield. Source for the (rather simple) algo is in functions.php.
+
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
-  ('main_page', 'Main_Page'),
   ('site_desc', '{{SITE_DESC}}'),
   ('wiki_mode', '{{WIKI_MODE}}'),
-  ('wiki_edit_notice', '0'),
-  ('sflogo_enabled', '0'),
-  ('sflogo_groupid', ''),
-  ('sflogo_type', '1'),
-  ('w3c_vh32', '0'),
-  ('w3c_vh40', '0'),
-  ('w3c_vh401', '0'),
-  ('w3c_vxhtml10', '0'),
-  ('w3c_vxhtml11', '0'),
-  ('w3c_vcss', '0'),
-  ('approve_comments', '0'),
-  ('enable_comments', '1'),
   ('copyright_notice', '{{COPYRIGHT}}'),
-  ('wiki_edit_notice_text', '== Why can I edit this page? ==\n\nEveryone can edit almost any page in this website. This concept is called a wiki. It gives everyone the opportunity to make a change for the best. While some spam and vandalism may occur, it is believed that most contributions will be legitimate and helpful.\n\nFor security purposes, a history of all page edits is kept, and administrators are able to restore vandalized or spammed pages with just a few clicks.'),
   ('cache_thumbs', '{{ENABLE_CACHE}}'),
-  ('max_file_size', '256000'),('enano_version', '{{VERSION}}'),( 'allowed_mime_types', 'cbf:len=185;crc=55fb6f14;data=0[1],1[4],0[3],1[1],0[22],1[1],0[16],1[3],0[16],1[1],0[1],1[2],0[6],1[1],0[1],1[1],0[4],1[2],0[3],1[1],0[48],1[2],0[2],1[1],0[4],1[1],0[37]|end' ),
   ('contact_email', '{{ADMIN_EMAIL}}'),
-  ('powered_btn', '1');
+  ('allowed_mime_types', 'cbf2:7414a6b80184038102810b810781098106830a810282018101820683018102840182038104821a850682028104810a82018116');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
   ('Main_Page', 'Article', '{{MAIN_PAGE_CONTENT}}', '');
@@ -387,9 +384,10 @@ INSERT INTO {{TABLE_PREFIX}}ranks(rank_id, rank_title, rank_style) VALUES
   (3, 'user_rank_admin', 'font-weight: bold; color: #AA0000;'),
   (4, 'user_rank_guest', '');
 
-INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES(1, 'Everyone', 3, 1),
-  (2,'Administrators',3,1),
-  (3,'Moderators',3,1);
+INSERT INTO {{TABLE_PREFIX}}groups(group_id,group_name,group_type,system_group) VALUES
+  (1, 'Everyone', 3, 1),
+  (2, 'Administrators', 3, 1),
+  (3, 'Moderators', 3, 1);
 
 INSERT INTO {{TABLE_PREFIX}}group_members(group_id,user_id,is_mod) VALUES(2, 2, 1);
 
