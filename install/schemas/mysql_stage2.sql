@@ -356,7 +356,8 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('copyright_notice', '{{COPYRIGHT}}'),
   ('cache_thumbs', '{{ENABLE_CACHE}}'),
   ('contact_email', '{{ADMIN_EMAIL}}'),
-  ('allowed_mime_types', 'cbf2:7414a6b80184038102810b810781098106830a810282018101820683018102840182038104821a850682028104810a82018116');
+  ('allowed_mime_types', 'cbf2:7414a6b80184038102810b810781098106830a810282018101820683018102840182038104821a850682028104810a82018116'),
+  ('enano_version', '{{VERSION}}');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
   ('Main_Page', 'Article', '{{MAIN_PAGE_CONTENT}}', '');
