@@ -50,7 +50,7 @@ class PageUtils {
   public static function getsource($page, $password = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!isset($paths->pages[$page]))
+    if(!isPage($page))
     {
       return '';
     }
@@ -117,7 +117,7 @@ class PageUtils {
     if(!$session->get_permissions('edit_page'))
       return 'Access to edit pages is denied.';
     
-    if(!isset($paths->pages[$pname]))
+    if(!isPage($pname))
     {
       $create = PageUtils::createPage($page_id, $namespace);
       if ( $create != 'good' )
@@ -195,7 +195,7 @@ class PageUtils {
     }
     
     $pname = $paths->nslist[$namespace] . $page_id;
-    if(isset($paths->pages[$pname]))
+    if(isPage($pname))
     {
       // echo '<b>Notice:</b> PageUtils::createPage: Page already exists<br />';
       return 'Page already exists';
@@ -346,7 +346,7 @@ class PageUtils {
       return 'DNE';
     }
     
-    if ( isset($paths->pages[$pname]['password']) )
+    if ( isPage($pname['password']) )
     {
       $password_exists = ( !empty($paths->pages[$pname]['password']) && $paths->pages[$pname]['password'] !== sha1('') );
       if ( $password_exists && $password !== $paths->pages[$pname]['password'] )
@@ -572,7 +572,7 @@ class PageUtils {
     $text = RenderMan::preprocess_text($text);
     $name = $session->user_logged_in ? RenderMan::preprocess_text($session->username) : RenderMan::preprocess_text($name);
     $subj = RenderMan::preprocess_text($subject);
-    if(getConfig('approve_comments')=='1') $appr = '0'; else $appr = '1';
+    if(getConfig('approve_comments', '0')=='1') $appr = '0'; else $appr = '1';
     $q = 'INSERT INTO ' . table_prefix.'comments(page_id,namespace,subject,comment_data,name,user_id,approved,time) VALUES(\'' . $page_id . '\',\'' . $namespace . '\',\'' . $subj . '\',\'' . $text . '\',\'' . $name . '\',' . $session->user_id . ',' . $appr . ','.time().')';
     $e = $db->sql_query($q);
     if(!$e) die('alert(unescape(\''.rawurlencode('Error inserting comment data: '.$db->get_error().'\n\nQuery:\n' . $q) . '\'))');
@@ -801,7 +801,7 @@ class PageUtils {
       {
         $_ob .= '<h3>' . $lang->get('comment_postform_title') . '</h3>';
         $_ob .= $lang->get('comment_postform_blurb');
-        if(getConfig('approve_comments')=='1') $_ob .= ' ' . $lang->get('comment_postform_blurb_unapp');
+        if(getConfig('approve_comments', '0')=='1') $_ob .= ' ' . $lang->get('comment_postform_blurb_unapp');
         if(getConfig('comments_need_login') == '1' && !$session->user_logged_in)
         {
           $_ob .= ' ' . $lang->get('comment_postform_blurb_captcha');
@@ -1192,7 +1192,7 @@ class PageUtils {
     
     $pname = $paths->nslist[$namespace] . sanitize_page_id($page_id);
     
-    if ( !isset($paths->pages[$pname]) )
+    if ( !isPage($pname) )
     {
       return 'The page does not exist.';
     }

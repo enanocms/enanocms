@@ -229,7 +229,7 @@ class PageProcessor
         $this->page_exists = true;
       }
     }
-    if ( isset($paths->pages[$pathskey]) )
+    if ( isPage($pathskey) )
     {
       if ( $this->send_headers )
       {
@@ -305,46 +305,7 @@ class PageProcessor
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    // Send as regular page
-    if ( $this->send_headers )
-    {
-      $template->init_vars($this);
-    }
-    
-    $text = $this->fetch_text();
-    
-    if ( $text == 'err_no_text_rows' )
-    {
-      $this->err_no_rows();
-      return false;
-    }
-    else
-    {
-      $redirect = ( isset($_GET['redirect']) ) ? $_GET['redirect'] : 'YES YOU IDIOT';
-      if ( preg_match('/^#redirect \[\[([^\]]+)\]\]/i', $text, $match) && $redirect != 'no' )
-      {
-        // Redirect page!
-        $page_to = sanitize_page_id($match[1]);
-        $page_id_data = RenderMan::strToPageID($page_to);
-        if ( count($this->redirect_stack) >= 3 )
-        {
-          $this->render( (!$strict_no_headers), '<div class="usermessage"><b>' . $lang->get('page_err_redirects_exceeded') . '</b></div>' );
-        }
-        else
-        {
-          $result = $this->_handle_redirect($page_id_data[0], $page_id_data[1]);
-          if ( $result !== true )
-          {
-            // There was some error during the redirect process - usually an infinite redirect
-            $this->render( (!$strict_no_headers), '<div class="usermessage"><b>' . $result . '</b></div>' );
-          }
-        }
-      }
-      else
-      {
-        $this->render( (!$strict_no_headers) );
-      }
-    }
+    $this->ns->send_from_db();
   }
   
   /**
@@ -365,7 +326,7 @@ class PageProcessor
       return '';
     }
     $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-    if ( isset($paths->pages[$pathskey]) )
+    if ( isPage($pathskey) )
     {
       if ( isset($paths->pages[$pathskey]['password']) )
       {
@@ -383,10 +344,11 @@ class PageProcessor
    * @param string The new text for the page
    * @param string A summary of edits made to the page.
    * @param bool If true, the edit is marked as a minor revision
+   * @param string Page format - wikitext or xhtml. REQUIRED, and new in 1.1.6.
    * @return bool True on success, false on failure. When returning false, it will push errors to the PageProcessor error stack; read with $page->pop_error()
    */
   
-  function update_page($text, $edit_summary = false, $minor_edit = false)
+  function update_page($text, $edit_summary = false, $minor_edit = false, $page_format)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -455,6 +417,13 @@ class PageProcessor
       return false;
     }
     
+    // Page format check
+    if ( !in_array($page_format, array('xhtml', 'wikitext')) )
+    {
+      $this->raise_error("format \"$page_format\" not one of [xhtml, wikitext]");
+      return false;
+    }
+    
     //
     // Protection validated; update page content
     //
@@ -468,8 +437,8 @@ class PageProcessor
     $date_string = enano_date('d M Y h:i a');
     
     // Insert log entry
-    $sql = 'INSERT INTO ' . table_prefix . "logs ( time_id, date_string, log_type, action, page_id, namespace, author, page_text, edit_summary, minor_edit )\n"
-         . "  VALUES ( $time, '$date_string', 'page', 'edit', '{$this->page_id}', '{$this->namespace}', '$author', '$text', '$edit_summary', $minor_edit );";
+    $sql = 'INSERT INTO ' . table_prefix . "logs ( time_id, date_string, log_type, action, page_id, namespace, author, page_text, edit_summary, minor_edit, page_format )\n"
+         . "  VALUES ( $time, '$date_string', 'page', 'edit', '{$this->page_id}', '{$this->namespace}', '$author', '$text', '$edit_summary', $minor_edit, '$page_format' );";
     if ( !$db->sql_query($sql) )
     {
       $this->raise_error($db->get_error());
@@ -490,6 +459,20 @@ class PageProcessor
     {
       $this->raise_error($db->get_error());
       return false;
+    }
+    
+    // Set page_format
+    $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
+    if ( $paths->pages[ $pathskey ]['page_format'] != $page_format )
+    {
+      // Note: no SQL injection to worry about here. Everything that goes into this is sanitized already, barring some rogue plugin.
+      // (and if there's a rogue plugin running, we have bigger things to worry about anyway.)
+      if ( !$db->sql_query('UPDATE ' . table_prefix . "pages SET page_format = '$page_format' WHERE urlname = '$this->page_id' AND namespace = '$this->namespace';") )
+      {
+        $this->raise_error($db->get_error());
+        return false;
+      }
+      $paths->update_metadata_cache();
     }
     
     // Rebuild the search index
@@ -673,7 +656,7 @@ class PageProcessor
         
         // Rolling back the deletion of a page that was since created?
         $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-        if ( isset($paths->pages[$pathskey]) )
+        if ( isPage($pathskey) )
           return array(
               'success' => false,
               // This is a clean Christian in-joke.
@@ -875,7 +858,7 @@ class PageProcessor
     
     // Retrieve page metadata
     $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-    if ( !isset($paths->pages[$pathskey]) )
+    if ( !isPage($pathskey) )
     {
       return array(
         'success' => false,
@@ -1038,7 +1021,7 @@ class PageProcessor
       return $lang->get('page_err_redirect_infinite_loop');
     }
     $page_id_key = $paths->nslist[ $namespace ] . sanitize_page_id($page_id);
-    if ( !isset($paths->pages[$page_id_key]) )
+    if ( !isPage($page_id_key) )
     {
       return $lang->get('page_err_redirect_to_nonexistent');
     }

@@ -42,79 +42,14 @@ class RenderMan {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $perms =& $session;
+    $page = new PageProcessor($page_id, $namespace);
+    $text = $page->fetch_text();
     
-    if ( $page_id != $paths->page_id || $namespace != $paths->namespace )
-    {
-      unset($perms);
-      unset($perms); // PHP <5.1.5 Zend bug
-      $perms = $session->fetch_page_acl($page_id, $namespace);
-      if ( !$perms )
-      {
-        $session->init_permissions();
-        $perms = $session->fetch_page_acl($page_id, $namespace);
-      };
-    }
+    if ( !$render )
+      return $text;
     
-    if(!$perms->get_permissions('read'))
-      return 'Access denied ('.$paths->nslist[$namespace].$page_id.')';
-    
-    if($namespace != 'Template' && ($wiki == 0 || $render == false))
-    {
-      if(!$perms->get_permissions('view_source'))
-      {
-        return 'Access denied ('.$paths->nslist[$namespace].$page_id.')';
-      }
-    }
-    
-    $q = $db->sql_query('SELECT page_text,char_tag FROM '.table_prefix.'page_text WHERE page_id=\''.$db->escape($page_id).'\' AND namespace=\''.$db->escape($namespace).'\';');
-    if ( !$q )
-    {
-      $db->_die('Method called was: RenderMan::getPage(\''.$page_id.'\', \''.$namespace.'\');.');
-    }
-    if ( $db->numrows() < 1 )
-    {
-      return false;
-    }
-    $row = $db->fetchrow();
-    $db->free_result();
-    
-    $message = $row['page_text'];
-    $chartag = $row['char_tag'];
-    unset($row); // Free some memory
-    
-    if ( preg_match("#^\#redirect \[\[([^\]\r\n\a\t]+?)\]\]#", $message, $m) && $redir && ( !isset($_GET['redirect']) || ( isset($_GET['redirect']) && $_GET['redirect'] != 'no' ) ) )
-    {
-      $old = $paths->cpage;
-      $a = RenderMan::strToPageID($m[1]);
-      $a[0] = str_replace(' ', '_', $a[0]);
-      
-      $pageid = str_replace(' ', '_', $paths->nslist[$a[1]] . $a[0]);
-      $paths->page = $pageid;
-      $paths->cpage = $paths->pages[$pageid];
-      //die('<pre>'.print_r($paths->cpage,true).'</pre>');
-      
-      unset($template);
-      unset($GLOBALS['template']);
-      
-      $GLOBALS['template'] = new template();
-      global $template;
-      
-      $template->template(); // Tear down and rebuild the template parser
-      $template->load_theme($session->theme, $session->style);
-      
-      $data = '<div><small>(Redirected from <a href="'.makeUrlNS($old['namespace'], $old['urlname_nons'], 'redirect=no', true).'">'.$old['name'].'</a>)</small></div>'.RenderMan::getPage($a[0], $a[1], $wiki, $smilies, $filter_links, false /* Enforces a maximum of one redirect */);
-      
-      return $data;
-    }
-    else if(preg_match('#^\#redirect \[\[(.+?)\]\]#', $message, $m) && isset($_GET['redirect']) && $_GET['redirect'] == 'no')
-    {
-      preg_match('#^\#redirect \[\[(.+)\]\]#', $message, $m);
-      $m[1] = str_replace(' ', '_', $m[1]);
-      $message = preg_replace('#\#redirect \[\[(.+)\]\]#', '<nowiki><div class="mdg-infobox"><table border="0" width="100%" cellspacing="0" cellpadding="0"><tr><td valign="top"><img alt="Cute wet-floor icon" src="'.scriptPath.'/images/redirector.png" /></td><td valign="top" style="padding-left: 10px;"><b>This page is a <i>redirector</i>.</b><br />This means that this page will not show its own content by default. Instead it will display the contents of the page it redirects to.<br /><br />To create a redirect page, make the <i>first characters</i> in the page content <tt>#redirect [[Page_ID]]</tt>. For more information, see the Enano <a href="http://enanocms.org/Help:Wiki_formatting">Wiki formatting guide</a>.<br /><br />This page redirects to <a href="'.makeUrl($m[1]).'">'.$paths->pages[$m[1]]['name'].'</a>.</td></tr></table></div><br /><hr style="margin-left: 1em; width: 200px;" /></nowiki>', $message);
-    }
-    $session->disallow_password_grab();
-    return ($render) ? RenderMan::render($message, $wiki, $smilies, $filter_links) : $message;
+    $text = self::render($text, $wiki, $smilies, $filter_links);
+    return $text;
   }
   
   public static function getTemplate($id, $parms)
@@ -183,7 +118,7 @@ class RenderMan {
         if ( isset($prefixlist[$match[1]]) )
         {
           $new_id = $paths->nslist[ $prefixlist[$match[1]] ] . sanitize_page_id($match[2]);
-          if ( !isset($paths->pages[$new_id]) )
+          if ( !isPage($new_id) )
           {
             return "[[$new_id]]";
           }
@@ -215,43 +150,36 @@ class RenderMan {
     return $text;
   }
   
-  public static function render($text, $wiki = 1, $smilies = true, $filter_links = true)
+  /**
+   * Renders a glob of text. Note that this is PHP-safe, so if returned text (or rather, "?>" . $returned) has PHP it can be eval'ed.
+   * @param string Text to render
+   * @param int Render parameters - see constants.php
+   * @return string Rendered text
+   */
+  
+  public static function render($text, $flags = RENDER_WIKI_DEFAULT, $smilies = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if($smilies)
+    
+    if ( !$smilies )
+      $flags |= RENDER_NOSMILIES;
+    
+    if ( $flags & ~RENDER_NOSMILIES )
     {
       $text = RenderMan::smilieyize($text);
     }
-    if($wiki == 1)
+    if ( $flags & RENDER_WIKI_DEFAULT )
     {
-      $text = RenderMan::next_gen_wiki_format($text);
+      $text = RenderMan::next_gen_wiki_format($text, $flags);
     }
-    elseif($wiki == 2)
+    else if ( $flags & RENDER_WIKI_TEMPLATE )
     {
       $text = $template->tplWikiFormat($text);
-    }
+    }           
     return $text;
   }
   
-  public static function PlainTextRender($text, $wiki = 1, $smilies = false, $filter_links = true)
-  {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    if($smilies)
-    {
-      $text = RenderMan::smilieyize($text);
-    }
-    if($wiki == 1)
-    {
-      $text = RenderMan::next_gen_wiki_format($text, true);
-    }
-    elseif($wiki == 2)
-    {
-      $text = $template->tplWikiFormat($text);
-    }
-    return $text;
-  }
-  
-  public static function next_gen_wiki_format($text, $plaintext = false, $filter_links = true, $do_params = false)
+  private static function next_gen_wiki_format($text, $flags = 0)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -291,76 +219,75 @@ class RenderMan {
       $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
     }
     
-    preg_match_all('/<lang (?:code|id)="([a-z0-9_-]+)">([\w\W]+?)<\/lang>/', $text, $langmatch);
-    foreach ( $langmatch[0] as $i => $match )
+    if ( !($flags & RENDER_BLOCKONLY) )
     {
-      if ( $langmatch[1][$i] == $lang->lang_code )
+      preg_match_all('/<lang (?:code|id)="([a-z0-9_-]+)">([\w\W]+?)<\/lang>/', $text, $langmatch);
+      foreach ( $langmatch[0] as $i => $match )
       {
-        $text = str_replace_once($match, $langmatch[2][$i], $text);
+        if ( $langmatch[1][$i] == $lang->lang_code )
+        {
+          $text = str_replace_once($match, $langmatch[2][$i], $text);
+        }
+        else
+        {
+          $text = str_replace_once($match, '', $text);
+        }
       }
-      else
-      {
-        $text = str_replace_once($match, '', $text);
-      }
-    }
     
-    $code = $plugins->setHook('render_wikiformat_pre');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
+      $code = $plugins->setHook('render_wikiformat_pre');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
     
     //$template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
-    $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
-    $i = 0;
-    while ( preg_match($template_regex, $text) )
-    {
-      $i++;
-      if ( $i == 5 )
-        break;
-      $text = RenderMan::include_templates($text);
-    }
-    
-    $code = $plugins->setHook('render_wikiformat_posttemplates');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    
-    if ( !$plaintext )
-    {
+      $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
+      $i = 0;
+      while ( preg_match($template_regex, $text) )
+      {
+        $i++;
+        if ( $i == 5 )
+          break;
+        $text = RenderMan::include_templates($text);
+      }
+      
+      $code = $plugins->setHook('render_wikiformat_posttemplates');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      
       // Process images
       $text = RenderMan::process_image_tags($text, $taglist);
       $text = RenderMan::process_imgtags_stage2($text, $taglist);
-    }
-    
-    if($do_params)
-    {
-      preg_match_all('#\(_([0-9]+)_\)#', $text, $matchlist);
-      foreach($matchlist[1] as $m)
-      {
-        $text = str_replace('(_'.$m.'_)', $paths->getParam((int)$m), $text);
-      }
     }
     
     // Before shipping it out to the renderer, replace spaces in between headings and paragraphs:
     $text = preg_replace('/<\/(h[0-9]|div|p)>([\s]+)<(h[0-9]|div|p)( .+?)?>/i', '</\\1><\\3\\4>', $text);
     
     $text = process_tables($text);
-    $text = RenderMan::parse_internal_links($text);
+    
+    if ( !($flags & RENDER_BLOCKONLY) )
+      $text = RenderMan::parse_internal_links($text);
     
     $wiki = Text_Wiki::singleton('Mediawiki');
-    if($plaintext)
+    $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', contentPath);
+    $wiki->setRenderConf('Xhtml', 'Url', 'css_descr', 'external');
+    if ( $flags & RENDER_BLOCKONLY )
     {
-      $wiki->setRenderConf('Plain', 'wikilink', 'view_url', contentPath);
-      $result = $wiki->transform($text, 'Plain');
+      $wiki->disableRule('Freelink');
+      $wiki->disableRule('Url');
+      $wiki->disableRule('Toc');
+      $wiki->disableRule('Image');
     }
-    else
+    else if ( $flags & RENDER_INLINEONLY )
     {
-      $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', contentPath);
-      $wiki->setRenderConf('Xhtml', 'Url', 'css_descr', 'external');
-      $result = $wiki->transform($text, 'Xhtml');
+      foreach ( array('code', 'html', 'raw', 'include', 'embed', 'horiz', 'break', 'blockquote', 'list', 'newline', 'paragraph', 'revise', 'tighten') as $rule )
+      {
+        $wiki->disableRule($rule);
+      }
     }
+    $result = $wiki->transform($text, 'Xhtml');
     
     // HTML fixes
     $result = preg_replace('#<tr>([\s]*?)<\/tr>#is', '', $result);
@@ -377,10 +304,13 @@ class RenderMan {
     $result = str_replace("<p></div></p>", "</div>", $result);
     $result = str_replace("<p></table></p>", "</table>", $result);
     
-    $code = $plugins->setHook('render_wikiformat_post');
-    foreach ( $code as $cmd )
+    if ( !($flags & RENDER_BLOCKONLY) )
     {
-      eval($cmd);
+      $code = $plugins->setHook('render_wikiformat_post');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
     }
     
     // Reinsert <nowiki> sections
@@ -406,82 +336,6 @@ class RenderMan {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     return RenderMan::next_gen_wiki_format($message, $plaintext, $filter_links, $do_params);
-    
-    $random_id = md5( time() . mt_rand() );
-    
-    // Strip out <nowiki> sections
-    $nw = preg_match_all('#<nowiki>(.*?)<\/nowiki>#is', $message, $nowiki);
-    
-    if(!$plaintext)
-    {
-    
-      //return '<pre>'.print_r($nowiki,true).'</pre>';
-      
-      for($i=0;$i<sizeof($nowiki[1]);$i++)
-      {
-        $message = str_replace('<nowiki>'.$nowiki[1][$i].'</nowiki>', '{NOWIKI:'.$random_id.':'.$i.'}', $message);
-      }
-      
-      $message = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '\\1', $message);
-      
-      //return '<pre>'.htmlspecialchars($message).'</pre>';
-      
-      $message = RenderMan::process_image_tags($message);
-    
-    }
-    
-    if($do_params)
-    {
-      preg_match_all('#\(_([0-9]+)_\)#', $message, $matchlist);
-      foreach($matchlist[1] as $m)
-      {
-        $message = str_replace('(_'.$m.'_)', $paths->getParam((int)$m), $message);
-      }
-    }
-    
-    $message = RenderMan::include_templates($message);
-    
-    // Reinsert <nowiki> sections
-    for($i=0;$i<$nw;$i++)
-    {
-      $message = str_replace('{NOWIKI:'.$random_id.':'.$i.'}', '<nowiki>'.$nowiki[1][$i].'</nowiki>', $message);
-    }
-    
-    $message = process_tables($message);
-    //if($message2 != $message) return '<pre>'.htmlspecialchars($message2).'</pre>';
-    //$message = str_replace(array('<table>', '</table>'), array('<nowiki><table>', '</table></nowiki>'), $message);
-    
-    $wiki =& Text_Wiki::singleton('Mediawiki');
-    if($plaintext)
-    {
-      $wiki->setRenderConf('Plain', 'wikilink', 'view_url', contentPath);
-      $result = $wiki->transform($message, 'Plain');
-    } else {
-      $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', contentPath);
-      $wiki->setRenderConf('Xhtml', 'Url', 'css_descr', 'external');
-      $result = $wiki->transform($message, 'Xhtml');
-    }
-    
-    // HTML fixes
-    $result = preg_replace('#<tr>([\s]*?)<\/tr>#is', '', $result);
-    $result = preg_replace('#<p>([\s]*?)<\/p>#is', '', $result);
-    $result = preg_replace('#<br />([\s]*?)<table#is', '<table', $result);
-    $result = str_replace("<pre><code>\n", "<pre><code>", $result);
-    $result = preg_replace("/<p><table([^>]*?)><\/p>/", "<table\\1>", $result);
-    $result = str_replace("<br />\n</td>", "\n</td>", $result);
-    $result = str_replace("<p><tr>", "<tr>", $result);
-    $result = str_replace("<tr><br />", "<tr>", $result);
-    $result = str_replace("</tr><br />", "</tr>", $result);
-    $result = str_replace("</table></p>", "</table>", $result);
-    $result = str_replace("</table><br />", "</table>", $result);
-    $result = preg_replace('/<\/table>$/', "</table><br /><br />", $result);
-    $result = str_replace("<p></div></p>", "</div>", $result);
-    $result = str_replace("<p></table></p>", "</table>", $result);
-    
-    $result = str_replace('<nowiki>',  '&lt;nowiki&gt;',  $result);
-    $result = str_replace('</nowiki>', '&lt;/nowiki&gt;', $result);
-    
-    return $result;
   }
   
   public static function destroy_javascript($message, $_php = false)
@@ -516,6 +370,201 @@ class RenderMan {
       $text = preg_replace('#&lt;'.$t.' /&gt;#is', '<'.$t.' />', $text);
       $text = preg_replace('#&lt;'.$t.'&gt;#is', '<'.$t.'>', $text);
     }
+    return $text;
+  }
+  
+  /**
+   * Reverse-renders a blob of text (converts it from XHTML back to wikitext) by using parser hints and educated guesses.
+   * @param string XHTML
+   * @return string Wikitext
+   */
+  
+  public static function reverse_render($text)
+  {
+    // convert \r\n to \n
+    $text = str_replace("\r\n", "\n", $text);
+    
+    // Separate certain block level elements onto their own lines. This tidies up the tag
+    // soup that TinyMCE sometimes produces.
+    $block_elements = array('h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'div', 'table', 'ul', 'pre');
+    $block_elements = implode('|', $block_elements);
+    $regex = "#(</(?:$block_elements)>)\n?<($block_elements)(>| .+?>)#i";
+    $text = preg_replace($regex, "$1\n\n<$2$3", $text);
+    
+    $text = self::reverse_process_parser_hints($text);
+    $text = self::reverse_process_headings($text);
+    $text = self::reverse_process_lists($text);
+    $text = self::reverse_process_tables($text);
+    
+    // Lastly, strip out paragraph tags.
+    $text = preg_replace('|^ *<p>(.+?)</p> *$|m', "\\1", $text);
+    
+    return $text;
+  }
+  
+  public static function reverse_process_parser_hints($text)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    if ( !preg_match_all('|<!--#([a-z0-9_]+)(?: (.+?))?-->([\w\W]*?)<!--#/\\1-->|s', $text, $matches) )
+      return $text;
+    
+    foreach ( $matches[0] as $i => $match )
+    {
+      $tag =& $matches[1][$i];
+      $attribs =& $matches[2][$i];
+      $inner =& $matches[3][$i];
+      
+      $attribs = self::reverse_process_hint_attribs($attribs);
+      switch($tag)
+      {
+        case 'smiley':
+        case 'internallink':
+        case 'imagelink':
+          if ( isset($attribs['code']) )
+          {
+            $text = str_replace($match, $attribs['code'], $text);
+          }
+          else if ( isset($attribs['src']) )
+          {
+            $text = str_replace($match, $attribs['src'], $text);
+          }
+          break;
+      }
+    }
+    
+    return $text;
+  }
+  
+  public static function reverse_process_hint_attribs($attribs)
+  {
+    $return = array();
+    if ( !preg_match_all('/([a-z0-9_-]+)="([^"]+?)"/', $attribs, $matches) )
+      return array();
+    
+    foreach ( $matches[0] as $i => $match )
+    {
+      $name =& $matches[1][$i];
+      $value =& $matches[2][$i];
+      
+      $value = base64_decode($value);
+      
+      $return[$name] = $value;
+    }
+    
+    return $return;
+  }
+  
+  /**
+   * Escapes a string so that it's safe to use as an attribute in a parser hint.
+   * @param string
+   * @return string
+   */
+  
+  public static function escape_parser_hint_attrib($text)
+  {
+    return base64_encode($text);
+  }
+  
+  public static function reverse_process_headings($text)
+  {
+    if ( !preg_match_all('|^<h([1-6])(?: id="toc[0-9]+")?>(.*?)</h\\1>$|m', $text, $matches) )
+      return $text;
+    
+    foreach ( $matches[0] as $i => $match )
+    {
+      // generate heading tag
+      $heading_size = intval($matches[1][$i]);
+      $eq = '';
+      for ( $j = 0; $j < $heading_size; $j++ )
+        $eq .= '=';
+      
+      $heading =& $matches[2][$i];
+      
+      $tag = "$eq $heading $eq";
+      $text = str_replace($match, $tag, $text);
+    }
+    
+    return $text;
+  }
+  
+  public static function reverse_process_lists($text)
+  {
+    if ( !preg_match('!(</?(?:ul|ol|li)>)!', $text) )
+      return $text;
+    
+    $split = preg_split('!(</?(?:ul|ol|li)>)!', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+    
+    $stack_height = 0;
+    $current_list = '';
+    $old_current_list = '';
+    $spaces = '';
+    $marker = '*';
+    $list_id = 0;
+    $just_terminated = false;
+    foreach ( $split as $tag )
+    {
+      switch($tag) 
+      {
+        case '<ul>':
+        case '<ol>':
+          $stack_height++;
+          $just_terminated = false;
+          if ( $stack_height > 1 )
+            $spaces .= $marker;
+          
+          $marker = ( $tag == 'ol' ) ? '#' : '*';
+          if ( $stack_height > 1 )
+            $current_list .= "\n";
+          
+          break;
+        case '</ul>':
+        case '</ol>':
+          $stack_height--;
+          $spaces = substr($spaces, 1);
+          
+          if ( $stack_height == 0 )
+          {
+            // rotate
+            $text = str_replace_once("{$old_current_list}{$tag}", trim($current_list), $text);
+            $current_list = '';
+            $old_current_list = '';
+          }
+          $just_terminated = true;
+          break;
+        case '<li>':
+          if ( $stack_height < 1 )
+            break;
+          
+          $current_list .= "{$spaces}{$marker} ";
+          break;
+        case '</li>':
+          if ( $stack_height < 1 )
+            break;
+          
+          if ( !$just_terminated )
+            $current_list .= "\n";
+          
+          $just_terminated = false;
+          break;
+        default:
+          if ( $stack_height > 0 )
+          {
+            $current_list .= trim($tag);
+          }
+          break;
+      }
+      if ( $stack_height > 0 )
+      {
+        $old_current_list .= $tag;
+      }
+    }
+    
+    return $text;
+  }
+  
+  public static function reverse_process_tables($text)
+  {
     return $text;
   }
   
@@ -567,7 +616,8 @@ class RenderMan {
       }
       else
       {
-        $link = "<a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a>";
+        $omatch = self::escape_parser_hint_attrib($match);
+        $link = "<!--#internallink src=\"$omatch\" --><a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a><!--#/internallink-->";
       }
       
       $text = str_replace($match, $link, $text);
@@ -596,7 +646,8 @@ class RenderMan {
       }
       else
       {
-        $link = "<a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a>";
+        $omatch = self::escape_parser_hint_attrib($match);
+        $link = "<!--#internallink src=\"$omatch\" --><a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a><!--#/internallink-->";
       }
       
       $text = str_replace($match, $link, $text);
@@ -775,6 +826,9 @@ class RenderMan {
       eval($cmd);
     }
     
+    // gently apply some reverse-processing to allow Text_Wiki to do magic with TOCs and stuff
+    $text = self::reverse_process_headings($text);
+    
     // Reinsert <nowiki> sections
     for($i=0;$i<$nw;$i++)
     {
@@ -844,82 +898,37 @@ class RenderMan {
       ':-['     => 'face-embarassed.png',
       ':['      => 'face-embarassed.png'
       );
-    /*
-    $keys = array_keys($smileys);
-    foreach($keys as $k)
-    {
-      $regex1 = '#([\W]+)'.preg_quote($k).'([\s\n\r\.]+)#s';
-      $regex2 = '\\1<img alt="'.$k.'" title="'.$k.'" src="'.scriptPath.'/images/smilies/'.$smileys[$k].'" style="border: 0;" />\\2';
-      $text = preg_replace($regex1, $regex2, $text);
-    }                                                                      
-    */
     
     // Strip out <nowiki> sections
     //return '<pre>'.htmlspecialchars($text).'</pre>';
     $nw = preg_match_all('#<nowiki>(.*?)<\/nowiki>#is', $text, $nowiki);
     
-    for($i=0;$i<sizeof($nowiki[1]);$i++)
+    for ( $i = 0; $i < count($nowiki[1]); $i++ )
     {
-      $text = str_replace('<nowiki>'.$nowiki[1][$i].'</nowiki>', '{NOWIKI:'.$random_id.':'.$i.'}', $text);
+      $text = str_replace('<nowiki>' . $nowiki[1][$i] . '</nowiki>', '{NOWIKI:'.$random_id.':'.$i.'}', $text);
     }
     
-    $keys = array_keys($smileys);
-    foreach($keys as $k)
+    foreach ( $smileys as $smiley => $smiley_path )
     {
-      $t = hexencode($k, ' ', '');
-      $t = trim($t);
-      $t = explode(' ', $t);
-      $s = '';
-      foreach($t as $b)
-      {
-        $s.='&#x'.$b.';';
-      }
-      $pfx = ( $complete_urls ) ? 'http' . ( isset($_SERVER['HTTPS']) ? 's' : '' ) . '://'.$_SERVER['HTTP_HOST'] : '';
-      $text = str_replace(' '.$k, ' <nowiki><img title="'.$s.'" alt="'.$s.'" src="'.$pfx.scriptPath.'/images/smilies/'.$smileys[$k].'" style="border: 0;" /></nowiki>', $text);
+      $hex_smiley = hexencode($smiley, '&#x', ';');
+      $pfx = ( $complete_urls ) ? get_server_url() : '';
+      $text = str_replace(' ' . $smiley,
+          ' <!--#smiley code="' . self::escape_parser_hint_attrib($smiley) . '"--><nowiki>
+           <!-- The above is a reverse-parser hint -->
+             <img title="' . $hex_smiley . '" alt="' . $hex_smiley . '" src="' . $pfx . scriptPath . '/images/smilies/' . $smiley_path . '"
+              style="border: 0;" />
+           </nowiki><!--#/smiley-->', $text);
     }
     //*/
     
     // Reinsert <nowiki> sections
-    for($i=0;$i<$nw;$i++)
+    for ( $i = 0; $i < $nw; $i++ )
     {
       $text = str_replace('{NOWIKI:'.$random_id.':'.$i.'}', '<nowiki>'.$nowiki[1][$i].'</nowiki>', $text);
     }
     
     return $text;
   }
-  
-  /*
-   * **** DEPRECATED ****
-   * Replaces some critical characters in a string with MySQL-safe equivalents
-   * @param $text string the text to escape
-   * @return array key 0 is the escaped text, key 1 is the character tag
-   * /
-   
-  public static function escape_page_text($text)
-  {
-    $char_tag = md5(microtime() . mt_rand());
-    $text = str_replace("'",  "{APOS:$char_tag}",  $text);
-    $text = str_replace('"',  "{QUOT:$char_tag}",  $text);
-    $text = str_replace("\\", "{SLASH:$char_tag}", $text);
-    return Array($text, $char_tag);
-  }
-  */
-  
-  /* **** DEPRECATED ****
-   * Reverses the result of RenderMan::escape_page_text().
-   * @param $text string the text to unescape
-   * @param $char_tag string the character tag
-   * @return string
-   * /
-   
-  public static function unescape_page_text($text, $char_tag)
-  {
-    $text = str_replace("{APOS:$char_tag}",  "'",  $text);
-    $text = str_replace("{QUOT:$char_tag}",  '"',  $text);
-    $text = str_replace("{SLASH:$char_tag}", "\\", $text);
-    return $text;
-  }
-  */
   
   /**
    * Generates a summary of the differences between two texts, and formats it as XHTML.
@@ -1025,7 +1034,7 @@ class RenderMan {
               break;
             }
             // not the height, so see if a plugin took this over
-            // this hook requires plugins to return true if they modified anythin
+            // this hook requires plugins to return true if they modified anything
             $code = $plugins->setHook('img_tag_parse_params');
             foreach ( $code as $cmd )
             {
@@ -1041,7 +1050,7 @@ class RenderMan {
       
       if ( !isPage( $paths->nslist['File'] . $filename ) )
       {
-        $text = str_replace($full_tag, '[[' . makeUrlNS('File', $filename) . ']]', $text);
+        $text = str_replace($full_tag, '[[' . $paths->nslist['File'] . $filename . ']]', $text);
         continue;
       }
       
@@ -1081,7 +1090,8 @@ class RenderMan {
       
       $img_tag .= '/>';
       
-      $complete_tag = '';
+      $s_full_tag = self::escape_parser_hint_attrib($full_tag);
+      $complete_tag = '<!--#imagelink src="' . $s_full_tag . '" -->';
       
       if ( !empty($scale_type) && !$raw_display )
       {
@@ -1131,12 +1141,12 @@ class RenderMan {
         $complete_tag .= '</a>';
       }
       
-      $complete_tag .= "\n\n";
+      $complete_tag .= "<!--#/imagelink-->";
       $taglist[$i] = $complete_tag;
       
+      /*
       $pos = strpos($text, $full_tag);
       
-      /*
       while(true)
       {
         $check1 = substr($text, $pos, 3);

@@ -784,7 +784,7 @@ div.miniprompt div.mp-buttons {
 .abutton_red         { color:            #880000 !important; }
 .abutton_red:hover   { background-color: #880000 !important; }
 
-.abutton_img {
+.abutton_img, .abutton.icon {
   background-image: url('../../../images/mini-error.png');
   background-position: 4px center;
   background-repeat: no-repeat;

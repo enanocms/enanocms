@@ -173,7 +173,7 @@ class pathManager
     else
     {
       $e = $db->sql_query('SELECT name,urlname,namespace,special,visible,comments_on,protected,delvotes,' . "\n"
-                          . '  delvote_ips,wiki_mode,password FROM '.table_prefix.'pages ORDER BY name;');
+                          . '  delvote_ips,wiki_mode,password,page_format FROM '.table_prefix.'pages ORDER BY name;');
       
       if( !$e )
       {
@@ -250,7 +250,8 @@ class pathManager
           'comments_on' => 1,
           'protected' => 1,
           'delvotes' => 0,
-          'delvote_ips' => ''
+          'delvote_ips' => '',
+          'page_format' => getConfig('default_page_format', 'wikitext')
         );
       $this->external_api_page = true;
       $code = $plugins->setHook('paths_external_api_page');
@@ -322,16 +323,17 @@ class pathManager
       if ( !is_array($this->cpage) )
       {
         $this->cpage = Array(
-          'name'=>$page_name,
-          'urlname'=>$this->page,
-          'namespace'=>'Article',
-          'special'=>0,
-          'visible'=>0,
-          'comments_on'=>1,
-          'protected'=>0,
-          'delvotes'=>0,
-          'delvote_ips'=>'',
-          'wiki_mode'=>2,
+          'name' => $page_name,
+          'urlname' => $this->page,
+          'namespace' => 'Article',
+          'special' => 0,
+          'visible' => 0,
+          'comments_on' => 1,
+          'protected' => 0,
+          'delvotes' => 0,
+          'delvote_ips' => '',
+          'wiki_mode' => 2,
+          'page_format' => getConfig('default_page_format', 'wikitext')
           );
       }
       // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
@@ -608,7 +610,7 @@ class pathManager
       return false;
     
     $e = $db->sql_unbuffered_query('SELECT name,urlname,namespace,special,visible,comments_on,protected,delvotes,' . "\n"
-                          . '  delvote_ips,wiki_mode,password FROM '.table_prefix.'pages ORDER BY name;');
+                          . '  delvote_ips,wiki_mode,password,page_format FROM '.table_prefix.'pages ORDER BY name;');
     if ( !$e )
       $db->_die();
     

@@ -524,14 +524,14 @@ function page_Admin_GeneralConfig() {
           <?php echo $lang->get('acpgc_field_editnotice_info'); ?>
         </td>
         <td class="row1">
-          <input onclick="if(this.checked) document.getElementById('editmsg_text').style.display='block'; else document.getElementById('editmsg_text').style.display='none';" type="checkbox" name="editmsg" id="editmsg" <?php if(getConfig('wiki_edit_notice')=='1') echo('CHECKED '); ?>/>
+          <input onclick="if(this.checked) document.getElementById('editmsg_text').style.display='block'; else document.getElementById('editmsg_text').style.display='none';" type="checkbox" name="editmsg" id="editmsg" <?php if(getConfig('wiki_edit_notice', '0')=='1') echo('CHECKED '); ?>/>
           <label for="editmsg"><?php echo $lang->get('acpgc_field_editnotice'); ?></label>
         </td>
       </tr>
       
       <tr>
         <td class="row2">
-          <textarea <?php if(getConfig('wiki_edit_notice')!='1') echo('style="display:none" '); ?>rows="5" cols="30" name="editmsg_text" id="editmsg_text"><?php echo getConfig('wiki_edit_notice_text'); ?></textarea>
+          <textarea <?php if(getConfig('wiki_edit_notice', '0')!='1') echo('style="display:none" '); ?>rows="5" cols="30" name="editmsg_text" id="editmsg_text"><?php echo getConfig('wiki_edit_notice_text'); ?></textarea>
         </td>
       </tr>
       
@@ -581,7 +581,7 @@ function page_Admin_GeneralConfig() {
           </label>
         </td>
         <td class="row1">
-          <input name="enable-comments"  id="enable-comments"  type="checkbox" <?php if(getConfig('enable_comments')=='1')  echo('CHECKED '); ?>/>
+          <input name="enable-comments"  id="enable-comments"  type="checkbox" <?php if(getConfig('enable_comments', '1')=='1')  echo('CHECKED '); ?>/>
         </td>
       </tr>
       
@@ -592,7 +592,7 @@ function page_Admin_GeneralConfig() {
           </label>
         </td>
         <td class="row2">
-          <input name="comment-approval" id="comment-approval" type="checkbox" <?php if(getConfig('approve_comments')=='1') echo('CHECKED '); ?>/>
+          <input name="comment-approval" id="comment-approval" type="checkbox" <?php if(getConfig('approve_comments', '0')=='1') echo('CHECKED '); ?>/>
         </td>
       </tr>
       
@@ -1089,7 +1089,7 @@ function page_Admin_GeneralConfig() {
       </td>
       <td class="row1">
         <label>
-          <input name="enano_powered_link" type="checkbox" <?php if(getConfig('powered_btn') == '1') echo 'checked="checked"'; ?> />&nbsp;&nbsp;<?php echo $lang->get('acpgc_field_enano_link'); ?>
+          <input name="enano_powered_link" type="checkbox" <?php if(getConfig('powered_btn', '1') == '1') echo 'checked="checked"'; ?> />&nbsp;&nbsp;<?php echo $lang->get('acpgc_field_enano_link'); ?>
         </label>
       </td>
     </tr>
@@ -1323,7 +1323,7 @@ function page_Admin_UploadConfig()
   </p>
   <p>
     <?php echo $lang->get('acpup_field_max_size'); ?>
-    <input name="max_file_size" onkeyup="if(!this.value.match(/^([0-9\.]+)$/ig)) this.value = this.value.substr(0,this.value.length-1);" value="<?php echo getConfig('max_file_size'); ?>" />
+    <input name="max_file_size" onkeyup="if(!this.value.match(/^([0-9\.]+)$/ig)) this.value = this.value.substr(0,this.value.length-1);" value="<?php echo getConfig('max_file_size', '256000'); ?>" />
     <select name="fs_units">
       <option value="1" selected="selected"><?php echo $lang->get('etc_unit_bytes'); ?></option>
       <option value="1024"><?php echo $lang->get('etc_unit_kilobytes_short'); ?></option>

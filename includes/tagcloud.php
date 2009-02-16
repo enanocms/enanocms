@@ -148,7 +148,7 @@ class TagCloud
         $newline = ( $inc == 5 ) ? "<br />" : '';
         ( $inc == 5 ) ? $inc = 0 : null;
         $url = makeUrlNS('Special', 'TagCloud/' . htmlspecialchars($word));
-        $popstring = ( $popularity == 1 ) ? $lang->get('pagetools_tagcloug_tip_popularity_one') : $lang->get('pagetools_tagcloug_tip_popularity_plural', array('popularity' => $popularity));
+        $popstring = ( $popularity == 1 ) ? $lang->get('pagetools_tagcloud_tip_popularity_one') : $lang->get('pagetools_tagcloud_tip_popularity_plural', array('popularity' => $popularity));
         $html[] = "<span class='tc_word_{$span_class} tc_{$span_class}_index_{$index}'><a href='$url' title='$popstring'>$word</a></span>"; // $newline";
       }
     }

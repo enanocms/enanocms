@@ -10,14 +10,20 @@
 <!-- VAR toolbar_button -->
   <li>
     <a title="{TITLE}" {FLAGS}>
-      <!-- BEGINNOT no_image -->
-      <img alt="{TITLE}" src="{IMAGE}" />
-      <!-- END no_image -->
+      <!-- IFSET SPRITE -->
+        {SPRITE}
+      <!-- BEGINELSE SPRITE -->
+        <!-- IFSET IMAGE -->
+          <!-- BEGINNOT no_image -->
+            <img alt="{TITLE}" src="{IMAGE}" />
+          <!-- END no_image -->
+        <!-- END IMAGE -->
+      <!-- END SPRITE -->
       <!-- BEGIN show_title -->
         <!-- BEGIN no_image -->
-        <span class="noimage">{TITLE}</span>
+          <span class="noimage">{TITLE}</span>
         <!-- BEGINELSE no_image -->
-        <span>{TITLE}</span>
+          <span>{TITLE}</span>
         <!-- END no_image -->
       <!-- END show_title -->
     </a>

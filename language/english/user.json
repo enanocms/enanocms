@@ -205,7 +205,7 @@ Thank you for registering on %config.site_name%. Your account creation is almost
   %activation_link%
   
 Sincerely yours,
-%admin_user% and the %config.site_name% administration team',
+The %config.site_name% administration team',
 
       reg_activation_email_coppa: 'Dear parent or legal guardian,
 A child under the username %username% recently registered on our website. The child provided your e-mail address as the one of his or her authorized parent or legal guardian, and to comply with the United States Childrens\' Online Privacy Protection act, we ask that all parents of children ages 13 or under please mail us a written form authorizing their child\'s use of our website.
@@ -283,7 +283,7 @@ Sincerely yours,
       emailpassword_msg_profile_success: 'Profile changed',
       emailpassword_msg_pass_success: 'Password changed',
       emailpassword_msg_need_activ_user: 'Your password and e-mail address have been changed. Since e-mail activation is required on this site, you will need to re-activate your account to continue. An e-mail has been sent to the new e-mail address with an activation link. You must click that link in order to log in again.',
-      emailpassword_msg_need_activ_admin: 'Your password and e-mail address have been changed. Since administrative activation is requires on this site, a request has been sent to the administrators to activate your account for you. You will not be able to use your account until it is activated by an administrator.',
+      emailpassword_msg_need_activ_admin: 'Your password and e-mail address have been changed. Since administrative activation is required on this site, a request has been sent to the administrators to activate your account for you. You will not be able to use your account until it is activated by an administrator.',
       emailpassword_msg_password_changed: 'Your password has been changed, and you will now be redirected back to the user control panel.',
       emailpassword_err_password_no_match: 'The passwords you entered do not match.',
       emailpassword_grp_chpasswd: 'Change password',

@@ -251,7 +251,7 @@
           <input type="submit" name="_cancel"  value="' . $lang->get('editor_btn_cancel') . '" />
         </form>
       ';
-      if ( getConfig('wiki_edit_notice') == '1' )
+      if ( getConfig('wiki_edit_notice', '0') == '1' )
       {
         $notice = getConfig('wiki_edit_notice_text');
         echo RenderMan::render($notice);

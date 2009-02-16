@@ -524,9 +524,17 @@ function miniPromptMessage(parms)
               button.input.style[j] = button.style[j];
             }
           }
-          if ( button.image )
+          if ( button.sprite )
           {
-            button.input.className += ' abutton_img';
+            var sprite = gen_sprite(button.sprite[0], button.sprite[1], button.sprite[2], button.sprite[3], button.sprite[4]);
+            sprite.style.position = 'relative';
+            sprite.style.top = '3px';
+            button.input.insertBefore(sprite, button.input.firstChild);
+            insertAfter(button.input, document.createTextNode(' '), sprite);
+          }
+          else if ( button.image )
+          {
+            button.input.className += ' icon';
             button.input.style.backgroundImage = 'url(' + button.image + ')';
           }
           button.input.onclick = function(e)
@@ -572,7 +580,7 @@ function testMPMessageBox()
         style: {
           fontWeight: 'bold'
         },
-        image: cdnPath + '/images/icons/abort.png',
+        sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 0 ],
         onclick: function() {
           miniPromptDestroy(this);
         }
@@ -580,7 +588,7 @@ function testMPMessageBox()
       {
         text: 'Retry',
         color: 'blue',
-        image: cdnPath + '/images/icons/retry.png',
+        sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 16 ],
         onclick: function() {
           miniPromptDestroy(this);
         }
@@ -588,7 +596,7 @@ function testMPMessageBox()
       {
         text: 'Ignore',
         color: 'green',
-        image: cdnPath + '/images/icons/ignore.png',
+        sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 32 ],
         onclick: function() {
           miniPromptDestroy(this);
         }

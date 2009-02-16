@@ -379,6 +379,7 @@ var enano_lang_install = {
       confirm_body: 'You are about to upgrade to Enano version <b>%enano_version%</b>. You should make sure that you\'ve done the following before you continue:',
       confirm_objective_backup_fs: 'Back up Enano installation directory (<b>%dir%</b>)',
       confirm_objective_backup_db: 'Back up Enano database, including non-Enano tables if any (<b>%dbname%</b>)',
+      confirm_warning_langimport: '<b>Warning!</b> This release of Enano has some changed strings. If you\'ve customized any language strings, those changes will be lost.',
       confirm_btn_upgrade: 'Pimp my Enano!',
       
       msg_schema_complete_title: 'Database upgrades complete',

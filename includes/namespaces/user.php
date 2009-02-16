@@ -270,7 +270,7 @@ class Namespace_User extends Namespace_Default
         foreach ( $comments as $comment )
         {
           $c_page_id = $paths->nslist[ $comment['namespace'] ] . sanitize_page_id($comment['page_id']);
-          if ( isset($paths->pages[ $c_page_id ]) )
+          if ( isPage($c_page_id) )
           {
             $parser->assign_bool(array(
               'page_exists' => true

@@ -37,7 +37,7 @@
       if ( $src = $page->fetch_source() )
       {
         $allowed = true;
-        $q = $db->sql_query('SELECT author, time_id, page_text, edit_summary FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
+        $q = $db->sql_query('SELECT author, time_id, page_text, edit_summary, page_format FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
                                AND page_id = \'' . $db->escape($paths->page_id) . '\'
                                AND namespace = \'' . $db->escape($paths->namespace) . '\'
                                AND is_draft = 1;');
@@ -76,6 +76,21 @@
           'have_draft' => false
         );
       
+      $return['page_format'] = $paths->cpage['page_format'];
+      if ( $return['page_format'] == 'xhtml' )
+      {
+        // gently process headings to make tinymce format them correctly
+        if ( preg_match_all('/^ *?(={1,6}) *(.+?) *\\1 *$/m', $return['src'], $matches) )
+        {
+          foreach ( $matches[0] as $i => $match )
+          {
+            $hi = strlen($matches[1][$i]);
+            $heading = "<h{$hi}>{$matches[2][$i]}</h{$hi}>";
+            $return['src'] = str_replace_once($match, $heading, $return['src']);
+          }
+        }
+      }
+      
       if ( $have_draft )
       {
         $row =& $draft_row;
@@ -86,6 +101,7 @@
         {
           $return['src'] = $row['page_text'];
           $return['edit_summary'] = $row['edit_summary'];
+          $return['page_format'] = $row['page_format'];
         }
       }
       
@@ -212,26 +228,37 @@
           else
           {
             $src = RenderMan::preprocess_text($request['src'], false, false);
-            
-            // Save the draft
-            $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs ( log_type, action, page_id, namespace, author, edit_summary, page_text, is_draft, time_id )
-                                   VALUES (
-                                     \'page\',
-                                     \'edit\',
-                                     \'' . $db->escape($paths->page_id) . '\',
-                                     \'' . $db->escape($paths->namespace) . '\',
-                                     \'' . $db->escape($session->username) . '\',
-                                     \'' . $db->escape($request['summary']) . '\',
-                                     \'' . $db->escape($src) . '\',
-                                     1,
-                                     ' . time() . '
-                                   );');
-            
-            // Done!
-            $return = array(
-                'mode' => 'success',
-                'is_draft' => true
+            $draft_format = $request['format'];
+            if ( !in_array($draft_format, array('xhtml', 'wikitext')) )
+            {
+              $return = array(
+                'mode' => 'error',
+                'error' => 'invalid_format'
               );
+            }
+            else
+            {
+              // Save the draft
+              $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs ( log_type, action, page_id, namespace, author, edit_summary, page_text, is_draft, time_id, page_format )
+                                     VALUES (
+                                       \'page\',
+                                       \'edit\',
+                                       \'' . $db->escape($paths->page_id) . '\',
+                                       \'' . $db->escape($paths->namespace) . '\',
+                                       \'' . $db->escape($session->username) . '\',
+                                       \'' . $db->escape($request['summary']) . '\',
+                                       \'' . $db->escape($src) . '\',
+                                       1,
+                                       ' . time() . ',
+                                       \'' . $draft_format . '\'
+                                     );');
+              
+              // Done!
+              $return = array(
+                  'mode' => 'success',
+                  'is_draft' => true
+                );
+            }
           }
         }
       }
@@ -280,7 +307,7 @@
         
         // Verification complete. Start the PageProcessor and let it do the dirty work for us.
         $page = new PageProcessor($paths->page_id, $paths->namespace);
-        if ( $page->update_page($request['src'], $request['summary'], ( $request['minor_edit'] == 1 )) )
+        if ( $page->update_page($request['src'], $request['summary'], ( $request['minor_edit'] == 1 ), $request['format']) )
         {
           $return = array(
               'mode' => 'success',
@@ -429,51 +456,65 @@
     case "fillusername":
       break;
     case "fillpagename":
-      $name = (isset($_GET['name'])) ? $_GET['name'] : false;
-      if(!$name) die('userlist = new Array(); namelist = new Array(); errorstring=\'Invalid URI\'');
-      $nd = RenderMan::strToPageID($name);
-      $c = 0;
-      $u = Array();
-      $n = Array();
-      
-      $name = sanitize_page_id($name);
-      $name = str_replace('_', ' ', $name);
-      
-      foreach ( $paths->pages as $i => $_ )
-      {
-        if( ( 
-            preg_match('#'.preg_quote($name).'(.*)#i', $paths->pages[$i]['name']) ||
-            preg_match('#'.preg_quote($name).'(.*)#i', $paths->pages[$i]['urlname']) ||
-            preg_match('#'.preg_quote($name).'(.*)#i', $paths->pages[$i]['urlname_nons']) ||
-            preg_match('#'.preg_quote(str_replace(' ', '_', $name)).'(.*)#i', $paths->pages[$i]['name']) ||
-            preg_match('#'.preg_quote(str_replace(' ', '_', $name)).'(.*)#i', $paths->pages[$i]['urlname']) ||
-            preg_match('#'.preg_quote(str_replace(' ', '_', $name)).'(.*)#i', $paths->pages[$i]['urlname_nons'])
-            ) &&
-           ( ( $nd[1] != 'Article' && $paths->pages[$i]['namespace'] == $nd[1] ) || $nd[1] == 'Article' )
-            && $paths->pages[$i]['visible']
-           )
-        {
-          $c++;
-          $u[] = $paths->pages[$i]['name'];
-          $n[] = $paths->pages[$i]['urlname'];
-        }
-      }
-      if($c > 0)
-      {
-        echo 'userlist = new Array(); namelist = new Array(); errorstring = false; '."\n";
-        for($i=0;$i<sizeof($u);$i++) // Can't use foreach because we need the value of $i and we need to use both $u and $n
-        {
-          echo "userlist[$i] = '".addslashes($n[$i])."';\n";
-          echo "namelist[$i] = '".addslashes(htmlspecialchars($u[$i]))."';\n";
-        }
-      } else {
-        die('userlist = new Array(); namelist = new Array(); errorstring=\'No page matches found.\'');
-      }
       break;
     case "preview":
       require_once(ENANO_ROOT.'/includes/pageutils.php');
       $template->init_vars();
       echo PageUtils::genPreview($_POST['text']);
+      break;
+    case "transform":
+      header('Content-type: text/javascript');
+      if ( !isset($_GET['to']) )
+      {
+        echo enano_json_encode(array(
+            'mode' => 'error',
+            'error' => '"to" not specified'
+          ));
+        break;
+      }
+      if ( !isset($_POST['text']) )
+      {
+        echo enano_json_encode(array(
+            'mode' => 'error',
+            'error' => '"text" not specified (must be on POST)'
+          ));
+        break;
+      }
+      switch($_GET['to'])
+      {
+        case 'xhtml':
+          $result = RenderMan::render($_POST['text'], RENDER_WIKI_DEFAULT | RENDER_BLOCKONLY);
+          break;
+        case 'wikitext':
+          $result = RenderMan::reverse_render($_POST['text']);
+          break;
+        default:
+          $text =& $_POST['text'];
+          $result = false;
+          $code = $plugins->setHook('ajax_transform');
+          foreach ( $code as $cmd )
+          {
+            eval($cmd);
+          }
+          if ( !$result )
+          {
+            echo enano_json_encode(array(
+                'mode' => 'error',
+                'error' => 'Invalid target format'
+              ));
+            break;
+          }
+          break;
+      }
+      
+      // mostly for debugging, but I suppose this could be useful elsewhere.
+      if ( isset($_POST['plaintext']) )
+        die($result);
+      
+      echo enano_json_encode(array(
+          'mode' => 'transformed_text',
+          'text' => $result
+        ));
       break;
     case "pagediff":
       require_once(ENANO_ROOT.'/includes/pageutils.php');

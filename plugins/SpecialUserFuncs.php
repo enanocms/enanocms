@@ -513,7 +513,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       $template->load_theme($session->theme, $session->style);
       if(isset($_POST['return_to']))
       {
-        $name = ( isset($paths->pages[$_POST['return_to']]['name']) ) ? $paths->pages[$_POST['return_to']]['name'] : $_POST['return_to'];
+        $name = ( isPage($_POST['return_to']['name']) ) ? $paths->pages[$_POST['return_to']]['name'] : $_POST['return_to'];
         $subst = array(
             'username' => $session->username,
             'redir_target' => $name
@@ -601,7 +601,7 @@ function page_Special_Register()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   
-  if ( $session->user_logged_in )
+  if ( $session->user_level < USER_LEVEL_ADMIN && $session->user_logged_in )
   {
     $paths->main_page();
   }
@@ -636,17 +636,14 @@ function page_Special_Register()
     }
     $db->free_result();
   }
-  if ( $session->user_level < USER_LEVEL_ADMIN && $session->user_logged_in )
-  {
-    $paths->main_page();
-  }
   if(isset($_POST['submit'])) 
   {
     $_GET['coppa'] = ( isset($_POST['coppa']) ) ? $_POST['coppa'] : 'x';
     
     $captcharesult = $session->get_captcha($_POST['captchahash']);
     $session->kill_captcha();
-    if ( strtolower($captcharesult) != strtolower($_POST['captchacode']) )
+    // bypass captcha if logged in (at this point, if logged in, we're admin)
+    if ( !$session->user_logged_in && strtolower($captcharesult) != strtolower($_POST['captchacode']) )
     {
       $s = $lang->get('user_reg_err_captcha');
     }
@@ -656,7 +653,7 @@ function page_Special_Register()
       {
         $s = 'Invalid COPPA input';
       }
-      else if ( !empty($terms) && !isset($_POST['tou_agreed']) )
+      else if ( !$session->user_logged_in && !empty($terms) && !isset($_POST['tou_agreed']) )
       {
         $s = $lang->get('user_reg_err_accept_tou');
       }
@@ -752,7 +749,7 @@ function page_Special_Register()
       <form name="regform" action="<?php echo makeUrl($paths->page); ?>" method="post" onsubmit="return runEncryption();">
         <div class="tblholder">
           <table border="0" width="100%" cellspacing="1" cellpadding="4">
-            <tr><th class="subhead" colspan="3"><?php echo $lang->get('user_reg_msg_table_subtitle'); ?></th></tr>
+            <tr><th colspan="3"><?php echo $lang->get('user_reg_msg_table_subtitle'); ?></th></tr>
             
             <?php if(isset($_POST['submit'])) echo '<tr><td colspan="3" class="row2" style="color: red;">'.$s.'</td></tr>'; ?>
             
@@ -859,6 +856,9 @@ function page_Special_Register()
             ?>
             
             <!-- FIELD: CAPTCHA image -->
+            <?php
+            if ( !$session->user_logged_in ):
+            ?>
             <tr>
               <td class="row1" style="width: 50%;" rowspan="2">
                 <?php echo $lang->get('user_reg_lbl_field_captcha'); ?><br />
@@ -868,9 +868,11 @@ function page_Special_Register()
                   <?php echo $lang->get('user_reg_msg_captcha_blind'); ?>
                 </small>
               </td>
-              <td colspan="2" class="row1">
-                <img id="captchaimg" alt="CAPTCHA image" src="<?php echo makeUrlNS('Special', 'Captcha/'.$captchacode); ?>" />
+              <td class="row1">
+                <img id="captchaimg" alt="CAPTCHA image" src="<?php echo makeUrlNS('Special', 'Captcha/'.$captchacode); ?>" /><br />
                 <span id="b_username"></span>
+              </td>
+              <td class="row1">
               </td>
             </tr>
             
@@ -914,7 +916,8 @@ function page_Special_Register()
             </tr>
             
             <?php
-            endif;
+            endif; // !empty($terms)
+            endif; // $session->user_logged_in
             ?>
             
             <!-- FIELD: submit button -->
@@ -1019,10 +1022,13 @@ function page_Special_Register()
                 document.getElementById('e_username').innerHTML = '<br /><small>' + $lang.get('user_reg_err_username_invalid') + '</small>';
               }
             }
-            document.getElementById('b_username').innerHTML = '';
-            if(hex_md5(frm.real_name.value) == '5a397df72678128cf0e8147a2befd5f1')
+            if ( document.getElementById('b_username') )
             {
-              document.getElementById('b_username').innerHTML = '<br /><br />Hey...I know you!<br /><img alt="" src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Bill_Gates_2004_cr.jpg/220px-Bill_Gates_2004_cr.jpg" />';
+              document.getElementById('b_username').innerHTML = '';
+              if(hex_md5(frm.real_name.value) == '5a397df72678128cf0e8147a2befd5f1')
+              {
+                document.getElementById('b_username').innerHTML = '<br /><br />Hey...I know you!<br /><img alt="" src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Bill_Gates_2004_cr.jpg/220px-Bill_Gates_2004_cr.jpg" />';
+              }
             }
             
             // Password

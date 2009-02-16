@@ -256,7 +256,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
             // Is this search term present in the page's title? If so, give extra points
             preg_match("/^ns=$ns_list;pid=(.+)$/", $match, $piecesparts);
             $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
-            if ( isset($paths->pages[$pathskey]) )
+            if ( isPage($pathskey) )
             {
               $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
               if ( $test_func($paths->pages[$pathskey]['name'], $row['word']) || $test_func($paths->pages[$pathskey]['urlname_nons'], $row['word']) )
@@ -298,7 +298,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
           // Is this search term present in the page's title? If so, give extra points
           preg_match("/^ns=$ns_list;pid=(.+)$/", $pages, $piecesparts);
           $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
-          if ( isset($paths->pages[$pathskey]) )
+          if ( isPage($pathskey) )
           {
             $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
             if ( $test_func($paths->pages[$pathskey]['name'], $row['word']) || $test_func($paths->pages[$pathskey]['urlname_nons'], $row['word']) )
@@ -397,7 +397,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
         // Is this search term present in the page's title? If so, give extra points
         preg_match("/^ns=$ns_list;pid=(.+)$/", $id, $piecesparts);
         $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
-        if ( isset($paths->pages[$pathskey]) )
+        if ( isPage($pathskey) )
         {
           $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
           foreach ( array_merge($query_phrase['any'], $query_phrase['req']) as $term )

@@ -116,7 +116,11 @@ var enano_lang = {
       
       // GPL page
       gpl_blurb: 'The following text represents the license that the <a href="%about_url%">Enano</a> content management system is under. To make it easier to read, the text has been wiki-formatted; in no other way has it been changed.',
-      // The following three strings will be used only in non-English languages. A Spanish example is provided here.
+      
+      // !!
+      // !! The following three strings will be used ONLY in non-English
+      // !! languages. A Spanish example is provided here.
+      // !!
       
       // "Version in Spanish"
       gpl_title_native: 'Versión en español',
@@ -135,8 +139,8 @@ var enano_lang = {
       tagcloud_instructions: 'Hover your mouse over a tag to see how many pages have the tag. Click on a tag to see a list of the pages that have it.',
       tagcloud_sidebar_title: 'Tag cloud',
       tagcloud_sidebar_btn_larger: 'Larger version',
-      tagcloug_tip_popularity_one: '1 page',
-      tagcloug_tip_popularity_plural: '%popularity% pages',
+      tagcloud_tip_popularity_one: '1 page',
+      tagcloud_tip_popularity_plural: '%popularity% pages',
       
       // Recent changes
       rc_btn_diff: 'diff',

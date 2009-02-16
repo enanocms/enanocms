@@ -361,7 +361,7 @@ var enano_lang = {
       
       // Section: Sessions
       heading_sessions: 'User sessions',
-      hint_sessions_noelev: '<b>Remember:</b> Settings here only affect normal logins - you can\'t change the length of sessions that give you elevated privileges, such as the re-authentication that occurs when you access the administration panel. <a href="http://docs.enanocms.org/Help:Appendix_B">Read about Enano\'s security model</a>.',
+      hint_sessions_noelev: '<b>Remember:</b> Settings here only affect normal logins - you can\'t change the length of sessions that give you elevated privileges, such as the re-authentication that occurs when you access the administration panel. <a href="http://docs.enanocms.org/Help:Appendix_B" onclick="window.open(this.href); return false;">Read about Enano\'s security model</a>.',
       field_short_time: 'Length of short sessions in minutes:',
       field_short_time_hint: 'This is how long a user\'s session will last when they don\'t check the "remember me" checkbox. Short sessions are automatically renewed every time a page is loaded.',
       field_long_time: 'Length of extended sessions in days:',
@@ -508,7 +508,7 @@ var enano_lang = {
     },
     acppm: {
       heading_main: 'Edit page properties',
-      hint: 'This panel allows you to edit various properties of pages that aren\'t visible anywhere else. In addition to renaming pages, you can also change their <a href="http://docs.enanocms.org/Help:2.3">URL string</a> and options such as whether to index the page for searching or bypass Enano\'s template engine.',
+      hint: 'This panel allows you to edit various properties of pages that aren\'t visible anywhere else. In addition to renaming pages, you can also change their <a href="http://docs.enanocms.org/Help:2.3" onclick="window.open(this.href); return false;">URL string</a> and options such as whether to index the page for searching or bypass Enano\'s template engine.',
       err_page_not_found: 'No pages matching that search string could be found.',
       msg_results_ambiguous_title: 'Ambiguous search results',
       msg_results_ambiguous_body: 'Multiple pages that matched your search terms were found. Please select the page you wish to modify:',
@@ -544,7 +544,7 @@ var enano_lang = {
       lbl_wikimode_on: 'Enabled',
       lbl_wikimode_off: 'Disabled',
       lbl_wikimode_global: 'Inherit global setting',
-      lbl_wikimode_hint: 'By default, all pages use the Wiki Mode setting defined in General Configuration. You can override that using this field. Be aware that there are advantages and disadvantages to Wiki Mode. For example, Wiki Mode encourages collaboration, but also permits vandalism. See the <a href="http://docs.enanocms.org/Help:2.5">Enano Documentation article on Wiki Mode</a> for more information.',
+      lbl_wikimode_hint: 'By default, all pages use the Wiki Mode setting defined in General Configuration. You can override that using this field. Be aware that there are advantages and disadvantages to Wiki Mode. For example, Wiki Mode encourages collaboration, but also permits vandalism. See the <a href="http://docs.enanocms.org/Help:2.5" onclick="window.open(this.href); return false;">Enano Documentation article on Wiki Mode</a> for more information.',
       lbl_delete_title: 'Delete this page?',
       lbl_delete_hint: 'Remember that deleting pages is always reversible unless you clear the page\'s logs after deleting it.',
       lbl_delete: 'Delete this page when I click Save',

@@ -56,6 +56,9 @@ function page_Admin_UserManager()
       $q = $db->sql_query('DELETE FROM '.table_prefix."users WHERE user_id=$user_id;");
       if ( !$q )
         $db->_die();
+      $q = $db->sql_query('DELETE FROM '.table_prefix."session_keys WHERE user_id=$user_id;");
+      if ( !$q )
+        $db->_die();
       echo '<div class="info-box">' . $lang->get('acpum_msg_delete_success') . '</div>';
     }
     else
@@ -116,7 +119,7 @@ function page_Admin_UserManager()
         $imaddr_msn = "$imaddr_msn@hotmail.com";
       }
       
-      if ( substr($homepage, 0, 7) != 'http://' )
+      if ( !preg_match('#^https?://#', $homepage) )
       {
         $homepage = "http://$homepage";
       }
@@ -149,8 +152,7 @@ function page_Admin_UserManager()
           $to_update_users['username'] = $username;
           if ( $password )
           {
-            $password = $session->pk_encrypt($password, ENC_HEX);
-            $to_update_users['password'] = $password;
+            $session->set_password($user_id, $password);
           }
           $to_update_users['email'] = $email;
           $to_update_users['real_name'] = $real_name;

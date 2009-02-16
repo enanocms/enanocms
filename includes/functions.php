@@ -206,57 +206,17 @@ if ( !function_exists('makeUrlNS') )
 
 function makeUrlComplete($n, $t, $query = false, $escape = false)
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  $flags = '';
+  return get_server_url() . makeUrlNS($n, $t, $query, $escape);
+}
 
-  if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
-  {
-    $sep = urlSeparator;
-  }
-  else
-  {
-    $sep = (strstr($_SERVER['REQUEST_URI'], '?')) ? '&' : '?';
-  }
-  if ( isset( $_GET['printable'] ) ) {
-    $flags .= $sep . 'printable';
-    $sep = '&';
-  }
-  if ( isset( $_GET['theme'] ) )
-  {
-    $flags .= $sep . 'theme='.$session->theme;
-    $sep = '&';
-  }
-  if ( isset( $_GET['style'] ) )
-  {
-    $flags .= $sep . 'style='.$session->style;
-    $sep = '&';
-  }
-  if ( isset($_GET['lang']) && preg_match('/^[a-z0-9_]+$/', @$_GET['lang']) )
-  {
-    $flags .= $sep . 'lang=' . urlencode($_GET['lang']);
-    $sep = '&';
-  }
+/**
+ * Returns an http:// URL for this server.
+ * @return string
+ */
 
-  if(defined('ENANO_BASE_CLASSES_INITIALIZED'))
-  {
-    $url = $session->append_sid(contentPath . $paths->nslist[$n] . $t . $flags);
-  }
-  else
-  {
-    // If the path manager hasn't been initted yet, take an educated guess at what the URI should be
-    $url = contentPath . $n . ':' . $t . $flags;
-  }
-  if($query)
-  {
-    if(strstr($url, '?')) $sep =  '&';
-    else $sep = '?';
-    $url = $url . $sep . $query . $flags;
-  }
-
-  $baseprot = 'http' . ( isset($_SERVER['HTTPS']) ? 's' : '' ) . '://' . $_SERVER['HTTP_HOST'];
-  $url = $baseprot . $url;
-
-  return ($escape) ? htmlspecialchars($url) : $url;
+function get_server_url()
+{
+  return 'http' . ( $GLOBALS['is_https'] ) . '://' . $_SERVER['HTTP_HOST'];
 }
 
 /**
@@ -277,7 +237,7 @@ function get_main_page($force_logged_in = false)
   {
     $logged_in = true;
   }
-  return $logged_in && getConfig('main_page_alt_enable', '0') == '1' ? getConfig('main_page_alt', getConfig('main_page')) : getConfig('main_page');
+  return $logged_in && getConfig('main_page_alt_enable', '0') == '1' ? getConfig('main_page_alt', getConfig('main_page', 'Main_Page')) : getConfig('main_page', 'Main_Page');
 }
 
 /**
@@ -439,7 +399,7 @@ function get_page_title_ns($page_id, $namespace)
 
   $ns_prefix = ( isset($paths->nslist[ $namespace ]) ) ? $paths->nslist[ $namespace ] : $namespace . substr($paths->nslist['Special'], -1);
   $page_id_key = $ns_prefix . $page_id;
-  if ( isset($paths->pages[$page_id_key]) )
+  if ( isPage($page_id_key) )
   {
     $page_data = $paths->pages[$page_id_key];
   }
@@ -1509,68 +1469,50 @@ function strip_magic_quotes_gpc()
  * @param string $bits the text to compress, should be only 1s and 0s
  * @return string
  */
-
+ 
 function compress_bitfield($bits)
 {
-  $crc32 = crc32($bits);
-  $bits .= '0';
-  $start_pos = 0;
-  $current = substr($bits, 1, 1);
-  $last    = substr($bits, 0, 1);
-  $chunk_size = 1;
-  $len = strlen($bits);
-  $crc = $len;
-  $crcval = 0;
-  for ( $i = 1; $i < $len; $i++ )
-  {
-    $current = substr($bits, $i, 1);
-    $last    = substr($bits, $i - 1, 1);
-    $next    = substr($bits, $i + 1, 1);
-    // Are we on the last character?
-    if($current == $last && $i+1 < $len)
-      $chunk_size++;
-    else
-    {
-      if($i+1 == $len && $current == $next)
-      {
-        // This character completes a chunk
-        $chunk_size++;
-        $i++;
-        $chunk = substr($bits, $start_pos, $chunk_size);
-        $chunklen = strlen($chunk);
-        $newchunk = $last . '[' . $chunklen . ']';
-        $newlen   = strlen($newchunk);
-        $bits = substr($bits, 0, $start_pos) . $newchunk . substr($bits, $i, $len);
-        $chunk_size = 1;
-        $i = $start_pos + $newlen;
-        $start_pos = $i;
-        $len = strlen($bits);
-        $crcval = $crcval + $chunklen;
-      }
-      else
-      {
-        // Last character completed a chunk
-        $chunk = substr($bits, $start_pos, $chunk_size);
-        $chunklen = strlen($chunk);
-        $newchunk = $last . '[' . $chunklen . '],';
-        $newlen   = strlen($newchunk);
-        $bits = substr($bits, 0, $start_pos) . $newchunk . substr($bits, $i, $len);
-        $chunk_size = 1;
-        $i = $start_pos + $newlen;
-        $start_pos = $i;
-        $len = strlen($bits);
-        $crcval = $crcval + $chunklen;
-      }
-    }
-  }
-  if($crc != $crcval)
-  {
-    echo __FUNCTION__.'(): ERROR: length check failed, this is a bug in the algorithm<br />Debug info: aiming for a CRC val of '.$crc.', got '.$crcval;
+  if ( !preg_match('/^[01]+$/', $bits) )
     return false;
+  
+  $current = intval($bits{0});
+  $clen = 0;
+  $out = '';
+  for ( $i = 0; $i < strlen($bits); $i++ )
+  {
+    $cbit = intval($bits{$i});
+    if ( $cbit !== $current || $clen == 127 || $i == strlen($bits) - 1 )
+    {
+      if ( $i == strlen($bits) - 1 && $cbit === $current )
+      {
+        $clen++;
+      }
+      // write chunk
+      $byte = $clen;
+      if ( $current === 1 )
+        $byte |= 0x80;
+      $out .= chr($byte);
+      
+      if ( $i == strlen($bits) - 1 && $cbit !== $current )
+      {
+        $out .= ( $cbit === 1 ) ? chr(0x81) : chr(0x1);
+      }
+      
+      // reset
+      $current = intval($cbit);
+      $clen = 0;
+    }
+    $clen++;
   }
-  $compressed = 'cbf:len='.$crc.';crc='.dechex($crc32).';data='.$bits.'|end';
-  return $compressed;
+  $crc = dechex(crc32($out));
+  while ( strlen($crc) < 8 )
+    $crc = "0$crc";
+  return "cbf2:{$crc}" . hexencode($out, '', '');
 }
+
+// test case
+// $bf = '0111100010000000000000000000000100000000000000001110000000000000000101100000010100001100010000000000000000000000000000111111111111111111111100100001000000000000000000000000000000000000';
+// die('<pre>Original:  ' . " $bf\nCompressed: " . compress_bitfield($bf) . "\nProcessed:  ".uncompress_bitfield(compress_bitfield($bf)).'</pre>');
 
 /**
  * Uncompresses a bitfield compressed with compress_bitfield()
@@ -1579,6 +1521,47 @@ function compress_bitfield($bits)
  */
 
 function uncompress_bitfield($bits)
+{
+  if ( substr($bits, 0, 4) == 'cbf:' )
+  {
+    return uncompress_bitfield_old($bits);
+  }
+  if ( substr($bits, 0, 5) != 'cbf2:' )
+  {
+    echo __FUNCTION__.'(): ERROR: Invalid stream';
+    return false;
+  }
+  $bits = substr($bits, 5);
+  $crc = substr($bits, 0, 8);
+  $bits = substr($bits, 8);
+  $bits = hexdecode($bits);
+  if ( dechex(crc32($bits)) !== $crc )
+  {
+    echo __FUNCTION__."(): ERROR: CRC failed";
+    return false;
+  }
+  $out = '';
+  for ( $i = 0; $i < strlen($bits); $i++ )
+  {
+    $byte = ord($bits{$i});
+    $char = $byte & 0x80 ? '1' : '0';
+    $byte &= ~0x80;
+    for ( $j = 0; $j < $byte; $j++ )
+    {
+      $out .= $char;
+    }
+  }
+  return $out;
+}
+
+/**
+ * Decompressor for old-format bitfields.
+ * @param string
+ * @return string
+ * @access private
+ */
+
+function uncompress_bitfield_old($bits)
 {
   if(substr($bits, 0, 4) != 'cbf:')
   {
@@ -4640,7 +4623,7 @@ function enano_clean_json($json)
   // eliminate comments
   $json = preg_replace(array(
           // eliminate single line comments in '// ...' form
-          '#^\s*//(.+)$#m',
+          '#^\s*//(.*)$#m',
           // eliminate multi-line comments in '/* ... */' form, at start of string
           '#^\s*/\*(.+)\*/#Us',
           // eliminate multi-line comments in '/* ... */' form, at end of string
@@ -5010,7 +4993,5 @@ function purge_all_caches()
   }
   return false;
 }
-
-//die('<pre>Original:  01010101010100101010100101010101011010'."\nProcessed: ".uncompress_bitfield(compress_bitfield('01010101010100101010100101010101011010')).'</pre>');
 
 ?>

@@ -436,7 +436,7 @@ class template
     
     require(ENANO_ROOT . "/themes/{$this->theme}/theme.cfg");
     
-    if ( $local_page_exists && isset($paths->pages[$local_page]) )
+    if ( $local_page_exists && isPage($local_page) )
     {
       $local_cdata =& $paths->pages[$local_page];
     }
@@ -603,7 +603,7 @@ class template
     
     // Page toolbar
     // Comments button
-    if ( $perms->get_permissions('read') && getConfig('enable_comments')=='1' && $local_cdata['comments_on'] == 1 )
+    if ( $perms->get_permissions('read') && getConfig('enable_comments', '1')=='1' && $local_cdata['comments_on'] == 1 )
     {
       
       $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$local_page_id.'\' AND namespace=\''.$local_namespace.'\';');
@@ -1151,7 +1151,7 @@ JSEOF;
       var disable_redirect = ' . ( isset($_GET['redirect']) && $_GET['redirect'] == 'no' ? 'true' : 'false' ) . ';
       var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? 'true' : 'false' ) . ';
       var csrf_token = "' . $session->csrf_token . '";
-      var editNotice = \'' . ( (getConfig('wiki_edit_notice')=='1') ? str_replace("\n", "\\\n", RenderMan::render(getConfig('wiki_edit_notice_text'))) : '' ) . '\';
+      var editNotice = \'' . ( (getConfig('wiki_edit_notice', '0')=='1') ? str_replace("\n", "\\\n", RenderMan::render(getConfig('wiki_edit_notice_text'))) : '' ) . '\';
       var prot = ' . ( ($protected) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server
       var ENANO_SPECIAL_CREATEPAGE = \''. makeUrl($paths->nslist['Special'].'CreatePage') .'\';
       var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $urlname_clean .'&namespace=' . $local_namespace . '\';
@@ -2405,7 +2405,7 @@ EOF;
       eval($cmd);
     }
     
-    if(count($ob) > 0 || getConfig('powered_btn') == '1') $sb_links = '<div style="text-align: center; padding: 5px 0;">'. ( ( getConfig('powered_btn') == '1' ) ? $this->fading_button : '' ) . implode('<br />', $ob).'</div>';
+    if(count($ob) > 0 || getConfig('powered_btn', '1') == '1') $sb_links = '<div style="text-align: center; padding: 5px 0;">'. ( ( getConfig('powered_btn', '1') == '1' ) ? $this->fading_button : '' ) . implode('<br />', $ob).'</div>';
     else $sb_links = '';
     
     $this->sidebar_widget('Links', $sb_links);

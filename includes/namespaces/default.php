@@ -353,6 +353,17 @@ class Namespace_Default
                   'restore_onclick' => 'ajaxEditor(\''.$this->revision_id.'\'); return false;',
                 )) . '
             </div>';
+      $q = $db->sql_query('SELECT page_format FROM ' . table_prefix . "logs WHERE log_id = {$this->revision_id};");
+      if ( !$q )
+        $db->_die();
+      
+      list($page_format) = $db->fetchrow_num();
+      $db->free_result();
+    }
+    else
+    {
+      $pathskey = $paths->nslist[ $this->namespace ] . $paths->page_id;
+      $page_format = $paths->pages[$pathskey]['page_format'];
     }
     
     if ( $redir_enabled )
@@ -368,7 +379,17 @@ class Namespace_Default
     
     if ( $incl_inner_headers )
     {
-      $text = '?>' . RenderMan::render($text);
+      if ( $page_format === 'wikitext' )
+      {
+        $text = '?>' . RenderMan::render($text);
+      }
+      else
+      {
+        // Page format is XHTML. This means we want to disable functionality that MCE takes care of, while still retaining
+        // the ability to wikilink, the ability to use images, etc. Basically, RENDER_INLINEONLY disables all behavior in
+        // the rendering engine/Text_Wiki that conflicts with MCE.
+        $text = '?>' . RenderMan::render($text, RENDER_WIKI_DEFAULT | RENDER_INLINEONLY);
+      }
     }
     else
     {

@@ -87,6 +87,7 @@ class pluginLoader {
         $this->load_list[] = $row['plugin_filename'];
       }
     }
+    $this->load_list = array_unique($this->load_list);
     
     $this->loaded_plugins = $this->get_plugin_list($this->load_list);
     
@@ -648,9 +649,9 @@ class pluginLoader {
       'success' => true
     );
     
-    endswitch;
-    
     $this->reimport_plugin_strings($filename, $plugin_list);
+    
+    endswitch;
     
     $cache->purge('plugins');
     $cache->purge('page_meta');

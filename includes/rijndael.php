@@ -98,9 +98,9 @@ class librijndael2
   
   static function trace($error)
   {
-    //$bt = debug_backtrace();
+    // $bt = debug_backtrace();
     echo("$error\n");
-    //echo(print_r($bt, true));
+    // echo '<pre>' . htmlspecialchars(print_r($bt, true)) . '</pre>';
     
     exit();
   }

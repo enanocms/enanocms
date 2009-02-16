@@ -21,6 +21,11 @@ $enano_versions = array();
 $enano_versions['1.0'] = array('1.0', '1.0.1', '1.0.2b1', '1.0.2', '1.0.3', '1.0.4', '1.0.5');
 $enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6');
 
+// If true, this will do a full langimport instead of only adding new strings.
+// Will probably be left on, but some change probably needs to be made to mark
+// strings as customized in the DB.
+$do_langimport = true;
+
 // Turn on every imaginable API hack to make common load on older databases
 define('IN_ENANO_UPGRADE', 1);
 define('IN_ENANO_MIGRATION', 1);
@@ -38,7 +43,8 @@ require_once('includes/libenanoinstall.php');
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');
 
-define('ENANO_UPGRADE_USE_AES_PASSWORDS', in_array(enano_version(), array('1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5')));
+if ( in_array(enano_version(), array('1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5')) )
+  define('ENANO_UPGRADE_USE_AES_PASSWORDS', 1);
 
 $ui = new Enano_Installer_UI('Enano upgrader', false);
 
@@ -270,6 +276,15 @@ else
     <li><?php echo $lang->get('upgrade_confirm_objective_backup_fs', array('dir' => ENANO_ROOT)); ?></li>
     <li><?php echo $lang->get('upgrade_confirm_objective_backup_db', array('dbname' => $dbname)); ?></li>
   </ul>
+  <?php
+  if ( $do_langimport ):
+  ?>
+  <div class="warning-box">
+    <?php echo $lang->get('upgrade_confirm_warning_langimport'); ?>
+  </div>
+  <?php
+  endif;
+  ?>
   <form method="get" action="upgrade.php" style="text-align: center;">
     <input type="hidden" name="auth" value="<?php echo $session->sid_super; ?>" />
     <button name="stage" value="pimpmyenano" class="submit">

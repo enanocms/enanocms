@@ -36,6 +36,7 @@ function DNobj(id)
     this.getContent = DN_mceFetchContent;
     this.setContent = DN_mceSetContent;
     this.makeSwitchable = DN_makeSwitchableTA;
+    this.isMCE = DN_isMCE;
   }
 }
 function __DNObjGetHeight(o) {
@@ -152,6 +153,11 @@ function DN_destroyMCE(performWikiTransform)
   }
   this.object.dnIsMCE = 'no';
   return this;
+}
+
+function DN_isMCE()
+{
+  return ( this.object.dnIsMCE == 'yes' );
 }
 
 function DN_mceFetchContent()
@@ -274,24 +280,56 @@ function DN_makeSwitchableTA(pos)
   }
 }
 
-// A basic Wikitext to XHTML converter
 function DN_WikitextToXHTML(text)
 {
-  text = text.replace(/^===[\s]*(.+?)[\s]*===$/g, '<h3>$1</h3>');
-  text = text.replace(/'''(.+?)'''/g, '<b>$1</b>');
-  text = text.replace(/''(.+?)''/g, '<i>$1</i>');
-  text = text.replace(/\[(http|ftp|irc|mailto):([^ \]])+ ([^\]]+?)\]/g, '<a href="$1:$2">$4</a>');
-  return text;
+  return DN_AjaxGetTransformedText(text, 'xhtml');
 }
 
-// Inverse of the previous function
 function DN_XHTMLToWikitext(text)
 {
-  text = text.replace(/<h3>(.+?)<\/h3>/g, '=== $1 ===');
-  text = text.replace(/<(b|strong)>(.+?)<\/(b|strong)>/g, "'''$2'''");
-  text = text.replace(/<(i|em)>(.+?)<\/(i|em)>/g, "''$2''");
-  text = text.replace(/<a href="([^" ]+)">(.+?)<\/a>/g, '[$1 $2]');
-  text = text.replace(/<\/?p>/g, '');
+  return DN_AjaxGetTransformedText(text, 'wikitext');
+}
+
+// AJAX to the server to transform text
+function DN_AjaxGetTransformedText(text, to)
+{
+  // get an XHR instance
+  var ajax = ajaxMakeXHR();
+  
+  var uri = stdAjaxPrefix + '&_mode=transform&to=' + to;
+  var parms = 'text=' + ajaxEscape(text);
+  try
+  {
+    ajax.open('POST', uri, false);
+    ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    // Setting Content-length in Safari triggers a warning
+    if ( !is_Safari )
+    {
+      ajax.setRequestHeader("Content-length", parms.length);
+    }
+    ajax.send(parms);
+    // async request, so if status != 200 at this point then we're screwed
+    if ( ajax.readyState == 4 && ajax.status == 200 )
+    {
+      var response = String(ajax.responseText + '');
+      if ( !check_json_response(response) )
+      {
+        handle_invalid_json(response);
+        return text;
+      }
+      response = parseJSON(response);
+      if ( response.mode == 'error' )
+      {
+        alert(response.error);
+        return text;
+      }
+      return response.text;
+    }
+  }
+  catch(e)
+  {
+    console.warn('DN_AjaxGetTransformedText: XHR failed');
+  }
   return text;
 }
 

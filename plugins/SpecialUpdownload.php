@@ -70,7 +70,7 @@ function page_Special_UploadFile()
     {
       die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_cant_get_file_meta') . '</p>');
     }
-    if ( $file['size'] == 0 || $file['size'] > (int)getConfig('max_file_size') )
+    if ( $file['size'] == 0 || $file['size'] > (int)getConfig('max_file_size', '256000') )
     {
       die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_too_big_or_small') . '</p>');
     }
@@ -165,7 +165,7 @@ function page_Special_UploadFile()
     <p><?php 
       // Get the max file size, and format it in a way that is user-friendly
       
-      $fs = getConfig('max_file_size');
+      $fs = getConfig('max_file_size', '256000');
       $fs = (int)$fs;
       if($fs >= 1048576)
       {

@@ -433,7 +433,7 @@ function stg_rename_config()
 
 function stg_lang_import()
 {
-  global $db, $languages;
+  global $db, $languages, $do_langimport;
   
   define('IN_ENANO_UPGRADE_POST', 1);
   
@@ -460,7 +460,7 @@ function stg_lang_import()
         // generate full path
         $language_file = ENANO_ROOT . "/language/{$languages[$row['lang_code']]['dir']}/$language_file.json";
         // setting the second parameter to bool(true) causes it to skip existing strings
-        if ( !$lang_local->import($language_file, true) )
+        if ( !$lang_local->import($language_file, ( !$do_langimport )) )
           // on failure, report failure to libenanoinstall
           return false;
       }

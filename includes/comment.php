@@ -81,7 +81,7 @@ class Comments
       echo enano_json_encode($ret);
       return $ret;
     }
-    if ( getConfig('enable_comments') == '0' )
+    if ( getConfig('enable_comments', '1') == '0' )
     {
       $ret = Array('mode'=>'error','error'=>'Comments are not enabled on this site.');
       echo enano_json_encode($ret);
@@ -182,7 +182,7 @@ class Comments
         $ret['user_level']['mod'] = USER_LEVEL_MOD;
         $ret['user_level']['admin'] = USER_LEVEL_ADMIN;
         
-        $ret['approval_needed'] = ( getConfig('approve_comments') == '1' );
+        $ret['approval_needed'] = ( getConfig('approve_comments', '0') == '1' );
         $ret['guest_posting'] = getConfig('comments_need_login');
         
         if ( $ret['guest_posting'] == '1' && !$session->user_logged_in )
@@ -306,7 +306,7 @@ class Comments
           $src = $text;
           $sql_text = $db->escape($text);
           $text = RenderMan::render($text);
-          $appr = ( getConfig('approve_comments') == '1' ) ? COMMENT_UNAPPROVED : COMMENT_APPROVED;
+          $appr = ( getConfig('approve_comments', '0') == '1' ) ? COMMENT_UNAPPROVED : COMMENT_APPROVED;
           if ( $appr === COMMENT_APPROVED && $spam_policy === 'moderate' && !$spamcheck )
             $appr = COMMENT_SPAM;
           $time = time();

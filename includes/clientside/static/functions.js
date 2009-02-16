@@ -104,6 +104,8 @@ function ajaxGet(uri, f, call_editor_safe) {
     // The user allowed the editor to be closed. Reset flags and knock out the on-close confirmation.
     editor_open = false;
     enableUnload();
+    // destroy the MCE instance so it can be recreated later
+    $dynano('ajaxEditArea').destroyMCE(false);
   }
   var ajax = ajaxMakeXHR();
   if ( !ajax )
@@ -136,6 +138,8 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
     // The user allowed the editor to be closed. Reset flags and knock out the on-close confirmation.
     editor_open = false;
     enableUnload();
+    // destroy the MCE instance so it can be recreated later
+    $dynano('ajaxEditArea').destroyMCE(false);
   }
   var ajax = ajaxMakeXHR();
   if ( !ajax )
@@ -448,17 +452,67 @@ function get_parent_form(o)
   }
 }
 
+/**
+ * Return a DOMElement that uses a sprite image.
+ * @param string Path to sprite image
+ * @param int Width of resulting image
+ * @param int Height of resulting image
+ * @param int X offset
+ * @param int Y offset
+ * @return object HTMLImageElement
+ */
+
+function gen_sprite(path, width, height, xpos, ypos)
+{
+  var image = document.createElement('img');
+  image.src = scriptPath + '/images/spacer.gif';
+  image.width = String(width);
+  image.height = String(height);
+  image.style.backgroundImage = 'url(' + path + ')';
+  image.style.backgroundRepeat = 'no-repeat';
+  xpos = ( xpos == 0 ) ? '0' : '-' + String(xpos);
+  ypos = ( ypos == 0 ) ? '0' : '-' + String(ypos);
+  image.style.backgroundPosition = ypos + 'px ' + xpos + 'px';
+  
+  return image;
+}
+
+/**
+ * The same as gen_sprite but generates HTML instead of a DOMElement.
+ * @param string Path to sprite image
+ * @param int Width of resulting image
+ * @param int Height of resulting image
+ * @param int X offset
+ * @param int Y offset
+ * @return object HTMLImageElement
+ */
+
+function gen_sprite_html(path, width, height, xpos, ypos)
+{
+  var html = '<img src="' + scriptPath + '/images/spacer.gif" width="' + width + '" height="' + height + '" ';
+  xpos = ( xpos == 0 ) ? '0' : '-' + String(xpos);
+  ypos = ( ypos == 0 ) ? '0' : '-' + String(ypos);
+  html += 'style="background-image: url(' + path + '); background-repeat: no-repeat; background-position: ' + ypos + 'px ' + xpos + 'px;"';
+  html += ' />';
+  
+  return html;
+}
+
 function findParentForm(o)
 {
   return get_parent_form(o);
 }
 
-function domObjChangeOpac(opacity, id) {
-    var object = id.style;
-    object.opacity = (opacity / 100);
-    object.MozOpacity = (opacity / 100);
-    object.KhtmlOpacity = (opacity / 100);
-    object.filter = "alpha(opacity=" + opacity + ")";
+function domObjChangeOpac(opacity, id)
+{
+  if ( !id )
+    return false;
+  
+  var object = id.style;
+  object.opacity = (opacity / 100);
+  object.MozOpacity = (opacity / 100);
+  object.KhtmlOpacity = (opacity / 100);
+  object.filter = "alpha(opacity=" + opacity + ")";
 }
 
 function getScrollOffset(el)

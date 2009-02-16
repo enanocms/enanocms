@@ -103,6 +103,43 @@ define('SECOND_SUNDAY', 2);
 define('THIRD_SUNDAY', 3);
 define('LAST_SUNDAY', 4);
 
+// Rendering options!
+
+/**
+ * Render using the default engine (Text_Wiki + Enano pre- and post-processing).
+ * @const int
+ */
+
+define('RENDER_WIKI_DEFAULT', 1);
+
+/**
+ * Render using template/wiki hybrid syntax (Enano processing + template variable/logic access)
+ * @const int
+ */
+
+define('RENDER_WIKI_TEMPLATE', 2);
+
+/**
+ * Only render block-level things, like paragraphs, divs, etc.
+ * @const int
+ */
+
+define('RENDER_BLOCKONLY', 4);
+
+/**
+ * Only render inline-level things, like links.
+ * @const int
+ */
+
+define('RENDER_INLINEONLY', 8);
+
+/**
+ * Disable smilies when rendering.
+ * @const int
+ */
+
+define('RENDER_NOSMILIES', 16);
+
 //
 // User types - don't touch these
 //

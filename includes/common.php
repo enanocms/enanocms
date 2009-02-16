@@ -177,6 +177,9 @@ $timezone = 0;
 global $dst_params;
 $dst_params = array(0, 0, 0, 0, 60);
 
+// Establish HTTPS
+$is_https = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off';
+
 // Divert to CLI loader if running from CLI
 if ( defined('ENANO_CLI') || ( isset($argc) && isset($argv) ) )
 {

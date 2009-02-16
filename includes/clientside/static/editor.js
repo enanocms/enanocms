@@ -5,6 +5,7 @@ var AUTOSAVE_TIMEOUT = 15;
 var AutosaveTimeoutObj = null;
 var editor_img_path = cdnPath + '/images/editor';
 var editor_save_lock = false;
+var editor_wikitext_transform_enable = true;
 
 window.ajaxEditor = function(revid)
 {
@@ -12,7 +13,7 @@ window.ajaxEditor = function(revid)
     return true;
   if ( editor_open )
     return true;
-  load_component(['l10n', 'template-compiler', 'messagebox']);
+  load_component(['l10n', 'template-compiler', 'messagebox', 'fadefilter', 'flyin']);
   selectButtonMinor('edit');
   selectButtonMajor('article');
   setAjaxLoading();
@@ -124,29 +125,34 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
     var span_mce  = document.createElement('span');
     span_wiki.id  = 'enano_edit_btn_pt';
     span_mce.id   = 'enano_edit_btn_mce';
-    if ( readCookie('enano_editor_mode') == 'tinymce' )
+    
+    // to-wikitext button
+    var a = document.createElement('a');
+    a.href = '#';
+    a.className = 'abutton image abutton_green';
+    a.appendChild(gen_sprite(scriptPath + '/images/editor/sprite.png', 16, 16, 0, 96));
+    a.appendChild(document.createTextNode(' ' + $lang.get('editor_btn_wikitext')));
+    span_wiki.appendChild(a);
+    toggler.appendChild(span_wiki);
+    
+    // to-HTML button
+    var a = document.createElement('a');
+    a.href = '#';
+    a.className = 'abutton image abutton_blue';
+    a.appendChild(gen_sprite(scriptPath + '/images/editor/sprite.png', 16, 16, 0, 112));
+    a.appendChild(document.createTextNode(' ' + $lang.get('editor_btn_graphical')));
+    span_mce.appendChild(a);
+    toggler.appendChild(span_mce);
+    
+    if ( response.page_format == 'xhtml' )
     {
       // Current selection is TinyMCE - make span_wiki have the link and span_mce be plaintext
-      var a = document.createElement('a');
-      a.href = '#';
-      a.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
-      span_wiki.appendChild(a);
-      toggler.appendChild(span_wiki);
-      toggler.appendChild(document.createTextNode(' | '));
-      span_mce.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
-      toggler.appendChild(span_mce);
+      span_mce.style.display = 'none';
     }
     else
     {
       // Current selection is wikitext - set span_wiki to plaintext and span_mce to link
-      span_wiki.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
-      toggler.appendChild(span_wiki);
-      toggler.appendChild(document.createTextNode(' | '));
-      var a = document.createElement('a');
-      a.href = '#';
-      a.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
-      span_mce.appendChild(a);
-      toggler.appendChild(span_mce);
+      span_wiki.style.display = 'none';
     }
   }
   
@@ -223,6 +229,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
     button.assign_vars({
         TITLE: $lang.get('editor_btn_closeviewer'),
         IMAGE: editor_img_path + '/discard.gif',
+        SPRITE: gen_sprite_html(editor_img_path + '/sprite.png', 16, 16, 0, 16),
         FLAGS: 'href="#" onclick="ajaxReset(true); return false;"'
       });
     toolbar += button.run();
@@ -343,6 +350,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
     button.assign_vars({
         TITLE: $lang.get('editor_btn_save'),
         IMAGE: editor_img_path + '/save.gif',
+        SPRITE: gen_sprite_html(editor_img_path + '/sprite.png', 16, 16, 0, 64),
         FLAGS: 'href="#" onclick="ajaxEditorSave(); return false;"'
       });
     toolbar += button.run();
@@ -351,6 +359,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
     button.assign_vars({
         TITLE: $lang.get('editor_btn_preview'),
         IMAGE: editor_img_path + '/preview.gif',
+        SPRITE: gen_sprite_html(editor_img_path + '/sprite.png', 16, 16, 0, 32),
         FLAGS: 'href="#" onclick="ajaxEditorGenPreview(); return false;"'
       });
     toolbar += button.run();
@@ -359,6 +368,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
     button.assign_vars({
         TITLE: $lang.get('editor_btn_revert'),
           IMAGE: editor_img_path + '/revert.gif',
+          SPRITE: gen_sprite_html(editor_img_path + '/sprite.png', 16, 16, 0, 48),
         FLAGS: 'href="#" onclick="ajaxEditorRevertToLatest(); return false;"'
       });
     toolbar += button.run();
@@ -367,6 +377,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
     button.assign_vars({
         TITLE: $lang.get('editor_btn_diff'),
         IMAGE: editor_img_path + '/diff.gif',
+        SPRITE: gen_sprite_html(editor_img_path + '/sprite.png', 16, 16, 0, 0),
         FLAGS: 'href="#" onclick="ajaxEditorShowDiffs(); return false;"'
       });
     toolbar += button.run();
@@ -375,6 +386,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
     button.assign_vars({
         TITLE: $lang.get('editor_btn_cancel'),
         IMAGE: editor_img_path + '/discard.gif',
+        SPRITE: gen_sprite_html(editor_img_path + '/sprite.png', 16, 16, 0, 16),
         FLAGS: 'href="#" onclick="ajaxEditorCancel(); return false;"'
       });
     toolbar += button.run();
@@ -389,6 +401,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
     button.assign_vars({
         TITLE: $lang.get('editor_btn_savedraft'),
         IMAGE: editor_img_path + '/savedraft.gif',
+        SPRITE: false,
         FLAGS: 'href="#" onclick="ajaxPerformAutosave(); return false;" id="ajax_edit_savedraft_btn"'
       });
     toolbar += button.run();
@@ -467,29 +480,23 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
   $dynano('ajaxEditArea').setContent(content);
   
   // If the editor preference is tinymce, switch the editor to TinyMCE now
-  if ( readCookie('enano_editor_mode') == 'tinymce' && allow_wysiwyg )
+  if ( response.page_format == 'xhtml' && allow_wysiwyg )
   {
-    $dynano('ajaxEditArea').switchToMCE();
+    $dynano('ajaxEditArea').switchToMCE(false);
   }
   
   if ( allow_wysiwyg )
   {
-    if ( readCookie('enano_editor_mode') == 'tinymce' )
-    {
-      var a = document.getElementById('enano_edit_btn_pt').getElementsByTagName('a')[0];
-      a.onclick = function() {
-        ajaxSetEditorPlain();
-        return false;
-      };
-    }
-    else
-    {
-      var a = document.getElementById('enano_edit_btn_mce').getElementsByTagName('a')[0];
-      a.onclick = function() {
-        ajaxSetEditorMCE();
-        return false;
-      };
-    }
+    var a = document.getElementById('enano_edit_btn_pt').getElementsByTagName('a')[0];
+    a.onclick = function() {
+      ajaxSetEditorPlain();
+      return false;
+    };
+    var a = document.getElementById('enano_edit_btn_mce').getElementsByTagName('a')[0];
+    a.onclick = function() {
+      ajaxSetEditorMCE();
+      return false;
+    };
   }
   
   // if we're using the modal window, fade it in
@@ -563,6 +570,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
     minor_edit: is_minor,
     time: timestamp,
     draft: ( is_draft == true ),
+    format: ( $dynano('ajaxEditArea').isMCE() ) ? 'xhtml' : 'wikitext',
     used_draft: used_draft
   };
   
@@ -597,12 +605,14 @@ window.ajaxEditorSave = function(is_draft, text_override)
         // This will only be used if there was a lower-level error.
         if ( response.mode == 'error' )
         {
+          editor_save_lock = false;
           new MessageBox(MB_OK | MB_ICONSTOP, $lang.get('editor_err_server'), response.error);
           return false;
         }
         // This will be used if the PageProcessor generated errors (usually security/permissions related)
         if ( response.mode == 'errors' )
         {
+          editor_save_lock = false;
           // This will be true if the user entered a captcha code incorrectly, thus
           // invalidating the code and requiring a new image to be generated.
           if ( response.new_captcha )
@@ -625,6 +635,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
         // If someone else got to the page first, warn the user
         if ( response.mode == 'obsolete' )
         {
+          editor_save_lock = false;
           // Update the local timestamp to allow override
           $dynano('ajaxEditArea').object._edTimestamp = response.time;
           new MessageBox(MB_OK | MB_ICONEXCLAMATION, $lang.get('editor_err_obsolete_title'), $lang.get('editor_err_obsolete_body', { author: response.author, timestamp: response.date_string, page_url: makeUrl(title, false, true) }));
@@ -668,6 +679,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
             editor_open = false;
             editor_save_lock = false;
             enableUnload();
+            $dynano('ajaxEditArea').destroyMCE(false);
             changeOpac(0, 'ajaxEditContainer');
             ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function(ajax)
               {
@@ -751,11 +763,34 @@ window.ajaxEditorGenPreview = function()
 
 window.ajaxEditorRevertToLatest = function()
 {
-  var mb = new MessageBox(MB_YESNO | MB_ICONQUESTION, $lang.get('editor_msg_revert_confirm_title'), $lang.get('editor_msg_revert_confirm_body'));
-  mb.onclick['Yes'] = function()
-  {
-    setTimeout('ajaxEditorRevertToLatestReal();', 750);
-  }
+  miniPromptMessage({
+      title: $lang.get('editor_msg_revert_confirm_title'),
+      message: $lang.get('editor_msg_revert_confirm_body'),
+      buttons: [
+        {
+          text: $lang.get('editor_btn_revert_confirm'),
+          color: 'red',
+          sprite: [ editor_img_path + '/sprite.png', 16, 16, 0, 48 ],
+          style: {
+            fontWeight: 'bold'
+          },
+          onclick: function()
+          {
+            ajaxEditorRevertToLatestReal();
+            miniPromptDestroy(this);
+            return false;
+          }
+        },
+        {
+          text: $lang.get('etc_cancel'),
+          onclick: function()
+          {
+            miniPromptDestroy(this);
+            return false;
+          }
+        }
+      ]
+    });
 }
 
 window.ajaxEditorRevertToLatestReal = function()
@@ -789,7 +824,11 @@ window.ajaxEditorRevertToLatestReal = function()
           return false;
         }
         
-        $dynano('ajaxEditArea').setContent(response.src);
+        setTimeout(function()
+          {
+            editor_convert_if_needed(response.page_format);
+            $dynano('ajaxEditArea').setContent(response.src);
+          }, aclDisableTransitionFX ? 10 : 750);
       }
     }, true);
 }
@@ -818,73 +857,135 @@ window.ajaxEditorShowDiffs = function()
 
 window.ajaxEditorCancel = function()
 {
-  var mb = new MessageBox(MB_YESNO | MB_ICONQUESTION, $lang.get('editor_msg_cancel_confirm_title'), $lang.get('editor_msg_cancel_confirm_body'));
-  mb.onclick['Yes'] = function()
+  miniPromptMessage({
+      title: $lang.get('editor_msg_cancel_confirm_title'),
+      message: $lang.get('editor_msg_cancel_confirm_body'),
+      buttons: [
+        {
+          text: $lang.get('editor_btn_cancel_confirm'),
+          color: 'red',
+          sprite: [ editor_img_path + '/sprite.png', 16, 16, 0, 16 ],
+          style: {
+            fontWeight: 'bold'
+          },
+          onclick: function()
+          {
+            setAjaxLoading();
+            ajaxEditorDestroyModalWindow();
+            editor_open = false;
+            enableUnload();
+            $dynano('ajaxEditArea').destroyMCE(false);
+            ajaxReset();
+            miniPromptDestroy(this);
+            return false;
+          }
+        },
+        {
+          text: $lang.get('editor_btn_cancel_cancel'),
+          onclick: function()
+          {
+            miniPromptDestroy(this);
+            return false;
+          }
+        }
+      ]
+    });
+}
+
+window.ajaxSetEditorMCE = function(confirmed)
+{
+  if ( editor_loading )
+    return false;
+  
+  if ( !confirmed )
   {
-    setAjaxLoading();
-    ajaxEditorDestroyModalWindow();
-    editor_open = false;
-    enableUnload();
-    setTimeout('ajaxReset();', 750);
+    miniPromptMessage({
+        title: $lang.get('editor_msg_convert_confirm_title'),
+        message: $lang.get('editor_msg_convert_confirm_body'),
+        buttons: [
+          {
+            color: 'blue',
+            text: $lang.get('editor_btn_graphical'),
+            style: {
+              fontWeight: 'bold'
+            },
+            sprite: [ editor_img_path + '/sprite.png', 16, 16, 0, 112 ],
+            onclick: function()
+            {
+              ajaxSetEditorMCE(true);
+              miniPromptDestroy(this);
+              return false;
+            }
+          },
+          {
+            text: $lang.get('etc_cancel'),
+            onclick: function()
+            {
+              miniPromptDestroy(this);
+              return false;
+            }
+          }
+        ]
+      });
+    return false;
   }
-}
-
-window.ajaxSetEditorMCE = function()
-{
-  if ( editor_loading )
-    return false;
   
   // Clear out existing buttons
   var span_wiki = $dynano('enano_edit_btn_pt').object;
   var span_mce  = $dynano('enano_edit_btn_mce').object;
-  span_wiki.removeChild(span_wiki.firstChild);
-  span_mce.removeChild(span_mce.firstChild);
-  
-  // Rebuild control
-  var a = document.createElement('a');
-  a.href = '#';
-  a.onclick = function() {
-    ajaxSetEditorPlain();
-    return false;
-  };
-  a.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
-  span_wiki.appendChild(a);
-  span_mce.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
+  span_wiki.style.display = 'inline';
+  span_mce.style.display = 'none';
   
   // Swap editor
-  $dynano('ajaxEditArea').switchToMCE();
-  
-  // Remember the setting
-  createCookie('enano_editor_mode', 'tinymce', 365);
+  $dynano('ajaxEditArea').switchToMCE(true);
 }
 
-window.ajaxSetEditorPlain = function()
+window.ajaxSetEditorPlain = function(confirmed)
 {
   if ( editor_loading )
     return false;
   
+  if ( !confirmed )
+  {
+    miniPromptMessage({
+        title: $lang.get('editor_msg_convert_confirm_title'),
+        message: $lang.get('editor_msg_convert_confirm_body'),
+        buttons: [
+          {
+            color: 'green',
+            text: $lang.get('editor_btn_wikitext'),
+            style: {
+              fontWeight: 'bold'
+            },
+            sprite: [ editor_img_path + '/sprite.png', 16, 16, 0, 96 ],
+            onclick: function()
+            {
+              ajaxSetEditorPlain(true);
+              miniPromptDestroy(this);
+              return false;
+            }
+          },
+          {
+            text: $lang.get('etc_cancel'),
+            onclick: function()
+            {
+              miniPromptDestroy(this);
+              return false;
+            }
+          }
+        ]
+      });
+    return false;
+  }
+  
   // Clear out existing buttons
   var span_wiki = $dynano('enano_edit_btn_pt').object;
   var span_mce  = $dynano('enano_edit_btn_mce').object;
-  span_wiki.removeChild(span_wiki.firstChild);
-  span_mce.removeChild(span_mce.firstChild);
-  
-  // Rebuild control
-  span_wiki.appendChild(document.createTextNode($lang.get('editor_btn_wikitext')));
-  var a = document.createElement('a');
-  a.href = '#';
-  a.onclick = function() {
-    ajaxSetEditorMCE();
-    return false;
-  };
-  a.appendChild(document.createTextNode($lang.get('editor_btn_graphical')));
-  span_mce.appendChild(a);
+  span_wiki.style.display = 'none';
+  span_mce.style.display = 'inline';
   
   // Swap editor
-  $dynano('ajaxEditArea').destroyMCE();
-  
-  // Remember the setting
-  createCookie('enano_editor_mode', 'text', 365);
+  $dynano('ajaxEditArea').destroyMCE(true);
 }
 
 var editor_loading = false;
@@ -1003,6 +1104,8 @@ window.ajaxEditorUseDraft = function()
           return false;
         }
         
+        editor_convert_if_needed(response.page_format);
+        
         $dynano('ajaxEditArea').setContent(response.src);
         $dynano('ajaxEditArea').object.used_draft = true;
         
@@ -1018,3 +1121,54 @@ window.ajaxEditorUseDraft = function()
     }, true);
 }
 
+window.editor_convert_if_needed = function(targetformat, noticetitle, noticebody)
+{
+  // Do we need to change the format?
+  var need_to_mce = ( targetformat == 'xhtml' && !$dynano('ajaxEditArea').isMCE() );
+  var need_to_wkt = ( targetformat == 'wikitext' && $dynano('ajaxEditArea').isMCE() );
+  if ( need_to_mce )
+  {
+    $dynano('ajaxEditArea').setContent('');
+    $dynano('ajaxEditArea').switchToMCE(false);
+    
+    // Clear out existing buttons
+    var span_wiki = $dynano('enano_edit_btn_pt').object;
+    var span_mce  = $dynano('enano_edit_btn_mce').object;
+    span_wiki.style.display = 'inline';
+    span_mce.style.display = 'none';
+  }
+  else if ( need_to_wkt )
+  {
+    $dynano('ajaxEditArea').setContent('');
+    $dynano('ajaxEditArea').destroyMCE(false);
+    
+    // Clear out existing buttons
+    var span_wiki = $dynano('enano_edit_btn_pt').object;
+    var span_mce  = $dynano('enano_edit_btn_mce').object;
+    span_wiki.style.display = 'none';
+    span_mce.style.display = 'inline';
+  }
+  if ( need_to_mce || need_to_wkt )
+  {
+    // explain the conversion
+    if ( !noticetitle )
+      noticetitle = 'editor_msg_convert_draft_load_title';
+    if ( !noticebody )
+      noticebody = 'editor_msg_convert_draft_load_body';
+    
+    miniPromptMessage({
+        title: $lang.get(noticetitle),
+        message: $lang.get(noticebody),
+        buttons: [
+          {
+            text: $lang.get('etc_ok'),
+            onclick: function()
+            {
+              miniPromptDestroy(this);
+              return false;
+            }
+          }
+        ]
+      });
+  }
+}

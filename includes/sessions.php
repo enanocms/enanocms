@@ -716,13 +716,17 @@ class sessionManager {
       $this->sql('SELECT password,\'\' AS password_salt,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix."users\n"
                . "  WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db';");
     }
-    if($db->numrows() < 1)
+    if ( $db->numrows() < 1 )
     {
       // This wasn't logged in <1.0.2, dunno how it slipped through
-      if($level > USER_LEVEL_MEMBER)
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+      if ( $level > USER_LEVEL_MEMBER )
+        $this->sql('INSERT INTO ' . table_prefix . "logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES\n"
+                   . '  (\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', '
+                      . '\''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+        $this->sql('INSERT INTO ' . table_prefix . "logs(log_type,action,time_id,date_string,author,edit_summary) VALUES\n"
+                   . '  (\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', '
+                      . '\''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
       
       // Do we also need to increment the lockout countdown?
       if ( @$policy != 'disable' && !defined('IN_ENANO_INSTALL') )
@@ -783,7 +787,7 @@ class sessionManager {
         $success = true;
       }
     }
-    else if ( $row['old_encryption'] == 2 || defined('ENANO_UPGRADE_USE_AES_PASSWORDS') )
+    else if ( $row['old_encryption'] == 2 || ( defined('ENANO_UPGRADE_USE_AES_PASSWORDS') ) )
     {
       // Our password field uses the 1.0RC1-1.1.5 encryption format
       $real_pass = $aes->decrypt($row['password'], $this->private_key);
@@ -920,7 +924,7 @@ class sessionManager {
     $salt = '';
     for ( $i = 0; $i < 32; $i++ )
     {
-      $salt .= chr(mt_rand(32, 127));
+      $salt .= chr(mt_rand(32, 126));
     }
     
     // Session key
@@ -946,7 +950,7 @@ class sessionManager {
     {
       // Stash it in a cookie
       // For now, make the cookie last forever, we can change this in 1.1.x
-      setcookie( 'sid', $session_key, time()+15552000, scriptPath.'/', null, ( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ) );
+      setcookie( 'sid', $session_key, time()+15552000, scriptPath.'/', null, $GLOBALS['is_https']);
       $_COOKIE['sid'] = $session_key;
     }
     // $keyhash is stored in the database, this is for compatibility with the older DB structure
@@ -1354,10 +1358,6 @@ class sessionManager {
       if($this->user_logged_in)
       {
         $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-        // See if we can get rid of the cached decrypted session key
-        $key_bin = hex2bin($this->sid);
-        $key_hash = sha1($key_bin . '::' . $this->private_key);
-        aes_decrypt_cache_destroy($key_hash);
         // Completely destroy our session
         if($this->auth_level > USER_LEVEL_CHPREF)
         {
@@ -1811,8 +1811,6 @@ class sessionManager {
       }
     }
     
-    $password = $aes->encrypt($password, $this->private_key, ENC_HEX);
-    
     // Require the account to be activated?
     switch(getConfig('account_activation'))
     {
@@ -1836,7 +1834,7 @@ class sessionManager {
     $actkey = sha1 ( microtime() . mt_rand() );
 
     // We good, create the user
-    $this->sql('INSERT INTO '.table_prefix.'users ( username, password, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa, user_registration_ip ) VALUES ( \''.$username.'\', \''.$password.'\', \''.$email.'\', \''.$real_name.'\', \''.$template->default_theme.'\', \''.$template->default_style.'\', '.time().', '.$active.', \''.$actkey.'\', '.USER_LEVEL_CHPREF.', ' . $coppa_col . ', \'' . $ip . '\' );');
+    $this->sql('INSERT INTO '.table_prefix.'users ( username, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa, user_registration_ip ) VALUES ( \''.$username.'\', \''.$email.'\', \''.$real_name.'\', \''.$template->default_theme.'\', \''.$template->default_style.'\', '.time().', '.$active.', \''.$actkey.'\', '.USER_LEVEL_CHPREF.', ' . $coppa_col . ', \'' . $ip . '\' );');
     
     // Get user ID and create users_extra entry
     $q = $this->sql('SELECT user_id FROM '.table_prefix."users WHERE username='$username';");
@@ -1847,6 +1845,9 @@ class sessionManager {
       
       $this->sql('INSERT INTO '.table_prefix.'users_extra(user_id) VALUES(' . $user_id . ');');
     }
+    
+    // Set the password
+    $this->set_password($user_id, $password);
     
     // Config option added, 1.1.5
     if ( getConfig('userpage_grant_acl', '1') == '1' )             
@@ -1879,8 +1880,8 @@ class sessionManager {
     // Require the account to be activated?
     if ( $coppa )
     {
-      $this->admin_activation_request($username);
-      $this->send_coppa_mail($username,$email);
+      $this->admin_activation_request($user_orig);
+      $this->send_coppa_mail($user_orig, $email);
     }
     else
     {
@@ -1890,27 +1891,28 @@ class sessionManager {
         default:
           break;
         case 'user':
-          $a = $this->send_activation_mail($username);
+          $a = $this->send_activation_mail($user_orig);
           if(!$a)
           {
-            $this->admin_activation_request($username);
+            $this->admin_activation_request($user_orig);
             return $lang->get('user_reg_err_actmail_failed') . ' ' . $a;
           }
           break;
         case 'admin':
-          $this->admin_activation_request($username);
+          $this->admin_activation_request($user_orig);
           break;
       }
     }
     
     // Leave some data behind for the hook
-    $code = $plugins->setHook('user_registered'); // , Array('username'=>$username));
+    $code = $plugins->setHook('user_registered');
     foreach ( $code as $cmd )
     {
       eval($cmd);
     }
     
-    // $this->register_session($username, $password);
+    // Uncomment to automatically log the user in (WARNING: commented out for a reason - doesn't consider activation and other things)
+    // $this->register_session($user_orig, $password);
     return 'success';
   }
   
@@ -1924,9 +1926,6 @@ class sessionManager {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
-    $q = $this->sql('SELECT username,email FROM '.table_prefix.'users WHERE user_id=2 OR user_level=' . USER_LEVEL_ADMIN . ' ORDER BY user_id ASC;');
-    $un = $db->fetchrow();
-    $admin_user = $un['username'];
     $q = $this->sql('SELECT username,activation_key,account_active,email FROM '.table_prefix.'users WHERE username=\''.$db->escape($u).'\';');
     $r = $db->fetchrow();
     if ( empty($r['email']) )
@@ -1935,16 +1934,24 @@ class sessionManager {
     $aklink = makeUrlComplete('Special', 'ActivateAccount/'.str_replace(' ', '_', $u).'/'. ( ( is_string($actkey) ) ? $actkey : $r['activation_key'] ) );
     $message = $lang->get('user_reg_activation_email', array(
         'activation_link' => $aklink,
-        'admin_user' => $admin_user,
         'username' => $u
       ));
       
-    if(getConfig('smtp_enabled') == '1')
+    if ( getConfig('smtp_enabled') == '1' )
     {
       $result = smtp_send_email($r['email'], $lang->get('user_reg_activation_email_subject'), preg_replace("#(?<!\r)\n#s", "\n", $message), getConfig('contact_email'));
-      if($result == 'success') $result = true;
-      else { echo $result; $result = false; }
-    } else {
+      if ( $result == 'success' )
+      {
+        $result = true;
+      }
+      else
+      {
+        echo $result;
+        $result = false;
+      }
+    }
+    else
+    {
       $result = mail($r['email'], $lang->get('user_reg_activation_email_subject'), preg_replace("#(?<!\r)\n#s", "\n", $message), 'From: '.getConfig('contact_email'));
     }
     return $result;
