@@ -14,10 +14,9 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  * 
- * Thanks to Stephan for helping out with l10n in the installer (his work is in includes/stages/*.php).
+ * Thanks to Stephan B. for helping out with l10n in the installer (his work is in includes/stages/*.php).
  */
 
-echo "INSTALLER STARTED\n";
 $result = require(dirname(__FILE__) . '/includes/cli-core.php');
 exit( $result ? 0 : 1 );
 
