@@ -716,9 +716,10 @@ function page_Special_Preferences()
       echo '</form>';
       break;
     case 'Avatar':
-      if ( getConfig('avatar_enable') != '1' )
+      if ( getConfig('avatar_enable', 0) !== 1 )
       {
         echo '<div class="error-box"><b>' . $lang->get('usercp_avatar_err_disabled_title') . '</b><br />' . $lang->get('usercp_avatar_err_disabled_body') . '</div>';
+        break;
       }
       
       // Determine current avatar
@@ -758,7 +759,7 @@ function page_Special_Preferences()
             if ( $action == 'set_http' )
             {
               // Check if this action is enabled
-              if ( getConfig('avatar_upload_http') !== '1' )
+              if ( getConfig('avatar_upload_http', '1') !== '1' )
               {
                 // non-localized, only appears on hack attempt
                 echo '<div class="error-box">Uploads over HTTP are disabled.</div>';
@@ -798,7 +799,7 @@ function page_Special_Preferences()
             else
             {
               // Check if this action is enabled
-              if ( getConfig('avatar_upload_file') !== '1' )
+              if ( getConfig('avatar_upload_file', '1') !== '1' )
               {
                 // non-localized, only appears on hack attempt
                 echo '<div class="error-box">Uploads from the browser are disabled.</div>';
