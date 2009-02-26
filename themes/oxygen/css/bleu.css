@@ -511,6 +511,7 @@ td#mdg-btm                        {              height: 12px; background-image:
 input, textarea, select, button {
   border: 1px solid #406080;
   background-color: #F2F2F2;
+  color: #202020;
   padding: 3px;
   font-family: arial, helvetica, sans-serif;
   font-size: 8pt;
@@ -556,6 +557,7 @@ input#pageheading {
   border-bottom: 1px solid #90B0D0;
   margin: 0;
   padding: 0;
+  color: #202020;
 }
 
 input#pageheading:focus {
