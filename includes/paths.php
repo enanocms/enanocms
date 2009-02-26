@@ -476,12 +476,12 @@ class pathManager
     foreach($k as $key)
     {
       $i++;
-      $name = ( preg_match('/^[a-z0-9_]+$/', $key) ) ? $lang->get($key) : $key;
+      $name = $lang->get($key);
       $ret .= "['".$name."', 'javascript:trees[0].toggle($i)', \n";
       foreach($this->admin_tree[$key] as $c)
       {
         $i++;
-        $name = ( preg_match('/^[a-z0-9_]+$/', $key) ) ? $lang->get($c['name']) : $c['name'];
+        $name = $lang->get($c['name']);
         if ( $c['icon'] && $c['icon'] != cdnPath . '/images/spacer.gif' )
         {
           if ( is_array($c['icon']) )

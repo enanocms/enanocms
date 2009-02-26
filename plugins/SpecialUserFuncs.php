@@ -264,6 +264,9 @@ function page_Special_Login()
         $errstring = $lang->get('user_err_locked_out', array('plural' => $s, 'captcha_blurb' => $captcha_string, 'time_rem' => $time_rem));
         
         break;
+      default:
+        $errstring = $lang->get($errstring);
+        break;
     }
     echo '<div class="error-box-mini">'.$errstring.'</div>';
   }
@@ -343,6 +346,11 @@ function page_Special_Login()
          }
          ?>
          <?php
+         $code = $plugins->setHook('login_form_html');
+         foreach ( $code as $cmd )
+         {
+           eval($cmd);
+         }
          if ( $level <= USER_LEVEL_MEMBER )
          {
            // "remember me" switch
@@ -504,7 +512,53 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       return false;
     }
     
-    $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
+    // These are to allow auth plugins to work universally between JSON and HTML login forms
+    $userinfo =& $_POST;
+    $req = array(
+      'level' => intval($_POST['auth_level']),
+      'remember' => isset($_POST['remember'])
+    );
+    
+    // At this point if any extra fields were injected into the login form, we need to let plugins process it
+    
+    /**
+     * Called upon processing an incoming login request from the plain HTML login form.. If you added anything to the form,
+     * that will be in the $userinfo array here and on $_POST. Expected return values are: true if your plugin has
+     * not only succeeded but ALSO issued a session key (bypass the whole Enano builtin login process) and an associative array
+     * with "mode" set to "error" and an error string in "error" to send an error back to the client. Any return value other
+     * than these will be ignored.
+     * @hook login_process_userdata_json
+     */
+     
+    $skip_normal_login = false;
+    
+    $code = $plugins->setHook('login_process_userdata_json');
+    foreach ( $code as $cmd )
+    {
+      $result = eval($cmd);
+      if ( $result === true )
+      {
+        $skip_normal_login = true;
+        $result = array('success' => true);
+        break;
+      }
+      else if ( is_array($result) )
+      {
+        if ( isset($result['mode']) && $result['mode'] === 'error' && isset($result['error']) )
+        {
+          $__login_status = array(
+            'mode' => 'error',
+            'error' => $result['error']
+          );
+          return false;
+        }
+      }
+    }
+    
+    if ( !$skip_normal_login )
+    {
+      $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
+    }
    
     if($result['success'])
     {

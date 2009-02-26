@@ -658,20 +658,10 @@ class sessionManager {
     
     if ( !defined('IN_ENANO_INSTALL') )
     {
-      // Lockout stuff
-      $threshold = ( $_ = getConfig('lockout_threshold') ) ? intval($_) : 5;
-      $duration  = ( $_ = getConfig('lockout_duration') ) ? intval($_) : 15;
-      // convert to minutes
-      $duration  = $duration * 60;
-      $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
-      
-      $timestamp_cutoff = time() - $duration;
-      $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
-      $q = $this->sql('SELECT timestamp FROM '.table_prefix.'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
-      $fails = $db->numrows();
+      $locked_out = $this->get_lockout_info($lockout_data);
       
       $captcha_good = false;
-      if ( $policy == 'captcha' && $captcha_hash && $captcha_code )
+      if ( $lockout_data['lockout_policy'] == 'captcha' && $captcha_hash && $captcha_code )
       {
         // policy is captcha -- check if it's correct, and if so, bypass lockout check
         $real_code = $this->get_captcha($captcha_hash);
@@ -682,7 +672,7 @@ class sessionManager {
       }
       if ( $policy != 'disable' && !$captcha_good )
       {
-        if ( $fails >= $threshold )
+        if ( $lockout_data['lockout_fails'] >= $lockout_data['lockout_threshold'] )
         {
           // ooh boy, somebody's in trouble ;-)
           $row = $db->fetchrow();
@@ -690,12 +680,12 @@ class sessionManager {
           return array(
               'success' => false,
               'error' => 'locked_out',
-              'lockout_threshold' => $threshold,
-              'lockout_duration' => ( $duration / 60 ),
-              'lockout_fails' => $fails,
-              'lockout_policy' => $policy,
-              'time_rem' => ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ),
-              'lockout_last_time' => $row['timestamp']
+              'lockout_threshold' => $lockout_data['lockout_threshold'],
+              'lockout_duration' => ( $lockout_data['lockout_duration'] ),
+              'lockout_fails' => $lockout_data['lockout_fails'],
+              'lockout_policy' => $lockout_data['lockout_policy'],
+              'time_rem' => $lockout_data['lockout_time_rem'],
+              'lockout_last_time' => $lockout_data['lockout_last_time']
             );
         }
       }
@@ -729,19 +719,19 @@ class sessionManager {
                       . '\''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
       
       // Do we also need to increment the lockout countdown?
-      if ( @$policy != 'disable' && !defined('IN_ENANO_INSTALL') )
+      if ( @$lockout_data['lockout_policy'] != 'disable' && !defined('IN_ENANO_INSTALL') )
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
         $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
-        $fails++;
+        $lockout_data['lockout_fails']++;
         return array(
             'success' => false,
-            'error' => ( $fails >= $threshold ) ? 'locked_out' : 'invalid_credentials',
-            'lockout_threshold' => $threshold,
-            'lockout_duration' => ( $duration / 60 ),
-            'lockout_fails' => $fails,
-            'lockout_policy' => $policy
+            'error' => ( $lockout_data['lockout_fails'] >= $lockout_data['lockout_threshold'] ) ? 'locked_out' : 'invalid_credentials',
+            'lockout_threshold' => $lockout_data['lockout_threshold'],
+            'lockout_duration' => ( $lockout_data['lockout_duration'] ),
+            'lockout_fails' => $lockout_data['lockout_fails'],
+            'lockout_policy' => $lockout_data['lockout_policy']
           );
       }
       
@@ -851,19 +841,19 @@ class sessionManager {
         $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
       // Do we also need to increment the lockout countdown?
-      if ( !defined('IN_ENANO_INSTALL') && $policy != 'disable' )
+      if ( !defined('IN_ENANO_INSTALL') && $lockout_data['lockout_policy'] != 'disable' )
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
         $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
-        $fails++;
+        $lockout_data['lockout_fails']++;
         return array(
             'success' => false,
-            'error' => ( $fails >= $threshold ) ? 'locked_out' : 'invalid_credentials',
-            'lockout_threshold' => $threshold,
-            'lockout_duration' => ( $duration / 60 ),
-            'lockout_fails' => $fails,
-            'lockout_policy' => $policy
+            'error' => ( $lockout_data['lockout_fails'] >= $lockout_data['lockout_threshold'] ) ? 'locked_out' : 'invalid_credentials',
+            'lockout_threshold' => $lockout_data['lockout_threshold'],
+            'lockout_duration' => ( $lockout_data['lockout_duration'] ),
+            'lockout_fails' => $lockout_data['lockout_fails'],
+            'lockout_policy' => $lockout_data['lockout_policy']
           );
       }
         
@@ -1009,6 +999,49 @@ class sessionManager {
   }
   
   /**
+   * Tells us if we're locked out from logging in or not.
+   * @param reference will be filled with information regarding in-progress lockout
+   * @return bool True if locked out, false otherwise
+   */
+  
+  function get_lockout_info(&$lockdata)
+  {
+    global $db;
+    
+    // this has to be initialized to hide warnings
+    $lockdata = null;
+    
+    // Query database for lockout info
+    $locked_out = false;
+    $threshold = ( $_ = getConfig('lockout_threshold') ) ? intval($_) : 5;
+    $duration  = ( $_ = getConfig('lockout_duration') ) ? intval($_) : 15;
+    // convert to minutes
+    $duration  = $duration * 60;
+    $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
+    if ( $policy != 'disable' )
+    {
+      $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
+      $timestamp_cutoff = time() - $duration;
+      $q = $this->sql('SELECT timestamp FROM ' . table_prefix . 'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
+      $fails = $db->numrows();
+      $row = $db->fetchrow();
+      $locked_out = ( $fails >= $threshold );
+      $lockdata = array(
+          'locked_out' => $locked_out,
+          'lockout_threshold' => $threshold,
+          'lockout_duration' => ( $duration / 60 ),
+          'lockout_fails' => $fails,
+          'lockout_policy' => $policy,
+          'lockout_last_time' => $row['timestamp'],
+          'time_rem' => ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ),
+          'captcha' => ''
+        );
+      $db->free_result();
+    }
+    return $locked_out;
+  }
+  
+  /**
    * Creates/restores a guest session
    * @todo implement real session management for guests
    */
@@ -1038,7 +1071,7 @@ class sessionManager {
       @setlocale(LC_ALL, $lang->lang_code);
     }
     // make a CSRF token
-    $this->csrf_token = sha1($_SERVER['REMOTE_ADDR'] . sha1($this->private_key));
+    $this->csrf_token = hmac_sha1($_SERVER['REMOTE_ADDR'], sha1($this->private_key));
   }
   
   /**
@@ -3821,34 +3854,7 @@ EOF;
         
         $this->start();
         
-        // Query database for lockout info
-        $locked_out = false;
-        // are we locked out?
-        $threshold = ( $_ = getConfig('lockout_threshold') ) ? intval($_) : 5;
-        $duration  = ( $_ = getConfig('lockout_duration') ) ? intval($_) : 15;
-        // convert to minutes
-        $duration  = $duration * 60;
-        $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
-        if ( $policy != 'disable' )
-        {
-          $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
-          $timestamp_cutoff = time() - $duration;
-          $q = $this->sql('SELECT timestamp FROM '.table_prefix.'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
-          $fails = $db->numrows();
-          $row = $db->fetchrow();
-          $locked_out = ( $fails >= $threshold );
-          $lockdata = array(
-              'locked_out' => $locked_out,
-              'lockout_threshold' => $threshold,
-              'lockout_duration' => ( $duration / 60 ),
-              'lockout_fails' => $fails,
-              'lockout_policy' => $policy,
-              'lockout_last_time' => $row['timestamp'],
-              'time_rem' => ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ),
-              'captcha' => ''
-            );
-          $db->free_result();
-        }
+        $locked_out = $this->get_lockout_info($lockdata);
         
         $response = array('mode' => 'build_box');
         $response['allow_diffiehellman'] = $dh_supported;
@@ -3862,7 +3868,7 @@ EOF;
         $response['locked_out'] = $locked_out;
         
         $response['lockout_info'] = $lockdata;
-        if ( $policy == 'captcha' && $locked_out )
+        if ( $lockdata['lockout_policy'] == 'captcha' && $locked_out )
         {
           $response['lockout_info']['captcha'] = $this->make_captcha();
         }
@@ -3991,6 +3997,41 @@ EOF;
         
         $username =& $userinfo['username'];
         $password =& $userinfo['password'];
+        
+        // At this point if any extra info was injected into the login data packet, we need to let plugins process it
+        /**
+         * Called upon processing an incoming login request. If you added anything to the userinfo object during the jshook
+         * login_build_userinfo, that will be in the $userinfo array here. Expected return values are: true if your plugin has
+         * not only succeeded but ALSO issued a session key (bypass the whole Enano builtin login process) and an associative array
+         * with "mode" set to "error" and an error string in "error" to send an error back to the client. Any return value other
+         * than these will be ignored.
+         * @hook login_process_userdata_json
+         */
+        
+        $code = $plugins->setHook('login_process_userdata_json');
+        foreach ( $code as $cmd )
+        {
+          $result = eval($cmd);
+          if ( $result === true )
+          {
+            return array(
+                'mode' => 'login_success',
+                'key' => ( $this->sid_super ) ? $this->sid_super : false
+              );
+          }
+          else if ( is_array($result) )
+          {
+            if ( isset($result['mode']) && $result['mode'] === 'error' && isset($result['error']) )
+            {
+              return array(
+                'mode' => 'login_failure',
+                'error_code' => $result['error'],
+                // Use this to provide a way to respawn the login box
+                'respawn_info' => $this->process_login_request(array('mode' => 'getkey'))
+              );
+            }
+          }
+        }
         
         // If we're logging in with a temp password, attach to the login_password_reset hook to send our JSON response
         // A bit hackish since it just dies with the response :-(

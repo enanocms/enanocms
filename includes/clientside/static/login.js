@@ -347,6 +347,10 @@ window.ajaxLoginSetStatus = function(status)
       
       break;
       
+    default:
+      eval(setHook('login_set_status'));
+      break;
+      
     case AJAX_STATUS_DESTROY:
     case null:
     case undefined:
@@ -555,6 +559,8 @@ window.ajaxLoginBuildForm = function(data)
   td2_2.appendChild(f_password);
   tr2.appendChild(td2_2);
   table.appendChild(tr2);
+  
+  eval(setHook('login_build_form'));
   
   // Field - captcha
   if ( show_captcha )
@@ -806,11 +812,11 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
     }
   }
   
-  if ( !username )
+  if ( typeof(username) != 'string' )
   {
     var username = document.getElementById('ajax_login_field_username').value;
   }
-  if ( !password )
+  if ( typeof(password) != 'string' )
   {
     var password = document.getElementById('ajax_login_field_password').value;
   }
@@ -851,10 +857,14 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
   ajaxLoginSetStatus(AJAX_STATUS_LOGGING_IN);
   
   // Encrypt the password and username
-  var userinfo = toJSONString({
+  var userinfo = {
       username: username,
       password: password
-    });
+    };
+    
+  eval(setHook('login_build_userinfo'));
+    
+  userinfo = toJSONString(userinfo);
   var crypt_key_ba = hexToByteArray(crypt_key);
   userinfo = stringToByteArray(userinfo);
   
@@ -957,10 +967,18 @@ window.ajaxLoginShowFriendlyError = function(response)
 
 window.ajaxLoginGetErrorText = function(response)
 {
+  if ( !response.error_code.match(/^[a-z0-9]+_[a-z0-9_]+$/) )
+  {
+    return response.error_code;
+  }
   switch ( response.error_code )
   {
     default:
-      return $lang.get('user_err_' + response.error_code);
+      var ls = $lang.get('user_err_' + response.error_code);
+      if ( ls == 'user_err_' + response.error_code )
+        ls = $lang.get(response.error_code);
+      
+      return ls;
       break;
     case 'locked_out':
       if ( response.respawn_info.lockout_info.lockout_policy == 'lockout' )
@@ -1005,13 +1023,18 @@ window.ajaxLoginGetErrorText = function(response)
         switch ( response.respawn_info.lockout_info.lockout_policy )
         {
           case 'captcha':
-            base += $lang.get('user_err_invalid_credentials_lockout', { 
+            base += $lang.get('user_err_invalid_credentials_lockout_captcha', { 
                 fails: response.respawn_info.lockout_info.lockout_fails,
                 lockout_threshold: response.respawn_info.lockout_info.lockout_threshold,
                 lockout_duration: response.respawn_info.lockout_info.lockout_duration
               });
             break;
           case 'lockout':
+            base += $lang.get('user_err_invalid_credentials_lockout', { 
+                fails: response.respawn_info.lockout_info.lockout_fails,
+                lockout_threshold: response.respawn_info.lockout_info.lockout_threshold,
+                lockout_duration: response.respawn_info.lockout_info.lockout_duration
+              });
             break;
         }
       }

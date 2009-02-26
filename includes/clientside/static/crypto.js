@@ -1981,7 +1981,6 @@ function stringToByteArray(text)
       var hexch = text.substr(i, 3);
       if ( hexch.match(/^%[a-f0-9][a-f0-9]$/i) )
       {
-        console.debug('hexch: ', hexch);
         result[result.length] = (unescape(hexch)).charCodeAt(0);
         a = true;
         i += 2;

@@ -1499,7 +1499,7 @@ JSEOF;
     }
     
     // Full pathname of template file
-    $tpl_file_fullpath = ENANO_ROOT . '/themes/' . $this->theme . '/' . $file;
+    $tpl_file_fullpath = ( strstr($file, '/') ) ? $file : ENANO_ROOT . '/themes/' . $this->theme . '/' . $file;
     
     // Make sure the template even exists
     if ( !is_file($tpl_file_fullpath) )
