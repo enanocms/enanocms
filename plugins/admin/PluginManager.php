@@ -330,6 +330,27 @@ function page_Admin_PluginManager()
     return true;
   }
   
+  // Sort so that system plugins come last
+  ksort($plugin_list);
+  $plugin_list_sorted = array();
+  foreach ( $plugin_list as $filename => $data )
+  {
+    if ( !$data['system plugin'] )
+    {
+      $plugin_list_sorted[$filename] = $data;
+    }
+  }
+  ksort($plugin_list_sorted);
+  foreach ( $plugin_list as $filename => $data )
+  {
+    if ( $data['system plugin'] )
+    {
+      $plugin_list_sorted[$filename] = $data;
+    }
+  }
+  
+  $plugin_list =& $plugin_list_sorted;
+  
   //
   // Not a JSON request, output normal HTML interface
   //
