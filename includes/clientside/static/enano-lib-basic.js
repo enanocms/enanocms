@@ -212,6 +212,24 @@ function runOnloadHooks(e)
   }
 }
 
+var enano_hooks = {};
+function setHook(hook_name)
+{
+  if ( enano_hooks[hook_name] )
+  {
+    return enano_hooks[hook_name];
+  }
+  return 'void(0);';
+}
+
+function attachHook(hook_name, code)
+{
+  if ( !enano_hooks[hook_name] )
+    enano_hooks[hook_name] = '';
+  
+  enano_hooks[hook_name] += code;
+}
+
 var loaded_components = {};
 var _load_component_running = false;
 function load_component(file)
