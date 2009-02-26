@@ -13,35 +13,28 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-function hmac_gen_padding($val, $len = 32)
-{
-  $ret = array();
-  for ( $i = 0; $i < $len; $i++ )
-  {
-    $ret[] = $val;
-  }
-  return $ret;
-}
-
 function hmac_core($message, $key, $hashfunc)
 {
-  static $block_sizes = array();
-  if ( !isset($block_sizes[$hashfunc]) )
-  {
-    $block_sizes[$hashfunc] = strlen($hashfunc(''))/2;
-  }
-  $blocksize = $block_sizes[$hashfunc];
-  $ipad = hmac_gen_padding(0x5c, $blocksize);
-  $opad = hmac_gen_padding(0x36, $blocksize);
-  if ( strlen($key) != ( $blocksize * 2 ) )
+  if ( strlen($key) % 2 == 1 )
+    $key .= '0';
+  
+  if ( strlen($key) > 128 )
     $key = $hashfunc($key);
-  $key = hmac_hexbytearray($key);
-  for ( $i = 0; $i < count($key); $i++ )
+  
+  while ( strlen($key) < 128 )
   {
-    $ipad[$i] = $ipad[$i] ^ $key[$i];
-    $opad[$i] = $opad[$i] ^ $key[$i];
+    $key .= '00';
   }
-  return $hashfunc(hmac_bytearraytostring($opad) . $hashfunc(hmac_bytearraytostring($ipad) . $message));
+  $opad = hmac_hexbytearray($key);
+  $ipad = $opad;
+  for ( $i = 0; $i < count($ipad); $i++ )
+  {
+    $opad[$i] = $opad[$i] ^ 0x5c;
+    $ipad[$i] = $ipad[$i] ^ 0x36;
+  }
+  $opad = hmac_bytearraytostring($opad);
+  $ipad = hmac_bytearraytostring($ipad);
+  return $hashfunc($opad . hexdecode($hashfunc($ipad . $message)));
 }
 
 function hmac_hexbytearray($val)
