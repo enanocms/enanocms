@@ -53,6 +53,9 @@ function setConfig($n, $v)
   }
   
   $enano_config[$n] = $v;
+  if ( $v === false )
+    unset($enano_config[$n]);
+  
   $v = $db->escape($v);
 
   $e = $db->sql_query('DELETE FROM '.table_prefix.'config WHERE config_name=\''.$n.'\';');
@@ -61,10 +64,13 @@ function setConfig($n, $v)
     $db->_die('Error during generic setConfig() call row deletion.');
   }
 
-  $e = $db->sql_query('INSERT INTO '.table_prefix.'config(config_name, config_value) VALUES(\''.$n.'\', \''.$v.'\')');
-  if ( !$e )
+  if ( $v !== false )
   {
-    $db->_die('Error during generic setConfig() call row insertion.');
+    $e = $db->sql_query('INSERT INTO '.table_prefix.'config(config_name, config_value) VALUES(\''.$n.'\', \''.$v.'\')');
+    if ( !$e )
+    {
+      $db->_die('Error during generic setConfig() call row insertion.');
+    }
   }
 }
 
@@ -496,6 +502,8 @@ function csrf_request_confirm()
       return true;
     }
   }
+  
+  ob_end_clean();
   
   $output->set_title($lang->get('user_csrf_confirm_title'));
   $output->header();
