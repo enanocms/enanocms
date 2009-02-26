@@ -514,6 +514,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     
     // These are to allow auth plugins to work universally between JSON and HTML login forms
     $userinfo =& $_POST;
+    $userinfo['password'] =& $password;
     $req = array(
       'level' => intval($_POST['auth_level']),
       'remember' => isset($_POST['remember'])
