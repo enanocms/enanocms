@@ -645,11 +645,12 @@ class pluginLoader {
     if ( !$q )
       $db->die_json();
     
+    $plugin_list[$filename]['installed'] = true;
+    $this->reimport_plugin_strings($filename, $plugin_list);
+    
     $return = array(
       'success' => true
     );
-    
-    $this->reimport_plugin_strings($filename, $plugin_list);
     
     endswitch;
     
