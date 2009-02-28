@@ -214,7 +214,8 @@ class Request_HTTP
       
     $newline = "\r\n";
     $php_ver = PHP_VERSION;
-    $this->add_header('User-Agent', "PHP/$php_ver (Server: {$_SERVER['SERVER_SOFTWARE']}; automated bot request)");
+    $server = ( isset($_SERVER['SERVER_SOFTWARE']) ) ? "Server: {$_SERVER['SERVER_SOFTWARE']}" : "CLI";
+    $this->add_header('User-Agent', "PHP/$php_ver ({$server}; automated bot request)");
   }
   
   /**
