@@ -18,7 +18,12 @@
 
 define('IN_ENANO', 1);
 // DEFINE THIS BEFORE RELEASE!
-define('ENANO_DANGEROUS', 1);
+$dangerous = true;
+if ( !empty($_GET['do']) )
+  if ( $_GET['do'] === 'lang_js' )
+    $dangerous = false;
+if ( $dangerous )
+  define('ENANO_DANGEROUS', 1);
 
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');
