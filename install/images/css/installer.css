@@ -229,3 +229,76 @@ input[type ^="text"]:focus, input[type ^="password"]:focus {
   background-color: #FFFFFF;
   border: 1px solid #D6D6E9;
 }
+
+/* SysReqs: table */
+
+table.sysreqs {
+  width: 100%;
+}
+
+table.sysreqs td {
+  border-right: 1px solid #ededed;
+  width: 70%;
+  padding: 8px;
+}
+
+table.sysreqs th {
+  border-right-width: 0;
+  width: 100%;
+  border-bottom: 1px solid #acacac;
+  text-align: left;
+  padding: 7px 0 0 0;
+}
+
+table.sysreqs td.good, table.sysreqs td.bad, table.sysreqs td.warn {
+  font-weight: bold;
+  border-right-width: 0;
+  width: 30%;
+}
+
+table.sysreqs td.good small, table.sysreqs td.bad small, table.sysreqs td.warn small {
+  font-weight: normal;
+}
+
+table.sysreqs td.good {
+  color: #00aa00;
+}
+
+table.sysreqs td.bad {
+  color: #aa0000;
+}
+
+table.sysreqs td.warn {
+  color: #aaaa00;
+}
+
+div.sysreqs_error, div.sysreqs_warning {
+  background-image: url(../box_error.png);
+  background-repeat: repeat-x;
+  background-position: top center;
+  background-color: #ffd1d1;
+  border: 1px solid #6e0000;
+  padding: 7px;
+  margin-bottom: 7px;
+}
+
+div.sysreqs_warning {
+  background-image: url(../box_warning.png);
+  background-color: #fffed1;
+  border-color: #6e6e00;
+}
+
+div.sysreqs_error h3, div.sysreqs_warning h3 {
+  font-size: 9pt;
+  border-bottom: 1px solid #8f3131;
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+div.sysreqs_warning h3 {
+  border-bottom-color: #8f8f31;
+}
+
+div.sysreqs_error p, div.sysreqs_warning p {
+  margin: 0;
+}

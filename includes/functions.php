@@ -5002,4 +5002,35 @@ function purge_all_caches()
   return false;
 }
 
+/**
+ * Implementation of the "which" command in native PHP.
+ * @param string command
+ * @return string path to executable, or false on failure
+ */
+
+function which($executable)
+{
+  $path = ( isset($_ENV['PATH']) ) ? $_ENV['PATH'] : ( isset($_SERVER['PATH']) ? $_SERVER['PATH'] : false );
+  if ( !$path )
+    // couldn't get OS's PATH
+    return false;
+    
+  $win32 = ( PHP_OS == 'WINNT' || PHP_OS == 'WIN32' );
+  $extensions = $win32 ? array('.exe', '.com', '.bat') : array('');
+  $separator = $win32 ? ';' : ':';
+  $paths = explode($separator, $path);
+  foreach ( $paths as $dir )
+  {
+    foreach ( $extensions as $ext )
+    {
+      $fullpath = "$dir/{$executable}{$ext}";
+      if ( file_exists($fullpath) && is_executable($fullpath) )
+      {
+        return $fullpath;
+      }
+    }
+  }
+  return false;
+}
+
 ?>

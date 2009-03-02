@@ -26,6 +26,15 @@ $ui->show_header();
             <p style="font-size: smaller;"><b><?php echo $lang->get('confirm_info_aes_title'); ?></b>
                <?php echo $lang->get('confirm_info_aes_body', array('aes_bits' => AES_BITS)); ?>
                </p>
+            <?php
+            if ( $installer_version['type'] !== 'stable' )
+            {
+              echo '<div class="sysreqs_error">';
+              echo '<h3>' . $lang->get('confirm_msg_installing_unstable_title') . '</h3>';
+              echo '<p>' . $lang->get('confirm_msg_installing_unstable_body') . '</p>';
+              echo '</div>';
+            }
+            ?>
             <form action="install.php?stage=install" method="post" name="install_login" onsubmit="return ( verify() && submit_encrypt() );"><?php
   foreach ( $_POST as $key => &$value )
   {

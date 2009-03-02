@@ -22,23 +22,11 @@ global $failed, $warned;
 $failed = false;
 $warned = false;
 
-function not($var)
-{
-  if($var)
-  {
-    return false;
-  } 
-  else
-  {
-    return true;
-  }
-}
-
 function run_test($code, $desc, $extended_desc, $warn = false)
 {
   global $failed, $warned;
   static $cv = true;
-  $cv = not($cv);
+  $cv = !$cv;
   $val = eval($code);
   if($val)
   {
@@ -60,57 +48,408 @@ function is_apache()
   return $r;
 }
 
-function config_write_test()
+function write_test($filename)
 {
-  if ( !is_writable(ENANO_ROOT.'/config.new.php') )
-    return false;
   // We need to actually _open_ the file to make sure it can be written, because sometimes this fails even when is_writable() returns
   // true on Windows/IIS servers. Don't ask me why.
-  $h = @fopen( ENANO_ROOT . '/config.new.php', 'a+' );
-  if ( !$h )
-    return false;
-  fclose($h);
-  return true;
+  
+  $file = ENANO_ROOT . '/' . $filename;
+  if ( is_dir($file) )
+  {
+    $file = rtrim($file, '/') . '/' . 'enanoinstalltest.txt';
+    if ( file_exists($file) )
+    {
+      $fp = @fopen($file, 'a+');
+      if ( !$fp )
+        return false;
+      fclose($fp);
+      unlink($file);
+      return true;
+    }
+    else
+    {
+      $fp = @fopen($file, 'w');
+      if ( !$fp )
+        return false;
+      fclose($fp);
+      unlink($file);
+      return true;
+    }
+  }
+  else
+  {
+    if ( file_exists($file) )
+    {
+      $fp = @fopen($file, 'a+');
+      if ( !$fp )
+        return false;
+      fclose($fp);
+      return true;
+    }
+    else
+    {
+      $fp = @fopen($file, 'w');
+      if ( !$fp )
+        return false;
+      fclose($fp);
+      return true;
+    }
+  }
 }
+
+$warnings = array();
+$failed = false;
+$have_dbms = false;
+
+// Test: Apache
+$req_apache = is_apache() ? 'good' : 'bad';
+
+// Test: PHP
+if ( version_compare(PHP_VERSION, '5.2.0', '>=') )
+{
+  $req_php = 'good';
+}
+else if ( version_compare(PHP_VERSION, '5.0.0', '>=') )
+{
+  $warnings[] = $lang->get('sysreqs_req_help_php', array('php_version' => PHP_VERSION));
+  $req_php = 'warn';
+}
+else
+{
+  $failed = true;
+  $req_php = 'bad';
+}
+
+$req_safemode = !intval(@ini_get('safe_mode'));
+if ( !$req_safemode )
+{
+  $warnings[] = $lang->get('sysreqs_req_help_safemode');
+  $failed = true;
+}
+
+// Test: MySQL
+$req_mysql = function_exists('mysql_connect');
+if ( $req_mysql )
+  $have_dbms = true;
+
+// Test: PostgreSQL
+$req_pgsql = function_exists('pg_connect');
+if ( $req_pgsql )
+  $have_dbms = true;
+
+if ( !$have_dbms )
+  $failed = true;
+
+// Test: File uploads
+$req_uploads = intval(@ini_get('file_uploads'));
+
+// Writability test: config
+$req_config_w = write_test('config.new.php');
+
+// Writability test: .htaccess
+$req_htaccess_w = write_test('.htaccess.new');
+
+// Writability test: files
+$req_files_w = write_test('files');
+
+// Writability test: cache
+$req_cache_w = write_test('cache');
+
+if ( !$req_config_w || !$req_htaccess_w || !$req_files_w || !$req_cache_w )
+  $warnings[] = $lang->get('sysreqs_req_help_writable');
+
+if ( !$req_config_w )
+  $failed = true;
+
+// Extension test: GD
+$req_gd = function_exists('imagecreatefrompng') && function_exists('getimagesize') && function_exists('imagecreatetruecolor') && function_exists('imagecopyresampled');
+if ( !$req_gd )
+  $warnings[] = $lang->get('sysreqs_req_help_gd2');
+
+// FS test: ImageMagick
+$req_imagick = which('convert');
+if ( !$req_imagick )
+  $warnings[] = $lang->get('sysreqs_req_help_imagemagick');
+
+// Extension test: GMP
+$req_gmp = function_exists('gmp_init');
+if ( !$req_gmp )
+  $warnings[] = $lang->get('sysreqs_req_help_gmp');
+
+// Extension test: Big_Int
+$req_bigint = function_exists('bi_from_str');
+if ( !$req_bigint && !$req_gmp )
+  $warnings[] = $lang->get('sysreqs_req_help_bigint');
+
+// Extension test: BCMath
+$req_bcmath = function_exists('bcadd');
+if ( !$req_bcmath && !$req_bigint && !$req_gmp )
+  $warnings[] = $lang->get('sysreqs_req_help_bcmath');
 
 ?>
 <h3><?php echo $lang->get('sysreqs_heading'); ?></h3>
  <p><?php echo $lang->get('sysreqs_blurb'); ?></p>
  
-<table border="0" cellspacing="0" cellpadding="0">
+<?php
+if ( !empty($warnings) ):
+?>
+  <div class="sysreqs_warning">
+    <h3><?php echo $lang->get('sysreqs_summary_warn_title'); ?></h3>
+    <p><?php echo $lang->get('sysreqs_summary_warn_body'); ?></p>
+    <ul>
+      <li><?php echo implode("</li>\n      <li>", $warnings); ?></li>
+    </ul>
+  </div>
+<?php
+endif;
+
+if ( !$have_dbms ):
+?>
+  <div class="sysreqs_error">
+    <h3><?php echo $lang->get('sysreqs_err_no_dbms_title'); ?></h3>
+    <p><?php echo $lang->get('sysreqs_err_no_dbms_body'); ?></p>
+  </div>
+<?php
+endif;
+
+if ( $failed ):
+?>
+  <div class="sysreqs_error">
+    <h3><?php echo $lang->get('sysreqs_summary_fail_title'); ?></h3>
+    <p><?php echo $lang->get('sysreqs_summary_fail_body'); ?></p>
+  </div>
+<?php
+endif;        
+?>
+ 
+<table border="0" cellspacing="0" cellpadding="0" class="sysreqs">
 
 <?php
-run_test('return version_compare(\'5.2.0\', PHP_VERSION, \'<=\');', $lang->get('sysreqs_req_php5'), $lang->get('sysreqs_req_desc_php5'), true);
-run_test('return function_exists(\'mysql_connect\');', $lang->get('sysreqs_req_mysql'), $lang->get('sysreqs_req_desc_mysql'), true);
-run_test('return function_exists(\'pg_connect\');', $lang->get('sysreqs_req_postgres'), $lang->get('sysreqs_req_desc_postgres'), true);
-run_test('return @ini_get(\'file_uploads\');', $lang->get('sysreqs_req_uploads'), $lang->get('sysreqs_req_desc_uploads') );
-run_test('return is_apache();', $lang->get('sysreqs_req_apache'), $lang->get('sysreqs_req_desc_apache'), true);
-run_test('return config_write_test();', $lang->get('sysreqs_req_config'), $lang->get('sysreqs_req_desc_config') );
-run_test('return file_exists(\'/usr/bin/convert\');', $lang->get('sysreqs_req_magick'), $lang->get('sysreqs_req_desc_magick'), true);
-run_test('return is_writable(ENANO_ROOT.\'/cache/\');', $lang->get('sysreqs_req_cachewriteable'), $lang->get('sysreqs_req_desc_cachewriteable'), true);
-run_test('return is_writable(ENANO_ROOT.\'/files/\');', $lang->get('sysreqs_req_fileswriteable'), $lang->get('sysreqs_req_desc_fileswriteable'), true);
-if ( !function_exists('mysql_connect') && !function_exists('pg_connect') )
-{
-  run_test('return false;', $lang->get('sysreqs_req_nodbdrivers'), $lang->get('sysreqs_req_desc_nodbdrivers'), false);
-}
-echo '</table>';
-echo '<br />';
-if(!$failed)
-{
-  ?>
+/*
   
-  <div class="pagenav">
-  <?php
-  if($warned) {
-    echo '<table border="0" cellspacing="0" cellpadding="0">';
-    run_test('return false;', $lang->get('sysreqs_summary_warn_title'), $lang->get('sysreqs_summary_warn_body'), true);
-    echo '</table>';
-  } else {
-    echo '<table border="0" cellspacing="0" cellpadding="0">';
-    run_test('return true;', '<b>' . $lang->get('sysreqs_summary_success_title') . '</b><br />' . $lang->get('sysreqs_summary_success_body'), 'You should never see this text. Congratulations for being an Enano hacker!');
-    echo '</table>';
+  </div>
+<?php
+}
+else
+{
+  if ( $failed )
+  {
+    echo '<div class="pagenav"><table border="0" cellspacing="0" cellpadding="0">';
+    run_test('return false;', $lang->get('sysreqs_summary_fail_title'), $lang->get('sysreqs_summary_fail_body'));
+    echo '</table></div>';
   }
+}
+*/
+?>
+
+<tr>
+  <th colspan="2"><?php echo $lang->get('sysreqs_heading_serverenv'); ?></th>
+</tr>
+
+<tr>
+  <td><?php echo $lang->get('sysreqs_req_apache'); ?></td>
+  <?php
+  if ( $req_apache ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_found') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
+  endif;
   ?>
+</tr>
+
+<tr>
+  <td><?php echo $lang->get('sysreqs_req_php'); ?></td>
+  <td class="<?php echo $req_php; ?>">v<?php echo PHP_VERSION; ?></td>
+</tr>
+
+<tr>
+  <td><?php echo $lang->get('sysreqs_req_safemode'); ?></td>
+  <?php
+  if ( $req_safemode ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_disabled') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_enabled') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td><?php echo $lang->get('sysreqs_req_uploads'); ?></td>
+  <?php
+  if ( $req_uploads ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_enabled') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_disabled') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <th colspan="2"><?php echo $lang->get('sysreqs_heading_dbms'); ?></th>
+</tr>
+
+<tr>
+  <td><?php echo $lang->get('sysreqs_req_mysql'); ?></td>
+  <?php
+  if ( $req_mysql ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td><?php echo $lang->get('sysreqs_req_postgresql'); ?></td>
+  <?php
+  if ( $req_pgsql ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <th colspan="2"><?php echo $lang->get('sysreqs_heading_files'); ?></th>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_config_writable'); ?>
+  </td>
+  <?php
+  if ( $req_config_w ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_writable') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_unwritable') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_htaccess_writable'); ?><br />
+    <small><?php echo $lang->get('sysreqs_req_hint_htaccess_writable'); ?></small>
+  </td>
+  <?php
+  if ( $req_htaccess_w ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_writable') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_unwritable') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_files_writable'); ?>
+  </td>
+  <?php
+  if ( $req_files_w ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_writable') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_unwritable') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_cache_writable'); ?>
+  </td>
+  <?php
+  if ( $req_cache_w ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_writable') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_unwritable') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <th colspan="2"><?php echo $lang->get('sysreqs_heading_images'); ?></th>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_gd2'); ?><br />
+    <small><?php echo $lang->get('sysreqs_req_hint_gd2'); ?></small>
+  </td>
+  <?php
+  if ( $req_gd ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_imagemagick'); ?><br />
+    <small><?php echo $lang->get('sysreqs_req_hint_imagemagick'); ?></small>
+  </td>
+  <?php
+  if ( $req_imagick ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_found') . ' <small>(' . htmlspecialchars($req_imagick) . ')</small></td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <th colspan="2"><?php echo $lang->get('sysreqs_heading_crypto'); ?></th>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_gmp'); ?><br />
+    <small><?php echo $lang->get('sysreqs_req_hint_gmp'); ?></small>
+  </td>
+  <?php
+  if ( $req_gmp ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_bigint'); ?><br />
+    <small><?php echo $lang->get('sysreqs_req_hint_bigint'); ?></small>
+  </td>
+  <?php
+  if ( $req_bigint ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_bcmath'); ?><br />
+    <small><?php echo $lang->get('sysreqs_req_hint_bcmath'); ?></small>
+  </td>
+  <?php
+  if ( $req_bcmath ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
+  endif;
+  ?>
+</tr>
+
+</table>
+
+<?php
+if ( !$failed ):
+?>
   <form action="install.php?stage=database" method="post">
     <?php
       echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
@@ -130,17 +469,6 @@ if(!$failed)
     </tr>
     </table>
   </form>
-  </div>
 <?php
-}
-else
-{
-  if ( $failed )
-  {
-    echo '<div class="pagenav"><table border="0" cellspacing="0" cellpadding="0">';
-    run_test('return false;', $lang->get('sysreqs_summary_fail_title'), $lang->get('sysreqs_summary_fail_body'));
-    echo '</table></div>';
-  }
-}
-    
+endif;
 ?>

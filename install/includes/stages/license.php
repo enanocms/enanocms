@@ -57,7 +57,7 @@ function show_license($fb = false)
 
 function wikiFormat($message, $filter_links = true)
 {
-  $wiki = & Text_Wiki::singleton('Mediawiki');
+  $wiki = Text_Wiki::singleton('Mediawiki');
   $wiki->setRenderConf('Xhtml', 'code', 'css_filename', 'codefilename');
   $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', scriptPath . '/index.php?title=');
   $result = $wiki->transform($message, 'Xhtml');
