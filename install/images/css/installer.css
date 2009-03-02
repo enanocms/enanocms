@@ -272,7 +272,7 @@ table.sysreqs td.warn {
   color: #aaaa00;
 }
 
-div.sysreqs_error, div.sysreqs_warning {
+div.sysreqs_error, div.sysreqs_warning, div.sysreqs_success {
   background-image: url(../box_error.png);
   background-repeat: repeat-x;
   background-position: top center;
@@ -288,7 +288,13 @@ div.sysreqs_warning {
   border-color: #6e6e00;
 }
 
-div.sysreqs_error h3, div.sysreqs_warning h3 {
+div.sysreqs_success {
+  background-image: url(../box_success.png);
+  background-color: #d1ffd1;
+  border-color: #006e00;
+}
+
+div.sysreqs_error h3, div.sysreqs_warning h3, div.sysreqs_success h3 {
   font-size: 9pt;
   border-bottom: 1px solid #8f3131;
   margin-top: 0;
@@ -299,6 +305,12 @@ div.sysreqs_warning h3 {
   border-bottom-color: #8f8f31;
 }
 
-div.sysreqs_error p, div.sysreqs_warning p {
+div.sysreqs_success h3 {
+  border-bottom-color: #318f31;
+}
+
+div.sysreqs_error p, div.sysreqs_warning p, div.sysreqs_success p {
   margin: 0;
 }
+
+

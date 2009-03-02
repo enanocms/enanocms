@@ -187,6 +187,13 @@ if ( !$req_bcmath && !$req_bigint && !$req_gmp )
   $warnings[] = $lang->get('sysreqs_req_help_bcmath');
 
 ?>
+
+<form action="install.php?stage=database" method="post">
+<?php
+  echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
+?>
+    
+
 <h3><?php echo $lang->get('sysreqs_heading'); ?></h3>
  <p><?php echo $lang->get('sysreqs_blurb'); ?></p>
  
@@ -208,6 +215,17 @@ if ( !$have_dbms ):
   <div class="sysreqs_error">
     <h3><?php echo $lang->get('sysreqs_err_no_dbms_title'); ?></h3>
     <p><?php echo $lang->get('sysreqs_err_no_dbms_body'); ?></p>
+  </div>
+<?php
+endif;
+if ( empty($warnings) && !$failed ):
+?>
+  <div class="sysreqs_success">
+    <h3><?php echo $lang->get('sysreqs_summary_pass_title'); ?></h3>
+    <p><?php echo $lang->get('sysreqs_summary_pass_body'); ?></p>
+  </div>
+  <div style="text-align: center;">
+    <input type="submit" value="<?php echo $lang->get('meta_btn_continue'); ?>" />
   </div>
 <?php
 endif;
@@ -450,10 +468,6 @@ else
 <?php
 if ( !$failed ):
 ?>
-  <form action="install.php?stage=database" method="post">
-    <?php
-      echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
-    ?>
     <table border="0">
     <tr>
       <td>
@@ -468,7 +482,7 @@ if ( !$failed ):
       </td>
     </tr>
     </table>
-  </form>
 <?php
 endif;
 ?>
+</form>

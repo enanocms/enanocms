@@ -118,8 +118,8 @@ var enano_lang_install = {
       err_no_dbms_title: 'No database backends are available.',
       err_no_dbms_body: 'Enano requires at least one database backend to install. Please consult with your hosting provider to obtain help with this situation. If you are running a VPS or dedicated server, install the php-mysql or php-pgsql (on Red Hat&reg;-based distributions) or php5-mysql or php5-pgsql (on Debian-based distributions) packages. For Windows servers, ensure that the php_mysql or php_pgsql extension is enabled in php.ini.',
       
-      summary_success_title: 'Your server meets all the requirements for running Enano.',
-      summary_success_body: 'Click the button below to continue the installation.',
+      summary_pass_title: 'Congratulations! Enano can run on this server.',
+      summary_pass_body: 'The system requirement check was successful and Enano has verified that it can run on this server with all available features. Below is a summary of what was checked. Click the Continue button below to proceed with installation.',
       
       summary_warn_title: 'Warnings encountered during server check',
       summary_warn_body: 'Since some server features that Enano uses aren\'t available, Enano has turned its support for these features off. The warnings below provide information on how you can fix this.',
