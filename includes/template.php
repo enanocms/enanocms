@@ -1151,7 +1151,7 @@ JSEOF;
       var disable_redirect = ' . ( isset($_GET['redirect']) && $_GET['redirect'] == 'no' ? 'true' : 'false' ) . ';
       var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? 'true' : 'false' ) . ';
       var csrf_token = "' . $session->csrf_token . '";
-      var editNotice = \'' . ( (getConfig('wiki_edit_notice', '0')=='1') ? str_replace("\n", "\\\n", RenderMan::render(getConfig('wiki_edit_notice_text'))) : '' ) . '\';
+      var editNotice = \'' . ( (getConfig('wiki_edit_notice', '0')=='1') ? str_replace("\n", "\\\n", addslashes(RenderMan::render(getConfig('wiki_edit_notice_text')))) : '' ) . '\';
       var prot = ' . ( ($protected) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server
       var ENANO_SPECIAL_CREATEPAGE = \''. makeUrl($paths->nslist['Special'].'CreatePage') .'\';
       var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $urlname_clean .'&namespace=' . $local_namespace . '\';
