@@ -9,7 +9,7 @@ pseudocode:
     i = 0
     for every div with class "slideblock", do
       if ( cookie['mdgSliderState_' || i] == 'closed' )
-        hide(div)
+        div.hide()
         
       div.trigger.addEvent onclick():
         if ( div.hidden )
@@ -57,7 +57,7 @@ var initSliders = function()
     var el = div.previousSibling;
     if ( !el )
       continue;
-    while ( el.tagName != 'DIV' )
+    while ( el.tagName == undefined )
     {
       el = el.previousSibling;
       if ( !el )
