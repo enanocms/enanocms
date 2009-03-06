@@ -100,6 +100,13 @@ function jBoxSetup(obj)
                 if ( !ul.id )
                   ul.id = 'jBoxmenuobj_' + Math.floor(Math.random() * 10000000);
                 jBoxMenuHeights[ul.id] = parseInt(dim['h']) - 2; // subtract 2px for border width
+                
+                if ( dim['w'] + $dynano(ul).Left() > getWidth() || $dynano(ul).hasClass('jbox_right') )
+                {
+                  $dynano(ul).addClass('jbox_right');
+                  ul.jbox_width = $dynano(ul).Width();
+                }
+                
                 ul.style.display = 'none';
                 domObjChangeOpac(100, ul);
                 
@@ -167,7 +174,14 @@ function jBoxOverHandlerBin(obj)
     var dimh = parseInt(dim['h']);
     var offtop = parseInt(off['top']);
     var top = dimh + offtop;
-    left = off['left'];
+    if ( $dynano(ul).hasClass('jbox_right') )
+    {
+      left = $dynano(obj).Left() + $dynano(obj).Width() - ul.jbox_width; // ( link left + link width ) - ul width
+    }
+    else
+    {
+      left = off['left'];
+    }
     if ( jBox_slide_enable )
     {
       domObjChangeOpac(0, ul);
