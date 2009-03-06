@@ -1658,6 +1658,22 @@ EOF;
       $string = str_replace('\'', '\\\'', $string);
       $text = str_replace_once($matches[0][$i], $string, $text);
     }
+    preg_match_all('/\{url:([A-z0-9]+):([\w\.\/:;\(\)@\[\]_=-]+)(?::([^\s\}]+))?(?:\|(escape))?\}/', $text, $matches);
+    foreach ( $matches[1] as $i => $string_id )
+    {
+      $namespace =& $matches[1][$i];
+      $page_id =& $matches[2][$i];
+      $params =& $matches[3][$i];
+      $escape =& $matches[4][$i];
+      
+      if ( !$params )
+        $params = false;
+      $escape = !empty($escape);
+      
+      $result = makeUrlNS($namespace, $page_id, $params, $escape);
+      
+      $text = str_replace_once($matches[0][$i], $result, $text);
+    }
     return $text;
   }
   
@@ -2081,6 +2097,8 @@ EOF;
       return $result;
     }
     
+    require(ENANO_ROOT . "/themes/{$this->theme}/theme.cfg");
+    
     profiler_log('Started sidebar parsing');
     
     // init our block contents
@@ -2115,6 +2133,14 @@ EOF;
     // explicitly specify $q in case a plugin or PHP block makes a query
     while ( $row = $db->fetchrow($q) )
     {
+      // should we skip this block?
+      if (
+          ( $row['item_id'] === 2 && !empty($theme['sb_hide_tools']) ) ||
+          ( $row['item_id'] === 3 && !empty($theme['sb_hide_user']) ) ||
+          ( $row['item_id'] === 4 && !empty($theme['sb_hide_search']) )
+        )
+        continue;
+      
       // format the block
       $block_content = $this->format_sidebar_block($row, $vars, $parser);
       
