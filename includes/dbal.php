@@ -822,7 +822,7 @@ class postgresql {
     exit;
   }
   
-  function die_json()
+  function die_json($loc = false)
   {
     $e = str_replace("\n", "\\n", addslashes(htmlspecialchars(pg_last_error())));
     $q = str_replace("\n", "\\n", addslashes($this->latest_query));
@@ -1148,7 +1148,7 @@ class postgresql {
   
   function escape($str)
   {
-    $str = pg_escape_string($str);
+    $str = pg_escape_string($this->_conn, $str);
     return $str;
   }
   
