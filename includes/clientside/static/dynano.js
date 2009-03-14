@@ -135,7 +135,7 @@ function DN_destroyMCE(performWikiTransform)
 {
   //if ( !this.object.dn_is_mce )
   //  return this;
-  if ( this.object.id )
+  if ( this.object.id && window.tinymce )
   {
     // TinyMCE 2.x
     // tinymce.EditorManager.removeMCEControl(this.object.name);
