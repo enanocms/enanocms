@@ -441,7 +441,7 @@ var enano_lang_install = {
       welcome_line1: '<c 1>Welcome to the <c 34>Enano</c></c> CMS<c 1> installation wizard.</c>\n',
       welcome_line2: 'Installing Enano version <c 1>%enano_version%</c> on PHP <c 1>%php_version%</c>\n',
       
-      prompt_dbdriver: 'Database type (mysql or postgresql)',
+      prompt_driver: 'Database type (mysql or postgresql)',
       prompt_dbhost: 'Hostname of database server',
       prompt_dbport: 'Database server port',
       prompt_dbuser: 'Database username',
