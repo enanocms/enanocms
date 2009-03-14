@@ -148,7 +148,7 @@ function stg_load_schema()
     );
   
   $sql_parser->assign_vars($vars);
-  return $sql_parser->parse();
+  return true;
 }
 
 function stg_deliver_payload()
