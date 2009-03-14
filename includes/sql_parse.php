@@ -108,14 +108,14 @@ class SQL_Parser
       $this->sql_array = str_replace("{{{$key}}}", $value, $this->sql_array);
     }
     
-    // Build an array of queries
+    // Strip out comments
     $this->sql_array = explode("\n", $this->sql_array);
     
     foreach ( $this->sql_array as $i => $sql )
     {
       $query =& $this->sql_array[$i];
       $t = trim($query);
-      if ( empty($t) || preg_match('/^(\#|--)/i', $t) )
+      if ( preg_match('/^(\#|--)/i', $t) )
       {
         unset($this->sql_array[$i]);
         unset($query);
@@ -125,11 +125,12 @@ class SQL_Parser
     
     $this->sql_array = array_values($this->sql_array);
     $this->sql_array = implode("\n", $this->sql_array);
-    $this->sql_array = explode(";\n", $this->sql_array);
+    $this->sql_array = explode(";\n", trim($this->sql_array));
     
     foreach ( $this->sql_array as $i => $sql )
     {
       $query =& $this->sql_array[$i];
+      $query = trim($query);
       if ( substr($query, ( strlen($query) - 1 ), 1 ) != ';' )
       {
         $query .= ';';
