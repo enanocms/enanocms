@@ -247,4 +247,3 @@ function enano_perform_upgrade($target_branch)
   }
 }
 
-?>

@@ -48,55 +48,6 @@ function is_apache()
   return $r;
 }
 
-function write_test($filename)
-{
-  // We need to actually _open_ the file to make sure it can be written, because sometimes this fails even when is_writable() returns
-  // true on Windows/IIS servers. Don't ask me why.
-  
-  $file = ENANO_ROOT . '/' . $filename;
-  if ( is_dir($file) )
-  {
-    $file = rtrim($file, '/') . '/' . 'enanoinstalltest.txt';
-    if ( file_exists($file) )
-    {
-      $fp = @fopen($file, 'a+');
-      if ( !$fp )
-        return false;
-      fclose($fp);
-      unlink($file);
-      return true;
-    }
-    else
-    {
-      $fp = @fopen($file, 'w');
-      if ( !$fp )
-        return false;
-      fclose($fp);
-      unlink($file);
-      return true;
-    }
-  }
-  else
-  {
-    if ( file_exists($file) )
-    {
-      $fp = @fopen($file, 'a+');
-      if ( !$fp )
-        return false;
-      fclose($fp);
-      return true;
-    }
-    else
-    {
-      $fp = @fopen($file, 'w');
-      if ( !$fp )
-        return false;
-      fclose($fp);
-      return true;
-    }
-  }
-}
-
 $warnings = array();
 $failed = false;
 $have_dbms = false;
@@ -120,6 +71,7 @@ else
   $req_php = 'bad';
 }
 
+// Test: Safe Mode
 $req_safemode = !intval(@ini_get('safe_mode'));
 if ( !$req_safemode )
 {
@@ -142,6 +94,11 @@ if ( !$have_dbms )
 
 // Test: File uploads
 $req_uploads = intval(@ini_get('file_uploads'));
+
+// Test: ctype validation
+$req_ctype = function_exists('ctype_digit');
+if ( !$req_ctype )
+  $failed = true;
 
 // Writability test: config
 $req_config_w = write_test('config.new.php');
@@ -242,24 +199,6 @@ endif;
  
 <table border="0" cellspacing="0" cellpadding="0" class="sysreqs">
 
-<?php
-/*
-  
-  </div>
-<?php
-}
-else
-{
-  if ( $failed )
-  {
-    echo '<div class="pagenav"><table border="0" cellspacing="0" cellpadding="0">';
-    run_test('return false;', $lang->get('sysreqs_summary_fail_title'), $lang->get('sysreqs_summary_fail_body'));
-    echo '</table></div>';
-  }
-}
-*/
-?>
-
 <tr>
   <th colspan="2"><?php echo $lang->get('sysreqs_heading_serverenv'); ?></th>
 </tr>
@@ -298,6 +237,17 @@ else
     echo '<td class="good">' . $lang->get('sysreqs_req_enabled') . '</td>';
   else:
     echo '<td class="bad">' . $lang->get('sysreqs_req_disabled') . '</td>';
+  endif;
+  ?>
+</tr>
+
+<tr>
+  <td><?php echo $lang->get('sysreqs_req_ctype'); ?></td>
+  <?php
+  if ( $req_ctype ):
+    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
+  else:
+    echo '<td class="bad">' . $lang->get('sysreqs_req_unsupported') . '</td>';
   endif;
   ?>
 </tr>

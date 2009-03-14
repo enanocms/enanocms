@@ -22,6 +22,7 @@ require( ENANO_ROOT . '/includes/dbal.php' );
 require( ENANO_ROOT . '/includes/sql_parse.php' );
 $dbal = new $driver();
 $db_host =& $_POST['db_host'];
+$db_port =& $_POST['db_port'];
 $db_user =& $_POST['db_user'];
 $db_pass =& $_POST['db_pass'];
 $db_name =& $_POST['db_name'];
@@ -36,7 +37,7 @@ if ( !preg_match('/^[a-z0-9_]*$/', $db_prefix) )
   return true;
 }
 
-$result = $dbal->connect(true, $db_host, $db_user, $db_pass, $db_name);
+$result = $dbal->connect(true, $db_host, $db_user, $db_pass, $db_name, $db_port);
 
 // If connection failed, we have the root login, AND we're on MySQL, try to force our way in
 if ( !$result && !empty($_POST['db_root_user']) && !empty($_POST['db_root_pass']) && $driver == 'mysql' )
@@ -45,7 +46,7 @@ if ( !$result && !empty($_POST['db_root_user']) && !empty($_POST['db_root_pass']
   switch ( 'foo' ) { case 'foo':
       
     // Try to connect to the DB as root
-    $result_root = $dbal->connect(true, $db_host, $db_root_user, $db_root_pass, 'mysql');
+    $result_root = $dbal->connect(true, $db_host, $db_root_user, $db_root_pass, 'mysql', $db_port);
     if ( !$result_root )
       break;
     
@@ -68,7 +69,7 @@ if ( !$result && !empty($_POST['db_root_user']) && !empty($_POST['db_root_pass']
       break;
     
     $dbal->close();
-    $result = $dbal->connect(true, $db_host, $db_user, $db_pass, $db_name);
+    $result = $dbal->connect(true, $db_host, $db_user, $db_pass, $db_name, $db_port);
       
     break;
   }
@@ -112,11 +113,17 @@ if ( $result )
     echo '<p>That table prefix isn\'t going to work.</p>';
     return true;
   }
+  if ( !preg_match('/^[0-9]*$/', $db_port) )
+  {
+    echo '<p>That port isn\'t going to work.</p>';
+    return true;
+  }
   fwrite($ch, "<?php
 // Enano temporary configuration file, will be OVERWRITTEN after installation.
 
 \$dbdriver = '$driver';
 \$dbhost = '$db_host';
+\$dbport = $db_port;
 \$dbname = '$db_name';
 \$dbuser = '$db_user';
 \$dbpasswd = '$db_pass';

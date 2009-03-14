@@ -350,34 +350,18 @@ CREATE AGGREGATE {{TABLE_PREFIX}}array_accum (anyelement)
     initcond = '{}'
 );
 
+-- The default config. Kind of important.
+-- P.S. the allowed_mime_types value is a compressed bitfield. Source for the (rather simple) algo is in functions.php.
 
 INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('site_name', '{{SITE_NAME}}'),
-  ('main_page', 'Main_Page'),
   ('site_desc', '{{SITE_DESC}}'),
   ('wiki_mode', '{{WIKI_MODE}}'),
-  ('wiki_edit_notice', '0'),
-  ('sflogo_enabled', '0'),
-  ('sflogo_groupid', ''),
-  ('sflogo_type', '1'),
-  ('w3c_vh32', '0'),
-  ('w3c_vh40', '0'),
-  ('w3c_vh401', '0'),
-  ('w3c_vxhtml10', '0'),
-  ('w3c_vxhtml11', '0'),
-  ('w3c_vcss', '0'),
-  ('approve_comments', '0'),
-  ('enable_comments', '1'),
-  ('plugin_SpecialAdmin.php', '1'),
-  ('plugin_SpecialPageFuncs.php', '1'),
-  ('plugin_SpecialUserFuncs.php', '1'),
-  ('plugin_SpecialCSS.php', '1'),
   ('copyright_notice', '{{COPYRIGHT}}'),
-  ('wiki_edit_notice_text', '== Why can I edit this page? ==\n\nEveryone can edit almost any page in this website. This concept is called a wiki. It gives everyone the opportunity to make a change for the best. While some spam and vandalism may occur, it is believed that most contributions will be legitimate and helpful.\n\nFor security purposes, a history of all page edits is kept, and administrators are able to restore vandalized or spammed pages with just a few clicks.'),
   ('cache_thumbs', '{{ENABLE_CACHE}}'),
-  ('max_file_size', '256000'),('enano_version', '{{VERSION}}'),( 'allowed_mime_types', 'cbf:len=185;crc=55fb6f14;data=0[1],1[4],0[3],1[1],0[22],1[1],0[16],1[3],0[16],1[1],0[1],1[2],0[6],1[1],0[1],1[1],0[4],1[2],0[3],1[1],0[48],1[2],0[2],1[1],0[4],1[1],0[37]|end' ),
   ('contact_email', '{{ADMIN_EMAIL}}'),
-  ('powered_btn', '1');
+  ('allowed_mime_types', 'cbf2:7414a6b80184038102810b810781098106830a810282018101820683018102840182038104821a850682028104810a82018116'),
+  ('enano_version', '{{VERSION}}');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
   ('Main_Page', 'Article', E'{{MAIN_PAGE_CONTENT}}', '');

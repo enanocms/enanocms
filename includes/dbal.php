@@ -131,7 +131,7 @@ class mysql {
     return $internal_text;
   }
   
-  function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false)
+  function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false, $dbport = false)
   {
     if ( !defined('ENANO_SQL_CONSTANTS') )
     {
@@ -153,9 +153,11 @@ class mysql {
       {
         @include(ENANO_ROOT.'/config.php');
       }
-        
+      
       if ( isset($crypto_key) )
         unset($crypto_key); // Get this sucker out of memory fast
+      if ( empty($dbport) )
+        $dbport = 3306;
       
       if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
       {
@@ -188,7 +190,15 @@ class mysql {
       }
     }
     
-    $this->_conn = @mysql_connect($dbhost, $dbuser, $dbpasswd);
+    if ( !$dbport )
+      $dbport = 3306;
+    
+    if ( $dbhost && !empty($dbport) && $dbport != 3306 )
+      $dbhost = '127.0.0.1';
+    
+    $host_line = ( preg_match('/^:/', $dbhost) ) ? $dbhost : "{$dbhost}:{$dbport}";
+    
+    $this->_conn = @mysql_connect($host_line, $dbuser, $dbpasswd);
     unset($dbuser);
     unset($dbpasswd); // Security
     
@@ -839,7 +849,7 @@ class postgresql {
     return $internal_text;
   }
   
-  function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false)
+  function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false, $dbport = false)
   {
     if ( !defined('ENANO_SQL_CONSTANTS') )
     {
@@ -864,6 +874,8 @@ class postgresql {
         
       if ( isset($crypto_key) )
         unset($crypto_key); // Get this sucker out of memory fast
+      if ( empty($dbport) )
+        $dbport = 5432;
       
       if ( !defined('ENANO_INSTALLED') && !defined('MIDGET_INSTALLED') && !defined('IN_ENANO_INSTALL') )
       {
@@ -890,7 +902,11 @@ class postgresql {
         exit;
       }
     }
-    $this->_conn = @pg_connect("host=$dbhost port=5432 dbname=$dbname user=$dbuser password=$dbpasswd");
+    
+    if ( empty($dbport) )
+      $dbport = 5432;
+    
+    $this->_conn = @pg_connect("host=$dbhost port=$dbport dbname=$dbname user=$dbuser password=$dbpasswd");
     unset($dbuser);
     unset($dbpasswd); // Security
     
@@ -951,7 +967,7 @@ class postgresql {
     }
     
     $time_start = microtime_float();
-    $r = pg_query($q);
+    $r = @pg_query($q);
     $this->query_times[$q] = microtime_float() - $time_start;
     $this->latest_result = $r;
     return $r;

@@ -31,7 +31,7 @@ if ( !in_array($dbdriver, $supported_drivers) )
 }
 
 $db = new $dbdriver();
-$result = $db->connect(true, $dbhost, $dbuser, $dbpasswd, $dbname);
+$result = $db->connect();
 if ( !$result )
 {
   $ui->show_header();

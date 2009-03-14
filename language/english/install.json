@@ -87,6 +87,7 @@ var enano_lang_install = {
       req_postgresql: 'PostgreSQL database support',
       req_safemode: 'Safe Mode',
       req_uploads: 'PHP file upload support',
+      req_ctype: 'PHP ctype_* validation functions',
       req_config_writable: 'Configuration file: config.new.php',
       req_htaccess_writable: 'Apache rewrite rules: .htaccess.new',
       req_files_writable: 'File storage directory: files/',
@@ -182,7 +183,9 @@ var enano_lang_install = {
       table_title: 'Database information',
       
       field_hostname_title: 'Database hostname',
-      field_hostname_body: 'This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost".',
+      field_hostname_body: 'This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost". To connect through a Unix socket, use the format ":/path/to/mysql.sock".',
+      field_port_title: 'Database port',
+      field_port_body: 'The TCP port Enano will use to connect to MySQL. This is 3306 on the vast majority of servers. This isn\'t relevant if you use a socket file.',
       field_dbname_title: 'Database name',
       field_dbname_body: 'The name of the actual database. If you don\'t already have a database, you can create one here, if you have the username and password of a MySQL user with administrative rights.',
       field_dbauth_title: 'Database login',
@@ -218,6 +221,8 @@ var enano_lang_install = {
       
       field_hostname_title: 'Database hostname',
       field_hostname_body: 'This is the hostname (or sometimes the IP address) of your PostgreSQL server. In many cases, this is "localhost".',
+      field_port_title: 'Database port',
+      field_port_body: 'The TCP port Enano will use to connect to PostgreSQL. This is 5432 on the vast majority of servers.',
       field_dbname_title: 'Database name',
       field_dbname_body: 'The name of the actual database. If you don\'t already have a database, you can create one here, if you have the username and password of a PostgreSQL user with administrative rights.',
       field_dbauth_title: 'Database login',
@@ -438,6 +443,7 @@ var enano_lang_install = {
       
       prompt_dbdriver: 'Database type (mysql or postgresql)',
       prompt_dbhost: 'Hostname of database server',
+      prompt_dbport: 'Database server port',
       prompt_dbuser: 'Database username',
       prompt_dbpasswd: 'Database password',
       prompt_dbname: 'Database name',
@@ -461,9 +467,11 @@ var enano_lang_install = {
       
       stage_sysreqs: '<c 34;1>Checking system.</c>\n',
       test_pass: '<c 1;32>PASS</c>',
-      test_warn: '<c 1;33>FAIL</c>',
+      test_vwarn: '<c 1;33>WARNING</c>',
+      test_warn: '<c 0;31>FAIL</c><c 1> (optional)</c>',
       test_fail: '<c 1;31>FAIL</c>',
       
+      msg_test_warnings: '<c 1;33>The following warnings were generated during the check:</c>',
       msg_tests_passed: '<c 32><c 1>All tests passed.</c> Installing Enano.</c>\n',
       msg_installing_db_stage1: '<c 1>Installing database, stage 1...</c>',
       msg_parsing_schema: '<c 1>Preparing installation payload...</c>',

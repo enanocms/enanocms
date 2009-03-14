@@ -29,7 +29,7 @@ if ( !defined('ENANO_INSTALL_HAVE_CONFIG') )
   die('Config file is corrupt');
 }
 $db = new $dbdriver();
-$result = $db->connect(true, $dbhost, $dbuser, $dbpasswd, $dbname);
+$result = $db->connect();
 if ( !$result )
   die('DB privileges were revoked');
 

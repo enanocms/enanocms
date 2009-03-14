@@ -21,7 +21,7 @@ if ( isset($_POST['_cont']) )
 {
   $allow_go = true;
   // Do we have everything? If so, continue with installation.
-  foreach ( array('db_host', 'db_name', 'db_user', 'db_pass') as $field )
+  foreach ( array('db_host', 'db_name', 'db_user', 'db_pass', 'db_port') as $field )
   {
     if ( empty($_POST[$field]) )
     {
@@ -73,9 +73,18 @@ if ( isset($_POST['ajax_test']) )
       )));
   }
   
+  if ( !is_int($info['db_port']) )
+  {
+    $return['host_good'] = false;
+    echo enano_json_encode($return);
+    exit;
+  }
+  
+  $port = $info['db_port'] ? $info['db_port'] : 5432;
+  
   // Try to connect as the normal user
   // generate connection string
-  $conn_string = "dbname = '" . addslashes($info['db_name']) . "' port = '5432' host = '" . addslashes($info['db_host']) . "' " . 
+  $conn_string = "dbname = '" . addslashes($info['db_name']) . "' port = '$port' host = '" . addslashes($info['db_host']) . "' " . 
                  "user= '" . addslashes($info['db_user']) . "' password = '" . addslashes($info['db_pass']) . "'";
   $test = @pg_connect($conn_string);
   if ( !$test )
@@ -85,7 +94,7 @@ if ( isset($_POST['ajax_test']) )
     $return['creating_user'] = true;
     if ( !empty($info['db_root_user']) && !empty($info['db_root_pass']) )
     {
-      $conn_string_root = "dbname = '" . addslashes($info['db_name']) . "' port = '5432' host = '" . addslashes($info['db_host']) . "' " . 
+      $conn_string_root = "dbname = '" . addslashes($info['db_name']) . "' port = '$port' host = '" . addslashes($info['db_host']) . "' " . 
                           "user= '" . addslashes($info['db_root_user']) . "' password = '" . addslashes($info['db_root_pass']) . "'";
       // Attempt connection as root
       $test_root = @pg_connect($conn_string_root);
@@ -181,6 +190,7 @@ $ui->show_header();
     // List of fields
     var fields = {
       db_host: frm.db_host,
+      db_port: frm.db_port,
       db_name: frm.db_name,
       db_user: frm.db_user,
       db_pass: frm.db_pass,
@@ -194,6 +204,13 @@ $ui->show_header();
     {
       var matches = fields.db_host.value.match(/^([a-z0-9_-]+)((\.([a-z0-9_-]+))*)?$/);
       document.getElementById('s_db_host').src = ( matches ) ? img_neu : img_bad;
+      if ( !matches )
+        passed = false;
+    }
+    if ( field == fields.db_port || !field )
+    {
+      var matches = fields.db_port.value.match(/^[0-9]+$/);
+      document.getElementById('s_db_port').src = ( matches ) ? img_neu : img_bad;
       if ( !matches )
         passed = false;
     }
@@ -243,6 +260,7 @@ $ui->show_header();
     var frm = document.forms.database_info;
     var connection_info = 'info=' + ajaxEscape(toJSONString({
         db_host: frm.db_host.value,
+        db_port: parseInt(frm.db_port.value),
         db_name: frm.db_name.value,
         db_user: frm.db_user.value,
         db_pass: frm.db_pass.value,
@@ -309,7 +327,10 @@ $ui->show_header();
             }
             if ( !response.version.good )
             {
-              document.getElementById('e_pgsql_version').innerHTML = $lang.get('dbpgsql_msg_err_version', { pg_version: response.version.version });
+              if ( response.version.version == 'indeterminate' )
+                document.getElementById('e_pgsql_version').innerHTML = $lang.get('dbpgsql_msg_warn_pg_version');
+              else
+                document.getElementById('e_pgsql_version').innerHTML = $lang.get('dbpgsql_msg_err_version', { pg_version: response.version.version });
               document.getElementById('s_pgsql_version').src = img_bad;
             }
           }
@@ -340,6 +361,19 @@ $ui->show_header();
     </td>
     <td>
       <img id="s_db_host" alt="Good/bad icon" src="../images/checkbad.png" />
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <b><?php echo $lang->get('dbpgsql_field_port_title'); ?></b>
+      <br /><?php echo $lang->get('dbpgsql_field_port_body'); ?>
+      <br /><span style="color: #993300" id="e_db_port"></span>
+    </td>
+    <td>
+      <input onkeyup="verify(this);" tabindex="2" name="db_port" size="5" type="text" value="5432" />
+    </td>
+    <td>
+      <img id="s_db_port" alt="Good/bad icon" src="../images/checkbad.png" />
     </td>
   </tr>
   <tr>

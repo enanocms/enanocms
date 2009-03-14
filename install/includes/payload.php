@@ -168,12 +168,13 @@ function stg_deliver_payload()
 
 function stg_write_config()
 {
-  global $dbhost, $dbuser, $dbpasswd, $dbname, $dbdriver;
+  global $dbhost, $dbuser, $dbpasswd, $dbname, $dbdriver, $dbport;
   $db_data = array(
       'host' => str_replace("'", "\\'", $dbhost),
       'user' => str_replace("'", "\\'", $dbuser),
       'pass' => str_replace("'", "\\'", $dbpasswd),
       'name' => str_replace("'", "\\'", $dbname),
+      'port' => intval($dbport),
       'tp' => table_prefix,
       'drv' => $dbdriver
     );
@@ -218,6 +219,9 @@ function stg_write_config()
 
 // Hostname of your database server, probably localhost
 \$dbhost = '{$db_data['host']}';
+
+// Port number for database server, probably 3306 (MySQL) or 5432 (PostgreSQL)
+\$dbport = '{$db_data['port']}';
 
 // Username used to connect to the database
 \$dbuser = '{$db_data['user']}';

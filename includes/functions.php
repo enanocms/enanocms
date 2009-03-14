@@ -5033,4 +5033,58 @@ function which($executable)
   return false;
 }
 
-?>
+/**
+ * Properly test a file or directory for writability. Used in various places around installer.
+ * @param string File or directory to test
+ * @return bool
+ */
+
+function write_test($filename)
+{
+  // We need to actually _open_ the file to make sure it can be written, because sometimes this fails even when is_writable() returns
+  // true on Windows/IIS servers. Don't ask me why.
+  
+  $file = ENANO_ROOT . '/' . $filename;
+  if ( is_dir($file) )
+  {
+    $file = rtrim($file, '/') . '/' . 'enanoinstalltest.txt';
+    if ( file_exists($file) )
+    {
+      $fp = @fopen($file, 'a+');
+      if ( !$fp )
+        return false;
+      fclose($fp);
+      unlink($file);
+      return true;
+    }
+    else
+    {
+      $fp = @fopen($file, 'w');
+      if ( !$fp )
+        return false;
+      fclose($fp);
+      unlink($file);
+      return true;
+    }
+  }
+  else
+  {
+    if ( file_exists($file) )
+    {
+      $fp = @fopen($file, 'a+');
+      if ( !$fp )
+        return false;
+      fclose($fp);
+      return true;
+    }
+    else
+    {
+      $fp = @fopen($file, 'w');
+      if ( !$fp )
+        return false;
+      fclose($fp);
+      return true;
+    }
+  }
+}
+

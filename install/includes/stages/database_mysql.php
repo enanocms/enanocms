@@ -21,7 +21,7 @@ if ( isset($_POST['_cont']) )
 {
   $allow_go = true;
   // Do we have everything? If so, continue with installation.
-  foreach ( array('db_host', 'db_name', 'db_user', 'db_pass') as $field )
+  foreach ( array('db_host', 'db_port', 'db_name', 'db_user', 'db_pass') as $field )
   {
     if ( empty($_POST[$field]) )
     {
@@ -73,8 +73,20 @@ if ( isset($_POST['ajax_test']) )
       )));
   }
   
+  if ( preg_match('/^:/', $info['db_host']) && !@file_exists(substr($info['db_host'], 1)) )
+  {
+    $return['host_good'] = false;
+    echo enano_json_encode($return);
+    exit();
+  }
+  
+  if ( $info['db_host'] == 'localhost' && !empty($info['db_port']) && $info['db_port'] != 3306 )
+    $info['db_host'] = '127.0.0.1';
+  
+  $dbhost = ( preg_match('/^:/', $info['db_host']) ) ? $info['db_host'] : "{$info['db_host']}:{$info['db_port']}";
+  
   // Try to connect as the normal user
-  $test = @mysql_connect($info['db_host'], $info['db_user'], $info['db_pass']);
+  $test = @mysql_connect($dbhost, $info['db_user'], $info['db_pass']);
   if ( !$test )
   {
     $return['creating_user'] = true;
@@ -89,7 +101,7 @@ if ( isset($_POST['ajax_test']) )
       // Log in with root rights and if that works, tell 'em we'll reset the password or create
       // the account if it doesn't exist already. This is done with GRANT ALL PRIVILEGES ON enano_db.*
       // etc etc, a little hackish but known to work with MySQL >= 4.1.
-      $test_root = @mysql_connect($info['db_host'], $info['db_root_user'], $info['db_root_pass']);
+      $test_root = @mysql_connect($dbhost, $info['db_root_user'], $info['db_root_pass']);
       if ( $test_root )
       {
         // We logged in with root rights, assume that we have appropriate permissions.
@@ -152,7 +164,7 @@ if ( isset($_POST['ajax_test']) )
       if ( !empty($info['db_root_user']) && !empty($info['db_root_pass']) )
       {
         // Log in with root rights and if that works, tell 'em we'll create the database.
-        $test_root = @mysql_connect($info['db_host'], $info['db_root_user'], $info['db_root_pass']);
+        $test_root = @mysql_connect($dbhost, $info['db_root_user'], $info['db_root_pass']);
         if ( $test_root )
         {
           // We logged in with root rights, assume that we have appropriate permissions.
@@ -240,6 +252,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
     // List of fields
     var fields = {
       db_host: frm.db_host,
+      db_port: frm.db_port,
       db_name: frm.db_name,
       db_user: frm.db_user,
       db_pass: frm.db_pass,
@@ -251,8 +264,15 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
     // Main validation
     if ( field == fields.db_host || !field )
     {
-      var matches = fields.db_host.value.match(/^([a-z0-9_-]+)((\.([a-z0-9_-]+))*)?$/);
+      var matches = fields.db_host.value.match(/^(([a-z0-9_-]+)((\.([a-z0-9_-]+))*)|:[A-z0-9_:\.\/-]+)$/);
       document.getElementById('s_db_host').src = ( matches ) ? img_neu : img_bad;
+      if ( !matches )
+        passed = false;
+    }
+    if ( field == fields.db_port || !field )
+    {
+      var matches = fields.db_port.value.match(/^[0-9]+$/);
+      document.getElementById('s_db_port').src = ( matches ) ? img_neu : img_bad;
       if ( !matches )
         passed = false;
     }
@@ -302,6 +322,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
     var frm = document.forms.database_info;
     var connection_info = 'info=' + ajaxEscape(toJSONString({
         db_host: frm.db_host.value,
+        db_port: frm.db_port.value,
         db_name: frm.db_name.value,
         db_user: frm.db_user.value,
         db_pass: frm.db_pass.value,
@@ -402,12 +423,25 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
   </tr>
   <tr>
     <td>
+      <b><?php echo $lang->get('dbmysql_field_port_title'); ?></b>
+      <br /><?php echo $lang->get('dbmysql_field_port_body'); ?>
+      <br /><span style="color: #993300" id="e_db_port"></span>
+    </td>
+    <td>
+      <input onkeyup="verify(this);" tabindex="2" name="db_port" size="5" type="text" value="3306" />
+    </td>
+    <td>
+      <img id="s_db_port" alt="Good/bad icon" src="../images/checkbad.png" />
+    </td>
+  </tr>
+  <tr>
+    <td>
       <b><?php echo $lang->get('dbmysql_field_dbname_title'); ?></b><br />
       <?php echo $lang->get('dbmysql_field_dbname_body'); ?><br />
       <span style="color: #993300" id="e_db_name"></span>
     </td>
     <td>
-      <input onkeyup="verify(this);" tabindex="2" name="db_name" size="30" type="text" />
+      <input onkeyup="verify(this);" tabindex="3" name="db_name" size="30" type="text" />
     </td>
     <td>
       <img id="s_db_name" alt="Good/bad icon" src="../images/checkbad.png" />
@@ -420,9 +454,9 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <span style="color: #993300" id="e_db_auth"></span>
     </td>
     <td>
-      <input onkeyup="verify(this);" tabindex="3" name="db_user" size="30" type="text" /><br />
+      <input onkeyup="verify(this);" tabindex="4" name="db_user" size="30" type="text" /><br />
       <br />
-      <input name="db_pass" tabindex="4" size="30" type="password" />
+      <input name="db_pass" tabindex="5" size="30" type="password" />
     </td>
     <td>
       <img id="s_db_auth" alt="Good/bad icon" src="../images/checkbad.png" />
@@ -439,7 +473,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <?php echo $lang->get('dbmysql_field_tableprefix_body'); ?>
     </td>
     <td>
-      <input onkeyup="verify(this);" tabindex="5" name="table_prefix" size="30" type="text" />
+      <input onkeyup="verify(this);" tabindex="6" name="table_prefix" size="30" type="text" />
     </td>
     <td>
       <img id="s_table_prefix" alt="Good/bad icon" src="../images/check.png" />
@@ -452,9 +486,9 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <span style="color: #993300" id="e_db_root"></span>
     </td>
     <td>
-      <input onkeyup="verify(this);" tabindex="6" name="db_root_user" size="30" type="text" /><br />
+      <input onkeyup="verify(this);" tabindex="7" name="db_root_user" size="30" type="text" /><br />
       <br />
-      <input onkeyup="verify(this);" tabindex="7" name="db_root_pass" size="30" type="password" />
+      <input onkeyup="verify(this);" tabindex="8" name="db_root_pass" size="30" type="password" />
     </td>
     <td>
       <img id="s_db_root" alt="Good/bad icon" src="../images/check.png" />
@@ -477,12 +511,12 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
       <?php echo $lang->get('dbmysql_field_droptables_body'); ?>
     </td>
     <td colspan="2">
-      <input type="checkbox" tabindex="8" name="drop_tables" id="dtcheck" />  <label for="dtcheck"><?php echo $lang->get('dbmysql_field_droptables_lbl'); ?></label>
+      <input type="checkbox" tabindex="9" name="drop_tables" id="dtcheck" />  <label for="dtcheck"><?php echo $lang->get('dbmysql_field_droptables_lbl'); ?></label>
     </td>
   </tr>
   <tr>
     <td colspan="3" style="text-align: center">
-      <input type="button" tabindex="9" value="<?php echo $lang->get('dbmysql_btn_testconnection'); ?>" onclick="ajaxTestConnection();" />
+      <input type="button" tabindex="10" value="<?php echo $lang->get('dbmysql_btn_testconnection'); ?>" onclick="ajaxTestConnection();" />
       <div id="verify_error"></div>
     </td>
   </tr>
@@ -492,7 +526,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
 <table border="0">
   <tr>
     <td>
-      <input type="submit" tabindex="10" value="<?php echo $lang->get('meta_btn_continue'); ?>" onclick="return verify();" name="_cont" />
+      <input type="submit" tabindex="11" value="<?php echo $lang->get('meta_btn_continue'); ?>" onclick="return verify();" name="_cont" />
     </td>
     <td>
       <p>

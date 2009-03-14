@@ -1143,7 +1143,7 @@ class sessionManager {
                       . "  u.style,u.signature, u.reg_time, u.account_active, u.activation_key, u.user_lang, u.user_title, k.salt, k.source_ip,\n"
                       . "  k.time, k.auth_level, k.key_type, COUNT(p.message_id) AS num_pms, u.user_timezone, u.user_dst, x.*";
     
-    $columns_groupby = "u.user_id, u.username, u.password, u.email, u.real_name, u.user_level, u.theme, u.style, u.signature,\n"
+    $columns_groupby = "u.user_id, u.username, u.password, u.password_salt, u.email, u.real_name, u.user_level, u.theme, u.style, u.signature,\n"
                       . "           u.reg_time, u.account_active, u.activation_key, u.user_lang, u.user_timezone, u.user_title, u.user_dst,\n"
                       . "           k.salt, k.source_ip, k.time, k.auth_level, k.key_type, x.user_id, x.user_aim, x.user_yahoo, x.user_msn,\n"
                       . "           x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public,\n"

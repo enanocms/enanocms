@@ -39,7 +39,7 @@ if ( defined('ENANO_INSTALLED') )
 }
 
 // parse command line args
-foreach ( array('silent', 'driver', 'dbhost', 'dbuser', 'dbpasswd', 'dbname', 'db_prefix', 'user', 'pass', 'email', 'sitename', 'sitedesc', 'copyright', 'urlscheme', 'lang_id', 'scriptpath') as $var )
+foreach ( array('silent', 'driver', 'dbhost', 'dbport', 'dbuser', 'dbpasswd', 'dbname', 'db_prefix', 'user', 'pass', 'email', 'sitename', 'sitedesc', 'copyright', 'urlscheme', 'lang_id', 'scriptpath') as $var )
 {
   if ( !isset($$var) )
   {
@@ -61,6 +61,10 @@ for ( $i = 1; $i < count($argv); $i++ )
     case '--db-host':
     case '-h':
       $dbhost = @$argv[++$i];
+      break;
+    case '--db-port':
+    case '-o':
+      $dbport = @$argv[++$i];
       break;
     case '--db-user':
     case '-u':
@@ -126,6 +130,7 @@ All arguments are optional; missing information will be prompted for.
   -q                Quiet mode (minimal output)
   -b, --db-driver   Database driver (mysql or postgresql)
   -h, --db-host     Hostname of database server
+  -o, --db-port     TCP port on which to connect to database server
   -u, --db-user     Username to use on database server
   -p, --db-pass     Password to use on database server
   -d, --db-name     Name of database
@@ -218,6 +223,7 @@ if ( !$silent )
 $defaults = array(
   'driver'  => 'mysql',
   'dbhost'    => 'localhost',
+  'dbport'    => 3306,
   'dbuser'    => false,
   'dbpasswd'  => false,
   'dbname'    => false,
@@ -235,6 +241,7 @@ $defaults = array(
 $terms = array(
   'driver'  => $lang->get('cli_prompt_driver'),
   'dbhost'    => $lang->get('cli_prompt_dbhost'),
+  'dbport'    => $lang->get('cli_prompt_dbport'),
   'dbuser'    => $lang->get('cli_prompt_dbuser'),
   'dbpasswd'  => $lang->get('cli_prompt_dbpasswd'),
   'dbname'    => $lang->get('cli_prompt_dbname'),
@@ -249,7 +256,9 @@ $terms = array(
   'scriptpath'=> $lang->get('cli_prompt_scriptpath')
 );
 
-foreach ( array('driver', 'dbhost', 'dbuser', 'dbpasswd', 'dbname', 'db_prefix', 'scriptpath', 'user', 'pass', 'email', 'sitename', 'sitedesc', 'copyright', 'urlscheme') as $var )
+$defaults['dbport'] = ( strtolower($driver) == 'postgresql' ) ? 5432 : 3306;
+
+foreach ( array('driver', 'dbhost', 'dbport', 'dbuser', 'dbpasswd', 'dbname', 'db_prefix', 'scriptpath', 'user', 'pass', 'email', 'sitename', 'sitedesc', 'copyright', 'urlscheme') as $var )
 {
   if ( empty($$var) )
   {
@@ -257,6 +266,10 @@ foreach ( array('driver', 'dbhost', 'dbuser', 'dbpasswd', 'dbname', 'db_prefix',
     {
       default:
         $$var = cli_prompt($terms[$var], $defaults[$var]);
+        break;
+      case 'driver':
+        $$var = cli_prompt($terms[$var], $defaults[$var]);
+        $defaults['dbport'] = ( strtolower($driver) == 'postgresql' ) ? 5432 : 3306;
         break;
       case 'pass':
       case 'dbpasswd':
@@ -295,6 +308,14 @@ foreach ( array('driver', 'dbhost', 'dbuser', 'dbpasswd', 'dbname', 'db_prefix',
           $$var = cli_prompt($terms[$var], $defaults[$var]);
         }
         break;
+      case 'dbport':
+        $$var = cli_prompt($terms[$var], strval($defaults[$var]));
+        while ( !preg_match('/^[0-9]*$/', $$var) )
+        {
+          $$var = cli_prompt($terms[$var], $defaults[$var]);
+        }
+        $$var = intval($$var);
+        break;
     }
   }
 }
@@ -310,7 +331,7 @@ $dbal = new $driver();
 if ( !$silent )
   echo parse_shellcolor_string($lang->get('cli_msg_testing_db'));
 
-$result = $dbal->connect(true, $dbhost, $dbuser, $dbpasswd, $dbname);
+$result = $dbal->connect(true, $dbhost, $dbuser, $dbpasswd, $dbname, $dbport);
 if ( !$result )
 {
   if ( !$silent )
@@ -333,21 +354,157 @@ if ( !$silent )
   echo parse_shellcolor_string($lang->get('cli_stage_sysreqs'));
 }
 
-$test_failed = false;
+$failed = false;
+$warnings = array();
 
-run_test('return version_compare(\'5.2.0\', PHP_VERSION, \'<=\');', $lang->get('sysreqs_req_php5'), $lang->get('sysreqs_req_desc_php5'), true);
-run_test('return function_exists(\'mysql_connect\');', $lang->get('sysreqs_req_mysql'), $lang->get('sysreqs_req_desc_mysql'), true);
-run_test('return function_exists(\'pg_connect\');', $lang->get('sysreqs_req_postgres'), $lang->get('sysreqs_req_desc_postgres'), true);
-run_test('return @ini_get(\'file_uploads\');', $lang->get('sysreqs_req_uploads'), $lang->get('sysreqs_req_desc_uploads') );
-run_test('return config_write_test();', $lang->get('sysreqs_req_config'), $lang->get('sysreqs_req_desc_config') );
-run_test('return file_exists(\'/usr/bin/convert\');', $lang->get('sysreqs_req_magick'), $lang->get('sysreqs_req_desc_magick'), true);
-run_test('return is_writable(ENANO_ROOT.\'/cache/\');', $lang->get('sysreqs_req_cachewriteable'), $lang->get('sysreqs_req_desc_cachewriteable'), true);
-run_test('return is_writable(ENANO_ROOT.\'/files/\');', $lang->get('sysreqs_req_fileswriteable'), $lang->get('sysreqs_req_desc_fileswriteable'), true);
+// Test: PHP
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_php') . ': ';
+if ( version_compare(PHP_VERSION, '5.2.0', '>=') )
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_pass')) . "\n";
+}
+else if ( version_compare(PHP_VERSION, '5.0.0', '>=') )
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_vwarn')) . "\n";
+  $warnings[] = $lang->get('sysreqs_req_help_php', array('php_version' => PHP_VERSION));
+}
+else
+{
+  $failed = true;
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_fail')) . "\n";
+}
+
+// Test: MySQL
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_mysql') . ': ';
+$req_mysql = function_exists('mysql_connect');
+if ( $req_mysql )
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_pass')) . "\n";
+  $have_dbms = true;
+}
+else
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_fail')) . "\n";
+}
+
+// Test: PostgreSQL
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_postgresql') . ': ';
+$req_pgsql = function_exists('pg_connect');
+if ( $req_pgsql )
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_pass')) . "\n";
+  $have_dbms = true;
+}
+else
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_fail')) . "\n";
+}
+
+if ( !$have_dbms )
+  $failed = true;
+
+// Test: Safe Mode
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_safemode') . ': ';
+$req_safemode = !intval(@ini_get('safe_mode'));
+if ( !$req_safemode )
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_fail')) . "\n";
+  $warnings[] = $lang->get('sysreqs_req_help_safemode');
+  $failed = true;
+}
+else
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_pass')) . "\n";
+}
+
+// Test: File uploads
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_uploads') . ': ';
+$req_uploads = intval(@ini_get('file_uploads'));
+if ( $req_uploads )
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_pass')) . "\n";
+}
+else
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_warn')) . "\n";
+}
+
+// Test: ctype validation
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_ctype') . ': ';
+$req_ctype = function_exists('ctype_digit');
+if ( $req_ctype )
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_pass')) . "\n";
+}
+else
+{
+  if ( !$silent ) echo parse_shellcolor_string($lang->get('cli_test_fail')) . "\n";
+  $failed = true;
+}
+
+// Write tests
+$req_config_w = write_test('config.new.php');
+$req_htaccess_w = write_test('.htaccess.new');
+$req_files_w = write_test('files');
+$req_cache_w = write_test('cache');
+
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_config_writable') . ': ' . parse_shellcolor_string($lang->get($req_config_w ? 'cli_test_pass' : 'cli_test_fail')) . "\n";
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_htaccess_writable') . ': ' . parse_shellcolor_string($lang->get($req_htaccess_w ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_files_writable') . ': ' . parse_shellcolor_string($lang->get($req_files_w ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_cache_writable') . ': ' . parse_shellcolor_string($lang->get($req_cache_w ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
+
+if ( !$req_config_w || !$req_htaccess_w || !$req_files_w || !$req_cache_w )
+  $warnings[] = $lang->get('sysreqs_req_help_writable');
+
+if ( !$req_config_w )
+  $failed = true;
+      
+// Extension test: GD
+$req_gd = function_exists('imagecreatefrompng') && function_exists('getimagesize') && function_exists('imagecreatetruecolor') && function_exists('imagecopyresampled');
+if ( !$req_gd )
+  $warnings[] = $lang->get('sysreqs_req_help_gd2');
+
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_gd2') . ': ' . parse_shellcolor_string($lang->get($req_gd ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
+
+// FS test: ImageMagick
+$req_imagick = which('convert');
+if ( !$req_imagick )
+  $warnings[] = $lang->get('sysreqs_req_help_imagemagick');
+
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_imagemagick') . ': ' . parse_shellcolor_string($lang->get($req_imagick ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
+
+// Extension test: GMP
+$req_gmp = function_exists('gmp_init');
+if ( !$req_gmp )
+  $warnings[] = $lang->get('sysreqs_req_help_gmp');
+
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_gmp') . ': ' . parse_shellcolor_string($lang->get($req_gmp ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
+
+// Extension test: Big_Int
+$req_bigint = function_exists('bi_from_str');
+if ( !$req_bigint && !$req_gmp )
+  $warnings[] = $lang->get('sysreqs_req_help_bigint');
+
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_bigint') . ': ' . parse_shellcolor_string($lang->get($req_bigint ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
+
+// Extension test: BCMath
+$req_bcmath = function_exists('bcadd');
+if ( !$req_bcmath && !$req_bigint && !$req_gmp )
+  $warnings[] = $lang->get('sysreqs_req_help_bcmath');
+
+if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_bcmath') . ': ' . parse_shellcolor_string($lang->get($req_bcmath ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
+
+if ( !empty($warnings) && !$silent )
+{
+  echo parse_shellcolor_string($lang->get('cli_msg_test_warnings')) . "\n";
+  echo "  " . implode("\n  ", $warnings) . "\n";
+}
+
 if ( !function_exists('mysql_connect') && !function_exists('pg_connect') )
 {
   installer_fail($lang->get('cli_err_no_drivers'));
 }
-if ( $test_failed )
+if ( $failed )
 {
   installer_fail($lang->get('cli_err_sysreqs_fail'));
 }
