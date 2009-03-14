@@ -43,6 +43,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   author varchar(63),
   edit_summary text,
   minor_edit smallint,
+  page_format varchar(16) NOT NULL DEFAULT 'wikitext',
   is_draft smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ( log_id )
 );
@@ -364,7 +365,7 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('enano_version', '{{VERSION}}');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
-  ('Main_Page', 'Article', E'{{MAIN_PAGE_CONTENT}}', '');
+  ('Main_Page', 'Article', '{{MAIN_PAGE_CONTENT}}', '');
   
 INSERT INTO {{TABLE_PREFIX}}logs(time_id, date_string, log_type, action, page_id, namespace, author, page_text) VALUES
   ({{UNIX_TIME}}, 'DEPRECATED', 'page', 'edit', 'Main_Page', 'Article', '{{ADMIN_USER}}', '{{MAIN_PAGE_CONTENT}}');
