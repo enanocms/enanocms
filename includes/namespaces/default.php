@@ -362,7 +362,7 @@ class Namespace_Default
     }
     else
     {
-      $pathskey = $paths->nslist[ $this->namespace ] . $paths->page_id;
+      $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
       $page_format = $paths->pages[$pathskey]['page_format'];
     }
     
