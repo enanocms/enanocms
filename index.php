@@ -575,40 +575,24 @@
       break;
   }
   
-  //
-  // Optimize HTML by replacing newlines with spaces (excludes <pre>, <script>, and <style> blocks)
-  //
-  if ($aggressive_optimize_html)
+  // Generate an ETag
+  /*
+  // format: first 10 digits of SHA1 of page name, user id in hex, user and auth levels, page timestamp in hex
+  $etag = substr(sha1($paths->namespace . ':' . $paths->page_id), 0, 10) . '-' .
+          "u{$session->user_id}l{$session->user_level}a{$session->auth_level}-" .
+          dechex($page_timestamp);
+          
+  if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
   {
-    // Load up the HTML
-    $html = ob_get_contents();
-    @ob_end_clean();
-    
-    $html = aggressive_optimize_html($html);
-    
-    // Re-enable output buffering to allow the Gzip function (below) to work
-    ob_start();
-    
-    // Generate an ETag
-    // format: first 10 digits of SHA1 of page name, user id in hex, user and auth levels, page timestamp in hex
-    $etag = substr(sha1($paths->namespace . ':' . $paths->page_id), 0, 10) . '-' .
-            "u{$session->user_id}l{$session->user_level}a{$session->auth_level}-" .
-            dechex($page_timestamp);
-            
-    if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
+    if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
     {
-      if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
-      {
-        header('HTTP/1.1 304 Not Modified');
-        exit();
-      }
+      header('HTTP/1.1 304 Not Modified');
+      exit();
     }
-            
-    // header("ETag: \"$etag\"");
-    
-    // Done, send it to the user
-    echo( $html );
   }
+            
+  header("ETag: \"$etag\"");
+  */
   
   $db->close();  
   gzip_output();

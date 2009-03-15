@@ -163,6 +163,24 @@ class Output_HTML extends Output_Base
     echo $template->getFooter();
     echo $this->after_footer;
     
+    global $aggressive_optimize_html;
+    if ( $aggressive_optimize_html )
+    {
+      $content = ob_get_contents();
+      ob_end_clean();
+      
+      ob_start();
+      echo aggressive_optimize_html($content);
+    }
+    else
+    {
+      $content = ob_get_contents();
+      ob_end_clean();
+      
+      ob_start();
+      echo preg_replace('~</?enano:no-opt>~', '', $content);
+    }
+    
   }
   
   public function set_title($title)
@@ -171,6 +189,51 @@ class Output_HTML extends Output_Base
     $template->assign_vars(array(
         'PAGE_NAME' => $title
       ));
+  }
+}
+
+/**
+ * Same as HTML, except uses simple-header and simple-footer.
+ */
+
+class Output_HTML_Simple extends Output_HTML
+{
+  public function footer()
+  {
+    global $template;
+    if ( !$this->headers_sent )
+      return;
+    
+    $this->headers_sent = false;
+    $content = ob_get_contents();
+    ob_end_clean();
+    
+    ob_start();
+    echo $this->before_header;
+    echo $template->getHeader(true);
+    echo $this->after_header;
+    echo $content;
+    echo $this->before_footer;
+    echo $template->getFooter(true);
+    echo $this->after_footer;
+    
+    global $aggressive_optimize_html;
+    if ( $aggressive_optimize_html )
+    {
+      $content = ob_get_contents();
+      ob_end_clean();
+      
+      ob_start();
+      echo aggressive_optimize_html($content);
+    }
+    else
+    {
+      $content = ob_get_contents();
+      ob_end_clean();
+      
+      ob_start();
+      echo preg_replace('~</?enano:no-opt>~', '', $content);
+    }
   }
 }
 
