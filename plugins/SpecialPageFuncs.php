@@ -454,7 +454,7 @@ function page_Special_About_Enano()
         <h3>(English)</h3>
         <p>
           This website is powered by <a href="http://enanocms.org/">Enano</a>, the lightweight and open source CMS that everyone can use.
-          Enano is copyright &copy; 2006-2007 Dan Fuhry. For legal information, along with a list of libraries that Enano uses, please
+          Enano is copyright &copy; 2006-2009 Dan Fuhry. For legal information, along with a list of libraries that Enano uses, please
           see <a href="http://enanocms.org/Legal_information">Legal Information</a>.
         </p>
         <p>
