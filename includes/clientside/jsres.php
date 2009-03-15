@@ -54,10 +54,7 @@ if ( ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') || defined('ENANO_JS_DEBUG')
 //
 
 // We need to see if this is a specially marked Enano development server. You can create an Enano
-// development server by cloning the Mercurial repository into a directory named repo, and then
-// using symlinks to reference the original files so as to segregate unique files from non-unique
-// and distribution-standard ones. Enano will pivot its root directory accordingly if the file
-// .enanodev is found in the Enano root (not /repo/).
+// development server using the script found on hg.enanocms.org.
 if ( strpos(__FILE__, '/repo/') && ( file_exists('../../.enanodev') || file_exists('../../../.enanodev') ) )
 {
   // We have a development directory. Remove /repo/ from the picture.

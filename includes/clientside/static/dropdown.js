@@ -456,6 +456,8 @@ var getElementsByClassName = function(parent, type, cls) {
   if(!type)
     type = '*';
   ret = new Array();
+  if ( !parent )
+    return ret;
   el = parent.getElementsByTagName(type);
   for ( var i = 0; i < el.length; i++ )
   {

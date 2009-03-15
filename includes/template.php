@@ -1014,7 +1014,7 @@ JSEOF;
       $js_foot = <<<JSEOF
     <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
     <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php"></script>
-    <script type="text/javascript">
+    <script type="text/javascript">//<![CDATA[
       // This initializes the Javascript runtime when the DOM is ready - not when the page is
       // done loading, because enano-lib-basic still has to load some 15 other script files
       // check for the init function - this is a KHTML fix
@@ -1025,7 +1025,7 @@ JSEOF;
         enano_init();
         window.onload = function(e) {  };
       }
-    </script>
+    //]]></script>
 JSEOF;
     }
     
@@ -1195,6 +1195,7 @@ JSEOF;
       'ADMIN_SID_AMP_HTML' => $ash,
       'ADMIN_SID_AUTO' => $as2,
       'ADMIN_SID_RAW' =>  ( is_string($session->sid_super) ? $session->sid_super : '' ),
+      'CSRF_TOKEN' => $session->csrf_token,
       'COPYRIGHT' => RenderMan::parse_internal_links(getConfig('copyright_notice')),
       'TOOLBAR_EXTRAS' => $this->toolbar_menu,
       'REQUEST_URI' => ( defined('ENANO_CLI') ? '' : $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ),
@@ -1271,9 +1272,20 @@ JSEOF;
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    ob_start();
+    echo $this->getHeader($simple);
+  }
+  
+  function footer($simple = false)
+  {
+    echo $this->getFooter($simple);
+  }
+  
+  function getHeader($simple = false)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
-    if(!$this->theme_loaded)
+    if ( !$this->theme_loaded )
     {
       $this->load_theme($session->theme, $session->style);
     }
@@ -1296,35 +1308,22 @@ JSEOF;
     }
     if ( !$simple && $session->user_logged_in && $session->unread_pms > 0 )
     {
-      echo $this->notify_unread_pms();
+      $header .= $this->notify_unread_pms();
     }
     if ( !$simple && $session->sw_timed_out )
     {
       $login_link = makeUrlNS('Special', 'Login/' . $paths->fullpage, 'level=' . $session->user_level, true);
-      echo '<div class="usermessage">';
-      echo $lang->get('user_msg_elev_timed_out', array( 'login_link' => $login_link ));
-      echo '</div>';
+      $header .= '<div class="usermessage">';
+      $header .= $lang->get('user_msg_elev_timed_out', array( 'login_link' => $login_link ));
+      $header .= '</div>';
     }
     if ( $this->site_disabled && $session->user_level >= USER_LEVEL_ADMIN && ( $paths->page != $paths->nslist['Special'] . 'Administration' ) )
     {
       $admin_link = makeUrlNS('Special', 'Administration', 'module=' . $paths->nslist['Admin'] . 'GeneralConfig', true);
-      echo '<div class="usermessage"><b>' . $lang->get('page_sitedisabled_admin_msg_title') . '</b><br />
+      $header .= '<div class="usermessage"><b>' . $lang->get('page_sitedisabled_admin_msg_title') . '</b><br />
             ' . $lang->get('page_sitedisabled_admin_msg_body', array('admin_link' => $admin_link)) . '
             </div>';
     }
-  }
-  
-  function footer($simple = false)
-  {
-    echo $this->getFooter($simple);
-  }
-  
-  function getHeader()
-  {
-    $headers_sent = true;
-    if(!defined('ENANO_HEADERS_SENT'))
-      define('ENANO_HEADERS_SENT', '');
-    if(!$this->no_headers) return $this->process_template('header.tpl');
   }
   function getFooter($simple = false)
   {
@@ -1644,21 +1643,30 @@ EOF;
   /**
    * Post-processor for template code. Basically what this does is it localizes {lang:foo} blocks.
    * @param string Mostly-processed TPL code
+   * @param bool Post-eval switch. If true, does not escape code.
    * @return string
    */
   
-  function compile_template_text_post($text)
+  function compile_template_text_post($text, $post_eval = false)
   {
+    global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    
+    // Language strings
     preg_match_all('/\{lang:([a-z0-9]+_[a-z0-9_]+)\}/', $text, $matches);
     foreach ( $matches[1] as $i => $string_id )
     {
       $string = $lang->get($string_id);
-      $string = str_replace('\\', '\\\\', $string);
-      $string = str_replace('\'', '\\\'', $string);
+      if ( !$post_eval )
+      {
+        $string = str_replace('\\', '\\\\', $string);
+        $string = str_replace('\'', '\\\'', $string);
+      }
       $text = str_replace_once($matches[0][$i], $string, $text);
     }
-    preg_match_all('/\{url:([A-z0-9]+):([\w\.\/:;\(\)@\[\]_=-]+)(?::([^\s\}]+))?(?:\|(escape))?\}/', $text, $matches);
+    
+    // URLs
+    preg_match_all('/\{url:([A-z0-9]+):([^\s\}]+?)(?:;([^\s\}]+?))?(?:\|(escape))?\}/i', $text, $matches);
     foreach ( $matches[1] as $i => $string_id )
     {
       $namespace =& $matches[1][$i];
@@ -1672,9 +1680,45 @@ EOF;
       
       $result = makeUrlNS($namespace, $page_id, $params, $escape);
       
+      if ( !$post_eval )
+      {
+        $result = str_replace('\\', '\\\\', $result);
+        $result = str_replace('\'', '\\\'', $result);
+      }
+      
       $text = str_replace_once($matches[0][$i], $result, $text);
     }
+    
+    $code = $plugins->setHook('compie_template_text_post');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
     return $text;
+  }
+  
+  /**
+   * Returns the output of a theme hook
+   * @param string Hook name
+   * @return string
+   */
+  
+  function get_theme_hook($hook)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    ob_start();
+    $code = $plugins->setHook($hook);
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    $out = ob_get_contents();
+    ob_end_clean();
+    
+    return $out;
   }
   
   // n00bish comments removed from here. 2008-03-13 @ 12:02AM when I had nothing else to do.
@@ -2600,6 +2644,9 @@ TPLCODE;
   
   // System messages
   $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $template->tplWikiFormat($paths->sysMsg(\'\\1\')) . \'', $text);
+  
+  // Hooks
+  $text = preg_replace('/<!-- HOOK ([A-z0-9_]+) -->/', '\' . $this->get_theme_hook(\'\\1\') . \'', $text);
   
   // only do this if the plugins API is loaded
   if ( is_object(@$plugins) )
