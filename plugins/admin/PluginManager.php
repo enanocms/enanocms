@@ -151,6 +151,19 @@ function page_Admin_PluginManager()
                 );
                 break;
               }
+              if ( !isset($request['install_confirmed']) )
+              {
+                if ( $plugins->is_file_auth_plugin($request['plugin']) )
+                {
+                  $return = array(
+                    'confirm_title' => 'acppl_msg_confirm_authext_title',
+                    'confirm_body' => 'acppl_msg_confirm_authext_body',
+                    'need_confirm' => true,
+                    'success' => false
+                  );
+                  break;
+                }
+              }
               
               $return = $plugins->install_plugin($request['plugin'], $plugin_list);
               break;

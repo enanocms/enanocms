@@ -598,7 +598,7 @@ function opacity(id, opacStart, opacEnd, millisec)
     domOpacity(object, opacStart, opacEnd, millisec);
 }
 
-var opacityDOMCache = new Object();
+var opacityDOMCache = {};
 function domOpacity(obj, opacStart, opacEnd, millisec) {
     //speed for each frame
     var speed = Math.round(millisec / 100);
@@ -611,17 +611,22 @@ function domOpacity(obj, opacStart, opacEnd, millisec) {
     //determine the direction for the blending, if start and end are the same nothing happens
     if(opacStart > opacEnd) {
         for(i = opacStart; i >= opacEnd; i--) {
-            setTimeout("var obj = opacityDOMCache["+uniqid+"]; domObjChangeOpac(" + i + ",obj)",(timer * speed));
+            setTimeout("if ( opacityDOMCache["+uniqid+"] ) { var obj = opacityDOMCache["+uniqid+"]; domObjChangeOpac(" + i + ",obj) }",(timer * speed));
             timer++;
         }
     } else if(opacStart < opacEnd) {
         for(i = opacStart; i <= opacEnd; i++)
             {
-            setTimeout("var obj = opacityDOMCache["+uniqid+"]; domObjChangeOpac(" + i + ",obj)",(timer * speed));
+            setTimeout("if ( opacityDOMCache["+uniqid+"] ) { var obj = opacityDOMCache["+uniqid+"]; domObjChangeOpac(" + i + ",obj); }",(timer * speed));
             timer++;
         }
     }
     setTimeout("delete(opacityDOMCache["+uniqid+"]);",(timer * speed));
+}
+
+function abortFades()
+{
+  opacityDOMCache = {};
 }
 
 // change the opacity for different browsers

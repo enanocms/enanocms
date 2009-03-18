@@ -513,6 +513,29 @@ class pluginLoader {
   }
   
   /**
+   * Determines if a file is an authentication extension by looking at the file contents.
+   * @param string Plugin filename
+   * @return bool
+   */
+  
+  function is_file_auth_plugin($filename)
+  {
+    $filename = ENANO_ROOT . '/plugins/' . $filename;
+    if ( !file_exists($filename) )
+      return false;
+    
+    $info = $this->get_plugin_info($filename);
+    if ( isset($info['auth plugin']) )
+      return true;
+    
+    $contents = @file_get_contents($filename);
+    if ( strstr($contents, 'login_process_userdata_json') )
+      return true;
+    
+    return false;
+  }
+  
+  /**
    * Installs a plugin.
    * @param string Filename of plugin.
    * @param array The list of plugins as output by pluginLoader::get_plugin_list(). If not passed, the function is called, possibly wasting time.

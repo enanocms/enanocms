@@ -1379,7 +1379,7 @@ window.ajaxUpdateCheck = function(targetelement)
     });
 }
 
-window.ajaxPluginAction = function(action, plugin_filename, btnobj)
+window.ajaxPluginAction = function(action, plugin_filename, btnobj, send_confirm)
 {
   // if installing, uninstalling, or re-importing, confirm
   if ( action == 'install' || action == 'uninstall' || action == 'reimport' )
@@ -1420,12 +1420,12 @@ window.ajaxPluginAction = function(action, plugin_filename, btnobj)
           ajaxPluginAction(this._action + '_confirm', this._filename, this._button);
           miniPromptDestroy(this);
           return false;
-        }
+        };
         btn_cancel.onclick = function()
         {
           miniPromptDestroy(this);
           return false;
-        }
+        };
       });
     return true;
   }
@@ -1436,10 +1436,15 @@ window.ajaxPluginAction = function(action, plugin_filename, btnobj)
     var td = btnobj.parentNode.parentNode.parentNode.parentNode;
     var blackbox = whiteOutElement(td);
   }
-  var request = toJSONString({
+  var request = {
       mode: action,
       plugin: plugin_filename
-    });
+    };
+  if ( send_confirm )
+  {
+    request.install_confirmed = true;
+  }
+  request = toJSONString(request);
   ajaxPost(makeUrlNS('Admin', 'PluginManager/action.json'), 'r=' + ajaxEscape(request), function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
@@ -1451,15 +1456,43 @@ window.ajaxPluginAction = function(action, plugin_filename, btnobj)
           return false;
         }
         response = parseJSON(response);
+        if ( blackbox )
+        {
+          blackbox.parentNode.removeChild(blackbox);
+        }
         if ( response.success )
         {
-          if ( blackbox )
-          {
-            blackbox.parentNode.removeChild(blackbox);
-          }
           ajaxPage( namespace_list['Admin'] + 'PluginManager' );
           return true;
-        } 
+        }
+        if ( response.need_confirm )
+        {
+          miniPromptMessage({
+              title: $lang.get(response.confirm_title),
+              message: $lang.get(response.confirm_body),
+              buttons: [
+                {
+                  text: $lang.get('acppl_btn_install'),
+                  color: 'red',
+                  style: {
+                    fontWeight: 'bold',
+                  },
+                  onclick: function() {
+                    ajaxPluginAction(action + '_confirm', plugin_filename, btnobj, true);
+                    miniPromptDestroy(this);
+                  }
+                },
+                {
+                  text: $lang.get('etc_cancel'),
+                  color: 'blue',
+                  onclick: function() {
+                    miniPromptDestroy(this);
+                  }
+                }
+              ]
+            });
+          return true;
+        }
         // wait for fade effect to finish its run
         setTimeout(function()
           {

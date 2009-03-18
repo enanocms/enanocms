@@ -1,6 +1,6 @@
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -492,6 +492,9 @@ var enano_lang = {
       msg_confirm_uninstall: 'Uninstalling this plugin may cause the loss of data that was created with it. You should only uninstall a plugin if you are certain you\'ll have no further use for it; in fact, you don\'t even need to uninstall a plugin if you\'re deleting it from the filesystem.',
       msg_confirm_install: 'Plugins are not supported by the Enano project and could harm your site if malicious. You should only install plugins from sources that you trust.',
       msg_confirm_reimport: 'Re-importing strings will reload all language data from the plugin file. This should fix missing messages, but any customizations you have made to the plugin\'s language strings will be lost.',
+      
+      msg_confirm_authext_title: 'This plugin is an authentication extension.',
+      msg_confirm_authext_body: 'This plugin hooks into Enano\'s login system. It might be used to allow non-password-based authentication. If there is a security vulnerability in this plugin, it might open your site up to attack. Only continue if you trust the author of this plugin.',
       
       err_upgrade_not_supported: 'This plugin doesn\'t support automatic upgrades. The version number has been updated so the plugin will be re-enabled, but you should check the plugin file to see if the author provided instructions for finishing the upgrade.',
       err_upgrade_bad_version: 'This plugin cannot be upgraded because you are running a version of the plugin that is not listed in the plugin\'s version list.',
