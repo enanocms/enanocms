@@ -11,6 +11,10 @@
 
 function toJSONString(input)
 {
+  if ( window.JSON )
+  {
+    return window.JSON.stringify(input);
+  }
   var m = {
           '\b': '\\b',
           '\t': '\\t',
@@ -142,6 +146,11 @@ function toJSONString(input)
 
 function parseJSON(string, filter)
 {
+  if ( window.JSON )
+  {
+    return window.JSON.parse(string);
+  }
+  
   try {
     if (/^("(\\.|[^"\\\n\r])*?"|[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t])+?$/.
             test(string))
