@@ -148,7 +148,7 @@ $ui->show_header();
   ?>
   
   <?php
-  $patch_necessary = ( ( strtolower(PHP_OS) == 'win32' || strtolower(PHP_OS) == 'winnt' ) && substr(@$_SERVER['SERVER_SOFTWARE'], 'Apache/2.2') );
+  $patch_necessary = ( ( strtolower(PHP_OS) == 'win32' || strtolower(PHP_OS) == 'winnt' ) && strstr(@$_SERVER['SERVER_SOFTWARE'], 'Apache/2.2') );
   if ( defined('WINDOWS_MOD_REWRITE_WORKAROUNDS') )
   {
     ?>
