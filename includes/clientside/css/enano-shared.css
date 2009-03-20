@@ -777,6 +777,12 @@ div.miniprompt div.mp-buttons {
   background-color: #606060;
 }
 
+.abutton.block {
+  display: block;
+  width: 60%;
+  margin: 0 auto 10px auto;
+}
+
 .abutton_green       { color:            #008800 !important; }
 .abutton_green:hover { background-color: #008800 !important; }
 .abutton_blue        { color:            #000088 !important; }
@@ -910,4 +916,89 @@ span.acl_failed_deps {
 
 span.acl_failed_deps span.title {
   color: #ff0000;
+}
+
+/**
+ * Theme selector
+ */
+
+div#theme-selector-wrapper {
+  position: absolute;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  top: 0;
+  margin-top: 75px;
+}
+
+div#theme-selector-body {
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+  text-align: center;
+  /* width: 708px; */
+  width: 130px;
+  height: 130px;
+}
+
+div#theme-selector-inner h3 {
+  font-size: x-large;
+}
+
+div#theme-selector-inner ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+div#theme-selector-inner ul li {
+  float: left;
+}
+
+div#theme-selector-inner ul li a {
+  display: block;
+  border: 1px solid #d0d0d0;
+  padding: 4px;
+  width: 216px;
+  line-height: 150px;
+  text-align: center;
+  margin: 2px 5px;
+  text-decoration: none;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-image: url(../../../images/themepreview.png);
+}
+
+div#theme-selector-inner ul li a span {
+  color: #456798;
+  background-color: #fff;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  display: block;
+  width: 216px;
+  line-height: 150px;
+  font-size: x-large;
+}
+
+div#theme-selector-inner ul li a:hover span {
+  opacity: 0.6;
+  filter: alpha(opacity=60);
+}
+
+div#theme-selector-inner .abutton {
+  font-size: x-large;
+}
+
+div#theme-selector-inner ul li a span.loading {
+  background-image: url(../../../images/loading-big.gif);
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+div.theme-selector-spinner {
+  height: 130px;
+  background-image: url(../../../images/loading-big.gif);
+  background-position: center center;
+  background-repeat: no-repeat;
+  margin: 0 auto;
 }
