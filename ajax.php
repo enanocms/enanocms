@@ -540,30 +540,78 @@
       $parms = ( isset($_POST['acl_params']) ) ? rawurldecode($_POST['acl_params']) : false;
       echo PageUtils::acl_json($parms);
       break;
+    case 'theme_list':
+      header('Content-type: application/json');
+      
+      $q = $db->sql_query('SELECT theme_name, theme_id FROM ' . table_prefix . "themes WHERE enabled = 1 ORDER BY theme_name ASC;");
+      if ( !$q )
+        $db->die_json();
+      
+      $return = array();
+      while ( $row = $db->fetchrow() )
+        $return[] = $row;
+      
+      foreach ( $return as &$theme )
+      {
+        $theme['have_thumb'] = file_exists(ENANO_ROOT . "/themes/{$theme['theme_id']}/preview.png");
+      }
+      
+      echo enano_json_encode($return);
+      
+      break;
+    case "get_styles":
+      if ( !preg_match('/^[a-z0-9_-]+$/', $_GET['theme_id']) )
+        die(enano_json_encode(array()));
+      
+      $theme_id = $_GET['theme_id'];
+      $return = array();
+      
+      if ( $dr = @opendir(ENANO_ROOT . "/themes/$theme_id/css/") )
+      {
+        while ( $dh = @readdir($dr) )
+        {
+          if ( preg_match('/\.css$/', $dh) && $dh != '_printable.css' )
+          {
+            $return[] = preg_replace('/\.css$/', '', $dh);
+          }
+        }
+      }
+      else
+      {
+        $return = array(
+            'mode' => 'error',
+            'error' => 'Could not open directory.'
+          );
+      }
+      echo enano_json_encode($return);
+      break;
     case "change_theme":
       if ( !isset($_POST['theme_id']) || !isset($_POST['style_id']) )
       {
-        die('Invalid input');
+        die(enano_json_encode(array('mode' => 'error', 'error' => 'Invalid parameter')));
       }
       if ( !preg_match('/^([a-z0-9_-]+)$/i', $_POST['theme_id']) || !preg_match('/^([a-z0-9_-]+)$/i', $_POST['style_id']) )
       {
-        die('Invalid input');
+        die(enano_json_encode(array('mode' => 'error', 'error' => 'Invalid parameter')));
       }
       if ( !file_exists(ENANO_ROOT . '/themes/' . $_POST['theme_id'] . '/css/' . $_POST['style_id'] . '.css') )
       {
-        die('Can\'t find theme file: ' . ENANO_ROOT . '/themes/' . $_POST['theme_id'] . '/css/' . $_POST['style_id'] . '.css');
+        die(enano_json_encode(array('mode' => 'error', 'error' => 'Can\'t find theme file: ' . ENANO_ROOT . '/themes/' . $_POST['theme_id'] . '/css/' . $_POST['style_id'] . '.css')));;
       }
       if ( !$session->user_logged_in )
       {
-        die('You must be logged in to change your theme');
+        die(enano_json_encode(array('mode' => 'error', 'error' => 'You must be logged in to change your theme')));
       }
       // Just in case something slipped through...
       $theme_id = $db->escape($_POST['theme_id']);
       $style_id = $db->escape($_POST['style_id']);
-      $e = $db->sql_query('UPDATE ' . table_prefix . "users SET theme='$theme_id', style='$style_id' WHERE user_id=$session->user_id;");
+      $e = $db->sql_query('UPDATE ' . table_prefix . "users SET theme = '$theme_id', style = '$style_id' WHERE user_id = $session->user_id;");
       if ( !$e )
         die( $db->get_error() );
-      die('GOOD');
+      
+      echo enano_json_encode(array(
+          'success' => true
+        ));
       break;
     case 'get_tags':
       

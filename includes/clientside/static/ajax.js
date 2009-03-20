@@ -155,7 +155,6 @@ window.ajaxRenameSubmit = function(obj)
     return false;
   
   var input = obj.getElementsByTagName('input')[0];
-  console.debug(obj, input);
   if ( !input )
     return false;
   var newname = input.value;
@@ -738,142 +737,170 @@ window.ajaxChangeStyle = function()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  load_component(['l10n', 'messagebox', 'flyin', 'fadefilter']);
+  load_component(['l10n', 'fadefilter', 'jquery', 'jquery-ui']);
   
-  var inner_html = '';
-  inner_html += '<p><label>' + $lang.get('ajax_changestyle_lbl_theme') + ' ';
-  inner_html += '  <select id="chtheme_sel_theme" onchange="ajaxGetStyles(this.value);">';
-  inner_html += '    <option value="_blank" selected="selected">' + $lang.get('ajax_changestyle_select') + '</option>';
-  inner_html +=      ENANO_THEME_LIST;
-  inner_html += '  </select>';
-  inner_html += '</label></p>';
-  var chtheme_mb = new MessageBox(MB_OKCANCEL|MB_ICONQUESTION, $lang.get('ajax_changestyle_title'), inner_html);
-  chtheme_mb.onbeforeclick['OK'] = ajaxChangeStyleComplete;
-}
-
-window.ajaxGetStyles = function(id)
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  var thediv = document.getElementById('chtheme_sel_style_parent');
-  if ( thediv )
-  {
-    thediv.parentNode.removeChild(thediv);
-  }
-  if ( id == '_blank' )
-  {
-    return null;
-  }
-  ajaxGet(stdAjaxPrefix + '&_mode=getstyles&id=' + id, function(ajax) {
-      if ( ajax.readyState == 4 && ajax.status == 200 )
-      {
-        // IE doesn't like substr() on ajax.responseText
-        var response = String(ajax.responseText + '');
-        if ( response.substr(0,1) != '[' )
-        {
-          alert('Invalid or unexpected JSON response from server:\n' + response);
-          return null;
-        }
-        
-        // Build a selector and matching label
-        var data = parseJSON(response);
-        var options = new Array();
-        for( var i in data )
-        {
-          var item = data[i];
-          var title = themeid_to_title(item);
-          var option = document.createElement('option');
-          option.value = item;
-          option.appendChild(document.createTextNode(title));
-          options.push(option);
-        }
-        var p_parent = document.createElement('p');
-        var label  = document.createElement('label');
-        p_parent.id = 'chtheme_sel_style_parent';
-        label.appendChild(document.createTextNode($lang.get('ajax_changestyle_lbl_style') + ' '));
-        var select = document.createElement('select');
-        select.id = 'chtheme_sel_style';
-        for ( var i in options )
-        {
-          select.appendChild(options[i]);
-        }
-        label.appendChild(select);
-        p_parent.appendChild(label);
-        
-        // Stick it onto the messagebox
-        var div = document.getElementById('messageBox');
-        var kid = div.firstChild.nextSibling;
-        
-        kid.appendChild(p_parent);
-        
-      }
-    }, true);
-}
-
-window.ajaxChangeStyleComplete = function()
-{
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  var theme = $dynano('chtheme_sel_theme');
-  var style = $dynano('chtheme_sel_style');
-  if ( !theme.object || !style.object )
-  {
-    alert($lang.get('ajax_changestyle_pleaseselect_theme'));
-    return true;
-  }
-  var theme_id = theme.object.value;
-  var style_id = style.object.value;
+  // force string fetch
+  $lang.get('etc_cancel');
   
-  if ( typeof(theme_id) != 'string' || typeof(style_id) != 'string' )
-  {
-    alert('Couldn\'t get theme or style ID');
-    return true;
-  }
+  // preload some images
+  var i1 = new Image();
+  i1.src = cdnPath + '/images/loading-big.gif';
+  var i2 = new Image();
+  i2.src = cdnPath + '/images/check-large.png';
   
-  if ( theme_id.length < 1 || style_id.length < 1 )
-  {
-    alert('Theme or style ID is zero length');
-    return true;
-  }
+  darken(true, 70, 'theme-selector-shade');
   
-  ajaxPost(stdAjaxPrefix + '&_mode=change_theme', 'theme_id=' + ajaxEscape(theme_id) + '&style_id=' + ajaxEscape(style_id), function(ajax)
+  $('body').append('<div id="theme-selector-wrapper"><div id="theme-selector-body"><div id="theme-selector-inner"><div class="theme-selector-spinner"></div></div></div></div>');
+  $('#theme-selector-wrapper')
+    .css('top', String(getScrollOffset()) + 'px')
+    .css('z-index', String( getHighestZ() + 20 ));
+  
+  $.get(stdAjaxPrefix + '&_mode=theme_list', {}, function(data, status)
     {
-      if ( ajax.readyState == 4 && ajax.status == 200 )
-      {
-        if ( ajax.responseText == 'GOOD' )
+      $('#theme-selector-inner .theme-selector-spinner').fadeOut(650);
+      $('#theme-selector-body').animate({ width: 708 }, 600, function()
         {
-          var c = confirm($lang.get('ajax_changestyle_success'));
-          if ( c )
-            window.location.reload();
-        }
-        else
-        {
-          alert('Error occurred during attempt to change theme:\n' + ajax.responseText);
-        }
-      }
-    }, true);
-  
-  return false;
-  
+          // avoiding jQuery's fade functions because they insist on toggling display as well
+          changeOpac(0, 'theme-selector-inner');
+          $('#theme-selector-inner').html('<h3></h3>');
+          $('#theme-selector-inner > h3').text($lang.get('ajax_thmsel_lbl_choosetheme'));
+          $('#theme-selector-inner').append('<ul></ul>');
+          for ( var i = 0; i < data.length; i++ )
+          {
+            var bgi = data[i].have_thumb ? cdnPath + '/themes/' + data[i].theme_id + '/preview.png' : cdnPath + '/images/themepreview.png';
+            $('#theme-selector-inner > ul').append('<li id="theme_' + i + '"><a href="#"><span></span></a></li>');
+            $('#theme-selector-inner li#theme_' + i + ' > a')
+              .css('background-image', 'url(' + bgi + ')')
+              .attr('enano:theme_id', data[i].theme_id);
+            $('#theme-selector-inner li#theme_' + i + ' > a > span')
+              .text(data[i].theme_name);
+          }
+          $('#theme-selector-inner').append('<span class="menuclear"></span>');
+          $('#theme-selector-inner').append('<div style="padding-top: 40px;"><a class="abutton abutton_green" style="font-size: larger;" href="#" onclick="ajaxChangeStyleClose(); return false;">' + $lang.get('etc_cancel') + '</a></div>');
+          
+          $('#theme-selector-body').animate({ height: $('#theme-selector-inner').height() + 30 }, 600, function()
+            {
+              opacity('theme-selector-inner', 0, 100, 750);
+            });
+          
+          $('#theme-selector-inner li a').click(function()
+            {
+              var theme_id = $(this).attr('enano:theme_id');
+              $('span', this).html('&nbsp;').addClass('loading').fadeTo('fast', 0.6)
+              $.get(stdAjaxPrefix + '&_mode=get_styles', { theme_id: theme_id }, function(data, status)
+                {
+                  if ( data.length > 1 )
+                  {
+                    $('#theme-selector-inner').css('height', $('#theme-selector-inner').height()).fadeOut(600, function()
+                    {
+                      var div = document.createElement('div');
+                      domObjChangeOpac(0, div);
+                      
+                      $(div).attr('id', 'theme-selector-style-list').append('<h3></h3>');
+                      $('h3', div).text($lang.get('ajax_thmsel_lbl_choosestyle'));
+                      
+                      for ( var i = 0; i < data.length; i++ )
+                      {
+                        $(div).append('<a class="abutton block stylebtn" id="stylebtn_' + i + '" enano:style_id="' + data[i] + '">' + themeid_to_title(data[i]) + '</a>');
+                      }
+                      
+                      $(div).append('<div style="padding-top: 40px;"><a class="abutton abutton_green" style="font-size: larger;" href="#" onclick="ajaxChangeStyleClose(); return false;">' + $lang.get('etc_cancel') + '</a></div>');
+                      
+                      changeOpac(0, 'theme-selector-style-list');
+                      $(this).html(div).show();
+                      
+                      $('#theme-selector-body').animate({width: 300, height: $('#theme-selector-style-list').height() + 30}, 300, function()
+                        {
+                          opacity('theme-selector-style-list', 0, 100, 500);
+                        });
+                      
+                      $('.stylebtn').click(function()
+                        {
+                          ajaxChangeThemeSetLoading();
+                          $.post(stdAjaxPrefix + '&_mode=change_theme', { theme_id: theme_id, style_id: $(this).attr('enano:style_id') }, function(data, status)
+                            {
+                              if ( data.error )
+                              {
+                                alert(data.error);
+                                ajaxChangeStyleClose();
+                                return false;
+                              }
+                              ajaxChangeThemeShowSuccess();
+                            }, 2000);
+                          
+                          return false;
+                        });
+                    });
+                  }
+                  else
+                  {
+                    if ( !data[0] )
+                    {
+                      alert('Didn\'t find any CSS files. :-/');
+                      ajaxChangeStyleClose();
+                    }
+                    
+                    $.post(stdAjaxPrefix + '&_mode=change_theme', { theme_id: theme_id, style_id: data[0] }, function(data, status)
+                      {
+                        if ( data.error )
+                        {
+                          alert(data.error);
+                          ajaxChangeStyleClose();
+                          return false;
+                        }
+                        ajaxChangeThemeShowSuccess();
+                      }, 'json');
+                  }
+                }, 'json');
+              return false;
+            }); // click function
+        }); // animate
+    }, 'json'); // get
 }
 
-window.ajaxSwapCSS = function()
+window.ajaxChangeThemeSetLoading = function()
 {
-  // IE <6 pseudo-compatibility
-  if ( KILL_SWITCH )
-    return true;
-  setAjaxLoading();
-  if(_css) {
-    document.getElementById('mdgCss').href = main_css;
-    _css = false;
-  } else {
-    document.getElementById('mdgCss').href = print_css;
-    _css = true;
-  }
-  unsetAjaxLoading();
-  menuOff();
+  $('#theme-selector-body').animate({width: 130, height: 130});
+  $('#theme-selector-inner').empty().html('<div class="theme-selector-spinner"></div>');
+}
+
+window.ajaxChangeThemeShowSuccess = function()
+{
+  $('#theme-selector-body').animate({width: 400, height: 300 }, 600, function()
+      {
+        $('#theme-selector-inner').append('<img src="' + cdnPath + '/images/check-large.png" alt=" " style="display: block; margin: 15px auto;" />');
+        $('#theme-selector-inner').append('<h3>' + $lang.get('ajax_thmsel_msg_success') + '</h3>');
+        $('#theme-selector-inner').append('<div style="padding-top: 20px;"><a class="abutton abutton_green" style="font-size: larger;" href="#" onclick="window.location.reload(); return false;">' + $lang.get('ajax_thmsel_btn_reload') + '</a></div>');
+        $('#theme-selector-inner').append('<div style="padding-top: 25px;"><a href="#" style="font-size: smaller;" onclick="ajaxChangeStyleClose(); return false;">' + $lang.get('ajax_thmsel_btn_close') + '</a><br /><small>' + $lang.get('ajax_thmsel_btn_close_hint') + '</small></div>');
+        $('#theme-selector-inner').fadeIn();
+      });
+  setTimeout(function()
+    {
+      $('#theme-selector-inner').empty();
+    }, 10);
+}
+
+window.ajaxChangeStyleClose = function()
+{
+  setTimeout(function()
+    {
+      enlighten(false, 'theme-selector-shade');
+      $('#theme-selector-wrapper').fadeOut(500, function()
+        {
+          $(this).remove();
+        });
+    }, 300);
+  opacity('theme-selector-inner', 100, 0, 250);
+}
+
+function themeid_to_title(id)
+{
+  if ( typeof(id) != 'string' )
+    return false;
+  id = id.substr(0, 1).toUpperCase() + id.substr(1);
+  id = id.replace(/_/g, ' ');
+  id = id.replace(/-/g, ' ');
+  return id;
 }
 
 window.ajaxSetPassword = function()
@@ -1565,12 +1592,3 @@ window.ajaxReverseDNS = function(o, text)
     });
 }
 
-function themeid_to_title(id)
-{
-  if ( typeof(id) != 'string' )
-    return false;
-  id = id.substr(0, 1).toUpperCase() + id.substr(1);
-  id = id.replace(/_/g, ' ');
-  id = id.replace(/-/g, ' ');
-  return id;
-}
