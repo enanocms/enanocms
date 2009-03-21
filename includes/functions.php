@@ -2195,6 +2195,127 @@ function spamalyze($string, $name = false, $email = false, $url = false, $ip = f
 }
 
 /**
+ * Generates the HTML of a pagination control.
+ * @param int Current page
+ * @param int Number of pages
+ * @param string sprintf()-style formatting URL for pages
+ * @param int Multiplier for start offset, defaults to 1
+ * @param int Add to each $i for addition to result urls, usually either 0 or 1 (depends on whether you want your ?page= to start with 0 ro 1)
+ * @return string HTML
+ */
+
+function generate_paginator($current_page, $num_pages, $result_url, $start_mult = 1, $start_add = 1)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  $out = '';
+  $i = 0;
+
+  // Build paginator
+  $pg_css = ( strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') ) ?
+            // IE-specific hack
+            'display: block; width: 1px;':
+            // Other browsers
+            'display: table; margin: 10px 0 0 auto;';
+  
+  $begin = '<div class="tblholder" style="'. $pg_css . '">
+    <table border="0" cellspacing="1" cellpadding="4">
+      <tr><th>' . $lang->get('paginate_lbl_page') . '</th>';
+  $block = '<td class="row1" style="text-align: center;">{LINK}</td>';
+  $end = '</tr></table></div>';
+  $blk = $template->makeParserText($block);
+  $inner = '';
+  $cls = 'row2';
+  if ( $num_pages < 5 )
+  {
+    for ( $i = 0; $i < $num_pages; $i++ )
+    {
+      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
+      $offset = strval(($i * $start_mult) + $start_add);
+      $url = htmlspecialchars(sprintf($result_url, $offset));
+      $j = $i + 1;
+      $link = ( $i == $current_page ) ? "<b>$j</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>$j</a>";
+      $blk->assign_vars(array(
+        'CLASS'=>$cls,
+        'LINK'=>$link
+        ));
+      $inner .= $blk->run();
+    }
+  }
+  else
+  {
+    if ( $current_page + 5 > $num_pages )
+    {
+      $list = Array();
+      $tp = $current_page;
+      if ( $current_page + 0 == $num_pages ) $tp = $tp - 3;
+      if ( $current_page + 1 == $num_pages ) $tp = $tp - 2;
+      if ( $current_page + 2 == $num_pages ) $tp = $tp - 1;
+      for ( $i = $tp - 1; $i <= $tp + 1; $i++ )
+      {
+        $list[] = $i;
+      }
+    }
+    else
+    {
+      $list = Array();
+      $current = $current_page;
+      $lower = ( $current < 3 ) ? 1 : $current - 1;
+      for ( $i = 0; $i < 3; $i++ )
+      {
+        $list[] = $lower + $i;
+      }
+    }
+    $url = sprintf($result_url, '0');
+    $link = ( 0 == $current_page ) ? "<b>" . $lang->get('paginate_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('paginate_btn_first') . "</a>";
+    $blk->assign_vars(array(
+      'CLASS'=>$cls,
+      'LINK'=>$link
+      ));
+    $inner .= $blk->run();
+
+    foreach ( $list as $i )
+    {
+      if ( $i == $num_pages )
+        break;
+      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
+      $offset = strval(($i * $start_mult) + $start_add);
+      $url = sprintf($result_url, $offset);
+      $j = $i + 1;
+      $link = ( $i == $current_page ) ? "<b>$j</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>$j</a>";
+      $blk->assign_vars(array(
+        'CLASS'=>$cls,
+        'LINK'=>$link
+        ));
+      $inner .= $blk->run();
+    }
+
+    // "Last" button
+    $total = (($num_pages - 1) * $start_mult) + $start_add;
+
+    if ( $current_page < $num_pages )
+    {
+      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
+      $offset = strval($total);
+      $url = sprintf($result_url, $offset);
+      $link = ( $num_pages - 1 == $current_page ) ? "<b>" . $lang->get('paginate_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('paginate_btn_last') . " &raquo;</a>";
+      $blk->assign_vars(array(
+        'CLASS'=>$cls,
+        'LINK'=>$link
+        ));
+      $inner .= $blk->run();
+    }
+
+  }
+
+  $inner .= '<td class="row2" style="cursor: pointer;" onclick="paginator_goto(this, '.$current_page.', '.$num_pages.', '.$start_mult.', unescape(\'' . rawurlencode($result_url) . '\'));">&darr;</td>';
+
+  $paginator = "\n$begin$inner$end\n";
+  return $paginator;
+}
+
+/**
  * Paginates (breaks into multiple pages) a MySQL result resource, which is treated as unbuffered.
  * @param resource The MySQL result resource. This should preferably be an unbuffered query.
  * @param string A template, with variables being named after the column name
@@ -2211,124 +2332,15 @@ function spamalyze($string, $name = false, $email = false, $url = false, $ip = f
 function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage = 10, $callers = Array(), $header = '', $footer = '')
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
   
   $parser = $template->makeParserText($tpl_text);
+  
   $num_pages = ceil ( $num_results / $perpage );
   $out = '';
-  $i = 0;
   $this_page = ceil ( $start / $perpage );
-
-  // Build paginator
-  $pg_css = ( strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') ) ?
-            // IE-specific hack
-            'display: block; width: 1px;':
-            // Other browsers
-            'display: table; margin: 10px 0 0 auto;';
-  $begin = '<div class="tblholder" style="'. $pg_css . '">
-    <table border="0" cellspacing="1" cellpadding="4">
-      <tr><th>' . $lang->get('paginate_lbl_page') . '</th>';
-  $block = '<td class="row1" style="text-align: center;">{LINK}</td>';
-  $end = '</tr></table></div>';
-  $blk = $template->makeParserText($block);
-  $inner = '';
-  $cls = 'row2';
-  if ( $num_pages < 5 )
-  {
-    for ( $i = 0; $i < $num_pages; $i++ )
-    {
-      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      $offset = strval($i * $perpage);
-      $url = htmlspecialchars(sprintf($result_url, $offset));
-      $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>$j</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>$j</a>";
-      $blk->assign_vars(array(
-        'CLASS'=>$cls,
-        'LINK'=>$link
-        ));
-      $inner .= $blk->run();
-    }
-  }
-  else
-  {
-    if ( $this_page + 5 > $num_pages )
-    {
-      $list = Array();
-      $tp = $this_page;
-      if ( $this_page + 0 == $num_pages ) $tp = $tp - 3;
-      if ( $this_page + 1 == $num_pages ) $tp = $tp - 2;
-      if ( $this_page + 2 == $num_pages ) $tp = $tp - 1;
-      for ( $i = $tp - 1; $i <= $tp + 1; $i++ )
-      {
-        $list[] = $i;
-      }
-    }
-    else
-    {
-      $list = Array();
-      $current = $this_page;
-      $lower = ( $current < 3 ) ? 1 : $current - 1;
-      for ( $i = 0; $i < 3; $i++ )
-      {
-        $list[] = $lower + $i;
-      }
-    }
-    $url = sprintf($result_url, '0');
-    $link = ( 0 == $start ) ? "<b>" . $lang->get('paginate_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('paginate_btn_first') . "</a>";
-    $blk->assign_vars(array(
-      'CLASS'=>$cls,
-      'LINK'=>$link
-      ));
-    $inner .= $blk->run();
-
-    // if ( !in_array(1, $list) )
-    // {
-    //   $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-    //   $blk->assign_vars(array('CLASS'=>$cls,'LINK'=>'...'));
-    //   $inner .= $blk->run();
-    // }
-
-    foreach ( $list as $i )
-    {
-      if ( $i == $num_pages )
-        break;
-      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      $offset = strval($i * $perpage);
-      $url = sprintf($result_url, $offset);
-      $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>$j</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>$j</a>";
-      $blk->assign_vars(array(
-        'CLASS'=>$cls,
-        'LINK'=>$link
-        ));
-      $inner .= $blk->run();
-    }
-
-    $total = $num_pages * $perpage - $perpage;
-
-    if ( $this_page < $num_pages )
-    {
-      // $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      // $blk->assign_vars(array('CLASS'=>$cls,'LINK'=>'...'));
-      // $inner .= $blk->run();
-
-      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      $offset = strval($total);
-      $url = sprintf($result_url, $offset);
-      $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>" . $lang->get('paginate_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('paginate_btn_last') . " &raquo;</a>";
-      $blk->assign_vars(array(
-        'CLASS'=>$cls,
-        'LINK'=>$link
-        ));
-      $inner .= $blk->run();
-    }
-
-  }
-
-  $inner .= '<td class="row2" style="cursor: pointer;" onclick="paginator_goto(this, '.$this_page.', '.$num_pages.', '.$perpage.', unescape(\'' . rawurlencode($result_url) . '\'));">&darr;</td>';
-
-  $paginator = "\n$begin$inner$end\n";
+  $i = 0;
+  
+  $paginator = generate_paginator($this_page, $num_pages, $result_url, $perpage, 0);
   $out .= $paginator;
 
   $cls = 'row2';
@@ -2394,138 +2406,9 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
   $i = 0;
   $this_page = ceil ( $start / $perpage );
 
-  // Build paginator
-  $begin = '<div class="tblholder" style="display: table; margin: 10px 0 0 auto;">
-    <table border="0" cellspacing="1" cellpadding="4">
-      <tr><th>' . $lang->get('paginate_lbl_page') . '</th>';
-  $block = '<td class="row1" style="text-align: center;">{LINK}</td>';
-  $end = '</tr></table></div>';
-  $blk = $template->makeParserText($block);
-  $inner = '';
-  $cls = 'row2';
-  $total = $num_pages * $perpage - $perpage;
-  /*
-  if ( $start > 0 )
-  {
-    $url = sprintf($result_url, abs($start - $perpage));
-    $link = "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('paginate_btn_prev') . "</a>";
-    $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-    $blk->assign_vars(array(
-      'CLASS'=>$cls,
-      'LINK'=>$link
-      ));
-    $inner .= $blk->run();
-  }
-  */
-  if ( $num_pages < 5 )
-  {
-    for ( $i = 0; $i < $num_pages; $i++ )
-    {
-      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      $offset = strval($i * $perpage);
-      $url = htmlspecialchars(sprintf($result_url, $offset));
-      $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>$j</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>$j</a>";
-      $blk->assign_vars(array(
-        'CLASS'=>$cls,
-        'LINK'=>$link
-        ));
-      $inner .= $blk->run();
-    }
-  }
-  else
-  {
-    if ( $this_page + 5 > $num_pages )
-    {
-      $list = Array();
-      $tp = $this_page;
-      if ( $this_page + 0 == $num_pages ) $tp = $tp - 3;
-      if ( $this_page + 1 == $num_pages ) $tp = $tp - 2;
-      if ( $this_page + 2 == $num_pages ) $tp = $tp - 1;
-      for ( $i = $tp - 1; $i <= $tp + 1; $i++ )
-      {
-        $list[] = $i;
-      }
-    }
-    else
-    {
-      $list = Array();
-      $current = $this_page;
-      $lower = ( $current < 3 ) ? 1 : $current - 1;
-      for ( $i = 0; $i < 3; $i++ )
-      {
-        $list[] = $lower + $i;
-      }
-    }
-    $url = sprintf($result_url, '0');
-    $link = ( 0 == $start ) ? "<b>" . $lang->get('paginate_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('paginate_btn_first') . "</a>";
-    $blk->assign_vars(array(
-      'CLASS'=>$cls,
-      'LINK'=>$link
-      ));
-    $inner .= $blk->run();
-
-    // if ( !in_array(1, $list) )
-    // {
-    //   $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-    //   $blk->assign_vars(array('CLASS'=>$cls,'LINK'=>'...'));
-    //   $inner .= $blk->run();
-    // }
-
-    foreach ( $list as $i )
-    {
-      if ( $i == $num_pages )
-        break;
-      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      $offset = strval($i * $perpage);
-      $url = sprintf($result_url, $offset);
-      $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>$j</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>$j</a>";
-      $blk->assign_vars(array(
-        'CLASS'=>$cls,
-        'LINK'=>$link
-        ));
-      $inner .= $blk->run();
-    }
-
-    if ( $this_page < $num_pages )
-    {
-      // $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      // $blk->assign_vars(array('CLASS'=>$cls,'LINK'=>'...'));
-      // $inner .= $blk->run();
-
-      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      $offset = strval($total);
-      $url = sprintf($result_url, $offset);
-      $j = $i + 1;
-      $link = ( $offset == strval($start) ) ? "<b>" . $lang->get('paginate_btn_last') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('paginate_btn_last') . " &raquo;</a>";
-      $blk->assign_vars(array(
-        'CLASS'=>$cls,
-        'LINK'=>$link
-        ));
-      $inner .= $blk->run();
-    }
-
-  }
-
-  /*
-  if ( $start < $total )
-  {
-    $link_offset = abs($start + $perpage);
-    $url = htmlspecialchars(sprintf($result_url, strval($link_offset)));
-    $link = "<a href=".'"'."$url".'"'." style='text-decoration: none;'>" . $lang->get('paginate_btn_next') . " &raquo;</a>";
-    $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-    $blk->assign_vars(array(
-      'CLASS'=>$cls,
-      'LINK'=>$link
-      ));
-    $inner .= $blk->run();
-  }
-  */
-
-  $inner .= '<td class="row2" style="cursor: pointer;" onclick="paginator_goto(this, '.$this_page.', '.$num_pages.', '.$perpage.', unescape(\'' . rawurlencode($result_url) . '\'));">&darr;</td>';
-
-  $paginator = "\n$begin$inner$end\n";
+  $paginator = generate_paginator($this_page, $num_pages, $result_url, $perpage, 0);
+  $out .= $paginator;
+  
   if ( $total > 1 )
   {
     $out .= $paginator;

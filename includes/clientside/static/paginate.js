@@ -322,6 +322,7 @@ window.paginator_submit = function(obj, max, perpage, formatstring)
   var offset = ( userinput - 1 ) * perpage;
   if ( userinput > max || isNaN(userinput) || userinput < 1 )
   {
+    load_component(['messagebox', 'fadefilter', 'flyin']);
     new MessageBox(MB_OK|MB_ICONSTOP, $lang.get('paginate_err_bad_page_title'), $lang.get('paginate_err_bad_page_body', { max: max }));
     return false;
   }
