@@ -195,6 +195,10 @@ enano_lang_code[{$lang->lang_id}] = '{$lang->lang_code}';";
       {
         echo 'good_' . $_GET['str'];
       }
+      else if ( $_SERVER['QUERY_STRING'] == '/tiny&do=modrewrite_test' )
+      {
+        echo 'good_tiny';
+      }
       else
       {
         echo 'bad';

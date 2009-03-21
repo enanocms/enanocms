@@ -56,6 +56,20 @@ $ui->show_header();
       }
       else
       {
+        ajaxGet(scriptPath + '/install/install.php?/tiny&do=modrewrite_test', __ajaxMrwTest_chain_tiny);
+      }
+    }
+  }
+  var __ajaxMrwTest_chain_tiny = function()
+  {
+    if ( ajax.readyState == 4 )
+    {
+      if ( ajax.responseText == 'good_tiny' )
+      {
+        ajaxMrwSet('tiny');
+      }
+      else
+      {
         ajaxGet(scriptPath + '/install/install.php?do=modrewrite_test&str=standard', __ajaxMrwTest_chain_standard);
       }
     }
@@ -78,12 +92,13 @@ $ui->show_header();
   function ajaxMrwSet(level)
   {
     install_unset_ajax_loading();
-    if ( !in_array(level, ['rewrite', 'shortened', 'standard']) )
+    if ( !in_array(level, ['rewrite', 'shortened', 'standard', 'tiny']) )
       return false;
     
     document.getElementById('url_radio_rewrite').checked = false;
     document.getElementById('url_radio_shortened').checked = false;
     document.getElementById('url_radio_standard').checked = false;
+    document.getElementById('url_radio_tiny').checked = false;
     document.getElementById('url_radio_' + level).checked = true;
     document.getElementById('url_radio_' + level).focus();
     
@@ -94,6 +109,9 @@ $ui->show_header();
         break;
       case 'shortened':
         var str = $lang.get('website_msg_bestmethod_shortened');
+        break;
+      case 'tiny':
+        var str = $lang.get('website_msg_bestmethod_tiny');
         break;
       case 'standard':
         var str = $lang.get('website_msg_bestmethod_standard');
@@ -148,7 +166,7 @@ $ui->show_header();
   ?>
   
   <?php
-  $patch_necessary = ( ( strtolower(PHP_OS) == 'win32' || strtolower(PHP_OS) == 'winnt' ) && substr(@$_SERVER['SERVER_SOFTWARE'], 'Apache/2.2') );
+  $patch_necessary = ( ( strtolower(PHP_OS) == 'win32' || strtolower(PHP_OS) == 'winnt' ) && strstr(@$_SERVER['SERVER_SOFTWARE'], 'Apache/2.2') );
   if ( defined('WINDOWS_MOD_REWRITE_WORKAROUNDS') )
   {
     ?>
@@ -259,6 +277,23 @@ $ui->show_header();
               <span id="hint_url_scheme_rewrite" class="fieldtip">
                 <p><?php echo $lang->get('website_field_urlscheme_opt_rewrite_hint'); ?></p>
                 <p><small><b><?php echo $lang->get('website_field_urlscheme_lbl_example'); ?></b> <tt><?php echo $scriptpath_full . 'Page'; ?></tt></small></p>
+              </span>
+            </td>
+          </tr>
+        </table>
+        
+        <table border="0" cellpadding="10" cellspacing="0">
+          <tr>
+            <td valign="top">
+              <input type="radio" name="url_scheme" value="tiny" id="url_radio_tiny" tabindex="5" />
+            </td>
+            <td>
+              <label for="url_radio_tiny">
+                <b><?php echo $lang->get('website_field_urlscheme_opt_tiny'); ?></b>
+              </label>
+              <span id="hint_url_scheme_tiny" class="fieldtip">
+                <p><?php echo $lang->get('website_field_urlscheme_opt_tiny_hint'); ?></p>
+                <p><small><b><?php echo $lang->get('website_field_urlscheme_lbl_example'); ?></b> <tt><?php echo $scriptpath_full . '?/Page'; ?></tt></small></p>
               </span>
             </td>
           </tr>

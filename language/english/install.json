@@ -1,6 +1,6 @@
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.1
+ * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -248,6 +248,7 @@ var enano_lang_install = {
       msg_ajax_test_fail_body: 'None of the URL handling tests worked; you may have problems using Enano on your server.',
       msg_bestmethod_rewrite: 'The installer has detected that using rewritten URLs is the best level that will work.',
       msg_bestmethod_shortened: 'The installer has detected that using shortened URLs is the best level that will work.',
+      msg_bestmethod_tiny: 'The installer has detected that using tiny URLs is the best level that will work.',
       msg_bestmethod_standard: 'The installer has detected that using standard URLs is the only level that will work.',
       msg_modrewrite_enabled: 'Your copy of Enano has the Windows mod_rewrite workaround patch enabled.',
       msg_modrewrite_necessary: 'If you don\'t plan to use the Rewritten URLs option below, you should go back and re-download Enano without this workaround enabled. The mod_rewrite issues Enano faces under Windows are caused by a security change in Apache 2.2 that is not present in Apache 2.0. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
@@ -270,6 +271,8 @@ var enano_lang_install = {
       field_urlscheme_opt_shortened_hint: 'This eliminates the "?title=" portion of your URL, and instead uses a slash. This is occasionally more friendly to search engines.',
       field_urlscheme_opt_rewrite: 'Rewritten URLs',
       field_urlscheme_opt_rewrite_hint: 'Using this option, you can completely eliminate the "index.php" from URLs. This is the most friendly option to search engines and looks very professional, but requires support for URL rewriting on your server. If you\'re running Apache and have the right permissions, Enano can configure this automatically. Otherwise, you\'ll need to configure your server manually and have a knowledge of regular expressions for this option to work.',
+      field_urlscheme_opt_tiny: '<span style="font-weight: bold; color: #a00;">(Experimental)</span> Tiny URLs',
+      field_urlscheme_opt_tiny_hint: 'This makes URLs very small - close to the size of Rewritten. However it doesn\'t work with every server, and we\'re still trying to experiment to find which servers it works with. If you can\'t use Rewritten URLs, you are encouraged to give this a try and let the Enano team know whether it works for you or not.',
       btn_urlscheme_detect: 'Auto-detect the best formatting scheme',
       
       objective_verify: 'Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.',
