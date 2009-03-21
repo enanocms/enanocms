@@ -142,13 +142,10 @@ class pathManager
     {
       // This method really isn't supported because apache has a habit of passing dots as underscores, thus corrupting the request
       // If you really want to try it, the URI format is yoursite.com/?/Page_title
-      if ( count($_GET) > 0 )
+      if ( !empty($_SERVER['QUERY_STRING']) && substr($_SERVER['QUERY_STRING'], 0, 1) == '/' )
       {
-        list($getkey) = array_keys($_GET);
-        if ( substr($getkey, 0, 1) == '/' )
-        {
-          $title = substr($getkey, 1);
-        }
+        $pos = ( ($_ = strpos($_SERVER['QUERY_STRING'], '&')) !== false ) ? $_ - 1: 0x7FFFFFFF;
+        $title = substr($_SERVER['QUERY_STRING'], 1, $pos);
       }
     }
     return ( $sanitize ) ? sanitize_page_id($title) : $title;

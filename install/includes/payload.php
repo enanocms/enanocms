@@ -192,6 +192,9 @@ function stg_write_config()
     case 'shortened':
       $sp_append = '/index.php/';
       break;
+    case 'tiny':
+      $sp_append = '/?/';
+      break;
     case 'rewrite':
       $sp_append = '/';
       break;
