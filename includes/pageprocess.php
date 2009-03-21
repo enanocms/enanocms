@@ -463,7 +463,8 @@ class PageProcessor
     
     // Set page_format
     $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-    if ( $paths->pages[ $pathskey ]['page_format'] != $page_format )
+    // Using @ due to warning thrown when saving new page
+    if ( @$paths->pages[ $pathskey ]['page_format'] !== $page_format )
     {
       // Note: no SQL injection to worry about here. Everything that goes into this is sanitized already, barring some rogue plugin.
       // (and if there's a rogue plugin running, we have bigger things to worry about anyway.)
