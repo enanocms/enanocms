@@ -829,7 +829,7 @@ class postgresql {
     $loc = ( $loc ) ? addslashes("\n\nDescription or location of error: $loc") : "";
     $loc .= "\n\nPlease report the full text of this error to the administrator of the site. If you believe that this is a bug with the software, please contact support@enanocms.org.";
     $loc = str_replace("\n", "\\n", $loc);
-    $t = "{\"mode\":\"error\",\"error\":\"An error occurred during database query.\\nQuery was:\\n  $q\\n\\nError returned by MySQL: $e$loc\"}";
+    $t = "{\"mode\":\"error\",\"error\":\"An error occurred during database query.\\nQuery was:\\n  $q\\n\\nError returned by {$this->dbms_name}: $e$loc\"}";
     die($t);
   }
   
@@ -843,7 +843,7 @@ class postgresql {
     $internal_text = '<h3>The site was unable to finish serving your request.</h3>
                       <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site' . $email_info . '.</p>
                       <p>Description or location of error: '.$t.'<br />
-                      Error returned by MySQL extension: ' . $e . '<br />
+                      Error returned by ' . $this->dbms_name . ' extension: ' . $e . '<br />
                       Most recent SQL query:</p>
                       <pre>'.$bt.'</pre>';
     return $internal_text;
@@ -1025,7 +1025,7 @@ class postgresql {
   /**
    * Set the internal result pointer to X
    * @param int $pos The number of the row
-   * @param resource $result The MySQL result resource - if not given, the latest cached query is assumed
+   * @param resource $result The PostgreSQL result resource - if not given, the latest cached query is assumed
    * @return true on success, false on failure
    */
    
@@ -1127,21 +1127,21 @@ class postgresql {
   function fetchrow($r = false) {
     if(!$this->_conn) return false;
     if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
     $row = pg_fetch_assoc($r);
     return integerize_array($row);
   }
   
   function fetchrow_num($r = false) {
     if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
     $row = pg_fetch_row($r);
     return integerize_array($row);
   }
   
   function numrows($r = false) {
     if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
     $n = pg_num_rows($r);
     return $n;
   }
@@ -1178,7 +1178,7 @@ class postgresql {
   {
     if(!$this->_conn) return false;
     if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
     $this->free_result($r);
   }
   function sql_numrows($r = false)
@@ -1189,7 +1189,7 @@ class postgresql {
   {
     if(!$this->_conn) return false;
     if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
     return pg_affected_rows();
   }
   
