@@ -753,6 +753,7 @@ window.ajaxChangeStyle = function()
   $('body').append('<div id="theme-selector-wrapper"><div id="theme-selector-body"><div id="theme-selector-inner"><div class="theme-selector-spinner"></div></div></div></div>');
   $('#theme-selector-wrapper')
     .css('top', String(getScrollOffset()) + 'px')
+    .css('left', 0)
     .css('z-index', String( getHighestZ() + 20 ));
   
   $.get(stdAjaxPrefix + '&_mode=theme_list', {}, function(data, status)
