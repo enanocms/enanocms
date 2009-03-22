@@ -187,9 +187,16 @@
       if ( !isset($_POST['r']) )
         die('Invalid request');
       
-      $request = enano_json_decode($_POST['r']);
-      if ( !isset($request['src']) || !isset($request['summary']) || !isset($request['minor_edit']) || !isset($request['time']) || !isset($request['draft']) )
-        die('Invalid request');
+      try
+      {
+        $request = enano_json_decode($_POST['r']);
+        if ( !isset($request['src']) || !isset($request['summary']) || !isset($request['minor_edit']) || !isset($request['time']) || !isset($request['draft']) )
+          die('Invalid request');
+      }
+      catch(Zend_Json_Exception $e)
+      {
+        die("JSON parsing failed. View as HTML to see full report.\n<br /><br />\n<pre>" . htmlspecialchars(strval($e)) . "</pre><br />Request: <pre>" . htmlspecialchars($_POST['r']) . "</pre>");
+      }
       
       $time = intval($request['time']);
       

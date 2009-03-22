@@ -773,6 +773,9 @@ class Zend_Json_Decoder
                             case '\'' :
                                 $result .= '\'';
                                 break;
+                            case 'u':
+                              $result .= self::decode_unicode_byte(substr($str, $i + 1, 4));
+                              break;
                             default:
                                 throw new Zend_Json_Exception("Illegal escape "
                                     .  "sequence '" . $chr . "'");
@@ -903,6 +906,41 @@ class Zend_Json_Decoder
         }
 
         return($this->_token);
+    }
+    
+    /**
+     * Handle a Unicode byte; local to Enano.
+     * @param string 4 character byte sequence
+     * @return string
+     */
+    
+    protected function decode_unicode_byte($byte)
+    {
+      if ( strlen($byte) != 4 )
+        throw new Zend_Json_Exception("Invalid Unicode sequence \\u$byte");
+        
+      $value = hexdec($byte);
+
+      if ($value < 0x0080)
+      {
+        // 1 byte: 0xxxxxxx
+        $character = chr($value);
+      }
+      else if ($value < 0x0800)
+      {
+        // 2 bytes: 110xxxxx 10xxxxxx
+        $character =
+            chr((($value & 0x07c0) >> 6) | 0xc0)
+          . chr(($value & 0x3f) | 0x80);
+      }
+      else
+      {
+        // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
+        $character =
+            chr((($value & 0xf000) >> 12) | 0xe0)
+          . chr((($value & 0x0fc0) >> 6) | 0x80)
+          . chr(($value & 0x3f) | 0x80);
+      }
     }
 }
 

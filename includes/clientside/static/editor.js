@@ -13,7 +13,7 @@ window.ajaxEditor = function(revid)
     return true;
   if ( editor_open )
     return true;
-  load_component(['l10n', 'template-compiler', 'messagebox', 'fadefilter', 'flyin']);
+  load_component(['l10n', 'template-compiler', 'messagebox', 'fadefilter', 'flyin', 'toolbar']);
   selectButtonMinor('edit');
   selectButtonMajor('article');
   setAjaxLoading();
