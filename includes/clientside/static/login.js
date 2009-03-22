@@ -1207,10 +1207,13 @@ window.ajaxDynamicReauth = function(adminpage, level)
         targetpage();
       }
     }, level);
-  ajaxLoginShowFriendlyError({
-      error_code: 'admin_session_timed_out',
-      respawn_info: {}
-  });
+  if ( typeof(adminpage) == 'string' )
+  {
+    ajaxLoginShowFriendlyError({
+        error_code: 'admin_session_timed_out',
+        respawn_info: {}
+    });
+  }
 }
 
 window.ajaxRenewSession = function()
