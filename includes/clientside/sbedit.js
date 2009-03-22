@@ -56,7 +56,7 @@ function sbedit_open_editor(a)
     .animate({ width: 500, height: 400, top: top, left: (getWidth() / 2) - 250 }, 400, function()
       {
         var whitey = whiteOutElement(this);
-        $(this).append('<textarea style="width: 100%; height: 90%;"></textarea>');
+        $(this).append('<textarea style="width: 100%; height: 360px;" rows="20" cols="80"></textarea>');
         $(this).append('<p style="text-align: center;"><a href="#" onclick="sbedit_edit_save(this); return false;">' + $lang.get('etc_save_changes') + '</a> | <a href="#" onclick="sbedit_edit_cancel(this); return false;">' + $lang.get('etc_cancel') + '</a></p>');
         $.get(makeUrlNS('Special', 'EditSidebar', 'action=getsource&noheaders&id=' + this.item_id), {}, function(response, statustext)
           {
