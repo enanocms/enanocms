@@ -797,6 +797,11 @@ div.toolbar_vert li span {
   padding-right: 5px;
 }
 
+div.toolbar_vert li > span {
+  display: block;
+  padding: 4px 5px;
+}
+
 /*
  * Userpage styles
  */

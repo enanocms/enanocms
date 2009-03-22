@@ -150,6 +150,11 @@ div.toolbar_vert li span {
   padding-right: 5px;
 }
 
+div.toolbar_vert li > span {
+  display: block;
+  padding: 4px 5px;
+}
+
 div.breadcrumbs                   { margin: 10px 0; padding: 5px; border: 1px solid #AAAAAA; background-color: #E8E8E8; font-size: smaller; font-weight: bold; }
 
 /* Tables */
@@ -323,55 +328,6 @@ span.menuclear {
   clear: left;
   line-height: 0px;
   display: block;
-}
-
-/*
- * Docking Boxes code (for the sidebar editor)
- */
- 
-/* group container(s) */
-#sbedit {
-  margin: 0;
-  padding: 0;
-  /* position:relative; /* additional outer containers must also have position:relative */
-}
-/* keyboard navigation tooltip */
-.dbx-tooltip {
-  display:block;
-  position:absolute;
-  margin:36px 0 0 125px;
-  width:185px;
-  border:1px solid #000;
-  background:#ffd;
-  color:#000;
-  font:normal normal normal 0.85em tahoma, arial, sans-serif;
-  padding:2px 4px 3px 5px;
-  text-align:left;
-  }
-* html .dbx-tooltip { width:195px; }
-
-/* use CSS2 system colors in CSS2 browsers 
-   but not safari, which doesn't support them */
-*[class="dbx-tooltip"]:lang(en) {
-  border-color:InfoText;
-  background:InfoBackground;
-  color:InfoText;
-  font:small-caption;
-  font-weight:normal;
-  }
-/* additional clone styles */
-.dbx-clone {
-  opacity: 0.8;
-}
-.dbx-content ul {
-  margin: 0; padding: 0;
-  list-style: none;
-}
-.dbx-content li a, .dbx-content li a:hover {
-  text-decoration: none; color: #666;
-}
-.dbx-content2 {
-  margin: 0px 1px 0px 1px;
 }
 
 /* Progress bars */
@@ -1002,3 +958,63 @@ div.theme-selector-spinner {
   background-repeat: no-repeat;
   margin: 0 auto;
 }
+
+/**
+ * Sidebar editor
+ */
+
+div.sbedit-block {
+  background-color: #f7f7f7;
+  border: 1px solid #c2c2c2;
+  padding: 4px;
+  width: 150px;
+  margin: 0 7px 5px 0;
+}
+
+div.sbedit-block.disabled {
+  background-color: #ffe2e2;
+  border-color: #c7a1a1;
+}
+
+div.sbedit-handle {
+  background-color: #c7c7c7;
+  border: 1px solid #909090;
+  padding: 2px;
+  margin-bottom: 3px;
+  cursor: move;
+}
+
+div.sbedit-block.disabled div.sbedit-handle {
+  background-color: #c77272;
+  border-color: #aa6060;
+}
+
+div.sbedit-handle input {
+  display: none;
+  width: 96%;
+}
+
+div.sbedit-float {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+td.sbedit-column {
+  vertical-align: top;
+  /* 150 + 4*2 + 7 + 3 (the 3 being a trial-and-error computation) */
+  width: 168px;
+}
+
+.ui-sortable-placeholder {
+  background-color: #e2e2e2 !important;
+  border: 1px dashed #b7b7b7 !important;
+  visibility: visible !important;
+  height: 50px !important;
+}
+
+.ui-sortable-helper {
+  opacity: 0.6;
+  filter: alpha(opacity=60);
+}
+

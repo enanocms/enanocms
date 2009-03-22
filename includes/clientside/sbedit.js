@@ -1,193 +1,266 @@
-var disenable_currentBlock;
-function ajaxDisenableBlock(id)
-{
-  disenable_currentBlock = document.getElementById('disabled_'+id);
-  ajaxGet(makeUrlNS('Special', 'EditSidebar', 'action=disenable&ajax=true&noheaders&id='+id), function()
-    {
-      if ( ajax.readyState == 4 && ajax.status == 200 )
-      {
-        if(ajax.responseText == 'GOOD')
-        {
-          if(disenable_currentBlock.style.display == 'none')
-          {
-            disenable_currentBlock.style.display = 'inline';
-          }
-          else
-          {
-            disenable_currentBlock.style.display = 'none';
-          }
-        } 
-        else
-        {
-          document.getElementById('ajaxEditContainer').innerHTML = ajax.responseText;
-        }
-      }
-    });
-}
-
-var delete_currentBlock;
-function ajaxDeleteBlock(id, oElm)
-{
-  delete_currentBlock = { 0 : id, 1 : oElm };
-  ajaxGet(makeUrlNS('Special', 'EditSidebar', 'action=delete&ajax=true&noheaders&id='+id), function()
-    {
-      if ( ajax.readyState == 4 && ajax.status == 200 )
-      {
-        if(ajax.responseText == 'GOOD')
-        {
-          e = delete_currentBlock[1];
-          e = e.parentNode.parentNode;
-          e.parentNode.removeChild(e);
-        } 
-        else
-        {
-          document.getElementById('ajaxEditContainer').innerHTML = ajax.responseText;
-        }
-      }
-    });
-}
-
-var blockEdit_current;
-function ajaxEditBlock(id, oElm)
-{
-  blockEdit_current = { 0 : id, 1 : oElm };
-  ajaxGet(makeUrlNS('Special', 'EditSidebar', 'action=getsource&noheaders&id='+id), function()
-    {
-      if ( ajax.readyState == 4 && ajax.status == 200 )
-      {
-        id = blockEdit_current[0];
-        oElm = blockEdit_current[1];
-        var thediv = document.createElement('div');
-        //if(!oElm.id) oElm.id = 'autoEditButton_'+Math.floor(Math.random() * 100000);
-        oElm = oElm.parentNode;
-        var magic = $(oElm).Top() + $(oElm).Height();
-        var top = String(magic);
-        top = top + 'px';
-        left = $(oElm).Left() + 'px';
-        thediv.style.top = top;
-        thediv.style.left = left;
-        thediv.style.position = 'absolute';
-        thediv.className = 'mdg-comment';
-        thediv.style.margin = '0';
-        if(ajax.responseText == 'HOUSTON_WE_HAVE_A_PLUGIN')
-        {
-          thediv.innerHTML = '<h3>' + $lang.get('sbedit_msg_cant_edit_plugin_title') + '</h3><p>' + $lang.get('sbedit_msg_cant_edit_plugin_body', { close_link: 'a href="#" onclick="this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode); return false;"' }) + '</p>';
-        }
-        else
-        {
-          ta = document.createElement('textarea');
-          ta.rows = '15';
-          ta.cols = '50';
-          ta.innerHTML = ajax.responseText;
-          thediv.appendChild(ta);
-          b = document.createElement('br');
-          thediv.appendChild(b);
-          thediv.innerHTML += '<a href="#" onclick="ajaxSaveBlock(this, \''+id+'\'); return false;">' + $lang.get('sbedit_btn_edit_save') + '</a>  |  <a href="#" onclick="if(confirm(\'' + $lang.get('sbedit_msg_discard_confirm') + '\')) this.parentNode.parentNode.removeChild(this.parentNode); return false;">' + $lang.get('sbedit_btn_edit_cancel') + '</a>';
-        }
-        body = document.getElementsByTagName('body');
-        body = body[0];
-        body.appendChild(thediv);
-      }
-    });
-}
-
-var blockSave_current;
-function ajaxSaveBlock(oElm, id)
-{
-  taContent = escape(oElm.previousSibling.previousSibling.value);
-  taContent = taContent.replace(unescape('%0A'), '%0A');
-  taContent = taContent.replace('+', '%2B');
-  blockSave_current = { 0 : id, 1 : oElm };
-  ajaxPost(makeUrlNS('Special', 'EditSidebar', 'noheaders&action=save&id='+id), 'content='+taContent, function()
-    {
-      if ( ajax.readyState == 4 && ajax.status == 200 )
-      {
-        id   = blockSave_current[0];
-        oElm = blockSave_current[1];
-        eval(ajax.responseText);
-        if(status == 'GOOD')
-        {
-          var _id = 'disabled_' + String(id);
-          var parent = document.getElementById(_id).parentNode.parentNode;
-          oElm.parentNode.parentNode.removeChild(oElm.parentNode);
-          content = content.replace('%a', unescape('%0A'));
-          var obj = ( IE ) ? parent.firstChild.nextSibling.nextSibling : parent.firstChild.nextSibling.nextSibling.nextSibling;
-          if ( obj )
-            obj.innerHTML = content; // $content is set in ajax.responseText
-        }
-        else
-        {
-          alert(status);
-        }
-      }
-    });
-}
-
-function ajaxRenameSidebarStage1(parent, id)
-{
-  var oldname = parent.firstChild.nodeValue;
-  parent.removeChild(parent.firstChild);
-  parent.ondblclick = function() {};
-  parent._idcache = id;
-  var input = document.createElement('input');
-  input.type = 'text';
-  input.sbedit_id = id;
-  input.oldvalue = oldname;
-  input.onkeyup = function(e)
+addOnloadHook(function()
   {
-    if ( typeof(e) != 'object' )
-      return false;
-    if ( !e.keyCode )
-      return false;
-    if ( e.keyCode == 13 )
+    load_component(['jquery', 'jquery-ui']);
+    $('.sbedit-column').sortable({
+      handle: '.sbedit-handle',
+      connectWith: '.sbedit-column',
+      stop: function()
+      {
+        ajaxUpdateSidebarOrder();
+      }
+    });
+  });
+
+function serialize_sidebar()
+{
+  var columns = {};
+  var i = 0;
+  $('.sbedit-column').each(function(i, e)
     {
-      ajaxRenameSidebarStage2(this);
-    }
-    if ( e.keyCode == 27 )
-    {
-      ajaxRenameSidebarCancel(this);
-    }
-  };
-  input.onblur = function()
-  {
-    ajaxRenameSidebarCancel(this);
-  };
-  input.value = oldname;
-  input.style.fontSize = '7pt';
-  parent.appendChild(input);
-  input.focus();
+      var arr = $(e).sortable('toArray');
+      for ( var j = 0; j < arr.length; j++ )
+        arr[j] = parseInt(arr[j].replace(/^block:/, ''));
+      
+      i++;
+      columns[i] = arr;
+    });
+  return toJSONString(columns);
 }
 
-function ajaxRenameSidebarStage2(input)
+function sbedit_open_editor(a)
 {
-  var newname = input.value;
-  var id = input.sbedit_id;
-  var parent = input.parentNode;
-  parent.removeChild(input);
-  parent.appendChild(document.createTextNode(( newname == '' ? '<Unnamed>' : newname )));
-  parent.ondblclick = function() { ajaxRenameSidebarStage1(this, this._idcache); return false; };
-  var img = document.createElement('img');
-  img.src = scriptPath + '/images/loading.gif';
-  parent.appendChild(img);
-  newname = ajaxEscape(newname);
-  ajaxPost(makeUrlNS('Special', 'EditSidebar', 'ajax&noheaders&action=rename&id='+id), 'newname=' +newname, function()
-    {
-      if ( ajax.readyState == 4 && ajax.status == 200 )
+  if ( auth_level < USER_LEVEL_ADMIN )
+  {
+    load_component('login');
+    ajaxDynamicReauth(function(sid)
       {
-        parent.removeChild(img);
-        if ( ajax.responseText != 'GOOD' )
-          new messagebox(MB_OK|MB_ICONSTOP, 'Error renaming block', ajax.responseText);
-      }
+        sbedit_open_editor(a);
+      }, USER_LEVEL_ADMIN);
+    return false;
+  }
+  load_component(['fadefilter', 'l10n']);
+  var shade = darken(true, 50, 'sbedit-shade');
+  $(shade).css('z-index', 0);
+  var parent = sbedit_get_parent(a);
+  var offset = $(parent).offset();
+  var top = (( getHeight() ) / 2) - 200 + getScrollOffset();
+  var box = $(parent)
+    .clone()
+    .empty()
+    .attr('id', 'sb_blockedit')
+    .addClass('sbedit-float')
+    .css('height', $(parent).height())
+    .css('top', offset.top)
+    .css('left', offset.left)
+    .appendTo('body')
+    .animate({ width: 500, height: 400, top: top, left: (getWidth() / 2) - 250 }, 400, function()
+      {
+        var whitey = whiteOutElement(this);
+        $(this).append('<textarea style="width: 100%; height: 90%;"></textarea>');
+        $(this).append('<p style="text-align: center;"><a href="#" onclick="sbedit_edit_save(this); return false;">' + $lang.get('etc_save_changes') + '</a> | <a href="#" onclick="sbedit_edit_cancel(this); return false;">' + $lang.get('etc_cancel') + '</a></p>');
+        $.get(makeUrlNS('Special', 'EditSidebar', 'action=getsource&noheaders&id=' + this.item_id), {}, function(response, statustext)
+          {
+            $('textarea', box).attr('value', response);
+            $(whitey).remove();
+          }, 'html');
+      })
+    .get(0);
+  box.parentdiv = parent;
+  box.item_id = parseInt($(parent).attr('id').replace(/^block:/, ''));
+}
+
+function sbedit_edit_save(a)
+{
+  var box = a.parentNode.parentNode;
+  var parent = box.parentdiv;
+  var whitey = whiteOutElement(box);
+  $.post(makeUrlNS('Special', 'EditSidebar', 'noheaders&action=save&id=' + box.item_id), { content: $('textarea', box).attr('value') }, function(response, statustext)
+    {
+      whiteOutReportSuccess(whitey);
+      setTimeout(function()
+        {
+          sbedit_close_editor(parent, box);
+        }, 1250);
+    }, 'html');
+}
+
+function sbedit_edit_cancel(a)
+{
+  var box = a.parentNode.parentNode;
+  var parent = box.parentdiv;
+  
+  sbedit_close_editor(parent, box);
+}
+
+function sbedit_close_editor(parent, box)
+{
+  var offset = $(parent).offset();
+  $(box).empty().animate(
+    {
+      width:  $(parent).width(),
+      height: $(parent).height(),
+      top:    offset.top,
+      left:   offset.left,
+    }, 400, function()
+    {
+      $(this).css('background-color', '#f70').fadeOut(1000, function() { $(this).remove(); });
+      enlighten(true, 'sbedit-shade');
     });
 }
 
-function ajaxRenameSidebarCancel(input)
+function sbedit_delete_block(a)
 {
-  var newname = input.oldvalue;
-  var id = input.sbedit_id;
-  var parent = input.parentNode;
-  parent.removeChild(input);
-  parent.appendChild(document.createTextNode(newname));
-  parent.ondblclick = function() { ajaxRenameSidebarStage1(this, this._idcache); return false; };
+  var parent = sbedit_get_parent(a);
+  load_component(['messagebox', 'fadefilter', 'flyin', 'l10n']);
+  var mp = miniPromptMessage({
+      title: $lang.get('sbedit_msg_delete_confirm_title'),
+      message: $lang.get('sbedit_msg_delete_confirm_body'),
+      buttons: [
+        {
+          text: $lang.get('sbedit_btn_delete_confirm'),
+          color: 'red',
+          onclick: function()
+          {
+            var mp = miniPromptGetParent(this);
+            sbedit_delete_block_s2(mp.target_block);
+            miniPromptDestroy(this);
+            return false;
+          },
+          style: {
+            fontWeight: 'bold'
+          }
+        },
+        {
+          text: $lang.get('etc_cancel'),
+          onclick: function()
+          {
+            miniPromptDestroy(this);
+            return false;
+          }
+        }
+      ]
+    });
+  mp.target_block = parent;
+}
+
+function sbedit_delete_block_s2(box)
+{
+  var parent = box;
+  var id = parseInt($(parent).attr('id').replace(/^block:/, ''));
+  var whitey = whiteOutElement(parent);
+  
+  $.get(makeUrlNS('Special', 'EditSidebar', 'action=delete&ajax=true&noheaders&id=' + id), function(response, statustext)
+    {
+      if ( response == 'GOOD' )
+      {
+        whiteOutReportSuccess(whitey);
+        setTimeout(function()
+          {
+            $(parent)
+            .hide('blind', { duration: 500 }, function()
+              {
+                $(this).remove();
+                ajaxUpdateSidebarOrder();
+              });
+          }, 1250);
+      }
+      else
+      {
+        whiteOutReportFailure(whitey);
+        alert(response);
+      }
+    }, 'html');
+}
+
+function sbedit_rename_block(a)
+{
+  var parent = sbedit_get_parent(a);
+  $('div.sbedit-handle > span', parent).hide();
+  var input = $('div.sbedit-handle > input', parent).show().focus().select().keyup(function(e)
+    {
+      switch(e.keyCode)
+      {
+        case 13:
+          // enter
+          var whitey = whiteOutElement(this.parentNode);
+          var me = this;
+          var id = parseInt($(parent).attr('id').replace(/^block:/, ''));
+          $.post(makeUrlNS('Special', 'EditSidebar', 'ajax&noheaders&action=rename&id='+id), { newname: $(this).attr('value') }, function(response, statustext)
+            {
+              if ( response == 'GOOD' )
+              {
+                whiteOutReportSuccess(whitey);
+                setTimeout(function()
+                  {
+                    $(me).hide();
+                    $('span', me.parentNode).show().text(me.value);
+                  }, 1250);
+              }
+              else
+              {
+                alert(response);
+                whiteOutReportFailure(whitey);
+              }
+            }, 'html');
+          break;
+        case 27:
+          // escape
+          this.value = this.origvalue;
+          $(this).hide();
+          $('span', this.parentNode).show();
+          break;
+      }
+    }).get(0);
+  input.origvalue = input.value;
+}
+
+function sbedit_disenable_block(a)
+{
+  var parent = sbedit_get_parent(a);
+  var whitey = whiteOutElement(parent);
+  $.get(makeUrlNS('Special', 'EditSidebar', 'action=disenable&ajax=true&noheaders&id=' + parseInt($(parent).attr('id').replace(/^block:/, ''))), {}, function(response, statustext)
+    {
+      if ( response == 'GOOD' )
+      {
+        whiteOutReportSuccess(whitey);
+        $(parent).toggleClass('disabled');
+      }
+      else
+      {
+        whiteOutReportFailure(whitey);
+        alert(response);
+      }
+    }, 'html');
+}
+
+function sbedit_get_parent(a)
+{
+  var o = a.parentNode;
+  while ( !$(o).hasClass('sbedit-block') )
+    o = o.parentNode;
+  
+  return o;
+}
+
+function ajaxUpdateSidebarOrder()
+{
+  setAjaxLoading();
+  var ser = serialize_sidebar();
+  $.post(makeUrlNS('Special', 'EditSidebar', 'update_order'), { order: ser }, function(response, statustext)
+    {
+      var msg = document.createElement('div');
+      $(msg)
+        .addClass('info-box-mini')
+        .text('Sidebar order saved.')
+        .css('position', 'fixed')
+        .css('bottom', 1)
+        .appendTo('body')
+        .css('left', ( getWidth() / 2 ) - ( $(msg).width() / 2 ));
+      setTimeout(function()
+        {
+          $(msg).fadeOut(500, function() { $(this).remove(); });
+        }, 1000);
+      unsetAjaxLoading();
+    }, 'json');
 }
 

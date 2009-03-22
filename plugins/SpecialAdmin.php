@@ -2458,14 +2458,41 @@ function page_Special_EditSidebar()
   }
   else 
   {
+    if ( isset($_GET['update_order']) )
+    {
+      header('Content-type: text/javascript');
+      $order = @$_POST['order'];
+      try
+      {
+        $order = enano_json_decode($order);
+      }
+      catch ( Zend_Json_Exception $e )
+      {
+        return print enano_json_encode(array(
+            'mode' => 'error',
+            'error' => 'bad order'
+          ));
+      }
+      
+      foreach ( $order as $sidebar_id => $blocks )
+      {
+        foreach ( $blocks as $order => $block_id )
+        {
+          $sbid = intval($sidebar_id);
+          $order = intval($order);
+          $block_id = intval($block_id);
+          $q = $db->sql_query('UPDATE ' . table_prefix . "sidebar SET sidebar_id = $sbid, item_order = $order WHERE item_id = $block_id;");
+          if ( !$q )
+            $db->die_json();
+        }
+      }
+      
+      return print enano_json_encode(array(
+          'mode' => 'success'
+        ));
+    }
     
-    $template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/dbx.js"></script>');
-    $template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/dbx-key.js"></script>');
     $template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/sbedit.js"></script>');
-    $template->add_header('<link rel="stylesheet" type="text/css" href="'.cdnPath.'/includes/clientside/dbx.css" />');
-    
-    $template->load_theme('oxygen', 'bleu');
-    $template->init_vars();
     
     $template->header();
     
@@ -2624,27 +2651,21 @@ function page_Special_EditSidebar()
             </p>
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_WIKIFORMAT; ?>">
-              <p>
-                <?php echo $lang->get('sbedit_field_wikitext'); ?>
-              </p>
+              <?php echo $lang->get('sbedit_field_wikitext'); ?>
               <p>
                 <textarea style="width: 98%;" name="wikiformat_content" rows="15" cols="50"></textarea>
               </p>
             </div>
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_TEMPLATEFORMAT; ?>">
-              <p>
-                <?php echo $lang->get('sbedit_field_tplcode'); ?>
-              </p>
+              <?php echo $lang->get('sbedit_field_tplcode'); ?>
               <p>
                 <textarea style="width: 98%;" name="templateformat_content" rows="15" cols="50"></textarea>
               </p>
             </div>
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_HTML; ?>">
-              <p>
-                <?php echo $lang->get('sbedit_field_html'); ?>
-              </p>
+              <?php echo $lang->get('sbedit_field_html'); ?>
               <p>
                 <textarea style="width: 98%;" name="html_content" rows="15" cols="50"></textarea>
               </p>
@@ -2663,9 +2684,7 @@ function page_Special_EditSidebar()
             </div>
             
             <div class="sbadd_block" id="blocktype_<?php echo BLOCK_PLUGIN; ?>">
-              <p>
-                <?php echo $lang->get('sbedit_field_plugin'); ?>
-              </p>
+              <?php echo $lang->get('sbedit_field_plugin'); ?>
               <p>
                 <select name="plugin_id">
                 <?php
@@ -2814,158 +2833,117 @@ function page_Special_EditSidebar()
             echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
             exit;
           }
-          $q = $db->sql_query('SELECT block_type,block_content FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
-          if(!$q)
-          {
-            echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
-            exit;
-          }
-          $row = $db->fetchrow();
-          $db->free_result();
-          switch($row['block_type'])
-          {
-            case BLOCK_WIKIFORMAT:
-            default:
-              $c = RenderMan::render($row['block_content']);
-              break;
-            case BLOCK_TEMPLATEFORMAT:
-              $c = $template->tplWikiFormat($row['block_content'], false, 'sidebar-editor.tpl');
-              $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
-              break;
-            case BLOCK_HTML:
-              $c = $row['block_content'];
-              $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
-              break;
-            case BLOCK_PHP:
-              ob_start();
-              eval($row['block_content']);
-              $c = ob_get_contents();
-              ob_end_clean();
-              $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
-              break;
-            case BLOCK_PLUGIN:
-              $c = ($template->fetch_block($row['block_content'])) ? $template->fetch_block($row['block_content']) : $lang->get('sbedit_msg_plugin_not_loaded');
-              break;
-          }
-          $c = preg_replace('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', '', $c);
-          $cache->purge('anon_sidebar');
-          die('var status = \'GOOD\'; var content = unescape(\''.hexencode($c).'\');');
-          break;
-      }
-    }
-    
-    $q = $db->sql_query('SELECT item_id,sidebar_id,item_enabled,block_name,block_type,block_content FROM '.table_prefix.'sidebar ORDER BY sidebar_id ASC, item_order ASC;');
-    if(!$q) $db->_die('The sidebar text data could not be selected.');
-    
-    $vars = $template->extract_vars('sidebar-editor.tpl');
-    
-    $parser = $template->makeParserText($vars['sidebar_button']);
-    $parser->assign_vars(Array(
-        'HREF'=>'#',
-        'FLAGS'=>'onclick="return false;"',
-        'TEXT' => $lang->get('sidebar_btn_changestyle')
-      ));
-    $template->tpl_strings['THEME_LINK'] = $parser->run();
-    $parser->assign_vars(Array(
-        'TEXT' => $lang->get('sidebar_btn_logout'),
-      ));
-    $template->tpl_strings['LOGOUT_LINK'] = $parser->run();
-    
-    $n1 = Array();
-    $n2 = Array();
-    $n  =& $n1;
-    
-    echo '<table border="0"><tr><td valign="top"><div class="dbx-group" id="sbedit_left">';
-    //if(isset($vars['sidebar_top'])) echo $template->parse($vars['sidebar_top']);
-    
-    // Time for the loop
-    // what this loop does is fetch the row data, then send it out to the appropriate parser for formatting,
-    // then puts the result into $c, which is then sent to the template compiler for insertion into the TPL code.
-    while($row = $db->fetchrow())
-    {
-      if(isset($current_side))
-      {
-        if($current_side != $row['sidebar_id'])
-        {
-          // Time to switch!
-          //if(isset($vars['sidebar_top'])) echo $template->parse($vars['sidebar_bottom']);
-          echo '</div></td><td valign="top"><div class="dbx-group" id="sbedit_right">';
-          //echo '</td><td valign="top">';
-          //if(isset($vars['sidebar_top'])) echo $template->parse($vars['sidebar_top']);
-          $n =& $n2;
-        }
-      }
-      $n[] = count($n);
-      $current_side = $row['sidebar_id'];
-      switch($row['block_type'])
-      {
-        case BLOCK_WIKIFORMAT:
-        default:
-          $parser = $template->makeParserText($vars['sidebar_section']);
-          $c = RenderMan::render($row['block_content']);
-          break;
-        case BLOCK_TEMPLATEFORMAT:
-          $parser = $template->makeParserText($vars['sidebar_section']);
-          $c = $template->tplWikiFormat($row['block_content'], false, 'sidebar-editor.tpl');
-          $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
-          // fix for the "Administration" link that somehow didn't get rendered properly
-          $c = preg_replace("/(^|\n)([ ]*)<a([ ]+.*)?>(.+)<\/a>(<br(.*)\/>)([\r\n]+|$)/isU", '\\1\\2<li><a\\3>\\4</a></li>\\7', $c);
-          break;
-        case BLOCK_HTML:
-          $parser = $template->makeParserText($vars['sidebar_section_raw']);
-          $c = $row['block_content'];
-          $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
-          break;
-        case BLOCK_PHP:
-          $parser = $template->makeParserText($vars['sidebar_section_raw']);
-          ob_start();
-          eval($row['block_content']);
-          $c = ob_get_contents();
-          ob_end_clean();
-          $c = preg_replace('#<a (.*?)>(.*?)</a>#is', '<a href="#" onclick="return false;">\\2</a>', $c);
-          break;
-        case BLOCK_PLUGIN:
-          $parser = $template->makeParserText($vars['sidebar_section_raw']);
-          $c = ($template->fetch_block($row['block_content'], true)) ? $template->fetch_block($row['block_content'], true) : $lang->get('sbedit_msg_plugin_not_loaded');
+          echo 'GOOD';
+          return;
           
           break;
       }
-      $c = preg_replace('/\{(restrict|hideif) ([a-z0-9_\(\)\|&! ]+)\}/', '', $c);
-      $block_name = $row['block_name']; // $template->tplWikiFormat($row['block_name']);
-      if ( empty($block_name) )
-        $block_name = '&lt;' . $lang->get('sbedit_note_block_unnamed') . '&gt;';
-      $t = '<span title="' . $lang->get('sbedit_hint_rename') . '" id="sbrename_' . $row['item_id'] . '" ondblclick="ajaxRenameSidebarStage1(this, \''.$row['item_id'].'\'); return false;">' . $block_name . '</span>';
-      if($row['item_enabled'] == 0) $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red;">' . $lang->get('sbedit_note_block_disabled') . '</span>';
-      else           $t .= ' <span id="disabled_'.$row['item_id'].'" style="color: red; display: none;">' . $lang->get('sbedit_note_block_disabled') . '</span>';
-      $side = ( $row['sidebar_id'] == SIDEBAR_LEFT ) ? SIDEBAR_RIGHT : SIDEBAR_LEFT;
-      $tb = '<a title="' . $lang->get('sbedit_tip_disenable') . '" href="'.makeUrl($paths->page, 'action=disenable&id='.$row['item_id'].''       , true).'" onclick="ajaxDisenableBlock(\''.$row['item_id'].'\'); return false;"   ><img alt="' . $lang->get('sbedit_tip_disenable') . '" style="border-width: 0;" src="'.scriptPath.'/images/disenable.png" /></a>
-             <a title="' . $lang->get('sbedit_tip_edit') . '"      href="'.makeUrl($paths->page, 'action=edit&id='.$row['item_id'].''            , true).'" onclick="ajaxEditBlock(\''.$row['item_id'].'\', this); return false;"><img alt="' . $lang->get('sbedit_tip_edit') . '" style="border-width: 0;" src="'.scriptPath.'/images/edit.png" /></a>
-             <a title="' . $lang->get('sbedit_tip_delete') . '"    href="'.makeUrl($paths->page, 'action=delete&id='.$row['item_id'].''          , true).'" onclick="if(confirm(\'' . $lang->get('sbedit_msg_delete_confirm') . '\')) { ajaxDeleteBlock(\''.$row['item_id'].'\', this); } return false;"><img alt="' . $lang->get('sbedit_tip_delete') . '" style="border-width: 0;" src="'.scriptPath.'/images/delete.png" /></a>
-             <a title="' . $lang->get('sbedit_tip_move') . '"      href="'.makeUrl($paths->page, 'action=move&id='.$row['item_id'].'&side='.$side, true).'"><img alt="' . $lang->get('sbedit_tip_move') . '" style="border-width: 0;" src="'.scriptPath.'/images/move.png" /></a>';
-      $as = '';
-      $ae = '&nbsp;&nbsp;'.$tb;
-      $parser->assign_vars(Array('CONTENT'=>$c,'TITLE'=>$t,'ADMIN_START'=>$as,'ADMIN_END'=>$ae));
-      echo $parser->run();
-      unset($parser);
-      
     }
-    $db->free_result();
-    //if(isset($vars['sidebar_top'])) echo $template->parse($vars['sidebar_bottom']);
-    echo '</div></td></tr></table>';
-    echo '<form action="'.makeUrl($paths->page).'" method="post">';
-    $order = implode(',', $n1);
-    echo "<input type='hidden' id='divOrder_Left' name='order_left' value='{$order}' />";
-    $order = implode(',', $n2);
-    echo "<input type='hidden' id='divOrder_Right' name='order_right' value='{$order}' />";
-    echo '
-          <div style="margin: 0 auto 0 auto; text-align: center;">
-            <input type="submit" name="save" style="font-weight: bold;" value="' . $lang->get('etc_save_changes') . '" />
-            <input type="submit" name="revert" style="font-weight: normal;" value="' . $lang->get('sbedit_btn_revert') . '" onclick="return confirm($lang.get(\'sbedit_msg_discard_order_confirm\'))" />
-            <br />
-            <a href="'.makeUrl($paths->page, 'action=new&id=0', true).'">' . $lang->get('sbedit_btn_create_new_stage1') . '</a>  |  <a href="'.makeUrl(get_main_page(), false, true).'">' . $lang->get('sbedit_btn_main_page') . '</a>
-          </div>
-        </form>
-         ';
+    
+    ?>
+      <p>
+        <?php echo $lang->get('sbedit_header_msg', array( 'create_link' => makeUrlNS('Special', 'EditSidebar', 'action=new&id=0', true) )); ?>
+      </p>
+    <?php
+    
+    $q = $db->sql_query('SELECT item_id, sidebar_id, block_name, block_type, block_content, item_enabled FROM ' . table_prefix . "sidebar ORDER BY sidebar_id ASC, item_order ASC;");
+    if ( !$q )
+      $db->_die();
+    
+    $switched_to_right = false;
+    
+    echo '<table border="0" cellspacing="4" cellpadding="0"><tr><td class="sbedit-column">';
+    while ( $row = $db->fetchrow() )
+    {
+      if ( $row['sidebar_id'] == SIDEBAR_RIGHT && !$switched_to_right )
+      {
+        echo '</td><td class="sbedit-column">';
+        $switched_to_right = true;
+      }
+      $disabled_class = ( $row['item_enabled'] ) ? '' : ' disabled';
+      echo '<div class="sbedit-block' . $disabled_class . '" id="block:' . $row['item_id'] . '">
+              <div class="sbedit-handle">
+                <span>' . htmlspecialchars($template->compile_template_text_post($row['block_name'])) . '</span>
+                <input type="text" id="block_name:' . $row['item_id'] . '" value="' . htmlspecialchars($row['block_name']) . '" />
+              </div>';
+      ?>
+      <div class="sbedit-metainfo">
+        <?php
+        $toolbarvars = $template->extract_vars('toolbar.tpl');
+        $parser_start = $template->makeParserText($toolbarvars['toolbar_vert_start']);
+        echo $parser_start->run();
+        
+        $button = $template->makeParserText($toolbarvars['toolbar_vert_button']);
+        $label = $template->makeParserText($toolbarvars['toolbar_vert_label']);
+        
+        $type = '<b>';
+        switch($row['block_type'])
+        {
+          case BLOCK_WIKIFORMAT: $type .= $lang->get('sbedit_block_type_wiki'); break;
+          case BLOCK_TEMPLATEFORMAT: $type .= $lang->get('sbedit_block_type_tpl'); break;
+          case BLOCK_HTML: $type .= $lang->get('sbedit_block_type_html'); break;
+          case BLOCK_PHP: $type .= $lang->get('sbedit_block_type_php'); break;
+          case BLOCK_PLUGIN: $type .= $lang->get('sbedit_block_type_plugin'); break;
+          default: $type .= '$&#@'; break;
+        }
+        $type .= '</b>';
+        if ( $row['block_type'] == BLOCK_PLUGIN )
+        {
+          $type .= ': ' . $lang->get($row['block_content']);
+        }
+        
+        $label->assign_vars(array(
+            'TITLE' => $type
+          ));
+        echo $label->run();
+        
+        // edit
+        if ( $row['block_type'] != BLOCK_PLUGIN )
+        {
+          $button->assign_vars(array(
+              'TITLE' => $lang->get('sbedit_tip_edit'),
+              'FLAGS' => 'href="#" onclick="sbedit_open_editor(this); return false;"',
+              'IMAGE' => cdnPath . '/images/edit.png'
+            ));
+          echo $button->run();
+        }
+        
+        // delete
+        $button->assign_vars(array(
+            'TITLE' => $lang->get('sbedit_tip_delete'),
+            'FLAGS' => 'href="#" onclick="sbedit_delete_block(this); return false;"',
+            'IMAGE' => cdnPath . '/images/delete.png'
+          ));
+        echo $button->run();
+        
+        // rename
+        $button->assign_vars(array(
+            'TITLE' => $lang->get('sbedit_tip_rename'),
+            'FLAGS' => 'href="#" onclick="sbedit_rename_block(this); return false;"',
+            'IMAGE' => cdnPath . '/images/rename.png'
+          ));
+        echo $button->run();
+        
+        // disenable
+        $button->assign_vars(array(
+            'TITLE' => $lang->get('sbedit_tip_disenable'),
+            'FLAGS' => 'href="#" onclick="sbedit_disenable_block(this); return false;"',
+            'IMAGE' => cdnPath . '/images/disenable.png'
+          ));
+        echo $button->run();
+        
+        $parser_end = $template->makeParserText($toolbarvars['toolbar_vert_end']);
+        echo $parser_end->run();
+        ?>
+      </div>
+      <?php
+      echo '</div>';
+    }
+    
+    if ( !$switched_to_right )
+      echo '</td><td class="sbedit-column">';
+    
+    echo '</td></tr></table>';
   }
   
   $template->footer();
