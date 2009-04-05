@@ -199,18 +199,18 @@ class Request_HTTP
   function Request_HTTP($host, $uri, $method = 'GET', $port = 80)
   {
     if ( !preg_match('/^(([a-z0-9-]+\.)*?)([a-z0-9-]+)$/', $host) )
-      die(__CLASS__ . ': Invalid hostname');
+      throw new Exception(__CLASS__ . ': Invalid hostname');
     $this->host = $host;
     $this->uri = $uri;
     if ( is_int($port) && $port >= 1 && $port <= 65535 )
       $this->port = $port;
     else
-      die(__CLASS__ . ': Invalid port');
+      throw new Exception(__CLASS__ . ': Invalid port');
     $method = strtoupper($method);
     if ( $method == 'GET' || $method == 'POST' )
       $this->method = $method;
     else
-      die(__CLASS__ . ': Invalid request method');
+      throw new Exception(__CLASS__ . ': Invalid request method');
       
     $newline = "\r\n";
     $php_ver = PHP_VERSION;
@@ -239,7 +239,7 @@ class Request_HTTP
     }
     else
     {
-      die(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
+      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
     }
   }
   
@@ -264,7 +264,7 @@ class Request_HTTP
     }
     else
     {
-      die(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
+      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
     }
   }
   
@@ -289,7 +289,7 @@ class Request_HTTP
     }
     else
     {
-      die(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
+      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
     }
   }
   
@@ -314,7 +314,7 @@ class Request_HTTP
     }
     else
     {
-      die(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
+      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
     }
   }
   
@@ -328,7 +328,7 @@ class Request_HTTP
     // Open connection
     $connection = fsockopen($this->host, $this->port);
     if ( !$connection )
-      die(__CLASS__ . '::' . __METHOD__ . ': Could not make connection');
+      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Could not make connection');
     
     // 1 = socket open
     $this->state = 1;
