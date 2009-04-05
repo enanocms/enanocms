@@ -312,6 +312,9 @@ function load_component(file)
       if ( onload_complete )
         onload_hooks = new Array();
       eval_global(ajax.responseText);
+      if ( window.jQuery && aclDisableTransitionFX )
+        if ( window.jQuery.fx )
+          window.jQuery.fx.off = true;
       load_hide_win();
       if ( onload_complete )
         runOnloadHooks();

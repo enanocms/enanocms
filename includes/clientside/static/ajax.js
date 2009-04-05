@@ -145,7 +145,7 @@ var ajaxRenameConstructDialog = function(div)
   setTimeout(function()
     {
       box.focus();
-    }, 200);
+    }, ( aclDisableTransitionFX ? 200 : 750 ));
 }
 
 window.ajaxRenameSubmit = function(obj)
@@ -154,9 +154,10 @@ window.ajaxRenameSubmit = function(obj)
   if ( !box )
     return false;
   
-  var input = obj.getElementsByTagName('input')[0];
+  var input = box.getElementsByTagName('input')[0];
   if ( !input )
     return false;
+    
   var newname = input.value;
   newname = trim(newname);
   
@@ -762,7 +763,8 @@ window.ajaxChangeStyle = function()
       $('#theme-selector-body').animate({ width: 708 }, 600, function()
         {
           // avoiding jQuery's fade functions because they insist on toggling display as well
-          changeOpac(0, 'theme-selector-inner');
+          if ( !aclDisableTransitionFX )
+            changeOpac(0, 'theme-selector-inner');
           $('#theme-selector-inner').html('<h3></h3>');
           $('#theme-selector-inner > h3').text($lang.get('ajax_thmsel_lbl_choosetheme'));
           $('#theme-selector-inner').append('<ul></ul>');
@@ -781,7 +783,8 @@ window.ajaxChangeStyle = function()
           
           $('#theme-selector-body').animate({ height: $('#theme-selector-inner').height() + 30 }, 600, function()
             {
-              opacity('theme-selector-inner', 0, 100, 750);
+              if ( !aclDisableTransitionFX )
+                opacity('theme-selector-inner', 0, 100, 750);
             });
           
           $('#theme-selector-inner li a').click(function()
@@ -795,7 +798,8 @@ window.ajaxChangeStyle = function()
                     $('#theme-selector-inner').css('height', $('#theme-selector-inner').height()).fadeOut(600, function()
                     {
                       var div = document.createElement('div');
-                      domObjChangeOpac(0, div);
+                      if ( !aclDisableTransitionFX )
+                        domObjChangeOpac(0, div);
                       
                       $(div).attr('id', 'theme-selector-style-list').append('<h3></h3>');
                       $('h3', div).text($lang.get('ajax_thmsel_lbl_choosestyle'));
@@ -807,12 +811,14 @@ window.ajaxChangeStyle = function()
                       
                       $(div).append('<div style="padding-top: 40px;"><a class="abutton abutton_green" style="font-size: larger;" href="#" onclick="ajaxChangeStyleClose(); return false;">' + $lang.get('etc_cancel') + '</a></div>');
                       
-                      changeOpac(0, 'theme-selector-style-list');
+                      if ( !aclDisableTransitionFX )
+                        changeOpac(0, 'theme-selector-style-list');
                       $(this).html(div).show();
                       
                       $('#theme-selector-body').animate({width: 300, height: $('#theme-selector-style-list').height() + 30}, 300, function()
                         {
-                          opacity('theme-selector-style-list', 0, 100, 500);
+                          if ( !aclDisableTransitionFX )
+                            opacity('theme-selector-style-list', 0, 100, 500);
                         });
                       
                       $('.stylebtn').click(function()
@@ -867,6 +873,18 @@ window.ajaxChangeThemeSetLoading = function()
 
 window.ajaxChangeThemeShowSuccess = function()
 {
+  if ( aclDisableTransitionFX )
+  {
+    $('#theme-selector-inner').empty();
+  }
+  else
+  {
+    setTimeout(function()
+      {
+        $('#theme-selector-inner').empty();
+      }, 10);
+  }
+  
   $('#theme-selector-body').animate({width: 400, height: 300 }, 600, function()
       {
         $('#theme-selector-inner').append('<img src="' + cdnPath + '/images/check-large.png" alt=" " style="display: block; margin: 15px auto;" />');
@@ -875,10 +893,6 @@ window.ajaxChangeThemeShowSuccess = function()
         $('#theme-selector-inner').append('<div style="padding-top: 25px;"><a href="#" style="font-size: smaller;" onclick="ajaxChangeStyleClose(); return false;">' + $lang.get('ajax_thmsel_btn_close') + '</a><br /><small>' + $lang.get('ajax_thmsel_btn_close_hint') + '</small></div>');
         $('#theme-selector-inner').fadeIn();
       });
-  setTimeout(function()
-    {
-      $('#theme-selector-inner').empty();
-    }, 10);
 }
 
 window.ajaxChangeStyleClose = function()
@@ -890,8 +904,9 @@ window.ajaxChangeStyleClose = function()
         {
           $(this).remove();
         });
-    }, 300);
-  opacity('theme-selector-inner', 100, 0, 250);
+    }, ( aclDisableTransitionFX ? 0 : 300));
+  if ( !aclDisableTransitionFX )
+    opacity('theme-selector-inner', 100, 0, 250);
 }
 
 function themeid_to_title(id)
