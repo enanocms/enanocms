@@ -70,6 +70,9 @@ if ( !ajax_login_loadimg_path )
 if ( !ajax_login_successimg_path )
   var ajax_login_successimg_path = false;
 
+if ( !ajax_login_lockimg_path )
+  var ajax_login_lockimg_path = false;
+
 /**
  * Status variables
  * @var int
@@ -89,6 +92,13 @@ var AJAX_STATUS_DESTROY = 65535;
 
 var AJAX_STATE_EARLY_INIT = 1;
 var AJAX_STATE_LOADING_KEY = 2;
+
+/**
+ * Switch to decide if DiffieHellman shows a "browser incompatible" error
+ * @var bool
+ */
+
+var ajax_login_prevent_dh = IE || is_iPhone;
 
 /**
  * Performs the AJAX request to get an encryption key and from there spawns the login form.
@@ -230,7 +240,7 @@ window.ajaxLoginSetStatus = function(status)
       div.appendChild(document.createElement('br'));
       
       var img = document.createElement('img');
-      img.src = ( ajax_login_loadimg_path ) ? ajax_login_loadimg_path : scriptPath + '/images/loading-big.gif';
+      img.src = ( ajax_login_lockimg_path ) ? ajax_login_lockimg_path : scriptPath + '/images/lock48.png';
       div.appendChild(img);
       
       // Another coupla brs
@@ -480,8 +490,10 @@ window.ajaxLoginProcessResponse = function(response)
 window.ajaxLoginBuildForm = function(data)
 {
   // let's hope this effectively preloads the image...
-  var _ = document.createElement('img');
-  _.src = ( ajax_login_successimg_path ) ? ajax_login_successimg_path : scriptPath + '/images/check.png';
+  var _1 = document.createElement('img');
+  _1.src = ( ajax_login_successimg_path ) ? ajax_login_successimg_path : scriptPath + '/images/check.png';
+  var _2 = document.createElement('img');
+  _2.src = ( ajax_login_lockimg_path ) ? ajax_login_lockimg_path : scriptPath + '/images/lock48.png';
   
   var div = document.createElement('div');
   div.id = 'ajax_login_form';
@@ -648,7 +660,7 @@ window.ajaxLoginBuildForm = function(data)
   }
   
   // Field: enable Diffie Hellman
-  if ( IE || is_iPhone )
+  if ( ajax_login_prevent_dh )
   {
     var lbl_dh = document.createElement('span');
     lbl_dh.style.fontSize = 'smaller';
@@ -756,6 +768,8 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
     login_cache.mb_object.destroy();
     return false;
   }
+  // Early submit hook
+  eval(setHook('login_submit_early'));
   // Hide the error message and captcha
   if ( document.getElementById('ajax_login_error_box') )
   {
@@ -796,7 +810,7 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
   }
   else
   {
-    if ( IE || is_iPhone )
+    if ( ajax_login_prevent_dh )
     {
       // IE/MobileSafari doesn't have this control, continue silently IF the rest
       // of the login form is there
@@ -837,9 +851,10 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
       setTimeout(function()
         {
           ajaxLoginSubmitForm(true, username, password, captcha, remember_session);
-        }, 200);
+        }, 20);
       return true;
     }
+    var dh_start = (new Date()).getTime();
     // Perform Diffie Hellman stuff
     var dh_priv = dh_gen_private();
     var dh_pub = dh_gen_public(dh_priv);
@@ -848,6 +863,8 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
     var secret_hash = hex_sha1(secret);
     // crypt_key is the actual AES key
     var crypt_key = (hex_sha256(secret)).substr(0, (keySizeInBits / 4));
+    var dh_time = (new Date()).getTime() - dh_start;
+    console.debug("DH: complete, time = %dms", dh_time);
   }
   else
   {
@@ -976,7 +993,8 @@ window.ajaxLoginGetErrorText = function(response)
     default:
       var ls = $lang.get('user_err_' + response.error_code);
       if ( ls == 'user_err_' + response.error_code )
-        ls = $lang.get(response.error_code);
+        // Adding response here allows language strings to utilize additional information passed from the error packet
+        ls = $lang.get(response.error_code, response);
       
       return ls;
       break;
@@ -1076,12 +1094,55 @@ window.ajaxShowCaptcha = function(code)
 
 window.ajaxInitLogout = function()
 {
-  load_component(['messagebox', 'l10n', 'flyin', 'fadefilter']);
-  var mb = new MessageBox(MB_YESNO|MB_ICONQUESTION, $lang.get('user_logout_confirm_title'), $lang.get('user_logout_confirm_body'));
-  mb.onclick['Yes'] = function()
-    {
-      window.location = makeUrlNS('Special', 'Logout/' + csrf_token + '/' + title);
-    }
+  load_component(['messagebox', 'l10n', 'flyin', 'fadefilter', 'jquery', 'jquery-ui']);
+  
+  var title = $lang.get('user_logout_confirm_title');
+  var message = ( auth_level > USER_LEVEL_MEMBER ) ? $lang.get('user_logout_confirm_body_nelev') : $lang.get('user_logout_confirm_body_normal');
+  var buttons = [];
+  buttons.push({
+      text: $lang.get('user_logout_confirm_btn_logout'),
+      color: 'red',
+      style: {
+        fontWeight: 'bold'
+      },
+      onclick: function()
+      {
+        miniPromptDestroy(this);
+        window.location = makeUrlNS('Special', 'Logout/' + csrf_token + '/' + window.title);
+        return false;
+      }
+    });
+  if ( auth_level > USER_LEVEL_MEMBER )
+  {
+    buttons.push({
+        text: $lang.get('user_logout_confirm_btn_deauth'),
+        color: 'blue',
+        onclick: function()
+        {
+          miniPromptDestroy(this);
+          ajaxLoginPerformRequest({
+              mode:  'logout',
+              level: auth_level,
+              csrf_token: csrf_token
+          });
+          return false;
+        }
+      });
+  }
+  buttons.push({
+      text: $lang.get('etc_cancel'),
+      onclick: function()
+      {
+        miniPromptDestroy(this);
+        return false;
+      }
+    });
+  
+  miniPromptMessage({
+      title: title,
+      message: message,
+      buttons: buttons
+  });
 }
 
 window.mb_logout = function()
@@ -1204,7 +1265,7 @@ window.ajaxDynamicReauth = function(adminpage, level)
       }
       else if ( typeof(targetpage) == 'function' )
       {
-        targetpage();
+        targetpage(k);
       }
     }, level);
   if ( typeof(adminpage) == 'string' )

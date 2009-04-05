@@ -420,8 +420,8 @@ function miniPromptDestroy(obj, nofade)
   var parent = obj.parentNode;
   // if ( !nofade )
   //   enlighten(aclDisableTransitionFX);
-  enlighten(aclDisableTransitionFX, 'miniprompt_darkener');
-  if ( aclDisableTransitionFX )
+  enlighten((aclDisableTransitionFX || nofade), 'miniprompt_darkener');
+  if ( aclDisableTransitionFX || nofade )
   {
     parent.removeChild(obj);
   }
