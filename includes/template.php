@@ -1666,7 +1666,7 @@ EOF;
     }
     
     // URLs
-    preg_match_all('/\{url:([A-z0-9]+):([^\s\}]+?)(?:;([^\s\}]+?))?(?:\|(escape))?\}/i', $text, $matches);
+    preg_match_all('/\{url:([A-z0-9]+):([^\}]+?)(?:;([^\s\}]+?))?(?:\|(escape))?\}/i', $text, $matches);
     foreach ( $matches[1] as $i => $string_id )
     {
       $namespace =& $matches[1][$i];
@@ -2301,7 +2301,7 @@ EOF;
     switch($row['block_type'])
     {
       case BLOCK_WIKIFORMAT:
-        $parser = $this->makeParserText($vars['sidebar_section']);
+        $parser = $this->makeParserText($vars['sidebar_section_raw']);
         $c = RenderMan::render($row['block_content']);
         break;
         
@@ -2508,6 +2508,21 @@ EOF;
     return $ob;
   }
   
+  /**
+   * Parse a system message.
+   * @param string message
+   * @return string
+   */
+  
+  function parse_system_message($text)
+  {
+    ob_start();
+    eval( '?>' . $text );
+    $result = ob_get_contents();
+    ob_end_clean();
+    return $this->parse($result);
+  }
+  
 } // class template
 
 /**
@@ -2538,7 +2553,7 @@ function template_compiler_core($text)
   $text = str_replace('\'', '\\\'', $text);
   
   // Initialize the PHP compiled code
-  $text = 'ob_start(); echo \''.$text.'\'; $tpl_code = ob_get_contents(); ob_end_clean(); return $tpl_code;';
+  $text = 'ob_start(); global $paths, $template; echo \''.$text.'\'; $tpl_code = ob_get_contents(); ob_end_clean(); return $tpl_code;';
   
   ##
   ## Main rules
@@ -2643,7 +2658,7 @@ TPLCODE;
   //
   
   // System messages
-  $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $template->tplWikiFormat($paths->sysMsg(\'\\1\')) . \'', $text);
+  $text = preg_replace('/<!-- SYSMSG ([A-z0-9\._-]+?) -->/is', '\' . $this->parse_system_message($paths->sysMsg(\'\\1\')) . \'', $text);
   
   // Hooks
   $text = preg_replace('/<!-- HOOK ([A-z0-9_]+) -->/', '\' . $this->get_theme_hook(\'\\1\') . \'', $text);

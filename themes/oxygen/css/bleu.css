@@ -61,12 +61,12 @@ td.mdgSidebarHolder {
   width: 140px;
 }
 
-div.sidebar, .dbx-group {
+div.sidebar {
   width: 138px;
   background-color: #F8F8F8; border-left: 1px solid #CCC; border-right: 1px solid #CCC; padding: 1px 0px 0px 0px;
 }
 
-div.sidebar .head, .dbx-handle {
+div.sidebar .head {
   background-color: #F0F0F0;
   display: block;
   margin: 0px 1px 1px 1px;
@@ -79,7 +79,7 @@ div.sidebar .head, .dbx-handle {
   font-weight: bold;
 }
 
-div.sidebar .head:hover, .dbx-handle:hover {
+div.sidebar .head:hover {
   background-color: #F4F4F4;
   display: block;
   margin: 0px 1px 1px 1px;
@@ -92,7 +92,7 @@ div.sidebar .head:hover, .dbx-handle:hover {
   font-weight: bold;
 }
 
-div.sidebar div.slideblock a, .dbx-content li {
+div.sidebar div.slideblock a {
   background-color: #DDD;
   display: block;
   margin: 0px 1px;
@@ -106,17 +106,8 @@ div.sidebar div.slideblock a, .dbx-content li {
   list-style-type: none;
 }
 
-div.sidebar div.slideblock a:hover, .dbx-content li:hover {
+div.sidebar div.slideblock a:hover {
   background-color: #EEE;
-  display: block;
-  margin: 0px 1px;
-  border-bottom: 1px solid #FFF;
-  font-family: Trebuchet MS, Arial, helvetica, sans-serif;
-  font-size: 7pt;
-  cursor: pointer;
-  text-decoration: none;
-  color: #666;
-  padding: 5px 5px 5px 9px;
 }
 
 div.recttop {
@@ -174,6 +165,11 @@ div.slideblock2 {
   background-color: #DDD;
   margin: 0px 1px 0px 1px;
   border-bottom: 1px solid #FFF;
+  font-size: 8pt;
+}
+
+div.slideblock2 p {
+  margin: 7px 4px;
 }
 
 .dbx-handle {
