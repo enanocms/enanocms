@@ -1040,7 +1040,7 @@ function page_Special_Preferences()
       break;
     default:
       $good = false;
-      $code = $plugins->setHook('userprefs_body');
+      $code = $plugins->setHook('userprefs_body', true);
       foreach ( $code as $cmd )
       {
         if ( eval($cmd) )

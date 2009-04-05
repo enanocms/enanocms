@@ -54,7 +54,7 @@ class pluginLoader {
    * @var array
    */
   
-  var $system_plugins = Array('SpecialUserFuncs.php','SpecialUserPrefs.php','SpecialPageFuncs.php','SpecialAdmin.php','SpecialCSS.php','SpecialUpdownload.php','SpecialSearch.php','PrivateMessages.php','SpecialGroups.php', 'SpecialRecentChanges.php', 'DemoMode.php');
+  var $system_plugins = Array('SpecialUserFuncs.php','SpecialUserPrefs.php','SpecialPageFuncs.php','SpecialAdmin.php','SpecialCSS.php','SpecialUpdownload.php','SpecialSearch.php','PrivateMessages.php','SpecialGroups.php', 'SpecialLog.php', 'DemoMode.php');
   
   /**
    * Name kept for compatibility. Effectively a constructor. Calculates the list of plugins that should be loaded
@@ -122,10 +122,13 @@ class pluginLoader {
    * @param array Deprecated.
    */
   
-  function setHook($name, $opts = Array())
+  function setHook($name, $dont_split = false)
   {
     if ( !empty($this->hook_list[$name]) && is_array($this->hook_list[$name]) )
     {
+      if ( $dont_split )
+        return $this->hook_list[$name];
+      
       return array(implode("\n", $this->hook_list[$name]));
     }
     else
