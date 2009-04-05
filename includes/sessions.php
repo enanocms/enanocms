@@ -4023,12 +4023,19 @@ EOF;
           {
             if ( isset($result['mode']) && $result['mode'] === 'error' && isset($result['error']) )
             {
-              return array(
+              // Pass back any additional information from the error response
+              $append = $result;
+              unset($append['mode'], $append['error']);
+              
+              $return = array(
                 'mode' => 'login_failure',
                 'error_code' => $result['error'],
                 // Use this to provide a way to respawn the login box
                 'respawn_info' => $this->process_login_request(array('mode' => 'getkey'))
               );
+              
+              $return = array_merge($append, $return);
+              return $return;
             }
           }
         }
