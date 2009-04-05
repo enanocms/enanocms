@@ -775,6 +775,7 @@ class Zend_Json_Decoder
                                 break;
                             case 'u':
                               $result .= self::decode_unicode_byte(substr($str, $i + 1, 4));
+                              $i += 4;
                               break;
                             default:
                                 throw new Zend_Json_Exception("Illegal escape "
@@ -941,6 +942,8 @@ class Zend_Json_Decoder
           . chr((($value & 0x0fc0) >> 6) | 0x80)
           . chr(($value & 0x3f) | 0x80);
       }
+      
+      return $character;
     }
 }
 
