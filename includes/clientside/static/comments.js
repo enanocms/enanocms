@@ -484,19 +484,27 @@ window.materializeComment = function(data)
   if ( data.approved != '1' )
     tplvars.SUBJECT += ' <span style="color: #D84308">' + $lang.get('comment_msg_note_unapp') + '</span>';
   
-  // User level
-  tplvars.USER_LEVEL = $lang.get('user_type_guest');
-  if ( data.user_level >= data.user_level_list.member ) tplvars.USER_LEVEL = $lang.get('user_type_member');
-  if ( data.user_level >= data.user_level_list.mod ) tplvars.USER_LEVEL = $lang.get('user_type_mod');
-  if ( data.user_level >= data.user_level_list.admin ) tplvars.USER_LEVEL = $lang.get('user_type_admin');
+  // Name
+  tplvars.NAME = data.name;
+  if ( data.user_id > 1 )
+    tplvars.NAME = '<a href="' + makeUrlNS('User', data.name) + '" style="' + data.rank_data.rank_style + '">' + data.name + '</a>';
   
   // Avatar
   if ( data.user_has_avatar == '1' )
   {
-    tplvars.AVATAR_URL = scriptPath + '/' + data.avatar_directory + '/' + data.user_id + '.' + data.avatar_type;
+    tplvars.AVATAR_URL = data.avatar_path;
     tplvars.USERPAGE_LINK = makeUrlNS('User', data.name);
     tplvars.AVATAR_ALT = $lang.get('usercp_avatar_image_alt', { username: data.name });
   }
+  
+  // User level
+  tplvars.USER_LEVEL = '';
+  if ( data.rank_data.user_title )
+    tplvars.USER_LEVEL += data.rank_data.user_title;
+  if ( data.rank_data.rank_title && data.rank_data.user_title )
+    tplvars.USER_LEVEL += '<br />';
+  if ( data.rank_data.rank_title )
+    tplvars.USER_LEVEL += $lang.get(data.rank_data.rank_title);
   
   // Send PM link
   tplvars.SEND_PM_LINK=(data.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( data.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br />':'';
