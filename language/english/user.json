@@ -97,8 +97,11 @@ var enano_lang = {
       
       logout_success_title: 'Logged out',
       logout_success_body: 'You have been successfully logged out, and all cookies have been cleared. You will now be transferred to the main page.',
-      logout_confirm_title: 'Are you sure you want to log out?',
-      logout_confirm_body: 'If you log out, you will no longer be able to access your user preferences, your private messages, or certain areas of this site until you log in again.',
+      logout_confirm_title: 'Log out of this website?',
+      logout_confirm_body_normal: 'Logging out will keep you from accessing your preferences and any special privileges your account might have until you log in again.',
+      logout_confirm_body_nelev: '%this.user_logout_confirm_body_normal%\n\nYou may also choose to discard your elevated authorization (gained when you re-entered your password). You will be asked for your password if you try to use any privileged functions.',
+      logout_confirm_btn_logout: 'Log out',
+      logout_confirm_btn_deauth: 'Forget authorization',
       logout_confirm_title_elev: 'Are you sure you want to de-authenticate?',
       logout_confirm_body_elev: 'If you de-authenticate, you will no longer be able to use the administration panel until you re-authenticate again. You may do so at any time using the Administration button on the sidebar.',
       logout_confirm_btn_logout: 'Log Out',
