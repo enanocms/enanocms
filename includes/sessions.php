@@ -4008,7 +4008,7 @@ EOF;
          * @hook login_process_userdata_json
          */
         
-        $code = $plugins->setHook('login_process_userdata_json');
+        $code = $plugins->setHook('login_process_userdata_json', true);
         foreach ( $code as $cmd )
         {
           $result = eval($cmd);
