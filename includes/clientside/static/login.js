@@ -991,10 +991,14 @@ window.ajaxLoginGetErrorText = function(response)
   switch ( response.error_code )
   {
     default:
-      var ls = $lang.get('user_err_' + response.error_code);
-      if ( ls == 'user_err_' + response.error_code )
-        // Adding response here allows language strings to utilize additional information passed from the error packet
-        ls = $lang.get(response.error_code, response);
+      eval(setHook('ajax_login_process_error'));
+      if ( !ls )
+      {
+        var ls = $lang.get('user_err_' + response.error_code);
+        if ( ls == 'user_err_' + response.error_code )
+          // Adding response here allows language strings to utilize additional information passed from the error packet
+          ls = $lang.get(response.error_code, response);
+      }
       
       return ls;
       break;
