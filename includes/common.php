@@ -424,7 +424,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   }
   
   // Add all of our built in special pages
-  foreach ( array('SpecialUserFuncs', 'SpecialPageFuncs', 'SpecialAdmin', 'SpecialCSS', 'SpecialUpDownload', 'SpecialSearch', 'PrivateMessages', 'SpecialGroups', 'SpecialRecentChanges') as $plugin )
+  foreach ( array('SpecialUserFuncs', 'SpecialPageFuncs', 'SpecialAdmin', 'SpecialCSS', 'SpecialUpDownload', 'SpecialSearch', 'PrivateMessages', 'SpecialGroups', 'SpecialLog') as $plugin )
   {
     $funcname = "{$plugin}_paths_init";
     if ( function_exists($funcname) )

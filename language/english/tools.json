@@ -48,7 +48,7 @@ var enano_lang = {
       member_list: 'Member list',
       language_export: 'Language exporter',
       private_messages: 'Private Messages',
-      recent_changes: 'Recent changes',
+      log: 'Log',
       avatar: 'Fetch avatar'
     },
     search: {
