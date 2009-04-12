@@ -477,7 +477,7 @@ class mysql {
     if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     return mysql_num_rows($r);
   }
-  function sql_affectedrows($r = false, $f, $n)
+  function sql_affectedrows($r = false, $f = false, $n = false)
   {
     if(!$this->_conn) return false;
     if(!$r) $r = $this->latest_result;
@@ -967,7 +967,7 @@ class postgresql {
     }
     
     $time_start = microtime_float();
-    $r = @pg_query($q);
+    $r = @pg_query($this->_conn, $q);
     $this->query_times[$q] = microtime_float() - $time_start;
     $this->latest_result = $r;
     return $r;
@@ -1185,7 +1185,7 @@ class postgresql {
   {
     return $this->numrows();
   }
-  function sql_affectedrows($r = false, $f, $n)
+  function sql_affectedrows($r = false, $f = false, $n = false)
   {
     if(!$this->_conn) return false;
     if(!$r) $r = $this->latest_result;
