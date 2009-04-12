@@ -529,6 +529,7 @@ var enano_lang = {
       lbl_namespace: 'Namespace (URL prefix):',
       ns_article: '[No prefix, default Article namespace]',
       heading_advanced: 'Advanced options',
+      msg_file_ns_warning: '<b>WARNING:</b> Changing the namespace to something other than "File" will delete the uploaded file and all previous revisions of it.',
       lbl_enable_comments_title: 'Allow comments to be posted on this page?',
       lbl_enable_comments_hint: 'This option has no effect if comments are disabled globally in the administration panel. This option is enabled by default.',
       lbl_enable_comments: 'Enable comments on this page',

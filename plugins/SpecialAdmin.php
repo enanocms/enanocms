@@ -2304,7 +2304,7 @@ function page_Special_Administration()
         return false;
       }
       document.getElementById('ajaxPageContainer').innerHTML = '<div class="wait-box">Loading page...</div>';
-      ajaxGet('<?php echo scriptPath; ?>/ajax.php?title='+t+'&_mode=getpage&noheaders&auth=' + ENANO_SID, function() {
+      ajaxGet('<?php echo scriptPath; ?>/ajax.php?title='+t+'&_mode=getpage&noheaders&auth=' + ENANO_SID, function(ajax) {
           if ( ajax.readyState == 4 && ajax.status == 200 ) {
             var response = String(ajax.responseText + '');
             if ( check_json_response(response) )

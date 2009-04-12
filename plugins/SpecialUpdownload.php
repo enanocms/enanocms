@@ -308,7 +308,9 @@ function page_Special_DownloadFile()
   {
     header('Content-disposition: attachment, filename="' . $filename . '";');
   }
-  header('Content-length: '.$len);
+  if ( !@$GLOBALS['do_gzip'] )
+    header('Content-length: ' . $len);
+  
   header('Last-Modified: '.enano_date('r', $row['time_id']));
   
   // using this method limits RAM consumption

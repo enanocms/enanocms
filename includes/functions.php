@@ -3841,23 +3841,23 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
   global $db, $session, $paths, $template, $plugins; // Common objects
   
   if ( !is_int($width) || !is_int($height) )
-    return false;
+    throw new Exception('Invalid height or width.');
   
   if ( !file_exists($in_file) )
-    return false;
+    throw new Exception('Input file does not exist');
   
-  $in_file = escapeshellarg($in_file);
-  $out_file = escapeshellarg($out_file);
+  $in_file_sh = escapeshellarg($in_file);
+  $out_file_sh = escapeshellarg($out_file);
   
   if ( file_exists($out_file) && !$unlink )
-    return false;
+    throw new Exception('Refusing to write output file as it already exists and $unlink was not specified.');
   else if ( file_exists($out_file) && $unlink )
     @unlink($out_file);
   if ( file_exists($out_file) )
     // couldn't unlink (delete) the output file
-    return false;
+    throw new Exception('Failed to delete existing output file.');
     
-  $file_ext = substr($in_file, ( strrpos($in_file, '.') + 1));
+  $file_ext = strtolower(substr($in_file, ( strrpos($in_file, '.') + 1)));
   switch($file_ext)
   {
     case 'png':
@@ -3874,7 +3874,7 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
       $func = 'imagecreatefromxpm';
       break;
     default:
-      return false;
+      throw new Exception('Invalid extension of input file.');
   }
     
   $magick_path = getConfig('imagemagick_path');
@@ -3891,21 +3891,21 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
     );
   if ( $can_use_magick )
   {
-    if ( !preg_match('/^([\/A-z0-9_-]+)$/', $magick_path) )
+    if ( !preg_match('/^([\/A-z0-9:\. _-]+)$/', $magick_path) )
     {
       die('SECURITY: ImageMagick path is screwy');
     }
-    $cmdline = "$magick_path \"$in_file\" -resize \"{$width}x{$height}>\" \"$out_file\"";
+    $cmdline = "$magick_path $in_file_sh -resize \"{$width}x{$height}>\" $out_file_sh";
     system($cmdline, $return);
     if ( !file_exists($out_file) )
-      return false;
+      throw new Exception('ImageMagick: did not produce output image file.');
     return true;
   }
   else if ( $can_use_gd )
   {
     @list($width_orig, $height_orig) = @getimagesize($in_file);
     if ( !$width_orig || !$height_orig )
-      return false;
+      throw new Exception('GD: Could not get height and width of input file.');
     // calculate new width and height
     
     $ratio = $width_orig / $height_orig;
@@ -3935,16 +3935,16 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
     
     $newimage = @imagecreatetruecolor($new_width, $new_height);
     if ( !$newimage )
-      return false;
+      throw new Exception('GD: Request to create new truecolor image refused.');
     $oldimage = @$func($in_file);
     if ( !$oldimage )
-      return false;
+      throw new Exception('GD: Request to load input image file failed.');
     
     // Perform scaling
     imagecopyresampled($newimage, $oldimage, 0, 0, 0, 0, $new_width, $new_height, $width_orig, $height_orig);
     
     // Get output format
-    $out_ext = substr($out_file, ( strrpos($out_file, '.') + 1));
+    $out_ext = strtolower(substr($out_file, ( strrpos($out_file, '.') + 1)));
     switch($out_ext)
     {
       case 'png':
@@ -3963,7 +3963,7 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
       default:
         imagedestroy($newimage);
         imagedestroy($oldimage);
-        return false;
+        throw new Exception('GD: Invalid extension of output file.');
     }
     
     // Write output
@@ -3984,7 +3984,8 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
   }
   if ( file_exists($out_file) )
     return true;
-  return false;
+  
+  throw new Exception('Failed to find an appropriate method for scaling.');
 }
 
 /**

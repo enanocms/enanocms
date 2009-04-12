@@ -28,6 +28,8 @@ function page_Admin_PageManager()
     return;
   }
   
+  require_once(ENANO_ROOT . '/includes/pageutils.php');
+  
   echo '<h3>' . $lang->get('acppm_heading_main') . '</h3>';
   $show_select = true;
   
@@ -160,7 +162,7 @@ function page_Admin_PageManager()
             }
             
             // Field: namespace
-            $namespace = $_POST['page_namespace'];
+            $namespace_new = $_POST['page_namespace'];
             if ( !isset($paths->nslist[ $namespace ]) )
             {
               $errors[] = $lang->get('acppm_err_invalid_namespace');
@@ -168,7 +170,7 @@ function page_Admin_PageManager()
             else
             {
               $namespace_changed = ( $_POST['page_namespace'] !== $dataset['namespace'] );
-              $dataset['namespace'] = $namespace;
+              $dataset['namespace'] = $namespace_new;
             }
             
             // Field: comments enabled
@@ -254,6 +256,12 @@ function page_Admin_PageManager()
                       $db->_die('PageManager running slave update query after page ID/namespace change');
                   }
                   
+                  // If we're going File -> other, remove files
+                  if ( $namespace_db === 'File' )
+                  {
+                    PageUtils::delete_page_files($page_id);
+                  }
+                  
                   // update $paths with the new pathskey
                   $new_pathskey = $paths->nslist[$namespace_new] . $page_id_new;
                   $paths->pages[$new_pathskey] =& $paths->pages[$pathskey];
@@ -318,6 +326,10 @@ function page_Admin_PageManager()
               <td class="row1">
                 <select name="page_namespace">
                 {NAMESPACE_LIST}</select>
+                <!-- BEGIN is_file -->
+                <br />
+                {lang:acppm_msg_file_ns_warning}
+                <!-- END is_file -->
               </td>
             </tr>
             
@@ -481,7 +493,8 @@ TPLCODE;
             'protected_semi'  => ( $dataset['protected'] == 2 ),
             'wikimode_off'    => ( $dataset['wiki_mode'] == 0 ),
             'wikimode_on'     => ( $dataset['wiki_mode'] == 1 ),
-            'wikimode_global' => ( $dataset['wiki_mode'] == 2 )
+            'wikimode_global' => ( $dataset['wiki_mode'] == 2 ),
+            'is_file'         => ( $dataset['namespace'] == 'File' )
           ));
         
         if ( isset($errors) )

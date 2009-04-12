@@ -1168,6 +1168,54 @@ class PageUtils {
   }
   
   /**
+   * Deletes files associated with a File page.
+   * @param string Page ID
+   */
+  
+  public static function delete_page_files($page_id)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $q = $db->sql_query('SELECT file_id, filename, file_key, time_id, file_extension FROM ' . table_prefix . "files WHERE page_id = '{$db->escape($page_id)}';");
+    if ( !$q )
+      $db->_die();
+    
+    while ( $row = $db->fetchrow() )
+    {
+      // wipe original file
+      foreach ( array(
+          ENANO_ROOT . "/files/{$row['file_key']}_{$row['time_id']}{$row['file_extension']}",
+          ENANO_ROOT . "/files/{$row['file_key']}{$row['file_extension']}"
+        ) as $orig_file )
+      {
+        if ( file_exists($orig_file) )
+          @unlink($orig_file);
+      }
+      
+      // wipe cached files
+      if ( $dr = @opendir(ENANO_ROOT . '/cache/') )
+      {
+        // lol404.jpg-1217958283-200x320.jpg
+        while ( $dh = @readdir($dr) )
+        {
+          $regexp = ':^' . preg_quote("{$row['filename']}-{$row['time_id']}-") . '[0-9]+x[0-9]+\.' . ltrim($row['file_extension'], '.') . '$:';
+          if ( preg_match($regexp, $dh) )
+          {
+            @unlink(ENANO_ROOT . "/cache/$dh");
+          }
+        }
+        @closedir($dr);
+      }
+    }
+    
+    $q = $db->sql_query('DELETE FROM ' . table_prefix . "files WHERE page_id = '{$db->escape($page_id)}';");
+    if ( !$q )
+      $db->die();
+    
+    return true;
+  }
+  
+  /**
    * Increments the deletion votes for a page by 1, and adds the current username/IP to the list of users that have voted for the page to prevent dual-voting
    * @param $page_id the page ID
    * @param $namespace the namespace
@@ -1586,14 +1634,16 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
-    if(!$session->get_permissions('history_view'))
+    
+    if ( !$session->get_permissions('history_view') )
       return $lang->get('etc_access_denied');
+    
     if(!preg_match('#^([0-9]+)$#', (string)$id1) ||
        !preg_match('#^([0-9]+)$#', (string)$id2  )) return 'SQL injection attempt';
     // OK we made it through security
     // Safest way to make sure we don't end up with the revisions in wrong columns is to make 2 queries
-    if(!$q1 = $db->sql_query('SELECT page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id=' . $id1 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: '.$db->get_error();
-    if(!$q2 = $db->sql_query('SELECT page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id=' . $id2 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: '.$db->get_error();
+    if ( !$q1 = $db->sql_query('SELECT time_id,page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE log_id = ' . $id1 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: ' . $db->get_error();
+    if ( !$q2 = $db->sql_query('SELECT time_id,page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE log_id = ' . $id2 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: ' . $db->get_error();
     $row1 = $db->fetchrow($q1);
     $db->free_result($q1);
     $row2 = $db->fetchrow($q2);
@@ -1601,8 +1651,8 @@ class PageUtils {
     if(sizeof($row1) < 1 || sizeof($row2) < 2) return 'Couldn\'t find any rows that matched the query. The time ID probably doesn\'t exist in the logs table.';
     $text1 = $row1['page_text'];
     $text2 = $row2['page_text'];
-    $time1 = enano_date('F d, Y h:i a', $id1);
-    $time2 = enano_date('F d, Y h:i a', $id2);
+    $time1 = enano_date('F d, Y h:i a', $row1['time_id']);
+    $time2 = enano_date('F d, Y h:i a', $row2['time_id']);
     $_ob = "
     <p>" . $lang->get('history_lbl_comparingrevisions') . " {$time1} &rarr; {$time2}</p>
     ";
