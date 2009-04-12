@@ -537,9 +537,18 @@
       $template->header();
       $id1 = ( isset($_GET['diff1']) ) ? (int)$_GET['diff1'] : false;
       $id2 = ( isset($_GET['diff2']) ) ? (int)$_GET['diff2'] : false;
-      if(!$id1 || !$id2) { echo '<p>Invalid request.</p>'; $template->footer(); break; }
-      if(!preg_match('#^([0-9]+)$#', (string)$_GET['diff1']) ||
-         !preg_match('#^([0-9]+)$#', (string)$_GET['diff2']  )) { echo '<p>SQL injection attempt</p>'; $template->footer(); break; }
+      if ( !$id1 || !$id2 )
+      {
+        echo '<p>Invalid request.</p>';
+        $template->footer();
+        break;
+      }
+      if ( !ctype_digit($_GET['diff1']) || !ctype_digit($_GET['diff1']) )
+      {
+        echo '<p>SQL injection attempt</p>';
+        $template->footer();
+        break;
+      }
       echo PageUtils::pagediff($paths->page_id, $paths->namespace, $id1, $id2);
       $template->footer();
       break;
