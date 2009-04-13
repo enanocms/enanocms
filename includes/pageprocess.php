@@ -837,6 +837,7 @@ class PageProcessor
   function protect_page($protection_level, $reason)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $cache;
     
     // Validate permissions
     if ( !$this->perms->get_permissions('protect') )
@@ -901,6 +902,8 @@ class PageProcessor
     $q = $db->sql_query('UPDATE ' . table_prefix . "pages SET protected = $protection_level WHERE urlname = '{$this->page_id}' AND namespace = '{$this->namespace}';");
     if ( !$q )
       $db->die_json();
+    
+    $cache->purge('page_meta');
     
     return array(
       'success' => true
