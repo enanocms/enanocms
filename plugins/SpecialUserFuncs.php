@@ -1987,6 +1987,7 @@ class MemberlistFormatter
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    /*
     switch ( $level )
     {
       case USER_LEVEL_GUEST:
@@ -2001,6 +2002,13 @@ class MemberlistFormatter
       default:
         $s_level = $lang->get('userfuncs_ml_level_unknown', array( 'level' => $level ));
     }
+    */
+    
+    // TODO: Requested by mm3. Is this too CPU-intensive? Optimize?
+    //       Performance yield =/= about the same (but only 4 users under testing conditions)
+    $rankdata = $session->get_user_rank($row['user_id']);
+    $s_level = '<span style="' . $rankdata['rank_style'] . '">' . $lang->get($rankdata['rank_title']) . '</span>';
+    
     return $s_level;
   }
   function email($addy, $row)
