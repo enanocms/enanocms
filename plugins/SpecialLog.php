@@ -48,7 +48,7 @@ function page_Special_Log()
   {
     foreach ( $params as $param )
     {
-      if ( preg_match('/^(user|page|within|resultpage|size)=(.+?)$/', $param, $match) )
+      if ( preg_match('/^([a-z]+)=(.+?)$/', $param, $match) )
       {
         $name =& $match[1];
         $value =& $match[2];
@@ -82,4 +82,5 @@ function page_Special_Log()
     echo LogDisplay::render_row($row) . '<br />';
   }
   $output->footer();
-} 
+}
+

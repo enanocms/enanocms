@@ -50,6 +50,7 @@ class LogDisplay
     {
       case 'user':
       case 'page':
+      case 'action':
         $this->criteria[] = array($criterion, $value);
         break;
       case 'within':
@@ -102,7 +103,8 @@ class LogDisplay
     $where_extra = '';
     $where_bits = array(
         'user' => array(),
-        'page' => array()
+        'page' => array(),
+        'action' => array()
       );
     foreach ( $this->criteria as $criterion )
     {
@@ -111,6 +113,9 @@ class LogDisplay
       {
         case 'user':
           $where_bits['user'][] = "author = '" . $db->escape($value) . "'";
+          break;
+        case 'action':
+          $where_bits['action'][] = "action = '" . $db->escape($value) . "'";
           break;
         case 'page':
           list($page_id, $namespace) = RenderMan::strToPageId($value);
@@ -129,6 +134,10 @@ class LogDisplay
     if ( !empty($where_bits['page']) )
     {
       $where_extra .= "\n    AND ( (" . implode(") OR (", $where_bits['page']) . ") )";
+    }
+    if ( !empty($where_bits['action']) )
+    {
+      $where_extra .= "\n    AND ( (" . implode(") OR (", $where_bits['action']) . ") )";
     }
     $limit = ( $page_size > 0 ) ? "\n  LIMIT $offset, $page_size" : '';
     $columns = ( $just_page_count ) ? 'COUNT(*)' : 'log_id, action, page_id, namespace, CHAR_LENGTH(page_text) AS revision_size, author, time_id, edit_summary, minor_edit';
@@ -312,10 +321,6 @@ class LogDisplay
       $html .= "<span style=\"$css\">({$size_change})</span>";
       $html .= ' . . ';
     }
-    else
-    {
-      $html .= " FIXME {$row['action']} . . ";
-    }
     
     // link to userpage
     $cls = ( isPage($paths->nslist['User'] . $row['author']) ) ? '' : ' class="wikilink-nonexistent"';
@@ -331,16 +336,48 @@ class LogDisplay
     $html .= ') . . ';
     
     // Edit summary
-    $html .= '<i>(';
-    if ( empty($row['edit_summary']) )
+    
+    if ( $row['action'] == 'edit' )
     {
-      $html .= '<span style="color: #808080;">' . $lang->get('history_summary_none_given') . '</span>';
+      $html .= '<i>(';
+      if ( empty($row['edit_summary']) )
+      {
+        $html .= '<span style="color: #808080;">' . $lang->get('history_summary_none_given') . '</span>';
+      }
+      else
+      {
+        $html .= RenderMan::parse_internal_links(htmlspecialchars($row['edit_summary']));
+      }
+      $html .= ')</i>';
     }
     else
     {
-      $html .= RenderMan::parse_internal_links(htmlspecialchars($row['edit_summary']));
+      switch($row['action'])
+      {
+        default:
+          $html .= $row['action'];
+          break;
+        case 'rename':
+          $html .= $lang->get('log_action_rename', array('old_name' => htmlspecialchars($row['edit_summary'])));
+          break;
+        case 'create':
+          $html .= $lang->get('log_action_create');
+          break;
+        case 'prot':
+        case 'unprot':
+        case 'semiprot':
+        case 'delete':
+          $stringmap = array(
+            'prot' => 'log_action_protect_full',
+            'unprot' => 'log_action_protect_none',
+            'semiprot' => 'log_action_protect_semi',
+            'delete' => 'log_action_delete'
+          );
+        $reason = ( !empty($row['edit_summary']) ) ? htmlspecialchars($row['edit_summary']) : '<span style="color: #808080;">' . $lang->get('log_msg_no_reason_provided') . '</span>';
+        
+        $html .= $lang->get($stringmap[$row['action']], array('reason' => $reason));
+      }
     }
-    $html .= ')</i>';
     
     return $html;
   }

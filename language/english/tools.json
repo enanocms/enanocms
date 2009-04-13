@@ -12,13 +12,14 @@
 
 var enano_lang = {
   categories: [
-    'meta', 'search', 'specialpage', 'pagetools'
+    'meta', 'search', 'specialpage', 'pagetools', 'log'
   ],
   strings: {
     meta: {
       search: 'Search page',
       specialpage: 'Special pages',
       pagetools: 'Userspace page-management tools',
+      log: 'Log and history display',
     },
     specialpage: {
       administration: 'Administration',
@@ -148,6 +149,16 @@ var enano_lang = {
       rc_btn_pm: 'PM',
       rc_btn_usertalk: 'comment',
     },
+    log: {
+      action_rename: 'Renamed (old name: %old_name%)',
+      action_create: 'Created page',
+      action_delete: 'Deleted page (%reason%)',
+      action_protect_none: 'Unprotected page (%reason%)',
+      action_protect_semi: 'Semiprotected page (%reason%)',
+      action_protect_full: 'Protected page (%reason%)',
+      
+      msg_no_reason_provided: 'No reason provided',
+    }
   }
 };
 
