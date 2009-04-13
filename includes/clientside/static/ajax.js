@@ -33,42 +33,134 @@ window.ajaxReset = function()
 
 // Miscellaneous AJAX applets
 
-window.ajaxProtect = function(l) {
+window.ajaxProtect = function(existing_level)
+{
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  load_component('l10n');
   
-  if(shift) {
-    r = 'NO_REASON';
-  } else {
-    r = prompt($lang.get('ajax_protect_prompt_reason'));
-    if(!r || r=='') return;
-  }
-  setAjaxLoading();
-  document.getElementById('protbtn_0').style.textDecoration = 'none';
-  document.getElementById('protbtn_1').style.textDecoration = 'none';
-  document.getElementById('protbtn_2').style.textDecoration = 'none';
-  document.getElementById('protbtn_'+l).style.textDecoration = 'underline';
-  ajaxPost(stdAjaxPrefix+'&_mode=protect', 'reason='+ajaxEscape(r)+'&level='+l, function(ajax) {
-    if ( ajax.readyState == 4 && ajax.status == 200 ) {
-      unsetAjaxLoading();
-      if(ajax.responseText == 'good')
-        return true;
-      // check for JSON error response
-      var response = String(ajax.responseText + '');
-      if ( response.substr(0, 1) == '{' )
+  // touch this variable to allow it to be used in child functions
+  void(existing_level);
+  
+  load_component(['messagebox', 'jquery', 'jquery-ui', 'l10n', 'fadefilter', 'flyin']);
+  
+  // preload language
+  $lang.get('meta_meta');
+  
+  var mp = miniPrompt(function(parent)
+    {
+      var icon_full = gen_sprite_html(cdnPath + '/images/protect-icons.png', 22, 22, 0, 0);
+      var icon_semi = gen_sprite_html(cdnPath + '/images/protect-icons.png', 22, 22, 22, 0);
+      var icon_none = gen_sprite_html(cdnPath + '/images/protect-icons.png', 22, 22, 44, 0);
+      
+      $(parent).append('<h3>' + $lang.get('onpage_protect_heading') + '</h3>');
+      $(parent).append('<p>' + $lang.get('onpage_protect_msg_select_level') + '</p>');
+      
+      $(parent).append('<div class="protectlevel"><label><input type="radio" id="protect_level_1" name="protect_level" /> ' + icon_full + ' ' + $lang.get('onpage_protect_btn_full') + '</label></div>');
+      $(parent).append('<div class="protectlevel_hint" id="protect_level_1_hint">' + $lang.get('onpage_protect_btn_full_hint') + '</div>');
+      $(parent).append('<div class="protectlevel"><label><input type="radio" id="protect_level_2" name="protect_level" /> ' + icon_semi + ' ' + $lang.get('onpage_protect_btn_semi') + '</label></div>');
+      $(parent).append('<div class="protectlevel_hint" id="protect_level_2_hint">' + $lang.get('onpage_protect_btn_semi_hint') + '</div>');
+      $(parent).append('<div class="protectlevel"><label><input type="radio" id="protect_level_0" name="protect_level" /> ' + icon_none + ' ' + $lang.get('onpage_protect_btn_none') + '</label></div>');
+      $(parent).append('<div class="protectlevel_hint" id="protect_level_0_hint">' + $lang.get('onpage_protect_btn_none_hint') + '</div>');
+      
+      $(parent).append('<table class="protectreason"><tr><td valign="top">' + $lang.get('onpage_protect_lbl_reason') + '</td><td><input id="protect_reason" size="30" type="text" /><br /><small>' + $lang.get('onpage_protect_lbl_reason_hint') + '</small></td></tr></table>');
+      
+      $(parent).append('<p class="buttons"><a class="submitbutton abutton abutton_green" style="font-weight: bold;" href="#" onclick="ajaxProtectSubmit(this); return false;">' + $lang.get('onpage_protect_btn_submit') + '</a> <a class="submitbutton abutton" href="#" onclick="miniPromptDestroy(this); return false;">' + $lang.get('etc_cancel') + '</a></p>');
+      
+      $('.protectlevel', parent).css('line-height', '22px');
+      $('h3', parent).css('text-align', 'center');
+      $('.protectlevel_hint', parent)
+        .css('font-size', 'smaller')
+        .css('margin-left', '52px')
+        .hide();
+      $('p.buttons', parent).css('margin-top', '15px').css('text-align', 'center');
+      
+      if ( typeof(existing_level) == 'number' )
       {
-        response = parseJSON(response);
-        if ( response.mode == 'error' )
-        {
-          alert(response.error);
-          return true;
-        }
+        $('#protect_level_' + existing_level, parent).attr('checked', 'checked');
+        $('#protect_level_' + existing_level + '_hint', parent).show();
+        $('#protect_level_' + existing_level, parent).parent().append(' <small><span style="color: #050; background-color: #eee; padding: 0 4px;">' + $lang.get('onpage_protect_lbl_current') + '</span></small>');
       }
-      alert(ajax.responseText);
+      
+      $('input:radio', parent).click(function()
+        {
+          var mp = miniPromptGetParent(this);
+          $('.protectlevel_hint:visible', mp).hide('blind', 150);
+          $('#' + this.id + '_hint').show('blind', 150);
+          $('#protect_reason').focus();
+        });
+      $('input:text', parent).keyup(function(e)
+        {
+          if ( e.keyCode == 13 )
+            ajaxProtectSubmit(this);
+        });
+    });
+}
+
+window.ajaxProtectSubmit = function(el)
+{
+  var mp = miniPromptGetParent(el);
+  
+  var reason = trim($('#protect_reason', mp).attr('value'));
+  if ( reason == '' )
+  {
+    var oldbg = $('#protect_reason').css('background-color');
+    if ( jQuery.fx.off )
+    {
+      $('#protect_reason').css('background-color', '#a00');
+      setTimeout(function()
+        {
+          $('#protect_reason').css('background-color', oldbg);
+        }, 1000);
     }
-  }, true);
+    else
+    {
+      $('#protect_reason').css('background-color', '#a00').animate({ backgroundColor: oldbg }, 1000);
+    }
+    return false;
+  }
+  
+  var level = 0;
+  if ( $('#protect_level_1', mp).attr('checked') )
+    level = 1;
+  if ( $('#protect_level_2', mp).attr('checked') )
+    level = 2;
+  
+  var whitey = whiteOutMiniPrompt(mp);
+  $.post(stdAjaxPrefix + '&_mode=protect', { level: level, reason: reason }, function(response, statustext)
+    {
+      if ( response.success )
+      {
+        whiteOutReportSuccess(whitey);
+        setTimeout(function()
+          {
+            miniPromptDestroy(mp);
+          }, 1250);
+        // update protect button
+        var btn = $('#tb_ajax_protect_btn').get(0);
+        btn.level = level;
+        btn.setAttribute('onclick', null);
+        btn.onclick = null;
+        $(btn).click(function()
+          {
+            ajaxProtect(this.level);
+            return false;
+          });
+        var status = '';
+        switch(level)
+        {
+          case 1: status = $lang.get('onpage_btn_protect_on'); break;
+          case 0: status = $lang.get('onpage_btn_protect_off'); break;
+          case 2: status = $lang.get('onpage_btn_protect_semi'); break;
+        }
+        $('#tb_ajax_protect_status').text(status);
+      }
+      else
+      {
+        whiteOutReportFailure(whitey);
+        alert($lang.get('page_err_' + response.error));
+      }
+    }, 'json');
 }
 
 window.ajaxRename = function()

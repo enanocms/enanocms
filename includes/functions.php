@@ -2155,6 +2155,27 @@ function htmlalternatives($string)
 }
 
 /**
+ * Generate HTML for a sprite image.
+ * @param string Path to sprite image
+ * @param int Width of resulting image
+ * @param int Height of resulting image
+ * @param int X offset
+ * @param int Y offset
+ * @return object HTMLImageElement
+ */
+
+function gen_sprite($path, $width, $height, $xpos, $ypos)
+{
+  $html = '<img src="' . scriptPath . '/images/spacer.gif" width="' . $width . '" height="' . $height . '" ';
+  $xpos = ( $xpos == 0 ) ? '0' : '-' . strval($xpos);
+  $ypos = ( $ypos == 0 ) ? '0' : '-' . strval($ypos);
+  $html .= 'style="background-image: url(' . $path . '); background-repeat: no-repeat; background-position: ' . $ypos . 'px ' . $xpos . 'px;"';
+  $html .= ' />';
+  
+  return $html;
+}
+
+/**
  * Portal function allowing spam-filtering plugins.
  * Hooking guide:
  *   - Attach to spam_check

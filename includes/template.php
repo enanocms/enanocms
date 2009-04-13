@@ -732,53 +732,28 @@ class template
     // Protect button
     if($perms->get_permissions('read') && $session->check_acl_scope('protect', $local_namespace) && $paths->wiki_mode && $local_page_exists && $perms->get_permissions('protect'))
     {
+      switch($local_cdata['protected'])
+      {
+        case PROTECT_FULL: $protect_status = $lang->get('onpage_btn_protect_on'); break;
+        case PROTECT_SEMI: $protect_status = $lang->get('onpage_btn_protect_semi'); break;
+        case PROTECT_NONE: $protect_status = $lang->get('onpage_btn_protect_off'); break;
+      }
       
       $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_protect')));
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_protect') . ' ' . "<b><span id=\"tb_ajax_protect_status\">$protect_status</span></b>"));
       $t0 = $label->run();
       
-      $ctmp = ''; 
-      if ( $local_cdata['protected'] == 1 )
-      {
-        $ctmp=' style="text-decoration: underline;"';
-      }
       $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="i" onclick="if ( !KILL_SWITCH ) { ajaxProtect(1); return false; }" id="protbtn_1" title="' . $lang->get('onpage_tip_protect_on') . '"'.$ctmp,
-          'HREF'  => makeUrl($local_page, 'do=protect&level=1', true),
-          'TEXT'  => $lang->get('onpage_btn_protect_on')
+          'FLAGS' => 'accesskey="p" onclick="ajaxProtect(' . $local_cdata['protected'] . '); return false;" id="tb_ajax_protect_btn" title="' . $lang->get('onpage_tip_protect') . '"',
+          'HREF' => makeUrl($local_page, 'do=protect', true),
+          'TEXT' => $lang->get('onpage_btn_protect_change')
         ));
       $t1 = $menubtn->run();
-      
-      $ctmp = '';
-      if ( $local_cdata['protected'] == 0 )
-      {
-        $ctmp=' style="text-decoration: underline;"';
-      }
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="o" onclick="if ( !KILL_SWITCH ) { ajaxProtect(0); return false; }" id="protbtn_0" title="' . $lang->get('onpage_tip_protect_off') . '"'.$ctmp,
-          'HREF'  => makeUrl($local_page, 'do=protect&level=0', true),
-          'TEXT'  => $lang->get('onpage_btn_protect_off')
-        ));
-      $t2 = $menubtn->run();
-      
-      $ctmp = '';
-      if ( $local_cdata['protected'] == 2 )
-      {
-        $ctmp = ' style="text-decoration: underline;"';
-      }
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="p" onclick="if ( !KILL_SWITCH ) { ajaxProtect(2); return false; }" id="protbtn_2" title="' . $lang->get('onpage_tip_protect_semi') . '"'.$ctmp,
-          'HREF'  => makeUrl($local_page, 'do=protect&level=2', true),
-          'TEXT'  => $lang->get('onpage_btn_protect_semi')
-        ));
-      $t3 = $menubtn->run();
       
       $this->toolbar_menu .= '        <table border="0" cellspacing="0" cellpadding="0">
           <tr>
             <td>'.$t0.'</td>
             <td>'.$t1.'</td>
-            <td>'.$t2.'</td>
-            <td>'.$t3.'</td>
           </tr>
         </table>';
     }

@@ -572,6 +572,39 @@ function miniPromptMessage(parms)
     });
 }
 
+/**
+ * Identical to whiteOutElement(), but safe to call on miniPrompt divs.
+ */
+
+function whiteOutMiniPrompt(el)
+{
+  var top = getScrollOffset();
+  var left = ( getWidth() / 2 ) - ( 320 / 2);
+  var width = 320;
+  var height = $dynano(el).Height() - 58;
+  
+  var blackout = document.createElement('div');
+  // using fixed here allows modal windows to be blacked out
+  blackout.style.position = ( el.style.position == 'fixed' ) ? 'fixed' : 'absolute';
+  blackout.style.top = top + 'px';
+  blackout.style.left = left + 'px';
+  blackout.style.width = width + 'px';
+  blackout.style.height = height + 'px';
+  
+  blackout.style.backgroundColor = '#FFFFFF';
+  domObjChangeOpac(60, blackout);
+  var background = ( $dynano(el).Height() < 48 ) ? 'url(' + scriptPath + '/images/loading.gif)' : 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
+  blackout.style.backgroundImage = background;
+  blackout.style.backgroundPosition = 'center center';
+  blackout.style.backgroundRepeat = 'no-repeat';
+  blackout.style.zIndex = '1000';
+  
+  var body = document.getElementsByTagName('body')[0];
+  body.appendChild(blackout);
+  
+  return blackout;
+}
+
 function testMPMessageBox()
 {
   miniPromptMessage({

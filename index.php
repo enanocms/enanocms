@@ -329,39 +329,92 @@
       $template->footer();
       break;
     case 'protect':
-      if (!isset($_REQUEST['level'])) die_friendly('Invalid request', '<p>No protection level specified</p>');
-      require_once(ENANO_ROOT.'/includes/pageutils.php');
-      if(!empty($_POST['reason']))
+      if ( isset($_POST['level']) && isset($_POST['reason']) )
       {
-        if(!preg_match('#^([0-2]*){1}$#', $_POST['level'])) die_friendly('Error protecting page', '<p>Request validation failed</p>');
-        PageUtils::protect($paths->page_id, $paths->namespace, intval($_POST['level']), $_POST['reason']);
+        $level = intval($_POST['level']);
+        if ( !in_array($level, array(PROTECT_FULL, PROTECT_SEMI, PROTECT_NONE)) )
+        {
+          $errors[] = 'bad level';
+        }
+        $reason = trim($_POST['reason']);
+        if ( empty($reason) )
+        {
+          $errors[] = $lang->get('onpage_protect_err_need_reason');
+        }
         
-        die_friendly($lang->get('page_protect_lbl_success_title'), '<p>' . $lang->get('page_protect_lbl_success_body', array( 'page_link' => makeUrl($paths->page) )) . '</p>');
+        $page = new PageProcessor($paths->page_id, $paths->namespace);
+        $result = $page->protect_page($level, $reason);
+        if ( $result['success'] )
+        {
+          redirect(makeUrl($paths->page), $lang->get('page_protect_lbl_success_title'), $lang->get('page_protect_lbl_success_body', array('page_link' => makeUrl($paths->page, false, true))), 3);
+        }
+        else
+        {
+          $errors[] = $lang->get('page_err_' . $result['error']);
+        }
       }
       $template->header();
       ?>
       <form action="<?php echo makeUrl($paths->page, 'do=protect'); ?>" method="post">
-        <input type="hidden" name="level" value="<?php echo $_REQUEST['level']; ?>" />
-        <?php if(isset($_POST['reason'])) echo '<p style="color: red;">' . $lang->get('page_protect_err_need_reason') . '</p>'; ?>
-        <p><?php echo $lang->get('page_protect_lbl_reason'); ?></p>
-        <p><input type="text" name="reason" size="40" /><br />
-           <?php echo $lang->get('page_protect_lbl_level'); ?> <b><?php
-             switch($_REQUEST['level'])
-             {
-               case '0':
-                 echo $lang->get('page_protect_lbl_level_none');
-                 break;
-               case '1':
-                 echo $lang->get('page_protect_lbl_level_full');
-                 break;
-               case '2':
-                 echo $lang->get('page_protect_lbl_level_semi');
-                 break;
-               default:
-                 echo 'None;</b> Warning: request validation will fail after clicking submit<b>';
-             }
-           ?></b></p>
-        <p><input type="submit" value="<?php echo htmlspecialchars($lang->get('page_protect_btn_submit')) ?>" style="font-weight: bold;" /></p> 
+        <h3><?php echo $lang->get('onpage_protect_heading'); ?></h3>
+        <p><?php echo $lang->get('onpage_protect_msg_select_level'); ?></p>
+        
+        <?php
+        if ( !empty($errors) )
+        {
+          echo '<ul><li>' . implode('</li><li>', $errors) . '</li></ul>';
+        }
+        ?>
+        
+        <div class="protectlevel" style="line-height: 22px; margin-left: 17px;">
+          <label>
+            <input type="radio" name="level" value="<?php echo PROTECT_FULL; ?>" />
+            <?php echo gen_sprite(cdnPath . '/images/protect-icons.png', 22, 22, 0, 0); ?>
+            <?php echo $lang->get('onpage_protect_btn_full'); ?>
+          </label>
+        </div>
+        <div class="protectlevel_hint" style="font-size: smaller; margin-left: 68px;">
+          <?php echo $lang->get('onpage_protect_btn_full_hint'); ?>
+        </div>
+        
+        <div class="protectlevel" style="line-height: 22px; margin-left: 17px;">
+          <label>
+            <input type="radio" name="level" value="<?php echo PROTECT_SEMI; ?>" />
+            <?php echo gen_sprite(cdnPath . '/images/protect-icons.png', 22, 22, 22, 0); ?>
+            <?php echo $lang->get('onpage_protect_btn_semi'); ?>
+          </label>
+        </div>
+        <div class="protectlevel_hint" style="font-size: smaller; margin-left: 68px;">
+          <?php echo $lang->get('onpage_protect_btn_semi_hint'); ?>
+        </div>
+        
+        <div class="protectlevel" style="line-height: 22px; margin-left: 17px;">
+          <label>
+            <input type="radio" name="level" value="<?php echo PROTECT_NONE; ?>" />
+            <?php echo gen_sprite(cdnPath . '/images/protect-icons.png', 22, 22, 44, 0); ?>
+            <?php echo $lang->get('onpage_protect_btn_none'); ?>
+          </label>
+        </div>
+        <div class="protectlevel_hint" style="font-size: smaller; margin-left: 68px;">
+          <?php echo $lang->get('onpage_protect_btn_none_hint'); ?>
+        </div>
+        
+        <table style="margin-left: 1em;" cellspacing="10">
+          <tr>
+            <td valign="top">
+              <?php echo $lang->get('onpage_protect_lbl_reason'); ?>
+            </td>
+            <td>
+              <input type="text" name="reason" size="40" /><br />
+              <small><?php echo $lang->get('onpage_protect_lbl_reason_hint'); ?></small>
+            </td>
+          </tr>
+        </table>
+                              
+        <p>
+          <input type="submit" value="<?php echo htmlspecialchars($lang->get('page_protect_btn_submit')) ?>" style="font-weight: bold;" />
+          <a class="abutton" href="<?php echo makeUrl($paths->page, false, true); ?>"><?php echo $lang->get('etc_cancel'); ?></a>
+        </p> 
       </form>
       <?php
       $template->footer();

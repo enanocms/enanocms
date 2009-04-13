@@ -465,7 +465,7 @@ function get_parent_form(o)
 function gen_sprite(path, width, height, xpos, ypos)
 {
   var image = document.createElement('img');
-  image.src = scriptPath + '/images/spacer.gif';
+  image.src = cdnPath + '/images/spacer.gif';
   image.width = String(width);
   image.height = String(height);
   image.style.backgroundImage = 'url(' + path + ')';
