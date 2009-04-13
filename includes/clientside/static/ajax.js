@@ -42,6 +42,18 @@ window.ajaxProtect = function(existing_level)
   // touch this variable to allow it to be used in child functions
   void(existing_level);
   
+  // require re-auth
+  if ( auth_level <= USER_LEVEL_MEMBER )
+  {
+    load_component(['login', 'fadefilter', 'flyin', 'jquery', 'jquery-ui', 'crypto', 'messagebox']);
+    ajaxDynamicReauth(function(key)
+      {
+        ajaxProtect(existing_level);
+      }, user_level);
+    
+    return false;
+  }
+  
   load_component(['messagebox', 'jquery', 'jquery-ui', 'l10n', 'fadefilter', 'flyin']);
   
   // preload language
@@ -312,6 +324,19 @@ window.ajaxDeletePage = function()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
+  
+  // require re-auth
+  if ( auth_level <= USER_LEVEL_MEMBER )
+  {
+    load_component(['login', 'fadefilter', 'flyin', 'jquery', 'jquery-ui', 'crypto', 'messagebox']);
+    ajaxDynamicReauth(function(key)
+      {
+        ajaxDeletePage();
+      }, user_level);
+    
+    return false;
+  }
+  
   load_component(['l10n', 'messagebox', 'jquery', 'jquery-ui', 'fadefilter', 'flyin']);
   
   // stage 1: prompt for reason and confirmation
@@ -704,6 +729,18 @@ window.ajaxClearLogs = function()
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
+  
+  // require re-auth
+  if ( auth_level <= USER_LEVEL_MEMBER )
+  {
+    load_component(['login', 'fadefilter', 'flyin', 'jquery', 'jquery-ui', 'crypto', 'messagebox']);
+    ajaxDynamicReauth(function(key)
+      {
+        ajaxClearLogs();
+      }, user_level);
+    
+    return false;
+  }
   
   load_component(['l10n', 'messagebox', 'flyin', 'fadefilter']);
   

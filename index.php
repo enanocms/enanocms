@@ -329,6 +329,11 @@
       $template->footer();
       break;
     case 'protect':
+      if ( !$session->sid_super )
+      {
+        redirect(makeUrlNS('Special', "Login/{$paths->page}", 'target_do=protect&level=' . $session->user_level, false), $lang->get('etc_access_denied_short'), $lang->get('etc_access_denied_need_reauth'), 0);
+      }
+      
       if ( isset($_POST['level']) && isset($_POST['reason']) )
       {
         $level = intval($_POST['level']);
@@ -442,6 +447,10 @@
       {
         die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
       }
+      if ( !$session->sid_super )
+      {
+        redirect(makeUrlNS('Special', "Login/{$paths->page}", 'target_do=flushlogs&level=' . $session->user_level, false), $lang->get('etc_access_denied_short'), $lang->get('etc_access_denied_need_reauth'), 0);
+      }
       require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(isset($_POST['_downthejohn']))
       {
@@ -517,6 +526,11 @@
       {
         die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
       }
+      if ( !$session->sid_super )
+      {
+        redirect(makeUrlNS('Special', "Login/{$paths->page}", 'target_do=deletepage&level=' . $session->user_level, false), $lang->get('etc_access_denied_short'), $lang->get('etc_access_denied_need_reauth'), 0);
+      }
+      
       require_once(ENANO_ROOT.'/includes/pageutils.php');
       if(isset($_POST['_adiossucker']))
       {
@@ -620,6 +634,11 @@
       die_friendly($lang->get('page_detag_success_title'), '<p>' . $lang->get('page_detag_success_body') . '</p>');
       break;
     case 'aclmanager':
+      if ( !$session->sid_super )
+      {
+        redirect(makeUrlNS('Special', "Login/{$paths->page}", 'target_do=aclmanager&level=' . $session->user_level, false), $lang->get('etc_access_denied_short'), $lang->get('etc_access_denied_need_reauth'), 0);
+      }
+      
       require_once(ENANO_ROOT.'/includes/pageutils.php');
       $data = ( isset($_POST['data']) ) ? $_POST['data'] : Array('mode' => 'listgroups');
       PageUtils::aclmanager($data);

@@ -123,6 +123,7 @@ var enano_lang = {
       err_access_denied_siteadmin: 'site administrator',
       err_seeking_living_among_dead: 'You are trying to un-delete a page that has since been restored.\n\n"But the men said to them, \'Why do you look for the living among the dead?\'" (Luke 24:5b/NIV)',
       err_access_denied: 'Access to that action is denied.',
+      err_access_denied_need_reauth: '%this.etc_access_denied_need_reauth%',
       err_invalid_parameter: 'An invalid value (parameter) was sent to this action.',
       err_rb_action_not_supported: 'Rolling back actions of type "%action%" isn\'t supported.',
       err_rb_file_rename_failed: 'Could not rename the file to its new name (1.1.x format)',
@@ -759,6 +760,7 @@ var enano_lang = {
       // Generic "Access denied"
       access_denied: 'Access to the specified file, resource, or action is denied.',
       access_denied_short: 'Access denied',
+      access_denied_need_reauth: 'You need to re-authenticate before you can do that.',
       return_to_page: 'Return to the page',
       invalid_request_short: 'Invalid request',
       // Message box buttons

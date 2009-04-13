@@ -848,6 +848,15 @@ class PageProcessor
         );
     }
     
+    // Validate re-auth
+    if ( !$session->sid_super )
+    {
+      return array(
+        'success' => false,
+        'error' => 'access_denied_need_reauth'
+        );
+    }
+    
     // Validate input
     $reason = trim($reason);
     if ( !in_array($protection_level, array(PROTECT_NONE, PROTECT_FULL, PROTECT_SEMI)) || empty($reason) )

@@ -1110,6 +1110,10 @@ class PageUtils {
     {
       return $lang->get('etc_access_denied');
     }
+    if ( !$session->sid_super )
+    {
+      return $lang->get('etc_access_denied_need_reauth');
+    }
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'logs WHERE page_id=\'' . $db->escape($page_id) . '\' AND namespace=\'' . $db->escape($namespace) . '\';');
     if(!$e) $db->_die('The log entries could not be deleted.');
     
@@ -1148,6 +1152,12 @@ class PageUtils {
       return $lang->get('ajax_delete_need_reason');
     }
     if(!$perms->get_permissions('delete_page')) return('Administrative privileges are required to delete pages, you loser.');
+    
+    if ( !$session->sid_super )
+    {
+      return $lang->get('etc_access_denied_need_reauth');
+    }
+    
     $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
     if(!$e) $db->_die('The page log entry could not be inserted.');
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'categories WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'');
@@ -1679,6 +1689,13 @@ class PageUtils {
       return Array(
         'mode' => 'error',
         'error' => $lang->get('acl_err_access_denied')
+        );
+    }
+    if ( !$session->sid_super )
+    {
+      return Array(
+        'mode' => 'error',
+        'error' => $lang->get('etc_access_denied_need_reauth')
         );
     }
     $parms['page_id'] = ( isset($parms['page_id']) ) ? $parms['page_id'] : false;

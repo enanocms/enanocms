@@ -344,8 +344,6 @@ function page_Special_Login()
            </tr>
            <?php
          }
-         ?>
-         <?php
          $code = $plugins->setHook('login_form_html');
          foreach ( $code as $cmd )
          {
@@ -450,6 +448,29 @@ function page_Special_Login()
       <?php endif; ?>
       <?php
       echo $session->generate_aes_form();
+      
+      // Any additional parameters that need to be passed back?
+      if ( $p = $paths->getAllParams() )
+      {
+        // ... only if we have a return_to destination.
+        $get_fwd = $_GET;
+        unset($get_fwd['do']);
+        if ( isset($get_fwd['target_do']) )
+        {
+          $get_fwd['do'] = $get_fwd['target_do'];
+          unset($get_fwd['target_do']);
+        }
+        if ( isset($get_fwd['level']) )
+          unset($get_fwd['level']);
+        if ( isset($get_fwd['title']) )
+          unset($get_fwd['title']);
+        
+        if ( !empty($get_fwd) )
+        {
+          $get_string = htmlspecialchars(enano_json_encode($get_fwd));
+          echo '<input type="hidden" name="get_fwd" value="' . $get_string . '" />';
+        }
+      }
       ?>
     </form>
     <?php
@@ -560,10 +581,28 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     {
       $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
     }
-   
+    
     if($result['success'])
     {
       $session->start();
+      
+      $get_add = false;
+      if ( isset($_POST['get_fwd']) )
+      {
+        try
+        {
+          $get_fwd = enano_json_decode($_POST['get_fwd']);
+          $get_add = '';
+          foreach ( $get_fwd as $key => $value )
+          {
+            $get_add .= "&{$key}=" . urlencode($value);
+          }
+          $get_add = ltrim($get_add, '&');
+        }
+        catch ( Exception $e )
+        {
+        }
+      }
       
       $template->load_theme($session->theme, $session->style);
       if(isset($_POST['return_to']))
@@ -573,7 +612,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
             'username' => $session->username,
             'redir_target' => $name
           );
-        redirect( makeUrl($_POST['return_to'], false, true), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
+        redirect( makeUrl($_POST['return_to'], $get_add), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
       }
       else
       {
@@ -581,7 +620,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
             'username' => $session->username,
             'redir_target' => $lang->get('user_login_success_body_mainpage')
           );
-        redirect( makeUrl(get_main_page(), false, true), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
+        redirect( makeUrl(get_main_page(), $get_add), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
       }
     }
     else

@@ -1123,7 +1123,17 @@ window.ajaxInitLogout = function()
         color: 'blue',
         onclick: function()
         {
-          miniPromptDestroy(this);
+          var mp = miniPromptGetParent(this);
+          var whitey = whiteOutMiniPrompt(mp);
+          setTimeout(function()
+            {
+              whiteOutReportSuccess(whitey);
+              setTimeout(function()
+                {
+                  miniPromptDestroy(mp);
+                }, 1250);
+            }, 1000);
+          
           ajaxLoginPerformRequest({
               mode:  'logout',
               level: auth_level,
@@ -1408,4 +1418,5 @@ window.ajaxLoginReplaceSIDInline = function(key, oldkey, level)
     }
     window.location.hash = '#auth:false';
   }
+  window.stdAjaxPrefix = append_sid(scriptPath + '/ajax.php?title=' + title);
 }

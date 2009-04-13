@@ -9,6 +9,21 @@ function ajaxOpenACLManager(page_id, namespace)
   if(IE)
     return true;
   
+  void(page_id);
+  void(namespace);
+  
+  // require re-auth
+  if ( auth_level <= USER_LEVEL_MEMBER )
+  {
+    load_component(['login', 'fadefilter', 'flyin', 'jquery', 'jquery-ui', 'crypto', 'messagebox']);
+    ajaxDynamicReauth(function(key)
+      {
+        ajaxOpenACLManager(page_id, namespace);
+      }, user_level);
+    
+    return false;
+  }
+  
   load_component(['l10n', 'messagebox', 'fadefilter', 'template-compiler', 'jquery', 'jquery-ui', 'autofill']);
   
   if(!page_id || !namespace)

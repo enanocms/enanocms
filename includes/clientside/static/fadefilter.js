@@ -117,7 +117,7 @@ function enlighten(nofade, layerid)
       document.getElementById(layerid).destroying = true;
       var from = document.getElementById(layerid).myOpacVal;
       opacity(layerid, from, 0, 1000);
-      setTimeout("if ( document.getElementById('" + layerid + "').destroying ) { document.getElementById('" + layerid + "').destroying = false; document.getElementById('" + layerid + "').style.display = 'none'; }", 1000);
+      setTimeout("var l = document.getElementById('" + layerid + "'); var b = document.getElementsByTagName('body')[0]; b.removeChild(l);", 1000);
     }
   }
   return document.getElementById(layerid);
