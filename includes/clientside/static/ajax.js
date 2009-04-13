@@ -760,7 +760,7 @@ window.ajaxChangeStyle = function()
   $.get(stdAjaxPrefix + '&_mode=theme_list', {}, function(data, status)
     {
       $('#theme-selector-inner .theme-selector-spinner').fadeOut(650);
-      $('#theme-selector-body').animate({ width: 708 }, 600, function()
+      $('#theme-selector-body').animate({ width: 728 }, 600, function()
         {
           // avoiding jQuery's fade functions because they insist on toggling display as well
           if ( !aclDisableTransitionFX )
@@ -771,7 +771,12 @@ window.ajaxChangeStyle = function()
           for ( var i = 0; i < data.length; i++ )
           {
             var bgi = data[i].have_thumb ? cdnPath + '/themes/' + data[i].theme_id + '/preview.png' : cdnPath + '/images/themepreview.png';
-            $('#theme-selector-inner > ul').append('<li id="theme_' + i + '"><a href="#"><span></span></a></li>');
+            var maxheight = getHeight() - 325;
+            $('#theme-selector-inner > ul')
+              .css('clip', 'rect(0px, auto, auto, 0px)')
+              .css('overflow', 'auto')
+              .css('max-height', maxheight)
+              .append('<li id="theme_' + i + '"><a href="#"><span></span></a></li>');
             $('#theme-selector-inner li#theme_' + i + ' > a')
               .css('background-image', 'url(' + bgi + ')')
               .attr('enano:theme_id', data[i].theme_id);
