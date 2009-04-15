@@ -38,6 +38,8 @@ class Namespace_File extends Namespace_Default
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
+    require_once(ENANO_ROOT . '/includes/log.php');
+    
     $local_page_id = $this->page_id;
     $local_namespace = $this->namespace;
     $html = '';
@@ -128,9 +130,15 @@ class Namespace_File extends Namespace_Default
       if ( !$q )
         $db->_die();
       
+      $log = new LogDisplay();
+      $log->add_criterion('page', $paths->nslist['File'] . $this->page_id);
+      $log->add_criterion('action', 'reupload');
+      $data = $log->get_data();
+      $i = -1;
+      
       $html .= '<h3>' . $lang->get('onpage_filebox_heading_history') . '</h3><p>';
       $last_rollback_id = false;
-      while ( $r = $db->fetchrow() )
+      while ( $r = $db->fetchrow($q) )
       {
         $html .= '(<a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">' . $lang->get('onpage_filebox_btn_this_version') . '</a>) ';
         if ( $session->get_permissions('history_rollback') && $last_rollback_id )
@@ -138,10 +146,8 @@ class Namespace_File extends Namespace_Default
         else if ( $session->get_permissions('history_rollback') && !$last_rollback_id )
           $html .= ' (' . $lang->get('onpage_filebox_btn_current') . ') ';
         $last_rollback_id = $r['log_id'];
-        $mimetype = $r['mimetype'];
-        $datestring = enano_date('F d, Y h:i a', (int)$r['time_id']);
         
-        $html .= $datestring.': '.$r['mimetype'].', ';
+        $html .= $r['mimetype'].', ';
         
         $fs = $r['size'];
         $fs = (int)$fs;
@@ -163,6 +169,8 @@ class Namespace_File extends Namespace_Default
         }
         
         $html .= $size;
+        if ( isset($data[++$i]) )
+          $html .= ': ' . LogDisplay::render_row($data[$i], false, false);
         
         $html .= '<br />';
       }

@@ -164,7 +164,7 @@ class LogDisplay
    * @return array
    */
   
-  public function get_data($offset, $page_size)
+  public function get_data($offset = 0, $page_size = 0)
   {
     global $db, $session, $paths, $session, $plugins; // Common objects
     $sql = $this->build_sql($offset, $page_size);
@@ -270,11 +270,13 @@ class LogDisplay
   /**
    * Formats a result row into pretty HTML.
    * @param array dataset from LogDisplay::get_data()
+   * @param bool If true (default), shows action buttons.
+   * @param bool If true (default), shows page title; good for integrated displays
    * @static
    * @return string
    */
   
-  public static function render_row($row)
+  public static function render_row($row, $show_buttons = true, $show_pagetitle = true)
   {
     global $db, $session, $paths, $session, $plugins; // Common objects
     global $lang;
@@ -285,52 +287,64 @@ class LogDisplay
     $pagekey = sanitize_page_id($pagekey);
     
     // diff button
-    if ( $row['action'] == 'edit' && !empty($row['parent_revid']) )
+    if ( $show_buttons )
     {
+      if ( $row['action'] == 'edit' && !empty($row['parent_revid']) )
+      {
+        $html .= '(';
+        if ( isPage($pagekey) )
+        {
+          $html .= '<a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=diff&diff1={$row['parent_revid']}&diff2={$row['log_id']}", true) . '">';
+        }
+        $html .= $lang->get('pagetools_rc_btn_diff');
+        if ( isPage($pagekey) )
+        {
+          $html .= '</a>';
+        }
+        if ( $row['parent_revid'] > 0 && isPage($pagekey) )
+        {
+          $html .= ', <a href="' . makeUrlNS($row['namespace'], $row['page_id'], false, true) . '#do:edit;rev:' . $row['parent_revid'] . '">' . $lang->get('pagetools_rc_btn_undo') . '</a>';
+        }
+        $html .= ') ';
+      }
+      else if ( $row['action'] != 'edit' && ( isPage($pagekey) || $row['action'] == 'delete' ) )
+      {
+        $html .= '(';
+        $html .= '<a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=rollback&id={$row['log_id']}", true). '">' . $lang->get('pagetools_rc_btn_undo') . '</a>';
+        $html .= ') ';
+      }
+      
+      // hist button
       $html .= '(';
       if ( isPage($pagekey) )
       {
-        $html .= '<a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=diff&diff1={$row['parent_revid']}&diff2={$row['log_id']}", true) . '">';
+        $html .= '<a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=history", true) . '">';
       }
-      $html .= $lang->get('pagetools_rc_btn_diff');
+      $html .= $lang->get('pagetools_rc_btn_hist');
       if ( isPage($pagekey) )
       {
         $html .= '</a>';
       }
-      if ( $row['parent_revid'] > 0 && isPage($pagekey) )
+      $html .= ') . . ';
+    }
+    
+    if ( $show_pagetitle )
+    {
+      // new page?
+      if ( $row['action'] == 'edit' && empty($row['parent_revid']) )
       {
-        $html .= ', <a href="' . makeUrlNS($row['namespace'], $row['page_id'], false, true) . '#do:edit;rev:' . $row['parent_revid'] . '">' . $lang->get('pagetools_rc_btn_undo') . '</a>';
+        $html .= '<b>N</b> ';
       }
-      $html .= ') ';
+      // minor edit?
+      if ( $row['action'] == 'edit' && $row['minor_edit'] )
+      {
+        $html .= '<b>m</b> ';
+      }
+      
+      // link to the page
+      $cls = ( isPage($pagekey) ) ? '' : ' class="wikilink-nonexistent"';
+      $html .= '<a href="' . makeUrlNS($row['namespace'], $row['page_id']) . '"' . $cls . '>' . htmlspecialchars(get_page_title_ns($row['page_id'], $row['namespace'])) . '</a>; ';
     }
-    
-    // hist button
-    $html .= '(';
-    if ( isPage($pagekey) )
-    {
-      $html .= '<a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=history", true) . '">';
-    }
-    $html .= $lang->get('pagetools_rc_btn_hist');
-    if ( isPage($pagekey) )
-    {
-      $html .= '</a>';
-    }
-    $html .= ') . . ';
-    
-    // new page?
-    if ( $row['action'] == 'edit' && empty($row['parent_revid']) )
-    {
-      $html .= '<b>N</b> ';
-    }
-    // minor edit?
-    if ( $row['action'] == 'edit' && $row['minor_edit'] )
-    {
-      $html .= '<b>m</b> ';
-    }
-    
-    // link to the page
-    $cls = ( isPage($pagekey) ) ? '' : ' class="wikilink-nonexistent"';
-    $html .= '<a href="' . makeUrlNS($row['namespace'], $row['page_id']) . '"' . $cls . '>' . htmlspecialchars(get_page_title_ns($row['page_id'], $row['namespace'])) . '</a>; ';
     
     // date
     $today = time() - ( time() % 86400 );
@@ -395,15 +409,19 @@ class LogDisplay
         case 'unprot':
         case 'semiprot':
         case 'delete':
+        case 'reupload':
           $stringmap = array(
             'prot' => 'log_action_protect_full',
             'unprot' => 'log_action_protect_none',
             'semiprot' => 'log_action_protect_semi',
-            'delete' => 'log_action_delete'
+            'delete' => 'log_action_delete',
+            'reupload' => 'log_action_reupload'
           );
         
         if ( $row['edit_summary'] === '__REVERSION__' )
-           $reason = '<span style="color: #808080;">' . $lang->get('log_msg_reversion') . '</span>';
+          $reason = '<span style="color: #808080;">' . $lang->get('log_msg_reversion') . '</span>';
+        else if ( $row['action'] == 'reupload' && $row['edit_summary'] === '__ROLLBACK__' )
+          $reason = '<span style="color: #808080;">' . $lang->get('log_msg_file_restored') . '</span>';
         else
           $reason = ( !empty($row['edit_summary']) ) ? htmlspecialchars($row['edit_summary']) : '<span style="color: #808080;">' . $lang->get('log_msg_no_reason_provided') . '</span>';
         

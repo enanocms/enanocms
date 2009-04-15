@@ -637,7 +637,7 @@ class PageProcessor
     {
       case 'rename':
         // Page was renamed, let the rename method handle this
-        return array_merge($this->rename($log_entry['edit_summary']), array('dateline' => $dateline, 'action' => $log_entry['action']));
+        return array_merge($this->rename_page($log_entry['edit_summary']), array('dateline' => $dateline, 'action' => $log_entry['action']));
         break;
       case 'prot':
       case 'unprot':

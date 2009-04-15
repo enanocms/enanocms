@@ -157,6 +157,7 @@ var enano_lang = {
       action_protect_none: 'Unprotected page (%reason%)',
       action_protect_semi: 'Semiprotected page (%reason%)',
       action_protect_full: 'Protected page (%reason%)',
+      action_reupload: 'Uploaded new revision: %reason%',
       action_protect: 'Protect and unprotect',
       action_edit: 'Edit',
       
@@ -167,6 +168,7 @@ var enano_lang = {
       
       msg_no_reason_provided: 'No reason provided',
       msg_reversion: 'Reversion of previous action',
+      msg_file_restored: 'Restored previous version',
       msg_no_results: 'No results',
       msg_no_filters: 'All site logs',
       

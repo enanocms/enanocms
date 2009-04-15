@@ -1882,7 +1882,7 @@ class MemberlistFormatter
    * @return string
    */
   
-  function format_date($time)
+  public static function format_date($time)
   {
     global $lang;
     // Our formattting string to pass to enano_date()

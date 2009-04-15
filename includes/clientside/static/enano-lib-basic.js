@@ -565,6 +565,7 @@ var placeholder_list = {
   ajaxDelVote: 'ajax.js',
   ajaxProtect: 'ajax.js',
   ajaxClearLogs: 'ajax.js',
+  ajaxRollback: 'ajax.js',
   ajaxResetDelVotes: 'ajax.js',
   ajaxDeletePage: 'ajax.js',
   ajaxSetPassword: 'ajax.js',
