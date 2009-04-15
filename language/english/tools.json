@@ -146,6 +146,7 @@ var enano_lang = {
       // Recent changes
       rc_btn_diff: 'diff',
       rc_btn_hist: 'hist',
+      rc_btn_undo: 'undo',
       rc_btn_pm: 'PM',
       rc_btn_usertalk: 'comment',
     },
@@ -156,8 +157,34 @@ var enano_lang = {
       action_protect_none: 'Unprotected page (%reason%)',
       action_protect_semi: 'Semiprotected page (%reason%)',
       action_protect_full: 'Protected page (%reason%)',
+      action_protect: 'Protect and unprotect',
+      action_edit: 'Edit',
+      
+      breadcrumb_author: 'Author: %user%',
+      breadcrumb_within: 'Newer than: %time%',
+      breadcrumb_page: 'Page: %page%',
+      breadcrumb_action: 'Action: %action%',
       
       msg_no_reason_provided: 'No reason provided',
+      msg_reversion: 'Reversion of previous action',
+      msg_no_results: 'No results',
+      msg_no_filters: 'All site logs',
+      
+      form_filtertype_user: 'Author',
+      form_filtertype_within: 'Within',
+      form_filtertype_page: 'Page',
+      form_filtertype_action: 'Action',
+      formaction_rename: 'Rename',
+      formaction_create: 'Create page',
+      formaction_delete: 'Delete page',
+      
+      heading_addfilter: 'Add a filter',
+      heading_logdisplay: 'Log filter results',
+      
+      btn_add_filter: 'Add filter',
+      err_addfilter_field_empty: 'The filter was not added because you didn\'t enter a valid value in the field.',
+      
+      err_access_denied: 'You don\'t have permission to view page logs.',
     }
   }
 };

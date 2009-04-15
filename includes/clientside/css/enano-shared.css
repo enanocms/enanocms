@@ -1018,3 +1018,15 @@ td.sbedit-column {
   filter: alpha(opacity=60);
 }
 
+.emptymessage {
+  line-height: 140px;
+  color: #a0a0a0;
+  border-bottom-width: 0 !important;
+  text-align: center;
+  font-size: xx-large;
+  font-weight: normal;
+}
+
+.log_addfilter {
+  display: none;
+}

@@ -515,7 +515,8 @@ addOnloadHook(function() {
         ajaxComments();
         break;
       case 'edit':
-        ajaxEditor();
+        var revid = ( $_REQUEST['rev'] ) ? parseInt($_REQUEST['rev']) : false;
+        ajaxEditor(revid);
         break;
       case 'login':
         ajaxStartLogin();

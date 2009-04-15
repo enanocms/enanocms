@@ -112,10 +112,19 @@ class LogDisplay
       switch($type)
       {
         case 'user':
-          $where_bits['user'][] = "author = '" . $db->escape($value) . "'";
+          $where_bits['user'][] = "author = '" . $db->escape(str_replace('_', ' ', $value)) . "'";
           break;
         case 'action':
-          $where_bits['action'][] = "action = '" . $db->escape($value) . "'";
+          if ( $value === 'protect' )
+          {
+            $where_bits['action'][] = "action = 'prot'";
+            $where_bits['action'][] = "action = 'unprot'";
+            $where_bits['action'][] = "action = 'semiprot'";
+          }
+          else
+          {
+            $where_bits['action'][] = "action = '" . $db->escape($value) . "'";
+          }
           break;
         case 'page':
           list($page_id, $namespace) = RenderMan::strToPageId($value);
@@ -249,6 +258,16 @@ class LogDisplay
   }
   
   /**
+   * Returns the list of criteria
+   * @return array
+   */
+  
+  public function get_criteria()
+  {
+    return $this->criteria;
+  }
+  
+  /**
    * Formats a result row into pretty HTML.
    * @param array dataset from LogDisplay::get_data()
    * @static
@@ -278,6 +297,10 @@ class LogDisplay
       {
         $html .= '</a>';
       }
+      if ( $row['parent_revid'] > 0 && isPage($pagekey) )
+      {
+        $html .= ', <a href="' . makeUrlNS($row['namespace'], $row['page_id'], false, true) . '#do:edit;rev:' . $row['parent_revid'] . '">' . $lang->get('pagetools_rc_btn_undo') . '</a>';
+      }
       $html .= ') ';
     }
     
@@ -299,6 +322,11 @@ class LogDisplay
     {
       $html .= '<b>N</b> ';
     }
+    // minor edit?
+    if ( $row['action'] == 'edit' && $row['minor_edit'] )
+    {
+      $html .= '<b>m</b> ';
+    }
     
     // link to the page
     $cls = ( isPage($pagekey) ) ? '' : ' class="wikilink-nonexistent"';
@@ -306,7 +334,7 @@ class LogDisplay
     
     // date
     $today = time() - ( time() % 86400 );
-    $date = ( $row['time_id'] > $today ) ? '' : MemberlistFormatter::format_date($row['time_id']) . ' ';
+    $date = MemberlistFormatter::format_date($row['time_id']) . ' ';
     $date .= date('h:i:s', $row['time_id']);
     $html .= "$date . . ";
     
@@ -373,7 +401,11 @@ class LogDisplay
             'semiprot' => 'log_action_protect_semi',
             'delete' => 'log_action_delete'
           );
-        $reason = ( !empty($row['edit_summary']) ) ? htmlspecialchars($row['edit_summary']) : '<span style="color: #808080;">' . $lang->get('log_msg_no_reason_provided') . '</span>';
+        
+        if ( $row['edit_summary'] === '__REVERSION__' )
+           $reason = '<span style="color: #808080;">' . $lang->get('log_msg_reversion') . '</span>';
+        else
+          $reason = ( !empty($row['edit_summary']) ) ? htmlspecialchars($row['edit_summary']) : '<span style="color: #808080;">' . $lang->get('log_msg_no_reason_provided') . '</span>';
         
         $html .= $lang->get($stringmap[$row['action']], array('reason' => $reason));
       }

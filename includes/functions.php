@@ -430,9 +430,10 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
 
-  // POST check added in 1.1.x because Firefox asks us if we want to "resend the form
+  // POST check added in 1.1.x because Firefox 3.0 asks us if we want to "resend the form
   // data to the new location", which can be confusing for some users.
-  if ( $timeout == 0 && empty($_POST) )
+  $is_firefox_3 = ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'Firefox/3.') ) ? true : false;
+  if ( $timeout == 0 && ( empty($_POST) || !$is_firefox_3 ) )
   {
     header('Location: ' . $url);
     header('Content-length: 0');
@@ -2288,7 +2289,7 @@ function generate_paginator($current_page, $num_pages, $result_url, $start_mult 
         $list[] = $lower + $i;
       }
     }
-    $url = sprintf($result_url, '0');
+    $url = sprintf($result_url, $start_add);
     $link = ( 0 == $current_page ) ? "<b>" . $lang->get('paginate_btn_first') . "</b>" : "<a href=".'"'."$url".'"'." style='text-decoration: none;'>&laquo; " . $lang->get('paginate_btn_first') . "</a>";
     $blk->assign_vars(array(
       'CLASS'=>$cls,
@@ -2330,7 +2331,7 @@ function generate_paginator($current_page, $num_pages, $result_url, $start_mult 
 
   }
 
-  $inner .= '<td class="row2" style="cursor: pointer;" onclick="paginator_goto(this, '.$current_page.', '.$num_pages.', '.$start_mult.', unescape(\'' . rawurlencode($result_url) . '\'));">&darr;</td>';
+  $inner .= '<td class="row2" style="cursor: pointer;" onclick="paginator_goto(this, '.$current_page.', '.$num_pages.', '.$start_mult.', '.$start_add.', unescape(\'' . rawurlencode($result_url) . '\'));">&darr;</td>';
 
   $paginator = "\n$begin$inner$end\n";
   return $paginator;

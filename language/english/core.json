@@ -781,10 +781,16 @@ var enano_lang = {
       unit_terabytes_short: 'TB',
       unit_pixels: 'pixels',
       unit_pixels_short: 'px',
+      unit_second: 'second',
+      unit_seconds: 'seconds',
       unit_day: 'day',
       unit_days: 'days',
       unit_week: 'week',
-      unit_weeks: 'weeks'
+      unit_weeks: 'weeks',
+      unit_month: 'month',
+      unit_months: 'months',
+      unit_year: 'year',
+      unit_years: 'years',
     }
   }
 };

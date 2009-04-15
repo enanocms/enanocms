@@ -1658,7 +1658,17 @@ class PageUtils {
     $db->free_result($q1);
     $row2 = $db->fetchrow($q2);
     $db->free_result($q2);
-    if(sizeof($row1) < 1 || sizeof($row2) < 2) return 'Couldn\'t find any rows that matched the query. The time ID probably doesn\'t exist in the logs table.';
+    if(sizeof($row1) < 1 || sizeof($row2) < 2)
+    {
+      if ( !$q1 = $db->sql_query('SELECT time_id,page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id = ' . $id1 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: ' . $db->get_error();
+      if ( !$q2 = $db->sql_query('SELECT time_id,page_text,char_tag,author,edit_summary FROM ' . table_prefix.'logs WHERE time_id = ' . $id2 . ' AND log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';')) return 'MySQL error: ' . $db->get_error();
+      $row1 = $db->fetchrow($q1);
+      $db->free_result($q1);
+      $row2 = $db->fetchrow($q2);
+      $db->free_result($q2);
+      if(sizeof($row1) < 1 || sizeof($row2) < 2)
+        return 'Couldn\'t find any rows that matched the query. The time ID probably doesn\'t exist in the logs table.';
+    }
     $text1 = $row1['page_text'];
     $text2 = $row2['page_text'];
     $time1 = enano_date('F d, Y h:i a', $row1['time_id']);

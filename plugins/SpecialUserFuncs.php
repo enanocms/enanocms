@@ -1255,7 +1255,8 @@ function page_Special_Register()
   $template->footer();
 }
 
-function page_Special_Contributions() {
+function page_Special_Contributions()
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   
@@ -1274,158 +1275,8 @@ function page_Special_Contributions() {
     return;
   }
   
-  $user = $db->escape($user);
-  $q = 'SELECT log_type, time_id, action, date_string, page_id, namespace, author, edit_summary, minor_edit, page_id, namespace, ( action = \'edit\' ) AS is_edit FROM '.table_prefix.'logs WHERE author=\''.$user.'\' AND log_type=\'page\' AND is_draft != 1 ORDER BY is_edit DESC, time_id DESC;';
-  $q = $db->sql_query($q);
-  if ( !$q )
-    $db->_die('SpecialUserFuncs selecting contribution data');
-  
-  echo '<h3>' . $lang->get('userfuncs_contribs_heading_edits') . '</h3>';
-  
-  $cnt_edits = 0;
-  $cnt_other = 0;
-  $current = 'cnt_edits';
-  $cls = 'row2';
-  
-  while ( $row = $db->fetchrow($q) )
-  {
-    if ( $current == 'cnt_edits' && $row['is_edit'] != 1 )
-    {
-      // No longer processing page edits - split the table
-      if ( $cnt_edits == 0 )
-      {
-        echo '<p>' . $lang->get('userfuncs_contribs_msg_no_edits') . '</p>';
-      }
-      else
-      {
-        echo '</table></div>';
-        echo '<h3>' . $lang->get('userfuncs_contribs_heading_other') . '</h3>';
-      }
-      $current = 'cnt_other';
-      $cls = 'row2';
-    }
-    if ( $$current == 0 )
-    {
-      echo '<div class="tblholder">
-              <table border="0" cellspacing="1" cellpadding="4">';
-      echo '  <tr>
-                <th>' . $lang->get('history_col_datetime') . '</th>';
-      echo '    <th>' . $lang->get('history_col_page') . '</th>';
-      if ( $current == 'cnt_edits' )
-      {
-        echo '  <th>' . $lang->get('history_col_summary') . '</th>';
-      }
-      echo '    <th>' . $lang->get('history_col_minor') . '</th>';
-      if ( $current == 'cnt_other' )
-      {
-        echo '  <th>' . $lang->get('history_col_action_taken') . '</th>
-                <th>' . $lang->get('history_col_extra') . '</th>
-             ';
-      }
-      echo '    <th>' . $lang->get('history_col_actions') . '</th>
-              </tr>';
-    }
-    $$current++;
-    $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-    
-    echo '<tr>';
-    
-    // date & time
-    echo '  <td class="' . $cls . '">' . enano_date('d M Y h:i a', $row['time_id']) . '</td>';
-    
-    // page & link to said page
-    echo '  <td class="' . $cls . '"><a href="' . makeUrlNS($row['namespace'], $row['page_id']) . '">' . get_page_title_ns($row['page_id'], $row['namespace']) . '</a></td>';
-    
-    switch ( $row['action'] )
-    {
-      case 'edit':
-        if ( $row['edit_summary'] == 'Automatic backup created when logs were purged' )
-        {
-          $row['edit_summary'] = $lang->get('history_summary_clearlogs');
-        }
-        else if ( empty($row['edit_summary']) )
-        {
-          $row['edit_summary'] = '<span style="color: #808080">' . $lang->get('history_summary_none_given') . '</span>';
-        }
-        echo '  <td class="' . $cls . '">' . $row['edit_summary'] . '</td>';
-        if ( $row['minor_edit'] == 1 )
-        {
-          echo '<td class="' . $cls . '"><b>M</b></td>';
-        }
-        else
-        {
-          echo '<td class="' . $cls . '"></td>';
-        }
-        break;
-      case 'prot':
-        echo '  <td class="' . $cls . '"></td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_log_protect') . '</td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
-        break;
-      case 'unprot':
-        echo '  <td class="' . $cls . '"></td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_log_unprotect') . '</td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
-        break;
-      case 'semiprot':
-        echo '  <td class="' . $cls . '"></td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_log_semiprotect') . '</td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
-        break;
-      case 'rename':
-        echo '  <td class="' . $cls . '"></td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_log_rename') . '</td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_oldtitle') . ' ' . htmlspecialchars($row['edit_summary']) . '</td>';
-        break;
-      case 'create':
-        echo '  <td class="' . $cls . '"></td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_log_create') . '</td>';
-        echo '  <td class="' . $cls . '"></td>';
-        break;
-      case 'delete':
-        echo '  <td class="' . $cls . '"></td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_log_delete') . '</td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
-        break;
-      case 'reupload':
-        echo '  <td class="' . $cls . '"></td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_log_uploadnew') . '</td>';
-        echo '  <td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $row['edit_summary'] . '</td>';
-        break;
-    }
-    
-    // actions column
-    echo '    <td class="' . $cls . '" style="text-align: center;">';
-    if ( $row['is_edit'] == 1 )
-    {
-      echo '    <a href="' . makeUrlNS($row['namespace'], $row['page_id'], "oldid={$row['time_id']}", true) . '">' . $lang->get('history_action_view') . '</a> | ';
-      echo '      <a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=rollback&id={$row['time_id']}", true) . '">' . $lang->get('history_action_restore') . '</a>';
-    }
-    else
-    {
-      echo '      <a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=rollback&id={$row['time_id']}", true) . '">' . $lang->get('history_action_revert') . '</a>';
-    }
-    echo '    </td>';
-    
-    if ( $current == 'cnt_other' && $cnt_edits + $cnt_other >= $db->numrows($q) )
-    {
-      echo '</table></div>';
-    }
-  }
-  
-  if ( $current == 'cnt_edits' )
-  {
-    // no "other" edits, close the table
-    if ( $cnt_edits > 0 )
-      echo '</table></div>';
-    else
-      echo '<p>' . $lang->get('userfuncs_contribs_msg_no_edits') . '</p>';
-    echo '<h3>' . $lang->get('userfuncs_contribs_heading_other') . '</h3>';
-    echo '<p>' . $lang->get('userfuncs_contribs_msg_no_other') . '</p>';
-  }
-  
-  $db->free_result();
-  $template->footer();
+  $url = makeUrlNS("Special", "Log/user={$user}");
+  redirect($url, '', '', 0);
 }
 
 function page_Special_ChangeStyle()
