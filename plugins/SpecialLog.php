@@ -82,10 +82,10 @@ function page_Special_Log()
       redirect($url, '', '', 0);
     }
     $params = explode('/', $params);
-    foreach ( $params as $param )
+    foreach ( $params as $i => $param )
     {
       $param = str_replace('.2f', '/', dirtify_page_id($param));
-      if ( preg_match('/^([a-z!]+)=(.+?)$/', $param, $match) )
+      if ( preg_match('/^([a-z]+)!?=(.+?)$/', $param, $match) )
       {
         $name =& $match[1];
         $value =& $match[2];
@@ -108,6 +108,22 @@ function page_Special_Log()
             }
             break;
           case 'page':
+            // tolerate slashes
+            $j = $i;
+            while ( true )
+            {
+              if ( isset($params[++$j]) )
+              {
+                if ( preg_match('/^([a-z]+)!?=(.+?)$/', $params[$j]) )
+                  break;
+                
+                $value .= '/' . $params[$j];
+              }
+              else
+              {
+                break;
+              }
+            }
             if ( get_class($perms) == 'sessionManager' )
             {
               unset($perms);
