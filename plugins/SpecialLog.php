@@ -40,7 +40,8 @@ function page_Special_Log()
   global $output;
   
   // FIXME: This doesn't currently prohibit viewing of aggregate logs that might include a page for which
-  // 
+  // we don't have permission to view history. It does, however, block access if a list of pages is given
+  // and one of those doesn't allow history_view.
   
   // FIXME: This is a real hack. We're trying to get permissions on a random non-existent article, which
   // effectively forces calculation to occur based on site-wide permissions.
