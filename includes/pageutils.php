@@ -515,6 +515,7 @@ class PageUtils {
         elseif($r['action']=='create')   echo $lang->get('history_log_create') . '</td><td class="' . $cls . '">';
         elseif($r['action']=='delete')   echo $lang->get('history_log_delete') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . $r['edit_summary'];
         elseif($r['action']=='reupload') echo $lang->get('history_log_uploadnew') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_reason') . ' ' . ( $r['edit_summary'] === '__ROLLBACK__' ? $lang->get('history_extra_upload_reversion') : htmlspecialchars($r['edit_summary']) );
+        elseif($r['action']=='votereset')echo $lang->get('history_log_votereset') . '</td><td class="' . $cls . '">' . $lang->get('history_extra_numvotes') . ' ' . $r['edit_summary'];
         echo '</td>';
         
         // Actions!
@@ -1312,11 +1313,36 @@ class PageUtils {
     global $lang;
     global $cache;
     
-    if(!$session->get_permissions('vote_reset'))
+    if ( !$session->get_permissions('vote_reset') )
     {
       return $lang->get('etc_access_denied');
     }
-    $q = 'UPDATE ' . table_prefix.'pages SET delvotes=0,delvote_ips=\'' . $db->escape(serialize(array('ip'=>array(),'u'=>array()))) . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'';
+    
+    $page_id = $db->escape($page_id);
+    $namespace = $db->escape($namespace);
+    
+    // pull existing info
+    $q = $db->sql_query('SELECT delvotes, delvote_ips FROM ' . table_prefix . "pages WHERE urlname = '$page_id' AND namespace = '$namespace'");
+    if ( !$q )
+      $db->_die();
+    if ( $db->numrows() < 1 )
+      return $lang->get('page_err_page_not_exist');
+    
+    list($delvotes, $delvote_ips) = $db->fetchrow_num();
+    $db->free_result();
+    $delvote_ips = $db->escape($delvote_ips);
+    $username = $db->escape($session->username);
+    
+    // log action
+    $time = time();
+    $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs (time_id, log_type, action, edit_summary, page_text, author, page_id, namespace) VALUES\n"
+                      . "  ( $time, 'page', 'votereset', '$delvotes', '$delvote_ips', '$username', '$page_id', '$namespace' )");
+    if ( !$q )
+      $db->_die();
+    
+    // reset votes
+    $empty_vote_record = $db->escape(serialize(array('ip'=>array(),'u'=>array())));
+    $q = 'UPDATE ' . table_prefix.'pages SET delvotes=0,delvote_ips=\'' . $empty_vote_record . '\' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'';
     $e = $db->sql_query($q);
     if ( !$e )
     {
@@ -1541,6 +1567,8 @@ class PageUtils {
   public static function setwikimode($page_id, $namespace, $level)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $cache;
+    
     if(!$session->get_permissions('set_wiki_mode')) return('Insufficient access rights');
     if ( !isset($level) || ( isset($level) && !preg_match('#^([0-2]){1}$#', (string)$level) ) )
     {
@@ -1551,6 +1579,8 @@ class PageUtils {
     {
       return('Error during update query: '.$db->get_error()."\n\nSQL Backtrace:\n".$db->sql_backtrace());
     }
+    
+    $cache->purge('page_meta');
     return('GOOD');
   }
   

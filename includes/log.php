@@ -405,6 +405,9 @@ class LogDisplay
         case 'create':
           $html .= $lang->get('log_action_create');
           break;
+        case 'votereset':
+          $html .= $lang->get('log_action_votereset', array('num_votes' => $row['edit_summary'], 'plural' => ( intval($row['edit_summary']) == 1 ? '' : $lang->get('meta_plural'))));
+          break;
         case 'prot':
         case 'unprot':
         case 'semiprot':

@@ -128,6 +128,7 @@ var enano_lang = {
       err_rb_action_not_supported: 'Rolling back actions of type "%action%" isn\'t supported.',
       err_rb_file_rename_failed: 'Could not rename the file to its new name (1.1.x format)',
       err_protection_already_there: 'The protection level you selected is already in effect for this page.',
+      err_page_not_exist: 'The page you tried to perform this action on does not exist.',
       
       msg_this_is_a_redirector: '<b>This page is a <i>redirector</i>.</b><br />
                     This means that this page will not show its own content by default. Instead it will display the contents of the page it redirects to.<br /><br />
@@ -139,11 +140,13 @@ var enano_lang = {
       msg_rb_success_rename: 'The page has been restored the name it had on %dateline%.',
       // next 3 are mostly identical
       msg_rb_success_prot: 'The page\'s protection has been undone and replaced with the previous level it had as of %dateline%.',
-      msg_rb_success_unprot: 'The page\'s protection has been undone and replaced with the previous level it had as of %dateline%.',
+      msg_rb_success_unprot: 'The page\'s unprotection has been undone and replaced with the previous level it had as of %dateline%.',
       msg_rb_success_semiprot: 'The page\'s semi-protection has been undone and replaced with the previous level it had as of %dateline%.',
       
       msg_rb_success_delete: 'The deletion of this page, which occurred on %dateline%, has been undone. This page has been restored, but comments and categorization data may have been lost.',
       msg_rb_success_reupload: 'The file has been restored to the version uploaded on %dateline%.',
+      
+      msg_rb_success_votereset: 'The votes for deletion of this page as of %dateline% have been restored and merged with any existing votes.',
       
       msg_passrequired_title: 'Password required',
       msg_passrequired: 'Access to this page requires a password. Please enter the password for this page below:',
@@ -428,6 +431,7 @@ var enano_lang = {
       extra_oldtitle: 'Old title:',
       extra_protection_reversion: '(Reversion of previous protection)',
       extra_upload_reversion: '(Restoration of previous upload)',
+      extra_numvotes: 'Number of votes:',
       tip_rdns: 'Click cell background for reverse DNS info',
       action_view: 'View',
       action_contrib: 'User contribs',
@@ -440,6 +444,7 @@ var enano_lang = {
       log_create: 'Created page',
       log_delete: 'Deleted page',
       log_uploadnew: 'Uploaded new file version',
+      log_votereset: 'Reset deletion votes',
       lbl_comparingrevisions: 'Comparing revisions:',
       summary_none_given: 'No edit summary provided.',
       err_wrong_password: 'Please enter the password for this page before viewing its history.'

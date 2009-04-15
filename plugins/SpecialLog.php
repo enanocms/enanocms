@@ -239,6 +239,8 @@ function page_Special_Log()
               <option value="delete"><?php echo $lang->get('log_formaction_delete'); ?></option>
               <option value="protect"><?php echo $lang->get('log_action_protect'); ?></option>
               <option value="edit"><?php echo $lang->get('log_action_edit'); ?></option>
+              <option value="edit"><?php echo $lang->get('log_formaction_reupload'); ?></option>
+              <option value="edit"><?php echo $lang->get('log_formaction_votereset'); ?></option>
             </select>
           </div>
         </td>
@@ -318,7 +320,8 @@ function speciallog_generate_breadcrumbs($criteria)
         $crumb = $lang->get('log_breadcrumb_page', array('page' => '<a href="' . makeUrl($value, false, true) . '">' . htmlspecialchars(get_page_title($value)) . '</a>'));
         break;
       case 'action':
-        $crumb = $lang->get('log_breadcrumb_action', array('action' => htmlspecialchars($lang->get("log_action_{$value}"))));
+        $action = ( $lang->get("log_formaction_{$value}") === "log_formaction_{$value}" ) ? $lang->get("log_action_{$value}") : $lang->get("log_formaction_{$value}");
+        $crumb = $lang->get('log_breadcrumb_action', array('action' => htmlspecialchars($action)));
         break;
       case 'within':
         $value = intval($value);

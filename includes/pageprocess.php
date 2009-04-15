@@ -754,6 +754,44 @@ class PageProcessor
           );
         
         break;
+      case 'votereset':
+        if ( !$this->perms->get_permissions('history_rollback_extra') )
+          return 'Denied!';
+        
+        // pull existing vote data
+        $q = $db->sql_query('SELECT delvotes, delvote_ips FROM ' . table_prefix . "pages WHERE urlname = '$this->page_id' AND namespace = '$this->namespace';");
+        if ( !$q )
+          $db->_die();
+        
+        if ( $db->numrows() < 1 )
+          return array(
+              'success' => false,
+              'error' => 'page_not_exist',
+              'action' => $log_entry['action']
+            );
+          
+        list($curr_delvotes, $curr_delvote_ips) = $db->fetchrow_num();
+        $db->free_result();
+        
+        // merge with existing votes
+        $old_delvote_ips = unserialize($log_entry['page_text']);
+        $new_delvote_ips = unserialize($curr_delvote_ips);
+        $new_delvote_ips['u'] = array_unique(array_merge($new_delvote_ips['u'], $old_delvote_ips['u']));
+        $new_delvote_ips['ip'] = array_unique(array_merge($new_delvote_ips['ip'], $old_delvote_ips['ip']));
+        $new_delvotes = count($new_delvote_ips['ip']);
+        $new_delvote_ips = $db->escape(serialize($new_delvote_ips));
+        
+        // update pages table
+        $q = $db->sql_query('UPDATE ' . table_prefix . "pages SET delvotes = $new_delvotes, delvote_ips = '$new_delvote_ips' WHERE urlname = '$this->page_id' AND namespace = '$this->namespace';");
+        
+        $cache->purge('page_meta');
+        
+        return array(
+            'success' => true,
+            'dateline' => $dateline,
+            'action' => $log_entry['action']
+          );
+        break;
       default:
         
         return array(

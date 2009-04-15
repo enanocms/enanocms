@@ -158,6 +158,7 @@ var enano_lang = {
       action_protect_semi: 'Semiprotected page (%reason%)',
       action_protect_full: 'Protected page (%reason%)',
       action_reupload: 'Uploaded new revision: %reason%',
+      action_votereset: 'Reset deletion votes (had %num_votes% vote%plural%)',
       action_protect: 'Protect and unprotect',
       action_edit: 'Edit',
       
@@ -179,6 +180,8 @@ var enano_lang = {
       formaction_rename: 'Rename',
       formaction_create: 'Create page',
       formaction_delete: 'Delete page',
+      formaction_reupload: 'File reupload',
+      formaction_votereset: 'Reset of deletion votes',
       
       heading_addfilter: 'Add a filter',
       heading_logdisplay: 'Log filter results',
