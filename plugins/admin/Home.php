@@ -209,6 +209,8 @@ function acphome_show_stats()
   $db->free_result();
   
   $days_installed = round( (time() / 86400) - ($install_date / 86400) );
+  if ( $days_installed < 1 )
+    $days_installed = 1;
   
   // Comments
   $q = $db->sql_query('SELECT COUNT(*) FROM ' . table_prefix . "comments");
