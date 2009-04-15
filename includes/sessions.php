@@ -1424,7 +1424,6 @@ class sessionManager {
     $lang = new Language($language);
     @setlocale(LC_ALL, $lang->lang_code);
     
-    $this->logout();
     $a = getConfig('account_activation');
     switch($a)
     {

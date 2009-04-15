@@ -3170,6 +3170,11 @@ class template_nodb
     else
       $this->tpl_strings = $vars;
   }
+  
+  function get_theme_hook()
+  {
+    return '';
+  }
    
 } // class template_nodb
 

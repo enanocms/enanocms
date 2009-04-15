@@ -427,6 +427,14 @@ class pathManager
   function sysmsg($n)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // sometimes this gets called during die_semicritical()...
+    if ( !is_object($db) )
+      return false;
+    
+    if ( !@$db->_conn )
+      return false;
+    
     $q = $db->sql_query('SELECT page_text, char_tag FROM '.table_prefix.'page_text WHERE page_id=\''.$db->escape(sanitize_page_id($n)).'\' AND namespace=\'System\'');
     if( !$q )
     {

@@ -2618,6 +2618,35 @@ function commatize($num)
 }
 
 /**
+ * Converts a number to a human file size.
+ * @param int File size
+ * @return string
+ */
+
+function humanize_filesize($size)
+{
+  global $lang;
+  
+  if ( $size > ( 1099511627776 * 0.9 ) )
+  {
+    return number_format($size / 1099511627776, 1) . $lang->get('etc_unit_terabytes_short');
+  }
+  if ( $size > ( 1073741824 * 0.9 ) )
+  {
+    return number_format($size / 1073741824, 1) . $lang->get('etc_unit_gigabytes_short');
+  }
+  if ( $size > ( 1048576 * 0.9 ) )
+  {
+    return number_format($size / 1048576, 1) . $lang->get('etc_unit_megabytes_short');
+  }
+  if ( $size > ( 1024 * 0.9 ) )
+  {
+    return number_format($size / 1024, 1) . $lang->get('etc_unit_kilobytes_short');
+  }
+  return "$size " . $lang->get('etc_unit_bytes');
+}
+
+/**
  * Injects a string into another string at the specified position.
  * @param string The haystack
  * @param string The needle

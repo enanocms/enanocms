@@ -73,6 +73,7 @@ function SpecialAdmin_include()
   list($pid, $ns) = RenderMan::strToPageID($paths->get_pageid_from_url());
   if ( $ns == 'Admin' || ( $pid == 'Administration' && $ns == 'Special' ) )
   {
+    require(ENANO_ROOT . '/plugins/admin/Home.php');
     require(ENANO_ROOT . '/plugins/admin/PageManager.php');
     require(ENANO_ROOT . '/plugins/admin/PageEditor.php');
     require(ENANO_ROOT . '/plugins/admin/PageGroups.php');
@@ -95,139 +96,6 @@ function acp_start_form()
 }
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
-
-function page_Admin_Home() {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  if ( $paths->getParam(0) == 'updates.xml' )
-  {
-    require_once(ENANO_ROOT . '/includes/http.php');
-    $req = new Request_HTTP('ktulu.enanocms.org', '/meta/updates.xml');
-    $response = $req->get_response_body();
-    header('Content-type: application/xml');
-    if ( $req->response_code != HTTP_OK )
-    {
-      // Error in response
-      echo '<enano><latest><error><![CDATA[
-Did not properly receive response from server. Response code: ' . $req->response_code . ' ' . $req->response_string . '
-]]></error></latest></enano>';
-    }
-    else
-    {
-      // Retrieve first update
-      $first_update = preg_match('/<release tag="([^"]+)" version="([^"]+)" (codename="([^"]+)" )?relnotes="([^"]+)" ?\/>/', $response, $match);
-      if ( !$first_update )
-      {
-        echo '<enano><latest><error><![CDATA[
-Received invalid XML response.
-]]></error></latest></enano>';
-      }
-      else
-      {
-        if ( version_compare(enano_version(true), $match[2], '<') )
-        {
-          $response = str_replace_once('</latest>', "  <haveupdates />\n  </latest>", $response);
-        }
-        echo $response;
-      }
-    }
-    return;
-  }
-  
-  // Basic information
-  echo '<h2>' . $lang->get('acphome_heading_main') . '</h2>';
-  echo '<p>' . $lang->get('acphome_welcome_line1') . '</p>';
-  echo '<p>' . $lang->get('acphome_welcome_line2') . '</p>';
-  
-  // Demo mode
-  if ( defined('ENANO_DEMO_MODE') )
-  {
-    echo '<h3>' . $lang->get('acphome_msg_demo_title') . '</h3>
-          <p>' . $lang->get('acphome_msg_demo_body', array('reset_url' => makeUrlNS('Special', 'DemoReset', false, true))) . '</p>';
-  }
-  
-  // Check for the installer scripts
-  if( file_exists(ENANO_ROOT.'/install/install.php') && !defined('ENANO_DEMO_MODE') )
-  {
-    echo '<div class="error-box">
-            ' . $lang->get('acphome_msg_install_files') . '
-          </div>';
-  }
-  
-  echo '<h3>' . $lang->get('acphome_heading_updates') . '</h3>';
-  echo '<p>' . $lang->get('acphome_msg_updates_info', array('updates_url' => 'http://ktulu.enanocms.org/meta/updates.xml')) . '</p>';
-  echo '<div id="update_check_container"><input type="button" onclick="ajaxUpdateCheck(this.parentNode.id);" value="' . $lang->get('acphome_btn_check_updates') . '" /></div>';
-  
-  // Inactive users
-  $q = $db->sql_query('SELECT time_id FROM '.table_prefix.'logs WHERE log_type=\'admin\' AND action=\'activ_req\';');
-  if ( $q )
-  {
-    if ( $db->numrows() > 0 )
-    {
-      $n = $db->numrows();
-      $um_flags = 'href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'UserManager\'); return false;"';
-      if ( $n == 1 )
-        $s = $lang->get('acphome_msg_inactive_users_one', array('um_flags' => $um_flags));
-      else
-        $s = $lang->get('acphome_msg_inactive_users_plural', array('um_flags' => $um_flags));
-      echo '<div class="warning-box">
-              ' . $s . '
-            </div>';
-    }
-  }
-  $db->free_result();
-  // Stats
-  if(getConfig('log_hits') == '1')
-  {
-    require_once(ENANO_ROOT . '/includes/stats.php');
-    $stats = stats_top_pages(10);
-    //die('<pre>'.print_r($stats,true).'</pre>');
-    $c = 0;
-    $cls = 'row2';
-    echo '<h3>' . $lang->get('acphome_heading_top_pages') . '</h3>
-          <div class="tblholder">
-            <table style="width: 100%;" border="0" cellspacing="1" cellpadding="4">
-              <tr>
-                <th>' . $lang->get('acphome_th_toppages_page') . '</th>
-                <th>' . $lang->get('acphome_th_toppages_hits') . '</th>
-              </tr>';
-    foreach($stats as $data)
-    {
-      echo   '<tr>';
-      $cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
-      echo     '<td class="'.$cls.'">
-                  <a href="'.makeUrl($data['page_urlname']).'">'.$data['page_title'].'</a></td><td style="text-align: center;" class="'.$cls.'">'.$data['num_hits']
-             . '</td>';
-      echo   '</tr>';
-    }
-    echo '  </table>
-          </div>';
-  }
-  
-  // Any hooks?
-  $code = $plugins->setHook('acp_home');
-  foreach ( $code as $cmd )
-  {
-    eval($cmd);
-  }
-  
-  // Security log
-  echo '<h3>' . $lang->get('acphome_heading_seclog') . '</h3>';
-  echo '<p>' . $lang->get('acphome_msg_seclog_info') . '</p>';
-  $seclog = get_security_log(5);
-  echo $seclog;
-  
-  echo '<p><a href="#" onclick="ajaxPage(\''.$paths->nslist['Admin'].'SecurityLog\'); return false;">' . $lang->get('acphome_btn_seclog_full') . '</a></p>';
-  
-}
 
 function page_Admin_GeneralConfig() {
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -390,21 +258,7 @@ function page_Admin_GeneralConfig() {
       setConfig('gravatar_rating', $_POST['gravatar_rating']);
     }
     
-    if ( is_dir(ENANO_ROOT . '/' . $_POST['avatar_directory']) )
-    {
-      if ( preg_match('/^[A-z0-9_-]+(?:\/(?:[A-z0-9_-]+))*\/?$/', $_POST['avatar_directory']) )
-      {
-        setConfig('avatar_directory', $_POST['avatar_directory']);
-      }
-      else
-      {
-        echo '<div class="error-box">' . $lang->get('acpgc_err_avatar_dir_invalid') . '</div>';
-      }
-    }
-    else
-    {
-      echo '<div class="error-box">' . $lang->get('acpgc_err_avatar_dir_not_exist') . '</div>';
-    }
+    setConfig('avatar_directory', 'files/avatars');
     
     setConfig('userpage_grant_acl', ( isset($_POST['userpage_grant_acl']) ? '1' : '0' ));
     
@@ -1025,16 +879,6 @@ function page_Admin_GeneralConfig() {
             
             <?php endforeach; ?>
           </fieldset>
-        </td>
-      </tr>
-      
-      <tr>
-        <td class="row2">
-          <?php echo $lang->get('acpgc_field_avatar_directory'); ?><br />
-          <small><?php echo $lang->get('acpgc_field_avatar_directory_hint'); ?></small>
-        </td>
-        <td class="row2">
-          <input type="text" name="avatar_directory" size="30" <?php if ( $x = getConfig('avatar_directory') ) echo "value=\"$x\" "; else echo "value=\"files/avatars\" "; ?>/>
         </td>
       </tr>
       

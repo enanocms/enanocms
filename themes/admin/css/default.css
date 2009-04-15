@@ -199,3 +199,62 @@ input:disabled, input[disabled ^="disabled"], button:disabled, button[disabled ^
   color: #888;
 }
 
+/* ACP home elements */
+
+div.acphome-box {
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  padding: 14px 11px;
+  margin: 4px;
+}
+
+div.acphome-box.halfwidth {
+  padding: 1.5%;
+  margin: 4px 0.5%;
+  float: left;
+  width: 46%;
+}
+
+div.acphome-box h3 {
+  text-decoration: underline;
+  margin: 0 0 10px 0;
+}
+
+div.acphome-box p {
+  margin: 0 0 10px 0;
+}
+
+div.acphome-box.warning {
+  background-color: #900000;
+  color: #fff;
+  text-align: center;
+  font-weight: bold;
+}
+
+div.acphome-box.info {
+  background-color: #f2f4fe;
+  color: #202020;
+}
+
+div.acphome-box.notice {
+  background-color: #009000;
+  color: #fff;
+}
+
+div.acphome-box.warning a:link, div.acphome-box.notice a:link {
+  color: #eee;
+}
+
+div.acphome-box.warning a:hover, div.acphome-box.notice a:hover {
+  color: #fff !important;
+}
+
+th.systemversion a {
+  font-weight: normal;
+  color: #fff !important;
+}
+
+th.systemversion a:hover {
+  font-weight: normal;
+  color: #ff0 !important;
+}
