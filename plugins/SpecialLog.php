@@ -274,7 +274,7 @@ function page_Special_Log()
     
     echo $paginator;
     // padding
-    echo '<div style="height: 10px;"></div>';
+    echo '<div style="height: 10px; clear: both;"></div>';
     foreach ( $dataset as $row )
     {
       echo LogDisplay::render_row($row) . '<br />';
