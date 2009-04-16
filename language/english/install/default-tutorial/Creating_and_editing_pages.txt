@@ -1,0 +1,7 @@
+OK, I lied. The beta doesn't have a tutorial.
+
+=== Oh noes! What am I to do? ===
+
+For now, use the [http://enanocms.org/download?series=1.0 stable releases] of Enano if you don't feel comfortable. Also read the [http://docs.enanocms.org/ documentation] - it won't give you a tutorial ''per se'', but it will explain how to run an Enano website. If you're stuck, try our [http://forum.enanocms.org/ support forums] or see [http://enanocms.org/Support other support options].
+
+<div class="error-box">Remember that this is a beta release of Enano. We don't provide official support for problems, but we will fix bugs and take suggestions. Take this into account when you post for help - it will make getting an answer more likely!</div>
