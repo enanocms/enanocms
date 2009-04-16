@@ -145,15 +145,23 @@ if ( !$req_bcmath && !$req_bigint && !$req_gmp )
 
 ?>
 
-<form action="install.php?stage=database" method="post">
-<?php
-  echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
-?>
-    
+<div style="float: right; padding-top: 10px;">
+  <form action="install.php?stage=sysreqs" method="post">
+  <?php
+    echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
+  ?>
+  <button style="display: block; padding-bottom: 3px;">
+  <img alt=" " src="images/recheck.png" style="position: relative; top: 3px; left: -2px;" />
+    <?php echo $lang->get('sysreqs_btn_refresh'); ?>
+  </button>
+  </form>
+</div>
 
 <h3><?php echo $lang->get('sysreqs_heading'); ?></h3>
  <p><?php echo $lang->get('sysreqs_blurb'); ?></p>
  
+<span class="menuclear"></span>
+
 <?php
 if ( !empty($warnings) ):
 ?>
@@ -195,6 +203,11 @@ if ( $failed ):
   </div>
 <?php
 endif;        
+?>
+
+<form action="install.php?stage=database" method="post">
+<?php
+  echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
 ?>
  
 <table border="0" cellspacing="0" cellpadding="0" class="sysreqs">

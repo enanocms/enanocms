@@ -66,6 +66,7 @@ var enano_lang_install = {
       modetitle_long: 'Server requirements',
       heading: 'Checking your server',
       blurb: 'Enano has several requirements that must be met before it can be installed. If all is good then note any warnings and click Continue below.',
+      btn_refresh: 'Recheck server',
       
       req_supported: 'Supported',
       req_notfound: 'Not found',
