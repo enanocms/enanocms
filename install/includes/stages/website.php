@@ -225,6 +225,41 @@ $ui->show_header();
     </tr>
     
     <tr>
+      <td>
+        <b><?php echo $lang->get('website_field_startwith'); ?></b>
+      </td>
+      <td>
+      
+        <table border="0">
+          <tr>
+            <td>
+      
+              <label>
+                <input type="radio" name="default_content_type" value="blank" checked="checked" tabindex="4" />
+                <?php echo $lang->get('website_field_startwith_blank'); ?>
+              </label>
+              <span class="fieldtip" id="hint_default_content_type_blank">
+                <p><?php echo $lang->get('website_field_startwith_blank_hint'); ?></p>
+              </span>
+              
+              <br />
+              
+              <label>
+                <input type="radio" name="default_content_type" value="tutorial" tabindex="4" />
+                <?php echo $lang->get('website_field_startwith_tutorial'); ?>
+              </label>
+              <span class="fieldtip" id="hint_default_content_type_tutorial">
+                <p><?php echo $lang->get('website_field_startwith_tutorial_hint'); ?></p>
+              </span>
+              
+            </td>
+          </tr>
+        </table>
+        
+      </td>
+    </tr>
+    
+    <tr>
       <td valign="top">
         <b><?php echo $lang->get('website_field_urlscheme'); ?></b><br />
         <?php echo $lang->get('website_field_urlscheme_hint'); ?>
@@ -234,7 +269,7 @@ $ui->show_header();
         <table border="0" cellpadding="10" cellspacing="0">
           <tr>
             <td valign="top">
-              <input type="radio" name="url_scheme" value="standard" id="url_radio_standard" tabindex="5" />
+              <input type="radio" name="url_scheme" value="standard" id="url_radio_standard" tabindex="6" />
             </td>
             <td>
               <label for="url_radio_standard">
@@ -251,7 +286,7 @@ $ui->show_header();
         <table border="0" cellpadding="10" cellspacing="0">
           <tr>
             <td valign="top">
-              <input type="radio" checked="checked" name="url_scheme" value="shortened" id="url_radio_shortened" tabindex="5" />
+              <input type="radio" checked="checked" name="url_scheme" value="shortened" id="url_radio_shortened" tabindex="6" />
             </td>
             <td>
               <label for="url_radio_shortened">
@@ -268,7 +303,7 @@ $ui->show_header();
         <table border="0" cellpadding="10" cellspacing="0">
           <tr>
             <td valign="top">
-              <input type="radio" name="url_scheme" value="rewrite" id="url_radio_rewrite" tabindex="5" />
+              <input type="radio" name="url_scheme" value="rewrite" id="url_radio_rewrite" tabindex="6" />
             </td>
             <td>
               <label for="url_radio_rewrite">
@@ -285,7 +320,7 @@ $ui->show_header();
         <table border="0" cellpadding="10" cellspacing="0">
           <tr>
             <td valign="top">
-              <input type="radio" name="url_scheme" value="tiny" id="url_radio_tiny" tabindex="5" />
+              <input type="radio" name="url_scheme" value="tiny" id="url_radio_tiny" tabindex="6" />
             </td>
             <td>
               <label for="url_radio_tiny">
@@ -300,7 +335,7 @@ $ui->show_header();
         </table>
         
         <p>
-          <a href="#mrw_scan" onclick="ajaxMrwTest(); return false;" tabindex="4"><?php echo $lang->get('website_btn_urlscheme_detect'); ?></a>
+          <a href="#mrw_scan" onclick="ajaxMrwTest(); return false;" tabindex="5"><?php echo $lang->get('website_btn_urlscheme_detect'); ?></a>
         </p>
         
         <div id="mrw_report"></div>
@@ -311,7 +346,7 @@ $ui->show_header();
   </table>
   
   <div style="text-align: center;">
-    <input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" tabindex="6" />
+    <input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" tabindex="7" />
   </div>
   
 </form>

@@ -262,6 +262,11 @@ var enano_lang_install = {
       field_desc_hint: 'Here you should enter a very short description of your site. Sometimes this is a slogan or, depending on the theme you\'ve chosen, a set of keywords that can go into a META description tag.',
       field_copyright: 'Copyright info',
       field_copyright_hint: 'The text you enter here will be shown at the bottom of most pages. Typically this is where a copyright notice would go. Keep it short and sweet; you can use <a href="http://docs.enanocms.org/Help:3.1">internal links</a> to link to project pages you\'ll create later.',
+      field_startwith: 'Start with:',
+      field_startwith_blank: 'A blank site with only a main page',
+      field_startwith_blank_hint: 'This is best if you\'ve worked with Enano or other wiki software before and for production installations. It installs one page which you can edit to immediately get started on your site.',
+      field_startwith_tutorial: 'The Enano tutorial suite',
+      field_startwith_tutorial_hint: 'This option installs several tutorial pages that help you to get started quickly if you\'re new to Enano.',
       field_urlscheme: 'URL formatting',
       field_urlscheme_hint: 'This lets you choose how URLs within your site will be formatted. If the setting you pick doesn\'t work, you can change it by editing config.php after installation.',
       field_urlscheme_lbl_example: 'Example:',
@@ -334,6 +339,8 @@ var enano_lang_install = {
       stg_startapi_body: 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.',
       stg_importlang_title: 'Import default language',
       stg_importlang_body: 'Enano couldn\'t import the English language file.',
+      stg_importcontent_title: 'Import default content',
+      stg_importcontent_body: 'Enano couldn\'t import the default site content.',
       stg_initlogs_title: 'Initialize logs',
       stg_initlogs_body: '<b>The session manager denied the request to flush logs for the main page.</b><br />
                            While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
@@ -482,6 +489,7 @@ var enano_lang_install = {
       msg_writing_config: '<c 1>Generating config file...</c>',
       msg_starting_api: '<c 1>Starting up the Enano API...</c>',
       msg_importing_language: '<c 1>Importing default language...</c>',
+      msg_importing_content: '<c 1>Installing default content...</c>',
       msg_initting_logs: '<c 1>Initializing logs...</c>',
       msg_cleaning_up: '<c 1>Removing temporary data...</c>',
       msg_initting_index: '<c 1>Initializing search index...</c>',

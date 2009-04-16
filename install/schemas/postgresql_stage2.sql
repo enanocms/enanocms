@@ -365,15 +365,6 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('theme_default', 'enanium'),
   ('enano_version', '{{VERSION}}');
 
-INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
-  ('Main_Page', 'Article', '{{MAIN_PAGE_CONTENT}}', '');
-  
-INSERT INTO {{TABLE_PREFIX}}logs(time_id, date_string, log_type, action, page_id, namespace, author, page_text) VALUES
-  ({{UNIX_TIME}}, 'DEPRECATED', 'page', 'edit', 'Main_Page', 'Article', '{{ADMIN_USER}}', '{{MAIN_PAGE_CONTENT}}');
-
-INSERT INTO {{TABLE_PREFIX}}pages(page_order, name, urlname, namespace, special, visible, comments_on, protected, delvotes, delvote_ips) VALUES
-  (NULL, 'Main Page', 'Main_Page', 'Article', 0, 1, 1, 1, 0, '');
-
 INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_style, enabled) VALUES
   ('enanium', 'Enanium', 1, 'babygrand.css', 1),
   ('oxygen', 'Oxygen', 2, 'bleu.css', 1),

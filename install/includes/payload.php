@@ -115,18 +115,6 @@ function stg_load_schema()
     return false;
   }
   
-  $wkt = ENANO_ROOT . "/language/{$languages[$lang_id]['dir']}/install/mainpage-default.wkt";
-  if ( !file_exists( $wkt ) )
-  {
-    echo '<div class="error-box">Error: could not locate wikitext for main page (' . $wkt . ')</div>';
-    return false;
-  }
-  $wkt = @file_get_contents($wkt);
-  if ( empty($wkt) )
-    return false;
-  
-  $wkt = $db->escape($wkt);
-  
   $vars = array(
       'TABLE_PREFIX'         => table_prefix,
       'SITE_NAME'            => $db->escape($_POST['site_name']),
@@ -143,7 +131,6 @@ function stg_load_schema()
       'REAL_NAME'            => '', // This has always been stubbed.
       'ADMIN_EMBED_PHP'      => strval(AUTH_DISALLOW),
       'UNIX_TIME'            => strval(time()),
-      'MAIN_PAGE_CONTENT'    => $wkt,
       'IP_ADDRESS'           => $db->escape($_SERVER['REMOTE_ADDR'])
     );
   
@@ -342,6 +329,93 @@ function stg_language_setup()
   list($lang_id_int) = $db->fetchrow_num();
   $db->free_result();
   setConfig('default_language', $lang_id_int);
+  
+  return true;
+}
+
+function stg_add_content()
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $cache;
+  
+  global $languages;
+  global $lang_id;
+  $lang_info =& $languages[$lang_id];
+  if ( !is_array($lang_info) )
+    return false;
+  
+  if ( $_POST['default_content_type'] === 'tutorial' )
+  {
+    $dir = ENANO_ROOT . "/language/{$lang_info['dir']}/install/default-tutorial";
+  }
+  else
+  {
+    $dir = ENANO_ROOT . "/language/{$lang_info['dir']}/install/default-blank";
+  }
+  
+  if ( !$dr = @opendir($dir) )
+    return false;
+  
+  while ( $dh = @readdir($dr) )
+  {
+    if ( !preg_match('/\.txt$/', $dh) )
+      continue;
+    
+    $page_contents = @file_get_contents("$dir/$dh");
+    if ( empty($page_contents) )
+      return false;
+    
+    $page_name = preg_replace('/\.txt$/', '', $dh);
+    
+    if ( !install_primitive_page_creator($page_name, 'Article', $page_contents) )
+      return false;
+  }
+  
+  closedir($dr);
+  
+  $cache->purge('page_meta');
+  
+  return true;
+}
+
+function install_primitive_page_creator($page_id, $namespace, $content)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  $page_title = $db->escape(str_replace('_', ' ', dirtify_page_id($page_id)));
+  $author = $db->escape($_POST['username']);
+  $page_id = $db->escape($page_id);
+  $namespace = $db->escape($namespace);
+  // yes, we do probably want strip_all_php ON.
+  $content = RenderMan::preprocess_text($content, true, true);
+  $now = time();
+  
+  // query 1: logs
+  $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs(time_id, date_string, log_type, action, page_id, namespace, author, page_text) VALUES\n"
+                    . "  ( $now, 'DEPRECATED', 'page', 'edit', '$page_id', '$namespace', '$author', '$content');");
+  if ( !$q )
+  {
+    echo $db->get_error();
+    return false;
+  }
+  
+  // query 2: page_text
+  $q = $db->sql_query('INSERT INTO ' . table_prefix . "page_text(page_id, namespace, page_text) VALUES\n"
+                    . "  ( '$page_id', '$namespace', '$content');");
+  if ( !$q )
+  {
+    echo $db->get_error();
+    return false;
+  }
+  
+  // query 3: pages
+  $q = $db->sql_query('INSERT INTO ' . table_prefix . "pages(page_order, name, urlname, namespace, special, visible, comments_on, protected, delvotes, delvote_ips) VALUES\n"
+                    . "  (NULL, '$page_title', '$page_id', '$namespace', 0, 1, 1, 1, 0, '');");
+  if ( !$q )
+  {
+    echo $db->get_error();
+    return false;
+  }
   
   return true;
 }

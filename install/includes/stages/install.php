@@ -108,6 +108,9 @@ else
 error_reporting(E_ALL | E_STRICT);
 run_installer_stage('importlang', $lang->get('install_stg_importlang_title'), 'stg_language_setup', $lang->get('install_stg_importlang_body'));
 
+// Pull in default content
+run_installer_stage('importcontent', $lang->get('install_stg_importcontent_title'), 'stg_add_content', $lang->get('install_stg_importcontent_body'));
+
 // Init logs
 run_installer_stage('initlogs', $lang->get('install_stg_initlogs_title'), 'stg_init_logs', $lang->get('install_stg_initlogs_body'));
 

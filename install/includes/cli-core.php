@@ -601,19 +601,6 @@ catch ( Exception $e )
   installer_fail($lang->get('cli_err_schema_load'));
 }
 
-$wkt = ENANO_ROOT . "/language/{$languages[$lang_id]['dir']}/install/mainpage-default.wkt";
-if ( !file_exists( $wkt ) )
-{
-  if ( !$silent )
-    echo "\n";
-  installer_fail($lang->get('cli_err_mainpage_load'));
-}
-$wkt = @file_get_contents($wkt);
-if ( empty($wkt) )
-  return false;
-
-$wkt = $db->escape($wkt);
-
 $vars = array(
     'TABLE_PREFIX'         => table_prefix,
     'SITE_NAME'            => $db->escape($sitename),
@@ -629,7 +616,6 @@ $vars = array(
     'REAL_NAME'            => '', // This has always been stubbed.
     'ADMIN_EMBED_PHP'      => strval(AUTH_DISALLOW),
     'UNIX_TIME'            => strval(time()),
-    'MAIN_PAGE_CONTENT'    => $wkt,
     'IP_ADDRESS'           => $_SERVER['REMOTE_ADDR']
   );
 
@@ -700,7 +686,11 @@ require(ENANO_ROOT . '/includes/common.php');
 if ( !$silent )
   echo parse_shellcolor_string($lang->get('cli_msg_ok')) . "\n";
 
+$_POST['username'] =& $user;
+$_POST['default_content_type'] = ( isset($start_with) ) ? $start_with : 'blank';
+
 run_installer_stage('importlang', 'importing_language', 'stg_language_setup', $lang->get('install_stg_importlang_body'));
+run_installer_stage('importcontent', 'importing_content', 'stg_add_content', $lang->get('install_stg_importcontent_body'));
 run_installer_stage('initlogs', 'initting_logs', 'stg_init_logs', $lang->get('install_stg_initlogs_body'));
 run_installer_stage('cleanup', 'cleaning_up', 'stg_aes_cleanup', $lang->get('install_stg_cleanup_body'), false);
 run_installer_stage('buildindex', 'initting_index', 'stg_build_index', $lang->get('install_stg_buildindex_body'));
