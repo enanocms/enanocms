@@ -356,8 +356,10 @@ function page_Admin_UserManager()
           foreach ( $to_update_users as $key => $unused_crap )
           {
             $value =& $to_update_users[$key];
-            $value = $db->escape($value);
-            $update_sql .= ( empty($update_sql) ? '' : ',' ) . "$key='$value'";
+            if ( $value !== 'NULL' )
+              $value = "'" . $db->escape($value) . "'";
+ 
+            $update_sql .= ( empty($update_sql) ? '' : ',' ) . "$key=$value";
           }
           
           $update_sql = 'UPDATE '.table_prefix."users SET $update_sql WHERE user_id=$user_id;";
