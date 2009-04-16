@@ -162,6 +162,11 @@ if ( !$req_bcmath && !$req_bigint && !$req_gmp )
  
 <span class="menuclear"></span>
 
+<form action="install.php?stage=database" method="post">
+<?php
+  echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
+?>
+
 <?php
 if ( !empty($warnings) ):
 ?>
@@ -205,11 +210,6 @@ if ( $failed ):
 endif;        
 ?>
 
-<form action="install.php?stage=database" method="post">
-<?php
-  echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
-?>
- 
 <table border="0" cellspacing="0" cellpadding="0" class="sysreqs">
 
 <tr>
