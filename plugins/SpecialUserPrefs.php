@@ -599,8 +599,7 @@ function page_Special_Preferences()
             <td class="row1"><?php echo $lang->get('usercp_publicinfo_field_changetheme_hint'); ?> <a href="<?php echo makeUrlNS('Special', 'ChangeStyle/' . $paths->page); ?>" onclick="ajaxChangeStyle(); return false;"><?php echo $lang->get('usercp_publicinfo_field_changetheme'); ?></a></td>
           </tr>
           <tr>
-            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_timezone'); ?><br /><small><?php echo $lang->get('usercp_publicinfo_field_timezone_hint'); ?></small></td>
-            <td class="row1"><?php echo $tz_select; ?></td>
+            <td class="row3" colspan="2"><?php echo $lang->get('usercp_publicinfo_field_timezone'); ?> <?php echo $tz_select; ?><br /><small><?php echo $lang->get('usercp_publicinfo_field_timezone_hint'); ?></small></td>
           </tr>
           <tr>
             <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_dst'); ?></td>
@@ -698,12 +697,12 @@ function page_Special_Preferences()
             <td class="row1" style="width: 50%;"><input type="text" name="hobbies" value="<?php echo $session->user_extra['user_hobbies']; ?>" size="30" /></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;"><label for="chk_email_public"><?php echo $lang->get('usercp_publicinfo_field_email_public'); ?></label><br /><small><?php echo $lang->get('usercp_publicinfo_field_email_public_hint'); ?></small></td>
-            <td class="row1" style="width: 50%;"><input type="checkbox" id="chk_email_public" name="email_public" <?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?> size="30" /></td>
+            <td class="row2" style="width: 50%;"><label for="chk_email_public"><?php echo $lang->get('usercp_publicinfo_field_email_public'); ?></label></td>
+            <td class="row1" style="width: 50%;"><label><input type="checkbox" id="chk_email_public" name="email_public" <?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?> size="30" /> <small><?php echo $lang->get('usercp_publicinfo_field_email_public_hint'); ?></small></label></td>
           </tr>
           <tr>
-            <td class="row2" style="width: 50%;"><label for="chk_jsfx"><?php echo $lang->get('usercp_publicinfo_field_jsfx'); ?></label><br /><small><?php echo $lang->get('usercp_publicinfo_field_jsfx_hint'); ?></small></td>
-            <td class="row1" style="width: 50%;"><input type="checkbox" id="chk_jsfx" name="disable_js_fx" <?php if ($session->user_extra['disable_js_fx'] == 1) echo 'checked="checked"'; ?> size="30" /></td>
+            <td class="row2" style="width: 50%;"><label for="chk_jsfx"><?php echo $lang->get('usercp_publicinfo_field_jsfx'); ?></label></td>
+            <td class="row1" style="width: 50%;"><label><input type="checkbox" id="chk_jsfx" name="disable_js_fx" <?php if ($session->user_extra['disable_js_fx'] == 1) echo 'checked="checked"'; ?> size="30" /> <small><?php echo $lang->get('usercp_publicinfo_field_jsfx_hint'); ?></small></label></td>
           </tr>
           <tr>
             <th class="subhead" colspan="2">
