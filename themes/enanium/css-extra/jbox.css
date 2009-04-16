@@ -1,0 +1,93 @@
+/*
+ * jBox menu system
+ */
+
+div.menu, div.menu_nojs {
+  background-image: url(../images/jbox.gif);
+  background-repeat: repeat-x;
+  background-color: #303030;
+  font-size: 7pt;
+  border-width: 0;
+}
+.menu_bg {
+  background-color: #303030;
+}
+div.menu ul, div.menu_nojs ul {
+  display: none;
+  position: absolute;
+  padding: 0;
+  margin: 0 !important;
+  background-color: #303030;
+  border-width: 0;
+  min-width: 120px;
+  text-transform: lowercase;
+}
+div.menu a, div.menu div.label, div.menu_nojs a, div.menu_nojs div.label {
+  padding: 2.5pt 5px;
+  margin-right: 3px;
+  text-decoration: none;
+  display: block;
+  float: left;
+  color: #b2b2b2;
+}
+div#content-wrapper div.menu a, div#content-wrapper div.menu_nojs a {
+  color: #b2b2b2;
+}
+div.menu div.label, div.menu_nojs div.label {
+  color: #808080;
+  cursor: default;
+}
+div.menu span.sep, div.menu_nojs span.sep {
+  display: block;
+  float: left;
+  width: 5px;
+}
+div.menu div.multopts, div.menu_nojs div.multopts {
+  line-height: 17pt;
+}
+div.menu div.multopts a, div.menu div.multopts div.label, div.menu_nojs div.multopts a, div.menu_nojs div.multopts div.label {
+  float: none;
+  display: inline;
+}
+div.menu a.liteselected, div.menu a.liteselected:hover, div.menu a:hover, div.menu_nojs a.liteselected, div.menu_nojs a.liteselected:hover, div.menu_nojs a:hover {
+  color: #c9c9c9;
+  background-color: #484848;
+  background-image: url(../images/jbox.gif);
+  background-position: 0 -32px;
+  background-repeat: repeat-x;
+}
+div.menu input[type ^="text"], div.menu input[type ^="password"], div.menu_nojs input[type ^="text"], div.menu_nojs input[type ^="password"] {
+  border-width: 0;
+  font-size: 9pt;
+  padding: 2px 5px 3px 5px;
+  max-width: 70px;
+  color: #a9a9a9;
+  background-color: #191919;
+}
+div.menu input[type ^="text"]:hover, div.menu input[type ^="password"]:hover, div.menu_nojs input[type ^="text"]:hover, div.menu_nojs input[type ^="password"]:hover {
+  background-color: #292929;
+}
+div.menu input[type ^="text"]:focus, div.menu input[type ^="password"]:focus, div.menu_nojs input[type ^="text"]:focus, div.menu_nojs input[type ^="password"]:focus {
+  background-color: #373737;
+}
+div.menu input[type ^="button"], div.menu input[type ^="submit"], div.menu_nojs input[type ^="button"], div.menu_nojs input[type ^="submit"] {
+  border-width: 0;
+  font-size: 9pt;
+  padding: 3px 5px;
+  max-width: 70px;
+}
+div.menu a.current, div.menu a.current:hover, div.menu a.selected, div.menu a.selected:hover, div.menu_nojs a.current, div.menu_nojs a.current:hover, div.menu_nojs a.selected, div.menu_nojs a.selected:hover {
+  color: #202020;
+  background-color: #FFFFFF;
+}
+div.menu a.current:hover, div.menu a.selected:hover, div.menu a.current.liteselected,
+div.menu_nojs a.current:hover, div.menu_nojs a.selected:hover, div.menu_nojs a.current.liteselected {
+  background-position: 0 -64px;
+}
+div.menu ul li, div.menu_nojs ul li {
+  list-style: none;
+}
+div.menu ul a, div.menu_nojs ul a {
+  float: none;
+  margin: 0;
+}

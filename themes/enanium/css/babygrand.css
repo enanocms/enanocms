@@ -1,0 +1,360 @@
+/**
+ * Enanium - Baby Grand
+ * Polished black default theme for Enano CMS
+ * Copyright (C) 2009 Dan Fuhry
+ */
+
+/* Includes */
+@import url(../css-extra/jbox.css);
+@import url(../css-extra/toolbar.css);
+
+/* Core definitions - structure */
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+div {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-image: url(../images/background.gif);
+  background-color: #2a2a29;
+  font-family: trebuchet ms, verdana, tahoma, arial, helvetica, sans-serif;
+  font-size: 9pt;
+}
+
+table#body-wrapper {
+  width: 100%;
+}
+
+body.simple table#body-wrapper {
+  width: 70%;
+  margin: 0 auto;
+}
+
+td#cell-sbleft {
+  background-image: url(../images/transb50.png);
+}
+
+td#cell-content {
+  background-color: #fff;
+  padding: 0;
+  width: 100%;
+}
+
+/* Global - links */
+a {
+  text-decoration: none;
+}
+
+a:link, a:visited {
+  color: #356a9e;
+}
+
+div#content-wrapper a:visited {
+  color: #4c84bb;
+}
+
+a:link:hover {
+  color: #6a95c0;
+}
+
+/* Header */
+div#header {
+  line-height: 122px;
+  /* background-image: url(../images/top.gif); */
+  background-repeat: repeat-x;
+  color: #a9a9a9;
+  padding: 0 1.3em;
+}
+
+body.simple div#header {
+  line-height: 78px;
+  width: 75%;
+  margin: 100px auto 0 auto;
+}
+
+div#header h1 {
+  margin: 0;
+  font-weight: normal;
+}
+
+div#header h1 a {
+  color: white;
+  padding-right: 20px;
+}
+
+div#header h1 a:hover {
+  background-image: url(../images/home.gif);
+  background-repeat: no-repeat;
+  background-position: center right;
+}
+
+div.logo {
+  width: 96px;
+  height: 122px;
+  background-image: url(../images/logo.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  float: left;
+  margin: 0 7px 0 -13px;
+}
+
+/* Userlinks */
+ul.useropts {
+  position: absolute;
+  margin: 0;
+  right: 10px;
+  line-height: 19px;
+  top: 99px;
+}
+
+ul.useropts li {
+  display: block;
+  float: left;
+  margin-right: 4px;
+}
+
+ul.useropts li a {
+  color: #a9b2e3;
+  display: block;
+  padding: 2px 12px;
+  background-color: #30475d;
+  -moz-border-radius: 6px 6px 0 0;
+  border-radius: 6px 6px 0 0;
+}
+
+ul.useropts li.em a {
+  color: #b9d0e3;
+  background-color: #405f7c;
+  font-weight: bold;
+}
+
+ul.useropts li:hover {
+  position: relative;
+  top: -2px;
+}
+
+ul.useropts li:hover > a {
+  padding: 2px 12px 4px 12px;
+}
+
+ul.useropts li.logout:hover > a {
+  color: #e9e9e9;
+  background-color: #701010;
+}
+
+/* Search form */
+
+form.searchform {
+  position: absolute;
+  /* background-color: #292929; */
+  background-image: url(../images/transb50.png);
+  top: 0px;
+  right: 10px;
+  padding: 7px;
+  text-align: right;
+}
+
+/* Sidebars */
+div.sidebar.left {
+  width: 150px;
+}
+
+div.sidebar.right {
+  float: right;
+  width: 170px;
+  margin: 0 0 0 20px;
+}
+
+div.sidebar.right div.slider {
+  padding: 10px;
+  background-color: #bed8ef;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+}
+
+div.sidebar h4 {
+  margin: 0;
+  padding: 5px 3px;
+  color: #90B0D0;
+  border-bottom: 1px dotted #5b6f80;
+  font-size: 10pt;
+}
+
+div.sidebar div.slider {
+  font-size: 8pt;
+}
+
+div.sidebar h4 a {
+  cursor: pointer;
+}
+
+div.sidebar.right h4 {
+  color: #5a87b3;
+}
+
+div.sidebar ul.linkblock {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+div.sidebar ul.linkblock li a {
+  display: block;
+  color: #b2b2b2;
+  padding: 5px 3px 5px 0.9em;
+}
+
+div.sidebar ul.linkblock li a:hover {
+  color: #c5c5c5;
+  background-color: #292929;
+}
+
+div.slider {
+  margin-bottom: 7px;
+}
+
+/* Content area */
+div#content-wrapper {
+  margin: 0;
+  padding: 20px;
+}
+
+div.content {
+  /* Though very subtle, this makes the entire theme less harsh especially with Trebuchet. */
+  color: #202020;
+}
+
+div.content h1, div.content h2 {
+  border-bottom: 1px solid #90B0D0;
+  margin-top: 0.2em;
+}
+
+div.content p {
+  margin-left: 0.8em;
+}
+
+/* Inline rename */
+
+input#pageheading {
+  font-family: trebuchet ms, verdana, arial, helvetica, sans-serif;
+  font-size: 18pt;
+  font-weight: bold;
+  border-width: 0 0 1px 0;
+  width: 100%;
+  border-bottom: 1px solid #90B0D0;
+  margin: 0;
+  padding: 0;
+  color: #202020;
+  background-color: rgb(240, 240, 240, 0.5);
+}
+
+input#pageheading:focus {
+  background-color: #fafafa;
+}
+
+/* External links */
+
+div.content a[href ^="http://"], div#messageBox a[href ^="http://"] {
+  color: #4d78a2;
+  background: url(../images/links/external.gif) center right no-repeat;
+  padding-right: 16px;
+}
+
+div.content a[href ^="https://"], div#messageBox a[href ^="https://"] {
+  color: #4d78a2;
+  background: url(../images/links/https.gif)    center right no-repeat;
+  padding-right: 16px;
+}
+
+div.content a[href ^="mailto:"], div#messageBox a[href ^="mailto:"] {
+  color: #4d78a2;
+  background: url(../images/links/email.gif)    center right no-repeat;
+  padding-right: 16px;
+}
+
+div.content a[href ^="irc://"], div#messageBox a[href ^="irc://"] {
+  color: #4d78a2;
+  background: url(../images/links/irc.gif)      center right no-repeat;
+  padding-right: 16px;
+}
+
+div.content a[href ^="http://"]:hover, div#messageBox a[href ^="http://"]:hover {
+  color: #6488ad;
+}
+
+div.content a[href ^="https://"]:hover, div#messageBox a[href ^="https://"]:hover {
+  color: #6488ad;
+}
+
+div.content a[href ^="mailto:"]:hover, div#messageBox a[href ^="mailto:"]:hover {
+  color: #6488ad;
+}
+
+div.content a[href ^="irc://"]:hover, div#messageBox a[href ^="irc://"]:hover {
+  color: #6488ad;
+}
+
+/* Form controls */
+input {
+  border: 1px solid #353535;
+  background-color: #262626;
+  color: #b6b6b6;
+  font-size: 8pt;
+  font-family: arial, helvetica, sans-serif;
+  padding: 2px;
+}
+
+/* Footer */
+div#footer {
+  margin: 7px 0 0 0;
+  border-top: 1px solid #707070;
+  background-color: #000;
+  color: #909090;
+  padding: 4px;
+  font-size: smaller;
+  font-family: tahoma, arial, sans-serif;
+}
+
+body.simple div#footer {
+  position: absolute;
+  bottom: 0px;
+  padding: 4px 0;
+  width: 100%;
+}
+
+/*
+ * Userpage styles
+ */
+
+ul.userpage_links li {
+  background-image: url('../images/buttonbg.gif');
+  background-repeat: repeat-x;
+}
+
+ul.userpage_links li a {
+  color: #202020;
+}
+
+ul.userpage_links li.userpage_tab_active {
+  background-image: url('../images/buttonbg-lite.gif');
+}
+
+ul.userpage_links li:hover {
+  background-image: url('../images/buttonbg-lite.gif');
+  border-color: #404040 #404040 #ffffff #404040;
+  border-bottom-width: 0;
+}
+
+ul.userpage_links li.userpage_tab_active:hover {
+  border-bottom-width: 1px;
+}
+
+ul.userpage_links li a:visited, ul.userpage_links li a:hover {
+  color: #202020 !important;
+}
