@@ -149,21 +149,25 @@ function install_set_ajax_loading()
   hider.style.backgroundImage = 'url(../images/loading-big.gif)';
   hider.style.backgroundRepeat = 'no-repeat';
   hider.id = 'ajax_loader';
-  domObjChangeOpac(0, hider);
+  domObjChangeOpac(70, hider);
   var body = document.getElementsByTagName('body')[0];
   body.appendChild(hider);
-  opacity('ajax_loader', 0, 70, 750);
+  // opacity('ajax_loader', 0, 70, 750);
 }
 
 function install_unset_ajax_loading()
 {
   if ( document.getElementById('ajax_loader') )
   {
+    var body = document.getElementsByTagName('body')[0];
+    body.removeChild(document.getElementById('ajax_loader'));
+    /*
     opacity('ajax_loader', 70, 0, 750);
     setTimeout(function()
       {
         var body = document.getElementsByTagName('body')[0];
         body.removeChild(document.getElementById('ajax_loader'));
       }, 1000);
+    */
   }
 }
