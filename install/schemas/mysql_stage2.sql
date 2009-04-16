@@ -344,7 +344,12 @@ CREATE TABLE {{TABLE_PREFIX}}plugins (
 -- of 1000 bytes. It's low like that because of the UTF-8 character set being used.
 ALTER TABLE {{TABLE_PREFIX}}logs ADD INDEX {{TABLE_PREFIX}}logs_page_idx (page_id(317), namespace);
 ALTER TABLE {{TABLE_PREFIX}}logs ADD INDEX {{TABLE_PREFIX}}logs_time_idx (time_id);
+ALTER TABLE {{TABLE_PREFIX}}logs ADD INDEX {{TABLE_PREFIX}}logs_action_idx (log_type, action);
 ALTER TABLE {{TABLE_PREFIX}}comments ADD INDEX {{TABLE_PREFIX}}comments_page_idx (page_id(317), namespace);
+ALTER TABLE {{TABLE_PREFIX}}hits ADD INDEX {{TABLE_PREFIX}}hits_time_idx ( time );
+ALTER TABLE {{TABLE_PREFIX}}hits ADD INDEX {{TABLE_PREFIX}}hits_page_idx (page_id(317), namespace);
+ALTER TABLE {{TABLE_PREFIX}}pages ADD INDEX {{TABLE_PREFIX}}pages_page_idx (urlname(317), namespace);
+ALTER TABLE {{TABLE_PREFIX}}page_text ADD INDEX {{TABLE_PREFIX}}page_text_page_idx (page_id(317), namespace);
 
 -- The default config. Kind of important.
 -- P.S. the allowed_mime_types value is a compressed bitfield. Source for the (rather simple) algo is in functions.php.
