@@ -357,6 +357,7 @@ INSERT INTO {{TABLE_PREFIX}}config(config_name, config_value) VALUES
   ('cache_thumbs', '{{ENABLE_CACHE}}'),
   ('contact_email', '{{ADMIN_EMAIL}}'),
   ('allowed_mime_types', 'cbf2:7414a6b80184038102810b810781098106830a810282018101820683018102840182038104821a850682028104810a82018116'),
+  ('theme_default', 'enanium'),
   ('enano_version', '{{VERSION}}');
 
 INSERT INTO {{TABLE_PREFIX}}page_text(page_id, namespace, page_text, char_tag) VALUES
@@ -369,12 +370,13 @@ INSERT INTO {{TABLE_PREFIX}}pages(page_order, name, urlname, namespace, special,
   (NULL, 'Main Page', 'Main_Page', 'Article', 0, 1, 1, 1, 0, '');
 
 INSERT INTO {{TABLE_PREFIX}}themes(theme_id, theme_name, theme_order, default_style, enabled) VALUES
-  ('oxygen', 'Oxygen', 1, 'bleu.css', 1),
-  ('stpatty', 'St. Patty', 2, 'shamrock.css', 1);
+  ('enanium', 'Enanium', 1, 'babygrand.css', 1),
+  ('oxygen', 'Oxygen', 2, 'bleu.css', 1),
+  ('stpatty', 'St. Patty', 3, 'shamrock.css', 1);
 
 INSERT INTO {{TABLE_PREFIX}}users(user_id, username, password, password_salt, email, real_name, user_level, theme, style, signature, reg_time, account_active, user_registration_ip) VALUES
-  (1, 'Anonymous', 'invalid-pass-hash', '', 'anonspam@enanocms.org', 'None', 1, 'oxygen', 'bleu', '', 0, 0, '{{IP_ADDRESS}}'),
-  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_PASS_SALT}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'oxygen', 'bleu', '', UNIX_TIMESTAMP(), 1, '{{IP_ADDRESS}}');
+  (1, 'Anonymous', 'invalid-pass-hash', '', 'anonspam@enanocms.org', 'None', 1, 'enanium', 'babygrand', '', 0, 0, '{{IP_ADDRESS}}'),
+  (2, '{{ADMIN_USER}}', '{{ADMIN_PASS}}', '{{ADMIN_PASS_SALT}}', '{{ADMIN_EMAIL}}', '{{REAL_NAME}}', 9, 'enanium', 'babygrand', '', UNIX_TIMESTAMP(), 1, '{{IP_ADDRESS}}');
   
 INSERT INTO {{TABLE_PREFIX}}users_extra(user_id) VALUES
   (2);
