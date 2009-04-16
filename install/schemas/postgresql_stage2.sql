@@ -58,7 +58,7 @@ CREATE TABLE {{TABLE_PREFIX}}page_text(
 CREATE TABLE {{TABLE_PREFIX}}pages(
   page_order int,
   name varchar(255),
-  urlname varchar(255),
+  urlname varchar(512),
   namespace varchar(16) NOT NULL DEFAULT 'Article',
   special smallint DEFAULT '0',
   visible smallint DEFAULT '1',
