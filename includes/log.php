@@ -148,10 +148,14 @@ class LogDisplay
     {
       $where_extra .= "\n    AND ( (" . implode(") OR (", $where_bits['action']) . ") )";
     }
-    $limit = ( $page_size > 0 ) ? "\n  LIMIT $offset, $page_size" : '';
+    if ( ENANO_DBLAYER == 'PGSQL' )
+      $limit = ( $page_size > 0 ) ? "\n  LIMIT $page_size OFFSET $offset" : '';
+    else
+      $limit = ( $page_size > 0 ) ? "\n  LIMIT $offset, $page_size" : '';
     $columns = ( $just_page_count ) ? 'COUNT(*)' : 'log_id, action, page_id, namespace, CHAR_LENGTH(page_text) AS revision_size, author, time_id, edit_summary, minor_edit';
-    $sql = 'SELECT ' . $columns . ' FROM ' . table_prefix . "logs\n"
+    $sql = 'SELECT ' . $columns . ' FROM ' . table_prefix . "logs AS l\n"
          . "  WHERE log_type = 'page' AND is_draft != 1$where_extra\n"
+         . "  GROUP BY log_id, action, page_id, namespace, page_text, author, time_id, edit_summary, minor_edit"
          . "  ORDER BY log_id DESC $limit;";
     
     return $sql;
