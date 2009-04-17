@@ -1023,6 +1023,11 @@ class pathManager
     
     $new_index = $search->index;
     
+    if ( count($search->index) == 0 )
+      // o_O
+      // nothing indexed.
+      return true;
+    
     if ( ENANO_DBLAYER == 'MYSQL' )
     {
       $keys = array_keys($search->index);

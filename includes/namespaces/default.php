@@ -331,6 +331,7 @@ class Namespace_Default
     
     if ( $send_headers )
     {
+      $template->init_vars($this);
       $output->set_title($this->title);
       $output->header();
     }

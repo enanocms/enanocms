@@ -1043,6 +1043,16 @@ class PageProcessor
   }
   
   /**
+   * Tells us if the page exists.
+   * @return bool
+   */
+  
+  function exists()
+  {
+    return $this->ns->exists();
+  }
+  
+  /**
    * Pushes to the redirect stack and resets the instance. This depends on the page ID and namespace already being validated and sanitized, and does not check the size of the redirect stack.
    * @param string Page ID to redirect to
    * @param string Namespace to redirect to

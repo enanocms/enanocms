@@ -391,7 +391,7 @@ class template
       @define('ENANO_TEMPLATE_LOADED', '');
     }
     
-    if ( is_object($page) && @get_class($page) == 'PageProcessor' )
+    if ( is_object($page) && ( @get_class($page) == 'PageProcessor' || preg_match('/^Namespace_/', @get_class($page)) ) )
     {
       $page_append = substr($paths->fullpage, strlen($paths->page));
       if ( isset($paths->nslist[$page->namespace]) )
@@ -405,7 +405,7 @@ class template
       $local_fullpage = $local_page . $page_append;
       $local_page_id =& $page->page_id;
       $local_namespace =& $page->namespace;
-      $local_page_exists =& $page->page_exists;
+      $local_page_exists = $page->exists();
       $perms =& $page->perms;
     }
     else
@@ -584,6 +584,7 @@ class template
     
     // Initialize the toolbar
     $tb = '';
+    $this->toolbar_menu = '';
     
     // Create "xx page" button
     
@@ -605,7 +606,6 @@ class template
     // Comments button
     if ( $perms->get_permissions('read') && getConfig('enable_comments', '1')=='1' && $local_cdata['comments_on'] == 1 )
     {
-      
       $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$local_page_id.'\' AND namespace=\''.$local_namespace.'\';');
       if ( !$e )
       {
