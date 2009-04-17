@@ -407,6 +407,11 @@ class template
       $local_namespace =& $page->namespace;
       $local_page_exists = $page->exists();
       $perms =& $page->perms;
+      if ( !is_object($perms) )
+      {
+        unset($perms);
+        $perms = $session->fetch_page_acl($local_page_id, $local_namespace);
+      }
     }
     else
     {
