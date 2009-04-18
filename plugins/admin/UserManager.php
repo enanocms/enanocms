@@ -549,7 +549,7 @@ function page_Admin_UserManager()
     {
       // Get the current session information so the user doesn't get logged out
       $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-      $sk = md5(strrev($session->sid_super));
+      $sk = md5($session->sid_super);
       $qb = $db->sql_query('SELECT session_key,salt,auth_level,source_ip,time FROM '.table_prefix.'session_keys WHERE session_key=\''.$sk.'\' AND user_id='.$session->user_id.' AND auth_level='.USER_LEVEL_ADMIN);
       if ( !$qb )
       {
@@ -574,7 +574,7 @@ function page_Admin_UserManager()
       $db->free_result($qb);
       
       $db->sql_query('DELETE FROM '.table_prefix.'session_keys;');
-      $db->sql_query('INSERT INTO '.table_prefix.'session_keys( session_key,salt,user_id,auth_level,source_ip,time ) VALUES( \''.$ra['session_key'].'\', \''.$ra['salt'].'\', \''.$session->user_id.'\', \''.$ra['auth_level'].'\', \''.$ra['source_ip'].'\', '.$ra['time'].' ),( \''.$rb['session_key'].'\', \''.$rb['salt'].'\', \''.$session->user_id.'\', \''.$rb['auth_level'].'\', \''.$rb['source_ip'].'\', '.$rb['time'].' )');
+      $db->sql_query('INSERT INTO '.table_prefix.'session_keys( session_key,salt,user_id,auth_level,source_ip,time ) VALUES( \''.$ra['session_key'].'\', \'' . $db->escape($ra['salt']) . '\', \''.$session->user_id.'\', \''.$ra['auth_level'].'\', \''.$ra['source_ip'].'\', '.$ra['time'].' ),( \''.$rb['session_key'].'\', \'' . $db->escape($rb['salt']) . '\', \''.$session->user_id.'\', \''.$rb['auth_level'].'\', \''.$rb['source_ip'].'\', '.$rb['time'].' )');
       
       echo '<div class="info-box">' . $lang->get('acpum_msg_sessionclear_success') . '</div>';
     }
