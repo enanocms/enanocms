@@ -83,10 +83,14 @@ class mysql {
   }
   
   function _die($t = '') {
-    if(defined('ENANO_HEADERS_SENT')) {
+    if ( defined('ENANO_HEADERS_SENT') )
+    {
       ob_clean();
     }
-    header('HTTP/1.1 500 Internal Server Error');
+    
+    if ( !headers_sent() )
+      header('HTTP/1.1 500 Internal Server Error');
+    
     $bt = $this->latest_query; // $this->sql_backtrace();
     $e = htmlspecialchars(mysql_error());
     if($e=='') $e='&lt;none&gt;';
@@ -99,6 +103,15 @@ class mysql {
                       Error returned by MySQL extension: ' . $e . '<br />
                       Most recent SQL query:</p>
                       <pre>'.$bt.'</pre>';
+    if ( defined('IN_ENANO_INSTALL') && is_object(@$GLOBALS['ui']) )
+    {
+      global $ui;
+      echo '<h2>Database error!</h2>';
+      echo $internal_text;
+      $ui->show_footer();
+      
+      exit;
+    }
     if(defined('ENANO_CONFIG_FETCHED')) die_semicritical('Database error', $internal_text);
     else                                   grinding_halt('Database error', $internal_text);
     exit;
