@@ -31,11 +31,18 @@ function MIGRATE()
   $lang_data =& $languages[$lang_id];
   $lang_dir = ENANO_ROOT . "/language/{$lang_data['dir']}/";
   // function install_language($lang_code, $lang_name_neutral, $lang_name_local, $lang_file = false)
-  install_language($lang_id, $lang_data['name_eng'], $lang_data['name'], $lang_dir . 'core.json');
-  $lang_local = new Language($lang_id);
-  $lang_local->import($lang_dir . "tools.json");
-  $lang_local->import($lang_dir . "user.json");
-  $lang_local->import($lang_dir . "admin.json");
+  install_language($lang_id, $lang_data['name_eng'], false);
+  
+  // Only import strings if the script isn't planning to do it again later
+  global $do_langimport;
+  if ( !$do_langimport )
+  {
+    $lang_local = new Language($lang_id);
+    $lang_local->import($lang_dir . "core.json");
+    $lang_local->import($lang_dir . "tools.json");
+    $lang_local->import($lang_dir . "user.json");
+    $lang_local->import($lang_dir . "admin.json");
+  }
   
   // This doesn't set to installer_enano_version() because it only
   // migrates the database from 1.0.x to 1.1.x status and runs the
