@@ -228,9 +228,10 @@ EOF;
   function show_footer()
   {
     $scriptpath = scriptPath;
+    $year = date('Y');
     echo <<<EOF
           <div id="copyright">
-            Enano and its various components, related documentation, and artwork are copyright &copy; 2006-2008 Dan Fuhry.<br />
+            Enano and its various components, related documentation, and artwork are copyright &copy; 2006-$year Dan Fuhry.<br />
             Copyrights for <a href="{$scriptpath}/licenses/">third-party components</a> are held by their respective authors.<br />
             This program is Free Software; see the file "GPL" included with this package for details.
           </div>

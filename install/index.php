@@ -32,6 +32,7 @@ if ( defined('ENANO_INSTALLED') )
 {
   // Is Enano installed? If so, load the config and check version info
   define('IN_ENANO_UPGRADE', 'true');
+  define('ENANO_EXIT_AFTER_CONFIG', 1);
   // common.php above calls chdir() to the ENANO_ROOT, so this loads the full Enano API.
   require('includes/common.php');
 }
