@@ -777,7 +777,7 @@ class sessionManager {
         $success = true;
       }
     }
-    else if ( $row['old_encryption'] == 2 || ( defined('ENANO_UPGRADE_USE_AES_PASSWORDS') ) )
+    else if ( $row['old_encryption'] == 2 || ( defined('ENANO_UPGRADE_USE_AES_PASSWORDS') ) && strlen($row['password']) != 40 )
     {
       // Our password field uses the 1.0RC1-1.1.5 encryption format
       $real_pass = $aes->decrypt($row['password'], $this->private_key);

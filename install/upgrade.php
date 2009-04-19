@@ -46,13 +46,6 @@ require_once('includes/common.php');
 if ( in_array(enano_version(), array('1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.0.6', '1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5')) )
   define('ENANO_UPGRADE_USE_AES_PASSWORDS', 1);
 
-$ui = new Enano_Installer_UI('Enano upgrader', false);
-
-$stg_welcome = $ui->add_stage('Welcome', true);
-$stg_confirm = $ui->add_stage('Confirmation', true);
-$stg_upgrade = $ui->add_stage('Perform upgrade', true);
-$stg_finish  = $ui->add_stage('Finish', true);
-
 // init languages
 $lang_id_list = array_keys($languages);
 $lang_id = $lang_id_list[0];
@@ -62,6 +55,14 @@ $language_dir = $languages[$lang_id]['dir'];
 $lang = new Language($lang_id);
 $lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/install.json');
 $lang->load_file(ENANO_ROOT . '/language/' . $language_dir . '/user.json');
+
+$ui = new Enano_Installer_UI($lang->get('upgrade_system_title'), false);
+
+$stg_welcome = $ui->add_stage($lang->get('upgrade_stg_welcome'), true);
+$stg_login   = $ui->add_stage($lang->get('upgrade_stg_login'),  true);
+$stg_confirm = $ui->add_stage($lang->get('upgrade_stg_confirm'), true);
+$stg_upgrade = $ui->add_stage($lang->get('upgrade_stg_upgrade'), true);
+$stg_finish  = $ui->add_stage($lang->get('upgrade_stg_finish'), true);
 
 // Version check
 if ( enano_version() == installer_enano_version() )
@@ -77,8 +78,37 @@ if ( enano_version() == installer_enano_version() )
 
 // Start session manager
 $session->start();
+
+// Welcome page
+if ( !isset($_GET['stage']) )
+{
+  $ui->show_header();
+  
+  if ( preg_match('/1\.0/', enano_version()) )
+  {
+    // Migrating from 1.0.x
+    echo '<h3>' . $lang->get('upgrade_welcome_banshee_heading', array('enano_version' => installer_enano_version())) . '</h3>';
+    echo '<p>' . $lang->get('upgrade_welcome_banshee_para1') . '</p>';
+    echo '<p>' . $lang->get('upgrade_welcome_banshee_para2') . '</p>';
+  }
+  else
+  {
+    // Upgrading from 1.1.x/1.2.x
+    echo '<h3>' . $lang->get('upgrade_welcome_caoineag_heading', array('enano_version' => installer_enano_version())) . '</h3>';
+    echo '<p>' . $lang->get('upgrade_welcome_caoineag_para1') . '</p>';
+  }
+  
+  echo '<div style="font-size: x-large; text-align: center; margin: 20px 0;">';
+  echo '<a class="abutton" href="' . $session->append_sid('upgrade.php?stage=confirm') . '" style="text-decoration: none;">' . $lang->get('upgrade_welcome_btn_continue') . ' &raquo;</a>';
+  echo '</div>';
+  
+  $ui->show_footer();
+  exit;
+}
+
 if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_level < USER_LEVEL_ADMIN ) )
 {
+  $ui->set_visible_stage($stg_login);
   if ( isset($_POST['do_login']) )
   {
     if ( !$session->user_logged_in )
@@ -91,7 +121,7 @@ if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_l
       if ( $result['success'] )
       {
         header('HTTP/1.1 302 Some kind of redirect with implied no content');
-        header('Location: ' . scriptPath . '/install/' . $session->append_sid('upgrade.php'));
+        header('Location: ' . scriptPath . '/install/' . $session->append_sid('upgrade.php?stage=confirm'));
         exit();
       }
     }
@@ -103,7 +133,7 @@ if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_l
   <h3><?php echo $lang->get('upgrade_login_msg_auth_needed_title'); ?></h3>
   <?php
   
-  echo '<form action="upgrade.php" method="post">';
+  echo '<form action="upgrade.php?stage=login" method="post">';
   
   if ( isset($result) )
   {
@@ -277,9 +307,9 @@ else
     <li><?php echo $lang->get('upgrade_confirm_objective_backup_db', array('dbname' => $dbname)); ?></li>
   </ul>
   <?php
-  if ( $do_langimport ):
+  if ( $do_langimport && !preg_match('/1\.0/', enano_version()) ):
   ?>
-  <div class="warning-box">
+  <div class="warning-box" style="margin: 10px 0;">
     <?php echo $lang->get('upgrade_confirm_warning_langimport'); ?>
   </div>
   <?php
@@ -287,8 +317,8 @@ else
   ?>
   <form method="get" action="upgrade.php" style="text-align: center;">
     <input type="hidden" name="auth" value="<?php echo $session->sid_super; ?>" />
-    <button name="stage" value="pimpmyenano" class="submit">
-      <img src="images/icons/pimp.png" />
+    <button name="stage" value="pimpmyenano" class="submit" style="padding-bottom: 8px;">
+    <img src="images/icons/pimp.png" style="position: relative; top: 6px;" />
       <?php echo $lang->get('upgrade_confirm_btn_upgrade'); ?>
     </button>
   </form>
