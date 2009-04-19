@@ -2191,7 +2191,7 @@ EOF;
                   // other possible values are: _blank, _parent, _search, _self and _top
     
       'icon_e'  : '<?php echo cdnPath; ?>/images/icons/empty.gif',      // empty image
-      'icon_l'  : '<?php echo cdnPath; ?>/images/spacer.gif',           // vertical line
+      'icon_l'  : '<?php echo cdnPath; ?>/images/icons/line.gif',       // vertical line
       'icon_32' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root leaf icon normal
       'icon_36' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root leaf icon selected
       'icon_48' : '<?php echo cdnPath; ?>/images/spacer.gif',           // root icon normal
