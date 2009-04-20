@@ -52,29 +52,32 @@ function sbedit_open_editor(a)
     .css('height', $(parent).height())
     .css('top', offset.top)
     .css('left', offset.left)
-    .appendTo('body')
+    .appendTo('body');
+  var item_id = parseInt($(parent).attr('id').replace(/^block:/, ''));
+  
+  $(box)
     .animate({ width: 500, height: 400, top: top, left: (getWidth() / 2) - 250 }, 400, function()
       {
         var whitey = whiteOutElement(this);
-        $(this).append('<textarea style="width: 100%; height: 360px;" rows="20" cols="80"></textarea>');
+        $(this).append('<textarea style="width: 98%; height: 360px; margin: 0 auto; display: block;" rows="20" cols="80"></textarea>');
         $(this).append('<p style="text-align: center;"><a href="#" onclick="sbedit_edit_save(this); return false;">' + $lang.get('etc_save_changes') + '</a> | <a href="#" onclick="sbedit_edit_cancel(this); return false;">' + $lang.get('etc_cancel') + '</a></p>');
-        $.get(makeUrlNS('Special', 'EditSidebar', 'action=getsource&noheaders&id=' + this.item_id), {}, function(response, statustext)
+        $.get(makeUrlNS('Special', 'EditSidebar', 'action=getsource&noheaders&id=' + item_id), {}, function(response, statustext)
           {
-            $('textarea', box).attr('value', response);
+            $('textarea', box).val(response);
             $(whitey).remove();
+            
+            $(box).attr('enano:item_id', item_id);
           }, 'html');
       })
     .get(0);
-  box.parentdiv = parent;
-  box.item_id = parseInt($(parent).attr('id').replace(/^block:/, ''));
 }
 
 function sbedit_edit_save(a)
 {
   var box = a.parentNode.parentNode;
-  var parent = box.parentdiv;
+  var parent = document.getElementById('block:' + $(box).attr('enano:item_id'));
   var whitey = whiteOutElement(box);
-  $.post(makeUrlNS('Special', 'EditSidebar', 'noheaders&action=save&id=' + box.item_id), { content: $('textarea', box).attr('value') }, function(response, statustext)
+  $.post(makeUrlNS('Special', 'EditSidebar', 'noheaders&action=save&id=' + $(box).attr('enano:item_id')), { content: $('textarea', box).attr('value') }, function(response, statustext)
     {
       whiteOutReportSuccess(whitey);
       setTimeout(function()
@@ -87,13 +90,25 @@ function sbedit_edit_save(a)
 function sbedit_edit_cancel(a)
 {
   var box = a.parentNode.parentNode;
-  var parent = box.parentdiv;
+  var parent = document.getElementById('block:' + $(box).attr('enano:item_id'));
   
   sbedit_close_editor(parent, box);
 }
 
 function sbedit_close_editor(parent, box)
 {
+  if ( !parent )
+  {
+    console.warn('Failed to get DOM object for parent, skipping transition effect');
+  }
+  
+  if ( jQuery.fx.off || !parent )
+  {
+    enlighten(true, 'sbedit-shade');
+    $('body').get(0).removeChild(box);
+    return true;
+  }
+  
   var offset = $(parent).offset();
   $(box).empty().animate(
     {
