@@ -140,7 +140,7 @@ function seclog_format_inner($r, $f = false)
   }
   else if ( $r['action'] == 'plugin_enable' || $r['action'] == 'plugin_disable' )
   {
-    $row['page_text'] = htmlspecialchars($row['page_text']);
+    $r['page_text'] = htmlspecialchars($r['page_text']);
   }
   $cls = ( $cls == 'row2' ) ? 'row1' : 'row2';
   $return .= '<tr><td class="'.$cls.'">';
