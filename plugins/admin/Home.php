@@ -156,15 +156,26 @@ function acphome_process_updates()
 {
   require_once(ENANO_ROOT . '/includes/http.php');
   
-  $req = new Request_HTTP('ktulu.enanocms.org', '/meta/updates.xml');
-  $response = $req->get_response_body();
-  header('Content-type: application/xml');
+  try
+  {
+    $req = new Request_HTTP('ktulu.enanocms.org', '/meta/updates.xml');
+    $response = $req->get_response_body();
+    header('Content-type: application/xml');
+  }
+  catch ( Exception $e )
+  {
+    header('Content-type: application/xml');
+    echo '<enano><error><![CDATA[
+Cannot connect to server: ' . $e->getMessage() . '
+]]></error></enano>';
+    return true;
+  }
   if ( $req->response_code != HTTP_OK )
   {
     // Error in response
-    echo '<enano><latest><error><![CDATA[
+    echo '<enano><error><![CDATA[
 Did not properly receive response from server. Response code: ' . $req->response_code . ' ' . $req->response_string . '
-]]></error></latest></enano>';
+]]></error></enano>';
   }
   else
   {
@@ -172,9 +183,9 @@ Did not properly receive response from server. Response code: ' . $req->response
     $first_update = preg_match('/<release tag="([^"]+)" version="([^"]+)" (codename="([^"]+)" )?relnotes="([^"]+)" ?\/>/', $response, $match);
     if ( !$first_update )
     {
-      echo '<enano><latest><error><![CDATA[
+      echo '<enano><error><![CDATA[
 Received invalid XML response.
-]]></error></latest></enano>';
+]]></error></enano>';
     }
     else
     {
