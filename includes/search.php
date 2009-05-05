@@ -251,16 +251,15 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
             $inc = 1;
 
             // Is this search term present in the page's title? If so, give extra points
-            preg_match("/^ns=$ns_list;pid=(.+)$/", $match, $piecesparts);
-            $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
-            if ( isPage($pathskey) )
+            preg_match("/^ns=$ns_list;pid=(.+)$/", $pages, $piecesparts);
+            $title = get_page_title_ns($piecesparts[2], $piecesparts[1]);
+            
+            $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
+            if ( $test_func($title, $row['word']) || $test_func($piecesparts[2], $row['word']) )
             {
-              $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
-              if ( $test_func($paths->pages[$pathskey]['name'], $row['word']) || $test_func($paths->pages[$pathskey]['urlname_nons'], $row['word']) )
-              {
-                $inc = 1.5;
-              }
+              $inc = 1.5;
             }
+          
             if ( isset($scores[$match]) )
             {
               $scores[$match] = $scores[$match] + $inc;
@@ -392,20 +391,15 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
         $inc = 1;
 
         // Is this search term present in the page's title? If so, give extra points
-        preg_match("/^ns=$ns_list;pid=(.+)$/", $id, $piecesparts);
-        $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
-        if ( isPage($pathskey) )
+        preg_match("/^ns=$ns_list;pid=(.+)$/", $pages, $piecesparts);
+        $title = get_page_title_ns($piecesparts[2], $piecesparts[1]);
+        
+        $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
+        if ( $test_func($title, $row['word']) || $test_func($piecesparts[2], $row['word']) )
         {
-          $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
-          foreach ( array_merge($query_phrase['any'], $query_phrase['req']) as $term )
-          {
-            if ( $test_func($paths->pages[$pathskey]['name'], $term) || $test_func($paths->pages[$pathskey]['urlname_nons'], $term) )
-            {
-              $inc = 1.5;
-              break;
-            }
-          }
+          $inc = 1.5;
         }
+        
         if ( isset($scores[$id]) )
         {
           $scores[$id] = $scores[$id] + $inc;

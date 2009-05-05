@@ -58,13 +58,7 @@ class Namespace_User extends Namespace_Default
     
     $page_urlname = dirtify_page_id($this->page_id);
     if ( $this->page_id == $paths->page_id && $this->namespace == $paths->namespace )
-    {
-      $page_name = ( isset($paths->cpage['name']) ) ? $paths->cpage['name'] : $this->page_id;
-    }
-    else
-    {
-      $page_name = ( isset($paths->pages[$this->page_id]) ) ? $paths->pages[$this->page_id]['name'] : $this->page_id;
-    }
+    $page_name = $this->cdata['name'];
     
     $target_username = strtr($page_urlname, 
       Array(
@@ -80,13 +74,8 @@ class Namespace_User extends Namespace_Default
     {
       $page_name = $lang->get('userpage_page_title', array('username' => $target_username));
     }
-    else
-    {
-      // User has a custom title for their userpage
-      $page_name = $paths->pages[ $paths->nslist[$this->namespace] . $this->page_id ]['name'];
-    }
     
-    $template->tpl_strings['PAGE_NAME'] = htmlspecialchars($page_name);
+    $output->set_title($page_name);
     
     $q = $db->sql_query('SELECT u.username, u.user_id AS authoritative_uid, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.*, COUNT(c.comment_id) AS n_comments
                            FROM '.table_prefix.'users u
@@ -275,7 +264,7 @@ class Namespace_User extends Namespace_Default
             $parser->assign_bool(array(
               'page_exists' => true
               ));
-            $page_title = htmlspecialchars($paths->pages[ $c_page_id ]['name']);
+            $page_title = get_page_title($c_page_id);
           }
           else
           {

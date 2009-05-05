@@ -55,7 +55,7 @@ class RenderMan {
   public static function getTemplate($id, $parms)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!isset($paths->pages[$paths->nslist['Template'].$id])) 
+    if ( !isPage($paths->get_pathskey($id, 'Template')) ) 
     {
       return '[['.$paths->nslist['Template'].$id.']]';
     }
@@ -65,7 +65,8 @@ class RenderMan {
     }
     else
     {
-      $text = RenderMan::getPage($id, 'Template', 0, true, true, 0);
+      $page = new PageProcessor($id, 'Template');
+      $text = $page->fetch_text();
       $paths->template_cache[$id] = $text;
     }
     
@@ -95,7 +96,7 @@ class RenderMan {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $fetch_ns = 'Template';
-    if(!isset($paths->pages[$paths->nslist['Template'].$id])) 
+    if ( !isPage($paths->get_pathskey($id, 'Template')) ) 
     {
       // Transclusion of another page
       // 1.1.5: Now You, Too, Can Be A Template, Even If You're Just A Plain Old Article! (TM)

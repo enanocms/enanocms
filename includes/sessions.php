@@ -670,7 +670,7 @@ class sessionManager {
           $captcha_good = true;
         }
       }
-      if ( $policy != 'disable' && !$captcha_good )
+      if ( $lockout_data['lockout_policy'] != 'disable' && !$captcha_good )
       {
         if ( $lockout_data['lockout_fails'] >= $lockout_data['lockout_threshold'] )
         {
@@ -2929,12 +2929,6 @@ class sessionManager {
       return $objcache[$namespace][$page_id];
     }
     
-    //if ( !isset( $paths->pages[$paths->nslist[$namespace] . $page_id] ) )
-    //{
-    //  // Page does not exist
-    //  return false;
-    //}
-    
     $objcache[$namespace][$page_id] = new Session_ACLPageInfo( $page_id, $namespace, $this->acl_types, $this->acl_descs, $this->acl_deps, $this->acl_base_cache );
     $object =& $objcache[$namespace][$page_id];
     
@@ -4384,12 +4378,11 @@ class Session_ACLPageInfo {
     $this->namespace = $namespace;
     
     $pathskey = $paths->nslist[$this->namespace].sanitize_page_id($this->page_id);
-    $ppwm = 2;
-    if ( isset($paths->pages[$pathskey]) )
-    {
-      if ( isset($paths->pages[$pathskey]['wiki_mode']) )
-        $ppwm = $paths->pages[$pathskey]['wiki_mode'];
-    }
+    $ns = namespace_factory($this->page_id, $this->namespace);
+    $cdata = $ns->get_cdata();
+    $ppwm = $cdata['wiki_mode'];
+    unset($ns, $cdata);
+    
     if ( $ppwm == 1 && ( $session->user_logged_in || getConfig('wiki_mode_require_login') != '1' ) )
       $this->wiki_mode = true;
     else if ( $ppwm == 1 && !$session->user_logged_in && getConfig('wiki_mode_require_login') == '1' )

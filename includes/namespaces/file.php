@@ -48,12 +48,7 @@ class Namespace_File extends Namespace_Default
     if ( $local_namespace != 'File' )
       return null;
     
-    $selfn = $local_page_id;
-    if ( substr($paths->cpage['name'], 0, strlen($paths->nslist['File'])) == $paths->nslist['File'])
-    {
-      $selfn = substr($local_page_id, strlen($paths->nslist['File']), strlen($local_page_id));
-    }
-    $selfn = $db->escape($selfn);
+    $selfn = $db->escape($this->page_id);
     $q = $db->sql_query('SELECT f.mimetype,f.time_id,f.size,l.log_id FROM ' . table_prefix . "files AS f\n"
                       . "  LEFT JOIN " . table_prefix . "logs AS l\n"
                       . "    ON ( l.time_id = f.time_id AND ( l.action = 'reupload' OR l.action IS NULL ) )\n"

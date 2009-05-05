@@ -20,9 +20,50 @@ class Namespace_Special extends Namespace_Default
     
     $this->page_id = sanitize_page_id($page_id);
     $this->namespace = $namespace;
+    $this->build_cdata();
     $this->revision_id = intval($revision_id);
     
+    $this->page_protected = true;
+    $this->wiki_mode = 0;
+  }
+  
+  public function build_cdata()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
     $this->exists = function_exists("page_{$this->namespace}_{$this->page_id}");
+    
+    if ( isset($paths->pages[ $paths->get_pathskey($this->page_id, $this->namespace) ]) )
+    {
+      $page_name = $paths->pages[ $paths->get_pathskey($this->page_id, $this->namespace) ]['name'];
+    }
+    else
+    {
+      $page_name = "{$paths->nslist[ $this->namespace ]}{$this->page_id}";
+      if ( ($_ = $lang->get('specialpage_' . strtolower($this->page_id))) !== 'specialpage_' . strtolower($this->page_id) )
+      {
+        $page_name = $_;
+      }
+    }
+    
+    $this->cdata = array(
+        'name' => $page_name,
+        'urlname' => $this->page_id,
+        'namespace' => $this->namespace,
+        'special' => 0,
+        'visible' => 0,
+        'comments_on' => 0,
+        'protected' => 0,
+        'delvotes' => 0,
+        'delvote_ips' => '',
+        'wiki_mode' => 2,
+        'page_exists' => false,
+        'page_format' => getConfig('default_page_format', 'wikitext')
+      );
+    $this->cdata = Namespace_Default::bake_cdata($this->cdata);
+    
+    $this->title =& $this->cdata['name'];
   }
   
   function send()
@@ -31,7 +72,7 @@ class Namespace_Special extends Namespace_Default
     
     if ( $this->exists )
     {
-      @call_user_func("page_{$this->namespace}_{$this->page_id}");
+      call_user_func("page_{$this->namespace}_{$this->page_id}");
     }
     else
     {
@@ -56,5 +97,13 @@ class Namespace_Special extends Namespace_Default
     $output->header();
     echo "<p>$message</p>";
     $output->footer();
+  }
+  
+  function set_conds()
+  {
+    parent::set_conds();
+    
+    $this->conds['printable'] = false;
+    $this->conds['adminpage'] = false;
   }
 }

@@ -181,10 +181,6 @@ class PageProcessor
     
     if ( !$this->perms->get_permissions('read') )
     {
-      if ( $this->send_headers )
-      {
-        $template->init_vars($this);
-      }
       // Permission denied to read page. Is this one of our core pages that must always be allowed?
       // NOTE: Not even the administration panel will work if ACLs deny access to it.
       if ( $this->namespace == 'Special' && in_array($this->page_id, array('Login', 'Logout', 'LangExportJSON', 'CSS')) )
@@ -218,10 +214,6 @@ class PageProcessor
     $admin_fail = false;
     if ( $this->namespace == 'Admin' && strstr($this->page_id, '/') )
     {
-      if ( $this->send_headers )
-      {
-        $template->init_vars($this);
-      }
       $this->page_id = substr($this->page_id, 0, strpos($this->page_id, '/'));
       $funcname = "page_{$this->namespace}_{$this->page_id}";
       if ( function_exists($funcname) )
@@ -231,21 +223,19 @@ class PageProcessor
     }
     if ( isPage($pathskey) )
     {
-      if ( $this->send_headers )
-      {
-        $template->init_vars($this);
-      }
-      if ( $paths->pages[$pathskey]['special'] == 1 )
+      $cdata = $this->ns->get_cdata();
+      
+      if ( $cdata['special'] == 1 )
       {
         $this->send_headers = false;
         $strict_no_headers = true;
         $GLOBALS['output'] = new Output_Naked();
       }
-      if ( isset($paths->pages[$pathskey]['password']) )
+      if ( isset($cdata['password']) )
       {
-        if ( $paths->pages[$pathskey]['password'] != '' && $paths->pages[$pathskey]['password'] != sha1('') )
+        if ( $cdata['password'] != '' && $cdata['password'] != sha1('') )
         {
-          $password =& $paths->pages[$pathskey]['password'];
+          $password =& $cdata['password'];
           if ( $this->password != $password )
           {
             $this->err_wrong_password();
@@ -253,7 +243,7 @@ class PageProcessor
           }
         }
       }
-      if ( isset($paths->pages[$pathskey]['require_admin']) && $paths->pages[$pathskey]['require_admin'] )
+      if ( isset($cdata['require_admin']) && $cdata['require_admin'] )
       {
         if ( $session->auth_level < USER_LEVEL_ADMIN )
         {
@@ -288,11 +278,6 @@ class PageProcessor
     
     // We are all done. Ship off the page.
     
-    if ( $this->send_headers )
-    {
-      $template->init_vars($this);
-    }
-    
     $this->ns->send();
   }
   
@@ -325,15 +310,12 @@ class PageProcessor
     {
       return '';
     }
-    $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-    if ( isPage($pathskey) )
+    $cdata = $this->ns->get_cdata();
+    if ( isset($cdata['password']) )
     {
-      if ( isset($paths->pages[$pathskey]['password']) )
+      if ( $cdata['password'] != sha1('') && $cdata['password'] !== $this->password && !empty($cdata['password']) )
       {
-        if ( $paths->pages[$pathskey]['password'] != sha1('') && $paths->pages[$pathskey]['password'] !== $this->password && !empty($paths->pages[$pathskey]['password']) )
-        {
-          return false;
-        }
+        return false;
       }
     }
     return $this->fetch_text();
@@ -462,9 +444,9 @@ class PageProcessor
     }
     
     // Set page_format
-    $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
     // Using @ due to warning thrown when saving new page
-    if ( @$paths->pages[ $pathskey ]['page_format'] !== $page_format )
+    $cdata = $this->ns->get_cdata();
+    if ( @$cdata['page_format'] !== $page_format )
     {
       // Note: no SQL injection to worry about here. Everything that goes into this is sanitized already, barring some rogue plugin.
       // (and if there's a rogue plugin running, we have bigger things to worry about anyway.)
@@ -906,15 +888,7 @@ class PageProcessor
     }
     
     // Retrieve page metadata
-    $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-    if ( !isPage($pathskey) )
-    {
-      return array(
-        'success' => false,
-        'error' => 'page_metadata_not_found'
-        );
-    }
-    $metadata =& $paths->pages[$pathskey];
+    $metadata = $this->ns->get_cdata();
     
     // Log the action
     $username = $db->escape($session->username);
@@ -1000,8 +974,7 @@ class PageProcessor
       foreach ( $stack as $oldtarget )
       {
         $url = makeUrlNS($oldtarget[1], $oldtarget[0], 'redirect=no', true);
-        $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
-        $page_data = $paths->pages[$page_id_key];
+        $page_data = $this->ns->get_cdata();
         $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
         $a = '<a href="' . $url . '">' . $title . '</a>';
         $output->add_after_header('<small>' . $lang->get('page_msg_redirected_from', array('from' => $a)) . '<br /></small>');
@@ -1125,14 +1098,13 @@ class PageProcessor
       foreach ( $stack as $oldtarget )
       {
         $url = makeUrlNS($oldtarget[1], $oldtarget[0], 'redirect=no', true);
-        $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
-        $page_data = $paths->pages[$page_id_key];
+        $old_page = namespace_factory($oldtarget[0], $oldtarget[1]);
+        $page_data = $old_page->get_cdata();
         $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
         $a = '<a href="' . $url . '">' . $title . '</a>';
         
         $url = makeUrlNS($this->namespace, $this->page_id, 'redirect=no', true);
-        $page_id_key = $paths->nslist[ $this->namespace ] . $this->page_id;
-        $page_data = $paths->pages[$page_id_key];
+        $page_data = $this->ns->get_cdata();
         $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$this->namespace] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $this->page_id ) ) );
         $b = '<a href="' . $url . '">' . $title . '</a>';
         

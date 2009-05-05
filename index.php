@@ -25,6 +25,7 @@
   $aggressive_optimize_html = true;
   
   global $do_gzip;
+  // FIXME: make this configurable
   $do_gzip = true;
   
   if ( isset($_GET['nocompress']) )
@@ -70,6 +71,9 @@
       // echo PageUtils::getpage($paths->page, true, ( (isset($_GET['oldid'])) ? $_GET['oldid'] : false ));
       $rev_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
       $page = new PageProcessor( $paths->page_id, $paths->namespace, $rev_id );
+      // Feed this PageProcessor to the template processor. This prevents $template from starting another
+      // PageProcessor when we already have one going.
+      $template->set_page($page);
       $page->send_headers = true;
       $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
       $page->password = $pagepass;

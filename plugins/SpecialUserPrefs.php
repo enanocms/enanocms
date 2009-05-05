@@ -43,7 +43,7 @@ function userprefs_menu_add($section, $text, $link)
   }
 }
 
-$plugins->attachHook('compile_template', 'userprefs_jbox_setup($button, $tb, $menubtn);');
+$plugins->attachHook('tpl_compile_sidebar', 'userprefs_jbox_setup($button, $tb, $menubtn);');
 
 function userprefs_jbox_setup(&$button, &$tb, &$menubtn)
 {
@@ -469,7 +469,7 @@ function page_Special_Preferences()
           $user_title_col = ", user_title = $colval";
         }
         $user_rank_col = '';
-        if ( intval($_POST['user_rank']) != $current_rank['rank_id'] && count($available_ranks) > 1 )
+        if ( isset($_POST['user_rank']) && intval($_POST['user_rank']) != $current_rank['rank_id'] && count($available_ranks) > 1 )
         {
           if ( $_POST['user_rank'] == 'NULL' )
           {

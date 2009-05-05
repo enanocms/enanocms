@@ -96,6 +96,7 @@ class pluginLoader {
     {
       if ( in_array($plugin, $this->system_plugins) )
         continue;
+      
       if ( $this->loaded_plugins[$plugin]['status'] & PLUGIN_OUTOFDATE )
       {
         // it's out of date, don't load

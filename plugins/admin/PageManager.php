@@ -261,10 +261,6 @@ function page_Admin_PageManager()
                   {
                     PageUtils::delete_page_files($page_id);
                   }
-                  
-                  // update $paths with the new pathskey
-                  $new_pathskey = $paths->nslist[$namespace_new] . $page_id_new;
-                  $paths->pages[$new_pathskey] =& $paths->pages[$pathskey];
                 }
                 
                 // Did we change the name of the page? If so, make PageProcessor log it

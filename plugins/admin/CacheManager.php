@@ -141,6 +141,13 @@ function page_Admin_CacheManager()
           $success = true;
         }
         break;
+      case 'wikieditnotice':
+        $cache->purge('wiki_edit_notice');
+        if ( $do_refresh )
+          $template->get_wiki_edit_notice();
+        
+        $success = true;
+        break;
       case 'all':
         $success = purge_all_caches();
         if ( $do_refresh )
@@ -163,6 +170,9 @@ function page_Admin_CacheManager()
           $success = $plugins->generate_plugins_cache();
           if ( !$success )
             break;
+          
+          // wiki edit notice
+          $template->get_wiki_edit_notice();
           
           // languages
           $q = $db->sql_query('SELECT lang_id FROM ' . table_prefix . 'language;');
@@ -265,7 +275,7 @@ function page_Admin_CacheManager()
       
       <?php
       $class = 'row2';
-      $cache_list = array('page', 'ranks', 'sidebar', 'plugins', 'template', 'aes', 'lang', 'js', 'thumbs');
+      $cache_list = array('page', 'ranks', 'sidebar', 'plugins', 'template', 'aes', 'lang', 'js', 'thumbs', 'wikieditnotice');
       $code = $plugins->setHook('acp_cache_manager_list_caches');
       foreach ( $code as $cmd )
       {

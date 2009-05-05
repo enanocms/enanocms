@@ -65,25 +65,9 @@ function stats_top_pages($num = 5)
   
   while ( $row = $db->fetchrow() )
   {
-    if ( isset($paths->pages[ $paths->nslist[ $row['namespace'] ] . $row['page_id'] ]) )
-    {
-      $page_data =& $paths->pages[ $paths->nslist[ $row['namespace'] ] . $row['page_id'] ];
-      $title = $page_data['name'];
-      $page_id = $page_data['urlname'];
-    }
-    else if ( !isset($paths->nslist[$row['namespace']]) )
-    {
-      $title = $row['namespace'] . ':' . $row['page_id'];
-      $page_id = sanitize_page_id($title);
-    }
-    else
-    {
-      $title = dirtify_page_id( $paths->nslist[$row['namespace']] . $row['page_id'] );
-      $title = str_replace('_', ' ', $title);
-      $page_id = sanitize_page_id($title);
-    }
+    $title = get_page_title_ns($row['page_id'], $row['namespace']);
     $data[] = array(
-        'page_urlname' => $page_id,
+        'page_urlname' => $paths->get_pathskey($row['page_id'], $row['namespace']),
         'page_title' => $title,
         'num_hits' => $row['num_hits']
       );

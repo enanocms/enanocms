@@ -163,30 +163,6 @@ class pathManager
       eval($cmd);
     }
     
-    if ( $page_cache = $cache->fetch('page_meta') )
-    {
-      $this->pages = array_merge($this->pages, $page_cache);
-    }
-    else
-    {
-      $e = $db->sql_query('SELECT name,urlname,namespace,special,visible,comments_on,protected,delvotes,' . "\n"
-                          . '  delvote_ips,wiki_mode,password,page_format FROM '.table_prefix.'pages ORDER BY name;');
-      
-      if( !$e )
-      {
-        $db->_die('The error seems to have occured while selecting the page information. File: includes/paths.php; line: '.__LINE__);
-      }
-      while($r = $db->fetchrow())
-      {
-        $r = $this->calculate_metadata_from_row($r);
-        
-        $this->pages[$r['urlname']] = $r;
-        $this->pages[] =& $this->pages[$r['urlname']];
-      }
-      
-      $this->update_metadata_cache();
-    }
-    $db->free_result();
     if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') || defined('IN_ENANO_UPGRADE') )
     {
       $title = $this->parse_url(false);
@@ -391,6 +367,39 @@ class pathManager
     $session->init_permissions();
   }
   
+  /**
+   * Fetch cdata (metadata) for a page.
+   * @param string Page ID
+   * @param string Namespace
+   * @return array
+   */
+  
+  function get_cdata($page_id, $namespace)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $pathskey = $this->get_pathskey($page_id, $namespace);
+    if ( isset($this->pages[$pathskey]) )
+      return $this->pages[$pathskey];
+    
+    $page = namespace_factory($page_id, $namespace);
+    $cdata = $page->get_cdata();
+    
+    $this->pages[$pathskey] = $cdata;
+    return $cdata;
+  }
+  
+  /**
+   * For a given page ID and namespace, generate a flat string that can be used to access $paths->pages.
+   * @param string Page ID
+   * @param string Namespace
+   */
+  
+  function get_pathskey($page_id, $namespace)
+  {
+    return ( isset($this->nslist[$namespace]) ) ? "{$this->nslist[$namespace]}{$page_id}" : "{$namespace}:{$page_id}";
+  }
+  
   function add_page($flags)
   {
     global $lang;
@@ -404,10 +413,9 @@ class pathManager
     }
     
     $flags['require_admin'] = ( $flags['namespace'] === 'Admin' );
+    $flags['page_exists'] = true;
     
-    $pages_len = sizeof($this->pages) / 2;
-    $this->pages[$pages_len] = $flags;
-    $this->pages[$flags['urlname']] =& $this->pages[$pages_len];
+    $this->pages[$flags['urlname']] = $flags;
   }
   
   function main_page()
@@ -564,7 +572,7 @@ class pathManager
     $title = $this->parse_url(false);
     list(, $ns) = RenderMan::strToPageID($title);
     $title = substr($title, strlen($this->nslist[$ns]));
-    $regex = '/^' . str_replace('/', '\\/', preg_quote($this->nslist[$this->namespace])) . '\\/?/';
+    $regex = '/^' . str_replace('/', '\\/', preg_quote($this->nslist[$ns])) . '\\/?/';
     $title = preg_replace($regex, '', $title);
     $title = explode('/', $title);
     $id = $id + 1;
@@ -604,42 +612,14 @@ class pathManager
   }
   
   /**
-   * Updates the cache containing all page metadata.
+   * Deprecated.
    */
   
   function update_metadata_cache()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    if ( getConfig('cache_thumbs') != '1' )
-      return false;
-    
-    $e = $db->sql_unbuffered_query('SELECT name,urlname,namespace,special,visible,comments_on,protected,delvotes,' . "\n"
-                          . '  delvote_ips,wiki_mode,password,page_format FROM '.table_prefix.'pages ORDER BY name;');
-    if ( !$e )
-      $db->_die();
-    
-    $md_array = array();
-    
-    while ( $row = $db->fetchrow() )
-    {
-      $row = $this->calculate_metadata_from_row($row);
-      $md_array[$row['urlname']] = $row;
-    }
-    
-    // import cache functions
-    global $cache;
-    
-    // store data (TTL 20 minutes)
-    try
-    {
-      $cache->store('page_meta', $md_array, 20);
-    }
-    catch ( Exception $e )
-    {
-    }
-    
-    return true;
+    return false;
   }
   
   /**
@@ -650,34 +630,7 @@ class pathManager
   
   function calculate_metadata_from_row($r)
   {
-    $r['urlname_nons'] = $r['urlname'];
-    if ( isset($this->nslist[$r['namespace']]) )
-    {
-      $r['urlname'] = $this->nslist[$r['namespace']] . $r['urlname']; // Applies the User:/File:/etc prefixes to the URL names
-    }
-    else
-    {
-      $ns_char = substr($this->nslist['Special'], -1);
-      $r['urlname'] = $r['namespace'] . $ns_char . $r['urlname'];
-    }
-    
-    if ( $r['delvotes'] == null)
-    {
-      $r['delvotes'] = 0;
-    }
-    if ( $r['protected'] == 0 || $r['protected'] == 1 )
-    {
-      $r['really_protected'] = (int)$r['protected'];
-    }
-    else if ( $r['protected'] == 2 && getConfig('wiki_mode') == '1')
-    {
-      $r['really_protected'] = 1;
-    }
-    else if ( $r['protected'] == 2 && getConfig('wiki_mode') == '0' )
-    {
-      $r['really_protected'] = 0;
-    }
-    return $r;
+    return Namespace_Default::bake_cdata($r);
   }
   
   /**
@@ -838,7 +791,6 @@ class pathManager
       $db->_die();
     
     $sha1_blank = sha1('');
-    $query_func = ( ENANO_DBLAYER == 'MYSQL' ) ? 'mysql_query' : 'pg_query';
     
     //
     // Index $pages_in_batch pages at a time
@@ -1079,65 +1031,6 @@ class pathManager
     else
       $db->_die('The search index was trying to rebuild itself when the error occured.');
     
-  }
-  
-  /**
-   * Creates an instance of the Searcher class, including index info
-   * @return object
-   */
-   
-  function makeSearcher($match_case = false)
-  {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    $search = new Searcher();
-    $q = $db->sql_query('SELECT word,page_names FROM '.table_prefix.'search_index;');
-    if(!$q)
-    {
-      echo $db->get_error();
-      return false;
-    }
-    $idx = Array();
-    while($row = $db->fetchrow($q))
-    {
-      $row['word'] = rtrim($row['word'], "\0");
-      $idx[$row['word']] = $row['page_names'];
-    }
-    $db->free_result();
-    $search->index = $idx;
-    if($match_case)
-      $search->match_case = true;
-    return $search;
-  }
-  
-  /**
-   * Creates an associative array filled with the values of all the page titles
-   * @return array
-   */
-   
-  function get_page_titles()
-  {
-    $texts = Array();
-    for ( $i = 0; $i < sizeof($this->pages) / 2; $i++ )
-    {
-      $texts[$this->pages[$i]['urlname']] = $this->pages[$i]['name'];
-    }
-    return $texts;
-  }
-  
-  /**
-   * Creates an instance of the Searcher class, including index info for page titles
-   * @return object
-   */
-   
-  function makeTitleSearcher($match_case = false)
-  {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    $search = new Searcher();
-    $texts = $this->get_page_titles();
-    $search->buildIndex($texts);
-    if($match_case)
-      $search->match_case = true;
-    return $search;
   }
   
   /**

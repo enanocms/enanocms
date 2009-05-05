@@ -101,17 +101,16 @@ function page_Special_UploadFile()
       }
     }
     
-    if ( isset ( $paths->pages[ $paths->nslist['File'] . $filename ] ) && !isset ( $_POST['update'] ) )
+    $ns = namespace_factory($filename, 'File');
+    $cdata = $ns->get_cdata();
+    $is_protected = $cdata['really_protected'];
+    
+    if ( isPage($paths->get_pathskey($filename, 'File')) && !isset ( $_POST['update'] ) )
     {
       $upload_link = makeUrlNS('Special', 'UploadFile/'.$filename);
       die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_already_exists', array('upload_link' => $upload_link)) . '</p>');
     }
-    else if ( isset($_POST['update']) && 
-            ( !isset($paths->pages[$paths->nslist['File'].$filename]) ||
-             (isset($paths->pages[$paths->nslist['File'].$filename]) &&
-               $paths->pages[$paths->nslist['File'].$filename]['protected'] == 1 )
-             )
-           )
+    else if ( isset($_POST['update']) && $is_protected )
     {
       die_friendly($lang->get('upload_err_title'), '<p>' . $lang->get('upload_err_replace_protected') . '</p>');
     }

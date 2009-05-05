@@ -427,10 +427,24 @@ class mysql {
   }
   
   function fetchrow($r = false) {
-    if(!$this->_conn) return false;
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    if ( !$this->_conn )
+      return false;
+    
+    if ( !$r )
+      $r = $this->latest_result;
+    
+    if ( !$r )
+      $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    
     $row = mysql_fetch_assoc($r);
+    /*
+    if ( empty($row) )
+    {
+      $GLOBALS['do_gzip'] = false;
+      echo '<pre>' . enano_debug_print_backtrace(true) . '</pre>';
+    }
+    */
+    
     return integerize_array($row);
   }
   

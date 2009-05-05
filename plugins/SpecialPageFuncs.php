@@ -313,7 +313,6 @@ function page_Special_AllPages()
   global $lang;
   
   $template->header();
-  $sz = sizeof( $paths->pages ) / 2;
   echo '<p>' . $lang->get('pagetools_allpages_blurb') . '</p>';
   
   $q = $db->sql_query('SELECT COUNT(urlname) FROM '.table_prefix.'pages WHERE visible!=0;');
@@ -321,6 +320,7 @@ function page_Special_AllPages()
     $db->_die();
   $row = $db->fetchrow_num();
   $count = $row[0];
+  $sz =& $count;
   
   switch($count % 4)
   {
@@ -378,36 +378,30 @@ function page_Special_SpecialPages()
   global $lang;
   
   $template->header();
-  $sz = sizeof($paths->pages) / 2;
-  echo '<p>' . $lang->get('pagetools_specialpages_blurb') . '</p><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">';
-  $cclass='row1';
-  for ( $i = 0; $i < $sz; $i = $i)
+  echo '<p>' . $lang->get('pagetools_specialpages_blurb') . '</p><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr>';
+  $cclass = 'row1';
+  $i = -1;
+  foreach ( $paths->pages as $cdata )
   {
-    if ( $cclass == 'row1' )
+    if ( $cdata['namespace'] != 'Special' )
+      continue;
+    
+    $i++;
+    if ( $i % 2 == 0 && $i > 0 )
     {
-      $cclass = 'row3';
+      echo '</tr><tr>';
+      $cclass = ( $cclass == 'row1' ) ? 'row3' : 'row1';
     }
-    else if ( $cclass == 'row3')
-    {
-      $cclass='row1';
-    }
-    echo '<tr>';
-    for ( $j = 0; $j < 2; $j = $j )
-    {
-      if ( $i < $sz && $paths->pages[$i]['namespace'] == 'Special' && $paths->pages[$i]['visible'] == 1)
-      {
-        echo '<td style="width: 50%" class="'.$cclass.'"><a href="'.makeUrl($paths->pages[$i]['urlname']).'">';
-        echo $paths->pages[$i]['name'].'</a></td>';
-        $j++;
-      }
-      else if ( $i >= $sz )
-      {  
-        echo '<td style="width: 50%" class="row2"></td>';
-        $j++;
-      }
-      $i++;
-    }
-    echo '</tr>';
+    echo '<td style="width: 50%;" class="' . $cclass . '">';
+    echo '<a href="' . makeUrl($cdata['urlname']) . '">';
+    echo htmlspecialchars($cdata['name']);
+    echo '</a>';
+    echo '</td>';
+  }
+  // close up the table if necessary
+  if ( $i % 2 > 0 )
+  {
+    echo "<td class=\"$cclass\"></td>";
   }
   echo '</table></div>';
   $template->footer();

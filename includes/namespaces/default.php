@@ -64,6 +64,42 @@ class Namespace_Default
   public $title = '';
   
   /**
+   * PathManager info array ("cdata") for this page. (The one with urlname, name, namespace, delvotes, delvote_ips, protected, visible, etc.)
+   * @var array
+   */
+  
+  public $cdata = array();
+  
+  /**
+   * ACL calculation instance for this page.
+   * @var object(Session_ACLPageInfo)
+   */
+  
+  public $perms = false;
+  
+  /**
+   * Protection calculation
+   * @var bool
+   */
+  
+  public $page_protected = false;
+  
+  /**
+   * Wiki mode calculation
+   * @var bool
+   */
+  
+  public $wiki_mode = false;
+  
+  /**
+   * Page conditions. These represent the final decision as to whether an action is allowed or not. They are set to true if ACLs permit AND if
+   * the action "makes sense." (e.g., you can't vote to delete a non-wikimode page.)
+   * @var array
+   */
+  
+  public $conds = array();
+  
+  /**
    * Constructor.
    */
   
@@ -75,50 +111,65 @@ class Namespace_Default
     $this->namespace = $namespace;
     $this->revision_id = intval($revision_id);
     
-    // only do this if calling from the (very heavily feature filled) abstract
-    // this will still be called if you're using your own handler but not replacing the constructor
-    if ( __CLASS__ == 'Namespace_Default' )
+    // grab the cdata
+    $this->build_cdata();
+    
+    $this->page_protected = $this->cdata['really_protected'] ? true : false;
+    switch($this->cdata['wiki_mode'])
     {
-      $this->exists = false;
-      // NOTE! These should already be WELL sanitized before we reach this stage.
-      $q = $db->sql_query('SELECT name FROM ' . table_prefix . "pages WHERE urlname = '$this->page_id' AND namespace = '$this->namespace';");
-      if ( !$q )
-        $db->_die();
-      
-      if ( $db->numrows() < 1 )
-      {
-        // we still have a chance... some older databases don't do dots in the page title right
-        if ( strstr(dirtify_page_id($this->page_id), '.') )
-        {
-          $page_id = str_replace('.', '.2e', $page_id);
-          
-          $q = $db->sql_query('SELECT name FROM ' . table_prefix . "pages WHERE urlname = '$page_id' AND namespace = '$this->namespace';");
-          if ( !$q )
-            $db->_die();
-          
-          if ( $db->numrows() < 1 )
-          {
-            $this->title = $paths->nslist[$namespace] . dirtify_page_id($page_id);
-          }
-          else
-          {
-            list($this->title) = $db->fetchrow_num();
-            $this->exists = true;
-            $this->page_id = $page_id;
-          }
-        }
-        else
-        {
-          $this->title = $paths->nslist[$namespace] . dirtify_page_id($page_id);
-        }
-      }
-      else
-      {
-        list($this->title) = $db->fetchrow_num();
-        $this->exists = true;
-      }
-      $db->free_result();
+      case 0: $this->wiki_mode = false; break;
+      case 1: $this->wiki_mode = true; break;
+      default: case 2: $this->wiki_mode = getConfig('wiki_mode') == 1; break;
     }
+  }
+  
+  /**
+   * Build the page's cdata.
+   */
+  
+  public function build_cdata()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    static $cdata_cache = array();
+    $pathskey = $paths->get_pathskey($this->page_id, $this->namespace);
+    if ( isset($cdata_cache[$pathskey]) )
+    {
+      $this->cdata = $cdata_cache[$pathskey];
+      $this->exists = $cdata_cache[$pathskey]['page_exists'];
+      $this->title = $cdata_cache[$pathskey]['name'];
+      return null;
+    }
+    
+    $this->exists = false;
+    $ns_char = substr($paths->nslist['Special'], -1);
+      
+    $page_name = $this->namespace == 'Article' ? dirtify_page_id($this->page_id) : "{$this->namespace}{$ns_char}" . dirtify_page_id($this->page_id);
+    $this->cdata = array(
+      'name' => $page_name,
+      'urlname' => $this->page_id,
+      'namespace' => $this->namespace,
+      'special' => 0,
+      'visible' => 0,
+      'comments_on' => 1,
+      'protected' => 0,
+      'delvotes' => 0,
+      'delvote_ips' => '',
+      'wiki_mode' => 2,
+      'page_exists' => false,
+      'page_format' => getConfig('default_page_format', 'wikitext')
+    );
+    
+    if ( $data_from_db = Namespace_Default::get_cdata_from_db($this->page_id, $this->namespace) )
+    {
+      $this->exists = true;
+      $this->cdata = $data_from_db;
+      $this->cdata['page_exists'] = true;
+      $this->title = $this->cdata['name'];
+    }
+        
+    $this->cdata = Namespace_Default::bake_cdata($this->cdata);
+    
+    $cdata_cache[$pathskey] = $this->cdata;
   }
   
   /**
@@ -287,6 +338,8 @@ class Namespace_Default
     
     $text = $this->fetch_text();
     
+    profiler_log("Namespace [$this->namespace, $this->page_id]: pulled text from DB");
+    
     $text = preg_replace('/([\s]*)__NOBREADCRUMBS__([\s]*)/', '', $text);
     $text = preg_replace('/([\s]*)__NOTOC__([\s]*)/', '', $text);
     
@@ -299,8 +352,7 @@ class Namespace_Default
       $oldtarget[0] = sanitize_page_id($oldtarget[0]);
       
       $url = makeUrlNS($oldtarget[1], $oldtarget[0], false, true);
-      $page_id_key = $paths->nslist[ $oldtarget[1] ] . $oldtarget[0];
-      $page_data = $paths->pages[$page_id_key];
+      $page_data = $paths->get_cdata($oldtarget[0], $oldtarget[1]);
       $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
       if ( !isset($page_data['name']) )
       {
@@ -331,7 +383,6 @@ class Namespace_Default
     
     if ( $send_headers )
     {
-      $template->init_vars($this);
       $output->set_title($this->title);
       $output->header();
     }
@@ -339,7 +390,23 @@ class Namespace_Default
     
     if ( $incl_inner_headers )
     {
-      display_page_headers();
+      if ( !$this->perms )
+        $this->perms = $session->fetch_page_acl($this->page_id, $this->namespace);
+      
+      if ( $this->perms->get_permissions('vote_reset') && $this->cdata['delvotes'] > 0)
+      {
+        $delvote_ips = unserialize($this->cdata['delvote_ips']);
+        $hr = htmlspecialchars(implode(', ', $delvote_ips['u']));
+        
+        $string_id = ( $this->cdata['delvotes'] == 1 ) ? 'delvote_lbl_votes_one' : 'delvote_lbl_votes_plural';
+        $string = $lang->get($string_id, array('num_users' => $this->cdata['delvotes']));
+        
+        echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;" id="mdgDeleteVoteNoticeBox">
+                <b>' . $lang->get('etc_lbl_notice') . '</b> ' . $string . '<br />
+                <b>' . $lang->get('delvote_lbl_users_that_voted') . '</b> ' . $hr . '<br />
+                <a href="'.makeUrl($paths->page, 'do=deletepage').'" onclick="ajaxDeletePage(); return false;">' . $lang->get('delvote_btn_deletepage') . '</a>  |  <a href="'.makeUrl($paths->page, 'do=resetvotes').'" onclick="ajaxResetDelVotes(); return false;">' . $lang->get('delvote_btn_resetvotes') . '</a>
+              </div>';
+      }
     }
     
     if ( $this->revision_id )
@@ -363,8 +430,7 @@ class Namespace_Default
     }
     else
     {
-      $pathskey = $paths->nslist[ $this->namespace ] . $this->page_id;
-      $page_format = $paths->pages[$pathskey]['page_format'];
+      $page_format = $this->cdata['page_format'];
     }
     
     if ( $redir_enabled )
@@ -377,6 +443,8 @@ class Namespace_Default
     {
       eval($cmd);
     }
+    
+    $prof_contentevent = profiler_log("Namespace [$this->namespace, $this->page_id]: headers and preprocessing done - about to send content");
     
     if ( $incl_inner_headers )
     {
@@ -400,6 +468,8 @@ class Namespace_Default
     
     eval ( $text );
     
+    profiler_log("Namespace [$this->namespace, $this->page_id]: content sent", true, $prof_contentevent);
+    
     $code = $plugins->setHook('pageprocess_render_tail');
     foreach ( $code as $cmd )
     {
@@ -410,6 +480,8 @@ class Namespace_Default
     {
       display_page_footers();
     }
+    
+    profiler_log("Namespace [$this->namespace, $this->page_id]: sent footers");
     
     if ( $send_headers )
       $output->footer();
@@ -709,7 +781,7 @@ EOF;
           $link = makeUrlNS('Category', $cid);
           $list[] = '<a href="' . $link . '">' . htmlspecialchars($title) . '</a>';
         }
-        while ( $row = $db->fetchrow() );
+        while ( $row = $db->fetchrow($q) );
         $html .= implode(', ', $list);
       }
       else
@@ -728,14 +800,188 @@ EOF;
     }
     return $html;
   }
+  
+  /**
+   * Pull in switches as to whether a specific toolbar button should be used or not. This sets things up according to the current page being displayed.
+   * @return array Associative
+   */
+  
+  function set_conds()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    if ( !$this->perms )
+      $this->perms = $session->fetch_page_acl($this->page_id, $this->namespace);
+    
+    $enforce_protection = ( $this->page_protected && ( ( $session->check_acl_scope('even_when_protected', $this->namespace) && !$this->perms->get_permissions('even_when_protected') ) || !$session->check_acl_scope('even_when_protected', $this->namespace) ) );
+    
+    $conds = array();
+    
+    // Article: always show
+    $conds['article'] = true;
+    
+    // Discussion: Show if comments are enabled on the site, and if comments are on for this page.
+    $conds['comments'] = $this->perms->get_permissions('read') && getConfig('enable_comments', '1')=='1' && $this->cdata['comments_on'] == 1;
+    
+    // Edit: Show if we have permission to edit the page, and if we don't have protection in effect
+    $conds['edit'] = $this->perms->get_permissions('read') && $session->check_acl_scope('edit_page', $this->namespace) && $this->perms->get_permissions('edit_page') && !$enforce_protection;
+    
+    // View source: Show if we have permission to view source and either ACLs prohibit editing or protection is in effect
+    $conds['viewsource'] = $session->check_acl_scope('view_source', $this->namespace) && $this->perms->get_permissions('view_source') && ( !$this->perms->get_permissions('edit_page') || $enforce_protection ) && $this->namespace != 'API';
+    
+    // History: Show if we have permission to see history and if the page exists
+    $conds['history'] = $session->check_acl_scope('history_view', $this->namespace) && $this->exists && $this->perms->get_permissions('history_view');
+    
+    // Rename: Show if the page exists, if we have permission to rename, and if protection isn't in effect
+    $conds['rename'] = $session->check_acl_scope('rename', $this->namespace) && $this->exists && $this->perms->get_permissions('rename') && !$enforce_protection;
+    
+    // Vote-to-delete: Show if we have Wiki Mode on, if we have permission to vote for deletion, and if the page exists (can't vote to delete a nonexistent page)
+    $conds['delvote'] = $this->wiki_mode && $session->check_acl_scope('vote_delete', $this->namespace) && $this->perms->get_permissions('vote_delete') && $this->exists;
+    
+    // Reset votes: Show if we have Wiki Mode on, if we have permission to reset votes, if the page exists, and if there's at least one vote
+    $conds['resetvotes'] = $session->check_acl_scope('vote_reset', $this->namespace) && $this->wiki_mode && $this->exists && $this->perms->get_permissions('vote_reset') && $this->cdata['delvotes'] > 0;
+    
+    // Delete page: Show if the page exists and if we have permission to delete it
+    $conds['delete'] = $session->check_acl_scope('delete_page', $this->namespace) && $this->exists && $this->perms->get_permissions('delete_page');
+    
+    // Printable view: Show if the page exists
+    $conds['printable'] = $this->exists;
+    
+    // Protect: Show if we have Wiki Mode on, if the page exists, and if we have permission to protect the page.
+    $conds['protect'] = $session->check_acl_scope('protect', $this->namespace) && $this->wiki_mode && $this->exists && $this->perms->get_permissions('protect');
+    
+    // Set Wiki Mode: Show if the page exists and if we have permission to set wiki mode
+    $conds['setwikimode'] = $session->check_acl_scope('set_wiki_mode', $this->namespace) && $this->exists && $this->perms->get_permissions('set_wiki_mode');
+    
+    // Clear logs: Show if we have permission to clear logs
+    $conds['clearlogs'] = $session->check_acl_scope('clear_logs', $this->namespace) && $this->perms->get_permissions('clear_logs');
+    
+    // Set password: a little bit complicated. If there's a password, check for password_reset; else, check for password_set.
+    $conds['password'] = empty($this->cdata['password']) ?
+                           $session->check_acl_scope('password_set', $this->namespace) && $this->perms->get_permissions('password_set') :
+                           $session->check_acl_scope('password_reset', $this->namespace) && $this->perms->get_permissions('password_reset');
+    
+    // Edit ACLs: Show if this is a non-Enano page that's calling the Enano API and (a) if we have permissions to edit ACLs or (b) we're an admin AND ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL is on
+    $conds['acledit'] = $this->namespace != 'API' && $session->check_acl_scope('edit_acl', $this->namespace) && ( $this->perms->get_permissions('edit_acl') || ( defined('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL') &&  $session->user_level >= USER_LEVEL_ADMIN ) );
+    
+    // Admin page: Show if the page exists and if we're an admin
+    $conds['adminpage'] = $session->user_level >= USER_LEVEL_ADMIN && $this->exists;
+    
+    // Allow plugins to change stuff
+    $code = $plugins->setHook('page_conds_set');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
+    $this->conds = $conds;
+  }
+  
+  /**
+   * Return page conditions
+   * @return array
+   */
+  
+  public function get_conds()
+  {
+    if ( empty($this->conds) )
+      $this->set_conds();
+    
+    return $this->conds;
+  }
+  
   /**
    * Just tell us if the current page exists or not.
    * @return bool
    */
    
-  function exists()
+  public function exists()
   {
     return $this->exists;
+  }
+  
+  /**
+   * Return cdata
+   * @return array
+   */
+  
+  public function get_cdata()
+  {
+    return $this->cdata;
+  }
+  
+  /**
+   * Bake, or finalize the processing of, a cdata array.
+   * @static
+   * @access public
+   */
+  
+  public static function bake_cdata($cdata)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    // urlname_nons is the actual page_id.
+    $cdata['urlname_nons'] = $cdata['urlname'];
+    if ( isset($paths->nslist[ $cdata['namespace'] ]) )
+    {
+      $cdata['urlname'] = $paths->nslist[ $cdata['namespace'] ] . $cdata['urlname'];
+    }
+    else
+    {
+      $ns_char = substr($paths->nslist['Special'], -1);
+      $cdata['urlname'] = $cdata['namespace'] . $ns_char . $cdata['urlname'];
+    }
+    
+    // fix up deletion votes
+    if ( empty($cdata['delvotes']) )
+      $cdata['delvotes'] = 0;
+    
+    // calculate wiki mode
+    $cdata['really_wiki_mode'] = ( $cdata['wiki_mode'] == 1 || ( $cdata['wiki_mode'] == 2 && getConfig('wiki_mode', 0) == 1 ) );
+    
+    // calculate protection
+    $cdata['really_protected'] = ( $cdata['protected'] > 0 );
+    if ( $cdata['protected'] == 2 )
+    {
+      $cdata['really_protected'] = !$session->user_logged_in || ( $session->user_logged_in && $session->reg_time + 86400*4 > time() );
+    }
+    
+    return $cdata;
+  }
+  
+  /**
+   * Grabs raw (unbaked) cdata from the database, caching if possible.
+   * @param string Page ID
+   * @param string Namespace.
+   * @static
+   */
+  
+  public static function get_cdata_from_db($page_id, $namespace)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    static $cache = array();
+    
+    $pathskey = $paths->get_pathskey($page_id, $namespace);
+    if ( isset($cache[$pathskey]) )
+      return $cache[$pathskey];
+    
+    $page_id_db = $db->escape($page_id);
+    $namespace_db = $db->escape($namespace);
+    
+    $q = $db->sql_query('SELECT * FROM ' . table_prefix . "pages WHERE urlname = '$page_id_db' AND namespace = '$namespace_db';");
+    if ( !$q )
+      $db->_die();
+    
+    if ( $db->numrows() < 1 )
+    {
+      $db->free_result();
+      $cache[$pathskey] = false;
+      return false;
+    }
+    
+    $row = $db->fetchrow();
+    $cache[$pathskey] = $row;
+    return $row;
   }
 }
 
@@ -752,6 +998,10 @@ class Namespace_Project extends Namespace_Default
 }
 
 class Namespace_Help extends Namespace_Default
+{
+}
+
+class Namespace_Category extends Namespace_Default
 {
 }
 

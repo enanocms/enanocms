@@ -340,7 +340,7 @@ var enano_lang = {
       heading_activate: 'User account activation',
       activate_intro_line1: 'If you would like to require users to confirm their e-mail addresses by way of account activation, you can enable this behavior here. If this option is set to "None", users will be able to register and use this site without confirming their e-mail addresses. If this option is set to "User", users will automatically be sent e-mails upon registration with a link to activate their accounts. And lastly, if this option is set to "Admin", users\' accounts will not be active until an administrator activates the account.',
       activate_intro_line2: 'You may also disable registration completely if needed.',
-      activate_intro_sfnet_warning: 'Note: because of abuse by project administrators, sending account activation e-mails will not work on SourceForge.net servers.',
+      activate_intro_sfnet_warning: 'Note: if you are using a SourceForge.net server, do not select User. SourceForge.net does not allow e-mails to be sent from project web sites.',
       field_activate: 'Account activation:',
       field_activate_disable: 'Disable registration',
       field_activate_none: 'None',
@@ -675,6 +675,8 @@ var enano_lang = {
       cache_js_desc_body: 'The on-page tools that Enano provides require a significant amount of Javascript code, which is compressed and cached for better load times. This cache is updated whenever any of the Javascript files are changed, but it is an incremental cache, meaning that it cannot be refreshed manually (only cleared).',
       cache_thumbs_desc_title: 'Image thumbnails',
       cache_thumbs_desc_body: 'Thumbnails (preview-size versions of uploaded images) can take up to 2 seconds to generate, usually increasing load times and potentially causing increased server load. This cache is refreshed on demand. Clearing this cache may cause increased loads on your server.',
+      cache_wikieditnotice_desc_title: 'Wiki mode legal notice',
+      cache_wikieditnotice_desc_body: 'This notice is rendered and cached to reduce database queries. If you use templates in your edit notice, you need to clear this cache to see the changes take effect. This cache expires every 60 minutes.',
       
       msg_action_success: 'The action you requested was successful.',
       err_action_failed: 'There was an error during the requested action.'

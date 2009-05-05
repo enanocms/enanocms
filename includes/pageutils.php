@@ -50,14 +50,18 @@ class PageUtils {
   public static function getsource($page, $password = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!isPage($page))
+    if ( !isPage($page) )
     {
       return '';
     }
     
-    if(strlen($paths->pages[$page]['password']) == 40)
+    list($page_id, $namespace) = RenderMan::strToPageID($page);
+    $ns = namespace_factory($page_id, $namespace);
+    $cdata = $ns->get_cdata();
+    
+    if ( strlen($cdata['password']) == 40 )
     {
-      if(!$password || ( $password != $paths->pages[$page]['password']))
+      if(!$password || ( $password != $cdata['password']))
       {
         return 'invalid_password';
       }
@@ -111,65 +115,10 @@ class PageUtils {
   public static function savepage($page_id, $namespace, $message, $summary = 'No edit summary given', $minor = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $uid = sha1(microtime());
-    $pname = $paths->nslist[$namespace] . $page_id;
     
-    if(!$session->get_permissions('edit_page'))
-      return 'Access to edit pages is denied.';
-    
-    if(!isPage($pname))
-    {
-      $create = PageUtils::createPage($page_id, $namespace);
-      if ( $create != 'good' )
-        return 'The page did not exist, and I was not able to create it. The reported error was: ' . $create;
-      $paths->page_exists = true;
-    }
-    
-    // Check page protection
-    
-    $is_protected = false;
-    $page_data =& $paths->pages[$pname];
-    // Is the protection semi?
-    if ( $page_data['protected'] == 2 )
-    {
-      $is_protected = true;
-      // Page is semi-protected. Has the user been here for at least 4 days?
-      // 345600 seconds = 4 days
-      if ( $session->user_logged_in && ( $session->reg_time + 345600 ) <= time() )
-        $is_protected = false;
-    }
-    // Is the protection full?
-    else if ( $page_data['protected'] == 1 )
-    {
-      $is_protected = true;
-    }
-    
-    // If it's protected and we DON'T have even_when_protected rights, bail out
-    if ( $is_protected && !$session->get_permissions('even_when_protected') )
-    {
-      return 'You don\'t have the necessary permissions to edit this page.';
-    }
-    
-    // We're skipping the wiki mode check here because by default edit_page pemissions are AUTH_WIKIMODE.
-    // The exception here is the user's own userpage, which is overridden at the time of account creation.
-    // At that point it's set to AUTH_ALLOW, but obviously only for the user's own userpage.
-    
-    // Strip potentially harmful tags and PHP from the message, dependent upon permissions settings
-    $message = RenderMan::preprocess_text($message, false, false);
-    
-    $msg = $db->escape($message);
-    
-    $minor = $minor ? ENANO_SQL_BOOLEAN_TRUE : ENANO_SQL_BOOLEAN_FALSE;
-    $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.enano_date('d M Y h:i a').'\', \'' . $paths->page_id . '\', \'' . $paths->namespace . '\', ' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\', \'' . $uid . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($summary)) . '\', ' . $minor . ');';
-    if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
-    
-    $q = 'UPDATE ' . table_prefix.'page_text SET page_text=' . ENANO_SQL_MULTISTRING_PRFIX . '\'' . $msg . '\',char_tag=\'' . $uid . '\' WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';';
-    $e = $db->sql_query($q);
-    if(!$e) $db->_die('Enano was unable to save the page contents. Your changes have been lost <tt>:\'(</tt>.');
-      
-    $paths->rebuild_page_index($page_id, $namespace);
-      
-    return 'good';
+    $page = new PageProcessor($page_id, $namespace);
+    $cdata = $page->ns->get_cdata();
+    return $page->update_page($message, $summary, $minor, $cdata['page_format']);
   }
   
   /**
@@ -278,47 +227,8 @@ class PageUtils {
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
-    $pname = $paths->nslist[$namespace] . $page_id;
-    $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
-    $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
-    
-    if ( !$session->get_permissions('protect') )
-    {
-      return('Insufficient access rights');
-    }
-    if ( !$wiki )
-    {
-      return('Page protection only has an effect when Wiki Mode is enabled.');
-    }
-    if ( !preg_match('#^([0-9]+){1}$#', (string)$level) )
-    {
-      return('Invalid $level parameter.');
-    }
-    
-    switch($level)
-    {
-      case 0:
-        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'unprot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
-        break;
-      case 1:
-        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'prot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
-        break;
-      case 2:
-        $q = 'INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'semiprot\', \'' . $session->username . '\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\');';
-        break;
-      default:
-        return 'PageUtils::protect(): Invalid value for $level';
-        break;
-    }
-    if(!$db->sql_query($q)) $db->_die('The log entry for the page protection could not be inserted.');
-    
-    $q = $db->sql_query('UPDATE ' . table_prefix.'pages SET protected=' . $level . ' WHERE urlname=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';');
-    if ( !$q )
-    {
-      $db->_die('The pages table was not updated.');
-    }
-    
-    return('good');
+    $page = new PageProcessor($page_id, $namespace);
+    return $page->protect_page($level, $reason);
   }
   
   /**
@@ -339,7 +249,9 @@ class PageUtils {
     
     ob_start();
     
-    $pname = $paths->nslist[$namespace] . $page_id;
+    $pname = $paths->get_pathskey($page_id, $namespace);
+    $ns = namespace_factory($page_id, $namespace);
+    $cdata = $ns->get_cdata();
     
     if ( !isPage($pname) )
     {
@@ -348,15 +260,15 @@ class PageUtils {
     
     if ( isPage($pname['password']) )
     {
-      $password_exists = ( !empty($paths->pages[$pname]['password']) && $paths->pages[$pname]['password'] !== sha1('') );
-      if ( $password_exists && $password !== $paths->pages[$pname]['password'] )
+      $password_exists = ( !empty($cdata['password']) && $cdata['password'] !== sha1('') );
+      if ( $password_exists && $password !== $cdata['password'] )
       {
         return '<p>' . $lang->get('history_err_wrong_password') . '</p>';
       }
     }
     
-    $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
-    $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
+    $wiki = ( ( $cdata['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $cdata['wiki_mode'] == 1) ? true : false;
+    $prot = ( ( $cdata['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $cdata['protected'] == 1) ? true : false;
     
     $q = 'SELECT log_id,time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND is_draft != 1 ORDER BY time_id DESC;';
     if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
@@ -1055,40 +967,8 @@ class PageUtils {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    $pname = $paths->nslist[$namespace] . $page_id;
-    
-    $prot = ( ( $paths->pages[$pname]['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $paths->pages[$pname]['protected'] == 1) ? true : false;
-    $wiki = ( ( $paths->pages[$pname]['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $paths->pages[$pname]['wiki_mode'] == 1) ? true : false;
-    
-    if( empty($name)) 
-    {
-      return($lang->get('ajax_rename_too_short'));
-    }
-    if( ( $session->get_permissions('rename') && ( ( $prot && $session->get_permissions('even_when_protected') ) || !$prot ) ) && ( $paths->namespace != 'Special' && $paths->namespace != 'Admin' ))
-    {
-      $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'rename\', \'' . $db->escape($paths->page_id) . '\', \'' . $paths->namespace . '\', \'' . $db->escape($session->username) . '\', \'' . $db->escape($paths->cpage['name']) . '\')');
-      if ( !$e )
-      {
-        $db->_die('The page title could not be updated.');
-      }
-      $e = $db->sql_query('UPDATE ' . table_prefix.'pages SET name=\'' . $db->escape($name) . '\' WHERE urlname=\'' . $db->escape($page_id) . '\' AND namespace=\'' . $db->escape($namespace) . '\';');
-      if ( !$e )
-      {
-        $db->_die('The page title could not be updated.');
-      }
-      else
-      {
-        $subst = array(
-          'page_name_old' => $paths->pages[$pname]['name'],
-          'page_name_new' => $name
-          );
-        return $lang->get('ajax_rename_success', $subst);
-      }
-    }
-    else
-    {
-      return($lang->get('etc_access_denied'));
-    }
+    $page = new PageProcessor($page_id, $namespace);
+    return $page->rename_page($name);
   }
   
   /**
@@ -1120,7 +1000,7 @@ class PageUtils {
     
     // If the page exists, make a backup of it in case it gets spammed/vandalized
     // If not, the admin's probably deleting a trash page
-    if ( isset($paths->pages[ $paths->nslist[$namespace] . $page_id ]) )
+    if ( isPage($paths->get_pathskey($page_id, $namespace)) )
     {
       $e = $db->sql_query('SELECT page_text,char_tag FROM ' . table_prefix.'page_text WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';');
       if(!$e) $db->_die('The current page text could not be selected; as a result, creating the backup of the page failed. Please make a backup copy of the page by clicking Edit this page and then clicking Save Changes.');
@@ -1256,8 +1136,11 @@ class PageUtils {
       return 'The page does not exist.';
     }
     
-    $cv  =& $paths->pages[$pname]['delvotes'];
-    $ips =  $paths->pages[$pname]['delvote_ips'];
+    $ns = namespace_factory($page_id, $namespace);
+    $cdata = $ns->get_cdata();
+    
+    $cv  =& $cdata['delvotes'];
+    $ips =& $cdata['delvote_ips'];
     
     if ( empty($ips) )
     {
@@ -1424,10 +1307,15 @@ class PageUtils {
       $cat_current[] = $r;
     }
     $db->free_result();
-    $cat_all = Array();
-    foreach ( $paths->pages as $i => $_ )
+    
+    $cat_all = array();
+    $q = $db->sql_query('SELECT * FROM ' . table_prefix . 'pages WHERE namespace = \'Category\';');
+    if ( !$q )
+      $db->_die();
+    
+    while ( $row = $db->fetchrow() )
     {
-      if($paths->pages[$i]['namespace']=='Category') $cat_all[] = $paths->pages[$i];
+      $cat_all[] = Namespace_Default::bake_cdata($row);
     }
     
     // Make $cat_all an associative array, like $paths->pages
@@ -1498,12 +1386,17 @@ class PageUtils {
     if(!$session->get_permissions('edit_cat')) return('Insufficient privileges to change category information');
     
     $page_perms = $session->fetch_page_acl($page_id, $namespace);
-    $page_data =& $paths->pages[$paths->nslist[$namespace].$page_id];
+    $ns = namespace_factory($page_id, $namespace);
+    $page_data = $ns->get_cdata();
     
-    $cat_all = Array();
-    foreach ( $paths->pages as $i => $_ )
+    $cat_all = array();
+    $q = $db->sql_query('SELECT * FROM ' . table_prefix . 'pages WHERE namespace = \'Category\';');
+    if ( !$q )
+      $db->_die();
+    
+    while ( $row = $db->fetchrow() )
     {
-      if($paths->pages[$i]['namespace']=='Category') $cat_all[] = $paths->pages[$i];
+      $cat_all[] = Namespace_Default::bake_cdata($row);
     }
     
     // Make $cat_all an associative array, like $paths->pages
@@ -1597,13 +1490,16 @@ class PageUtils {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang, $cache;
     // Determine permissions
-    if($paths->pages[$paths->nslist[$namespace].$page_id]['password'] != '')
+    $ns = namespace_factory($page_id, $namespace);
+    $cdata = $ns->get_cdata();
+    if ( $cdata['password'] != '' )
       $a = $session->get_permissions('password_reset');
     else
       $a = $session->get_permissions('password_set');
-    if(!$a)
+    if ( !$a )
       return $lang->get('etc_access_denied');
-    if(!isset($pass)) return('Password was not set on URL');
+    if ( !isset($pass) )
+      return('Password was not set on URL');
     $p = $pass;
     if ( !preg_match('#([0-9a-f]){40,40}#', $p) )
     {
@@ -1617,7 +1513,6 @@ class PageUtils {
     {
       die('PageUtils::setpass(): Error during update query: '.$db->get_error()."\n\nSQL Backtrace:\n".$db->sql_backtrace());
     }
-    $cache->purge('page_meta');
     // Is the new password blank?
     if ( $p == '' )
     {

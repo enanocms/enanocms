@@ -380,16 +380,7 @@ function get_page_title($page_id, $show_ns = true)
   global $db, $session, $paths, $template, $plugins; // Common objects
 
   $idata = RenderMan::strToPageID($page_id);
-  $page_id_key = $paths->nslist[ $idata[1] ] . $idata[0];
-  $page_id_key = sanitize_page_id($page_id_key);
-  $page_data = @$paths->pages[$page_id_key];
-  $title = ( isset($page_data['name']) ) ?
-    ( ( $page_data['namespace'] == 'Article' || !$show_ns ) ?
-      '' :
-      $paths->nslist[ $idata[1] ] )
-    . $page_data['name'] :
-    ( $show_ns ? $paths->nslist[$idata[1]] : '' ) . str_replace('_', ' ', dirtify_page_id( $idata[0] ) );
-  return $title;
+  return get_page_title_ns($idata[0], $idata[1]);
 }
 
 /**
@@ -402,19 +393,9 @@ function get_page_title($page_id, $show_ns = true)
 function get_page_title_ns($page_id, $namespace)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-
-  $ns_prefix = ( isset($paths->nslist[ $namespace ]) ) ? $paths->nslist[ $namespace ] : $namespace . substr($paths->nslist['Special'], -1);
-  $page_id_key = $ns_prefix . $page_id;
-  if ( isPage($page_id_key) )
-  {
-    $page_data = $paths->pages[$page_id_key];
-  }
-  else
-  {
-    $page_data = array();
-  }
-  $title = ( isset($page_data['name']) ) ? $page_data['name'] : $ns_prefix . str_replace('_', ' ', dirtify_page_id( $page_id ) );
-  return $title;
+  
+  $ns = namespace_factory($page_id, $namespace);
+  return $ns->title;
 }
 
 /**
@@ -578,32 +559,24 @@ function csrf_confirm_post_recursive()
  * @return bool True if the page exists, false otherwise
  */
 
-function isPage($p) {
+function isPage($p)
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
-
-  // Try the easy way first ;-)
-  if ( isset( $paths->pages[ $p ] ) )
+  static $ispage_cache = array();
+  if ( isset($ispage_cache[$p]) )
+    return $ispage_cache[$p];
+  
+  list($page_id, $namespace) = RenderMan::strToPageID($p);
+  $cdata = $paths->get_cdata($page_id, $namespace);
+  if ( !isset($cdata['page_exists']) )
   {
-    return true;
+    $class = ( class_exists($_ = "Namespace_$namespace") ) ? $_ : "Namespace_Default";
+    $page = new $class($page_id, $namespace);
+    return $page->exists();
   }
-
-  // Special case for Special, Template, and Admin pages that can't have slashes in their URIs
-  $ns_test = RenderMan::strToPageID( $p );
-
-  if($ns_test[1] != 'Special' && $ns_test[1] != 'Template' && $ns_test[1] != 'Admin')
-  {
-    return false;
-  }
-
-  $particles = explode('/', $p);
-  if ( isset ( $paths->pages[ $particles[ 0 ] ] ) )
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  
+  $ispage_cache[$p] = $cdata['page_exists'];
+  return $cdata['page_exists'];
 }
 
 /**
@@ -615,6 +588,13 @@ function isPage($p) {
 
 function namespace_factory($page_id, $namespace, $revision_id = 0)
 {
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  
+  static $objcache = array();
+  $pathskey = $paths->get_pathskey($page_id, $namespace) . ":$revision_id";
+  if ( isset($objcache[$pathskey]) )
+    return $objcache[$pathskey];
+  
   if ( !class_exists("Namespace_$namespace") )
   {
     if ( file_exists(ENANO_ROOT . "/includes/namespaces/" . strtolower($namespace) . ".php") )
@@ -626,11 +606,13 @@ function namespace_factory($page_id, $namespace, $revision_id = 0)
   {
     $class = "Namespace_$namespace";
     $ns = new $class($page_id, $namespace, $revision_id);
+    $objcache[$pathskey] = $ns;
     return $ns;
   }
   else
   {
     $ns = new Namespace_Default($page_id, $namespace, $revision_id);
+    $objcache[$pathskey] = $ns;
     return $ns;
   }
 }
@@ -915,22 +897,7 @@ function show_file_info($page = false)
 
 function display_page_headers()
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if($session->get_permissions('vote_reset') && $paths->cpage['delvotes'] > 0)
-  {
-    $delvote_ips = unserialize($paths->cpage['delvote_ips']);
-    $hr = htmlspecialchars(implode(', ', $delvote_ips['u']));
-    
-    $string_id = ( $paths->cpage['delvotes'] == 1 ) ? 'delvote_lbl_votes_one' : 'delvote_lbl_votes_plural';
-    $string = $lang->get($string_id, array('num_users' => $paths->cpage['delvotes']));
-    
-    echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;" id="mdgDeleteVoteNoticeBox">
-            <b>' . $lang->get('etc_lbl_notice') . '</b> ' . $string . '<br />
-            <b>' . $lang->get('delvote_lbl_users_that_voted') . '</b> ' . $hr . '<br />
-            <a href="'.makeUrl($paths->page, 'do=deletepage').'" onclick="ajaxDeletePage(); return false;">' . $lang->get('delvote_btn_deletepage') . '</a>  |  <a href="'.makeUrl($paths->page, 'do=resetvotes').'" onclick="ajaxResetDelVotes(); return false;">' . $lang->get('delvote_btn_resetvotes') . '</a>
-          </div>';
-  }
+  // Deprecated.
 }
 
 /**
@@ -2362,8 +2329,11 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
   $this_page = ceil ( $start / $perpage );
   $i = 0;
   
-  $paginator = generate_paginator($this_page, $num_pages, $result_url, $perpage, 0);
-  $out .= $paginator;
+  if ( $num_results > 0 )
+  {
+    $paginator = generate_paginator($this_page, $num_pages, $result_url, $perpage, 0);
+    $out .= $paginator;
+  }
 
   $cls = 'row2';
 
@@ -2386,7 +2356,7 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
       {
         if ( isset($callers[$j]) )
         {
-          $tmp = ( is_callable($callers[$j]) ) ? @call_user_func($callers[$j], $val, $row) : $val;
+          $tmp = ( is_callable($callers[$j]) ) ? call_user_func($callers[$j], $val, $row) : $val;
 
           if ( is_string($tmp) )
           {
@@ -2401,7 +2371,8 @@ function paginate($q, $tpl_text, $num_results, $result_url, $start = 0, $perpage
     $out .= $footer;
   }
 
-  $out .= $paginator;
+  if ( $num_results > 0 )
+    $out .= $paginator;
 
   return $out;
 }
@@ -2429,9 +2400,8 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
   $this_page = ceil ( $start / $perpage );
 
   $paginator = generate_paginator($this_page, $num_pages, $result_url, $perpage, 0);
-  $out .= $paginator;
   
-  if ( $total > 1 )
+  if ( $num_results > 1 )
   {
     $out .= $paginator;
   }
@@ -2457,7 +2427,7 @@ function paginate_array($q, $num_results, $result_url, $start = 0, $perpage = 10
     $out .= $footer;
   }
 
-  if ( $total > 1 )
+  if ( $num_results > 1 )
     $out .= $paginator;
 
   return $out;
@@ -4617,9 +4587,11 @@ function profiler_start()
  * Logs something in the profiler.
  * @param string Point name or message
  * @param bool Optional. If true (default), a backtrace will be generated and added to the profiler data. False disables this, often for security reasons.
+ * @param resource Optional. If specified, bases the time difference off of this event instead of the previous event/
+ * @return resource Event ID
  */
 
-function profiler_log($point, $allow_backtrace = true)
+function profiler_log($point, $allow_backtrace = true, $parent_event = false)
 {
   if ( !defined('ENANO_DEBUG') )
     return false;
@@ -4634,13 +4606,31 @@ function profiler_log($point, $allow_backtrace = true)
       'point' => $point,
       'time' => microtime_float(),
       'backtrace' => $backtrace,
-      'mem' => false
+      'mem' => false,
+      'parent_event' => $parent_event
     );
   if ( function_exists('memory_get_usage') )
   {
     $_profiler[ count($_profiler) - 1 ]['mem'] = memory_get_usage();
   }
-  return true;
+  return count($_profiler) - 1;
+}
+
+/**
+ * Insert a message (an event without any time data) into the profiler.
+ * @param string Message
+ */
+
+function profiler_message($message)
+{
+  if ( !defined('ENANO_DEBUG') )
+    return false;
+  
+  global $_profiler;
+  
+  $_profiler[] = array(
+      'message' => $message,
+    );
 }
 
 /**
@@ -4676,6 +4666,17 @@ function profiler_make_html()
     // if ( $time_since_last < 0.01 )
     //   continue;
     
+    if ( isset($entry['message']) )
+    {
+      $html .= "<!-- ########################################################## -->\n<tr>\n  <th colspan=\"2\">Message $i</th>\n</tr>";
+      
+      $html .= '<tr>' . "\n";
+      $html .= '  <td class="row2">Message:</td>' . "\n";
+      $html .= '  <td class="row1">' . htmlspecialchars($entry['message']) . '</td>' . "\n";
+      $html .= '</tr>' . "\n";
+      continue;
+    }
+    
     $html .= "<!-- ########################################################## -->\n<tr>\n  <th colspan=\"2\">Event $i</th>\n</tr>";
     
     $html .= '<tr>' . "\n";
@@ -4690,15 +4691,25 @@ function profiler_make_html()
     $html .= '  <td class="row1">' . $time . 's</td>' . "\n";
     $html .= '</tr>' . "\n";
     
+    $time_label = 'Time since last event:';
+    if ( $entry['parent_event'] && is_int($entry['parent_event']) && isset($profile[$entry['parent_event']]) )
+    {
+      $time_last = $profile[$entry['parent_event']]['time'];
+      $time_label = "Time since event #{$entry['parent_event']}:";
+    }
+    
     $time = $entry['time'] - $time_last;
     if ( $time < 0.0001 )
-      $time = 'Marginal';
+      $time_html = 'Marginal';
     else
-      $time = "{$time}s";
+      $time_html = number_format($time, 6) . "s";
     
+    if ( $time > 0.02 )
+      $time_html = "<span style=\"background-color: #a00; padding: 4px; color: #fff; font-weight: bold;\">$time_html</span>";
+      
     $html .= '<tr>' . "\n";
-    $html .= '  <td class="row2">Time since last event:</td>' . "\n";
-    $html .= '  <td class="row1">' . $time . '</td>' . "\n";
+    $html .= '  <td class="row2">' . $time_label . '</td>' . "\n";
+    $html .= '  <td class="row1">' . $time_html . '</td>' . "\n";
     $html .= '</tr>' . "\n";
     
     if ( $entry['backtrace'] )
@@ -4903,6 +4914,7 @@ function purge_all_caches()
     $cache->purge('page_meta');
     $cache->purge('anon_sidebar');
     $cache->purge('plugins');
+    $cache->purge('wiki_edit_notice');
     
     $data_files = array(
         'aes_decrypt.php',

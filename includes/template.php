@@ -14,12 +14,27 @@
  
 class template
 {
-  var $tpl_strings, $tpl_bool, $vars_assign_history, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $plugin_blocks_content, $namespace_string, $style_list, $theme_loaded, $initted_to_page_id, $initted_to_namespace;
+  var $tpl_strings, $tpl_bool, $vars_assign_history, $theme, $style, $no_headers, $additional_headers, $sidebar_extra, $sidebar_widgets, $toolbar_menu, $theme_list, $named_theme_list, $default_theme, $default_style, $plugin_blocks, $plugin_blocks_content, $namespace_string, $style_list, $theme_loaded;
   
-  var $initted_to_theme = array(
-      'theme' => false,
-      'style' => false
-    );
+  var $theme_initted = false;
+  var $page_initted = false;
+  var $elements = false;
+  var $page_id = false;
+  var $namespace = false;
+  
+  /**
+   * Page action conditions
+   * @var array
+   */
+  
+  var $conds = array();
+  
+  /**
+   * The PageProcessor for the current page
+   * @var object
+   */
+  
+  var $page = false;
   
   /**
    * The list of themes that are critical for Enano operation. This doesn't include oxygen which
@@ -287,7 +302,7 @@ class template
   function sidebar_widget($t, $h, $use_normal_section = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!defined('ENANO_TEMPLATE_LOADED'))
+    if ( !$this->theme_loaded )
     {
       $this->load_theme($session->theme, $session->style);
     }
@@ -365,141 +380,65 @@ class template
   }
   
   /**
-   * Initializes all variables related to on-page content. This includes sidebars and what have you.
-   * @param object Optional PageProcessor object to use for passing metadata and permissions on. If omitted, uses information from $paths and $session.
-   * @param bool If true, re-inits even if already initted with this page_id and namespace
+   * Change the theme we're supposed to display.
+   * @param string Theme name
+   * @param string Style name; optional
    */
   
-  function init_vars($page = false, $force_init = false)
+  function set_theme($theme = false, $style = false)
+  {
+    $this->theme_initted = false;
+    $this->load_theme($theme, $style);
+  }
+  
+  /**
+   * Change the page we're supposed to generate for
+   * @param mixed Page ID *or* PageProcessor. If a PageProcessor, pulls permission info and such from that; if not, starts a PageProcessor. YOU SHOULD USE A PageProcessor WHENEVER POSSIBLE! It improves efficiency.
+   * @param string Namespace; not required if including a PageProcessor.
+   */
+  
+  function set_page($page_id_or_pp, $namespace = false)
+  {
+    if ( is_object($page_id_or_pp) && get_class($page_id_or_pp) === 'PageProcessor' )
+    {
+      $this->page_initted = false;
+      $page =& $page_id_or_pp;
+      $this->page = $page;
+      $this->page_id = $page->page_id;
+      $this->namespace = $page->namespace;
+    }
+    else if ( is_string($page_id_or_pp) )
+    {
+      if ( !is_string($namespace) )
+        return false;
+      
+      if ( $page_id_or_pp === $this->page_id && $namespace === $this->namespace )
+        return true;
+      
+      $this->page_initted = false;
+      $this->page = false;
+      $this->page_id = sanitize_page_id($page_id_or_pp);
+      $this->namespace = $namespace;
+    }
+    else
+    {
+      return false;
+    }
+    return true;
+  }
+  
+  /**
+   * Global, only-called-once init. Goes to all themes.
+   */
+  
+  function init_global_vars()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    global $email;
     global $lang;
+    global $email;
     
-    if(!$this->theme || !$this->style)
-    {
-      $this->load_theme();
-    }
-    
-    if ( defined('ENANO_TEMPLATE_LOADED') )
-    {
-      // trigger_error("\$template->init_vars() called more than once", E_USER_WARNING);
-      // die_semicritical('Illegal call', '<p>$template->init_vars() was called multiple times, this is not supposed to happen. Exiting with fatal error.</p>');
-    }
-    else
-    {
-      @define('ENANO_TEMPLATE_LOADED', '');
-    }
-    
-    if ( is_object($page) && ( @get_class($page) == 'PageProcessor' || preg_match('/^Namespace_/', @get_class($page)) ) )
-    {
-      $page_append = substr($paths->fullpage, strlen($paths->page));
-      if ( isset($paths->nslist[$page->namespace]) )
-      {
-        $local_page = $paths->nslist[$page->namespace] . $page->page_id;
-      }
-      else
-      {
-        $local_page = $page->namespace . substr($paths->nslist['Special'], -1) . $page->page_id . $page_append;
-      }
-      $local_fullpage = $local_page . $page_append;
-      $local_page_id =& $page->page_id;
-      $local_namespace =& $page->namespace;
-      $local_page_exists = $page->exists();
-      $perms =& $page->perms;
-      if ( !is_object($perms) )
-      {
-        unset($perms);
-        $perms = $session->fetch_page_acl($local_page_id, $local_namespace);
-      }
-    }
-    else
-    {
-      $local_page =& $paths->page;
-      $local_page_id =& $paths->page_id;
-      $local_fullpage =& $paths->fullpage;
-      $local_namespace =& $paths->namespace;
-      $local_page_exists =& $paths->page_exists;
-      $local_page_protected =& $paths->page_protected;
-      $perms =& $session;
-    }
-    
-    if ( $local_page_id === $this->initted_to_page_id && $local_namespace === $this->initted_to_namespace && $this->theme === $this->initted_to_theme['theme'] && $this->style === $this->initted_to_theme['style'] && !$force_init )
-    {
-      // we're already initted with this page.
-      return true;
-    }
-    
-    profiler_log("template: starting var init");
-    
-    $this->initted_to_page_id = $local_page_id;
-    $this->initted_to_namespace = $local_namespace;
-    $this->initted_to_theme = array(
-        'theme' => $this->theme,
-        'style' => $this->style
-      );
-    
-    require(ENANO_ROOT . "/themes/{$this->theme}/theme.cfg");
-    
-    if ( $local_page_exists && isPage($local_page) )
-    {
-      $local_cdata =& $paths->pages[$local_page];
-    }
-    else
-    {
-      // if the page doesn't exist but we're trying to load it, it was requested manually and $paths->cpage should match it.
-      if ( $paths->page_id == $local_page_id )
-      {
-        // load metadata from cpage
-        $local_cdata =& $paths->cpage;
-      }
-      else
-      {
-        // generate our own failsafe metadata
-        $local_cdata = array(
-            'urlname' => $local_page,
-            'urlname_nons' => $local_page_id,
-            'namespace' => $local_namespace,
-            'name' => get_page_title_ns($local_page_id, $local_namespace),
-            'comments_on' => 0,
-            'protected' => 0,
-            'wiki_mode' => 2,
-            'delvotes' => 0,
-            'delvote_ips' => serialize(array())
-          );
-      }
-    }
-    
-    // calculate protection
-    if ( !isset($local_page_protected) )
-    {
-      if ( $local_cdata['protected'] == 0 )
-      {
-        $local_page_protected = false;
-      }
-      else if ( $local_cdata['protected'] == 1 )
-      {
-        $local_page_protected = true;
-      }
-      else if ( $local_cdata['protected'] == 2 )
-      {
-        if (
-             ( !$session->user_logged_in || // Is the user logged in?
-               ( $session->user_logged_in && $session->reg_time + ( 4 * 86400 ) >= time() ) ) // If so, have they been registered for 4 days?
-             && !$perms->get_permissions('even_when_protected') ) // And of course, is there an ACL that overrides semi-protection?
-        {
-          $local_page_protected = true;
-        }
-        else
-        {
-          $local_page_protected = false;
-        }
-      }
-    }
-    
-    $tplvars = $this->extract_vars('elements.tpl');
-    
-    if(isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE'))
+    // IE PNG fixing code
+    if ( isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') )
     {
       $this->add_header('
         <!--[if lt IE 7]>
@@ -537,414 +476,15 @@ class template
         ');
     }
     
-    // Get the "article" button text (depends on namespace)
-    switch($local_namespace) {
-      case "Article":
-      default:
-        $ns = $lang->get('onpage_lbl_page_article');
-        break;
-      case "Admin":
-        $ns = $lang->get('onpage_lbl_page_admin');
-        break;
-      case "System":
-        $ns = $lang->get('onpage_lbl_page_system');
-        break;
-      case "File":
-        $ns = $lang->get('onpage_lbl_page_file');
-        break;
-      case "Help":
-        $ns = $lang->get('onpage_lbl_page_help');
-        break;
-      case "User":
-        $ns = $lang->get('onpage_lbl_page_user');
-        break;
-      case "Special":
-        $ns = $lang->get('onpage_lbl_page_special');
-        break;
-      case "Template":
-        $ns = $lang->get('onpage_lbl_page_template');
-        break;
-      case "Project":
-        $ns = $lang->get('onpage_lbl_page_project');
-        break;
-      case "Category":
-        $ns = $lang->get('onpage_lbl_page_category');
-        break;
-      case "API":
-        $ns = $lang->get('onpage_lbl_page_external');
-        break;
-    }
-    $this->namespace_string = $ns;
-    unset($ns);
-    $code = $plugins->setHook('page_type_string_set');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    $ns =& $this->namespace_string;
-    
-    //
-    // PAGE TOOLBAR (on-page controls/actions)
-    //
-    
-    // Initialize the toolbar
-    $tb = '';
-    $this->toolbar_menu = '';
-    
-    // Create "xx page" button
-    
-    $btn_selected = ( isset($tplvars['toolbar_button_selected'])) ? $tplvars['toolbar_button_selected'] : $tplvars['toolbar_button'];
-    $parser = $this->makeParserText($btn_selected);
-    
-    $parser->assign_vars(array(
-        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxReset()); return false; }" title="' . $lang->get('onpage_tip_article') . '" accesskey="a"',
-        'PARENTFLAGS' => 'id="mdgToolbar_article"',
-        'HREF' => makeUrl($local_page, null, true),
-        'TEXT' => $this->namespace_string
-      ));
-    
-    $tb .= $parser->run();
-    
-    $button = $this->makeParserText($tplvars['toolbar_button']);
-    
-    // Page toolbar
-    // Comments button
-    if ( $perms->get_permissions('read') && getConfig('enable_comments', '1')=='1' && $local_cdata['comments_on'] == 1 )
-    {
-      $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$local_page_id.'\' AND namespace=\''.$local_namespace.'\';');
-      if ( !$e )
-      {
-        $db->_die();
-      }
-      $num_comments = $db->numrows();
-      $approval_counts = array(COMMENT_UNAPPROVED => 0, COMMENT_APPROVED => 0, COMMENT_SPAM => 0);
-      
-      while ( $r = $db->fetchrow() )
-      {  
-        $approval_counts[$r['approved']]++;
-      }
-      
-      $db->free_result();
-      // $n = ( $session->check_acl_scope('mod_comments', $local_namespace) && $perms->get_permissions('mod_comments') ) ? (string)$num_comments : (string)$na;
-      if ( $session->check_acl_scope('mod_comments', $local_namespace) && $perms->get_permissions('mod_comments') && ( $approval_counts[COMMENT_UNAPPROVED] + $approval_counts[COMMENT_SPAM] ) > 0 )
-      {
-        $subst = array(
-            'num_comments' => $num_comments,
-            'num_app' => $approval_counts[COMMENT_APPROVED],
-            'num_unapp' => $approval_counts[COMMENT_UNAPPROVED],
-            'num_spam' => $approval_counts[COMMENT_SPAM]
-          );
-        $btn_text = $lang->get('onpage_btn_discussion_unapp', $subst);
-      }
-      else
-      {
-        $subst = array(
-          'num_comments' => $num_comments
-        );
-        $btn_text = $lang->get('onpage_btn_discussion', $subst);
-      }
-      
-      $button->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxComments()); return false; }" title="' . $lang->get('onpage_tip_comments') . '" accesskey="c"',
-          'PARENTFLAGS' => 'id="mdgToolbar_discussion"',
-          'HREF' => makeUrl($local_page, 'do=comments', true),
-          'TEXT' => $btn_text,
-        ));
-      
-      $tb .= $button->run();
-    }
-    // Edit button
-    if($perms->get_permissions('read') && $session->check_acl_scope('edit_page', $local_namespace) && ( $perms->get_permissions('edit_page') && ( ( $paths->page_protected && $perms->get_permissions('even_when_protected') ) || !$paths->page_protected ) ) )
-    {
-      $button->assign_vars(array(
-        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_edit') . '" accesskey="e"',
-        'PARENTFLAGS' => 'id="mdgToolbar_edit"',
-        'HREF' => makeUrl($local_page, 'do=edit', true),
-        'TEXT' => $lang->get('onpage_btn_edit')
-        ));
-      $tb .= $button->run();
-    // View source button
-    }
-    else if ( $session->check_acl_scope('view_source', $local_namespace) && $perms->get_permissions('view_source') && ( !$perms->get_permissions('edit_page') || !$perms->get_permissions('even_when_protected') && $paths->page_protected ) && $local_namespace != 'API') 
-    {
-      $button->assign_vars(array(
-        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_viewsource') . '" accesskey="e"',
-        'PARENTFLAGS' => 'id="mdgToolbar_edit"',
-        'HREF' => makeUrl($local_page, 'do=viewsource', true),
-        'TEXT' => $lang->get('onpage_btn_viewsource')
-        ));
-      $tb .= $button->run();
-    }
-    // History button
-    if ( $perms->get_permissions('read') && $session->check_acl_scope('history_view', $local_namespace) && $local_page_exists && $perms->get_permissions('history_view') )
-    {
-      $button->assign_vars(array(
-        'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="' . $lang->get('onpage_tip_history') . '" accesskey="h"',
-        'PARENTFLAGS' => 'id="mdgToolbar_history"',
-        'HREF'        => makeUrl($local_page, 'do=history', true),
-        'TEXT'        => $lang->get('onpage_btn_history')
-        ));
-      $tb .= $button->run();
-    }
-    
-    $menubtn = $this->makeParserText($tplvars['toolbar_menu_button']);
-    
-    // Additional actions menu
-    // Rename button
-    if ( $perms->get_permissions('read') && $session->check_acl_scope('rename', $local_namespace) && $local_page_exists && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ) )
-    {
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="' . $lang->get('onpage_tip_rename') . '" accesskey="r"',
-          'HREF'  => makeUrl($local_page, 'do=rename', true),
-          'TEXT'  => $lang->get('onpage_btn_rename'),
-        ));
-      $this->toolbar_menu .= $menubtn->run();
-    }
-    
-    // Vote-to-delete button
-    if ( $paths->wiki_mode && $session->check_acl_scope('vote_delete', $local_namespace) && $perms->get_permissions('vote_delete') && $local_page_exists)
-    {
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="' . $lang->get('onpage_tip_delvote') . '" accesskey="d"',
-          'HREF'  => makeUrl($local_page, 'do=delvote', true),
-          'TEXT'  => $lang->get('onpage_btn_votedelete'),
-        ));
-      $this->toolbar_menu .= $menubtn->run();
-    }
-    
-    // Clear-votes button
-    if ( $perms->get_permissions('read') && $session->check_acl_scope('vote_reset', $local_namespace) && $paths->wiki_mode && $local_page_exists && $perms->get_permissions('vote_reset') && $local_cdata['delvotes'] > 0)
-    {
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="' . $lang->get('onpage_tip_resetvotes') . '" accesskey="y"',
-          'HREF'  => makeUrl($local_page, 'do=resetvotes', true),
-          'TEXT'  => $lang->get('onpage_btn_votedelete_reset'),
-        ));
-      $this->toolbar_menu .= $menubtn->run();
-    }
-    
-    // Printable page button
-    if ( $local_page_exists )
-    {
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'title="' . $lang->get('onpage_tip_printable') . '"',
-          'HREF'  => makeUrl($local_page, 'printable=yes', true),
-          'TEXT'  => $lang->get('onpage_btn_printable'),
-        ));
-      $this->toolbar_menu .= $menubtn->run();
-    }
-    
-    // Protect button
-    if($perms->get_permissions('read') && $session->check_acl_scope('protect', $local_namespace) && $paths->wiki_mode && $local_page_exists && $perms->get_permissions('protect'))
-    {
-      switch($local_cdata['protected'])
-      {
-        case PROTECT_FULL: $protect_status = $lang->get('onpage_btn_protect_on'); break;
-        case PROTECT_SEMI: $protect_status = $lang->get('onpage_btn_protect_semi'); break;
-        case PROTECT_NONE: $protect_status = $lang->get('onpage_btn_protect_off'); break;
-      }
-      
-      $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_protect') . ' ' . "<b><span id=\"tb_ajax_protect_status\">$protect_status</span></b>"));
-      $t0 = $label->run();
-      
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="p" onclick="ajaxProtect(' . $local_cdata['protected'] . '); return false;" id="tb_ajax_protect_btn" title="' . $lang->get('onpage_tip_protect') . '"',
-          'HREF' => makeUrl($local_page, 'do=protect', true),
-          'TEXT' => $lang->get('onpage_btn_protect_change')
-        ));
-      $t1 = $menubtn->run();
-      
-      $this->toolbar_menu .= '        <table border="0" cellspacing="0" cellpadding="0">
-          <tr>
-            <td>'.$t0.'</td>
-            <td>'.$t1.'</td>
-          </tr>
-        </table>';
-    }
-    
-    // Wiki mode button
-    if($perms->get_permissions('read') && $session->check_acl_scope('set_wiki_mode', $local_namespace) && $local_page_exists && $perms->get_permissions('set_wiki_mode'))
-    {
-      // label at start
-      $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_wikimode')));
-      $t0 = $label->run();
-      
-      // on button
-      $ctmp = '';
-      if ( $local_cdata['wiki_mode'] == 1 )
-      {
-        $ctmp = ' style="text-decoration: underline;"';
-      }
-      $menubtn->assign_vars(array(
-          'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(1); return false; }" id="wikibtn_1" title="Forces wiki functions to be allowed on this page."'. */ $ctmp,
-          'HREF' => makeUrl($local_page, 'do=setwikimode&level=1', true),
-          'TEXT' => $lang->get('onpage_btn_wikimode_on')
-        ));
-      $t1 = $menubtn->run();
-      
-      // off button
-      $ctmp = '';
-      if ( $local_cdata['wiki_mode'] == 0 )
-      {
-        $ctmp=' style="text-decoration: underline;"';
-      }
-      $menubtn->assign_vars(array(
-          'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(0); return false; }" id="wikibtn_0" title="Forces wiki functions to be disabled on this page."'. */ $ctmp,
-          'HREF' => makeUrl($local_page, 'do=setwikimode&level=0', true),
-          'TEXT' => $lang->get('onpage_btn_wikimode_off')
-        ));
-      $t2 = $menubtn->run();
-      
-      // global button
-      $ctmp = ''; 
-      if ( $local_cdata['wiki_mode'] == 2 )
-      {
-        $ctmp=' style="text-decoration: underline;"';
-      }
-      $menubtn->assign_vars(array(
-          'FLAGS' => /* 'onclick="if ( !KILL_SWITCH ) { ajaxSetWikiMode(2); return false; }" id="wikibtn_2" title="Causes this page to use the global wiki mode setting (default)"'. */ $ctmp,
-          'HREF' => makeUrl($local_page, 'do=setwikimode&level=2', true),
-          'TEXT' => $lang->get('onpage_btn_wikimode_global')
-        ));
-      $t3 = $menubtn->run();
-      
-      // Tack it onto the list of buttons that are already there...
-      $this->toolbar_menu .= '        <table border="0" cellspacing="0" cellpadding="0">
-          <tr>
-            <td>'.$t0.'</td>
-            <td>'.$t1.'</td>
-            <td>'.$t2.'</td>
-            <td>'.$t3.'</td>
-          </tr>
-        </table>';
-    }
-    
-    // Clear logs button
-    if ( $perms->get_permissions('read') && $session->check_acl_scope('clear_logs', $local_namespace) && $perms->get_permissions('clear_logs') )
-    {
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxClearLogs()); return false; }" title="' . $lang->get('onpage_tip_flushlogs') . '" accesskey="l"',
-          'HREF'  => makeUrl($local_page, 'do=flushlogs', true),
-          'TEXT'  => $lang->get('onpage_btn_clearlogs'),
-        ));
-      $this->toolbar_menu .= $menubtn->run();
-    }
-    
-    // Delete page button
-    if ( $perms->get_permissions('read') && $session->check_acl_scope('delete_page', $local_namespace) && $perms->get_permissions('delete_page') && $local_page_exists )
-    {
-      $s = $lang->get('onpage_btn_deletepage');
-      if ( $local_cdata['delvotes'] == 1 )
-      {
-        $subst = array(
-          'num_votes' => $local_cdata['delvotes'],
-          'plural' => ''
-          );
-        $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
-      }
-      else if ( $local_cdata['delvotes'] > 1 )
-      {
-        $subst = array(
-          'num_votes' => $local_cdata['delvotes'],
-          'plural' => $lang->get('meta_plural')
-          );
-        $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
-      }
-      
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDeletePage()); return false; }" title="' . $lang->get('onpage_tip_deletepage') . '" accesskey="k"',
-          'HREF'  => makeUrl($local_page, 'do=deletepage', true),
-          'TEXT'  => $s,
-        ));
-      $this->toolbar_menu .= $menubtn->run();
-      
-    }
-    
-    // Password-protect button
-    if(isset($local_cdata['password']) && $session->check_acl_scope('password_set', $local_namespace) && $session->check_acl_scope('password_reset', $local_namespace))
-    {
-      if ( $local_cdata['password'] == '' )
-      {
-        $a = $perms->get_permissions('password_set');
-      }
-      else
-      {
-        $a = $perms->get_permissions('password_reset');
-      }
-    }
-    else if ( $session->check_acl_scope('password_set', $local_namespace) )
-    {
-      $a = $perms->get_permissions('password_set');
-    }
-    else
-    {
-      $a = false;
-    }
-    if ( $a && $perms->get_permissions('read') && $local_page_exists )
-    {
-      // label at start
-      $label = $this->makeParserText($tplvars['toolbar_label']);
-      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_password')));
-      $t0 = $label->run();
-      
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxSetPassword()); return false; }" title="' . $lang->get('onpage_tip_password') . '"',
-          'HREF'  => '#',
-          'TEXT'  => $lang->get('onpage_btn_password_set'),
-        ));
-      $t = $menubtn->run();
-      
-      $this->toolbar_menu .= '<table border="0" cellspacing="0" cellpadding="0"><tr><td>'.$t0.'</td><td><input type="password" id="mdgPassSetField" size="10" /></td><td>'.$t.'</td></tr></table>';
-    }
-    
-    // Manage ACLs button
-    if ( !$paths->external_api_page && $session->check_acl_scope('edit_acl', $local_namespace) && ( $perms->get_permissions('edit_acl') || ( defined('ACL_ALWAYS_ALLOW_ADMIN_EDIT_ACL') &&  $session->user_level >= USER_LEVEL_ADMIN ) ) )
-    {
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { var s = ajaxOpenACLManager(); console.debug(s); return false; }" title="' . $lang->get('onpage_tip_aclmanager') . '" accesskey="m"',
-          'HREF'  => makeUrl($local_page, 'do=aclmanager', true),
-          'TEXT'  => $lang->get('onpage_btn_acl'),
-        ));
-      $this->toolbar_menu .= $menubtn->run();
-    }
-    
-    // Administer page button
-    if ( $session->user_level >= USER_LEVEL_ADMIN && $local_page_exists )
-    {
-      $menubtn->assign_vars(array(
-          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="' . $lang->get('onpage_tip_adminoptions') . '" accesskey="g"',
-          'HREF'  => makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'PageManager', true),
-          'TEXT'  => $lang->get('onpage_btn_admin'),
-        ));
-      $this->toolbar_menu .= $menubtn->run();
-    }
-    
-    if ( strlen($this->toolbar_menu) > 0 )
-    {
-      $button->assign_vars(array(
-        'FLAGS'       => 'id="mdgToolbar_moreoptions" onclick="if ( !KILL_SWITCH ) { return false; }" title="' . $lang->get('onpage_tip_moreoptions') . '"',
-        'PARENTFLAGS' => '',
-        'HREF'        => makeUrl($local_page, 'do=moreoptions', true),
-        'TEXT'        => $lang->get('onpage_btn_moreoptions')
-        ));
-      $tb .= $button->run();
-    }
-    
-    //
-    // OTHER SWITCHES
-    //
-    
     $is_opera = (isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'Opera')) ? true : false;
     $is_msie = (isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE')) ? true : false;
     
-    $this->tpl_bool = Array(
-      'auth_admin' => $session->user_level >= USER_LEVEL_ADMIN ? true : false,
-      'user_logged_in' => $session->user_logged_in,
-      'opera' => $is_opera,
-      'msie' => $is_msie
-      );
+    $this->assign_bool(array(
+        'auth_admin' => $session->user_level >= USER_LEVEL_ADMIN ? true : false,
+        'user_logged_in' => $session->user_logged_in,
+        'opera' => $is_opera,
+        'msie' => $is_msie
+      ));
     
     if ( $session->sid_super )
     {
@@ -1009,47 +549,510 @@ JSEOF;
 JSEOF;
     }
     
-    $code = $plugins->setHook('compile_template');
-    foreach ( $code as $cmd )
-    {
-      eval($cmd);
-    }
-    
-    // Some additional sidebar processing
-    if ( $this->sidebar_extra != '' )
-    {
-      $se = $this->sidebar_extra;
-      $parser = $this->makeParserText($tplvars['sidebar_section_raw']);
-      $parser->assign_vars(array(
-          'TITLE' => 'Links', // FIXME: l10n
-          'CONTENT' => $se
-        ));
-      
-      $this->sidebar_extra = $parser->run();
-    }
-    
-    $this->sidebar_extra = $this->sidebar_extra . $this->sidebar_widgets;
-    
-    $this->tpl_bool['fixed_menus'] = false;
-    $this->tpl_bool['export'] = false;
-    $this->tpl_bool['right_sidebar'] = true;
-    $this->tpl_bool['auth_rename'] = ( $local_page_exists && $session->check_acl_scope('rename', $local_namespace) && ( $perms->get_permissions('rename') && ( $paths->page_protected && $perms->get_permissions('even_when_protected') || !$paths->page_protected ) ));
-    $this->tpl_bool['enable_uploads'] = ( getConfig('enable_uploads') == '1' && $session->get_permissions('upload_files') ) ? true : false;
-    $this->tpl_bool['stupid_mode'] = false;
-    $this->tpl_bool['in_admin'] = ( ( $local_page_id == 'Administration' && $local_namespace == 'Special' ) || $local_namespace == 'Admin' );
-    
-    // allows conditional testing of the theme ID (a bit crude, came from my NSIS days)
-    $this->tpl_bool["theme_is_{$this->theme}"] = true;
-    
-    $p = ( isset($_GET['printable']) ) ? '/printable' : '';
+    $this->assign_bool(array(
+        'fixed_menus' => false,
+        'export' => false,
+        'right_sidebar' => true,
+        'enable_uploads' => ( getConfig('enable_uploads') == '1' && $session->get_permissions('upload_files') ) ? true : false,
+        'stupid_mode' => false,
+      ));
     
     // Add the e-mail address client code to the header
     $this->add_header($email->jscode());
     
-    // Generate the code for the Log out and Change theme sidebar buttons
+    // Assign our main variables
+    $this->assign_vars(array(
+        'SITE_NAME' => htmlspecialchars(getConfig('site_name')),
+        'USERNAME' => $session->username,
+        'SITE_DESC' => htmlspecialchars(getConfig('site_desc')),
+        'SCRIPTPATH' => scriptPath,
+        'CONTENTPATH' => contentPath,
+        'CDNPATH' => cdnPath,
+        'ADMIN_SID_QUES' => $asq,
+        'ADMIN_SID_AMP' => $asa,
+        'ADMIN_SID_AMP_HTML' => $ash,
+        'ADMIN_SID_AUTO' => $as2,
+        'ADMIN_SID_RAW' =>  ( is_string($session->sid_super) ? $session->sid_super : '' ),
+        'CSRF_TOKEN' => $session->csrf_token,
+        'COPYRIGHT' => RenderMan::parse_internal_links(getConfig('copyright_notice')),
+        'REQUEST_URI' => ( defined('ENANO_CLI') ? '' : $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ),
+        'SEARCH_ACTION' => makeUrlNS('Special', 'Search'),
+        'INPUT_TITLE' => ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->get_pathskey($this->page_id, $this->namespace) ) . '" />' : ''),
+        'INPUT_AUTH' => ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : ''),
+        'MAIN_PAGE' => get_main_page(),
+        'UNREAD_PMS' => $session->unread_pms,
+        'JS_HEADER' => $js_head,
+        'JS_FOOTER' => $js_foot,
+        'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', '', true),
+      ), true);
+    
+    $tpl_strings = array();
+    foreach ( $paths->nslist as $ns_id => $ns_prefix )
+    {
+      $tpl_strings[ 'NS_' . strtoupper($ns_id) ] = $ns_prefix;
+    }
+    
+    $this->assign_vars($tpl_strings, true);
+  }
+  
+  /**
+   * Init theme vars, like sidebar, global JS, that kind of stuff.
+   */
+  
+  function init_theme_vars()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    // allows conditional testing of the theme ID (a bit crude, came from my NSIS days)
+    $this->assign_bool(array(
+        "theme_is_{$this->theme}" => true
+      ));
+    
+    $this->elements = $this->extract_vars('elements.tpl');
+    
+    // Generate the code for the Administration and Edit Sidebar buttons
     // Once again, the new template parsing system can be used here
     
-    $parser = $this->makeParserText($tplvars['sidebar_button']);
+    $parser = $this->makeParserText($this->elements['sidebar_button']);
+    
+    $parser->assign_vars(Array(
+        'HREF'=>makeUrlNS('Special', 'Administration'),
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxStartAdminLogin()); return false; }"',
+        'TEXT'=>$lang->get('sidebar_btn_administration'),
+      ));
+    
+    $admin_link = $parser->run();
+    
+    $parser->assign_vars(Array(
+        'HREF'=>makeUrlNS('Special', 'EditSidebar'),
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxLoginNavTo(\'Special\', \'EditSidebar\', ' . USER_LEVEL_ADMIN . ')); return false; }"',
+        'TEXT'=>$lang->get('sidebar_btn_editsidebar'),
+      ));
+    
+    $sidebar_link = $parser->run();
+    
+    $this->assign_vars(array(
+        'ADMIN_LINK' => $admin_link,
+        'SIDEBAR_LINK' => $sidebar_link,
+        'THEME_ID' => $this->theme,
+        'STYLE_ID' => $this->style
+      ));
+    
+    $this->theme_initted = true;
+  }
+  
+  /**
+   * Init page vars, like the toolbar, local JS, etc.
+   */
+  
+  function init_page_vars()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    if ( !$this->page )
+    {
+      $this->page = new PageProcessor($this->page_id, $this->namespace);
+    }
+    
+    $conds = $this->page->ns->get_conds();
+    
+    $this->assign_bool(array(
+        'in_admin' => ( ( $this->page_id == 'Administration' && $this->namespace == 'Special' ) || $this->namespace == 'Admin' ),
+        'auth_rename' => ( $conds['rename'] )
+      ));
+    
+    // Get the "article" button text (depends on namespace)
+    switch ( $this->namespace )
+    {
+      case "Article":
+      default:
+        $ns = $lang->get('onpage_lbl_page_article');
+        break;
+      case "Admin":
+        $ns = $lang->get('onpage_lbl_page_admin');
+        break;
+      case "System":
+        $ns = $lang->get('onpage_lbl_page_system');
+        break;
+      case "File":
+        $ns = $lang->get('onpage_lbl_page_file');
+        break;
+      case "Help":
+        $ns = $lang->get('onpage_lbl_page_help');
+        break;
+      case "User":
+        $ns = $lang->get('onpage_lbl_page_user');
+        break;
+      case "Special":
+        $ns = $lang->get('onpage_lbl_page_special');
+        break;
+      case "Template":
+        $ns = $lang->get('onpage_lbl_page_template');
+        break;
+      case "Project":
+        $ns = $lang->get('onpage_lbl_page_project');
+        break;
+      case "Category":
+        $ns = $lang->get('onpage_lbl_page_category');
+        break;
+      case "API":
+        $ns = $lang->get('onpage_lbl_page_external');
+        break;
+    }
+    $this->namespace_string = $ns;
+    unset($ns);
+    // compatibility
+    $local_namespace =& $this->namespace;
+    $local_page_id =& $this->page_id;
+    $code = $plugins->setHook('page_type_string_set');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    $ns =& $this->namespace_string;
+    
+    //
+    // PAGE TOOLBAR (on-page controls/actions)
+    //
+    
+    $local_page = $paths->get_pathskey($this->page_id, $this->namespace);
+    $local_cdata = $this->page->ns->get_cdata();
+    
+    // Initialize the toolbar
+    $tb = '';
+    $this->toolbar_menu = '';
+    
+    // Create "xx page" button
+    
+    $btn_selected = ( isset($this->elements['toolbar_button_selected'])) ? $this->elements['toolbar_button_selected'] : $this->elements['toolbar_button'];
+    $parser = $this->makeParserText($btn_selected);
+    
+    if ( $conds['article'] )
+    {
+      $parser->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxReset()); return false; }" title="' . $lang->get('onpage_tip_article') . '" accesskey="a"',
+          'PARENTFLAGS' => 'id="mdgToolbar_article"',
+          'HREF' => makeUrl($local_page, null, true),
+          'TEXT' => $this->namespace_string
+        ));
+      
+      $tb .= $parser->run();
+    }
+    
+    $button = $this->makeParserText($this->elements['toolbar_button']);
+    
+    // Page toolbar
+    // Comments button
+    if ( $conds['comments'] )
+    {
+      $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$this->page_id.'\' AND namespace=\''.$this->namespace.'\';');
+      if ( !$e )
+      {
+        $db->_die();
+      }
+      $num_comments = $db->numrows();
+      $approval_counts = array(COMMENT_UNAPPROVED => 0, COMMENT_APPROVED => 0, COMMENT_SPAM => 0);
+      
+      while ( $r = $db->fetchrow() )
+      {  
+        $approval_counts[$r['approved']]++;
+      }
+      
+      $db->free_result();
+      // $n = ( $session->check_acl_scope('mod_comments', $this->namespace) && $perms->get_permissions('mod_comments') ) ? (string)$num_comments : (string)$na;
+      if ( $session->check_acl_scope('mod_comments', $this->namespace) && $this->page->perms->get_permissions('mod_comments') && ( $approval_counts[COMMENT_UNAPPROVED] + $approval_counts[COMMENT_SPAM] ) > 0 )
+      {
+        $subst = array(
+            'num_comments' => $num_comments,
+            'num_app' => $approval_counts[COMMENT_APPROVED],
+            'num_unapp' => $approval_counts[COMMENT_UNAPPROVED],
+            'num_spam' => $approval_counts[COMMENT_SPAM]
+          );
+        $btn_text = $lang->get('onpage_btn_discussion_unapp', $subst);
+      }
+      else
+      {
+        $subst = array(
+          'num_comments' => $num_comments
+        );
+        $btn_text = $lang->get('onpage_btn_discussion', $subst);
+      }
+      
+      $button->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxComments()); return false; }" title="' . $lang->get('onpage_tip_comments') . '" accesskey="c"',
+          'PARENTFLAGS' => 'id="mdgToolbar_discussion"',
+          'HREF' => makeUrl($local_page, 'do=comments', true),
+          'TEXT' => $btn_text,
+        ));
+      
+      $tb .= $button->run();
+    }
+    // Edit button
+    if( $conds['edit'] )
+    {
+      $button->assign_vars(array(
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_edit') . '" accesskey="e"',
+        'PARENTFLAGS' => 'id="mdgToolbar_edit"',
+        'HREF' => makeUrl($local_page, 'do=edit', true),
+        'TEXT' => $lang->get('onpage_btn_edit')
+        ));
+      $tb .= $button->run();
+    // View source button
+    }
+    else if ( $conds['viewsource'] ) 
+    {
+      $button->assign_vars(array(
+        'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxEditor()); return false; }" title="' . $lang->get('onpage_tip_viewsource') . '" accesskey="e"',
+        'PARENTFLAGS' => 'id="mdgToolbar_edit"',
+        'HREF' => makeUrl($local_page, 'do=viewsource', true),
+        'TEXT' => $lang->get('onpage_btn_viewsource')
+        ));
+      $tb .= $button->run();
+    }
+    // History button
+    if ( $conds['history'] )
+    {
+      $button->assign_vars(array(
+        'FLAGS'       => 'onclick="if ( !KILL_SWITCH ) { void(ajaxHistory()); return false; }" title="' . $lang->get('onpage_tip_history') . '" accesskey="h"',
+        'PARENTFLAGS' => 'id="mdgToolbar_history"',
+        'HREF'        => makeUrl($local_page, 'do=history', true),
+        'TEXT'        => $lang->get('onpage_btn_history')
+        ));
+      $tb .= $button->run();
+    }
+    
+    $menubtn = $this->makeParserText($this->elements['toolbar_menu_button']);
+    
+    // Additional actions menu
+    // Rename button
+    if ( $conds['rename'] )
+    {
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxRename()); return false; }" title="' . $lang->get('onpage_tip_rename') . '" accesskey="r"',
+          'HREF'  => makeUrl($local_page, 'do=rename', true),
+          'TEXT'  => $lang->get('onpage_btn_rename'),
+        ));
+      $this->toolbar_menu .= $menubtn->run();
+    }
+    
+    // Vote-to-delete button
+    if ( $conds['delvote'] )
+    {
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDelVote()); return false; }" title="' . $lang->get('onpage_tip_delvote') . '" accesskey="d"',
+          'HREF'  => makeUrl($local_page, 'do=delvote', true),
+          'TEXT'  => $lang->get('onpage_btn_votedelete'),
+        ));
+      $this->toolbar_menu .= $menubtn->run();
+    }
+    
+    // Clear-votes button
+    if ( $conds['resetvotes'] )
+    {
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxResetDelVotes()); return false; }" title="' . $lang->get('onpage_tip_resetvotes') . '" accesskey="y"',
+          'HREF'  => makeUrl($local_page, 'do=resetvotes', true),
+          'TEXT'  => $lang->get('onpage_btn_votedelete_reset'),
+        ));
+      $this->toolbar_menu .= $menubtn->run();
+    }
+    
+    // Printable page button
+    if ( $conds['printable'] )
+    {
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'title="' . $lang->get('onpage_tip_printable') . '"',
+          'HREF'  => makeUrl($local_page, 'printable=yes', true),
+          'TEXT'  => $lang->get('onpage_btn_printable'),
+        ));
+      $this->toolbar_menu .= $menubtn->run();
+    }
+    
+    // Protect button
+    if ( $conds['protect'] )
+    {
+      switch($this->page->ns->page_protected)
+      {
+        case PROTECT_FULL: $protect_status = $lang->get('onpage_btn_protect_on'); break;
+        case PROTECT_SEMI: $protect_status = $lang->get('onpage_btn_protect_semi'); break;
+        case PROTECT_NONE: $protect_status = $lang->get('onpage_btn_protect_off'); break;
+      }
+      
+      $label = $this->makeParserText($this->elements['toolbar_label']);
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_protect') . ' ' . "<b><span id=\"tb_ajax_protect_status\">$protect_status</span></b>"));
+      $t0 = $label->run();
+      
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'accesskey="p" onclick="ajaxProtect(' . $this->page->ns->page_protected . '); return false;" id="tb_ajax_protect_btn" title="' . $lang->get('onpage_tip_protect') . '"',
+          'HREF' => makeUrl($local_page, 'do=protect', true),
+          'TEXT' => $lang->get('onpage_btn_protect_change')
+        ));
+      $t1 = $menubtn->run();
+      
+      $this->toolbar_menu .= '        <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td>'.$t0.'</td>
+            <td>'.$t1.'</td>
+          </tr>
+        </table>';
+    }
+    
+    // Wiki mode button
+    if ( $conds['setwikimode'] )
+    {
+      // label at start
+      $label = $this->makeParserText($this->elements['toolbar_label']);
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_wikimode')));
+      $t0 = $label->run();
+      
+      // on button
+      $ctmp = '';
+      if ( $local_cdata['wiki_mode'] == 1 )
+      {
+        $ctmp = ' style="text-decoration: underline;"';
+      }
+      $menubtn->assign_vars(array(
+          'FLAGS' => $ctmp,
+          'HREF' => makeUrl($local_page, 'do=setwikimode&level=1', true),
+          'TEXT' => $lang->get('onpage_btn_wikimode_on')
+        ));
+      $t1 = $menubtn->run();
+      
+      // off button
+      $ctmp = '';
+      if ( $local_cdata['wiki_mode'] == 0 )
+      {
+        $ctmp=' style="text-decoration: underline;"';
+      }
+      $menubtn->assign_vars(array(
+          'FLAGS' => $ctmp,
+          'HREF' => makeUrl($local_page, 'do=setwikimode&level=0', true),
+          'TEXT' => $lang->get('onpage_btn_wikimode_off')
+        ));
+      $t2 = $menubtn->run();
+      
+      // global button
+      $ctmp = ''; 
+      if ( $local_cdata['wiki_mode'] == 2 )
+      {
+        $ctmp=' style="text-decoration: underline;"';
+      }
+      $menubtn->assign_vars(array(
+          'FLAGS' => $ctmp,
+          'HREF' => makeUrl($local_page, 'do=setwikimode&level=2', true),
+          'TEXT' => $lang->get('onpage_btn_wikimode_global')
+        ));
+      $t3 = $menubtn->run();
+      
+      // Tack it onto the list of buttons that are already there...
+      $this->toolbar_menu .= '        <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td>'.$t0.'</td>
+            <td>'.$t1.'</td>
+            <td>'.$t2.'</td>
+            <td>'.$t3.'</td>
+          </tr>
+        </table>';
+    }
+    
+    // Clear logs button
+    if ( $conds['clearlogs'] )
+    {
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxClearLogs()); return false; }" title="' . $lang->get('onpage_tip_flushlogs') . '" accesskey="l"',
+          'HREF'  => makeUrl($local_page, 'do=flushlogs', true),
+          'TEXT'  => $lang->get('onpage_btn_clearlogs'),
+        ));
+      $this->toolbar_menu .= $menubtn->run();
+    }
+    
+    // Delete page button
+    if ( $conds['delete'] )
+    {
+      $s = $lang->get('onpage_btn_deletepage');
+      if ( $this->page->ns->cdata['delvotes'] == 1 )
+      {
+        $subst = array(
+          'num_votes' => $this->page->ns->cdata['delvotes'],
+          'plural' => ''
+          );
+        $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
+      }
+      else if ( $this->page->ns->cdata['delvotes'] > 1 )
+      {
+        $subst = array(
+          'num_votes' => $this->page->ns->cdata['delvotes'],
+          'plural' => $lang->get('meta_plural')
+          );
+        $s .= $lang->get('onpage_btn_deletepage_votes', $subst);
+      }
+      
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxDeletePage()); return false; }" title="' . $lang->get('onpage_tip_deletepage') . '" accesskey="k"',
+          'HREF'  => makeUrl($local_page, 'do=deletepage', true),
+          'TEXT'  => $s,
+        ));
+      $this->toolbar_menu .= $menubtn->run();
+      
+    }
+    
+    // Password-protect button
+    if ( $conds['password'] )
+    {
+      // label at start
+      $label = $this->makeParserText($this->elements['toolbar_label']);
+      $label->assign_vars(array('TEXT' => $lang->get('onpage_lbl_password')));
+      $t0 = $label->run();
+      
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxSetPassword()); return false; }" title="' . $lang->get('onpage_tip_password') . '"',
+          'HREF'  => '#',
+          'TEXT'  => $lang->get('onpage_btn_password_set'),
+        ));
+      $t = $menubtn->run();
+      
+      $this->toolbar_menu .= '<table border="0" cellspacing="0" cellpadding="0"><tr><td>'.$t0.'</td><td><input type="password" id="mdgPassSetField" size="10" /></td><td>'.$t.'</td></tr></table>';
+    }
+    
+    // Manage ACLs button
+    if ( $conds['acledit'] )
+    {
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { var s = ajaxOpenACLManager(); console.debug(s); return false; }" title="' . $lang->get('onpage_tip_aclmanager') . '" accesskey="m"',
+          'HREF'  => makeUrl($local_page, 'do=aclmanager', true),
+          'TEXT'  => $lang->get('onpage_btn_acl'),
+        ));
+      $this->toolbar_menu .= $menubtn->run();
+    }
+    
+    // Administer page button
+    if ( $conds['adminpage'] )
+    {
+      $menubtn->assign_vars(array(
+          'FLAGS' => 'onclick="if ( !KILL_SWITCH ) { void(ajaxAdminPage()); return false; }" title="' . $lang->get('onpage_tip_adminoptions') . '" accesskey="g"',
+          'HREF'  => makeUrlNS('Special', 'Administration', 'module='.$paths->nslist['Admin'].'PageManager', true),
+          'TEXT'  => $lang->get('onpage_btn_admin'),
+        ));
+      $this->toolbar_menu .= $menubtn->run();
+    }
+    
+    if ( strlen($this->toolbar_menu) > 0 )
+    {
+      $button->assign_vars(array(
+        'FLAGS'       => 'id="mdgToolbar_moreoptions" onclick="if ( !KILL_SWITCH ) { return false; }" title="' . $lang->get('onpage_tip_moreoptions') . '"',
+        'PARENTFLAGS' => '',
+        'HREF'        => makeUrl($local_page, 'do=moreoptions', true),
+        'TEXT'        => $lang->get('onpage_btn_moreoptions')
+        ));
+      $tb .= $button->run();
+    }
+    
+    // Generate the code for the Log in, Log out, Change theme, Administration, and Edit Sidebar buttons
+    // Once again, the new template parsing system can be used here
+    
+    $parser = $this->makeParserText($this->elements['sidebar_button']);
     
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', "Logout/{$session->csrf_token}/{$local_page}"),
@@ -1075,23 +1078,43 @@ JSEOF;
     
     $theme_link = $parser->run();
     
-    $parser->assign_vars(Array(
-        'HREF'=>makeUrlNS('Special', 'Administration'),
-        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxStartAdminLogin()); return false; }"',
-        'TEXT'=>$lang->get('sidebar_btn_administration'),
-      ));
+    // Run hooks
+    $code = $plugins->setHook('tpl_compile_toolbar');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
     
-    $admin_link = $parser->run();
+    //
+    // ASSIGN VARIABLES
+    //
     
-    $parser->assign_vars(Array(
-        'HREF'=>makeUrlNS('Special', 'EditSidebar'),
-        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxLoginNavTo(\'Special\', \'EditSidebar\', ' . USER_LEVEL_ADMIN . ')); return false; }"',
-        'TEXT'=>$lang->get('sidebar_btn_editsidebar'),
-      ));
-    
-    $sidebar_link = $parser->run();
+    $this->assign_vars(array(
+        'PAGE_NAME' => htmlspecialchars($this->page->ns->cdata['name']),
+        'PAGE_URLNAME' => sanitize_page_id($this->page_id),
+        'TOOLBAR' => $tb,
+        'TOOLBAR_EXTRAS' => $this->toolbar_menu,
+        'STYLE_LINK' => makeUrlNS('Special', 'CSS', null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
+        'LOGIN_LINK' => $login_link,
+        'LOGOUT_LINK' => $logout_link,
+        'THEME_LINK' => $theme_link
+      ), true);
+    $this->page_initted = true;
+  }
+  
+  /**
+   * Generates and assigns the Javascript system variables
+   */
+  
+  function generate_js_header()
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
     
     $SID = ($session->sid_super) ? $session->sid_super : '';
+    
+    $local_page = $paths->get_pathskey($this->page_id, $this->namespace);
+    $local_fullpage = $paths->get_pathskey($this->page_id, $this->namespace) . substr($paths->fullpage, strlen($paths->page));
     
     $urlname_clean = str_replace('\'', '\\\'', str_replace('\\', '\\\\', dirtify_page_id($local_fullpage)));
     $urlname_clean = strtr( $urlname_clean, array( '<' => '&lt;', '>' => '&gt;' ) );
@@ -1099,14 +1122,7 @@ JSEOF;
     $urlname_jssafe = sanitize_page_id($local_fullpage);
     $physical_urlname_jssafe = sanitize_page_id($paths->fullpage);
     
-    if ( $session->check_acl_scope('even_when_protected', $local_namespace) )
-    {
-      $protected = $paths->page_protected && !$perms->get_permissions('even_when_protected');
-    }
-    else
-    {
-      $protected = false;
-    }
+    $protected = is_object($this->page) ? $this->page->ns->cdata['really_protected'] : false;
     
     // Generate the dynamic javascript vars
     $js_dynamic = '    <script type="text/javascript">// <![CDATA[
@@ -1116,7 +1132,7 @@ JSEOF;
       var physical_title = \'' . $physical_urlname_jssafe . '\';
       var on_main_page = ' . ( $local_page == get_main_page() ? 'true' : 'false' ) . ';
       var main_page_members = \'' . addslashes(get_main_page(true)) . '\';
-      var page_exists = '. ( ( $local_page_exists) ? 'true' : 'false' ) .';
+      var page_exists = '. ( ( is_object($this->page) ? $this->page->ns->exists() : true ) ? 'true' : 'false' ) .';
       var scriptPath = \'' . addslashes(scriptPath) . '\';
       var contentPath = \'' . addslashes(contentPath) . '\';
       var cdnPath = \'' . addslashes(cdnPath) . '\';
@@ -1131,84 +1147,37 @@ JSEOF;
       var disable_redirect = ' . ( isset($_GET['redirect']) && $_GET['redirect'] == 'no' ? 'true' : 'false' ) . ';
       var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? 'true' : 'false' ) . ';
       var csrf_token = "' . $session->csrf_token . '";
-      var editNotice = \'' . ( (getConfig('wiki_edit_notice', '0')=='1') ? str_replace("\n", "\\\n", addslashes(RenderMan::render(getConfig('wiki_edit_notice_text')))) : '' ) . '\';
+      var editNotice = \'' . $this->get_wiki_edit_notice() . '\';
       var prot = ' . ( ($protected) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server
       var ENANO_SPECIAL_CREATEPAGE = \''. makeUrl($paths->nslist['Special'].'CreatePage') .'\';
-      var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $urlname_clean .'&namespace=' . $local_namespace . '\';
+      var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $this->page_id .'&namespace=' . $this->namespace . '\';
       var ENANO_SPECIAL_CHANGESTYLE = \''. makeUrlNS('Special', 'ChangeStyle') .'\';
       var namespace_list = new Array();
       var msg_loading_component = \'' . addslashes($lang->get('ajax_msg_loading_component')) . '\';
       var AES_BITS = '.AES_BITS.';
       var AES_BLOCKSIZE = '.AES_BLOCKSIZE.';
       var pagepass = \''. ( ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '' ) .'\';
-      var ENANO_THEME_LIST = \'';
-          foreach($this->theme_list as $t) {
-            if($t['enabled'])
-            {
-              $js_dynamic .= '<option value="'.$t['theme_id'].'"';
-              // if($t['theme_id'] == $session->theme) $js_dynamic .= ' selected="selected"';
-              $js_dynamic .= '>'.$t['theme_name'].'</option>';
-            }
-          }
-      $js_dynamic .= '\';
-      var ENANO_CURRENT_THEME = \''. $session->theme .'\';
       var ENANO_LANG_ID = ' . $lang->lang_id . ';
       var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";';
-      foreach($paths->nslist as $k => $c)
-      {
-        $js_dynamic .= "namespace_list['{$k}'] = '$c';";
-      }
-      $js_dynamic .= "\n    //]]>\n    </script>";
-      
-    $tpl_strings = Array(
-      'PAGE_NAME' => htmlspecialchars($local_cdata['name']),
-      'PAGE_URLNAME' =>  $urlname_clean,
-      'SITE_NAME' => htmlspecialchars(getConfig('site_name')),
-      'USERNAME' => $session->username,
-      'SITE_DESC' => htmlspecialchars(getConfig('site_desc')),
-      'TOOLBAR' => $tb,
-      'SCRIPTPATH' => scriptPath,
-      'CONTENTPATH' => contentPath,
-      'CDNPATH' => cdnPath,
-      'ADMIN_SID_QUES' => $asq,
-      'ADMIN_SID_AMP' => $asa,
-      'ADMIN_SID_AMP_HTML' => $ash,
-      'ADMIN_SID_AUTO' => $as2,
-      'ADMIN_SID_RAW' =>  ( is_string($session->sid_super) ? $session->sid_super : '' ),
-      'CSRF_TOKEN' => $session->csrf_token,
-      'COPYRIGHT' => RenderMan::parse_internal_links(getConfig('copyright_notice')),
-      'TOOLBAR_EXTRAS' => $this->toolbar_menu,
-      'REQUEST_URI' => ( defined('ENANO_CLI') ? '' : $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'] ),
-      'STYLE_LINK' => makeUrlNS('Special', 'CSS'.$p, null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
-      'LOGIN_LINK' => $login_link,
-      'LOGOUT_LINK' => $logout_link,
-      'ADMIN_LINK' => $admin_link,
-      'THEME_LINK' => $theme_link,
-      'SIDEBAR_LINK' => $sidebar_link,
-      'SEARCH_ACTION' => makeUrlNS('Special', 'Search'),
-      'INPUT_TITLE' => ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->nslist[$local_namespace] . $local_page_id ) . '" />' : ''),
-      'INPUT_AUTH' => ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : ''),
-      'TEMPLATE_DIR' => scriptPath.'/themes/'.$this->theme,
-      'THEME_ID' => $this->theme,
-      'STYLE_ID' => $this->style,
-      'MAIN_PAGE' => get_main_page(),
-      'JS_HEADER' => $js_head,
-      'JS_FOOTER' => $js_foot,
-      'JS_DYNAMIC_VARS' => $js_dynamic,
-      'UNREAD_PMS' => $session->unread_pms,
-      'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', '', true),
-      'REPORT_URI' => makeUrl($local_fullpage, 'do=sql_report', true)
-      );
     
-    foreach ( $paths->nslist as $ns_id => $ns_prefix )
+    foreach($paths->nslist as $k => $c)
     {
-      $tpl_strings[ 'NS_' . strtoupper($ns_id) ] = $ns_prefix;
+      $js_dynamic .= "namespace_list['{$k}'] = '$c';";
     }
+    $js_dynamic .= "\n    //]]>\n    </script>";
     
-    $this->assign_vars($tpl_strings, true);
-    
-    profiler_log('template: var init: finished toolbar building and initial assign()');
-    
+    $this->assign_vars(array(
+        'JS_DYNAMIC_VARS' => $js_dynamic,
+        'REPORT_URI' => makeUrl($local_fullpage, 'do=sql_report', true)
+      ), true);
+  }
+  
+  /**
+   * Fetches, parses, and assigns the sidebar.
+   */
+  
+  function assign_sidebar()
+  {
     //
     // COMPILE THE SIDEBAR
     //
@@ -1219,6 +1188,72 @@ JSEOF;
     $this->tpl_bool['sidebar_left']  = ( $this->tpl_strings['SIDEBAR_LEFT']  != $min) ? true : false;
     $this->tpl_bool['sidebar_right'] = ( $this->tpl_strings['SIDEBAR_RIGHT'] != $min) ? true : false;
     $this->tpl_bool['right_sidebar'] = $this->tpl_bool['sidebar_right']; // backward compatibility
+  }
+  
+  /**
+   * Initializes all variables related to on-page content. This includes sidebars and what have you.
+   * @param object Optional PageProcessor object to use for passing metadata and permissions on. If omitted, uses information from $paths and $session.
+   * @param bool If true, re-inits even if already initted with this page_id and namespace
+   */
+  
+  function init_vars($page = false, $force_init = false)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    $need_shared_init = ( !$this->theme_initted || !$this->page_initted );
+    
+    if ( $need_shared_init )
+    {
+      if ( !$this->theme || !$this->style )
+      {
+        $this->load_theme();
+      }
+      $code = $plugins->setHook('compile_template', true);
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+    }
+    
+    if ( !$this->theme_loaded )
+      $this->load_theme();
+    
+    require(ENANO_ROOT . "/themes/{$this->theme}/theme.cfg");
+    
+    if ( !$this->page_id || !$this->namespace )
+    {
+      $this->page_id = $paths->page_id;
+      $this->namespace = $paths->namespace;
+    }
+    
+    profiler_log('template: prepped for var set (loaded theme, ran compile_template hook)');
+    
+    $this->init_global_vars();
+    profiler_log('template: global vars set');
+    
+    if ( !$this->theme_initted )
+      $this->init_theme_vars();
+    
+    profiler_log('template: theme vars set');
+    
+    if ( !$this->page_initted && !empty($this->namespace) )
+    {
+      profiler_log('template: page vars set');
+      $this->init_page_vars();
+    }
+    else
+    {
+      profiler_message('template: skipped setting page vars');
+    }
+    
+    // Perform shared init (combine javascript, etc.)
+    if ( $need_shared_init )
+    {
+      $this->generate_js_header();
+      $this->assign_sidebar();
+      profiler_log('template: assigned sidebar and JS');
+    }
     
     // and finally one string value that needs to be symlinked...
     if ( !isset($this->tpl_strings['ADDITIONAL_HEADERS']) )
@@ -1232,25 +1267,14 @@ JSEOF;
     {
       eval($cmd);
     }
-    
-    profiler_log("template: finished var init");
-  }
-  
-  /**
-   * Performs var init that is common to all pages (IOW, called only once)
-   * Not used yet because most stuff is either theme-dependent or page-dependent.
-   * @access private
-   */
-  
-  function init_vars_global()
-  {
-    
   }
   
   function header($simple = false) 
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
+    
+    define('ENANO_HEADERS_SENT', true);
     
     echo $this->getHeader($simple);
   }
@@ -1270,21 +1294,22 @@ JSEOF;
       $this->load_theme($session->theme, $session->style);
     }
     
+    if ( !$this->page_initted || !$this->theme_initted )
+      $this->init_vars();
+    
     // I feel awful doing this.
     if ( preg_match('/^W3C_Validator/', @$_SERVER['HTTP_USER_AGENT']) )
     {
       header('Content-type: application/xhtml+xml');
     }
     
-    $headers_sent = true;
-    if(!defined('ENANO_HEADERS_SENT'))
-      define('ENANO_HEADERS_SENT', '');
+    $header = '';
+    
     if ( !$this->no_headers )
     {
       $header = ( $simple ) ?
         $this->process_template('simple-header.tpl') :
         $this->process_template('header.tpl');
-      echo $header;
     }
     if ( !$simple && $session->user_logged_in && $session->unread_pms > 0 )
     {
@@ -1304,16 +1329,16 @@ JSEOF;
             ' . $lang->get('page_sitedisabled_admin_msg_body', array('admin_link' => $admin_link)) . '
             </div>';
     }
+    
+    return $header;
   }
+  
   function getFooter($simple = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     if ( !$this->no_headers )
     {
-      
-      if(!defined('ENANO_HEADERS_SENT'))
-        $this->header();
       
       global $_starttime;
       if(isset($_GET['sqldbg']) && $session->get_permissions('mod_misc'))
@@ -1430,9 +1455,9 @@ JSEOF;
   function process_template($file)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!defined('ENANO_TEMPLATE_LOADED'))
+    
+    if ( !$this->theme_initted || !$this->page_initted )
     {
-      $this->load_theme();
       $this->init_vars();
     }
     
@@ -1756,7 +1781,10 @@ EOF;
     
     for($i=0;$i<sizeof($links);$i++)
     {
-      $message = str_replace('$'.$links[$i].'$', $this->tpl_strings[$links[$i]], $message);
+      if ( isset($this->tpl_strings[$links[$i]]) )
+      {
+        $message = str_replace('$'.$links[$i].'$', $this->tpl_strings[$links[$i]], $message);
+      }
     }
     
     // Conditionals
@@ -2501,6 +2529,26 @@ EOF;
     $result = ob_get_contents();
     ob_end_clean();
     return $this->parse($result);
+  }
+  
+  /**
+   * Return the wiki mode edit notice, rendered and addslashes()'ed.
+   * @return string
+   */
+  
+  function get_wiki_edit_notice()
+  {
+    global $cache;
+    
+    if ( getConfig('wiki_edit_notice', 0) != 1 )
+      return '';
+    
+    if ( $cached = $cache->fetch('wiki_edit_notice') )
+      return $cached;
+    
+    $notice = str_replace("\n", "\\\n", addslashes(RenderMan::render(getConfig('wiki_edit_notice_text'))));
+    $cache->store('wiki_edit_notice', $notice, 60);
+    return $notice;
   }
   
 } // class template

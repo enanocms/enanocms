@@ -121,6 +121,10 @@ function page_Special_Login()
   global $__login_status;
   global $lang;
   
+  require_once(ENANO_ROOT . '/includes/math.php');
+  require_once(ENANO_ROOT . '/includes/diffiehellman.php');
+  global $dh_supported;
+  
   $locked_out = false;
   // are we locked out?
   $threshold = ( $_ = getConfig('lockout_threshold') ) ? intval($_) : 5;
@@ -607,7 +611,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       $template->load_theme($session->theme, $session->style);
       if(isset($_POST['return_to']))
       {
-        $name = ( isPage($_POST['return_to']['name']) ) ? $paths->pages[$_POST['return_to']]['name'] : $_POST['return_to'];
+        $name = get_page_title($_POST['return_to']);
         $subst = array(
             'username' => $session->username,
             'redir_target' => $name
