@@ -1,6 +1,6 @@
           </div>
           <div class="footer">
-            {COPYRIGHT}<br />Powered by <a href="{URL_ABOUT_ENANO}">Enano</a> &bull; Copyright &copy; 2006-2008 Dan Fuhry
+            {COPYRIGHT}<br />[[EnanoPoweredLink]] &bull; &copy; 2006-2009 Dan Fuhry
           </div>
         </td>
         <td class="right"></td>
