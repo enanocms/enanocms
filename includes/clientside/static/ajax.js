@@ -579,12 +579,16 @@ window.ajaxResetDelVotes = function()
           },
           onclick: function(e)
           {
-            miniPromptDestroy(this);
-            setAjaxLoading();
+            var box = miniPromptGetParent(this);
+            var whitey = whiteOutMiniPrompt(box);
             ajaxGet(stdAjaxPrefix+'&_mode=resetdelvotes', function(ajax) {
               if ( ajax.readyState == 4 && ajax.status == 200 ) {
-                unsetAjaxLoading();
-                alert(ajax.responseText);
+                whiteOutReportSuccess(whitey);
+                setTimeout(function()
+                  {
+                    miniPromptDestroy(box);
+                  }, 1250);
+                
                 item = document.getElementById('mdgDeleteVoteNoticeBox');
                 if(item)
                 {
@@ -1455,6 +1459,7 @@ window.ajaxUpdateCheck = function(targetelement)
         if ( releases.length > 0 )
         {
           thediv.className = 'tblholder';
+          // FIXME: l10n
           if ( update_available )
           {
             var infobox = document.createElement('div');
@@ -1485,6 +1490,7 @@ window.ajaxUpdateCheck = function(targetelement)
           var td3 = document.createElement('th');
           var td4 = document.createElement('th');
           
+          // FIXME: l10n
           td1.appendChild( document.createTextNode('Release type') );
           td2.appendChild( document.createTextNode('Version') );
           td3.appendChild( document.createTextNode('Code name') );
