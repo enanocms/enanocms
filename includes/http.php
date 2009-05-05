@@ -239,7 +239,7 @@ class Request_HTTP
     }
     else
     {
-      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
+      throw new Exception(__METHOD__ . ': Invalid argument(s)');
     }
   }
   
@@ -264,7 +264,7 @@ class Request_HTTP
     }
     else
     {
-      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
+      throw new Exception(__METHOD__ . ': Invalid argument(s)');
     }
   }
   
@@ -289,7 +289,7 @@ class Request_HTTP
     }
     else
     {
-      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
+      throw new Exception(__METHOD__ . ': Invalid argument(s)');
     }
   }
   
@@ -314,7 +314,7 @@ class Request_HTTP
     }
     else
     {
-      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Invalid argument(s)');
+      throw new Exception(__METHOD__ . ': Invalid argument(s)');
     }
   }
   
@@ -326,9 +326,9 @@ class Request_HTTP
   function _sock_open(&$connection)
   {
     // Open connection
-    $connection = fsockopen($this->host, $this->port);
+    $connection = @fsockopen($this->host, $this->port);
     if ( !$connection )
-      throw new Exception(__CLASS__ . '::' . __METHOD__ . ': Could not make connection');
+      throw new Exception(__METHOD__ . ': Could not make connection');
     
     // 1 = socket open
     $this->state = 1;
