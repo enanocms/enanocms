@@ -239,6 +239,15 @@ div.content p {
   margin-left: 0.8em;
 }
 
+/* Wikilinks to pages that don't exist */
+div.content a.wikilink-nonexistent {
+  color: #B05020;
+}
+
+div.content a.wikilink-nonexistent:visited {
+  color: #906030;
+}
+
 /* Inline rename */
 
 input#pageheading {
