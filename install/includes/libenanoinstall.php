@@ -48,7 +48,7 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
   }
   if ( !function_exists($function) )
     die('libenanoinstall: CRITICAL: function "' . $function . '" for ' . $stage_id . ' doesn\'t exist');
-  $result = @call_user_func($function, false, $already_run);
+  $result = call_user_func($function, false, $already_run);
   if ( $result )
   {
     echo_stage_success($stage_id, $stage_name);

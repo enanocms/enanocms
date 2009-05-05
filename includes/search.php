@@ -187,18 +187,15 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
     }
 
     $col_word = ( $case_sensitive ) ? 'word' : 'word_lcase';
-    $where_any = ( count($where_any) > 0 ) ? '( ' . $col_word . ' = \'' . implode('\' OR ' . $col_word . ' = \'', $where_any) . '\' )' : '';
+    $where_any = ( count($where_any) > 0 ) ? '( ' . $col_word . ' LIKE \'%' . implode('%\' OR ' . $col_word . ' LIKE \'%', $where_any) . '%\' )' : '';
 
     // generate query
-    // using a GROUP BY here ensures that the same word with a different case isn't counted as 2 words - it's all melted back
-    // into one later in the processing stages
-    // $group_by = ( $case_sensitive ) ? '' : ' GROUP BY lcase(word);';
     $sql = "SELECT word, page_names FROM " . table_prefix . "search_index WHERE {$where_any}";
-    if ( !($q = $db->sql_unbuffered_query($sql)) )
+    if ( !($q = $db->sql_query($sql)) )
       $db->_die('Error is in perform_search(), includes/search.php, query 1');
 
     $word_tracking = array();
-    if ( $row = $db->fetchrow() )
+    if ( $row = $db->fetchrow($q) )
     {
       do
       {
@@ -278,6 +275,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
         {
           // the term only occurs in one page
           $word_cs = (( $case_sensitive ) ? $row['word'] : strtolower($row['word']));
+          
           if ( isset($word_tracking[$pages]) && in_array($word_cs, $word_tracking[$pages]) )
           {
             continue;
@@ -297,15 +295,14 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
 
           // Is this search term present in the page's title? If so, give extra points
           preg_match("/^ns=$ns_list;pid=(.+)$/", $pages, $piecesparts);
-          $pathskey = $paths->nslist[ $piecesparts[1] ] . sanitize_page_id($piecesparts[2]);
-          if ( isPage($pathskey) )
+          $title = get_page_title_ns($piecesparts[2], $piecesparts[1]);
+          
+          $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
+          if ( $test_func($title, $row['word']) || $test_func($piecesparts[2], $row['word']) )
           {
-            $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
-            if ( $test_func($paths->pages[$pathskey]['name'], $row['word']) || $test_func($paths->pages[$pathskey]['urlname_nons'], $row['word']) )
-            {
-              $inc = 1.5;
-            }
+            $inc = 1.5;
           }
+          
           if ( isset($scores[$pages]) )
           {
             $scores[$pages] = $scores[$pages] + $inc;
@@ -316,9 +313,9 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
           }
         }
       }
-      while ( $row = $db->fetchrow() );
+      while ( $row = $db->fetchrow($q) );
     }
-    $db->free_result();
+    $db->free_result($q);
 
     //
     // STAGE 2: FIRST ELIMINATION ROUND
@@ -336,7 +333,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
       }
     }
   }
-
+  
   //
   // STAGE 3: PHRASE SEARCHING
   // Use LIKE to find pages with specified phrases. We can do a super-picky single query without another elimination round because
@@ -1055,7 +1052,7 @@ function inject_custom_search_results(&$query, &$query_phrase, &$scores, &$page_
         {
           if ( is_callable($options['formatcallback']) )
           {
-            $text = @call_user_func($options['formatcallback'], $row, $word_list);
+            $text = call_user_func($options['formatcallback'], $row, $word_list);
           }
           else
           {

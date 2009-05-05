@@ -36,7 +36,7 @@ foreach ( $cron_tasks as $interval => $tasks )
   {
     foreach ( $tasks as $task )
     {
-      @call_user_func($task);
+      call_user_func($task);
     }
     setConfig("cron_lastrun_ivl_$interval", strval(time()));
   }

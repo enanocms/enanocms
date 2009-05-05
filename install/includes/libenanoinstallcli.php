@@ -21,7 +21,7 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
   if ( !$silent )
     echo parse_shellcolor_string($lang->get("cli_msg_$stage_name"));
   
-  $result = @call_user_func($function);
+  $result = call_user_func($function);
   
   if ( !$result )
   {

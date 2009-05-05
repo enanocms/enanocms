@@ -402,7 +402,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   $p = RenderMan::strToPageId($paths->get_pageid_from_url());
   if( ( $p[1] == 'Admin' || $p[1] == 'Special' ) && function_exists('page_'.$p[1].'_'.$p[0].'_preloader'))
   {
-    @call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
+    call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
   }
   
   profiler_log('Checked for preloader');
@@ -415,13 +415,6 @@ if ( !defined('IN_ENANO_INSTALL') )
 
   // All checks passed! Start the main components up.  
   $session->start();
-  
-  // Grab language strings from the database
-  if ( is_object(@$lang) )
-  {
-    $lang->fetch();
-    profiler_log('Fetched language strings');
-  }
   
   // Add all of our built in special pages
   foreach ( array('SpecialUserFuncs', 'SpecialPageFuncs', 'SpecialAdmin', 'SpecialCSS', 'SpecialUpDownload', 'SpecialSearch', 'PrivateMessages', 'SpecialGroups', 'SpecialLog') as $plugin )

@@ -770,7 +770,7 @@ $lang_cache = ');
       {
         if ( isset($this->filters[$filter]) )
         {
-          $result = @call_user_func($this->filters[$filter], $string);
+          $result = call_user_func($this->filters[$filter], $string);
           if ( is_string($result) )
           {
             $string = $result;
