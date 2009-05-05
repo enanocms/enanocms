@@ -44,7 +44,7 @@ function SpecialAdmin_paths_init()
     ));
 }
 
-$plugins->attachHook('common_post', 'SpecialAdmin_include();');
+$plugins->attachHook('base_classes_initted', 'SpecialAdmin_include();');
 
 function SpecialAdmin_include()
 {
