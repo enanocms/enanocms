@@ -156,7 +156,7 @@ class LogDisplay
     $sql = 'SELECT ' . $columns . ' FROM ' . table_prefix . "logs AS l\n"
          . "  WHERE log_type = 'page' AND is_draft != 1$where_extra\n"
          . "  GROUP BY log_id, action, page_id, namespace, page_text, author, time_id, edit_summary, minor_edit"
-         . "  ORDER BY log_id DESC $limit;";
+         . "  ORDER BY time_id DESC $limit;";
     
     return $sql;
   }
