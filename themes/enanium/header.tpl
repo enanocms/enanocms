@@ -8,9 +8,11 @@
     <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
     {JS_HEADER}
     {ADDITIONAL_HEADERS}
-    <!-- BEGIN auth_rename -->
+    <script type="text/javascript">//<![CDATA[
+    var auth_rename = <!-- BEGIN auth_rename -->true<!-- BEGINELSE auth_rename -->false<!-- END auth_rename -->;
+    // ]]>
+    </script>
     <script type="text/javascript" src="{CDNPATH}/themes/{THEME_ID}/js/inlinerename.js"></script>
-    <!-- END auth_rename -->
   </head>
   <body>
     <div id="header">

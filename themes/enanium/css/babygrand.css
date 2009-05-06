@@ -215,6 +215,33 @@ div.sidebar ul.linkblock li a:hover {
   background-color: #292929;
 }
 
+div.sidebar.right a.closebtn {
+  display: block;
+  float: right;
+  margin-right: 10px;
+  color: #456798;
+  background-color: #f0f0f0;
+  padding: 0 8px;
+  -moz-border-radius: 0 0 4px 4px;
+  cursor: pointer;
+}
+
+div.right-sidebar-hidden {
+  margin-left: 10px;
+  display: none;
+}
+
+div.right-sidebar-hidden a.openbtn {
+  display: block;
+  float: right;
+  margin-right: -20px;
+  color: #456798;
+  background-color: #f0f0f0;
+  padding: 5px 8px;
+  -moz-border-radius: 4px 0 0 4px;
+  cursor: pointer;
+}
+
 div.slider {
   margin-bottom: 7px;
 }

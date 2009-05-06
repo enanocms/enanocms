@@ -1,3 +1,33 @@
+// Sidebar collapse
+function enanium_toggle_sidebar_right()
+{
+  if ( document.getElementById('enanium_sidebar_right').style.display == 'none' )
+  {
+    // show
+    document.getElementById('enanium_sidebar_right').style.display = 'block';
+    document.getElementById('enanium_sidebar_right_hidden').style.display = 'none';
+    createCookie('right_sidebar', 'open', 365);
+  }
+  else
+  {
+    // hide
+    document.getElementById('enanium_sidebar_right').style.display = 'none';
+    document.getElementById('enanium_sidebar_right_hidden').style.display = 'block';
+    createCookie('right_sidebar', 'collapsed', 365);
+  }
+}
+
+addOnloadHook(function()
+  {
+    if ( readCookie('right_sidebar') == 'collapsed' )
+    {
+      document.getElementById('enanium_sidebar_right').style.display = 'none';
+      document.getElementById('enanium_sidebar_right_hidden').style.display = 'block';
+    }
+  });
+
+// Inline rename
+
 function ajaxRenameInline()
 {
   if ( KILL_SWITCH || IE )
@@ -76,14 +106,17 @@ function ajaxRenameInlineCancel(e)
   document.onclick = null;
 }
 
-addOnloadHook(function()
-  {
-    var h2 = document.getElementById('h2PageName');
-    if ( h2 )
+if ( window.auth_rename )
+{
+  addOnloadHook(function()
     {
-      h2.ondblclick = function()
+      var h2 = document.getElementById('h2PageName');
+      if ( h2 )
       {
-        ajaxRenameInline();
+        h2.ondblclick = function()
+        {
+          ajaxRenameInline();
+        }
       }
-    }
-  });
+    });
+}

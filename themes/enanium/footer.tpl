@@ -1,9 +1,13 @@
           </div> <!-- div#ajaxEditContainer -->
           </td>
           <!-- BEGIN right_sidebar -->
-          <td valign="top">
-            <div class="right sidebar">
+          <td valign="top" class="td-right-sidebar">
+            <div class="right sidebar" id="enanium_sidebar_right">
+              <a class="closebtn" onclick="enanium_toggle_sidebar_right(); return false;">&raquo;</a>
               {SIDEBAR_RIGHT}
+            </div>
+            <div class="right-sidebar-hidden" id="enanium_sidebar_right_hidden">
+              <a class="openbtn" onclick="enanium_toggle_sidebar_right(); return false;">&laquo;</a>
             </div>
             <!-- HOOK sidebar_right_post -->
           </td>
