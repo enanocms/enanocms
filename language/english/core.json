@@ -536,6 +536,7 @@ var enano_lang = {
       title_tools: 'Tools',
       title_search: 'Search',
       title_links: 'Links',
+      title_about: 'About',
       
       btn_home: 'Home',
       btn_createpage: 'Create a page',
