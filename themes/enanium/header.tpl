@@ -79,11 +79,13 @@
             <li><a href="{url:Special:CreatePage|escape}">{lang:sidebar_btn_createpage}</a></li>
             <li><a href="{url:Special:UploadFile|escape}">{lang:sidebar_btn_uploadfile}</a></li>
             <li><a href="{url:Special:SpecialPages|escape}">{lang:sidebar_btn_specialpages}</a></li>
+            <!-- BEGIN user_logged_in -->
+            <li><a href="{url:Special:Memberlist|escape}">{lang:specialpage_member_list}</a></li>
+            <!-- END user_logged_in -->
             <!-- BEGIN auth_admin -->
             {SIDEBAR_LINK}
             {ADMIN_LINK}
             <!-- END auth_admin -->
-            <li><a href="{url:Special:Memberlist|escape}">{lang:specialpage_member_list}</a></li>
           </ul>
           <span class="menuclear"></span>
         </div>
