@@ -449,6 +449,12 @@ if ( !defined('IN_ENANO_INSTALL') )
     
   $output = new $class();
   
+  // Are we running from the API? If so, did the page set a title?
+  if ( !defined('ENANO_INTERFACE_INDEX') && !defined('ENANO_INTERFACE_AJAX') && isset($title) )
+  {
+    $output->set_title($title);
+  }
+  
   // We're ready for whatever life throws us now, at least from an API point of view.
   define('ENANO_MAINSTREAM', '');
   
