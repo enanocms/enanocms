@@ -175,6 +175,7 @@
       
       $pagepass = ( isset($_REQUEST['pagepass']) ) ? $_REQUEST['pagepass'] : '';
       $page->password = $pagepass;
+      $page->allow_redir = ( !isset($_GET['redirect']) || (isset($_GET['redirect']) && $_GET['redirect'] !== 'no') );
             
       $page->send();
       break;

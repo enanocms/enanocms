@@ -104,6 +104,13 @@ class PageProcessor
   var $allow_redir = true;
   
   /**
+   * Holds any error message from redirection code. Defaults to false (no error).
+   * @var mixed
+   */
+   
+  var $redir_error = false;
+  
+  /**
    * If this is set to true, this will call the header and footer funcs on $template when render() is called.
    * @var bool
    */
@@ -175,7 +182,7 @@ class PageProcessor
   function send( $do_stats = false )
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    global $lang;
+    global $lang, $output;
     
     profiler_log('PageProcessor: send() called');
     
@@ -277,6 +284,40 @@ class PageProcessor
     }
     
     // We are all done. Ship off the page.
+    
+    if ( !$this->allow_redir )
+    {
+      if ( method_exists($this->ns, 'get_redirect') )
+      {
+        if ( $result = $this->ns->get_redirect() )
+          display_redirect_notice($result['page_id'], $result['namespace']);
+      }
+    }
+    else
+    {
+      $this->process_redirects();
+      
+      if ( count($this->redirect_stack) > 0 )
+      {
+        $stack = array_reverse($this->redirect_stack);
+        foreach ( $stack as $stackel )
+        {
+          $url = makeUrlNS($stackel['old_namespace'], $stackel['old_page_id'], 'redirect=no', true);
+          $page_data = $this->ns->get_cdata();
+          $title = $stackel['old_title'];
+          $a = '<a href="' . $url . '">' . htmlspecialchars($title) . '</a>';
+          $output->add_after_header('<small>' . $lang->get('page_msg_redirected_from', array('from' => $a)) . '<br /></small>');
+        }
+        $template->set_page($this);
+      }
+      
+      if ( $this->redir_error )
+      {
+        $output->add_after_header('<div class="usermessage"><b>' . $this->redir_error . '</b></div>');
+        $result = $this->ns->get_redirect();
+        display_redirect_notice($result['page_id'], $result['namespace']);
+      }
+    }
     
     $this->ns->send();
   }
@@ -942,15 +983,15 @@ class PageProcessor
     
     $page_id_cleaned = sanitize_page_id($page_id);
     
-    $this->page_id = $page_id_cleaned;
-    $this->namespace = $namespace;
     $this->revision_id = $revision_id;
     $this->page_id_unclean = dirtify_page_id($page_id);
     
-    $this->perms = $session->fetch_page_acl( $page_id, $namespace );
-    
     // resolve namespace
-    $this->ns = namespace_factory($this->page_id, $this->namespace, $this->revision_id);
+    $this->ns = namespace_factory($page_id, $namespace, $this->revision_id);
+    $this->page_id =& $this->ns->page_id;
+    $this->namespace =& $this->ns->namespace;
+    
+    $this->perms = $session->fetch_page_acl( $page_id, $namespace );
     
     $this->page_exists = $this->ns->exists();
     $this->title = get_page_title_ns($this->page_id, $this->namespace);
@@ -959,30 +1000,85 @@ class PageProcessor
   }
   
   /**
-   * Renders it all in one go, and echoes it out. This assumes that the text is in the DB.
+   * Processes any redirects.
    * @access private
    */
   
-  function render($incl_inner_headers = true, $_errormsg = false)
+  function process_redirects()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $output, $lang;
     
-    if ( count($this->redirect_stack) > 0 )
+    $this->redirect_stack = array();
+    
+    if ( !method_exists($this->ns, 'get_redirect') )
+      return true;
+    
+    if ( !$this->allow_redir )
+      return true;
+    
+    $redirect_count = 0;
+    
+    while ( $result = $this->ns->get_redirect() )
     {
-      $stack = array_reverse($this->redirect_stack);
-      foreach ( $stack as $oldtarget )
+      if ( $result['namespace'] == 'Special' || $result['namespace'] == 'Admin' )
       {
-        $url = makeUrlNS($oldtarget[1], $oldtarget[0], 'redirect=no', true);
-        $page_data = $this->ns->get_cdata();
-        $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
-        $a = '<a href="' . $url . '">' . $title . '</a>';
-        $output->add_after_header('<small>' . $lang->get('page_msg_redirected_from', array('from' => $a)) . '<br /></small>');
+        // Can't redirect to special/admin page
+        $this->redir_error = $lang->get('page_err_redirect_to_special');
+        break;
       }
+      if ( $redirect_count == 3 )
+      {
+        // max of 3 internal redirects exceeded
+        $this->redir_error = $lang->get('page_err_redirects_exceeded');
+        break;
+      }
+      
+      $loop = false;
+      foreach ( $this->redirect_stack as $stackel )
+      {
+        if ( $result['page_id'] == $stackel['old_page_id'] && $result['namespace'] == $stackel['old_namespace'] )
+        {
+          $loop = true;
+          break;
+        }
+      }
+      
+      if ( $loop )
+      {
+        // redirect loop
+        $this->redir_error = $lang->get('page_err_redirect_infinite_loop');
+        break;
+      }
+      $new_ns = namespace_factory($result['page_id'], $result['namespace']);
+      if ( !$new_ns->exists() )
+      {
+        // new page doesn't exist
+        $this->redir_error = $lang->get('page_err_redirect_to_nonexistent');
+        break;
+      }
+      
+      // build stack entry
+      $stackel = array(
+          'page_id' => $result['page_id'],
+          'namespace' => $result['namespace'],
+          'old_page_id' => $this->page_id,
+          'old_namespace' => $this->namespace,
+          'old_title' => $this->ns->title
+        );
+      
+      // replace everything (perform the actual redirect)
+      $this->ns = $new_ns;
+      
+      $this->page_id =& $this->ns->page_id;
+      $this->namespace =& $this->ns->namespace;
+      
+      $this->redirect_stack[] = $stackel;
+      
+      $redirect_count++;
     }
-    $this->ns->send($incl_inner_headers, $_errormsg);
   }
-  
+    
   /**
    * Sends the page header, dependent on, of course, whether we're supposed to.
    */
@@ -1032,6 +1128,7 @@ class PageProcessor
    * @access private
    */
   
+  /*
   function _handle_redirect($page_id, $namespace)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1039,7 +1136,7 @@ class PageProcessor
     $arr_pid = array($this->page_id, $this->namespace);
     if ( $namespace == 'Special' || $namespace == 'Admin' )
     {
-      return $lang->get('page_err_redirect_to_special');
+      return ;
     }
     $looped = false;
     foreach ( $this->redirect_stack as $page )
@@ -1052,7 +1149,7 @@ class PageProcessor
     }
     if ( $looped )
     {
-      return $lang->get('page_err_redirect_infinite_loop');
+      return ;
     }
     $page_id_key = $paths->nslist[ $namespace ] . sanitize_page_id($page_id);
     if ( !isPage($page_id_key) )
@@ -1068,6 +1165,7 @@ class PageProcessor
     $this->send();
     return true;
   }
+  */
   
   /**
    * Send the error message to the user that the access to this page is denied.

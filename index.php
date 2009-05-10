@@ -75,6 +75,7 @@
       // PageProcessor when we already have one going.
       $template->set_page($page);
       $page->send_headers = true;
+      $page->allow_redir = ( !isset($_GET['redirect']) || (isset($_GET['redirect']) && $_GET['redirect'] !== 'no') );
       $pagepass = ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '';
       $page->password = $pagepass;
       $page->send(true);

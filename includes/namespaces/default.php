@@ -324,6 +324,25 @@ class Namespace_Default
       }
     }
   }
+  
+  /**
+   * Get a redirect, if there is one.
+   * @return mixed Array: Page ID and namespace, associative; bool: false (no redirect)
+   */
+  
+  public function get_redirect()
+  {
+    $text = $this->fetch_text();
+    if ( preg_match('/^#redirect \[\[([^\]]+?)\]\]/i', $text, $match ) )
+    {
+      list($page_id, $namespace) = RenderMan::strToPageID($match[1]);
+      return array(
+          'page_id' => $page_id,
+          'namespace' => $namespace
+        );
+    }
+    return false;
+  }
    
   /**
    * The "real" send-the-page function. The reason for this is so other namespaces can re-use the code
@@ -342,44 +361,7 @@ class Namespace_Default
     
     $text = preg_replace('/([\s]*)__NOBREADCRUMBS__([\s]*)/', '', $text);
     $text = preg_replace('/([\s]*)__NOTOC__([\s]*)/', '', $text);
-    
-    $redir_enabled = false;
-    if ( preg_match('/^#redirect \[\[([^\]]+?)\]\]/i', $text, $match ) )
-    {
-      $redir_enabled = true;
-      
-      $oldtarget = RenderMan::strToPageID($match[1]);
-      $oldtarget[0] = sanitize_page_id($oldtarget[0]);
-      
-      $url = makeUrlNS($oldtarget[1], $oldtarget[0], false, true);
-      $page_data = $paths->get_cdata($oldtarget[0], $oldtarget[1]);
-      $title = ( isset($page_data['name']) ) ? $page_data['name'] : $paths->nslist[$oldtarget[1]] . htmlspecialchars( str_replace('_', ' ', dirtify_page_id( $oldtarget[0] ) ) );
-      if ( !isset($page_data['name']) )
-      {
-        $cls = 'class="wikilink-nonexistent"';
-      }
-      else
-      {
-        $cls = '';
-      }
-      $a = '<a ' . $cls . ' href="' . $url . '">' . $title . '</a>';
-      $redir_html = '<br /><div class="mdg-infobox">
-              <table border="0" width="100%" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td valign="top">
-                    <img alt="Cute wet-floor icon" src="'.scriptPath.'/images/redirector.png" />
-                  </td>
-                  <td valign="top" style="padding-left: 10px;">
-                    ' . $lang->get('page_msg_this_is_a_redirector', array( 'redirect_target' => $a )) . '
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <br />
-            <hr style="margin-left: 1em; width: 200px;" />';
-      $text = str_replace($match[0], '', $text);
-      $text = trim($text);
-    }
+    $text = preg_replace('/^#redirect \[\[.+?\]\]\s*/i', '', $text);
     
     if ( $send_headers )
     {
@@ -431,11 +413,6 @@ class Namespace_Default
     else
     {
       $page_format = $this->cdata['page_format'];
-    }
-    
-    if ( $redir_enabled )
-    {
-      echo $redir_html;
     }
     
     $code = $plugins->setHook('pageprocess_render_head');

@@ -921,6 +921,44 @@ function display_page_footers()
 }
 
 /**
+ * Show the "this is a redirector" notice
+ * @param string Target Page ID
+ * @param string Target Namespace
+ */
+
+function display_redirect_notice($page_id, $namespace)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang, $output;
+  
+  $url = makeUrlNS($namespace, $page_id, false, true);
+  $ns = namespace_factory($page_id, $namespace);
+  $page_data = $ns->get_cdata();
+  
+  $title = $page_data['name'];
+  
+  $cls = $ns->exists() ? '' : 'class="wikilink-nonexistent" ';
+    
+  $a = '<a ' . $cls . 'href="' . $url . '">' . $title . '</a>';
+  $redir_html = '<br /><div class="mdg-infobox">
+          <table border="0" width="100%" cellspacing="0" cellpadding="0">
+            <tr>
+              <td valign="top">
+                <img alt="Cute wet-floor icon" src="' . cdnPath . '/images/redirector.png" />
+              </td>
+              <td valign="top" style="padding-left: 10px;">
+                ' . $lang->get('page_msg_this_is_a_redirector', array( 'redirect_target' => $a )) . '
+              </td>
+            </tr>
+          </table>
+        </div>
+        <br />
+        <hr style="margin-left: 1em; width: 200px;" />';
+  
+  $output->add_after_header($redir_html);
+}
+
+/**
  * Essentially an return code reader for a socket. Don't use this unless you're writing mail code and smtp_send_email doesn't cut it. Ported from phpBB's smtp.php.
  * @param socket A socket resource
  * @param string The expected response from the server, this needs to be exactly three characters.
