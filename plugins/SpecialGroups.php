@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialgroups_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.5",
+  "Version"      : "1.1.6",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -26,13 +26,7 @@
 
 function SpecialGroups_paths_init()
 {
-  global $paths;
-  $paths->add_page(Array(
-    'name'=>'specialpage_groupcp',
-    'urlname'=>'Usergroups',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
+  register_special_page('Usergroups', 'specialpage_groupcp');
 }
 
 function page_Special_Usergroups()

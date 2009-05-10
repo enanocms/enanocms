@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialupdownload_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.5",
+  "Version"      : "1.1.6",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -29,22 +29,10 @@ global $db, $session, $paths, $template, $plugins; // Common objects
 
 function SpecialUpDownload_paths_init()
 {
-  global $paths;
-  $paths->add_page(Array(
-    'name'=>'specialpage_upload_file',
-    'urlname'=>'UploadFile',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_download_file',
-    'urlname'=>'DownloadFile',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
+  register_special_page('UploadFile', 'specialpage_upload_file');
+  register_special_page('DownloadFile', 'specialpage_download_file');
 }
-
+  
 function page_Special_UploadFile()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects

@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialsearch_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.5",
+  "Version"      : "1.1.6",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -26,20 +26,8 @@
 
 function SpecialSearch_paths_init()
 {
-  global $paths;
-  $paths->add_page(Array(
-    'name'=>'specialpage_search_rebuild',
-    'urlname'=>'SearchRebuild',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_search',
-    'urlname'=>'Search',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
+  register_special_page('SearchRebuild', 'specialpage_search_rebuild');
+  register_special_page('Search', 'specialpage_search');
 }
 
 function page_Special_SearchRebuild()

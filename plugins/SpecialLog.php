@@ -24,13 +24,7 @@
 
 function SpecialLog_paths_init()
 {
-  global $paths;
-  $paths->add_page(Array(
-    'name'=>'specialpage_log',
-    'urlname'=>'Log',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
+  register_special_page('Log', 'specialpage_log');
 }
 
 function page_Special_Log()

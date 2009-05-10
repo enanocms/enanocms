@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_privatemessages_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.5",
+  "Version"      : "1.1.6",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -24,17 +24,9 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-// $plugins->attachHook('session_started', 'PrivateMessages_paths_init();');
-
 function PrivateMessages_paths_init()
 {
-  global $paths;
-  $paths->add_page(Array(
-      'name'=>'specialpage_private_messages',
-      'urlname'=>'PrivateMessages',
-      'namespace'=>'Special',
-      'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
+  register_special_page('PrivateMessages', 'specialpage_private_messages');
 }
 
 function page_Special_PrivateMessages()

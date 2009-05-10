@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialcss_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.5",
+  "Version"      : "1.1.6",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -24,17 +24,10 @@
  
 global $db, $session, $paths, $template, $plugins; // Common objects
 
-// $plugins->attachHook('session_started', 'SpecialCSS_paths_init();');
-
 function SpecialCSS_paths_init()
 {
   global $paths;
-  $paths->add_page(Array(
-    'name'=>'specialpage_css',
-    'urlname'=>'CSS',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>0,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
+  register_special_page('CSS', 'specialpage_css', false);
 }
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>

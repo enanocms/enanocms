@@ -1115,4 +1115,28 @@ class pathManager
   
 }
 
+/**
+ * Register a special page.
+ * @param string urlname of the page ("Administration" in "Special:Administration")
+ * @param string Page title; if in the right format, will be treated as a l10n string identifier
+ * @param bool If true, page is visible (shown in lists/search). Otherwise, hidden. Defaults to true.
+ */
+
+function register_special_page($urlname, $name, $visible = true)
+{
+  global $paths;
+  
+  return $paths->add_page(Array(
+      'name' => $name,
+      'urlname' => $urlname,
+      'namespace' => 'Special',
+      'special' => 0,
+      'visible' => $visible ? 1 : 0,
+      'comments_on' => 0,
+      'protected' => 1,
+      'delvotes' => 0,
+      'delvote_ips' => '',
+    ));
+}
+
 ?>

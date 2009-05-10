@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialpagefuncs_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.5",
+  "Version"      : "1.1.6",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -28,55 +28,13 @@ global $db, $session, $paths, $template, $plugins; // Common objects
 
 function SpecialPageFuncs_paths_init()
 {
-  global $paths;
-  $paths->add_page(Array(
-    'name'=>'specialpage_create_page',
-    'urlname'=>'CreatePage',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_all_pages',
-    'urlname'=>'AllPages',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_special_pages',
-    'urlname'=>'SpecialPages',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_about_enano',
-    'urlname'=>'About_Enano',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_gnu_gpl',
-    'urlname'=>'GNU_General_Public_License',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_tag_cloud',
-    'urlname'=>'TagCloud',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_autofill',
-    'urlname'=>'Autofill',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
+  register_special_page('CreatePage', 'specialpage_create_page');
+  register_special_page('AllPages', 'specialpage_all_pages');
+  register_special_page('SpecialPages', 'specialpage_special_pages');
+  register_special_page('About_Enano', 'specialpage_about_enano');
+  register_special_page('GNU_General_Public_License', 'specialpage_gnu_gpl');
+  register_special_page('TagCloud', 'specialpage_tag_cloud');
+  register_special_page('Autofill', 'specialpage_autofill', false);
 }
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>

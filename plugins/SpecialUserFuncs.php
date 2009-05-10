@@ -5,7 +5,7 @@
   "Plugin URI"   : "http://enanocms.org/",
   "Description"  : "plugin_specialuserfuncs_desc",
   "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.5",
+  "Version"      : "1.1.6",
   "Author URI"   : "http://enanocms.org/"
 }
 **!*/
@@ -28,87 +28,18 @@ global $db, $session, $paths, $template, $plugins; // Common objects
 
 function SpecialUserFuncs_paths_init()
 {
-  global $paths;
-  $paths->add_page(Array(
-    'name'=>'specialpage_log_in',
-    'urlname'=>'Login',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  $paths->add_page(Array(
-    'name'=>'specialpage_log_out',
-    'urlname'=>'Logout',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  $paths->add_page(Array(
-    'name'=>'specialpage_register',
-    'urlname'=>'Register',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  $paths->add_page(Array(
-    'name'=>'specialpage_preferences',
-    'urlname'=>'Preferences',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_contributions',
-    'urlname'=>'Contributions',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_change_theme',
-    'urlname'=>'ChangeStyle',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_activate_account',
-    'urlname'=>'ActivateAccount',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_captcha',
-    'urlname'=>'Captcha',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_password_reset',
-    'urlname'=>'PasswordReset',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-  
-  $paths->add_page(Array(
-    'name'=>'specialpage_member_list',
-    'urlname'=>'Memberlist',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>1,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-    
-  $paths->add_page(Array(
-    'name'=>'specialpage_language_export',
-    'urlname'=>'LangExportJSON',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>0,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
-    
-  $paths->add_page(Array(
-    'name'=>'specialpage_avatar',
-    'urlname'=>'Avatar',
-    'namespace'=>'Special',
-    'special'=>0,'visible'=>0,'comments_on'=>0,'protected'=>1,'delvotes'=>0,'delvote_ips'=>'',
-    ));
+  register_special_page('Login', 'specialpage_log_in');
+  register_special_page('Logout', 'specialpage_log_out');
+  register_special_page('Register', 'specialpage_register');
+  register_special_page('Preferences', 'specialpage_preferences');
+  register_special_page('Contributions', 'specialpage_contributions');
+  register_special_page('ChangeStyle', 'specialpage_change_theme');
+  register_special_page('ActivateAccount', 'specialpage_activate_account');
+  register_special_page('Captcha', 'specialpage_captcha');
+  register_special_page('PasswordReset', 'specialpage_password_reset');
+  register_special_page('Memberlist', 'specialpage_member_list');
+  register_special_page('LangExportJSON', 'specialpage_language_export', false);
+  register_special_page('Avatar', 'specialpage_avatar', false);
 }
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
@@ -1641,7 +1572,9 @@ function page_Special_Memberlist()
   }
   
   // offset
-  $offset = ( isset($_GET['offset']) && strval(intval($_GET['offset'])) === $_GET['offset']) ? intval($_GET['offset']) : 0;
+  $perpage = 25;
+  $page = (( isset($_GET['offset']) && strval(intval($_GET['offset'])) === $_GET['offset']) ? intval($_GET['offset']) : 1) - 1;
+  $offset = $page * $perpage;
   
   // sort order
   $sortkeys = array(
@@ -1719,11 +1652,11 @@ function page_Special_Memberlist()
                </tr>';
                
   // determine number of rows
-  $q = $db->sql_query('SELECT u.user_id FROM '.table_prefix.'users AS u WHERE ' . $username_where . ' AND u.username != \'Anonymous\';');
+  $q = $db->sql_query('SELECT COUNT(u.user_id) FROM '.table_prefix.'users AS u WHERE ' . $username_where . ' AND u.username != \'Anonymous\';');
   if ( !$q )
     $db->_die();
   
-  $num_rows = $db->numrows();
+  list($num_rows) = $db->fetchrow_num();
   $db->free_result();
   
   if ( !empty($finduser_url) )
@@ -1731,7 +1664,7 @@ function page_Special_Memberlist()
     switch ( $num_rows )
     {
       case 0:
-        $str = $lang->get('userfuncs_ml_msg_matches_zero'); break;
+        $str = ''; /* $lang->get('userfuncs_ml_msg_matches_zero'); */ break;
       case 1:
         $str = $lang->get('userfuncs_ml_msg_matches_one'); break;
       default:
@@ -1742,14 +1675,15 @@ function page_Special_Memberlist()
   
   // main selector
   $pgsql_additional_group_by = ( ENANO_DBLAYER == 'PGSQL' ) ? ', u.username, u.reg_time, u.email, u.user_level, u.user_has_avatar, u.avatar_type, x.email_public' : '';
-  $q = $db->sql_unbuffered_query('SELECT \'\' AS infobit, u.user_id, u.username, u.reg_time, u.email, u.user_level, u.user_has_avatar, u.avatar_type, x.email_public, COUNT(c.comment_id) AS num_comments FROM '.table_prefix.'users AS u
+  $q = $db->sql_query('SELECT \'\' AS infobit, u.user_id, u.username, u.reg_time, u.email, u.user_level, u.user_has_avatar, u.avatar_type, x.email_public, COUNT(c.comment_id) AS num_comments FROM '.table_prefix.'users AS u
                                     LEFT JOIN '.table_prefix.'users_extra AS x
                                       ON ( u.user_id = x.user_id )
                                     LEFT JOIN ' . table_prefix . 'comments AS c
                                       ON ( u.user_id = c.user_id )
                                     WHERE ' . $username_where . ' AND u.username != \'Anonymous\'
                                     GROUP BY u.user_id' . $pgsql_additional_group_by . '
-                                    ORDER BY ' . $sort_sqllet . ' ' . $target_order . ';');
+                                    ORDER BY ' . $sort_sqllet . ' ' . $target_order . '
+                                    LIMIT ' . $perpage . ' OFFSET ' . $offset . ';');
   if ( !$q )
     $db->_die();
   
@@ -1763,55 +1697,60 @@ function page_Special_Memberlist()
     'infobit' => array($formatter, 'infobit')
     );
   
-  $html = paginate(
-            $q,                                                                                                       // MySQL result resource
-            '<tr>
-               <td class="{_css_class}">{user_id}</td>
-               <td class="{_css_class}" style="text-align: left;">{username}</td>
-               <td class="{_css_class}">{user_level}</td>
-               <td class="{_css_class}">{email}</small></td>
-               <td class="{_css_class}">{reg_time}</td>
-             </tr>
-             <tr>
-               <td colspan="5" class="row3" style="text-align: left;">
-                 <div id="ml_moreinfo_{user_id}" style="display: none;">
-                   {infobit}
-                 </div>
-               </td>
-             </tr>
-             ',                                                                                                       // TPL code for rows
-             $num_rows,                                                                                               // Number of results
-             makeUrlNS('Special', 'Memberlist', ( str_replace('%', '%%', $finduser_url) ) . 'letter=' . $startletter . '&offset=%s&sort=' . $sortby . '&orderby=' . $target_order ), // Result URL
-             $offset,                                                                                                 // Start at this number
-             25,                                                                                                      // Results per page
-             $formatters,                                                                                             // Formatting hooks
-             '<div class="tblholder">
+  $result_url = makeUrlNS('Special', 'Memberlist', ( str_replace('%', '%%', $finduser_url) ) . 'letter=' . $startletter . '&offset=%s&sort=' . $sortby . '&orderby=' . $target_order );
+  $paginator = generate_paginator($page, ceil($num_rows / $perpage), $result_url);
+  
+  if ( $num_rows > 0 )
+  {
+    if ( $num_rows > $perpage )
+      echo $paginator;
+    
+    echo '<div class="tblholder">
                 <table border="0" cellspacing="1" cellpadding="4" style="text-align: center;">
-                  ' . $headings . '
-                 ',                                                                                                   // Header (printed before rows)
-             '  ' . $headings . '
+                  ' . $headings;
+                  
+    $i = 0;
+    while ( $row = $db->fetchrow($q) )
+    {
+      $i++;
+      $cls = ( $i % 2 == 0 ) ? 'row2' : 'row1';
+      echo '<tr>';
+      echo '<td class="' . $cls . '">' . $row['user_id'] . '</td>';
+      echo '<td class="' . $cls . '" style="text-align: left;">' . $formatter->username($row['username'], $row) . '</td>';
+      echo '<td class="' . $cls . '">' . $formatter->user_level($row['user_level'], $row) . '</td>';
+      echo '<td class="' . $cls . '">' . $formatter->email($row['email'], $row) . '</td>';
+      echo '<td class="' . $cls . '">' . $formatter->reg_time($row['reg_time'], $row) . '</td>';
+      echo '</tr>';
+      echo '<tr>';
+      echo '<td colspan="5" class="row3" style="text-align: left;">
+                 <div id="ml_moreinfo_' . $row['user_id'] . '" style="display: none;">
+                   ' . $formatter->infobit(true, $row) . '
+                 </div>
+               </td>';
+      echo '</tr>';
+    }
+    
+    echo '  ' . $headings . '
                  </table>
               </div>
-              ' .
-              '<div style="float: left;">
-                <form action="' . makeUrlNS('Special', 'Memberlist') . '" method="get" onsubmit="if ( !submitAuthorized ) return false;">'
-               . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->page ) . '" />' : '' )
-               . ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : '')
-               . '<p>' . $lang->get('userfuncs_ml_lbl_finduser') . ' ' . $template->username_field('finduser') . ' <input type="submit" value="' . $lang->get('userfuncs_ml_btn_go') . '" /><br />
-                  <small>' . $lang->get('userfuncs_ml_tip_wildcard') . '</small></p>'
-               . '</form>
-               </div>'                                                                                                // Footer (printed after rows)
-          );
-  
-  if ( $num_rows < 1 )
-  {
-    echo ( isset($_GET['finduser']) ) ? '<p>' . $lang->get('userfuncs_ml_err_nousers_find') . '</p>' :
-                                        '<p>' . $lang->get('userfuncs_ml_err_nousers') . '</p>';
+              ';
+    
+    if ( $num_rows > $perpage )
+      echo $paginator;
   }
   else
   {
-    echo $html;
+    echo '<h2 class="emptymessage">' . $lang->get('log_msg_no_results') . '</h2>';
   }
+  
+  echo '<div style="float: left;">
+          <form action="' . makeUrlNS('Special', 'Memberlist') . '" method="get" onsubmit="if ( !submitAuthorized ) return false;">'
+         . ( urlSeparator == '&' ? '<input type="hidden" name="title" value="' . htmlspecialchars( $paths->page ) . '" />' : '' )
+         . ( $session->sid_super ? '<input type="hidden" name="auth"  value="' . $session->sid_super . '" />' : '')
+         . '<p>' . $lang->get('userfuncs_ml_lbl_finduser') . ' ' . $template->username_field('finduser') . ' <input type="submit" value="' . $lang->get('userfuncs_ml_btn_go') . '" /><br />
+            <small>' . $lang->get('userfuncs_ml_tip_wildcard') . '</small></p>'
+         . '</form>
+         </div>';
   
   $template->footer();
 }
