@@ -336,15 +336,17 @@ class template
   function get_css($s = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    if(!defined('ENANO_TEMPLATE_LOADED'))
-      $this->load_theme($session->theme, $session->style);
+    $this->init_vars();
+    
     $path = ( $s ) ? 'css/'.$s : 'css/'.$this->style.'.css';
+    
     if ( !file_exists(ENANO_ROOT . '/themes/' . $this->theme . '/' . $path) )
     {
       echo "/* WARNING: Falling back to default file because file $path does not exist */\n";
       $path = 'css/' . $this->style_list[0] . '.css';
     }
-    return '<enano:no-opt>' . $this->process_template($path) . '</enano:no-opt>';
+    
+    return $this->process_template($path);
   }
   function load_theme($name = false, $css = false)
   {
@@ -639,6 +641,9 @@ JSEOF;
         'STYLE_ID' => $this->style
       ));
     
+    // Add the site description sidebar block
+    $this->sidebar_widget($lang->get('sidebar_title_about'), '<p>' . htmlspecialchars(getConfig('site_desc')) . '</p>');
+    
     $this->theme_initted = true;
   }
   
@@ -873,7 +878,7 @@ JSEOF;
     // Protect button
     if ( $conds['protect'] )
     {
-      switch($this->page->ns->page_protected)
+      switch($this->page->ns->cdata['protected'])
       {
         case PROTECT_FULL: $protect_status = $lang->get('onpage_btn_protect_on'); break;
         case PROTECT_SEMI: $protect_status = $lang->get('onpage_btn_protect_semi'); break;
@@ -885,7 +890,7 @@ JSEOF;
       $t0 = $label->run();
       
       $menubtn->assign_vars(array(
-          'FLAGS' => 'accesskey="p" onclick="ajaxProtect(' . $this->page->ns->page_protected . '); return false;" id="tb_ajax_protect_btn" title="' . $lang->get('onpage_tip_protect') . '"',
+          'FLAGS' => 'accesskey="p" onclick="ajaxProtect(' . $this->page->ns->cdata['protected'] . '); return false;" id="tb_ajax_protect_btn" title="' . $lang->get('onpage_tip_protect') . '"',
           'HREF' => makeUrl($local_page, 'do=protect', true),
           'TEXT' => $lang->get('onpage_btn_protect_change')
         ));
@@ -2863,8 +2868,9 @@ class template_nodb
     }
     return $ds;
   }
-  function get_css($s = false) {
-    if($s)
+  function get_css($s = false)
+  {
+    if ( $s )
       return $this->process_template('css/'.$s);
     else
       return $this->process_template('css/'.$this->style.'.css');
