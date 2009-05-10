@@ -215,7 +215,7 @@ div.sidebar ul.linkblock li a:hover {
   background-color: #292929;
 }
 
-div.sidebar.right a.closebtn {
+div.sidebar a.closebtn {
   display: block;
   float: right;
   margin-right: 10px;
@@ -226,9 +226,22 @@ div.sidebar.right a.closebtn {
   cursor: pointer;
 }
 
+div.sidebar.left a.closebtn {
+  color: #f0f0f0;
+  background-color: #404040;
+  margin-right: 0px;
+  -moz-border-radius: 0 0 0 4px;
+  line-height: 19px;
+}
+
 div.right-sidebar-hidden {
   margin-left: 10px;
   display: none;
+}
+
+div.left-sidebar-hidden {
+  display: none;
+  position: absolute;
 }
 
 div.right-sidebar-hidden a.openbtn {
@@ -239,6 +252,17 @@ div.right-sidebar-hidden a.openbtn {
   background-color: #f0f0f0;
   padding: 5px 8px;
   -moz-border-radius: 4px 0 0 4px;
+  cursor: pointer;
+}
+
+div.left-sidebar-hidden a.openbtn {
+  display: block;
+  float: left;
+  margin-top: 1.8em;
+  color: #456798;
+  background-color: #f0f0f0;
+  padding: 5px 4px;
+  -moz-border-radius: 0 4px 4px 0;
   cursor: pointer;
 }
 
@@ -393,4 +417,13 @@ ul.userpage_links li.userpage_tab_active:hover {
 
 ul.userpage_links li a:visited, ul.userpage_links li a:hover {
   color: #202020 !important;
+}
+
+/*
+ * Some table stuff
+ */
+
+div.tblholder th a {
+  text-decoration: underline;
+  color: #f0f0f0 !important;
 }

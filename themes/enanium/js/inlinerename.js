@@ -1,24 +1,40 @@
 // Sidebar collapse
-function enanium_toggle_sidebar_right()
+function enanium_toggle_sidebar(side)
 {
-  if ( document.getElementById('enanium_sidebar_right').style.display == 'none' )
+  if ( document.getElementById('enanium_sidebar_' + side).style.display == 'none' )
   {
     // show
-    document.getElementById('enanium_sidebar_right').style.display = 'block';
-    document.getElementById('enanium_sidebar_right_hidden').style.display = 'none';
-    createCookie('right_sidebar', 'open', 365);
+    document.getElementById('enanium_sidebar_' + side).style.display = 'block';
+    document.getElementById('enanium_sidebar_' + side + '_hidden').style.display = 'none';
+    createCookie(side + '_sidebar', 'open', 365);
   }
   else
   {
     // hide
-    document.getElementById('enanium_sidebar_right').style.display = 'none';
-    document.getElementById('enanium_sidebar_right_hidden').style.display = 'block';
-    createCookie('right_sidebar', 'collapsed', 365);
+    document.getElementById('enanium_sidebar_' + side).style.display = 'none';
+    document.getElementById('enanium_sidebar_' + side + '_hidden').style.display = 'block';
+    createCookie(side + '_sidebar', 'collapsed', 365);
   }
+}
+
+function enanium_toggle_sidebar_right()
+{
+  enanium_toggle_sidebar('right');
+}
+
+function enanium_toggle_sidebar_left()
+{
+  enanium_toggle_sidebar('left');
 }
 
 addOnloadHook(function()
   {
+    if ( readCookie('left_sidebar') == 'collapsed' )
+    {
+      document.getElementById('enanium_sidebar_left').style.display = 'none';
+      document.getElementById('enanium_sidebar_left_hidden').style.display = 'block';
+    }
+    
     if ( readCookie('right_sidebar') == 'collapsed' )
     {
       document.getElementById('enanium_sidebar_right').style.display = 'none';

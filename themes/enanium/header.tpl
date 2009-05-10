@@ -56,8 +56,12 @@
     <table border="0" cellspacing="0" cellpadding="0" id="body-wrapper">
     <tr>
       <td valign="top" id="cell-sbleft">
-        <div class="left sidebar">
+        <div class="left sidebar" id="enanium_sidebar_left">
+          <a class="closebtn" onclick="enanium_toggle_sidebar_left(); return false;">&laquo;</a>
           {SIDEBAR_LEFT}
+        </div>
+        <div class="left-sidebar-hidden" id="enanium_sidebar_left_hidden">
+          <a class="openbtn" onclick="enanium_toggle_sidebar_left(); return false;">&raquo;</a>
         </div>
         <!-- HOOK sidebar_left_post -->
       </td>
@@ -79,6 +83,7 @@
             {SIDEBAR_LINK}
             {ADMIN_LINK}
             <!-- END auth_admin -->
+            <li><a href="{url:Special:Memberlist|escape}">{lang:specialpage_member_list}</a></li>
           </ul>
           <span class="menuclear"></span>
         </div>
