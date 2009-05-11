@@ -808,27 +808,27 @@ function page_Admin_GeneralConfig() {
         </td>
         <td class="row1">
           <label>
-            <input type="checkbox" name="avatar_upload_file" <?php if ( getConfig('avatar_upload_file') == '1' || getConfig('avatar_upload_file') === false ) echo 'checked="checked" '; ?>/>
+            <input type="checkbox" name="avatar_upload_file" <?php if ( getConfig('avatar_upload_file', 1) == 1 ) echo 'checked="checked" '; ?>/>
             <?php echo $lang->get('acpgc_field_avatar_upload_file'); ?>
           </label>
           
           <br />
           
           <label>
-            <input type="checkbox" name="avatar_upload_http" <?php if ( getConfig('avatar_upload_http') == '1' || getConfig('avatar_upload_http') === false ) echo 'checked="checked" '; ?>/>
+            <input type="checkbox" name="avatar_upload_http" <?php if ( getConfig('avatar_upload_http', 1) == 1 ) echo 'checked="checked" '; ?>/>
             <?php echo $lang->get('acpgc_field_avatar_upload_http'); ?>
           </label>
           
           <br />
           
           <label>
-          <input type="checkbox" name="avatar_upload_gravatar" <?php if ( getConfig('avatar_upload_gravatar') == '1' || getConfig('avatar_upload_gravatar') === false ) echo 'checked="checked" '; ?>onclick="document.getElementById('acp_gravatar_rating').style.display = ( this.checked ) ? 'block' : 'none';" />
+          <input type="checkbox" name="avatar_upload_gravatar" <?php if ( getConfig('avatar_upload_gravatar', 1) == 1 ) echo 'checked="checked" '; ?>onclick="document.getElementById('acp_gravatar_rating').style.display = ( this.checked ) ? 'block' : 'none';" />
             <?php echo $lang->get('acpgc_field_avatar_upload_gravatar'); ?>
           </label>
           
           <br />
           
-          <fieldset id="acp_gravatar_rating" style="margin-top: 10px; <?php if ( getConfig('avatar_upload_gravatar') === '0' ) echo ' display: none;'; ?>">
+          <fieldset id="acp_gravatar_rating" style="margin-top: 10px; <?php if ( getConfig('avatar_upload_gravatar', 1) == 0 ) echo ' display: none;'; ?>">
           
             <?php /* The four ratings are g, pg, r, and x - loop through each and output a localized string and a radiobutton */ ?>
             <legend><?php echo $lang->get('acpgc_field_avatar_gravatar_rating'); ?></legend>

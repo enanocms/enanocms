@@ -199,7 +199,7 @@ function page_Admin_UserManager()
             if ( $action == 'set_http' )
             {
               // Check if this action is enabled
-              if ( getConfig('avatar_upload_http') !== '1' )
+              if ( getConfig('avatar_upload_http', 1) !== 1 )
               {
                 // non-localized, only appears on hack attempt
                 $errors[] = 'Uploads over HTTP are disabled.';
@@ -239,7 +239,7 @@ function page_Admin_UserManager()
             else
             {
               // Check if this action is enabled
-              if ( getConfig('avatar_upload_file') !== '1' )
+              if ( getConfig('avatar_upload_file', 1) !== 1 )
               {
                 // non-localized, only appears on hack attempt
                 $errors[] = 'Uploads from the browser are disabled.';
