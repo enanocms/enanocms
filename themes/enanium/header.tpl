@@ -17,7 +17,7 @@
   <body>
     <div id="header">
       <?php
-      if ( $head = $paths->sysMsg('SiteHeader') )
+      if ( is_object($paths) && $head = $paths->sysMsg('SiteHeader') )
       {
         echo $head;
       }
@@ -25,7 +25,7 @@
       {
       ?>
         <div class="logo"></div>
-        <h1><a href="<?php echo makeUrl(get_main_page(), false, true); ?>">{SITE_NAME}</a></h1>
+        <h1><a href="<?php echo is_object($session) ? makeUrl(get_main_page(), false, true) : scriptPath . '/'; ?>">{SITE_NAME}</a></h1>
       <?php
         }
       ?>
