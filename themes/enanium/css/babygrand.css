@@ -297,7 +297,7 @@ div.content a.wikilink-nonexistent {
 }
 
 div.content a.wikilink-nonexistent:visited {
-  color: #906030;
+  color: #906030 !important;
 }
 
 /* Inline rename */
