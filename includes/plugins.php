@@ -75,37 +75,17 @@ class pluginLoader {
     
     $dir = ENANO_ROOT.'/plugins/';
     
-    $this->load_list = $this->system_plugins;
-    $q = $db->sql_query('SELECT plugin_filename, plugin_version FROM ' . table_prefix . 'plugins WHERE plugin_flags & ~' . PLUGIN_DISABLED . ' = plugin_flags;');
-    if ( !$q )
-      $db->_die();
+    $plugin_list = $this->get_plugin_list();
+    $this->load_list = array();
     
-    while ( $row = $db->fetchrow() )
+    foreach ( $plugin_list as $filename => $data )
     {
-      if ( file_exists(ENANO_ROOT . "/plugins/{$row['plugin_filename']}") )
-      {
-        $this->load_list[] = $row['plugin_filename'];
-      }
-    }
-    $this->load_list = array_unique($this->load_list);
-    
-    $this->loaded_plugins = $this->get_plugin_list($this->load_list);
-    
-    // check for out-of-date plugins
-    foreach ( $this->load_list as $i => $plugin )
-    {
-      if ( in_array($plugin, $this->system_plugins) )
+      if ( $data['status'] & PLUGIN_OUTOFDATE || $data['status'] & PLUGIN_DISABLED )
         continue;
       
-      if ( $this->loaded_plugins[$plugin]['status'] & PLUGIN_OUTOFDATE )
-      {
-        // it's out of date, don't load
-        unset($this->load_list[$i]);
-        unset($this->loaded_plugins[$plugin]);
-      }
+      $this->load_list[] = $filename;
+      $this->loaded_plugins[$filename] = $data;
     }
-    
-    $this->load_list = array_unique($this->load_list);
   }
   
   /**
@@ -275,9 +255,10 @@ class pluginLoader {
     $ta = 0;
     // won't load twice (failsafe automatic skip)
     $this->load_plugins_cache();
-    if ( $use_cache )
+    global $plugins_cache;
+    if ( $use_cache && !empty($plugins_cache) )
     {
-      global $plugins_cache;
+      return $plugins_cache;
     }
     else
     {
@@ -285,6 +266,7 @@ class pluginLoader {
       $plugins_cache = array();
     }
     
+    // List all plugins
     if ( $dirh = @opendir( ENANO_ROOT . '/plugins' ) )
     {
       while ( $dh = @readdir($dirh) )
@@ -298,7 +280,7 @@ class pluginLoader {
           
         // it's a PHP file, attempt to read metadata
         $fullpath = ENANO_ROOT . "/plugins/$dh";
-        $plugin_meta = $this->get_plugin_info($fullpath, $use_cache);
+        $plugin_meta = $this->read_plugin_headers($fullpath, $use_cache);
         
         if ( is_array($plugin_meta) )
         {
@@ -307,7 +289,8 @@ class pluginLoader {
         }
       }
     }
-    // gather info about installed plugins
+    
+    // Populate with additional metadata from database
     $q = $db->sql_query('SELECT plugin_id, plugin_filename, plugin_version, plugin_flags FROM ' . table_prefix . 'plugins;');
     if ( !$q )
       $db->_die();
@@ -347,7 +330,7 @@ class pluginLoader {
    * @return array
    */
   
-  function get_plugin_info($fullpath, $use_cache = true)
+  function read_plugin_headers($fullpath, $use_cache = true)
   {
     global $plugins_cache;
     $dh = basename($fullpath);
@@ -528,7 +511,7 @@ class pluginLoader {
     if ( !file_exists($filename) )
       return false;
     
-    $info = $this->get_plugin_info($filename);
+    $info = $this->read_plugin_headers($filename);
     if ( isset($info['auth plugin']) )
       return true;
     

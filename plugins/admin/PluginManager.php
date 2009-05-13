@@ -267,6 +267,8 @@ function page_Admin_PluginManager()
               if ( !$q )
                 $db->die_json();
               
+              $cache->purge('plugins');
+              
               $return = array(
                 'success' => true
               );
