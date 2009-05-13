@@ -16,6 +16,8 @@ function page_Admin_ThemeManager($force_no_json = false)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $cache;
+  
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
@@ -161,6 +163,8 @@ function ajaxServlet_Admin_ThemeManager(&$themes)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $cache;
+  
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
@@ -329,6 +333,8 @@ function ajaxServlet_Admin_ThemeManager(&$themes)
         setConfig('theme_default', $theme_data['theme_id']);
       }
       
+      $cache->purge('themes');
+      
       echo '<div class="info-box"><b>' . $lang->get('acptm_msg_save_success') . '</b>' . $warn_default . '</div>';
       
       page_Admin_ThemeManager(true);
@@ -359,6 +365,8 @@ function ajaxServlet_Admin_ThemeManager(&$themes)
                         . "  VALUES( '$theme_id', '$theme_name', '$default_style', 1, '[]', 'allow_all' );");
       if ( !$q )
         $db->die_json();
+      
+      $cache->purge('themes');
       
       // The response isn't processed unless it's in JSON.
       echo 'Roger that, over and out.';
@@ -398,6 +406,8 @@ function ajaxServlet_Admin_ThemeManager(&$themes)
       $q = $db->sql_query('DELETE FROM ' . table_prefix . "themes WHERE theme_id = '$theme_id';");
       if ( !$q )
         $db->die_json();
+      
+      $cache->purge('themes');
       
       // Change all the users that were on that theme to the default
       $default_style = $template->named_theme_list[$theme_default]['default_style'];
