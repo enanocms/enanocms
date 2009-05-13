@@ -209,10 +209,10 @@ var _render_comment = function(this_comment, data)
     tplvars.USER_LEVEL += $lang.get(this_comment.rank_title);
   
   // Send PM link
-  tplvars.SEND_PM_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br />':'';
+  tplvars.SEND_PM_LINK=(this_comment.user_id>1)?'<a class="abutton icon abutton_blue" style="background-image: url(' + cdnPath + '/images/icons/send_pm.png);" onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( this_comment.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br /><br />':'';
   
   // Add buddy link
-  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_add_buddy') + '</a><br />':'';
+  tplvars.ADD_BUDDY_LINK=(this_comment.user_id>1)?'<a class="abutton icon abutton_green" style="background-image: url(' + cdnPath + '/images/icons/add_buddy.png);" onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( this_comment.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_add_buddy') + '</a><br />':'';
   
   // Edit link
   tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">' + $lang.get('comment_btn_edit') + '</a>';

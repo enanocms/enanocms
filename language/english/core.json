@@ -186,8 +186,8 @@ var enano_lang = {
       lbl_subject: 'Subject',
       lbl_mod_options: 'Moderator options:',
       heading: 'Article comments',
-      btn_send_privmsg: 'Send private message',
-      btn_add_buddy: 'Add to buddy list',
+      btn_send_privmsg: 'Send PM',
+      btn_add_buddy: 'Add buddy',
       btn_edit: 'edit',
       btn_delete: 'delete',
       btn_mod_approve: 'Approve',
@@ -594,7 +594,8 @@ var enano_lang = {
       edit_acl: 'Edit access control lists'
     },
     plugin: {
-      specialadmin_title: 'Runt - the Enano administration panel',
+      author_enano: 'Enano CMS Project',
+      specialadmin_title: 'Administration panel',
       specialadmin_desc: 'Provides the page Special:Administration, which is the AJAX frontend to the various Admin pagelets. This plugin cannot be disabled.',
       privatemessages_title: 'Private Message frontend',
       privatemessages_desc: 'Provides the page Special:PrivateMessages, which is used to manage private message functions. Also handles buddy lists.',
@@ -613,7 +614,9 @@ var enano_lang = {
       specialuserprefs_title: 'User control panel',
       specialuserprefs_desc: 'Provides the page Special:Preferences.',
       speciallog_title: 'Log displayer',
-      speciallog_desc: 'Provides the page Special:Log, which is used to view modifications to pages on the site.'
+      speciallog_desc: 'Provides the page Special:Log, which is used to view modifications to pages on the site.',
+      tagcloud_title: 'Tag cloud sidebar block',
+      tagcloud_desc: 'Brings back the "tag cloud" sidebar block that was removed in Enano 1.1.6.'
     },
     paginate: {
       lbl_page: 'Page:',

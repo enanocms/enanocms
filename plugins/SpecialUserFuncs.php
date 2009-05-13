@@ -1895,8 +1895,8 @@ class MemberlistFormatter
       $bit .= '<small>' . htmlspecialchars($lang->get($rank_data['rank_title'])) . '</small><br />';
     
     $bit .= '<div style="text-align: right;">
-               <a href="' . makeUrlNS('Special', "PrivateMessages/Compose/To/{$row['username']}", false, true) . '" class="abutton abutton_blue"><img alt=" " src="' . cdnPath . '/images/icons/send_pm.png" /> ' . $lang->get('comment_btn_send_privmsg') . '</a>
-               <a href="' . makeUrlNS('Special', "PrivateMessages/FriendList/Add/{$row['username']}", false, true) . '" class="abutton abutton_green"><img alt=" " src="' . cdnPath . '/images/icons/add_buddy.png" /> ' . $lang->get('comment_btn_add_buddy') . '</a>
+               <a href="' . makeUrlNS('Special', "PrivateMessages/Compose/To/{$row['username']}", false, true) . '" class="abutton icon abutton_blue" style="background-image: url(' . cdnPath . '/images/icons/send_pm.png);">' . $lang->get('comment_btn_send_privmsg') . '</a>
+               <a href="' . makeUrlNS('Special', "PrivateMessages/FriendList/Add/{$row['username']}", false, true) . '" class="abutton icon abutton_green" style="background-image: url(' . cdnPath . '/images/icons/add_buddy.png);">' . $lang->get('comment_btn_add_buddy') . '</a>
              </div>';
     
     return $bit;
