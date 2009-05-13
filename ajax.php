@@ -551,17 +551,14 @@
     case 'theme_list':
       header('Content-type: application/json');
       
-      $q = $db->sql_query('SELECT theme_name, theme_id FROM ' . table_prefix . "themes WHERE enabled = 1 ORDER BY theme_name ASC;");
-      if ( !$q )
-        $db->die_json();
-      
       $return = array();
-      while ( $row = $db->fetchrow() )
-        $return[] = $row;
-      
-      foreach ( $return as &$theme )
+      foreach ( $template->theme_list as $theme )
       {
-        $theme['have_thumb'] = file_exists(ENANO_ROOT . "/themes/{$theme['theme_id']}/preview.png");
+        $return[] = array(
+            'theme_name' => $theme['theme_name'],
+            'theme_id' => $theme['theme_id'],
+            'have_thumb' => file_exists(ENANO_ROOT . "/themes/{$theme['theme_id']}/preview.png")
+          );
       }
       
       echo enano_json_encode($return);
