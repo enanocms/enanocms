@@ -232,7 +232,7 @@ class mysql {
     
     $this->debug = ( defined('ENANO_DEBUG') );
     
-    $q = $this->sql_query('USE `'.$dbname.'`;');
+    $q = @mysql_select_db($dbname);
     
     if ( !$q )
     {
