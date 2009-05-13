@@ -573,10 +573,11 @@ class RenderMan {
    * Parses internal links (wikilinks) in a block of text.
    * @param string Text to process
    * @param string Optional. If included will be used as a template instead of using the default syntax.
+   * @param bool If false, does not add wikilink-nonexistent or check for exsistence of pages. Can reduce DB queries; defualts to true.
    * @return string
    */
   
-  public static function parse_internal_links($text, $tplcode = false)
+  public static function parse_internal_links($text, $tplcode = false, $do_exist_check = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -604,7 +605,7 @@ class RenderMan {
       $url = makeUrl($pid_clean, false, true) . $hash;
       $inner_text = $matches[2][$i];
       $quot = '"';
-      $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
+      $exists = ( ($do_exist_check && isPage($pid_clean)) || !$do_exist_check ) ? '' : ' class="wikilink-nonexistent"';
       
       if ( $tplcode )
       {
@@ -634,7 +635,7 @@ class RenderMan {
       $url = makeUrl($pid_clean, false, true);
       $inner_text = ( isPage($pid_clean) ) ? htmlspecialchars(get_page_title($pid_clean)) : htmlspecialchars($matches[1][$i]);
       $quot = '"';
-      $exists = ( isPage($pid_clean) ) ? '' : ' class="wikilink-nonexistent"';
+      $exists = ( ($do_exist_check && isPage($pid_clean)) || !$do_exist_check ) ? '' : ' class="wikilink-nonexistent"';
       
       if ( $tplcode )
       {

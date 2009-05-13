@@ -62,6 +62,7 @@ class template
   function __construct()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    global $cache;
     
     $this->tpl_bool    = Array();
     $this->tpl_strings = Array();
@@ -85,21 +86,28 @@ class template
       return $this->construct_compat();
     }
     
-    $q = $db->sql_query('SELECT theme_id, theme_name, enabled, default_style, group_policy, group_list FROM ' . table_prefix . 'themes;');
-    if ( !$q )
-      $db->_die('template.php selecting theme list');
-    
-    $i = 0;
-    while ( $row = $db->fetchrow() )
+    if ( !$this->theme_list = $cache->fetch('themes') )
     {
-      $this->theme_list[$i] = $row;
-      $i++;
+      $q = $db->sql_query('SELECT theme_id, theme_name, enabled, default_style, group_policy, group_list FROM ' . table_prefix . 'themes;');
+      if ( !$q )
+        $db->_die('template.php selecting theme list');
+      
+      $i = 0;
+      while ( $row = $db->fetchrow() )
+      {
+        $this->theme_list[$i] = $row;
+        $i++;
+      }
+      unset($theme);
+      $this->theme_list = array_values($this->theme_list);
+      $cache->store('themes', $this->theme_list, -1);
     }
-    unset($theme);
-    $this->theme_list = array_values($this->theme_list);
+    
     // Create associative array of themes
     foreach ( $this->theme_list as $i => &$theme )
       $this->named_theme_list[ $theme['theme_id'] ] =& $this->theme_list[$i];
+    
+    unset($theme);
     
     $this->default_theme = ( $_ = getConfig('theme_default') ) ? $_ : $this->theme_list[0]['theme_id'];
     $this->named_theme_list[ $this->default_theme ]['css'] = $this->get_theme_css_files($this->default_theme);
@@ -752,17 +760,30 @@ JSEOF;
     // Comments button
     if ( $conds['comments'] )
     {
-      $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$this->page_id.'\' AND namespace=\''.$this->namespace.'\';');
-      if ( !$e )
+      $cdata = $this->page->ns->get_cdata();
+      if ( isset($cdata['comments_approved']) )
       {
-        $db->_die();
+        $approval_counts = array(
+            COMMENT_APPROVED => $cdata['comments_approved'],
+            COMMENT_UNAPPROVED => $cdata['comments_unapproved'],
+            COMMENT_SPAM => $cdata['comments_spam']
+          );
+        $num_comments = array_sum($approval_counts);
       }
-      $num_comments = $db->numrows();
-      $approval_counts = array(COMMENT_UNAPPROVED => 0, COMMENT_APPROVED => 0, COMMENT_SPAM => 0);
-      
-      while ( $r = $db->fetchrow() )
-      {  
-        $approval_counts[$r['approved']]++;
+      else
+      {
+        $e = $db->sql_query('SELECT approved FROM '.table_prefix.'comments WHERE page_id=\''.$this->page_id.'\' AND namespace=\''.$this->namespace.'\';');
+        if ( !$e )
+        {
+          $db->_die();
+        }
+        $num_comments = $db->numrows();
+        $approval_counts = array(COMMENT_UNAPPROVED => 0, COMMENT_APPROVED => 0, COMMENT_SPAM => 0);
+        
+        while ( $r = $db->fetchrow() )
+        {  
+          $approval_counts[$r['approved']]++;
+        }
       }
       
       $db->free_result();
@@ -1364,7 +1385,7 @@ JSEOF;
       $q_loc = '<a href="' . $this->tpl_strings['REPORT_URI'] . '">' . $lang->get('page_msg_stats_sql', array('nq' => $db->num_queries)) . '</a>';
       $dbg = $t_loc;
       $dbg_long = $t_loc_long;
-      if ( $session->user_level >= USER_LEVEL_ADMIN )
+      if ( $session->user_level >= USER_LEVEL_ADMIN || defined('ENANO_DEBUG') )
       {
         $dbg .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
         $dbg_long .= "&nbsp;&nbsp;|&nbsp;&nbsp;$q_loc";
@@ -1805,7 +1826,7 @@ EOF;
     $message = RenderMan::process_imgtags_stage2($message, $taglist);
     
     // Internal links
-    $message = RenderMan::parse_internal_links($message, $tplvars['sidebar_button']);
+    $message = RenderMan::parse_internal_links($message, $tplvars['sidebar_button'], false);
     
     // External links
     
