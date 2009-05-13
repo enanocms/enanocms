@@ -281,7 +281,7 @@ class Comments
         $spam_policy = getConfig('comment_spam_policy', 'moderate');
         $sc_name = ( $session->user_logged_in ) ? $session->username : $data['name'];
         $sc_mail = ( $session->user_logged_in ) ? $session->email : false;
-        $sc_url  = ( $session->user_logged_in ) ? $session->user_extra['user_homepage'] : false;
+        $sc_url  = ( $session->user_logged_in ) ? @$session->user_extra['user_homepage'] : false;
         $spamcheck = $spam_policy === 'accept' ? true : spamalyze($data['text'], $sc_name, $sc_mail, $sc_url);
         if ( !$spamcheck && $spam_policy === 'reject' )
         {
