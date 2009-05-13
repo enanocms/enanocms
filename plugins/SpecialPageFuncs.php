@@ -618,33 +618,6 @@ function page_Special_TagCloud()
   $template->footer();
 }
 
-// tag cloud sidebar block
-function sidebar_add_tag_cloud()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  $cloud = new TagCloud();
-    
-  $q = $db->sql_query('SELECT tag_name FROM '.table_prefix.'tags;');
-  if ( !$q )
-    $db->_die();
-  if ( $db->numrows() < 1 )
-  {
-    $sb_html = $lang->get('pagetools_tagcloud_msg_no_tags');
-  }
-  else
-  {
-    while ( $row = $db->fetchrow() )
-    {
-      $cloud->add_word($row['tag_name']);
-    }
-    $sb_html = $cloud->make_html('small', 'justify') . '<br /><a style="text-align: center;" href="' . makeUrlNS('Special', 'TagCloud') . '">' . $lang->get('pagetools_tagcloud_sidebar_btn_larger') . '</a>';
-  }
-  $template->sidebar_widget('pagetools_tagcloud_sidebar_title', "<div style='padding: 5px;'>$sb_html</div>");
-}
-
-$plugins->attachHook('compile_template', 'sidebar_add_tag_cloud();');
-
 function page_Special_Autofill()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
