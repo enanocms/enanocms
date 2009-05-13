@@ -435,6 +435,10 @@ class pathManager
   function sysmsg($n)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
+    static $sm_cache = array();
+    
+    if ( isset($sm_cache[$n]) )
+      return $sm_cache[$n];
     
     // sometimes this gets called during die_semicritical()...
     if ( !is_object($db) )
@@ -459,6 +463,8 @@ class pathManager
     
     $message = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '', $message);
     $message = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '\\1', $message);
+    
+    $sm_cache[$n] = $message;
     
     return $message;
   }
