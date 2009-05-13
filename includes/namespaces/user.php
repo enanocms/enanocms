@@ -14,6 +14,21 @@
 
 class Namespace_User extends Namespace_Default
 {
+  public function __construct($page_id, $namespace, $revision_id = 0)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    global $lang;
+    
+    parent::__construct($page_id, $namespace, $revision_id);
+    
+    if ( ( $this->title == str_replace('_', ' ', $this->page_id) || $this->title == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) ) || !$this->exists )
+    {
+      $this->title = $lang->get('userpage_page_title', array('username' => $this->page_id));
+      $this->cdata['name'] = $this->title;
+    }
+    
+  }
+  
   public function send()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
@@ -55,10 +70,8 @@ class Namespace_User extends Namespace_Default
      * 
      * See plugins.php for a guide on creating and attaching to hooks.
      */
-    
+     
     $page_urlname = dirtify_page_id($this->page_id);
-    if ( $this->page_id == $paths->page_id && $this->namespace == $paths->namespace )
-    $page_name = $this->cdata['name'];
     
     $target_username = strtr($page_urlname, 
       Array(
@@ -70,13 +83,7 @@ class Namespace_User extends Namespace_Default
     $target_username = preg_replace('/^' . str_replace('/', '\\/', preg_quote($paths->nslist['User'])) . '/', '', $target_username);
     list($target_username) = explode('/', $target_username);
     
-    if ( ( $page_name == str_replace('_', ' ', $this->page_id) || $page_name == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) ) || !$this->exists )
-    {
-      $page_name = $lang->get('userpage_page_title', array('username' => $target_username));
-    }
-    
-    $output->set_title($page_name);
-    
+    $output->set_title($this->title);
     $q = $db->sql_query('SELECT u.username, u.user_id AS authoritative_uid, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.*, COUNT(c.comment_id) AS n_comments
                            FROM '.table_prefix.'users u
                            LEFT JOIN '.table_prefix.'users_extra AS x

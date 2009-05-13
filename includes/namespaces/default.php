@@ -142,8 +142,9 @@ class Namespace_Default
     
     $this->exists = false;
     $ns_char = substr($paths->nslist['Special'], -1);
-      
     $page_name = $this->namespace == 'Article' ? dirtify_page_id($this->page_id) : "{$this->namespace}{$ns_char}" . dirtify_page_id($this->page_id);
+    $this->title = $page_name;
+    
     $this->cdata = array(
       'name' => $page_name,
       'urlname' => $this->page_id,
@@ -735,16 +736,7 @@ class Namespace_Default
       $html .= '</div>';
       $html .= '<div id="mdgCatBox">' . $lang->get('catedit_catbox_lbl_categories') . ' ';
       
-      $where = '( c.page_id=\'' . $db->escape($this->page_id) . '\' AND c.namespace=\'' . $db->escape($this->namespace) . '\' )';
-      $prefix = table_prefix;
-      $sql = <<<EOF
-SELECT c.category_id FROM {$prefix}categories AS c
-  LEFT JOIN {$prefix}pages AS p
-    ON ( ( p.urlname = c.page_id AND p.namespace = c.namespace ) OR ( p.urlname IS NULL AND p.namespace IS NULL ) )
-  WHERE $where
-  ORDER BY p.name ASC, c.page_id ASC;
-EOF;
-      $q = $db->sql_query($sql);
+      $q = $db->sql_query('SELECT category_id FROM ' . table_prefix . "categories WHERE page_id = '$this->page_id' AND namespace = '$this->namespace';");
       if ( !$q )
         $db->_die();
       
@@ -945,7 +937,17 @@ EOF;
     $page_id_db = $db->escape($page_id);
     $namespace_db = $db->escape($namespace);
     
-    $q = $db->sql_query('SELECT * FROM ' . table_prefix . "pages WHERE urlname = '$page_id_db' AND namespace = '$namespace_db';");
+    $q = $db->sql_query('SELECT p.*, COUNT(ca.comment_id) AS comments_approved, COUNT(cu.comment_id) AS comments_unapproved, COUNT(cs.comment_id) AS comments_spam'
+                         . ' FROM ' . table_prefix . "pages AS p\n"
+                      . "  LEFT JOIN " . table_prefix . "comments AS ca\n"
+                      . "    ON ( (ca.approved = " . COMMENT_APPROVED . " AND ca.page_id = p.urlname ) OR ca.comment_id IS NULL)\n"
+                      . "  LEFT JOIN " . table_prefix . "comments AS cu\n"
+                      . "    ON ( (cu.approved = " . COMMENT_UNAPPROVED . " AND cu.page_id = p.urlname ) OR cu.comment_id IS NULL)\n"
+                      . "  LEFT JOIN " . table_prefix . "comments AS cs\n"
+                      . "    ON ( (cs.approved = " . COMMENT_SPAM . " AND cs.page_id = p.urlname ) OR cs.comment_id IS NULL)\n"
+                      . "  WHERE p.urlname = '$page_id_db' AND p.namespace = '$namespace_db'\n"
+                      . "  GROUP BY p.urlname, p.name, p.namespace, p.page_order, p.special, p.visible, p.protected, p.wiki_mode, p.comments_on, p.delvotes, p.delvote_ips, p.page_format, p.password;");
+    
     if ( !$q )
       $db->_die();
     

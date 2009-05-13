@@ -311,7 +311,10 @@ function speciallog_generate_breadcrumbs($criteria)
         $crumb = $lang->get('log_breadcrumb_author', array('user' => $user_link));
         break;
       case 'page':
-        $crumb = $lang->get('log_breadcrumb_page', array('page' => '<a href="' . makeUrl($value, false, true) . '">' . htmlspecialchars(get_page_title($value)) . '</a>'));
+        list($pid, $ns) = RenderMan::strToPageID($value);
+        $ns = namespace_factory($pid, $ns);
+        $exist = $ns->exists() ? '' : ' class="wikilink-nonexistent"';
+        $crumb = $lang->get('log_breadcrumb_page', array('page' => '<a' . $exist . ' href="' . makeUrl($value, false, true) . '">' . htmlspecialchars($ns->title) . '</a>'));
         break;
       case 'action':
         $action = ( $lang->get("log_formaction_{$value}") === "log_formaction_{$value}" ) ? $lang->get("log_action_{$value}") : $lang->get("log_formaction_{$value}");
