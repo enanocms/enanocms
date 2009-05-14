@@ -17,6 +17,8 @@
   <body>
     <div id="header">
       <?php
+      global $session;
+      
       if ( is_object($paths) && $head = $paths->sysMsg('SiteHeader') )
       {
         echo $head;

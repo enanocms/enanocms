@@ -2925,8 +2925,9 @@ class template_nodb
     $tb = '';
     // Get the "article" button text (depends on namespace)
     if(defined('IN_ENANO_INSTALL') && is_object($lang)) $ns = $lang->get('meta_btn_article');
+    else if ( isset($GLOBALS['article_btn']) ) $ns = $GLOBALS['article_btn'];
     else $ns = 'system error page';
-    $t = str_replace('{FLAGS}', 'onclick="return false;" title="Hey! A button that doesn\'t do anything. Clever..." accesskey="a"', $tplvars['toolbar_button']);
+    $t = str_replace('{FLAGS}', 'onclick="return false;" class="current" title="Hey! A button that doesn\'t do anything. Clever..." accesskey="a"', $tplvars['toolbar_button']);
     $t = str_replace('{HREF}', '#', $t);
     $t = str_replace('{TEXT}', $ns, $t);
     $tb .= $t;

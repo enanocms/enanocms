@@ -111,7 +111,7 @@ if ( !function_exists('makeUrl') )
       $sep = '&';
     }
   
-    $url = $session->append_sid(contentPath.$t.$flags);
+    $url = is_object($session) ? $session->append_sid(contentPath.$t.$flags) : contentPath . $t . $flags;
     if($query)
     {
       $sep = strstr($url, '?') ? '&' : '?';
