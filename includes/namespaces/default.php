@@ -143,6 +143,7 @@ class Namespace_Default
     $this->exists = false;
     $ns_char = substr($paths->nslist['Special'], -1);
     $page_name = $this->namespace == 'Article' ? dirtify_page_id($this->page_id) : "{$this->namespace}{$ns_char}" . dirtify_page_id($this->page_id);
+    $page_name = str_replace('_', ' ', $page_name);
     $this->title = $page_name;
     
     $this->cdata = array(

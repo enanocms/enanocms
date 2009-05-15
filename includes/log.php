@@ -53,6 +53,9 @@ class LogDisplay
       case 'action':
         $this->criteria[] = array($criterion, $value);
         break;
+      case 'minor':
+        $this->criteria[] = array($criterion, intval($value));
+        break;
       case 'within':
         if ( is_int($value) )
         {
@@ -134,6 +137,12 @@ class LogDisplay
           $threshold = time() - $value;
           $where_extra .= "\n    AND time_id > $threshold";
           break;
+        case 'minor':
+          if ( $value == 1 )
+            $where_extra .= "\n    AND ( minor_edit = 1 OR action != 'edit' )";
+          else
+            $where_extra .= "\n    AND minor_edit != 1";
+          break;
       }
     }
     if ( !empty($where_bits['user']) )
@@ -155,7 +164,7 @@ class LogDisplay
     $columns = ( $just_page_count ) ? 'COUNT(*)' : 'log_id, action, page_id, namespace, CHAR_LENGTH(page_text) AS revision_size, author, time_id, edit_summary, minor_edit';
     $sql = 'SELECT ' . $columns . ' FROM ' . table_prefix . "logs AS l\n"
          . "  WHERE log_type = 'page' AND is_draft != 1$where_extra\n"
-         . "  GROUP BY log_id, action, page_id, namespace, page_text, author, time_id, edit_summary, minor_edit"
+         . ( $just_page_count ? '' : "  GROUP BY log_id, action, page_id, namespace, page_text, author, time_id, edit_summary, minor_edit\n" )
          . "  ORDER BY time_id DESC $limit;";
     
     return $sql;
@@ -296,15 +305,24 @@ class LogDisplay
       if ( $row['action'] == 'edit' && !empty($row['parent_revid']) )
       {
         $html .= '(';
-        if ( isPage($pagekey) )
-        {
+        $ispage = isPage($pagekey);
+        
+        if ( $ispage )
           $html .= '<a href="' . makeUrlNS($row['namespace'], $row['page_id'], "do=diff&diff1={$row['parent_revid']}&diff2={$row['log_id']}", true) . '">';
-        }
+        
         $html .= $lang->get('pagetools_rc_btn_diff');
-        if ( isPage($pagekey) )
-        {
+        
+        if ( $ispage )
           $html .= '</a>';
-        }
+        
+        if ( $ispage )
+          $html .= ', <a href="' . makeUrlNS($row['namespace'], $row['page_id'], "oldid={$row['log_id']}", true) . '">';
+        
+        $html .= $lang->get('pagetools_rc_btn_view');
+        
+        if ( $ispage )
+          $html .= '</a>';
+        
         if ( $row['parent_revid'] > 0 && isPage($pagekey) )
         {
           $html .= ', <a href="' . makeUrlNS($row['namespace'], $row['page_id'], false, true) . '#do:edit;rev:' . $row['parent_revid'] . '">' . $lang->get('pagetools_rc_btn_undo') . '</a>';

@@ -147,6 +147,7 @@ var enano_lang = {
       rc_btn_diff: 'diff',
       rc_btn_hist: 'hist',
       rc_btn_undo: 'undo',
+      rc_btn_view: 'view',
       rc_btn_pm: 'PM',
       rc_btn_usertalk: 'comment',
     },

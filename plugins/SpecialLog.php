@@ -148,8 +148,10 @@ function page_Special_Log()
   }
   
   $page--;
-  $rowcount = $log->get_row_count();  
-  $result_url = makeUrlNS('Special', 'Log/' . rtrim(preg_replace('|/?resultpage=([0-9]+)/?|', '/', $paths->getAllParams()), '/') . '/resultpage=%s', false, true);
+  $rowcount = $log->get_row_count();
+  $paramsbit = rtrim(preg_replace('|/?resultpage=([0-9]+)/?|', '/', $paths->getAllParams()), '/');
+  $paramsbit = ( !empty($paramsbit) ) ? "/$paramsbit" : '';
+  $result_url = makeUrlNS('Special', 'Log' . $paramsbit . '/resultpage=%s', false, true);
   $paginator = generate_paginator($page, ceil($rowcount / $pagesize), $result_url);
   
   $dataset = $log->get_data($page * $pagesize, $pagesize);

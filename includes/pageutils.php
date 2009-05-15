@@ -271,7 +271,9 @@ class PageUtils {
     $prot = ( ( $cdata['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $cdata['protected'] == 1) ? true : false;
     
     $q = 'SELECT log_id,time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND is_draft != 1 ORDER BY time_id DESC;';
-    if(!$db->sql_query($q)) $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
+    if ( !($q = $db->sql_query($q)) )
+      $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
+    
     echo $lang->get('history_page_subtitle') . '
           <h3>' . $lang->get('history_heading_edits') . '</h3>';
     $numrows = $db->numrows();
@@ -300,7 +302,7 @@ class PageUtils {
       $cls = 'row2';
       $ticker = 0;
       
-      while ( $r = $db->fetchrow() )
+      while ( $r = $db->fetchrow($q) )
       {
         
         $ticker++;
