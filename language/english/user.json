@@ -649,6 +649,7 @@ The %site_name% administration team
       msg_no_comments: 'This user has not posted any comments.',
       heading_contact: 'Get in touch',
       lbl_email: 'E-mail address:',
+      lbl_homepage: 'Website:',
       btn_send_pm: 'Send %username% a <a href="%pm_link%">Private Message!</a>',
       btn_send_pm_guest: 'You could send %username% a Private Message if you were <a %login_flags%>logged in</a>.',
       lbl_aim: 'AIM:',

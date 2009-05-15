@@ -338,6 +338,12 @@ class Namespace_User extends Namespace_Default
         echo '<tr><td class="'.$class.'">' . $lang->get('userpage_lbl_email') . ' ' . $email_link . '</td></tr>';
       }
       
+      if ( !empty($userdata['user_homepage']) )
+      {
+        $class = ( $class == 'row1' ) ? 'row3' : 'row1';
+        echo '<tr><td class="' . $class . '">' . $lang->get('userpage_lbl_homepage') . '<br /><a href="' . $userdata['user_homepage'] . '">' . $userdata['user_homepage'] . '</a></td></tr>';
+      }
+      
       $class = ( $class == 'row1' ) ? 'row3' : 'row1';
       if ( $session->user_logged_in )
       {
