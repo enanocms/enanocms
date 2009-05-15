@@ -1364,8 +1364,19 @@ function page_Special_Captcha()
     $paths->main_page();
   }
 
-  $session->make_captcha(7, $hash);  
+  $session->make_captcha(7, $hash);
   $code = $session->generate_captcha_code();
+  // Avoid letting our captchas end up on failblog.org
+  // BTW, the last one was a real-life encounter: http://files.ha.xx0r.info/murder.png
+  foreach ( array('shit', 'cock', 'fuck', 'nazi', 'cunt', 'pussy', 'penis', 'piss', 'tits', 'murder') as $word )
+  {
+    if ( stristr($code, $word) )
+    {
+      // but don't put too much effort into this (will only correct this once)
+      $code = $session->generate_captcha_code();
+      break;
+    }
+  }
   $q = $db->sql_query('UPDATE ' . table_prefix . "captcha SET code = '$code' WHERE session_id = '$hash';");
   if ( !$q )
     $db->_die();
