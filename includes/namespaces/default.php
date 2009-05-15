@@ -782,6 +782,33 @@ class Namespace_Default
     if ( !$this->perms )
       $this->perms = $session->fetch_page_acl($this->page_id, $this->namespace);
     
+    if ( !$this->perms )
+    {
+      // We're trying to send a page WAY too early (session hasn't been started yet), such as for a redirect. Send a default set of conds because
+      // there's NO way to get permissions to determine anything otherwise. Yes, starting $session here might be dangerous.
+      $this->conds = array(
+          'article' => true,
+          'comments' => false,
+          'edit' => false,
+          'viewsource' => false,
+          'history' => false,
+          'rename' => false,
+          'delvote' => false,
+          'resetvotes' => false,
+          'delete' => false,
+          'printable' => false,
+          'protect' => false,
+          'setwikimode' => false,
+          'clearlogs' => false,
+          'password' => false,
+          'acledit' => false,
+          'adminpage' => false
+        );
+      return $this->conds;
+    }
+    
+    // die('have perms: <pre>' . print_r($this->perms, true) . "\n---------------------------------\nBacktrace:\n" . enano_debug_print_backtrace(true));
+    
     $enforce_protection = ( $this->page_protected && ( ( $session->check_acl_scope('even_when_protected', $this->namespace) && !$this->perms->get_permissions('even_when_protected') ) || !$session->check_acl_scope('even_when_protected', $this->namespace) ) );
     
     $conds = array();

@@ -80,7 +80,7 @@ class pluginLoader {
     
     foreach ( $plugin_list as $filename => $data )
     {
-      if ( $data['status'] & PLUGIN_OUTOFDATE || $data['status'] & PLUGIN_DISABLED )
+      if ( $data['status'] & PLUGIN_OUTOFDATE || $data['status'] & PLUGIN_DISABLED || ( !$data['installed'] && !$data['system plugin'] ) )
         continue;
       
       $this->load_list[] = $filename;
