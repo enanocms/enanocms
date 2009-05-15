@@ -210,8 +210,7 @@ class pathManager
       {
         $title = basename($_SERVER['SCRIPT_NAME']);
       }
-      if ( scriptPath != '' )
-        $base_uri = str_replace( scriptPath . '/', '', $_SERVER['SCRIPT_NAME'] );
+      $base_uri = scriptPath == '' ? ltrim($_SERVER['SCRIPT_NAME'], '/') : str_replace( scriptPath . '/', '', $_SERVER['SCRIPT_NAME'] );
       
       $this->page = $this->nslist['API'] . sanitize_page_id($base_uri);
       $this->fullpage = $this->nslist['API'] . sanitize_page_id($base_uri);
