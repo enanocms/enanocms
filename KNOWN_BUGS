@@ -1,4 +1,4 @@
-Enano 1.1.5 - Known Bugs and Issues
+Enano 1.1.6 - Known Bugs and Issues
 
   These are the issues in Enano 1.1.6 that the development team knows
   about, but did not have time to fix before this release was
@@ -12,3 +12,7 @@ Enano 1.1.5 - Known Bugs and Issues
   Plus, we're slowly moving over to jQuery which is much more IE-
   friendly than our own in-house libraries.
 
+- There may be miscellaneous bugs, some serious, with the way pages
+  are handled: title formatting, wrong buttons showing up, PHP
+  warnings, etc. This is the result of a significant backend change
+  and will be all polished up and shiny by the time we go into RC.
