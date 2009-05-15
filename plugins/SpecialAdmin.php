@@ -69,9 +69,12 @@ function acp_start_form()
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 
-function page_Admin_GeneralConfig() {
+function page_Admin_GeneralConfig()
+{
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $cache;
+  
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
