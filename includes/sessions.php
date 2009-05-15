@@ -1288,6 +1288,8 @@ class sessionManager {
     {
       if ( isset($row[$column]) )
         $user_extra[$column] = $row[$column];
+      else
+        $user_extra[$column] = '';
     }
     
     $this->user_extra = $user_extra;
