@@ -1368,7 +1368,7 @@ function page_Special_Captcha()
   $code = $session->generate_captcha_code();
   // Avoid letting our captchas end up on failblog.org
   // BTW, the last one was a real-life encounter: http://files.ha.xx0r.info/murder.png
-  foreach ( array('shit', 'cock', 'fuck', 'nazi', 'cunt', 'pussy', 'penis', 'piss', 'tits', 'murder') as $word )
+  foreach ( array('shit', 'cock', 'fuck', 'nazi', 'cunt', 'clit', 'pussy', 'penis', 'piss', 'tits', 'murder') as $word )
   {
     if ( stristr($code, $word) )
     {
