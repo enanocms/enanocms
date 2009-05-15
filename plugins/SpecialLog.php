@@ -62,18 +62,21 @@ function page_Special_Log()
         $value = strval(intval($_POST['value']['within'])) . $_POST['value']['withinunits'];
       else
         $value = $_POST['value'][$type];
-        
-      $value = str_replace('/', '.2f', sanitize_page_id($value));
-        
-      if ( empty($value) || ( $type == 'within' && intval($value) == 0 ) )
+      
+      if ( !ctype_digit($value) )
+        $value = str_replace('/', '.2f', sanitize_page_id($value));
+      
+      if ( $value !== '0' && (empty($value) || ( $type == 'within' && intval($value) == 0 )) )
       {
         $adderror = $lang->get('log_err_addfilter_field_empty');
       }
-      
-      $append = ( !empty($_POST['existing_filters']) ) ? "{$_POST['existing_filters']}/" : '';
-      $url = makeUrlNS('Special', "Log/{$append}{$type}={$value}");
-      
-      redirect($url, '', '', 0);
+      else
+      {
+        $append = ( !empty($_POST['existing_filters']) ) ? "{$_POST['existing_filters']}/" : '';
+        $url = makeUrlNS('Special', "Log/{$append}{$type}={$value}");
+        
+        redirect($url, '', '', 0);
+      }
     }
     $params = explode('/', $params);
     foreach ( $params as $i => $param )
@@ -210,6 +213,7 @@ function page_Special_Log()
             <option value="page"><?php echo $lang->get('log_form_filtertype_page'); ?></option>
             <option value="within"><?php echo $lang->get('log_form_filtertype_within'); ?></option>
             <option value="action"><?php echo $lang->get('log_form_filtertype_action'); ?></option>
+            <option value="minor"><?php echo $lang->get('log_form_filtertype_minor'); ?></option>
           </select>
         </td>
         <td class="row1" style="width: 50%; text-align: left;">
@@ -238,6 +242,16 @@ function page_Special_Log()
               <option value="edit"><?php echo $lang->get('log_formaction_reupload'); ?></option>
               <option value="edit"><?php echo $lang->get('log_formaction_votereset'); ?></option>
             </select>
+          </div>
+          <div class="log_addfilter" id="log_addform_minor">
+            <label>
+              <input type="radio" name="value[minor]" value="1" checked="checked" />
+              <?php echo $lang->get('log_form_filtertype_minor_yes'); ?>
+            </label>
+            <label>
+              <input type="radio" name="value[minor]" value="0" />
+              <?php echo $lang->get('log_form_filtertype_minor_no'); ?>
+            </label>
           </div>
         </td>
       </tr>
@@ -321,6 +335,9 @@ function speciallog_generate_breadcrumbs($criteria)
       case 'action':
         $action = ( $lang->get("log_formaction_{$value}") === "log_formaction_{$value}" ) ? $lang->get("log_action_{$value}") : $lang->get("log_formaction_{$value}");
         $crumb = $lang->get('log_breadcrumb_action', array('action' => htmlspecialchars($action)));
+        break;
+      case 'minor':
+        $crumb = $value == '1' ? $lang->get('log_form_filtertype_minor_yes') : $lang->get('log_form_filtertype_minor_no');
         break;
       case 'within':
         $value = intval($value);
