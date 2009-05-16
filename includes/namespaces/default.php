@@ -639,7 +639,7 @@ class Namespace_Default
       $counter = 0;
       $switched = false;
       $class  = 'row1';
-      while ( $row = $db->fetchrow() )
+      while ( $row = $db->fetchrow($q) )
       {
         if ( $row['is_category'] == 0 && !$switched )
         {
