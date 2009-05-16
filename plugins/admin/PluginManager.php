@@ -117,7 +117,7 @@ function page_Admin_PluginManager()
     return;
   }
   
-  $plugin_list = $plugins->get_plugin_list();
+  $plugin_list = $plugins->get_plugin_list(null, false);
   
   // Are we processing an AJAX request from the smartform?
   if ( $paths->getParam(0) == 'action.json' )
