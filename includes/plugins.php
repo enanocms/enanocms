@@ -77,10 +77,10 @@ class pluginLoader {
     
     $plugin_list = $this->get_plugin_list();
     $this->load_list = array();
-    
+  
     foreach ( $plugin_list as $filename => $data )
     {
-      if ( $data['status'] & PLUGIN_OUTOFDATE || $data['status'] & PLUGIN_DISABLED || ( !$data['installed'] && !$data['system plugin'] ) )
+      if ( !$data['system plugin'] && ( $data['status'] & PLUGIN_OUTOFDATE || $data['status'] & PLUGIN_DISABLED || !$data['installed'] ) )
         continue;
       
       $this->load_list[] = $filename;
