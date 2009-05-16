@@ -108,7 +108,7 @@
 function page_Admin_PluginManager()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
+  global $lang, $cache;
   if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
   {
     $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
