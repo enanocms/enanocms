@@ -927,6 +927,9 @@ class sessionManager {
       $session_key = hmac_sha1($password_hmac, $salt);
     }
     
+    // Minimum level
+    $level = max(array($level, USER_LEVEL_MEMBER));
+    
     // Type of key
     $key_type = ( $level > USER_LEVEL_MEMBER ) ? SK_ELEV : ( $remember ? SK_LONG : SK_SHORT );
     
@@ -957,6 +960,10 @@ class sessionManager {
       die('Somehow an SQL injection attempt crawled into our session registrar! (1)');
     if(!is_int($level))
       die('Somehow an SQL injection attempt crawled into our session registrar! (2)');
+    
+    // Update RAM
+    $this->user_id = $user_id;
+    $this->user_level = max(array($this->user_level, $level));
     
     // All done!
     $query = $db->sql_query('INSERT INTO '.table_prefix.'session_keys(session_key, salt, user_id, auth_level, source_ip, time, key_type) VALUES(\''.$keyhash.'\', \''.$db->escape($salt).'\', '.$user_id.', '.$level.', \''.$ip.'\', '.$time.', ' . $key_type . ');');
@@ -3999,7 +4006,7 @@ EOF;
          * login_build_userinfo, that will be in the $userinfo array here. Expected return values are: true if your plugin has
          * not only succeeded but ALSO issued a session key (bypass the whole Enano builtin login process) and an associative array
          * with "mode" set to "error" and an error string in "error" to send an error back to the client. Any return value other
-         * than these will be ignored.
+         * than these will be treated as a pass-through, and the user's password will be validated through Enano's standard process.
          * @hook login_process_userdata_json
          */
         
@@ -4011,7 +4018,9 @@ EOF;
           {
             return array(
                 'mode' => 'login_success',
-                'key' => ( $this->sid_super ) ? $this->sid_super : false
+                'key' => ( $this->sid_super ) ? $this->sid_super : false,
+                'user_id' => $this->user_id,
+                'user_level' => $this->user_level
               );
           }
           else if ( is_array($result) )
@@ -4047,7 +4056,9 @@ EOF;
         {
           return array(
               'mode' => 'login_success',
-              'key' => ( $this->sid_super ) ? $this->sid_super : false
+              'key' => ( $this->sid_super ) ? $this->sid_super : false,
+                'user_id' => $this->user_id,
+                'user_level' => $this->user_level
             );
         }
         else

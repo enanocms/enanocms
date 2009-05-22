@@ -376,10 +376,11 @@ window.ajaxLoginSetStatus = function(status)
  * @param object JSON packet to send
  */
 
-window.ajaxLoginPerformRequest = function(json)
+window.ajaxLoginPerformRequest = function(json, _hookfunc)
 {
   json = toJSONString(json);
   json = ajaxEscape(json);
+  var hookfunc = typeof(_hookfunc) == 'function' ? _hookfunc : false;
   ajaxPost(makeUrlNS('Special', 'Login/action.json'), 'r=' + json, function(ajax)
     {
       if ( ajax.readyState == 4 && ajax.status == 200 )
@@ -392,7 +393,7 @@ window.ajaxLoginPerformRequest = function(json)
           return false;
         }
         response = parseJSON(response);
-        ajaxLoginProcessResponse(response);
+        ajaxLoginProcessResponse(response, hookfunc);
       }
     }, true);
 }
@@ -402,7 +403,7 @@ window.ajaxLoginPerformRequest = function(json)
  * @param object JSON response
  */
 
-window.ajaxLoginProcessResponse = function(response)
+window.ajaxLoginProcessResponse = function(response, hookfunc)
 {
   // Did the server send a plaintext error?
   if ( response.mode == 'error' )
@@ -430,7 +431,7 @@ window.ajaxLoginProcessResponse = function(response)
       break;
     case 'login_success':
       ajaxLoginSetStatus(AJAX_STATUS_SUCCESS);
-      logindata.successfunc(response.key);
+      logindata.successfunc(response.key, response);
       break;
     case 'login_failure':
       // Rid ourselves of any loading windows
@@ -475,6 +476,10 @@ window.ajaxLoginProcessResponse = function(response)
       break;
     case 'noop':
       break;
+  }
+  if ( hookfunc )
+  {
+    hookfunc(response);
   }
 }
 
@@ -1125,20 +1130,19 @@ window.ajaxInitLogout = function()
         {
           var mp = miniPromptGetParent(this);
           var whitey = whiteOutMiniPrompt(mp);
-          setTimeout(function()
-            {
-              whiteOutReportSuccess(whitey);
-              setTimeout(function()
-                {
-                  miniPromptDestroy(mp);
-                }, 1250);
-            }, 1000);
           
           ajaxLoginPerformRequest({
               mode:  'logout',
               level: auth_level,
               csrf_token: csrf_token
-          });
+          }, function(response)
+            {
+              whiteOutReportSuccess(whitey);
+                setTimeout(function()
+                  {
+                    miniPromptDestroy(mp);
+                  }, 1250);
+            });
           return false;
         }
       });
@@ -1262,17 +1266,24 @@ window.ajaxAdminUser = function(username)
 
 window.ajaxDynamicReauth = function(adminpage, level)
 {
+  if ( auth_level < USER_LEVEL_ADMIN )
+  {
+    ajaxStartLogin();
+    return false;
+  }
+  
   var old_sid = ENANO_SID;
   var targetpage = adminpage;
   if ( !level )
   {
     level = USER_LEVEL_ADMIN;
   }
-  ajaxLogonInit(function(k)
+  ajaxLogonInit(function(k, response)
     {
       ajaxLoginReplaceSIDInline(k, old_sid, level);
+      window.user_id = response.user_id;
+      window.user_level = response.user_level;
       mb_current_obj.destroy();
-      console.debug(targetpage);
       if ( typeof(targetpage) == 'string' )
       {
         ajaxPage(targetpage);
