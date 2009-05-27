@@ -1087,6 +1087,9 @@ var enano_lang = {
       entry_u_to_mod: 'User %username% added to Moderators group',
       entry_view_comment_ip: 'IP address viewed on comment by %username%',
       tip_reverse_dns: 'Click for reverse DNS info',
+      
+      err_invalid_ip: 'No valid IPv4 or IPv6 address was provided. (In the demo, this is to be expected.)',
+      err_ptr_no_resolve: 'Unable to get reverse DNS information. Perhaps the DNS server is down or the PTR record no longer exists.'
     },
     acpbc: {
       err_empty: 'Please enter something to ban.',

@@ -539,8 +539,13 @@
     case "rdns":
       if(!$session->get_permissions('mod_misc')) die('Go somewhere else for your reverse DNS info!');
       $ip = $_GET['ip'];
+      if ( !is_valid_ip($ip) )
+      {
+        echo $lang->get('acpsl_err_invalid_ip');
+      }
       $rdns = gethostbyaddr($ip);
-      if($rdns == $ip) echo 'Unable to get reverse DNS information. Perhaps the DNS server is down or the PTR record no longer exists.';
+      if ( $rdns == $ip )
+        echo $lang->get('acpsl_err_ptr_no_resolve');
       else echo $rdns;
       break;
     case 'acljson':
