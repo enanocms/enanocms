@@ -1266,7 +1266,7 @@ window.ajaxAdminUser = function(username)
 
 window.ajaxDynamicReauth = function(adminpage, level)
 {
-  if ( auth_level < USER_LEVEL_ADMIN )
+  if ( auth_level < USER_LEVEL_MEMBER )
   {
     ajaxStartLogin();
     return false;
