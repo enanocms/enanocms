@@ -230,7 +230,7 @@ function attachHook(hook_name, code)
   enano_hooks[hook_name] += code;
 }
 
-var loaded_components = {};
+var loaded_components = loaded_components || {};
 var _load_component_running = false;
 function load_component(file)
 {
