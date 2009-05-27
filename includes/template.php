@@ -1090,7 +1090,7 @@ JSEOF;
     
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'Login/' . $local_page),
-        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxStartLogin(); return false; }"',
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxStartLogin(); return false; }"' . ( $local_page_id == 'Login' && $local_namespace == 'Special' ? ' class="currentpage"' : '' ),
         'TEXT'=>$lang->get('sidebar_btn_login'),
       ));
     
@@ -1098,7 +1098,7 @@ JSEOF;
     
     $parser->assign_vars(Array(
         'HREF'=>makeUrlNS('Special', 'ChangeStyle/'.$local_page),
-        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxChangeStyle(); return false; }"',
+        'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { ajaxChangeStyle(); return false; }"' . ( $local_page_id == 'ChangeStyle' && $local_namespace == 'Special' ? ' class="currentpage"' : '' ),
         'TEXT'=>$lang->get('sidebar_btn_changestyle'),
       ));
     
@@ -1826,7 +1826,7 @@ EOF;
     $message = RenderMan::process_imgtags_stage2($message, $taglist);
     
     // Internal links
-    $message = RenderMan::parse_internal_links($message, $tplvars['sidebar_button'], false);
+    $message = RenderMan::parse_internal_links($message, $tplvars['sidebar_button'], false, $this->page_id, $this->namespace);
     
     // External links
     

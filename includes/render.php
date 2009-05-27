@@ -574,10 +574,12 @@ class RenderMan {
    * @param string Text to process
    * @param string Optional. If included will be used as a template instead of using the default syntax.
    * @param bool If false, does not add wikilink-nonexistent or check for exsistence of pages. Can reduce DB queries; defualts to true.
+   * @param string Page ID. If specified, class="currentpage" will be added to links if they match the given page ID and namespace
+   * @param string Namespace. If specified, class="currentpage" will be added to links if they match the given page ID and namespace
    * @return string
    */
   
-  public static function parse_internal_links($text, $tplcode = false, $do_exist_check = true)
+  public static function parse_internal_links($text, $tplcode = false, $do_exist_check = true, $match_page_id = false, $match_namespace = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -606,6 +608,9 @@ class RenderMan {
       $inner_text = $matches[2][$i];
       $quot = '"';
       $exists = ( ($do_exist_check && isPage($pid_clean)) || !$do_exist_check ) ? '' : ' class="wikilink-nonexistent"';
+      
+      if ( $match_page_id && $match_namespace && $pid_clean === $paths->get_pathskey($match_page_id, $match_namespace) )
+        $exists .= ' class="currentpage"';
       
       if ( $tplcode )
       {
@@ -636,6 +641,9 @@ class RenderMan {
       $inner_text = ( isPage($pid_clean) ) ? htmlspecialchars(get_page_title($pid_clean)) : htmlspecialchars($matches[1][$i]);
       $quot = '"';
       $exists = ( ($do_exist_check && isPage($pid_clean)) || !$do_exist_check ) ? '' : ' class="wikilink-nonexistent"';
+      
+      if ( $match_page_id && $match_namespace && $pid_clean === $paths->get_pathskey($match_page_id, $match_namespace) )
+        $exists .= ' class="currentpage"';
       
       if ( $tplcode )
       {
