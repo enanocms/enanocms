@@ -504,6 +504,10 @@ function page_Admin_GeneralConfig()
           <?php
               foreach ( $template->named_theme_list as $theme_id => $theme_data )
               {
+                if ( !isset($theme_data['theme_name']) )
+                  // probably a system theme
+                  continue;
+                  
                 $theme_name = htmlspecialchars($theme_data['theme_name']);
                 $selected = ( $theme_id === getConfig('theme_default') ) ? ' selected="selected"' : '';
                 echo "  <option value=\"$theme_id\"$selected>$theme_name</option>\n          ";
