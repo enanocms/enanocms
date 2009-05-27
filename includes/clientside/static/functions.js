@@ -158,7 +158,8 @@ function ajaxPost(uri, parms, f, call_editor_safe) {
   {
     ajax.setRequestHeader("Content-length", parms.length);
   }
-  ajax.setRequestHeader("Connection", "close");
+  // fails under chrome 2.0
+  // ajax.setRequestHeader("Connection", "close");
   ajax.send(parms);
   window.ajax = ajax;
 }
