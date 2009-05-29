@@ -115,7 +115,7 @@ class Comments
         $ret['comments'] = Array();
         if (!$q)
           $db->die_json();
-        if ( $row = $db->fetchrow() )
+        if ( $row = $db->fetchrow($q) )
         {
           do {
             
@@ -162,7 +162,7 @@ class Comments
             // Add the comment to the list
             $ret['comments'][] = $row;
             
-          } while ( $row = $db->fetchrow() );
+          } while ( $row = $db->fetchrow($q) );
         }
         $db->free_result();
         $ret['count_appr'] = $count_appr;
