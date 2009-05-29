@@ -39,7 +39,7 @@ function page_Admin_SecurityLog()
   $row = $db->fetchrow();
   $db->free_result();
   $count = intval($row['num']);
-  $q = $db->sql_unbuffered_query('SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;');
+  $q = $db->sql_query('SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;');
   if ( !$q )
     $db->_die();
    

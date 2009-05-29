@@ -151,7 +151,7 @@ function page_Admin_PageEditor()
     
     $pg_start = ( isset($_GET['offset']) ) ? intval($_GET['offset']) : 0;
     
-    $q = $db->sql_unbuffered_query('SELECT urlname, name, namespace, ' . $num_pages . ' AS num_pages, ' . $pg_start . ' AS offset, \'edit\' AS mode FROM ' . table_prefix . 'pages ORDER BY name ASC;');
+    $q = $db->sql_query('SELECT urlname, name, namespace, ' . $num_pages . ' AS num_pages, ' . $pg_start . ' AS offset, \'edit\' AS mode FROM ' . table_prefix . 'pages ORDER BY name ASC;');
     if ( !$q )
       $db->_die('PageManager doing main select query for page list');
     
