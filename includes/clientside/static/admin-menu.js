@@ -7,9 +7,6 @@
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
- *
- * Some code found in this script is not licensed under the GNU General Public License; however, it is believed that the license terms shown
- * below are GPL-compatible. If you believe that this is not the case, please drop a note to support@enanocms.org.
  */
  
 /*
@@ -20,18 +17,9 @@
  * Date: 11-12-2002 (mm-dd-yyyy)
  * Notes: This script is free. Visit official site for further details.
  * 
- * There is no license fee or royalty fee to be paid at any time for using the Tigra Tree Menu v1.x
- * You may include the source code or modified source code within your own projects for either personal
- * or commercial use but excluding the restrictions outlined below. The following restrictions apply to
- * all parts of the component, including all source code, samples and documentation.
- *
- * - Header block of script file (tree.js) CAN NOT be modified or removed.
- * - The above items CAN NOT be sold as are, either individually or together.
- * - The above items CAN NOT be modified and then sold as a library component, either individually or together.
- *
  * Due to the unclear licensing conditions on this script, I contacted the author, who said that because Enano
- * is not a "competing product" I was allowed to treat the code as GPL. The conversation can be seen in the
- * /licenses/tigra-menu.html document in the Enano distribution.
+ * is not a "competing product" I was allowed release the modified code as GPL. The conversation can be seen in the
+ * licenses/tigra-menu.html document in the Enano distribution.
  */
 
 if ( typeof(readCookie) == 'function' )

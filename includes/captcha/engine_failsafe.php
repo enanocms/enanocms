@@ -12,7 +12,8 @@
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  *
- * This file contains code written by the phpBB team (www.phpbb.com). phpBB is licensed under the GPLv2.
+ * This file contains code written by the phpBB team (www.phpbb.com). phpBB's license is identical to that of Enano:
+ * the GPL, version 2 or later.
  */
 
 /**
