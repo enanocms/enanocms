@@ -291,7 +291,7 @@ function page_Admin_GeneralConfig()
         <td class="row1">
           <?php echo $lang->get('acpgc_field_main_page'); ?></td>
         <td class="row1">
-          <?php echo $template->pagename_field('main_page', sanitize_page_id(getConfig('main_page'))); ?><br />
+          <?php echo $template->pagename_field('main_page', sanitize_page_id(getConfig('main_page', 'Main_Page'))); ?><br />
             <label><input type="radio" name="main_page_alt_enable" value="0" onclick="$('#main_page_alt_tr').hide();" <?php if ( getConfig('main_page_alt_enable', '0') == '0' ) echo 'checked="checked" '; ?>/> <?php echo $lang->get('acpgc_field_main_page_option_same'); ?></label><br />
             <label><input type="radio" name="main_page_alt_enable" value="1" onclick="$('#main_page_alt_tr').show();" <?php if ( getConfig('main_page_alt_enable', '0') == '1' ) echo 'checked="checked" '; ?>/> <?php echo $lang->get('acpgc_field_main_page_option_members'); ?></label>
         </td>
