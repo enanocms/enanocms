@@ -829,7 +829,7 @@ class pluginLoader {
   function upgrade_plugin($filename, $plugin_list = null)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    global $lang;
+    global $lang, $cache;
     
     if ( !$plugin_list )
       $plugin_list = $this->get_plugin_list();
