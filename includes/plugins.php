@@ -909,7 +909,7 @@ class pluginLoader {
     }
     
     // list out which versions to do
-    $index_start = @$indices[$installed] + 1;
+    $index_start = @$indices[$installed];
     $index_stop  = @$indices[$dataset['version']];
     
     // Are we trying to go backwards?
@@ -918,6 +918,7 @@ class pluginLoader {
       $return = array(
         'mode' => 'error',
         'error' => $lang->get('acppl_err_upgrade_to_older'),
+        // 'debug' => "going from $installed ($index_start) to {$dataset['version']} ($index_stop)"
       );
       break;
     }
