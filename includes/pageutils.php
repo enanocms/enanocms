@@ -512,6 +512,7 @@ class PageUtils {
     global $lang;
     
     $pname = $paths->nslist[$namespace] . $page_id;
+    $template->init_vars();
     
     ob_start();
     
@@ -742,7 +743,8 @@ class PageUtils {
         </div>';
       }
     } else {
-      $_ob .= '<h3>Got something to say?</h3><p>You need to be logged in to post comments. <a href="'.makeUrlNS('Special', 'Login/' . $pname . '%2523comments').'">Log in</a></p>';
+      // FIXME: l10n
+      $_ob .= '<h3>' . $lang->get('comment_postform_title') . '</h3><p>You need to be logged in to post comments. <a href="'.makeUrlNS('Special', 'Login/' . $pname . '%2523comments').'">Log in</a></p>';
     }
     $list .= '};';
     echo 'document.getElementById(\'ajaxEditContainer\').innerHTML = unescape(\''. rawurlencode($_ob) .'\');

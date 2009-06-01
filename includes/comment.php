@@ -65,7 +65,7 @@ class Comments
   
   /**
    * Processes a command in JSON format.
-   * @param string The JSON-encoded input, probably something sent from the Javascript/AJAX frontend
+   * @param mixed Either the JSON-encoded input string, probably something sent from the Javascript/AJAX frontend, or an equivalent array
    */
    
   function process_json($json)
@@ -73,8 +73,17 @@ class Comments
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    $data = enano_json_decode($json);
-    $data = decode_unicode_array($data);
+    $is_json = !is_array($json);
+    
+    if ( $is_json )
+    {
+      $data = enano_json_decode($json);
+      $data = decode_unicode_array($data);
+    }
+    else
+    {
+      $data =& $json;
+    }
     if ( !isset($data['mode']) )
     {
       $ret = Array('mode'=>'error','error'=>'No mode defined!');
@@ -442,7 +451,9 @@ class Comments
           );
         break;
     }
-    echo enano_json_encode($ret);
+    if ( $is_json )
+      echo enano_json_encode($ret);
+    
     return $ret;
   }
   

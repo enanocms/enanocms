@@ -82,7 +82,7 @@
       $page_timestamp = $page->revision_time;
       break;
     case 'comments':
-      $template->header();
+      $output->header();
       require_once(ENANO_ROOT.'/includes/pageutils.php');
       $sub = ( isset ($_GET['sub']) ) ? $_GET['sub'] : false;
       switch($sub)
@@ -100,7 +100,29 @@
              ) { echo 'Invalid request'; break; }
           $cid = ( isset($_POST['captcha_id']) ) ? $_POST['captcha_id'] : false;
           $cin = ( isset($_POST['captcha_input']) ) ? $_POST['captcha_input'] : false;
-          PageUtils::addcomment($paths->page_id, $paths->namespace, $_POST['name'], $_POST['subj'], $_POST['text'], $cin, $cid); // All filtering, etc. is handled inside this method
+          
+          require_once('includes/comment.php');
+          $comments = new Comments($paths->page_id, $paths->namespace);
+          
+          $submission = array(
+              'mode' => 'submit',
+              'captcha_id' => $cid,
+              'captcha_code' => $cin,
+              'name' => $_POST['name'],
+              'subj' => $_POST['subj'],
+              'text' => $_POST['text'],
+            );
+          
+          $result = $comments->process_json($submission);
+          if ( $result['mode'] == 'error' )
+          {
+            echo '<div class="error-box">' . htmlspecialchars($result['error']) . '</div>';
+          }
+          else
+          {
+            echo '<div class="info-box">' . $lang->get('comment_msg_comment_posted') . '</div>';
+          }
+          
           echo PageUtils::comments_html($paths->page_id, $paths->namespace);
           break;
         case 'editcomment':
@@ -132,7 +154,7 @@
           echo PageUtils::comments_html($paths->page_id, $paths->namespace);
           break;
       }
-      $template->footer();
+      $output->footer();
       break;
     case 'edit':
       if(isset($_POST['_cancel']))
