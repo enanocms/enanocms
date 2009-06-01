@@ -185,6 +185,8 @@ LONGSTRING;
     
     $per_page = 10;
     $start = ( isset($_GET['start']) ? intval($_GET['start']) : 0 );
+    // for plugin compatibility:
+    $offset =& $start;
     $start_string = $start + 1;
     $per_string = $start_string + $per_page - 1;
     $num_results = count($results);
