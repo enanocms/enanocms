@@ -559,6 +559,9 @@
       $return = array();
       foreach ( $template->theme_list as $theme )
       {
+        if ( $theme['enabled'] != 1 )
+          continue;
+        
         $return[] = array(
             'theme_name' => $theme['theme_name'],
             'theme_id' => $theme['theme_id'],
