@@ -140,7 +140,7 @@ All arguments are optional; missing information will be prompted for.
   -n, --site-name   Name of site
   -s, --site-desc   *SHORT* Description of site
   -c, --copyright   Copyright notice shown on pages
-  -r, --url-scheme  URL scheme (standard, short, or rewrite)
+  -r, --url-scheme  URL scheme (standard, short, rewrite, or tiny)
   -l, --language    Language to be used on site and in installer
   -i, --scriptpath  Where Enano is relative to your website root (no trailing
                     slash)
@@ -296,7 +296,7 @@ foreach ( array('driver', 'dbhost', 'dbport', 'dbuser', 'dbpasswd', 'dbname', 'd
         break;
       case 'urlscheme':
         $temp = '';
-        while ( !in_array($temp, array('standard', 'short', 'rewrite')) )
+        while ( !in_array($temp, array('standard', 'short', 'rewrite', 'tiny')) )
         {
           $temp = cli_prompt($terms[$var], $defaults[$var]);
         }

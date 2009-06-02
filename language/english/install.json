@@ -479,7 +479,7 @@ var enano_lang_install = {
       prompt_sitename: 'Site name',
       prompt_sitedesc: 'Site description',
       prompt_copyright: 'Copyright notice',
-      prompt_urlscheme: 'URL scheme (standard, short, or rewrite)',
+      prompt_urlscheme: 'URL scheme (standard, short, rewrite, or tiny)',
       prompt_scriptpath: 'Now we need the path to Enano, relative to your website\'s document root,\nwithout a trailing slash. This should be based on the URL your site will\nuse. For example, if your site is http://yoursite.com/enano/, use the value\n"/enano" here. Leave this blank if Enano is in your document root, e.g.\nhttp://yoursite.com/index.php?title=Enano_page.\nSite URL',
       prompt_confirm: 'Enter again to confirm',
       msg_echo_warning: '(WARNING, will be echoed)',
