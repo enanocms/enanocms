@@ -782,9 +782,16 @@ function config_write_test()
 
 function parse_shellcolor_string($str)
 {
+  // only compute this once (saves some CPU time)
+  static $do_colors = null;
+  if ( $do_colors === null )
+  {
+    $do_colors = ( isset($_SERVER['TERM']) && $_SERVER['TERM'] != 'dumb' );
+  }
+  
   $expr = '/<c ((?:[0-9]+)(?:;[0-9]+)*)>([\w\W]*?)<\/c>/';
   while ( preg_match($expr, $str) )
-    $str = preg_replace($expr, "\x1B[\\1m\\2\x1B[0m", $str);
+    $str = $do_colors ? preg_replace($expr, "\x1B[\\1m\\2\x1B[0m", $str) : preg_replace($expr, "\\2", $str);
   
   return $str;
 }

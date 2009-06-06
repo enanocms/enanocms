@@ -384,11 +384,11 @@ function page_Admin_PageGroups()
             
       echo '  <td class="row1">
                 <div id="pg_create_normal_2" />
-                  <input type="text" style="margin-top: 3px;" name="member_page_0" id="pg_create_member_0" onkeyup="return ajaxPageNameComplete(this);" size="30" /><br />
-                  <input type="text" style="margin-top: 3px;" name="member_page_1" id="pg_create_member_1" onkeyup="return ajaxPageNameComplete(this);" size="30" /><br />
-                  <input type="text" style="margin-top: 3px;" name="member_page_2" id="pg_create_member_2" onkeyup="return ajaxPageNameComplete(this);" size="30" /><br />
-                  <input type="text" style="margin-top: 3px;" name="member_page_3" id="pg_create_member_3" onkeyup="return ajaxPageNameComplete(this);" size="30" /><br />
-                  <input type="text" style="margin-top: 3px;" name="member_page_4" id="pg_create_member_4" onkeyup="return ajaxPageNameComplete(this);" size="30" /><br />
+                  <input type="text" style="margin-top: 3px;" name="member_page_0" id="pg_create_member_0" class="autofill page" size="30" /><br />
+                  <input type="text" style="margin-top: 3px;" name="member_page_1" id="pg_create_member_1" class="autofill page" size="30" /><br />
+                  <input type="text" style="margin-top: 3px;" name="member_page_2" id="pg_create_member_2" class="autofill page" size="30" /><br />
+                  <input type="text" style="margin-top: 3px;" name="member_page_3" id="pg_create_member_3" class="autofill page" size="30" /><br />
+                  <input type="text" style="margin-top: 3px;" name="member_page_4" id="pg_create_member_4" class="autofill page" size="30" /><br />
                   <input type="button" onclick="pg_create_more_fields(); return false;" style="margin-top: 5px;" value="&nbsp;&nbsp;+&nbsp;&nbsp;" />
                 </div>
                 <div id="pg_create_tagged_2">
@@ -780,11 +780,12 @@ function page_Admin_PageGroups()
             var __ol_pg_edit_setup = function()
             {
               var input = document.getElementById('inptext_pg_add_member');
-              input.onkeyup = function(e) { ajaxPageNameComplete(this); };
-              <?php
-              // stupid jEdit hack
-              echo "input.onkeypress = function(e) { if ( e.keyCode == 13 ) { setTimeout('__pg_edit_ajaxadd(document.getElementById(\'' + this.id + '\'));', 500); } };";
-              ?>
+              input.onkeypress = function(e) {
+                  if ( e.keyCode == 13 )
+                  {
+                    setTimeout('__pg_edit_ajaxadd(document.getElementById(\'' + this.id + '\'));', 500);
+                  } 
+                };
             }
             addOnloadHook(__ol_pg_edit_setup);
             var __pg_edit_objcache = false;
@@ -803,7 +804,7 @@ function page_Admin_PageGroups()
               }
               
               // set width on parent, to prevent wrapping of ajax loading image
-              var w = $(obj).Width();
+              var w = $dynano(obj).Width();
               w = w + 24;
               obj.parentNode.style.width = w + 'px';
               
@@ -816,6 +817,7 @@ function page_Admin_PageGroups()
               var url = makeUrlNS('Admin', 'PageGroups', 'src=ajax');
               var page_add = escape(obj.value);
               var pg_id = document.forms.pg_edit_frm['action[edit]'].value;
+              
               ajaxPost(url, 'action[edit][add_page]=&pg_id=' + pg_id + '&new_page=' + page_add, function()
                 {
                   if ( ajax.readyState == 4 )
@@ -949,7 +951,7 @@ function page_Admin_PageGroups()
         echo '<tr>';
         // Add pages AJAX form
         echo '<td class="row2">' . $lang->get('acppg_field_add_page') . '<br /><small>' . $lang->get('acppg_field_add_page_hint') . '</small></td>';
-        echo '<td class="row1"><input type="text" size="30" name="pg_add_member" id="inptext_pg_add_member" /></td>';
+        echo '<td class="row1"><input type="text" size="30" name="pg_add_member" id="inptext_pg_add_member" class="autofill page" /></td>';
         echo '</tr></table></div>';
       }
       
