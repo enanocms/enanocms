@@ -330,7 +330,7 @@ if ( @file_exists('/etc/enano-is-virt-appliance') )
         db_root_pass: frm.db_root_pass.value
       }));
     
-    ajaxPost(scriptPath + '/install/install.php?stage=database', connection_info + '&driver=mysql&ajax_test=on&language=' + enano_lang_code[ENANO_LANG_ID], function()
+    ajaxPost(scriptPath + '/install/install.php?stage=database', connection_info + '&driver=mysql&ajax_test=on&language=' + enano_lang_code[ENANO_LANG_ID], function(ajax)
       {
         if ( ajax.readyState == 4 && ajax.status == 200 )
         {

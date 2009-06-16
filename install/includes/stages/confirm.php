@@ -35,7 +35,7 @@ $ui->show_header();
               echo '</div>';
             }
             ?>
-            <form action="install.php?stage=install" method="post" name="install_login" onsubmit="return ( verify() && submit_encrypt() );"><?php
+            <form action="install.php?stage=install" method="post" name="install_login"><?php
   foreach ( $_POST as $key => &$value )
   {
     if ( !preg_match('/^[a-z0-9_]+$/', $key) )

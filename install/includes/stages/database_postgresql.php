@@ -268,7 +268,7 @@ $ui->show_header();
         db_root_pass: frm.db_root_pass.value
       }));
     
-    ajaxPost(scriptPath + '/install/install.php?stage=database', connection_info + '&driver=postgresql&ajax_test=on&language=' + enano_lang_code[ENANO_LANG_ID], function()
+    ajaxPost(scriptPath + '/install/install.php?stage=database', connection_info + '&driver=postgresql&ajax_test=on&language=' + enano_lang_code[ENANO_LANG_ID], function(ajax)
       {
         if ( ajax.readyState == 4 && ajax.status == 200 )
         {
