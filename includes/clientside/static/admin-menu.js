@@ -40,7 +40,7 @@ else
   var ck = 0;
 }
 
-function tree (a_items, a_template) {
+function tree (a_items, a_template, s_target) {
 
 	this.a_tpl      = a_template;
 	this.a_config   = a_items;
@@ -77,8 +77,12 @@ function tree (a_items, a_template) {
 	this.n_id = trees.length;
 	trees[this.n_id] = this;
 	
-	for (var i = 0; i < this.a_children.length; i++) {
-		document.write(this.a_children[i].init());
+	for (var i = 0; i < this.a_children.length; i++)
+  {
+    if ( s_target )
+      document.getElementById(s_target).innerHTML += this.a_children[i].init();
+    else
+      document.write(this.a_children[i].init());
 		this.a_children[i].open(false, true);
 	}
 }

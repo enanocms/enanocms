@@ -21,6 +21,7 @@ class template
   var $elements = false;
   var $page_id = false;
   var $namespace = false;
+  var $js_preload = array();
   
   /**
    * Page action conditions
@@ -438,6 +439,30 @@ class template
   }
   
   /**
+   * Queue a Javascript file to be loaded with the page instead of on demand.
+   * @param mixed Javascript file string or array thereof, extensions are optional
+   * @example
+   <code>
+   $template->preload_js(array('jquery', 'jquery-ui'));
+   $template->preload_js('admin-menu.js');
+   </code>
+   * @return null
+   */
+  
+  function preload_js($filemixed)
+  {
+    if ( is_string($filemixed) )
+      $files = array($filemixed);
+    else if ( is_array($filemixed) )
+      $files = $filemixed;
+    else
+      // :-/
+      return null;
+      
+    $this->js_preload = array_values(array_merge($this->js_preload, $files));
+  }
+  
+  /**
    * Global, only-called-once init. Goes to all themes.
    */
   
@@ -516,8 +541,40 @@ class template
     if ( getConfig('cdn_path') )
     {
       // we're on a CDN, point to static includes
-      // probably should have a way to compress stuff like this before uploading to CDN
+      // CLI javascript compression script: includes/clientside/jscompress.php
       $js_head = '<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/enano-lib-basic.js"></script>';
+      
+      if ( !empty($this->js_preload) )
+      {
+        $loadlines = array();
+        
+        // make unique
+        foreach ( $this->js_preload as &$script )
+        {
+          $script = preg_replace('/\.js$/', '', $script) . '.js';
+        }
+        $this->js_preload = array_unique($this->js_preload);
+        
+        foreach ( $this->js_preload as $script )
+        {
+          $js_head .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/static/$script\"></script>";
+          // special case for l10n: also load strings
+          if ( $script == 'l10n.js' )
+          {
+            global $lang;
+            $js_head .= "\n    <script type=\"text/javascript\" src=\"" . makeUrlNS("Special", "LangExportJSON/$lang->lang_id") . "\"></script>";
+          }
+          $loadlines[] = "loaded_components['$script'] = true;";
+        }
+        
+        // tell the system that this stuff is already loaded
+        $loadlines = implode("\n      ", $loadlines);
+        $js_head .= "\n    <script type=\"text/javascript\">
+      var loaded_components = loaded_components || {};
+      $loadlines
+    </script>";
+      }
+      
       $js_foot = <<<JSEOF
     <script type="text/javascript">
       // This initializes the Javascript runtime when the DOM is ready - not when the page is
@@ -536,11 +593,14 @@ JSEOF;
     else
     {
       $cdnpath = cdnPath;
+      $js_head = '';
+      
       // point to jsres compressor
-      $js_head = <<<JSEOF
+      $js_head .= <<<JSEOF
       <!-- Only load a basic set of functions for now. Let the rest of the API load when the page is finished. -->
       <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php?early"></script>
 JSEOF;
+      }
       $js_foot = <<<JSEOF
     <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
     <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php"></script>
@@ -557,6 +617,22 @@ JSEOF;
       }
     //]]></script>
 JSEOF;
+      
+      if ( !empty($this->js_preload) )
+      {
+        foreach ( $this->js_preload as &$script )
+        {
+          $script = preg_replace('/\.js$/', '', $script) . '.js';
+        }
+        $this->js_preload = array_unique($this->js_preload);
+        if ( in_array('l10n.js', $this->js_preload) )
+        {
+          // special case for l10n: also load strings
+          global $lang;
+          $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . makeUrlNS("Special", "LangExportJSON/$lang->lang_id") . "\"></script>";
+        }
+        $scripts = implode(',', $this->js_preload);
+        $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/jsres.php?f=$scripts\"></script>";
     }
     
     $this->assign_bool(array(

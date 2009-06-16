@@ -210,6 +210,7 @@ function runOnloadHooks(e)
       _f(e);
     }
   }
+  onload_hooks = null;
 }
 
 var enano_hooks = {};

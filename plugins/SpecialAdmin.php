@@ -2051,20 +2051,26 @@ function page_Special_Administration()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
+  global $output;
   
-  if($session->auth_level < USER_LEVEL_ADMIN) {
+  if ( $session->auth_level < USER_LEVEL_ADMIN )
+  {
     redirect(makeUrlNS('Special', 'Login/'.$paths->page, 'level='.USER_LEVEL_ADMIN), 'Not authorized', 'You need an authorization level of '.USER_LEVEL_ADMIN.' to use this page, your auth level is: ' . $session->auth_level, 0);
     exit;
   }
   else
   {
     $template->set_theme('admin', 'default');
-    $template->add_header('<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/admin-menu.js"></script>');
+    $template->preload_js('fat');
+    $template->preload_js('ajax');
+    $template->preload_js('l10n');
+    $template->preload_js('jquery');
+    $template->preload_js('jquery-ui');
+    $template->preload_js('autofill');
+    $template->preload_js('admin-menu');
     
-    if( !isset( $_GET['noheaders'] ) ) 
-    {
-      $template->header();
-    }
+    $output->header();
+    
     echo $lang->get('adm_page_tagline');
     ?>
     <script type="text/javascript">
@@ -2197,26 +2203,21 @@ EOF;
       'icon_27' : '<?php echo cdnPath; ?>/images/icons/minus.gif'       // junction for last opended node
     };
     
-    addOnloadHook(function()
-      {
-        load_component(['fat', 'ajax', 'l10n', 'autofill', 'jquery', 'jquery-ui']);
-        keepalive_onload();
-      });
-    
     <?php
     echo $paths->parseAdminTree(); // Make a Javascript array that defines the tree
     ?>
+    
+    addOnloadHook(function()
+      {
+        console.trace();
+        new tree(TREE_ITEMS, TREE_TPL, 'admin_tree');
+        keepalive_onload();
+      });
     </script>
     <table border="0" width="100%">
       <tr>
         <td class="holder" valign="top">
-          <div class="pad" style="padding-right: 20px;">
-            <script type="text/javascript">
-              if ( !KILL_SWITCH )
-              {
-                new tree(TREE_ITEMS, TREE_TPL);
-              }
-            </script>
+          <div class="pad" style="padding-right: 20px;" id="admin_tree">
           </div>
         </td>
         <td width="100%" valign="top">
@@ -2265,10 +2266,7 @@ EOF;
     </table>
   
     <?php
-  }
-  if(!isset($_GET['noheaders']))
-  {
-    $template->footer();
+    $output->footer();
   }
 }
 
