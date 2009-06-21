@@ -19,7 +19,7 @@ window.ajaxLogonToMember = function()
     return true;
   ajaxLoginInit(function(k)
     {
-      if ( on_main_page )
+      if ( on_main_page && main_page_members != physical_title )
       {
         window.location = makeUrl(main_page_members);
       }
@@ -438,13 +438,22 @@ window.ajaxLoginProcessResponse = function(response, hookfunc)
       ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
       document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
       var mb_parent = document.getElementById('messageBox').parentNode;
-      $(mb_parent).effect("shake", {}, 200);
-      setTimeout(function()
-        {
-          document.getElementById('messageBox').style.backgroundColor = '#FFF';
-          ajaxLoginBuildForm(response.respawn_info);
-          ajaxLoginShowFriendlyError(response);
-        }, 2500);
+      var do_respawn = ( typeof(response.respawn) == 'boolean' && response.respawn == true ) || typeof(response.respawn) != 'boolean';
+      if ( do_respawn )
+      {
+        $(mb_parent).effect("shake", {}, 200);
+        setTimeout(function()
+          {
+            document.getElementById('messageBox').style.backgroundColor = '#FFF';
+            
+            ajaxLoginBuildForm(response.respawn_info);
+            ajaxLoginShowFriendlyError(response);
+          }, 2500);
+      }
+      else
+      {
+        ajaxLoginShowFriendlyError(response);
+      }
       break;
     case 'login_success_reset':
       var conf = confirm($lang.get('user_login_ajax_msg_used_temp_pass'));
@@ -773,8 +782,6 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
     login_cache.mb_object.destroy();
     return false;
   }
-  // Early submit hook
-  eval(setHook('login_submit_early'));
   // Hide the error message and captcha
   if ( document.getElementById('ajax_login_error_box') )
   {
@@ -843,6 +850,12 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
   {
     var captcha = document.getElementById('ajax_login_field_captcha').value;
   }
+  
+  // Only run early submit hook once
+  if ( !window.logindata.early_submit_run )
+    eval(setHook('login_submit_early'));
+  
+  window.logindata.early_submit_run = true;
   
   try
   {
@@ -941,6 +954,8 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
     console.debug(e);
     return false;
   }
+  // reset this...
+  window.logindata.early_submit_run = false;
   ajaxLoginPerformRequest(json_packet);
 }
 

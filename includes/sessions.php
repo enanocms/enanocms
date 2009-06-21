@@ -4057,8 +4057,8 @@ EOF;
           return array(
               'mode' => 'login_success',
               'key' => ( $this->sid_super ) ? $this->sid_super : false,
-                'user_id' => $this->user_id,
-                'user_level' => $this->user_level
+              'user_id' => $this->user_id,
+              'user_level' => $this->user_level
             );
         }
         else
