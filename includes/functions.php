@@ -1835,7 +1835,7 @@ function sanitize_html($html, $filter_php = true)
   $rand_seed = md5( sha1(microtime()) . mt_rand() );
   
   // We need MediaWiki
-  require_once(ENANO_ROOT . '/includes/wikiengine/Tables.php');
+  require_once(ENANO_ROOT . '/includes/wikiengine/TagSanitizer.php');
   
   // Strip out comments that are already escaped
   preg_match_all('/&lt;!--(.*?)--&gt;/', $html, $comment_match);

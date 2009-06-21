@@ -185,21 +185,17 @@ class RenderMan {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    require_once(ENANO_ROOT.'/includes/wikiformat.php');
-    require_once(ENANO_ROOT.'/includes/wikiengine/Tables.php');
-    
     profiler_log("RenderMan: starting wikitext render");
+    require_once( ENANO_ROOT . '/includes/wikiformat.php' );
+    require_once( ENANO_ROOT . '/includes/wikiengine/TagSanitizer.php' );
+    require_once( ENANO_ROOT . '/includes/wikiengine/Tables.php' );
     
+    // this is still needed by parser plugins
     $random_id = md5( time() . mt_rand() );
     
     // Strip out <nowiki> sections and PHP code
     
-    $nw = preg_match_all('#<nowiki>(.*?)<\/nowiki>#is', $text, $nowiki);
-    
-    for($i=0;$i<sizeof($nowiki[1]);$i++)
-    {
-      $text = str_replace('<nowiki>'.$nowiki[1][$i].'</nowiki>', '{NOWIKI:'.$random_id.':'.$i.'}', $text);
-    }
+    self::nowiki_strip($text, $nowiki_stripped);
     
     $code = $plugins->setHook('render_wikiformat_veryearly');
     foreach ( $code as $cmd )
@@ -207,130 +203,172 @@ class RenderMan {
       eval($cmd);
     }
     
-    $php = preg_match_all('#<\?php(.*?)\?>#is', $text, $phpsec);
+    self::php_strip($text, $php_stripped);
     
-    for($i=0;$i<sizeof($phpsec[1]);$i++)
+    $carpenter = new Carpenter();
+    $carpenter->flags = $flags;
+    $carpenter->hook(array(__CLASS__, 'hook_pre'), PO_AFTER, 'lang');
+    $carpenter->hook(array(__CLASS__, 'hook_posttemplates'), PO_AFTER, 'templates');
+    if ( $flags & RENDER_WIKI_TEMPLATE )
     {
-      $text = str_replace('<?php'.$phpsec[1][$i].'?>', '{PHP:'.$random_id.':'.$i.'}', $text);
+      // FIXME: process noinclude/nodisplay
+    }
+    $text = $carpenter->render($text);
+    
+    // For plugin compat
+    $result =& $text;
+    
+    $code = $plugins->setHook('render_wikiformat_post');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
     }
     
+    /*
     $text = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '\\1', $text);
     if ( $paths->namespace == 'Template' )
     {
       $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
     }
     
-    if ( !($flags & RENDER_BLOCKONLY) )
-    {
-      preg_match_all('/<lang (?:code|id)="([a-z0-9_-]+)">([\w\W]+?)<\/lang>/', $text, $langmatch);
-      foreach ( $langmatch[0] as $i => $match )
-      {
-        if ( $langmatch[1][$i] == $lang->lang_code )
-        {
-          $text = str_replace_once($match, $langmatch[2][$i], $text);
-        }
-        else
-        {
-          $text = str_replace_once($match, '', $text);
-        }
-      }
-    
-      $code = $plugins->setHook('render_wikiformat_pre');
-      foreach ( $code as $cmd )
-      {
-        eval($cmd);
-      }
-    
-    //$template_regex = "/\{\{([^\]]+?)((\n([ ]*?)[A-z0-9]+([ ]*?)=([ ]*?)(.+?))*)\}\}/is";
-      $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
-      $i = 0;
-      while ( preg_match($template_regex, $text) )
-      {
-        $i++;
-        if ( $i == 5 )
-          break;
-        $text = RenderMan::include_templates($text);
-      }
-      
-      $code = $plugins->setHook('render_wikiformat_posttemplates');
-      foreach ( $code as $cmd )
-      {
-        eval($cmd);
-      }
-      
-      // Process images
-      $text = RenderMan::process_image_tags($text, $taglist);
-      $text = RenderMan::process_imgtags_stage2($text, $taglist);
-    }
-    
-    // Before shipping it out to the renderer, replace spaces in between headings and paragraphs:
-    $text = preg_replace('/<\/(h[0-9]|div|p)>([\s]+)<(h[0-9]|div|p)( .+?)?>/i', '</\\1><\\3\\4>', $text);
-    
     $text = process_tables($text);
+    */
     
-    if ( !($flags & RENDER_BLOCKONLY) )
-      $text = RenderMan::parse_internal_links($text);
-    
-    $wiki = Text_Wiki::singleton('Mediawiki');
-    $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', contentPath);
-    $wiki->setRenderConf('Xhtml', 'Url', 'css_descr', 'external');
-    if ( $flags & RENDER_BLOCKONLY )
-    {
-      $wiki->disableRule('Freelink');
-      $wiki->disableRule('Url');
-      $wiki->disableRule('Toc');
-      $wiki->disableRule('Image');
-    }
-    else if ( $flags & RENDER_INLINEONLY )
-    {
-      foreach ( array('code', 'html', 'raw', 'include', 'embed', 'horiz', 'break', 'blockquote', 'list', 'newline', 'paragraph', 'revise', 'tighten') as $rule )
-      {
-        $wiki->disableRule($rule);
-      }
-    }
-    $result = $wiki->transform($text, 'Xhtml');
-    
-    // HTML fixes
-    $result = preg_replace('#<tr>([\s]*?)<\/tr>#is', '', $result);
-    $result = preg_replace('#<p>([\s]*?)<\/p>#is', '', $result);
-    $result = preg_replace('#<br />([\s]*?)<table#is', '<table', $result);
-    $result = str_replace("<pre><code>\n", "<pre><code>", $result);
-    $result = preg_replace("/<p><table([^>]*?)><\/p>/", "<table\\1>", $result);
-    $result = str_replace("<br />\n</td>", "\n</td>", $result);
-    $result = str_replace("<p><tr>", "<tr>", $result);
-    $result = str_replace("<tr><br />", "<tr>", $result);
-    $result = str_replace("</tr><br />", "</tr>", $result);
-    $result = str_replace("</table><br />", "</table>", $result);
-    $result = preg_replace('/<\/table>$/', "</table><br /><br />", $result);
-    $result = str_replace("<p></div></p>", "</div>", $result);
-    $result = str_replace("<p></table></p>", "</table>", $result);
-    
-    if ( !($flags & RENDER_BLOCKONLY) )
-    {
-      $code = $plugins->setHook('render_wikiformat_post');
-      foreach ( $code as $cmd )
-      {
-        eval($cmd);
-      }
-    }
-    
-    // Reinsert <nowiki> sections
-    for($i=0;$i<$nw;$i++)
-    {
-      $result = str_replace('{NOWIKI:'.$random_id.':'.$i.'}', $nowiki[1][$i], $result);
-    }
-    
-    // Reinsert PHP
-    for($i=0;$i<$php;$i++)
-    {
-      $result = str_replace('{PHP:'.$random_id.':'.$i.'}', '<?php'.$phpsec[1][$i].'?>', $result);
-    }
+    self::nowiki_unstrip($text, $nowiki_stripped);
+    self::php_unstrip($text, $php_stripped);
     
     profiler_log("RenderMan: finished wikitext render");
     
-    return $result;
-    
+    return $text;
   }
+  
+  public static function hook_pre($text)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $code = $plugins->setHook('render_wikiformat_pre');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
+    return $text;
+  }
+  
+  public static function hook_posttemplates($text)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    $code = $plugins->setHook('render_wikiformat_posttemplates');
+    foreach ( $code as $cmd )
+    {
+      eval($cmd);
+    }
+    
+    return $text;
+  }
+  
+  /**
+   * Strip out <nowiki> tags (to bypass parsing on them)
+   * @access private
+   */
+  
+  private static function nowiki_strip(&$text, &$stripdata)
+  {
+    self::tag_strip('nowiki', $text, $stripdata);
+  }
+  
+  /**
+   * Restore stripped <nowiki> tags.
+   * @access private
+   */
+  
+  public static function nowiki_unstrip(&$text, &$stripdata)
+  {
+    self::tag_unstrip('nowiki', $text, $stripdata);
+  }
+  
+  /**
+   * Strip out an arbitrary HTML tag.
+   * @access private
+   */
+  
+  public static function tag_strip($tag, &$text, &$stripdata)
+  {
+    $random_id = md5( time() . mt_rand() );
+    
+    preg_match_all("#<$tag>(.*?)</$tag>#is", $text, $blocks);
+    
+    foreach ( $blocks[0] as $i => $match )
+    {
+      $text = str_replace($match, "{{$tag}:{$random_id}:{$i}}", $text);
+    }
+    
+    $stripdata = array(
+        'random_id' => $random_id,
+        'blocks' => $blocks[1]
+      );
+  }
+  
+  /**
+   * Restore stripped <nowiki> tags.
+   * @access private
+   */
+  
+  public static function tag_unstrip($tag, &$text, &$stripdata)
+  {
+    $random_id = $stripdata['random_id'];
+    
+    foreach ( $stripdata['blocks'] as $i => $block )
+    {
+      $text = str_replace("{{$tag}:{$random_id}:{$i}}", $block, $text);
+    }
+    
+    $stripdata = array();
+  }
+  
+  /**
+   * Strip out PHP code (to prevent it from being sent through the parser). Private because it does not do what you think it does. (The method you are looking for is strip_php.)
+   * @access private
+   */
+  
+  private static function php_strip(&$text, &$stripdata)
+  {
+    $random_id = md5( time() . mt_rand() );
+    
+    preg_match_all('#<\?(?:php)?[\s=].+?\?>#is', $text, $blocks);
+    
+    foreach ( $blocks[0] as $i => $match )
+    {
+      $text = str_replace($match, "{PHP:$random_id:$i}", $text);
+    }
+    
+    $stripdata = array(
+        'random_id' => $random_id,
+        'blocks' => $blocks[0]
+      );
+  }
+  
+  /**
+   * Restore stripped PHP code
+   * @access private
+   */
+  
+  private static function php_unstrip(&$text, &$stripdata)
+  {
+    $random_id = $stripdata['random_id'];
+    
+    foreach ( $stripdata['blocks'] as $i => $block )
+    {
+      $text = str_replace("{PHP:$random_id:$i}", $block, $text);
+    }
+    
+    $stripdata = array();
+  }
+  
+  /**
+   * Deprecated.
+   */
   
   public static function wikiFormat($message, $filter_links = true, $do_params = false, $plaintext = false)
   {
@@ -781,9 +819,11 @@ class RenderMan {
   /**
    * Preprocesses an HTML text string prior to being sent to MySQL.
    * @param string $text
-   * @param bool $strip_all_php - if true, strips all PHP regardless of user permissions. Else, strips PHP only if user level < USER_LEVEL_ADMIN.
+   * @param bool $strip_all_php - if true, strips all PHP regardless of user permissions. Else, strips PHP only if user level < USER_LEVEL_ADMIN. Defaults to true.
+   * @param bool $sqlescape - if true, sends text through $db->escape(). Otherwise returns unescaped text. Defaults to true.
+   * @param bool $reduceheadings - if true, finds HTML headings and replaces them with wikitext. Else, does not touch headings. Defaults to true.
    */
-  public static function preprocess_text($text, $strip_all_php = true, $sqlescape = true)
+  public static function preprocess_text($text, $strip_all_php = true, $sqlescape = true, $reduceheadings = true)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $random_id = md5( time() . mt_rand() );
@@ -836,8 +876,9 @@ class RenderMan {
       eval($cmd);
     }
     
-    // gently apply some reverse-processing to allow Text_Wiki to do magic with TOCs and stuff
-    $text = self::reverse_process_headings($text);
+    // gently apply some reverse-processing to allow the parser to do magic with TOCs and stuff
+    if ( $reduceheadings )
+      $text = self::reverse_process_headings($text);
     
     // Reinsert <nowiki> sections
     for($i=0;$i<$nw;$i++)

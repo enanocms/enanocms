@@ -502,7 +502,7 @@ class PageProcessor
     // Rebuild the search index
     $paths->rebuild_page_index($this->page_id, $this->namespace);
     
-    $this->text_cache = $text;
+    $this->text_cache = $text_undb;
     
     return true;
     

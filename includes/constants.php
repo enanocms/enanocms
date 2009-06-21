@@ -106,13 +106,6 @@ define('LAST_SUNDAY', 4);
 // Rendering options!
 
 /**
- * Render using the default engine (Text_Wiki + Enano pre- and post-processing).
- * @const int
- */
-
-define('RENDER_WIKI_DEFAULT', 1);
-
-/**
  * Render using template/wiki hybrid syntax (Enano processing + template variable/logic access)
  * @const int
  */
@@ -124,14 +117,14 @@ define('RENDER_WIKI_TEMPLATE', 2);
  * @const int
  */
 
-define('RENDER_BLOCKONLY', 4);
+define('RENDER_BLOCK', 4);
 
 /**
  * Only render inline-level things, like links.
  * @const int
  */
 
-define('RENDER_INLINEONLY', 8);
+define('RENDER_INLINE', 8);
 
 /**
  * Disable smilies when rendering.
@@ -139,6 +132,19 @@ define('RENDER_INLINEONLY', 8);
  */
 
 define('RENDER_NOSMILIES', 16);
+
+/**
+ * Render using the default engine
+ * @const int
+ */
+
+define('RENDER_WIKI_DEFAULT', RENDER_BLOCK | RENDER_INLINE);
+
+// parser order
+define('PO_BEFORE', 1);
+define('PO_AFTER', 2);
+define('PO_FIRST', 3);
+define('PO_LAST', 4);
 
 //
 // User types - don't touch these
