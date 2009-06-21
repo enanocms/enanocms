@@ -83,7 +83,7 @@ class captcha_base
     $this->id = $row['code_id'];
     
     // run any custom init functions
-    if ( function_exists(array($this, 'construct_hook')) )
+    if ( method_exists($this, 'construct_hook') )
       $this->construct_hook();
   }
   
