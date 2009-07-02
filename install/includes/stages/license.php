@@ -55,19 +55,22 @@ function show_license($fb = false)
  <?php
 }
 
-function wikiFormat($message, $filter_links = true)
+function wikiFormat($text)
 {
-  $wiki = Text_Wiki::singleton('Mediawiki');
-  $wiki->setRenderConf('Xhtml', 'code', 'css_filename', 'codefilename');
-  $wiki->setRenderConf('Xhtml', 'wikilink', 'view_url', scriptPath . '/index.php?title=');
-  $result = $wiki->transform($message, 'Xhtml');
+  require_once( ENANO_ROOT . '/includes/render.php' );
+  require_once( ENANO_ROOT . '/includes/wikiformat.php' );
+  require_once( ENANO_ROOT . '/includes/wikiengine/TagSanitizer.php' );
+  require_once( ENANO_ROOT . '/includes/wikiengine/Tables.php' );
   
-  // HTML fixes
-  $result = preg_replace('#<tr>([\s]*?)<\/tr>#is', '', $result);
-  $result = preg_replace('#<p>([\s]*?)<\/p>#is', '', $result);
-  $result = preg_replace('#<br />([\s]*?)<table#is', '<table', $result);
+  $carpenter = new Carpenter();
+  // disable rules that require the DB
+  $carpenter->disable_rule('templates');
+  $carpenter->disable_rule('internallink');
+  $carpenter->disable_rule('image');
   
-  return $result;
+  $text = $carpenter->render($text);
+  
+  return $text;
 }
 
 ?>

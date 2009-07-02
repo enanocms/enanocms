@@ -248,7 +248,6 @@ switch ( $stage )
     break;
   case 'license':
     $ui->show_header();
-    require( ENANO_ROOT . '/includes/wikiformat.php' );
     require( ENANO_ROOT . '/install/includes/stages/license.php' );
     break;
   case 'sysreqs':
