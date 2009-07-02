@@ -171,11 +171,11 @@ function page_Special_Login()
         break;
       case 'invalid_credentials':
         $errstring = $lang->get('user_err_invalid_credentials');
-        if ( $__login_status['lockout_policy'] == 'lockout' )
+        if ( getConfig('lockout_policy', 'lockout') == 'lockout' )
         {
-          $errstring .= $lang->get('err_invalid_credentials_lockout', array('fails' => $__login_status['lockout_fails']));
+          $errstring .= $lang->get('user_err_invalid_credentials_lockout', array('fails' => $__login_status['lockout_fails']));
         }
-        else if ( $__login_status['lockout_policy'] == 'captcha' )
+        else if ( getConfig('lockout_policy', 'lockout') == 'captcha' )
         {
           $errstring .= $lang->get('user_err_invalid_credentials_lockout_captcha', array('fails' => $__login_status['lockout_fails']));
         }

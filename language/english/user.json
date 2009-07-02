@@ -85,6 +85,7 @@ var enano_lang = {
       err_dh_key_not_found: 'Enano couldn\'t retrieve the private key used for the high-strength encrypted logon. It is possible that the list of keys was cleared during your logon process as this happens approximately once every 72 hours. Please try logging in again; if you are still unable to log in, please contact the site administration.',
       err_dh_key_not_numeric: 'The Diffie-Hellman public key you sent through was not an arbitrary-precision decimal integer.',
       err_dh_hash_no_match: 'The Diffie-Hellman key was not calculated correctly by one of the parties (I got a different shared secret than you did).',
+      err_userinfo_decode_failed: 'An internal error occurred while decrypting the encrypted information packet.',
       err_key_wrong_length: 'The encryption key was the wrong length.',
       err_too_big_for_britches: 'You are trying to authenticate at a level that your user account does not permit.',
       err_invalid_credentials: 'You have entered an invalid username or password. Please enter your login details again.',

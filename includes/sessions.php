@@ -658,7 +658,7 @@ class sessionManager {
     
     if ( !defined('IN_ENANO_INSTALL') )
     {
-      $locked_out = $this->get_lockout_info($lockout_data);
+      $lockout_data = $this->get_lockout_info($lockout_data);
       
       $captcha_good = false;
       if ( $lockout_data['lockout_policy'] == 'captcha' && $captcha_hash && $captcha_code )
@@ -1030,8 +1030,8 @@ class sessionManager {
       $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
       $timestamp_cutoff = time() - $duration;
       $q = $this->sql('SELECT timestamp FROM ' . table_prefix . 'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
-      $fails = $db->numrows();
-      $row = $db->fetchrow();
+      $fails = $db->numrows($q);
+      $row = $db->fetchrow($q);
       $locked_out = ( $fails >= $threshold );
       $lockdata = array(
           'locked_out' => $locked_out,
@@ -1045,7 +1045,20 @@ class sessionManager {
         );
       $db->free_result();
     }
-    return $locked_out;
+    else
+    {
+      $lockdata = array(
+        'locked_out' => false,
+        'lockout_threshold' => $threshold,
+        'lockout_duration' => ( $duration / 60 ),
+        'lockout_fails' => 0,
+        'lockout_policy' => $policy,
+        'lockout_last_time' => 0,
+        'time_rem' => 0,
+        'captcha' => ''
+      );
+    }
+    return $lockdata;
   }
   
   /**
