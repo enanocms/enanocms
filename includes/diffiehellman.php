@@ -107,7 +107,8 @@ class SHA256
   function safe_add ($x, $y) {
     $lsw = ($x & 0xFFFF) + ($y & 0xFFFF);
     $msw = ($x >> 16) + ($y >> 16) + ($lsw >> 16);
-    return ($msw << 16) | ($lsw & 0xFFFF);
+    // 2009-07-02 Added & 0xFFFFFFFF here to fix problem on PHP w/ native 64-bit integer support (rev. 1030)
+    return (($msw << 16) | ($lsw & 0xFFFF)) & 0xFFFFFFFF;
   }
   function rshz($X, $n)
   {
