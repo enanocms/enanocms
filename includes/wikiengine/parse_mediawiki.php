@@ -59,7 +59,7 @@ class Carpenter_Parse_MediaWiki
   
   public function heading(&$text)
   {
-    if ( !preg_match_all('/^(={1,6}) *(.+?) *\\1$/m', $text, $results) )
+    if ( !preg_match_all('/^(={1,6}) *(.+?) *\\1 *$/m', $text, $results) )
       return array();
     
     $headings = array();

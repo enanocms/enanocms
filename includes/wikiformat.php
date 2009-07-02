@@ -291,6 +291,25 @@ class Carpenter
   }
   
   /**
+   * Disable a render stage
+   * @param string stage
+   * @return null
+   */
+  
+  public function disable_rule($rule)
+  {
+    foreach ( $this->rules as $i => $current_rule )
+    {
+      if ( $current_rule === $rule )
+      {
+        unset($this->rules[$i]);
+        return null;
+      }
+    }
+    return null;
+  }
+  
+  /**
    * Generate a token
    * @param int Token index
    * @return string
