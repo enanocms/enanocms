@@ -210,7 +210,7 @@ function runOnloadHooks(e)
       _f(e);
     }
   }
-  onload_hooks = null;
+  onload_hooks = [];
 }
 
 var enano_hooks = {};
@@ -311,7 +311,7 @@ function load_component(file)
     if ( ajax.readyState == 4 && ajax.status == 200 )
     {
       if ( onload_complete )
-        onload_hooks = new Array();
+        onload_hooks = [];
       eval_global(ajax.responseText);
       if ( window.jQuery && aclDisableTransitionFX )
         if ( window.jQuery.fx )
@@ -327,6 +327,7 @@ function load_component(file)
     load_hide_win();
     console.info("Component loader exception is shown below.");
     console.debug(e);
+    console.trace();
     throw('load_component(): XHR for component ' + file + ' failed');
   }
   

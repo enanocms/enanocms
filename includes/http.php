@@ -326,9 +326,9 @@ class Request_HTTP
   function _sock_open(&$connection)
   {
     // Open connection
-    $connection = @fsockopen($this->host, $this->port);
+    $connection = fsockopen($this->host, $this->port, $errno, $errstr);
     if ( !$connection )
-      throw new Exception(__METHOD__ . ': Could not make connection');
+      throw new Exception(__METHOD__ . ": Could not make connection"); // to {$this->host}:{$this->port}: error $errno: $errstr");
     
     // 1 = socket open
     $this->state = 1;
