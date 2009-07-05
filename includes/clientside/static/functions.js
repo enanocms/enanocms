@@ -15,7 +15,7 @@ function makeUrl(page, query, html_friendly)
     url = url.replace('<', '&lt;');
     url = url.replace('>', '&gt;');
   }
-  return url;
+  return append_sid(url);
 }
 
 function makeUrlNS(namespace, page, query, html_friendly)
