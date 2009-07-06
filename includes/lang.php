@@ -630,6 +630,7 @@ $lang_cache = ');
       return false;
     }
     $this->filters[$filter_name] = $filter_function;
+    return true;
   }
   
   /**
