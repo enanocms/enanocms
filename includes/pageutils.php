@@ -378,8 +378,8 @@ class PageUtils {
     }
     $db->free_result();
     echo '<h3>' . $lang->get('history_heading_other') . '</h3>';
-    $q = 'SELECT log_id,time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
-    if ( !$db->sql_query($q) )
+    $sql = 'SELECT log_id,time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
+    if ( !( $q = $db->sql_query($sql)) )
     {
       $db->_die('The history data for the page "' . htmlspecialchars($paths->cpage['name']) . '" could not be selected.');
     }
@@ -400,7 +400,7 @@ class PageUtils {
                 <th colspan="2"></th>
               </tr>';
       $cls = 'row2';
-      while($r = $db->fetchrow()) {
+      while($r = $db->fetchrow($q)) {
         
         if($cls == 'row2') $cls = 'row1';
         else $cls = 'row2';
