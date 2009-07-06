@@ -2851,6 +2851,13 @@ function decode_unicode_url($str)
     $character = $str[$i];
     if ($character == '%' && $str[$i + 1] == 'u')
     {
+      if ( !preg_match('/^([a-f0-9]{2})+$/', substr($str, $i + 2, 4)) )
+      {
+        $res .= substr($str, $i, 6);
+        $i += 6;
+        continue;
+      }
+      
       $value = hexdec(substr($str, $i + 2, 4));
       $i += 6;
 
