@@ -60,7 +60,7 @@ class Carpenter_Render_Xhtml
           $itag = 'dd';
           break;
       }
-      $list = "<$btag><_paragraph_bypass>\n";
+      $list = "<$btag>\n";
       $spacing = '';
       $depth = 1;
       foreach ( $piece['items'] as $j => $item )
@@ -108,7 +108,7 @@ class Carpenter_Render_Xhtml
         $spacing = substr($spacing, 4);
         $depth--;
       }
-      $list .= "</_paragraph_bypass></$btag>\n";
+      $list .= "</$btag>\n";
       $text = str_replace(Carpenter::generate_token($i), $list, $text);
     }
     return $text;

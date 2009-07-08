@@ -193,47 +193,41 @@ class RenderMan {
     // this is still needed by parser plugins
     $random_id = md5( time() . mt_rand() );
     
-    // Strip out <nowiki> sections and PHP code
-    
+    // Strip out <nowiki> sections
     self::nowiki_strip($text, $nowiki_stripped);
     
+    // Run early parsing plugins
     $code = $plugins->setHook('render_wikiformat_veryearly');
     foreach ( $code as $cmd )
     {
       eval($cmd);
     }
     
+    // Strip out embedded PHP
     self::php_strip($text, $php_stripped);
     
+    // Perform render through the engine
     $carpenter = new Carpenter();
     $carpenter->flags = $flags;
     $carpenter->hook(array(__CLASS__, 'hook_pre'), PO_AFTER, 'lang');
     $carpenter->hook(array(__CLASS__, 'hook_posttemplates'), PO_AFTER, 'templates');
     if ( $flags & RENDER_WIKI_TEMPLATE )
     {
-      // FIXME: process noinclude/nodisplay
+      // FIXME: Where is noinclude/nodisplay being processed in the pipeline? (Seems to be processed, but not here)
     }
     $text = $carpenter->render($text);
     
     // For plugin compat
     $result =& $text;
     
+    // Post processing hook
     $code = $plugins->setHook('render_wikiformat_post');
     foreach ( $code as $cmd )
     {
       eval($cmd);
     }
     
-    /*
-    $text = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '\\1', $text);
-    if ( $paths->namespace == 'Template' )
-    {
-      $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
-    }
-    
-    $text = process_tables($text);
-    */
-    
+    // Add PHP and nowiki back in
     self::nowiki_unstrip($text, $nowiki_stripped);
     self::php_unstrip($text, $php_stripped);
     

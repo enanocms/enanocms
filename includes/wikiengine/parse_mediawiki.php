@@ -133,7 +133,7 @@ class Carpenter_Parse_MediaWiki
       foreach ( $items as $item )
       {
         // get the depth
-        list($itemtoken) = explode(' ', $item);
+        $itemtoken = preg_replace('/[^#:\*].*$/', '', $item);
         // get the text
         $itemtext = trim(substr($item, strlen($itemtoken)));
         $piece['items'][] = array(
@@ -153,30 +153,37 @@ class Carpenter_Parse_MediaWiki
   
   public function paragraph(&$text)
   {
+    // The trick with paragraphs is to not turn things into them when a block level element already wraps the block of text.
+    // First we need a list of block level elements (http://htmlhelp.com/reference/html40/block.html + some Enano extensions)
+    $blocklevel = 'address|blockquote|center|code|div|dl|fieldset|form|h1|h2|h3|h4|h5|h6|hr|li|ol|p|pre|table|ul|tr|td|th|tbody|thead|tfoot';
+    
+    // Wrap all block level tags
+    $text = preg_replace("/<($blocklevel)(?: .+?>|>)(?:(?R)|.*?)<\/\\1>/s", '<_paragraph_bypass>$0</_paragraph_bypass>', $text);
+    
     // This is potentially a hack. It allows the parser to stick in <_paragraph_bypass> tags
     // to prevent the paragraph parser from interfering with pretty HTML generated elsewhere.
     RenderMan::tag_strip('_paragraph_bypass', $text, $_nw);
     
-    // The trick with paragraphs is to not turn things into them when a block level element already wraps the block of text.
-    // First we need a list of block level elements (http://htmlhelp.com/reference/html40/block.html)
-    $blocklevel = 'address|blockquote|center|div|dl|fieldset|form|h1|h2|h3|h4|h5|h6|hr|ol|p|pre|table|ul';
-    
-    $regex = "/^(
-                (?:(?!(?:\\n|[ ]*<(?:{$blocklevel}))))    # condition for starting paragraph: not a newline character or block level element
-                .+?                                       # body text
+    $startcond = "(?!(?:[\\r\\n]|\{_paragraph_bypass:[a-f0-9]{32}:[0-9]+\}|[ ]*<\/?(?:$blocklevel)(?: .+>|>)))";
+    $regex = "/^
+                $startcond        # line start condition - do not match if the line starts with the condition above
+                .+?               # body text
                 (?:
-                  \\n                                     # additional lines in the para
-                  (?:(?!(?:\\n|[ ]*<(?:{$blocklevel}))))  # make sure of only one newline in a row, and no block level elements
+                  \\n             # additional lines
+                  $startcond      # make sure of only one newline in a row, and end the paragraph if a new line fails the start condition
                   .*?
-                )*
-              )$
+                )*                # keep going until it fails
+              $
               /mx";
     
     if ( !preg_match_all($regex, $text, $matches) )
+    {
+      RenderMan::tag_unstrip('_paragraph_bypass', $text, $_nw);
       return array();
+    }
     
     // Debugging :)
-    // die('<pre>' . htmlspecialchars(print_r($matches, true)) . '</pre>');
+    // die('<pre>' . htmlspecialchars($text) . "\n-----------------------------------------------------------\n" . htmlspecialchars(print_r($matches, true)) . '</pre>');
     
     // restore stripped
     RenderMan::tag_unstrip('_paragraph_bypass', $text, $_nw);
