@@ -1,6 +1,13 @@
-addOnloadHook(function()
+var sbedit_load = function()
   {
-    load_component(['jquery', 'jquery-ui']);
+    if ( !window.jQuery )
+    {
+      load_component(['jquery', 'jquery-ui']);
+      // this seems to be the only way to make the sortables init properly
+      // FIXME find out what we're waiting for here, and wait on it the right way
+      window.setTimeout(sbedit_load, 200);
+      return true;
+    }
     $('.sbedit-column').sortable({
       handle: '.sbedit-handle',
       connectWith: '.sbedit-column',
@@ -9,21 +16,37 @@ addOnloadHook(function()
         ajaxUpdateSidebarOrder();
       }
     });
-  });
+  };
+  
+addOnloadHook(sbedit_load);
 
 function serialize_sidebar()
 {
   var columns = {};
   var i = 0;
-  $('.sbedit-column').each(function(i, e)
-    {
-      var arr = $(e).sortable('toArray');
-      for ( var j = 0; j < arr.length; j++ )
-        arr[j] = parseInt(arr[j].replace(/^block:/, ''));
-      
-      i++;
-      columns[i] = arr;
-    });
+  try
+  {
+    $('.sbedit-column').each(function(i, e)
+      {
+        // console.debug(e, ' TOARRAY: ', $(e).sortable('toArray'));
+        var arr = $(e).sortable('toArray');
+        if ( !arr )
+        {
+          console.error('Retrieving order failed!');
+          throw new Exception();
+        }
+          
+        for ( var j = 0; j < arr.length; j++ )
+          arr[j] = parseInt(arr[j].replace(/^block:/, ''));
+        
+        i++;
+        columns[i] = arr;
+      });
+  }
+  catch ( e )
+  {
+    return false;
+  }
   return toJSONString(columns);
 }
 
@@ -261,12 +284,29 @@ function ajaxUpdateSidebarOrder()
 {
   setAjaxLoading();
   var ser = serialize_sidebar();
+  if ( !ser )
+  {
+    var msg = document.createElement('div');
+    $(msg)
+      .addClass('error-box-mini')
+      .text('jQuery failure: returned invalid serialized sidebar data')
+      .css('position', 'fixed')
+      .css('bottom', 1)
+      .appendTo('body')
+      .css('left', ( getWidth() / 2 ) - ( $(msg).width() / 2 ));
+    setTimeout(function()
+      {
+        $(msg).fadeOut(500, function() { $(this).remove(); });
+      }, 1000);
+    unsetAjaxLoading();
+    return false;
+  }
   $.post(makeUrlNS('Special', 'EditSidebar', 'update_order'), { order: ser }, function(response, statustext)
     {
       var msg = document.createElement('div');
       $(msg)
         .addClass('info-box-mini')
-        .text('Sidebar order saved.')
+        .text($lang.get('sbedit_msg_order_saved'))
         .css('position', 'fixed')
         .css('bottom', 1)
         .appendTo('body')

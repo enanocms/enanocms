@@ -1187,6 +1187,7 @@ var enano_lang = {
       msg_block_moved: 'Item moved.',
       msg_block_deleted: 'Item deleted.',
       msg_plugin_not_loaded: 'Plugin isn\'t loaded',
+      msg_order_saved: 'Sidebar order saved.',
       note_block_unnamed: 'Unnamed',
       hint_rename: 'Double-click to rename this block',
       note_block_disabled: '(disabled)',
