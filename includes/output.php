@@ -187,7 +187,7 @@ class Output_HTML extends Output_Base
   {
     global $template;
     $template->assign_vars(array(
-        'PAGE_NAME' => $title
+        'PAGE_NAME' => htmlspecialchars($title)
       ));
   }
 }
