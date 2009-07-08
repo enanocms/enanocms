@@ -308,6 +308,13 @@ class template
       $this->named_theme_list[ $theme['theme_id'] ] =& $this->theme_list[$i];
   }
   
+  /**
+   * Register a new sidebar block.
+   * @param string Block title
+   * @param string Block HTML
+   * @param bool If true, the class of the block will be the same as the one used for blocks that are a list of links instead of HTML content. This can do some wacky things like make all your <a>s block level.
+   */
+  
   function sidebar_widget($t, $h, $use_normal_section = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
