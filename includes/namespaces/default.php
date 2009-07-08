@@ -929,9 +929,30 @@ class Namespace_Default
       $cdata['urlname'] = $cdata['namespace'] . $ns_char . $cdata['urlname'];
     }
     
+    // add missing keys
+    $defaults = array(
+      'special' => 0,
+      'visible' => 0,
+      'comments_on' => 1,
+      'protected' => 0,
+      'delvotes' => 0,
+      'delvote_ips' => serialize(array()),
+      'wiki_mode' => 2,
+      'page_format' => getConfig('default_page_format', 'wikitext')
+    );
+    foreach ( $defaults as $key => $value )
+    {
+      if ( !isset($cdata[$key]) )
+        $cdata[$key] = $value;
+    }
+    
     // fix up deletion votes
     if ( empty($cdata['delvotes']) )
       $cdata['delvotes'] = 0;
+    
+    // fix up deletion vote IP list
+    if ( empty($cdata['delvote_ips']) )
+      $cdata['delvote_ips'] = serialize(array());
     
     // calculate wiki mode
     $cdata['really_wiki_mode'] = ( $cdata['wiki_mode'] == 1 || ( $cdata['wiki_mode'] == 2 && getConfig('wiki_mode', 0) == 1 ) );
