@@ -1,10 +1,9 @@
 // The "Dynano" Javascript framework. Similar in syntax to JQuery but highly Enano-specific (TinyMCE, etc).
 
-var $ = function(id)
+var $dynano = function(id)
 {
   return new DNobj(id);
 }
-var $dynano = $;
 function DNobj(id)
 {
   if ( id == undefined )
