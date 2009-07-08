@@ -304,6 +304,12 @@ div.content a.wikilink-nonexistent:visited {
   color: #906030 !important;
 }
 
+/* I know it's bad to support plugins in core code, but indented paragraphs tend to be specific to themes I designed.
+   This is for consistency between paragraphs and code blocks. */
+div.content pre, pre.geshi_highlighted {
+  margin-left: 0.8em;
+}
+
 /* Inline rename */
 
 input#pageheading {
