@@ -549,7 +549,7 @@ class template
     {
       // we're on a CDN, point to static includes
       // CLI javascript compression script: includes/clientside/jscompress.php
-      $js_head = '<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/enano-lib-basic.js"></script>';
+      $js_head = '';
       
       if ( !empty($this->js_preload) )
       {
@@ -581,6 +581,8 @@ class template
       $loadlines
     </script>";
       }
+      
+      $js_head .= '<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/enano-lib-basic.js"></script>';
       
       $js_foot = <<<JSEOF
     <script type="text/javascript">
