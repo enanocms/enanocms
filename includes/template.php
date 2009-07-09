@@ -549,7 +549,7 @@ class template
     {
       // we're on a CDN, point to static includes
       // CLI javascript compression script: includes/clientside/jscompress.php
-      $js_head = '';
+      $js_head = '<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/enano-lib-basic.js"></script>';
       
       if ( !empty($this->js_preload) )
       {
@@ -560,6 +560,7 @@ class template
         {
           $script = preg_replace('/\.js$/', '', $script) . '.js';
         }
+        unset($script);
         $this->js_preload = array_unique($this->js_preload);
         
         foreach ( $this->js_preload as $script )
@@ -581,8 +582,6 @@ class template
       $loadlines
     </script>";
       }
-      
-      $js_head .= '<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/enano-lib-basic.js"></script>';
       
       $js_foot = <<<JSEOF
     <script type="text/javascript">
