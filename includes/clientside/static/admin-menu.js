@@ -22,9 +22,9 @@
  * licenses/tigra-menu.html document in the Enano distribution.
  */
 
-if ( typeof(readCookie) == 'function' )
+if ( /admin_menu_state=/.test(document.cookie) )
 {
-  var ck = readCookie('admin_menu_state');
+  var ck = (String(document.cookie).match(/admin_menu_state=([0-9]+)/))[1];
   if(ck)
   {
     ck = parseInt(ck);

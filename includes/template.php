@@ -607,23 +607,7 @@ JSEOF;
       <!-- Only load a basic set of functions for now. Let the rest of the API load when the page is finished. -->
       <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php?early"></script>
 JSEOF;
-      }
-      $js_foot = <<<JSEOF
-    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
-    <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php"></script>
-    <script type="text/javascript">//<![CDATA[
-      // This initializes the Javascript runtime when the DOM is ready - not when the page is
-      // done loading, because enano-lib-basic still has to load some 15 other script files
-      // check for the init function - this is a KHTML fix
-      // This doesn't seem to work properly in IE in 1.1.x - there are some problems with
-      // tinyMCE and l10n.
-      if ( typeof ( enano_init ) == 'function' && !IE )
-      {
-        enano_init();
-        window.onload = function(e) {  };
-      }
-    //]]></script>
-JSEOF;
+      $js_foot = '';
       
       if ( !empty($this->js_preload) )
       {
@@ -640,7 +624,27 @@ JSEOF;
         }
         $scripts = implode(',', $this->js_preload);
         $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/jsres.php?f=$scripts\"></script>";
+        
+      }
+      
+      $js_foot .= <<<JSEOF
+    <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
+    <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php"></script>
+    <script type="text/javascript">//<![CDATA[
+      // This initializes the Javascript runtime when the DOM is ready - not when the page is
+      // done loading, because enano-lib-basic still has to load some 15 other script files
+      // check for the init function - this is a KHTML fix
+      // This doesn't seem to work properly in IE in 1.1.x - there are some problems with
+      // tinyMCE and l10n.
+      if ( typeof ( enano_init ) == 'function' && !IE )
+      {
+        enano_init();
+        window.onload = function(e) {  };
+      }
+    //]]></script>
+JSEOF;
     }
+  
     
     $this->assign_bool(array(
         'fixed_menus' => false,

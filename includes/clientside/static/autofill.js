@@ -60,30 +60,6 @@ autofill_schemas.page = {
   }
 }
 
-window.autofill_onload = function()
-{
-  if ( this.loaded )
-  {
-    return true;
-  }
-  
-  var inputs = document.getElementsByClassName('input', 'autofill');
-  
-  if ( inputs.length > 0 )
-  {
-    // we have at least one input that needs to be made an autofill element.
-    // is spry data loaded?
-    load_component('l10n');
-  }
-  
-  this.loaded = true;
-  
-  for ( var i = 0; i < inputs.length; i++ )
-  {
-    autofill_init_element(inputs[i]);
-  }
-}
-
 window.autofill_init_element = function(element, params)
 {
   if ( element.af_initted )
@@ -124,6 +100,32 @@ window.AutofillPage = function(el)
   el.onkeyup = null;
   el.className = 'autofill page';
   autofill_init_element(el, {});
+}
+
+// note: init, then onload (the latter is called automatically)
+
+window.autofill_onload = function()
+{
+  if ( this.loaded )
+  {
+    return true;
+  }
+  
+  var inputs = document.getElementsByClassName('input', 'autofill');
+  
+  if ( inputs.length > 0 )
+  {
+    // we have at least one input that needs to be made an autofill element.
+    // is spry data loaded?
+    load_component('l10n');
+  }
+  
+  this.loaded = true;
+  
+  for ( var i = 0; i < inputs.length; i++ )
+  {
+    autofill_init_element(inputs[i]);
+  }
 }
 
 window.autofill_init = function()

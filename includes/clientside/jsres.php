@@ -40,12 +40,7 @@ if ( !function_exists('microtime_float') )
 $local_start = microtime_float();
 
 // Disable for IE, it causes problems.
-if ( ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') || defined('ENANO_JS_DEBUG') ) && !isset($_GET['early']) )
-{
-  header('HTTP/1.1 302 Redirect');
-  header('Location: static/enano-lib-basic.js');
-  exit();
-}
+$disable_compress = ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') || defined('ENANO_JS_DEBUG') ) && !isset($_GET['early']);
 
 // Setup Enano
 
@@ -135,10 +130,12 @@ $everything = "/* The code represented in this file is compressed for optimizati
 // note - obfuscated for optimization purposes. The exact same code except properly indented is in enano-lib-basic.
 if ( isset($_GET['early']) )
 {
-  header('ETag: enanocms-lib-early-r2');
+  header('ETag: enanocms-lib-early-r3');
   header('Expires: Wed, 1 Jan 2020 00:00:00 GMT');
   
   echo <<<JSEOF
+window.loaded_components = window.loaded_components || {};
+window.onload_complete = false;
 var onload_hooks = new Array();function addOnloadHook(func){if ( typeof ( func ) == 'function' ){if ( typeof(onload_hooks.push) == 'function' ){onload_hooks.push(func);}else{onload_hooks[onload_hooks.length] = func;};};}
 JSEOF;
   
@@ -198,8 +195,9 @@ if ( isset($_GET['f']) )
       $apex = filemtime("includes/clientside/static/$js_file");
       
       $file_contents = file_get_contents("includes/clientside/static/$js_file");
-      $everything .= jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true; if ( onload_complete ) { runOnloadHooks(); onload_hooks = []; };';
+      $everything .= jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true;';
     }
+    $everything .= 'if ( onload_complete ) { console.debug("running hooks from jsres"); runOnloadHooks(); onload_hooks = []; };';
   }
   else
   {
@@ -212,7 +210,7 @@ if ( isset($_GET['f']) )
     $apex = filemtime("includes/clientside/static/$js_file");
     
     $file_contents = file_get_contents("includes/clientside/static/$js_file");
-    $everything = jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true; if ( onload_complete ) { runOnloadHooks(); onload_hooks = []; };';
+    $everything = jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true; if ( onload_complete ) { console.debug("running hooks from jsres"); runOnloadHooks(); onload_hooks = []; };';
   }
 }
 else
@@ -292,6 +290,10 @@ if ( $do_gzip )
 function jsres_cache_check($js_file, $file_contents)
 {
   global $full_compress_safe, $compress_unsafe;
+  global $disable_compress;
+  
+  if ( $disable_compress )
+    return $file_contents;
   
   $file_md5 = md5($file_contents);
   

@@ -592,7 +592,6 @@ var placeholder_list = {
   unselectAllButtonsMinor: 'toolbar.js',
   darken: 'fadefilter.js',
   enlighten: 'fadefilter.js',
-  autofill_onload: 'autofill.js',
   password_score: 'pwstrength.js',
   password_score_field: 'pwstrength.js',
   ajaxEditTheme: 'theme-manager.js',
@@ -601,7 +600,7 @@ var placeholder_list = {
   ajaxInitRankEdit: 'rank-manager.js',
   ajaxInitRankCreate: 'rank-manager.js',
   autofill_init_element: 'autofill.js',
-  autofill_onload: 'autofill.js',
+  autofill_init: 'autofill.js',
   paginator_goto: 'paginate.js'
 };
 
@@ -627,15 +626,16 @@ for ( var i in placeholder_list )
 {
   var file = placeholder_list[i];
   placeholder_instances[i] = new Placeholder(i, file);
-  window[i] = placeholder_instances[i].go;
+  window[i] = window[i] || placeholder_instances[i].go;
 }
 
-$lang = {
+$lang = window.$lang || {
   get: function(a, b)
   {
     load_component('l10n');
     return $lang.get(a, b);
-  }
+  },
+  placeholder: true
 }
 
 //*/
