@@ -2,8 +2,6 @@
  * IE doesn't like display: table.
  */
 
-var TBL_SHOW = ( IE ) ? 'block' : 'table';
-
 function admin_expand()
 {
   var expander = document.getElementById('sidebar-hide');
@@ -84,6 +82,10 @@ function expander_set_pos()
   expander.style.height = barheight + 'px';
 }
 
+addOnloadHook(function()
+  {
+    window.TBL_SHOW = ( IE ) ? 'block' : 'table';
+  });
 addOnloadHook(expander_set_height);
 addOnloadHook(expander_onload);
 window.onresize = expander_set_height;

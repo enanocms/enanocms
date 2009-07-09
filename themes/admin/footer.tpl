@@ -38,7 +38,7 @@
     </tr>
     </table>
     
-    {JS_FOOTER}
     <script type="text/javascript" src="{CDNPATH}/themes/admin/js/menu.js"></script>
+    {JS_FOOTER}
   </body>
 </html>
