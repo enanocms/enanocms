@@ -310,6 +310,20 @@ class Carpenter
   }
   
   /**
+   * Make a rule exclusive (the only one called)
+   * @param string stage
+   * @return null
+   */
+  
+  public function exclusive_rule($rule)
+  {
+    if ( is_string($rule) )
+      $this->rules = array($rule);
+    
+    return null;
+  }
+  
+  /**
    * Generate a token
    * @param int Token index
    * @return string

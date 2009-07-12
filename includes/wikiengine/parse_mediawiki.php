@@ -46,7 +46,7 @@ class Carpenter_Parse_MediaWiki
   {
     $template_regex = "/\{\{(.+)((\n|\|[ ]*([A-z0-9]+)[ ]*=[ ]*(.+))*)\}\}/isU";
     $i = 0;
-    while ( preg_match($template_regex, $text) )
+    while ( preg_match($template_regex, $text, $match) )
     {
       $i++;
       if ( $i == 5 )

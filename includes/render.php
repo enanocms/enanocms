@@ -717,38 +717,54 @@ class RenderMan {
     $input = trim($input);
     if ( $newlinemode )
     {
-      $result = preg_match_all('/
-                                  (?:^|[\s]*)\|?    # start of parameter - string start or series of spaces
-                                  [ ]*              
-                                  (?:               
-                                    ([A-z0-9_]+)    # variable name
-                                    [ ]* = [ ]*     # assignment
-                                  )?                # this is optional - if the parameter name is not given, a numerical index is assigned
-                                  (.+)              # value
-                                /x', trim($input), $matches);
+      // we're going by newlines.
+      // split by parameter, then parse each one individually
+      $input = explode("\n", str_replace("\r", '', $input));
+      $lastparam = '';
+      $i = 0;
+      foreach ( $input as $line )
+      {
+        if ( preg_match('/^ *\|? *([A-z0-9_]+) *= *(.+)$/', $line, $match) )
+        {
+          // new parameter, named
+          $parms[ $match[1] ] = $match[2];
+          $lastparam = $match[1];
+        }
+        else if ( preg_match('/^ *\| *(.+)$/', $line, $match) || $lastparam === '' )
+        {
+          $parms[ $i ] = $match[1];
+          $lastparam = $i;
+          $i++;
+        }
+        else
+        {
+          $parms[ $lastparam ] .= "\n$line";
+        }
+      }
     }
     else
     {
       $result = preg_match_all('/
-                                  (?:^|[ ]*)\|         # start of parameter - string start or series of spaces
-                                  [ ]*
-                                  (?:
-                                    ([A-z0-9_]+)       # variable name
-                                    [ ]* = [ ]*        # assignment
-                                  )?                   # name section is optional - if the parameter name is not given, a numerical index is assigned
-                                  ([^\|]+|.+?\n[ ]*\|) # value
-                                /x', trim($input), $matches);
-    }                   
-    if ( $result )
-    {
-      $pi = 0;
-      for ( $i = 0; $i < count($matches[0]); $i++ )
+                                 (?:^|[ ]*)\|         # start of parameter - string start or series of spaces
+                                 [ ]*
+                                 (?:
+                                   ([A-z0-9_]+)       # variable name
+                                   [ ]* = [ ]*        # assignment
+                                 )?                   # name section is optional - if the parameter name is not given, a numerical index is assigned
+                                 ([^\|]+|.+?\n[ ]*\|) # value
+                               /x', trim($input), $matches);
+      if ( $result )
       {
-        $matches[1][$i] = trim($matches[1][$i]);
-        $parmname = !empty($matches[1][$i]) ? $matches[1][$i] : strval(++$pi);
-        $parms[ $parmname ] = $matches[2][$i];
+        $pi = 0;
+        for ( $i = 0; $i < count($matches[0]); $i++ )
+        {
+          $matches[1][$i] = trim($matches[1][$i]);
+          $parmname = !empty($matches[1][$i]) ? $matches[1][$i] : strval(++$pi);
+          $parms[ $parmname ] = $matches[2][$i];
+        }
       }
     }
+    // die('<pre>' . print_r($parms, true) . '</pre>');
     return $parms;
   }
   
@@ -782,7 +798,7 @@ class RenderMan {
                        /isxU";
     if ( $count = preg_match_all($template_regex, $text, $matches) )
     {
-      //die('<pre>' . print_r($matches, true) . '</pre>');
+      // die('<pre>' . print_r($matches, true) . '</pre>');
       for ( $i = 0; $i < $count; $i++ )
       {
         $matches[1][$i] = sanitize_page_id($matches[1][$i]);
@@ -801,6 +817,38 @@ class RenderMan {
         }
         if ( $tpl_code = RenderMan::fetch_template_text($matches[1][$i]) )
         {
+          // Intelligent paragraphs.
+          // If:
+          //   * A line is fully wrapped in a <p> tag
+          //   * The line contains a variable
+          //   * The variable contains newlines
+          // Then:
+          //   * Drop the <p> tag, replace it fully paragraph-ized by newlines
+          
+          if ( preg_match_all('/^( *)<p(\s.+)?>(.*?\{([A-z0-9]+)\}.*?)<\/p> *$/m', $tpl_code, $paramatch) )
+          {
+            $parser = new Carpenter();
+            $parser->exclusive_rule('paragraph');
+            
+            foreach ( $paramatch[0] as $j => $match )
+            {
+              // $line is trimmed (the <p> is gone)
+              $spacing =& $paramatch[1][$i];
+              $para_attrs =& $paramatch[2][$j];
+              $para_attrs = str_replace(array('$', '\\'), array('\$', '\\\\'), $para_attrs);
+              $line =& $paramatch[3][$j];
+              $varname =& $paramatch[4][$j];
+              if ( isset($parms[$varname]) && strstr($parms[$varname], "\n") )
+              {
+                $newline = str_replace('{' . $varname . '}', $parms[$varname], $line);
+                $paraized = $parser->render($newline);
+                $paraized = preg_replace('/^<p>/m', "$spacing<p{$para_attrs}>", $paraized);
+                $paraized = $spacing . trim($paraized);
+                $tpl_code = str_replace_once($match, $paraized, $tpl_code);
+              }
+            }
+          }
+          
           $parser = $template->makeParserText($tpl_code);
           $parser->assign_vars($parms);
           $text = str_replace($matches[0][$i], $parser->run(), $text);
