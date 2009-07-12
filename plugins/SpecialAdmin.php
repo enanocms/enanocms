@@ -2209,7 +2209,6 @@ EOF;
     
     addOnloadHook(function()
       {
-        console.trace();
         new tree(TREE_ITEMS, TREE_TPL, 'admin_tree');
         keepalive_onload();
       });
@@ -2317,6 +2316,7 @@ function page_Special_EditSidebar()
         ));
     }
     
+    $template->preload_js(array('l10n', 'jquery', 'jquery-ui'));
     $template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/sbedit.js"></script>');
     
     $template->header();

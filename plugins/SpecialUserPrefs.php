@@ -296,7 +296,7 @@ function page_Special_Preferences()
   // This is not templatized because it conforms to the jBox menu standard.
   
   userprefs_show_menu();
-        
+  
   switch ( $section )
   {
     case 'Home':
