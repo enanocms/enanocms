@@ -38,7 +38,7 @@ autofill_schemas.username = {
         },
         tableHeader: '<tr><th>' + $lang.get('user_autofill_heading_suggestions') + '</th></tr>',
         showWhenNoResults: true,
-        noResultsHTML: '<tr><td class="row1" style="font-size: smaller;">' + $lang.get('user_autofill_msg_no_suggestions') + '</td></tr>',
+        noResultsHTML: '<tr><td class="row1" style="font-size: smaller;">' + $lang.get('user_autofill_msg_no_suggestions') + '</td></tr>'
     });
   }
 }
@@ -55,7 +55,7 @@ autofill_schemas.page = {
           return html;
         },
         showWhenNoResults: true,
-        noResultsHTML: '<tr><td class="row1" style="font-size: smaller;">' + $lang.get('user_autofill_msg_no_suggestions') + '</td></tr>',
+        noResultsHTML: '<tr><td class="row1" style="font-size: smaller;">' + $lang.get('user_autofill_msg_no_suggestions') + '</td></tr>'
     });
   }
 }
@@ -491,7 +491,12 @@ window.autofill_init = function()
       
       if ( options.tableHeader )
       {
-        ul.innerHTML = options.tableHeader;
+        // fails in IE6
+        try
+        {
+          ul.innerHTML = options.tableHeader;
+        }
+        catch ( e ) {};
       }
       
       if ( num == 0 )

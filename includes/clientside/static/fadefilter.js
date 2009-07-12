@@ -71,7 +71,7 @@ function darken(nofade, opacVal, layerid)
     thediv.style.filter = 'alpha(opacity=0)';
     thediv.style.backgroundColor = '#000000';
     thediv.style.width =  '100%';
-    thediv.style.height = '100%';
+    thediv.style.height = IE ? h + 'px' : '100%';
     thediv.style.zIndex = getHighestZ() + 1;
     thediv.id = layerid;
     thediv.myOpacVal = opacVal;

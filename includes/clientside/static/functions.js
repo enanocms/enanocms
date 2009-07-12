@@ -940,7 +940,7 @@ function eraseCookie(name) {createCookie(name,"",-1);}
 // Included only for API-compatibility
 function ajaxPromptAdminAuth(call_on_ok, level)
 {
-  ajaxLogonInit(call_on_ok, level);
+  ajaxLoginInit(call_on_ok, level);
 }
 
 /**

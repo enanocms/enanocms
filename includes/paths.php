@@ -491,14 +491,20 @@ class pathManager
     $i = 0;
     $ret = '';
     $icon = $this->make_sprite_icon(4, 2);
-    $icon = addslashes($icon);
-    $ret .= "var TREE_ITEMS = [\n  ['$icon" . $lang->get('adm_btn_home') . "', 'javascript:ajaxPage(\'".$this->nslist['Admin']."Home\');',\n    ";
+    $ret .= "var TREE_ITEMS = ";
+    $tree = array(
+        array($icon . $lang->get('adm_btn_home'), "javascript:ajaxPage('{$this->nslist['Admin']}Home');")
+      );
+    
+    $root =& $tree[0];
+    
     foreach($k as $key)
     {
       $i++;
       $name = $lang->get($key);
-      $ret .= "['".$name."', 'javascript:trees[0].toggle($i)', \n";
-      foreach($this->admin_tree[$key] as $c)
+      $group = array($name, "javascript:trees[0].toggle($i)");
+      
+      foreach($this->admin_tree[$key] as $nodeid => $c)
       {
         $i++;
         $name = $lang->get($c['name']);
@@ -519,20 +525,29 @@ class pathManager
         {
           $icon = '';
         }
-        $icon = addslashes($icon);
-        $ret .= "        ['$icon$name', 'javascript:ajaxPage(\\'".$this->nslist['Admin'].$c['pageid']."\\');'],\n";
+        $group[] = array("$icon$name", "javascript:ajaxPage('{$this->nslist['Admin']}{$c['pageid']}');");
       }
-      $ret .= "      ],\n";
+      
+      $root[] = $group;
     }
     $icon = $this->make_sprite_icon(1, 1);
-    $icon = addslashes($icon);
-    $ret .= "    ['$icon" . $lang->get('adm_btn_logout') . "', 'javascript:ajaxPage(\\'".$this->nslist['Admin']."AdminLogout\\');'],\n";
-    $ret .= "    ['<span id=\\'keepalivestat\\'>" . $lang->get('adm_btn_keepalive_loading') . "</span>', 'javascript:ajaxToggleKeepalive();', 
-                   ['" . $lang->get('adm_btn_keepalive_about') . "', 'javascript:aboutKeepAlive();']
-                 ],\n";
+    $root[] = array(
+        $icon . $lang->get('adm_btn_logout'),
+        "javascript:ajaxPage('{$this->nslist['Admin']}AdminLogout');"
+      );
+    $root[] = array(
+        "<span id=\"keepalivestat\">" . $lang->get('adm_btn_keepalive_loading') . "</span>",
+        "javascript:ajaxToggleKeepalive();",
+        array(
+            $lang->get('adm_btn_keepalive_about'),
+            "javascript:aboutKeepAlive();"
+          )
+      );
+    
+    $ret .= enano_json_encode($tree) . ';';
+    
     // I used this while I painstakingly wrote the Runt code that auto-expands certain nodes based on the value of a bitfield stored in a cookie. *shudders*
     // $ret .= "    ['(debug) Clear menu bitfield', 'javascript:createCookie(\\'admin_menu_state\\', \\'1\\', 365);'],\n";
-    $ret .= "]\n];";
     return $ret;
   }
   

@@ -47,7 +47,7 @@ var enano_tinymce_options = {
   theme_advanced_statusbar_location : 'bottom',
   noneditable_noneditable_class : 'mce_readonly',
   content_css : css_url,
-  spellchecker_rpc_url : scriptPath + '/includes/clientside/tinymce/plugins/spellchecker/rpc.php',
+  spellchecker_rpc_url : scriptPath + '/includes/clientside/tinymce/plugins/spellchecker/rpc.php'
 };
 
 var enano_tinymce_gz_options = {

@@ -1658,7 +1658,7 @@ window.ajaxPluginAction = function(action, plugin_filename, btnobj, send_confirm
                   text: $lang.get('acppl_btn_install'),
                   color: 'red',
                   style: {
-                    fontWeight: 'bold',
+                    fontWeight: 'bold'
                   },
                   onclick: function() {
                     ajaxPluginAction(action + '_confirm', plugin_filename, btnobj, true);

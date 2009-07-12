@@ -197,7 +197,7 @@ if ( isset($_GET['f']) )
       $file_contents = file_get_contents("includes/clientside/static/$js_file");
       $everything .= jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true;';
     }
-    $everything .= 'if ( onload_complete ) { console.debug("running hooks from jsres"); runOnloadHooks(); onload_hooks = []; };';
+    $everything .= 'if ( onload_complete ) { runOnloadHooks(); onload_hooks = []; };';
   }
   else
   {
@@ -210,7 +210,7 @@ if ( isset($_GET['f']) )
     $apex = filemtime("includes/clientside/static/$js_file");
     
     $file_contents = file_get_contents("includes/clientside/static/$js_file");
-    $everything = jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true; if ( onload_complete ) { console.debug("running hooks from jsres"); runOnloadHooks(); onload_hooks = []; };';
+    $everything = jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true; if ( onload_complete ) { runOnloadHooks(); onload_hooks = []; };';
   }
 }
 else
