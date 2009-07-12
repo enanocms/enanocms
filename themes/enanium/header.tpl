@@ -6,6 +6,9 @@
     {JS_DYNAMIC_VARS}
     <link rel="stylesheet" type="text/css" href="{CDNPATH}/includes/clientside/css/enano-shared.css" />
     <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/ie6.css" />
+    <![endif]-->
     {JS_HEADER}
     {ADDITIONAL_HEADERS}
     <script type="text/javascript">//<![CDATA[
