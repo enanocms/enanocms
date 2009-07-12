@@ -1036,7 +1036,7 @@ window.ajaxLoginGetErrorText = function(response)
       }
     case 'invalid_credentials':
       var base = $lang.get('user_err_invalid_credentials');
-      if ( response.respawn_info.locked_out )
+      if ( response.respawn_info.locked_out.locked_out )
       {
         base += ' ';
         var captcha_blurb = '';
@@ -1048,7 +1048,7 @@ window.ajaxLoginGetErrorText = function(response)
           case 'lockout':
             break;
           default:
-            base += 'WTF? Shouldn\'t be locked out with lockout policy set to disable.';
+            base += 'WTF? Shouldn\'t be locked out with lockout policy set to disable. ';
             break;
         }
         base += $lang.get('user_err_locked_out', { 
