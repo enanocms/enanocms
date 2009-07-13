@@ -5,6 +5,7 @@
  */
 
 var darkener_index = [];
+var FADE_TIME = 500; // in ms
 
 function darken(nofade, opacVal, layerid)
 {
@@ -28,14 +29,14 @@ function darken(nofade, opacVal, layerid)
       if ( document.getElementById(layerid).style.display != 'none' )
       {
         var currentOpac = document.getElementById(layerid).myOpacVal;
-        opacity(layerid, currentOpac, opacVal, 1000);
+        opacity(layerid, currentOpac, opacVal, FADE_TIME);
         document.getElementById(layerid).myOpacVal = opacVal;
       }
       else
       {
         document.getElementById(layerid).style.display = 'block';
         document.getElementById(layerid).myOpacVal = opacVal;
-        opacity(layerid, 0, opacVal, 1000);
+        opacity(layerid, 0, opacVal, FADE_TIME);
       }
     }
   }
@@ -86,7 +87,7 @@ function darken(nofade, opacVal, layerid)
       body = document.getElementsByTagName('body');
       body = body[0];
       body.appendChild(thediv);
-      opacity(layerid, 0, opacVal, 1000);
+      opacity(layerid, 0, opacVal, FADE_TIME);
     }
   }
   return document.getElementById(layerid);
@@ -116,7 +117,7 @@ function enlighten(nofade, layerid)
     {
       document.getElementById(layerid).destroying = true;
       var from = document.getElementById(layerid).myOpacVal;
-      opacity(layerid, from, 0, 1000);
+      opacity(layerid, from, 0, FADE_TIME);
       setTimeout("var l = document.getElementById('" + layerid + "'); var b = document.getElementsByTagName('body')[0]; b.removeChild(l);", 1000);
     }
   }

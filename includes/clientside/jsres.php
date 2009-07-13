@@ -13,7 +13,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
  */
 
-// define('ENANO_JS_DEBUG', 1);
+define('ENANO_JS_DEBUG', 1);
 
 // if Enano's already loaded, we've been included from a helper script
 if ( defined('ENANO_CONFIG_FETCHED') )

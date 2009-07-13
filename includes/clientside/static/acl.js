@@ -134,7 +134,7 @@ function ajaxACLSwitchToSelector()
         document.getElementById(aclManagerID+'_main').innerHTML = '';
         document.getElementById(aclManagerID + '_back').style.display = 'none';
         document.getElementById(aclManagerID + '_next').value = $lang.get('etc_wizard_next');
-        groups = parseJSON(ajax.responseText);
+        var groups = parseJSON(ajax.responseText);
         if ( groups.mode == 'error' )
         {
           alert(groups.error);
@@ -196,7 +196,7 @@ function __aclBuildSelector(groups)
   
   selector = document.createElement('div');
   
-  grpsel = __aclBuildGroupsHTML(groups);
+  var grpsel = __aclBuildGroupsHTML(groups);
   grpsel.name = 'group_id';
   
   span = document.createElement('div');
@@ -503,36 +503,55 @@ function __aclJSONSubmitAjaxHandler(params)
                 document.getElementById(aclManagerID+'_main').innerHTML = '';
                 document.getElementById(aclManagerID + '_back').style.display = 'none';
                 document.getElementById(aclManagerID + '_next').value = $lang.get('etc_wizard_next');
-                var thispage = strToPageID(title);
-                groups.page_id = thispage[0];
-                groups.namespace = thispage[1];
-                __aclBuildSelector(groups);
+                ajaxACLSwitchToSelector();
                 
-                note = document.createElement('div');
-                note.className = 'info-box';
-                note.style.marginLeft = '0';
+                // note
+                var note = document.createElement('div');
+                note.className = 'info-box-mini';
+                note.appendChild(document.createTextNode($lang.get('acl_lbl_delete_success')));
+                
+                // button: dismiss note
+                var a_dismiss = document.createElement('a');
+                a_dismiss.href = '#';
+                a_dismiss.onclick = function()
+                {
+                  var p = this.parentNode;
+                  domOpacity(p, 100, 0, 500);
+                  window.setTimeout(function()
+                    {
+                      p.parentNode.removeChild(p);
+                    }, 600);
+                  return false;
+                }
+                a_dismiss.appendChild(document.createTextNode($lang.get('acl_btn_success_dismiss')));
+                note.appendChild(a_dismiss);
+                // add a space
+                note.appendChild(document.createTextNode(' / '));
+                
+                // button: dismiss note
+                var a_close = document.createElement('a');
+                a_close.href = '#';
+                a_close.onclick = function()
+                {
+                  killACLManager();
+                  return false;
+                }
+                a_close.appendChild(document.createTextNode($lang.get('acl_btn_success_close')));
+                note.appendChild(a_close);
+                
+                // style note
+                domObjChangeOpac(note, 0);
                 note.style.position = 'absolute';
-                note.style.width = '558px';
-                note.id = 'aclSuccessNotice_' + Math.floor(Math.random() * 100000);
-                b = document.createElement('b');
-                b.appendChild(document.createTextNode($lang.get('acl_lbl_delete_success_title')));
-                note.appendChild(b);
-                note.appendChild(document.createElement('br'));
-                note.appendChild(document.createTextNode($lang.get('acl_lbl_delete_success_body', { target_name: aclDataCache.target_name })));
-                note.appendChild(document.createElement('br'));
-                a = document.createElement('a');
-                a.href = '#';
-                a.onclick = function() { opacity(this.parentNode.id, 100, 0, 1000); setTimeout('var div = document.getElementById("' + this.parentNode.id + '"); div.parentNode.removeChild(div);', 1100); return false; };
-                a.appendChild(document.createTextNode('[ ' + $lang.get('acl_btn_success_dismiss') + ' :'));
-                note.appendChild(a);
-                a = document.createElement('a');
-                a.href = '#';
-                a.onclick = function() { killACLManager(); return false; };
-                a.appendChild(document.createTextNode(': ' + $lang.get('acl_btn_success_close') + ' ]'));
-                note.appendChild(a);
-                document.getElementById(aclManagerID + '_main').insertBefore(note, document.getElementById(aclManagerID + '_main').firstChild);
-                //fadeInfoBoxes();
+                // icon padding L + icon padding R + icon width + right padding + border width L + border width R
+                note.style.width = ($dynano(aclManagerID + '_main').Width() - ( 5 + 5 + 16 + 4 + 1 + 1 )) + 'px';
                 
+                // make tangible, then calculate height and position right above button panel
+                var panel = document.getElementById(aclManagerID + '_panel');
+                panel.parentNode.parentNode.appendChild(note);
+                note.style.top = '401px';
+                note.style.left = '0px';
+                
+                opacity(note, 0, 100, 500);
               }
             }, true);
             
@@ -664,7 +683,7 @@ function aclBuildRuleEditor(data, from_direct)
 
 function __aclBuildGroupsHTML(groups)
 {
-  groups = groups.groups;
+  var groups = groups.groups;
   select = document.createElement('select');
   for(var i in groups)
   {
@@ -794,7 +813,7 @@ function __aclBuildWizardWindow()
   }
   else
   {
-    setTimeout("document.getElementById('"+aclManagerID+"').style.display = 'block'; opacity('"+aclManagerID+"', 0, 100, 500); opacity('"+aclManagerID + '_panel'+"', 0, 100, 500);", 1000);
+    setTimeout("document.getElementById('"+aclManagerID+"').style.display = 'block'; opacity('"+aclManagerID+"', 0, 100, 250); opacity('"+aclManagerID + '_panel'+"', 0, 100, 250);", 500);
   }
 }
 

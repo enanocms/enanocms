@@ -503,7 +503,7 @@ var enano_lang = {
       thmsel_msg_success: 'Theme changed',
       thmsel_btn_reload: 'Reload page',
       thmsel_btn_close: 'Close selector and reload later',
-      thmsel_btn_close_hint: 'You will see your new theme choice go into effect the next time you refresh this page.',
+      thmsel_btn_close_hint: 'You\'ll see your new theme on the next page reload.',
       
       badjson_title: 'The site encountered an error while processing your request.',
       badjson_body: 'We unexpectedly received the following response from the server. The response should have been in the JSON serialization format, but the response wasn\'t composed only of the JSON response. There are three possible triggers for this problem:',

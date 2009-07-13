@@ -115,8 +115,7 @@ var enano_lang = {
       lbl_deleterule: 'Delete this rule',
       lbl_save_success_title: 'Permissions updated',
       lbl_save_success_body: 'The permissions for %target_name% on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.',
-      lbl_delete_success_title: 'Rule deleted',
-      lbl_delete_success_body: 'The access rules for %target_name% on this page have been deleted.',
+      lbl_delete_success: 'Rule deleted. ',
       lbl_preset_load_title: 'Load a preset',
       lbl_preset_load: 'Select a preset...',
       lbl_preset_save_title: 'Enter a name for this preset',
@@ -149,7 +148,7 @@ var enano_lang = {
       msg_deleterule_confirm: 'Do you really want to delete this rule?',
       msg_closeacl_confirm_title: 'Close the ACL manager?',
       msg_closeacl_confirm_body: 'This will cancel any changes that you haven\'t saved.',
-      msg_deny_everyone_confirm: 'CAUTION: You are setting a Deny ruling for everyone on this site. This will block the selected actions from being performed at all. Do you really want to do this?\n\nPlease also note that the following core pages will not be blocked from being accessed: Special:Login, Special:Logout, and Special:LangExportJSON.',
+      msg_deny_everyone_confirm: 'CAUTION: You are setting a Deny ruling for everyone on this site. This will block the selected actions from being performed at all. Do you really want to do this?\n\nPlease also note that the following core pages cannot be blocked: Special:Login, Special:Logout, and Special:LangExportJSON.',
       
       msg_scale_intro_title: 'Existing ACL rules',
       msg_scale_intro_body: 'This is a list of all the existing ACL rules on your site. You can click an entry to edit it. Selecting the same criteria in the user and group selection page will also allow editing a rule.',
