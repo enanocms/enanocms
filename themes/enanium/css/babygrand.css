@@ -415,11 +415,9 @@ ul.userpage_links li.userpage_tab_active {
 ul.userpage_links li:hover {
   background-image: url('../images/buttonbg-lite.gif');
   border-color: #404040 #404040 #ffffff #404040;
-  border-bottom-width: 0;
 }
 
 ul.userpage_links li.userpage_tab_active:hover {
-  border-bottom-width: 1px;
 }
 
 ul.userpage_links li a:visited, ul.userpage_links li a:hover {

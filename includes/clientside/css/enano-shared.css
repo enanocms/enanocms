@@ -796,42 +796,42 @@ div.rankadmin-right {
  */
  
 div.userpage_wrap {
+  /* Content starts at 4.05em */
   position: relative;
   top: 4em;
   margin-bottom: 4em;
-  border: 1px solid #a0a0a0;
+  border: 0.05em solid #a0a0a0;
 }
 
 ul.userpage_links {
-  position: absolute;
   top: -3.05em;
+  position: absolute;
   padding-left: 10px;
   list-style-type: none !important;
   list-style-image: none !important;
 }
 
 ul.userpage_links li {
+  line-height: 1.85em;
+  border-width: 0.05em 0.05em 0 0.05em;
   float: left;
   margin-right: 5px;
   padding: 0 7px;
-  line-height: 1.9em;
   list-style-type: none !important;
   list-style-image: none !important;
   border-style: solid;
   border-color: #808080;
-  border-width: 1px 1px 0 1px;
 }
 
 ul.userpage_links li.userpage_tab_active {
-  margin-top: -0.2em;
-  line-height: 2.1em;
-  border-width: 1px 1px 1px 1px;
   border-bottom-color: #ffffff;
+  border-bottom-width: 0.05em;
+  line-height: 2.05em;
+  margin-top: -0.2em;
   font-weight: bold;
 }
 
 ul.userpage_links li:hover {
-  border-width: 1px 1px 1px 1px;
   border-bottom-color: #ffffff;
   cursor: pointer;
 }
