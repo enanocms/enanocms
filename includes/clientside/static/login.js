@@ -512,7 +512,7 @@ window.ajaxLoginBuildForm = function(data)
   var div = document.createElement('div');
   div.id = 'ajax_login_form';
   
-  var show_captcha = ( data.locked_out && data.lockout_info.lockout_policy == 'captcha' ) ? data.lockout_info.captcha : false;
+  var show_captcha = ( data.locked_out.locked_out && data.locked_out.lockout_policy == 'captcha' ) ? data.locked_out.captcha : false;
   
   // text displayed on re-auth
   if ( logindata.user_level > USER_LEVEL_MEMBER )
@@ -761,7 +761,7 @@ window.ajaxLoginBuildForm = function(data)
   logindata.loggedin_username = data.username
   
   // Are we locked out? If so simulate an error and disable the controls
-  if ( data.lockout_info.lockout_policy == 'lockout' && data.locked_out )
+  if ( data.lockout_info.lockout_policy == 'lockout' && data.locked_out.locked_out )
   {
     f_username.setAttribute('disabled', 'disabled');
     f_password.setAttribute('disabled', 'disabled');

@@ -656,6 +656,7 @@ class sessionManager {
       return $this->login_compat($username, md5($password), $level);
     }
     
+    // Lockout check
     if ( !defined('IN_ENANO_INSTALL') )
     {
       $lockout_data = $this->get_lockout_info($lockout_data);
@@ -675,8 +676,6 @@ class sessionManager {
         if ( $lockout_data['lockout_fails'] >= $lockout_data['lockout_threshold'] )
         {
           // ooh boy, somebody's in trouble ;-)
-          $row = $db->fetchrow();
-          $db->free_result();
           return array(
               'success' => false,
               'error' => 'locked_out',
@@ -684,12 +683,11 @@ class sessionManager {
               'lockout_duration' => ( $lockout_data['lockout_duration'] ),
               'lockout_fails' => $lockout_data['lockout_fails'],
               'lockout_policy' => $lockout_data['lockout_policy'],
-              'time_rem' => $lockout_data['lockout_time_rem'],
+              'time_rem' => $lockout_data['time_rem'],
               'lockout_last_time' => $lockout_data['lockout_last_time']
             );
         }
       }
-      $db->free_result();
     }
     
     // Instanciate the Rijndael encryption object
@@ -1022,11 +1020,13 @@ class sessionManager {
     $locked_out = false;
     $threshold = ( $_ = getConfig('lockout_threshold') ) ? intval($_) : 5;
     $duration  = ( $_ = getConfig('lockout_duration') ) ? intval($_) : 15;
-    // convert to minutes
+    // convert to seconds
     $duration  = $duration * 60;
+    // decide on policy
     $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
     if ( $policy != 'disable' )
     {
+      // enabled; make decision
       $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
       $timestamp_cutoff = time() - $duration;
       $q = $this->sql('SELECT timestamp FROM ' . table_prefix . 'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
@@ -1040,13 +1040,14 @@ class sessionManager {
           'lockout_fails' => $fails,
           'lockout_policy' => $policy,
           'lockout_last_time' => $row['timestamp'],
-          'time_rem' => ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ),
+          'time_rem' => $locked_out ? ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ) : 0,
           'captcha' => ''
         );
       $db->free_result();
     }
     else
     {
+      // disabled; send back default dataset
       $lockdata = array(
         'locked_out' => false,
         'lockout_threshold' => $threshold,
@@ -4024,6 +4025,7 @@ EOF;
          */
         
         $code = $plugins->setHook('login_process_userdata_json', true);
+        
         foreach ( $code as $cmd )
         {
           $result = eval($cmd);
