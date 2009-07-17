@@ -6,9 +6,7 @@ var aclDataCache = false;
 
 function ajaxOpenACLManager(page_id, namespace)
 {
-  if(IE)
-    return true;
-  
+  // touch these to make them available to child functions
   void(page_id);
   void(namespace);
   
@@ -483,7 +481,14 @@ function __aclJSONSubmitAjaxHandler(params)
             a_close.setAttribute('onclick', 'killACLManager(); return false;');
             
             if ( !document.getElementById(aclManagerID+'_deletelnk') )
-              document.getElementById(aclManagerID + '_main').innerHTML += '<p id="'+aclManagerID+'_deletelnk" style="text-align: right;"><a href="#delete_acl_rule" onclick="if(confirm(\'' + $lang.get('acl_msg_deleterule_confirm') + '\')) __aclDeleteRule(); return false;" style="color: red;">' + $lang.get('acl_lbl_deleterule') + '</a></p>';
+            {
+              var p = document.createElement('p');
+              p.innerHTML = '<a href="#delete_acl_rule" onclick="if(confirm(\'' + $lang.get('acl_msg_deleterule_confirm') + '\')) __aclDeleteRule(); return false;" style="color: red;">' + $lang.get('acl_lbl_deleterule') + '</a>';
+              p.id = aclManagerID + '_deletelnk';
+              p.style.textAlign = 'right';
+              
+              document.getElementById(aclManagerID + '_main').appendChild(p);
+            }
             
             document.getElementById(aclManagerID+'_main').scrollTop = 0;
             document.getElementById(aclManagerID+'_main').style.backgroundImage = 'none';
@@ -702,9 +707,9 @@ function __aclBuildGroupsHTML(groups)
 function __aclBuildWizardWindow()
 {
   darken(aclDisableTransitionFX, 70, 'acldarkener');
-  box = document.createElement('div');
+  var box = document.createElement('div');
   box.style.width = '640px'
-  box.style.height = '440px';
+  box.style.height = IE ? '500px' : '440px';
   box.style.position = 'fixed';
   width = getWidth();
   height = getHeight();
@@ -717,34 +722,42 @@ function __aclBuildWizardWindow()
   box.style.filter = 'alpha(opacity=0)';
   box.style.display = 'none';
   
-  mainwin = document.createElement('div');
+  var mainwin = document.createElement('div');
   mainwin.id = aclManagerID + '_main';
   mainwin.style.clip = 'rect(0px,640px,440px,0px)';
   mainwin.style.overflow = 'auto';
   mainwin.style.width = '620px';
   mainwin.style.height = '420px';
   
-  panel = document.createElement('div');
+  var panel = document.createElement('div');
   panel.style.width = '620px';
   panel.style.padding = '10px';
   panel.style.lineHeight = '40px';
   panel.style.textAlign = 'right';
   panel.style.position = 'fixed';
-  panel.style.left = ( width / 2 - 320 ) + 'px';
-  panel.style.top = ( height / 2 + 190 ) + 'px';
+  if ( IE )
+  {
+    panel.style.left = '0px';
+    panel.style.top = '440px';
+  }
+  else
+  {
+    panel.style.left = ( width / 2 - 320 ) + 'px';
+    panel.style.top = ( height / 2 + 190 ) + 'px';
+  }
   panel.style.backgroundColor = '#D0D0D0';
   panel.style.opacity = '0';
   panel.style.filter = 'alpha(opacity=0)';
   panel.id = aclManagerID + '_panel';
   
-  form = document.createElement('form');
+  var form = document.createElement('form');
   form.method = 'post';
   form.action = 'javascript:void(0)';
   form.onsubmit = function() { if(this.username && !submitAuthorized) return false; __aclSubmitManager(this); return false; };
   form.name = aclManagerID + '_formobj';
   form.id   = aclManagerID + '_formobj_id';
   
-  back = document.createElement('input');
+  var back = document.createElement('input');
   back.type = 'button';
   back.value = $lang.get('etc_wizard_back');
   back.style.fontWeight = 'normal';
@@ -752,13 +765,13 @@ function __aclBuildWizardWindow()
   back.style.display = 'none';
   back.id = aclManagerID + '_back';
   
-  saver = document.createElement('input');
+  var saver = document.createElement('input');
   saver.type = 'submit';
   saver.value = $lang.get('etc_wizard_next');
   saver.style.fontWeight = 'bold';
   saver.id = aclManagerID + '_next';
   
-  closer = document.createElement('input');
+  var closer = document.createElement('input');
   closer.type = 'button';
   closer.value = $lang.get('etc_cancel_changes');
   closer.onclick = function()
@@ -791,8 +804,8 @@ function __aclBuildWizardWindow()
     return false;
   }
   
-  spacer1 = document.createTextNode('  ');
-  spacer2 = document.createTextNode('  ');
+  var spacer1 = document.createTextNode('  ');
+  var spacer2 = document.createTextNode('  ');
   
   panel.appendChild(back);
   panel.appendChild(spacer1);
@@ -803,7 +816,7 @@ function __aclBuildWizardWindow()
   form.appendChild(panel);
   box.appendChild(form);
   
-  body = document.getElementsByTagName('body')[0];
+  var body = document.getElementsByTagName('body')[0];
   body.appendChild(box);
   if ( aclDisableTransitionFX )
   {
@@ -815,6 +828,8 @@ function __aclBuildWizardWindow()
   {
     setTimeout("document.getElementById('"+aclManagerID+"').style.display = 'block'; opacity('"+aclManagerID+"', 0, 100, 250); opacity('"+aclManagerID + '_panel'+"', 0, 100, 250);", 500);
   }
+  
+  console.debug(panel);
 }
 
 function killACLManager()
@@ -837,7 +852,9 @@ function killACLManager()
 
 function __aclSubmitManager(form)
 {
-  var thefrm = document.forms[form.name];
+  console.debug(form);
+  var thefrm = form;
+  // var thefrm = document.forms[form.name];
   var modeobj = form_fetch_field(thefrm, 'mode');
   if ( typeof(modeobj) == 'object' )
   {
@@ -1133,7 +1150,7 @@ function aclSetViewDebugTools()
   main.innerHTML = '';
  
   // set the submission handler to trace
-  var thefrm = document.forms[form.name];
+  var thefrm = document.forms[aclManagerID + '_formobj'];
   var modeobj = form_fetch_field(thefrm, 'mode');
   modeobj.value = 'trace';
   
