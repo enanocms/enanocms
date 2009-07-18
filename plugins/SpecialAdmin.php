@@ -2055,7 +2055,12 @@ function page_Special_Administration()
   
   if ( $session->auth_level < USER_LEVEL_ADMIN )
   {
-    redirect(makeUrlNS('Special', 'Login/'.$paths->page, 'level='.USER_LEVEL_ADMIN), 'Not authorized', 'You need an authorization level of '.USER_LEVEL_ADMIN.' to use this page, your auth level is: ' . $session->auth_level, 0);
+    $query_string = 'level=' . USER_LEVEL_ADMIN;
+    if ( !empty($_SERVER['QUERY_STRING']) )
+    {
+      $query_string .= '&' . trim(preg_replace('/(?:&|^)title=.+?(?:&|$)/', '&', $_SERVER['QUERY_STRING']), '&');
+    }
+    redirect(makeUrlNS('Special', 'Login/'.$paths->page, $query_string), 'Not authorized', 'You need an authorization level of '.USER_LEVEL_ADMIN.' to use this page, your auth level is: ' . $session->auth_level, 0);
     exit;
   }
   else
