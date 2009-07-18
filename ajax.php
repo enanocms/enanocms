@@ -163,6 +163,7 @@
       
       $template->load_theme();
       $return['toolbar_templates'] = $template->extract_vars('toolbar.tpl');
+      $return['edit_notice'] = $template->get_wiki_edit_notice();
       
       echo enano_json_encode($return);
       break;

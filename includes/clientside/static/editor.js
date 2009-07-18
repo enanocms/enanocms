@@ -419,10 +419,10 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
   tblholder.appendChild(metatable);
   
   // Edit disclaimer/notice
-  if ( editNotice ) // This is set globally in {JS_DYNAMIC_VARS}.
+  if ( response.edit_notice )
   {
     var en_div = document.createElement('div');
-    en_div.innerHTML = editNotice;
+    en_div.innerHTML = response.edit_notice;
     en_div.className = 'usermessage';
     en_div.style.margin = '10px 0 0 0';
   }
@@ -445,7 +445,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
   form.innerHTML += '<div style="margin: 10px 0 0 0;">' + toolbar + '</div>';
   edcon.appendChild(form);
   
-  if ( editNotice && !readonly )
+  if ( response.edit_notice && !readonly )
   {
     edcon.appendChild(en_div);
   }

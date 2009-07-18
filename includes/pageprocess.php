@@ -1122,52 +1122,6 @@ class PageProcessor
   }
   
   /**
-   * Pushes to the redirect stack and resets the instance. This depends on the page ID and namespace already being validated and sanitized, and does not check the size of the redirect stack.
-   * @param string Page ID to redirect to
-   * @param string Namespace to redirect to
-   * @access private
-   */
-  
-  /*
-  function _handle_redirect($page_id, $namespace)
-  {
-    global $db, $session, $paths, $template, $plugins; // Common objects
-    global $lang;
-    $arr_pid = array($this->page_id, $this->namespace);
-    if ( $namespace == 'Special' || $namespace == 'Admin' )
-    {
-      return ;
-    }
-    $looped = false;
-    foreach ( $this->redirect_stack as $page )
-    {
-      if ( $page[0] == $arr_pid[0] && $page[1] == $arr_pid[1] )
-      {
-        $looped = true;
-        break;
-      }
-    }
-    if ( $looped )
-    {
-      return ;
-    }
-    $page_id_key = $paths->nslist[ $namespace ] . sanitize_page_id($page_id);
-    if ( !isPage($page_id_key) )
-    {
-      return $lang->get('page_err_redirect_to_nonexistent');
-    }
-    $this->redirect_stack[] = $arr_pid;
-    
-    
-    // Nuke the text cache to avoid infinite loops, gah...
-    $this->text_cache = '';
-    $this->_setup($page_id, $namespace, 0);
-    $this->send();
-    return true;
-  }
-  */
-  
-  /**
    * Send the error message to the user that the access to this page is denied.
    * @access private
    */

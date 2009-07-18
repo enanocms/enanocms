@@ -1232,8 +1232,7 @@ JSEOF;
       var AES_BLOCKSIZE = '.AES_BLOCKSIZE.';
       var pagepass = \''. ( ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '' ) .'\';
       var ENANO_LANG_ID = ' . $lang->lang_id . ';
-      var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";
-      var editNotice = \'' . $this->get_wiki_edit_notice() . '\';';
+      var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";';
     
     foreach($paths->nslist as $k => $c)
     {
@@ -2618,15 +2617,7 @@ EOF;
     if ( getConfig('wiki_edit_notice', 0) != 1 )
       return '';
     
-    if ( $cached = $cache->fetch('wiki_edit_notice') )
-      return $cached;
-    
     $notice = RenderMan::render(getConfig('wiki_edit_notice_text'));
-    $notice = trim($notice);
-    $notice = addslashes($notice);
-    $notice = str_replace("\n\n", "\n", $notice);
-    $notice = str_replace("\n", "\\\n", $notice);
-    $cache->store('wiki_edit_notice', $notice, 60);
     return $notice;
   }
   
