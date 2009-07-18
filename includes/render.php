@@ -206,6 +206,9 @@ class RenderMan {
     // Strip out embedded PHP
     self::php_strip($text, $php_stripped);
     
+    // Convert newlines for the parser
+    $text = str_replace("\r\n", "\n", $text);
+    
     // Perform render through the engine
     $carpenter = new Carpenter();
     $carpenter->flags = $flags;

@@ -1222,7 +1222,6 @@ JSEOF;
       var disable_redirect = ' . ( isset($_GET['redirect']) && $_GET['redirect'] == 'no' ? 'true' : 'false' ) . ';
       var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? 'true' : 'false' ) . ';
       var csrf_token = "' . $session->csrf_token . '";
-      var editNotice = \'' . $this->get_wiki_edit_notice() . '\';
       var prot = ' . ( ($protected) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server
       var ENANO_SPECIAL_CREATEPAGE = \''. makeUrl($paths->nslist['Special'].'CreatePage') .'\';
       var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $this->page_id .'&namespace=' . $this->namespace . '\';
@@ -1233,7 +1232,8 @@ JSEOF;
       var AES_BLOCKSIZE = '.AES_BLOCKSIZE.';
       var pagepass = \''. ( ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '' ) .'\';
       var ENANO_LANG_ID = ' . $lang->lang_id . ';
-      var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";';
+      var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";
+      var editNotice = \'' . $this->get_wiki_edit_notice() . '\';';
     
     foreach($paths->nslist as $k => $c)
     {
@@ -2621,7 +2621,11 @@ EOF;
     if ( $cached = $cache->fetch('wiki_edit_notice') )
       return $cached;
     
-    $notice = str_replace("\n", "\\\n", addslashes(RenderMan::render(getConfig('wiki_edit_notice_text'))));
+    $notice = RenderMan::render(getConfig('wiki_edit_notice_text'));
+    $notice = trim($notice);
+    $notice = addslashes($notice);
+    $notice = str_replace("\n\n", "\n", $notice);
+    $notice = str_replace("\n", "\\\n", $notice);
     $cache->store('wiki_edit_notice', $notice, 60);
     return $notice;
   }
