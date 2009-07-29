@@ -23,7 +23,7 @@ class Namespace_User extends Namespace_Default
     
     if ( ( $this->title == str_replace('_', ' ', $this->page_id) || $this->title == $paths->nslist['User'] . str_replace('_', ' ', $this->page_id) ) || !$this->exists )
     {
-      $this->title = $lang->get('userpage_page_title', array('username' => $this->page_id));
+      $this->title = $lang->get('userpage_page_title', array('username' => str_replace('_', ' ', dirtify_page_id($this->page_id))));
       $this->cdata['name'] = $this->title;
     }
     
