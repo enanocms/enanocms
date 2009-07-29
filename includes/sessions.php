@@ -700,11 +700,12 @@ class sessionManager {
     
     // Retrieve the real password from the database
     $username_db = $db->escape(strtolower($username));
+    $username_db_upper = $db->escape($username);
     if ( !$db->sql_query('SELECT password,password_salt,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix."users\n"
-                       . "  WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db';") )
+                       . "  WHERE ( " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db' OR username = '$username_db_upper' );") )
     {
       $this->sql('SELECT password,\'\' AS password_salt,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix."users\n"
-               . "  WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db';");
+               . "  WHERE ( " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db' OR username = '$username_db_upper' );");
     }
     if ( $db->numrows() < 1 )
     {
