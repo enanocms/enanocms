@@ -22,6 +22,7 @@ class template
   var $page_id = false;
   var $namespace = false;
   var $js_preload = array();
+  var $js_append = '';
   
   /**
    * Page action conditions
@@ -470,6 +471,16 @@ class template
   }
   
   /**
+   * Queue some HTML to be inserted after the Javascript runtime.
+   * @param string HTML glob
+   */
+  
+  function add_header_js($html)
+  {
+    $this->js_append .= "$html\n    ";
+  }
+  
+  /**
    * Global, only-called-once init. Goes to all themes.
    */
   
@@ -557,6 +568,7 @@ class template
         window.onload = function(e) {  };
       }
     </script>
+    $this->js_append
 JSEOF;
     }
     else
@@ -604,6 +616,7 @@ JSEOF;
         window.onload = function(e) {  };
       }
     //]]></script>
+    $this->js_append
 JSEOF;
     }
   
