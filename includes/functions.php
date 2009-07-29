@@ -2512,7 +2512,7 @@ function sanitize_page_id($page_id)
   // Remove character escapes
   $page_id = dirtify_page_id($page_id);
 
-  $pid_clean = preg_replace('/[\w\.\/:;\(\)@\[\]_-]/', 'X', $page_id);
+  $pid_clean = preg_replace('/[\w\.\/:;\(\)@\[\]=_-]/', 'X', $page_id);
   $pid_dirty = enano_str_split($pid_clean, 1);
   
   foreach ( $pid_dirty as $id => $char )
@@ -2577,7 +2577,7 @@ function dirtify_page_id($page_id)
     $char = strtolower($char);
     $char = intval(hexdec($char));
     $char = chr($char);
-    if ( preg_match('/^[\w\.\/:;\(\)@\[\]_-]$/', $char) )
+    if ( preg_match('/^[\w\.\/:;\(\)@\[\]=_-]$/', $char) )
       continue;
     $page_id = str_replace($matches[0][$id], $char, $page_id);
   }

@@ -1771,7 +1771,7 @@ EOF;
         $params = false;
       $escape = !empty($escape);
       
-      $result = makeUrlNS($namespace, $page_id, $params, $escape);
+      $result = makeUrlNS($namespace, sanitize_page_id($page_id), $params, $escape);
       
       if ( !$post_eval )
       {
