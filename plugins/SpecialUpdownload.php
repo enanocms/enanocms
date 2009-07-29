@@ -196,9 +196,9 @@ function page_Special_DownloadFile()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $lang;
   global $do_gzip;
-  $filename = rawurldecode($paths->getParam(0));
+  $filename = $paths->getParam(0);
   $timeid = $paths->getParam(1);
-  if ( $timeid && preg_match('#^([0-9]+)$#', (string)$timeid) )
+  if ( $timeid && ctype_digit((string)$timeid) )
   {
     $tid = ' AND time_id='.$timeid;
   }
@@ -243,7 +243,13 @@ function page_Special_DownloadFile()
     // Determine appropriate width and height
     $width  = ( isset($_GET['width'])  ) ? intval($_GET['width'] ) : 320;
     $height = ( isset($_GET['height']) ) ? intval($_GET['height']) : 320;
-    $cache_filename = ENANO_ROOT . "/cache/{$filename}-{$row['time_id']}-{$width}x{$height}{$row['file_extension']}";
+    
+    // 1.1.7: allow different format output
+    $extension = $row['file_extension'];
+    if ( isset($_GET['fmt']) && in_array($_GET['fmt'], array('png', 'jpg')) )
+      $extension = ".{$_GET['fmt']}";
+    
+    $cache_filename = ENANO_ROOT . "/cache/{$filename}-{$row['time_id']}-{$width}x{$height}$extension";
     if ( file_exists($cache_filename) )
     {
       $fname = $cache_filename;
