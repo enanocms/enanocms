@@ -271,10 +271,7 @@ Sincerely yours,
       
       // CP home
       intro_heading_main: '%username%, welcome to your control panel',
-      intro_para1: 'Here you can make changes to your profile, view statistics on yourself on this site, and set your preferences.',
-      intro_para2: 'Your <a href="%userpage_link%">user page</a> <sup>(<a href="%userpage_link%#do:comments">comments</a>)</sup> is your free writing space. You can use it to tell the other members of this site a little bit about yourself. If you haven\'t already made a user page, why not <a href="%userpage_link%#do:edit">make one now</a>?',
-      intro_para3: 'Use the menu at the top to navigate around. If you have any questions, you may contact the %admin_contact_link%.',
-      intro_para3_admin_link: 'administrator',
+      intro: '<p>Your User Control Panel lets you change settings on the site.</p><p>If you haven\'t created a <a href="%userpage_link%">user page</a> yet, consider doing so - it\'s your free writing space. It\'s also where information you put on this page can be viewed by others. People can also leave <a href="%userpage_link%#do:comments">comments</a> on your user page.</p>',
       
       // E-mail / password change form
       emailpassword_title: 'Change E-mail Address or Password',
