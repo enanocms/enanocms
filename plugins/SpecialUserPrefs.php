@@ -116,7 +116,7 @@ function userprefs_menu_init()
   
   userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_emailpassword', makeUrlNS('Special', 'Preferences/EmailPassword') . '" onclick="ajaxLoginNavTo(\'Special\', \'Preferences/EmailPassword\', '.USER_LEVEL_CHPREF.'); return false;');
   userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_signature', makeUrlNS('Special', 'Preferences/Signature'));
-  userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_publicinfo', makeUrlNS('Special', 'Preferences/Profile'));
+  // userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_publicinfo', makeUrlNS('Special', 'Preferences/Profile'));
   userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_usergroups', makeUrlNS('Special', 'Usergroups'));
   if ( getConfig('avatar_enable') == '1' )
   {
@@ -299,19 +299,6 @@ function page_Special_Preferences()
   
   switch ( $section )
   {
-    case 'Home':
-      global $email;
-      $userpage_id = $paths->nslist['User'] . sanitize_page_id($session->username);
-      $userpage_exists = ( isPage($userpage_id) ) ? '' : ' class="wikilink-nonexistent"';
-      $user_page = makeUrlNS('User', sanitize_page_id($session->username));
-      $site_admin = $email->encryptEmail(getConfig('contact_email'), '', '', $lang->get('usercp_intro_para3_admin_link'));
-      
-      echo '<h3 style="margin-top: 0;">' . $lang->get('usercp_intro_heading_main', array('username' => $session->username)) . '</h3>';
-      
-      echo '<p>' . $lang->get('usercp_intro_para1') . '</p>
-            <p>' . $lang->get('usercp_intro_para2', array('userpage_link' => $user_page)) . '</p>
-            <p>' . $lang->get('usercp_intro_para3', array('admin_contact_link' => $site_admin)) . '</p>';
-      break;
     case 'EmailPassword':
       
       $errors = trim($errors);
@@ -380,6 +367,18 @@ function page_Special_Preferences()
       echo '</form>';
       break;
     case "Profile":
+    case 'Home':
+      
+      global $email;
+      $userpage_id = $paths->nslist['User'] . sanitize_page_id($session->username);
+      $userpage_exists = ( isPage($userpage_id) ) ? '' : ' class="wikilink-nonexistent"';
+      $user_page = makeUrlNS('User', sanitize_page_id($session->username));
+      $site_admin = $email->encryptEmail(getConfig('contact_email'), '', '', $lang->get('usercp_intro_para3_admin_link'));
+      
+      echo '<h3 style="margin-top: 0;">' . $lang->get('usercp_intro_heading_main', array('username' => $session->username)) . '</h3>';
+      
+      echo  $lang->get('usercp_intro', array('userpage_link' => $user_page));
+      
       $available_ranks = $session->get_user_possible_ranks($session->user_id);
       $current_rank = $session->get_user_rank($session->user_id);
       
