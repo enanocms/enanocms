@@ -98,7 +98,7 @@ var AJAX_STATE_LOADING_KEY = 2;
  * @var bool
  */
 
-var ajax_login_prevent_dh = IE || is_iPhone;
+var ajax_login_prevent_dh = IE || ( is_iPhone && !is_iPhone_3 );
 
 /**
  * Performs the AJAX request to get an encryption key and from there spawns the login form.

@@ -50,14 +50,15 @@ var is_Safari;
 function checkIt(string) {
   place = detect.indexOf(string) + 1;
   thestring = string;
-  return place;
+  return place ? true : false;
 }
 if (checkIt('msie')) IE = true;
 else IE = false;
 
-var is_Opera = ( checkIt('opera') ) ? true : false;
-var is_iPhone = ( checkIt('iphone') || checkIt('ipod') ) ? true : false;
-var is_firefox2 = ( checkIt('firefox/2.') ) ? true : false;
+var is_Opera = checkIt('opera') ? true : false;
+var is_iPhone = checkIt('iphone') || checkIt('ipod');
+var is_iPhone_3 = checkIt('iphone os 3_');
+var is_firefox2 = checkIt('firefox/2.');
 
 var KILL_SWITCH = false;
 
