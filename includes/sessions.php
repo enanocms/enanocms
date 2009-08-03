@@ -1397,7 +1397,7 @@ class sessionManager {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $ou = $this->username;
     $oid = $this->user_id;
-    if($level > USER_LEVEL_CHPREF)
+    if($level > USER_LEVEL_MEMBER)
     {
       $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
       if(!$this->user_logged_in || $this->auth_level < ( USER_LEVEL_MEMBER + 1))
@@ -1416,7 +1416,7 @@ class sessionManager {
       {
         $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
         // Completely destroy our session
-        if($this->auth_level > USER_LEVEL_CHPREF)
+        if($this->auth_level > USER_LEVEL_MEMBER)
         {
           $this->logout(USER_LEVEL_ADMIN);
         }
