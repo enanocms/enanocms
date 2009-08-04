@@ -17,19 +17,16 @@
  
   define('ENANO_INTERFACE_INDEX', '');
   
-  // For the mighty and brave.
-  // define('ENANO_DEBUG', '');
- 
+  // start up Enano
+  require('includes/common.php');
+  
+  // decide on HTML compacting
+  $aggressive_optimize_html = !defined('ENANO_DEBUG') && !isset($_GET['nocompress']);
+  
   // Set up gzip encoding before any output is sent
-  
-  $aggressive_optimize_html = true;
-  
   global $do_gzip;
   // FIXME: make this configurable
-  $do_gzip = true;
-  
-  if ( isset($_GET['nocompress']) )
-    $aggressive_optimize_html = false;
+  $do_gzip = !defined('ENANO_DEBUG');
   
   error_reporting(E_ALL);
   
@@ -37,9 +34,6 @@
   {
     ob_start();
   }
-  
-  // start up Enano
-  require('includes/common.php');
   
   global $db, $session, $paths, $template, $plugins; // Common objects
   $page_timestamp = time();
