@@ -312,12 +312,13 @@ class RenderMan {
    * @access private
    */
   
-  public static function tag_unstrip($tag, &$text, &$stripdata)
+  public static function tag_unstrip($tag, &$text, &$stripdata, $keep = false)
   {
     $random_id = $stripdata['random_id'];
     
     foreach ( $stripdata['blocks'] as $i => $block )
     {
+      $block = $keep ? "<$tag>$block</$tag>" : $block;
       $text = str_replace("{{$tag}:{$random_id}:{$i}}", $block, $text);
     }
     

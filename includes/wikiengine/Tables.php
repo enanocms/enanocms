@@ -67,7 +67,7 @@ function doTableStuff( $t ) {
       $attributes = unstripForHTML( $matches[2] );
 
       $t[$k] = str_repeat( '<dl><dd>', $indent_level ) .
-        '<_paragraph_bypass><table' . fixTagAttributes( $attributes, 'table' ) . '>' ;
+        '<table' . fixTagAttributes( $attributes, 'table' ) . '>' ;
       array_push ( $td , false ) ;
       array_push ( $ltd , '' ) ;
       array_push ( $tr , false ) ;
@@ -76,7 +76,7 @@ function doTableStuff( $t ) {
     }
     else if ( count ( $td ) == 0 ) { } # Don't do any of the following
     else if ( '|}' == substr ( $x , 0 , 2 ) ) {
-      $z = "</table></_paragraph_bypass>" . substr ( $x , 2);
+      $z = "</table>" . substr ( $x , 2);
       $l = array_pop ( $ltd ) ;
       if ( !array_pop ( $has_opened_tr ) ) $z = "<tr><td></td></tr>" . $z ;
       if ( array_pop ( $tr ) ) $z = '</tr>' . $z ;

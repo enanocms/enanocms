@@ -21,7 +21,7 @@ class Carpenter_Render_Xhtml
     'italic' => '<em>\\1</em>',
     'underline' => '<span style="text-decoration: underline;">\\1</span>',
     'externalwithtext' => '<a href="\\1" onclick="window.open(this.href); return false;">\\2</a>',
-    'externalnotext' => '<a href="\\1" onclick="window.open(this.href); return false;">\\1</a>',
+    'externalnotext' => '<a href="\\1" onclick="window.open(this.href); return false;">\\1</a>'
   );
   
   public function heading($text, $pieces)
@@ -60,7 +60,7 @@ class Carpenter_Render_Xhtml
           $itag = 'dd';
           break;
       }
-      $list = "<$btag>\n";
+      $list = "<_paragraph_bypass><$btag>\n";
       $spacing = '';
       $depth = 1;
       foreach ( $piece['items'] as $j => $item )
@@ -108,8 +108,17 @@ class Carpenter_Render_Xhtml
         $spacing = substr($spacing, 4);
         $depth--;
       }
-      $list .= "</$btag>\n";
+      $list .= "</$btag></_paragraph_bypass>\n";
       $text = str_replace(Carpenter::generate_token($i), $list, $text);
+    }
+    return $text;
+  }
+  
+  public function blockquote($text, $pieces)
+  {
+    foreach ( $pieces as $i => $piece )
+    {
+      $text = str_replace(Carpenter::generate_token($i), "<blockquote>\n" . nl2br($piece) . "\n</blockquote>\n", $text);
     }
     return $text;
   }

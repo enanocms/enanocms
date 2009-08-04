@@ -133,7 +133,7 @@ class Carpenter_Parse_MediaWiki
       foreach ( $items as $item )
       {
         // get the depth
-        $itemtoken = preg_replace('/[^#:\*].*$/', '', $item);
+        $itemtoken = preg_replace('/^([#:\*]+).*$/s', '$1', $item);
         // get the text
         $itemtext = trim(substr($item, strlen($itemtoken)));
         $piece['items'][] = array(
@@ -142,12 +142,24 @@ class Carpenter_Parse_MediaWiki
             'text' => $itemtext
           );
       }
-      
       $pieces[] = $piece;
     }
     
     $text = Carpenter::tokenize($text, $lists[0]);
     
+    return $pieces;
+  }
+  
+  public function blockquote(&$text)
+  {
+    if ( !preg_match_all('/^(?:(>+) *.+(?:\r?\n|$))+/m', $text, $quotes) )
+      return array();
+   
+    $pieces = array();
+    foreach ( $quotes[0] as $quote )
+      $pieces[] = "\t" . trim(preg_replace('/^>+ */m', "\t", $quote));
+    
+    $text = Carpenter::tokenize($text, $quotes[0]);
     return $pieces;
   }
   
@@ -158,7 +170,9 @@ class Carpenter_Parse_MediaWiki
     $blocklevel = 'address|blockquote|center|code|div|dl|fieldset|form|h1|h2|h3|h4|h5|h6|hr|li|ol|p|pre|table|ul|tr|td|th|tbody|thead|tfoot';
     
     // Wrap all block level tags
+    RenderMan::tag_strip('_paragraph_bypass', $text, $_nw);
     $text = preg_replace("/<($blocklevel)(?: .+?>|>)(?:(?R)|.*?)<\/\\1>/s", '<_paragraph_bypass>$0</_paragraph_bypass>', $text);
+    RenderMan::tag_unstrip('_paragraph_bypass', $text, $_nw, true);
     
     // This is potentially a hack. It allows the parser to stick in <_paragraph_bypass> tags
     // to prevent the paragraph parser from interfering with pretty HTML generated elsewhere.
