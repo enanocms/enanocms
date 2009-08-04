@@ -620,12 +620,16 @@ window.ajaxLoginBuildForm = function(data)
   // Done building the main part of the form
   form.appendChild(table);
   
+  // Checkbox container
+  var boxen = document.createElement('div');
+  boxen.style.textAlign = 'center';
+  boxen.style.padding = '7px 0';
+  
   // Field: remember login
   if ( logindata.user_level <= USER_LEVEL_MEMBER )
   {
     var lbl_remember = document.createElement('label');
     lbl_remember.style.fontSize = 'smaller';
-    lbl_remember.style.display = 'block';
     lbl_remember.style.textAlign = 'center';
     
     // figure out what text to put in the "remember me" checkbox
@@ -670,18 +674,24 @@ window.ajaxLoginBuildForm = function(data)
     lbl_remember.appendChild(check_remember);
     lbl_remember.innerHTML += ' ' + txt_remember;
     
-    form.appendChild(lbl_remember);
+    boxen.appendChild(lbl_remember);
   }
+  
+  var bullet = document.createElement('span');
+  bullet.innerHTML = '&nbsp;';
+  bullet.style.fontSize = '12pt';
+  bullet.style.borderRight = '1px solid #aaa';
+  bullet.style.margin = '0 6px 0 4px';
   
   // Field: enable Diffie Hellman
   if ( ajax_login_prevent_dh )
   {
+    boxen.appendChild(bullet);
     var lbl_dh = document.createElement('span');
     lbl_dh.style.fontSize = 'smaller';
-    lbl_dh.style.display = 'block';
     lbl_dh.style.textAlign = 'center';
     lbl_dh.innerHTML = $lang.get('user_login_ajax_check_dh_ie');
-    form.appendChild(lbl_dh);
+    boxen.appendChild(lbl_dh);
   }
   else if ( !data.allow_diffiehellman )
   {
@@ -689,13 +699,14 @@ window.ajaxLoginBuildForm = function(data)
     var check_dh = document.createElement('input');
     check_dh.type = 'hidden';
     check_dh.id = 'ajax_login_field_dh';
-    form.appendChild(check_dh);
+    boxen.appendChild(check_dh);
   }
   else
   {
+    boxen.appendChild(bullet);
+    
     var lbl_dh = document.createElement('label');
     lbl_dh.style.fontSize = 'smaller';
-    lbl_dh.style.display = 'block';
     lbl_dh.style.textAlign = 'center';
     var check_dh = document.createElement('input');
     check_dh.type = 'checkbox';
@@ -706,8 +717,10 @@ window.ajaxLoginBuildForm = function(data)
     check_dh.id = 'ajax_login_field_dh';
     lbl_dh.appendChild(check_dh);
     lbl_dh.innerHTML += ' ' + $lang.get('user_login_ajax_check_dh');
-    form.appendChild(lbl_dh);
+    boxen.appendChild(lbl_dh);
   }
+  
+  form.appendChild(boxen);
   
   if ( IE )
   {
@@ -722,17 +735,16 @@ window.ajaxLoginBuildForm = function(data)
   // (only displayed in login, not in re-auth)
   if ( logindata.user_level == USER_LEVEL_MEMBER )
   {
-    form.style.marginBottom = '10px';
     var links = document.createElement('small');
     links.style.display = 'block';
     links.style.textAlign = 'center';
     links.innerHTML = '';
     if ( !show_captcha )
-      links.innerHTML += $lang.get('user_login_ajax_link_fullform', { link_full_form: makeUrlNS('Special', 'Login/' + title) }) + '<br />';
+      links.innerHTML += $lang.get('user_login_ajax_link_fullform', { link_full_form: makeUrlNS('Special', 'Login/' + title) }) + ' &bull; ';
     // Always shown
-    links.innerHTML += $lang.get('user_login_ajax_link_forgotpass', { forgotpass_link: makeUrlNS('Special', 'PasswordReset') }) + '<br />';
+    links.innerHTML += $lang.get('user_login_ajax_link_forgotpass', { forgotpass_link: makeUrlNS('Special', 'PasswordReset') }) + ' &bull; ';
     if ( !show_captcha )
-      links.innerHTML += $lang.get('user_login_createaccount_blurb', { reg_link: makeUrlNS('Special', 'Register') });
+      links.innerHTML += $lang.get('user_login_ajax_createaccount_blurb', { reg_link: makeUrlNS('Special', 'Register') });
     div.appendChild(links);
   }
   
