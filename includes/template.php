@@ -2840,7 +2840,8 @@ class templateIndividual extends template
    * @param $vars array
    */
   
-  function assign_vars($vars)
+  // We add the unused variable $from_internal here to silence "declaration should be compatible" errors
+  function assign_vars($vars, $from_internal = false)
   {
     $this->tpl_strings = array_merge($this->tpl_strings, $vars);
   }
@@ -2850,7 +2851,8 @@ class templateIndividual extends template
    * @param $vars array
    */
   
-  function assign_bool($vars)
+  // We add the unused variable $from_internal here to silence "declaration should be compatible" errors
+  function assign_bool($vars, $from_internal = false)
   {
     $this->tpl_bool = array_merge($this->tpl_bool, $vars);
   }

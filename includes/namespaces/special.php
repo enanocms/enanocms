@@ -82,7 +82,8 @@ class Namespace_Special extends Namespace_Default
     }
   }
   
-  function error_404()
+  // We add the unused variable $userpage here to silence "declaration should be compatible" errors
+  function error_404($userpage = false)
   {
     global $lang, $output;
     $func_name = "page_{$this->namespace}_{$this->page_id}";
