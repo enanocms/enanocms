@@ -686,7 +686,10 @@ window.ajaxLoginBuildForm = function(data)
   // Field: enable Diffie Hellman
   if ( ajax_login_prevent_dh )
   {
-    boxen.appendChild(bullet);
+    if ( logindata.user_level <= USER_LEVEL_MEMBER )
+      // only show this if both checkboxes are visible
+      boxen.appendChild(bullet);
+      
     var lbl_dh = document.createElement('span');
     lbl_dh.style.fontSize = 'smaller';
     lbl_dh.style.textAlign = 'center';
@@ -703,7 +706,9 @@ window.ajaxLoginBuildForm = function(data)
   }
   else
   {
-    boxen.appendChild(bullet);
+    if ( logindata.user_level <= USER_LEVEL_MEMBER )
+      // only show this if both checkboxes are visible
+      boxen.appendChild(bullet);
     
     var lbl_dh = document.createElement('label');
     lbl_dh.style.fontSize = 'smaller';
