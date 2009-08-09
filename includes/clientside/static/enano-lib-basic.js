@@ -52,10 +52,10 @@ function checkIt(string) {
   thestring = string;
   return place ? true : false;
 }
-if (checkIt('msie')) IE = true;
-else IE = false;
 
-var is_Opera = checkIt('opera') ? true : false;
+var IE = checkIt('msie');
+var IE_8 = checkIt('msie 8.');
+var is_Opera = checkIt('opera');
 var is_iPhone = checkIt('iphone') || checkIt('ipod');
 var is_iPhone_3 = checkIt('iphone os 3_');
 var is_firefox2 = checkIt('firefox/2.');

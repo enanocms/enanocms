@@ -98,7 +98,7 @@ var AJAX_STATE_LOADING_KEY = 2;
  * @var bool
  */
 
-var ajax_login_prevent_dh = IE || ( is_iPhone && !is_iPhone_3 );
+var ajax_login_prevent_dh = ( IE && !IE_8 ) || ( is_iPhone && !is_iPhone_3 );
 
 /**
  * Performs the AJAX request to get an encryption key and from there spawns the login form.
@@ -341,7 +341,7 @@ window.ajaxLoginSetStatus = function(status)
       var detail_msg = $lang.get('user_login_ajax_err_crypto_details');
       var full_link = $lang.get('user_login_ajax_err_crypto_link');
       var link = document.createElement('a');
-      link.href = makeUrlNS('Special', 'Login/' + title);
+      link.href = makeUrlNS('Special', 'Login/' + title, 'level=' + logindata.user_level, true);
       link.appendChild(document.createTextNode(full_link));
       var span = document.createElement('span');
       span.style.fontSize = 'smaller';
