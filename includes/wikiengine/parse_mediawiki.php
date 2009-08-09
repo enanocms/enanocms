@@ -22,6 +22,8 @@ class Carpenter_Parse_MediaWiki
     'externalnotext' => '#\[((?:https?|irc|ftp)://.+?)\]#'
   );
   
+  private $blockquote_rand_id;
+  
   public function lang(&$text)
   {
     global $lang;
@@ -152,15 +154,24 @@ class Carpenter_Parse_MediaWiki
   
   public function blockquote(&$text)
   {
-    if ( !preg_match_all('/^(?:(>+) *.+(?:\r?\n|$))+/m', $text, $quotes) )
-      return array();
-   
-    $pieces = array();
-    foreach ( $quotes[0] as $quote )
-      $pieces[] = "\t" . trim(preg_replace('/^>+ */m', "\t", $quote));
+    $rand_id = hexencode(AESCrypt::randkey(16), '', '');
     
-    $text = Carpenter::tokenize($text, $quotes[0]);
-    return $pieces;
+    while ( preg_match_all('/^(?:(>+) *.+(?:\r?\n|$))+/m', $text, $quotes) )
+    {
+      foreach ( $quotes[0] as $quote )
+      {
+        $piece = trim(preg_replace('/^> */m', '', $quote));
+        $text = str_replace_once($quote, "{blockquote:$rand_id}\n$piece\n{/blockquote:$rand_id}\n", $text);
+      }
+    }
+    //die('<pre>' . htmlspecialchars($text) . '</pre>');
+    
+    $this->blockquote_rand_id = $rand_id;
+  }
+  
+  public function blockquotepost(&$text)
+  {
+    return $this->blockquote_rand_id;
   }
   
   public function paragraph(&$text)

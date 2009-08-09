@@ -60,11 +60,11 @@ class Carpenter
   private $rules = array(
       'lang',
       'templates',
+      'blockquote',
       'tables',
       'heading',
       // note: can't be named list ("list" is a PHP language construct)
       'multilist',
-      'blockquote',
       'bold',
       'italic',
       'underline',
@@ -72,7 +72,8 @@ class Carpenter
       'externalnotext',
       'image',
       'internallink',
-      'paragraph'
+      'paragraph',
+      'blockquotepost'
     );
   
   /**

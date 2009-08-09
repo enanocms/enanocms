@@ -114,12 +114,23 @@ class Carpenter_Render_Xhtml
     return $text;
   }
   
-  public function blockquote($text, $pieces)
+  public function blockquote($text)
   {
-    foreach ( $pieces as $i => $piece )
-    {
-      $text = str_replace(Carpenter::generate_token($i), "<blockquote>\n" . nl2br($piece) . "\n</blockquote>\n", $text);
-    }
+    return $text;
+  }
+  
+  public function blockquotepost($text, $rand_id)
+  {
+    $text = strtr($text, array(
+        "<p>{blockquote:$rand_id}<br />"  => '<blockquote>',
+        "<br />\n{/blockquote:$rand_id}</p>" => '</blockquote>',
+        "{blockquote:$rand_id}"  => '<blockquote>',
+        "{/blockquote:$rand_id}" => '</blockquote>'
+      ));
+    $text = strtr($text, array(
+        "<blockquote><br />" => '<blockquote>',
+        "</blockquote><br />" => '</blockquote>'
+      ));
     return $text;
   }
   
