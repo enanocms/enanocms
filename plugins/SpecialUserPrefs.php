@@ -212,11 +212,10 @@ function page_Special_Preferences()
             $db->_die();
           $row = $db->fetchrow();
           $db->free_result();
-          $old_pass = $session->pk_decrypt($row['password'], ENC_HEX);
           
           $new_email = $_POST['newemail'];
           
-          $result = $session->update_user($session->user_id, false, $old_pass, false, $new_email);
+          $result = $session->change_email($session->user_id, $new_email);
           if ( $result != 'success' )
           {
             $message = '<p>' . $lang->get('usercp_emailpassword_err_list') . '</p>';
@@ -226,9 +225,9 @@ function page_Special_Preferences()
           $email_changed = true;
         }
         // Obtain password
-        if ( !empty($_POST['crypt_data']) || !empty($_POST['newpass']) )
+        if ( !empty($_POST['crypt_data']) || !empty($_POST['newpass']) || $session->password_change_disabled )
         {
-          $newpass = $session->get_aes_post('newpass');
+          $newpass = $session->password_change_disabled ? '' : $session->get_aes_post('newpass');
           // At this point we know if we _want_ to change the password...
           
           // We can't check the password to see if it matches the confirmation
@@ -274,9 +273,30 @@ function page_Special_Preferences()
                   redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
                 }
               }
-              $session->login_without_crypto($session->username, $newpass);
+              $session->login_without_crypto($username, $newpass);
               redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_pass_success'), $lang->get('usercp_emailpassword_msg_password_changed'), 5);
             }
+          }
+          else if ( $email_changed )
+          {
+            $session->logout(USER_LEVEL_CHPREF);
+            $activation = $session->user_level >= USER_LEVEL_MOD ? 'none' : getConfig('account_activation', 'none');
+            switch($activation)
+            {
+              default:
+                $message_body = $lang->get('usercp_emailpassword_msg_password_changed');
+                $timeout = 5;
+                break;
+              case 'admin':
+                $message_body = $lang->get('usercp_emailpassword_msg_need_activ_user');
+                $timeout = 20;
+                break;
+              case 'user':
+                $message_body = $lang->get('usercp_emailpassword_msg_need_activ_admin');
+                $timeout = 20;
+                break;
+            }
+            redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_email_success'), $message_body, $timeout);
           }
         }
       }
@@ -308,20 +328,32 @@ function page_Special_Preferences()
       }
       
       echo '<form action="' . makeUrlNS('Special', 'Preferences/EmailPassword') . '" method="post" onsubmit="return runEncryption();" name="empwform" >';
+      echo '<fieldset>';
+      echo '<legend>' . $lang->get('usercp_emailpassword_grp_chpasswd') . '</legend>';
       
       // Password change form
+      if ( $session->password_change_disabled )
+      {
+        echo '<p>' . $lang->get('usercp_emailpassword_msg_change_disabled') . '</p>';
+        if ( $session->password_change_dest['url'] )
+        {
+          echo '<p>' . $lang->get('usercp_emailpassword_msg_change_disabled_url') . '
+                   <a onclick="window.open(this.href); return false;" href="' . htmlspecialchars($session->password_change_dest['url']) . '">' . htmlspecialchars($session->password_change_dest['title']) . '</a></p>';
+        }
+      }
+      else
+      {
+      echo $lang->get('usercp_emailpassword_field_newpass') . '<br />
+                <input type="password" name="newpass" size="30" tabindex="1" ' . ( getConfig('pw_strength_enable') == '1' ? 'onkeyup="password_score_field(this);" ' : '' ) . '/>' . ( getConfig('pw_strength_enable') == '1' ? '<span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span>' : '' ) . '
+              <br />
+              <br />
+              ' . $lang->get('usercp_emailpassword_field_newpass_confirm') . '<br />
+              <input type="password" name="newpass_confirm" size="30" tabindex="2" />
+              ' . ( getConfig('pw_strength_enable') == '1' ? '<br /><br /><div id="pwmeter"></div>
+              <small>' . $lang->get('usercp_emailpassword_msg_password_min_score') . '</small>' : '' );
+      }
+      echo '</fieldset><br />';
       echo '<fieldset>
-        <legend>' . $lang->get('usercp_emailpassword_grp_chpasswd') . '</legend>
-        ' . $lang->get('usercp_emailpassword_field_newpass') . '<br />
-          <input type="password" name="newpass" size="30" tabindex="1" ' . ( getConfig('pw_strength_enable') == '1' ? 'onkeyup="password_score_field(this);" ' : '' ) . '/>' . ( getConfig('pw_strength_enable') == '1' ? '<span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span>' : '' ) . '
-        <br />
-        <br />
-        ' . $lang->get('usercp_emailpassword_field_newpass_confirm') . '<br />
-        <input type="password" name="newpass_confirm" size="30" tabindex="2" />
-        ' . ( getConfig('pw_strength_enable') == '1' ? '<br /><br /><div id="pwmeter"></div>
-        <small>' . $lang->get('usercp_emailpassword_msg_password_min_score') . '</small>' : '' ) . '
-      </fieldset><br />
-      <fieldset>
         <legend>' . $lang->get('usercp_emailpassword_grp_chemail') . '</legend>
         ' . $lang->get('usercp_emailpassword_field_newemail') . '<br />
           <input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail" size="30" tabindex="3" />
@@ -333,12 +365,14 @@ function page_Special_Preferences()
       <br />
       <div style="text-align: right;"><input type="submit" name="submit" value="' . $lang->get('etc_save_changes') . '" tabindex="5" /></div>';
       
-      echo $session->generate_aes_form();
+      if ( !$session->password_change_disabled )
+        echo $session->generate_aes_form();
+      
       echo '</form>';
       
       // ENCRYPTION CODE
       ?>
-      <?php if ( getConfig('pw_strength_enable') == '1' ): ?>
+      <?php if ( !$session->password_change_disabled && getConfig('pw_strength_enable') == '1' ): ?>
       <script type="text/javascript">
       addOnloadHook(function()
         {

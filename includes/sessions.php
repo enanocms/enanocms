@@ -172,6 +172,20 @@ class sessionManager {
   var $csrf_token = false;
   
   /**
+   * Password change disabled, for auth plugins
+   * @var bool
+   */
+  
+  var $password_change_disabled = false;
+  
+  /**
+   * Password change page URL + title, for auth plugins
+   * @var array
+   */
+  
+  var $password_change_dest = array('url' => '', 'title' => '');
+  
+  /**
    * Switch to track if we're started or not.
    * @access private
    * @var bool
@@ -923,7 +937,16 @@ class sessionManager {
     }
     else
     {
-      $session_key = hmac_sha1($password_hmac, $salt);
+      $key_pieces = array($password_hmac);
+      $sk_mode = 'generate';
+      $code = $plugins->setHook('session_key_calc');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      $key_pieces = implode("\xFF", $key_pieces);
+      
+      $session_key = hmac_sha1($key_pieces, $salt);
     }
     
     // Minimum level
@@ -1246,7 +1269,16 @@ class sessionManager {
     // $loose_call is turned on only from validate_aes_session
     if ( !$loose_call )
     {
-      $correct_key = hexdecode(hmac_sha1($row['password'], $row['salt']));
+      $key_pieces = array($row['password']);
+      $user_id =& $row['uid'];
+      $sk_mode = 'validate';
+      $code = $plugins->setHook('session_key_calc');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+      $key_pieces = implode("\xFF", $key_pieces);
+      $correct_key = hexdecode(hmac_sha1($key_pieces, $row['salt']));
       $user_key = hexdecode($key);
       if ( $correct_key !== $user_key || !is_string($user_key) )
       {
@@ -1530,8 +1562,41 @@ class sessionManager {
   }
   
   /**
-   * Grabs the user's password MD5
-   * @return string, or bool false if access denied
+   * Prevent the user from changing their password. Authentication plugins may call this to enforce single sign-on.
+   * @param string URL to page where the user may change their password
+   * @param string Title of the page where the user may change their password
+   * @return null
+   */
+  
+  function disable_password_change($change_url = false, $change_title = false)
+  {
+    if ( $this->password_change_disabled )
+    {
+      // don't allow calling twice. if we have two plugins doing this, somebody is bad at configuring websites.
+      return false;
+    }
+    
+    if ( is_string($change_url) && is_string($change_title) )
+    {
+      $this->password_change_dest = array(
+          'url' => $change_url,
+          'title' => $change_title
+        );
+    }
+    else
+    {
+      $this->password_change_dest = array(
+          'url' => false,
+          'title' => false
+        );
+    }
+    
+    $this->password_change_disabled = true;
+  }
+  
+  /**
+   * Grabs the user's password MD5 - NOW DEPRECATED AND DISABLED.
+   * @return bool false
    */
    
   function grab_password_hash()
@@ -2261,178 +2326,76 @@ class sessionManager {
   }
   
   /**
-   * Updates a user's information in the database. Note that any of the values except $user_id can be false if you want to preserve the old values.
-   * Not localized because this really isn't used a whole lot anymore.
+   * Change a user's e-mail address.
    * @param int $user_id The user ID of the user to update - this cannot be changed
-   * @param string $username The new username
-   * @param string $old_pass The current password - only required if sessionManager::$user_level < USER_LEVEL_ADMIN. This should usually be an UNENCRYPTED string. This can also be an array - if it is, key 0 is treated as data AES-encrypted with key 1
-   * @param string $password The new password
    * @param string $email The new e-mail address
-   * @param string $realname The new real name
-   * @param string $signature The updated forum/comment signature
-   * @param int $user_level The updated user level
    * @return string 'success' if successful, or array of error strings on failure
    */
    
-  function update_user($user_id, $username = false, $old_pass = false, $password = false, $email = false, $realname = false, $signature = false, $user_level = false)
+  function change_email($user_id, $email)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
     // Create some arrays
     
-    $errors = Array(); // Used to hold error strings
-    $strs = Array();   // Sub-query statements
+    $errors = array(); // Used to hold error strings
     
     // Scan the user ID for problems
-    if(intval($user_id) < 1) $errors[] = 'SQL injection attempt';
+    if ( intval($user_id) < 1 )
+      $errors[] = 'SQL injection attempt';
     
-    // Instanciate the AES encryption class
-    $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+    $user_id = intval($user_id);
     
-    // If all of our input vars are false, then we've effectively done our job so get out of here
-    if($username === false && $password === false && $email === false && $realname === false && $signature === false && $user_level === false)
-    {
-   // echo 'debug: $session->update_user(): success (no changes requested)';
-      return 'success';
-    }
+    // Verify e-mail address
+    if ( !check_email_address($email) )
+      $errors[] = 'user_err_email_not_valid';
     
-    // Initialize our authentication check
-    $authed = false;
+    if ( count($errors) > 0 )
+      return $errors;
     
-    // Verify the inputted password
-    if(is_string($old_pass))
-    {
-      $q = $this->sql('SELECT password FROM '.table_prefix.'users WHERE user_id='.$user_id.';');
-      if($db->numrows() < 1)
-      {
-        $errors[] = 'The password data could not be selected for verification.';
-      }
-      else
-      {
-        $row = $db->fetchrow();
-        $real = $aes->decrypt($row['password'], $this->private_key, ENC_HEX);
-        if($real == $old_pass)
-          $authed = true;
-      }
-    }
-    
-    elseif(is_array($old_pass))
-    {
-      $old_pass = $aes->decrypt($old_pass[0], $old_pass[1]);
-      $q = $this->sql('SELECT password FROM '.table_prefix.'users WHERE user_id='.$user_id.';');
-      if($db->numrows() < 1)
-      {
-        $errors[] = 'The password data could not be selected for verification.';
-      }
-      else
-      {
-        $row = $db->fetchrow();
-        $real = $aes->decrypt($row['password'], $this->private_key, ENC_HEX);
-        if($real == $old_pass)
-          $authed = true;
-      }
-    }
-    
-    // Initialize our query
-    $q = 'UPDATE '.table_prefix.'users SET ';
-    
-    if($this->auth_level >= USER_LEVEL_ADMIN || $authed) // Need the current password in order to update the e-mail address, change the username, or reset the password
-    {
-      // Username
-      if(is_string($username))
-      {
-        // Check the username for problems
-        if(!preg_match('#^'.$this->valid_username.'$#', $username))
-          $errors[] = 'The username you entered contains invalid characters.';
-        $strs[] = 'username=\''.$db->escape($username).'\'';
-      }
-      // Password
-      if(is_string($password) && strlen($password) >= 6)
-      {
-        // Password needs to be encrypted before being stashed
-        $encpass = $aes->encrypt($password, $this->private_key, ENC_HEX);
-        if(!$encpass)
-          $errors[] = 'The password could not be encrypted due to an internal error.';
-        $strs[] = 'password=\''.$encpass.'\'';
-      }
-      // E-mail addy
-      if(is_string($email))
-      {
-        if(!check_email_address($email))
-          $errors[] = 'The e-mail address you entered is invalid.';
-        $strs[] = 'email=\''.$db->escape($email).'\'';
-      }
-    }
-    // Real name
-    if(is_string($realname))
-    {
-      $strs[] = 'real_name=\''.$db->escape($realname).'\'';
-    }
-    // Forum/comment signature
-    if(is_string($signature))
-    {
-      $strs[] = 'signature=\''.$db->escape($signature).'\'';
-    }
-    // User level
-    if(is_int($user_level))
-    {
-      $strs[] = 'user_level='.$user_level;
-    }
-    
-    // Add our generated query to the query string
-    $q .= implode(',', $strs);
-    
-    // One last error check
-    if(sizeof($strs) < 1) $errors[] = 'An internal error occured building the SQL query, this is a bug';
-    if(sizeof($errors) > 0) return $errors;
-    
-    // Free our temp arrays
-    unset($strs, $errors);
-    
-    // Finalize the query and run it
-    $q .= ' WHERE user_id='.$user_id.';';
-    $this->sql($q);
+    // Make query
+    $email = $db->escape($email);
+    $q = $db->sql_query('UPDATE ' . table_prefix . "users SET email = '$email' WHERE user_id = $user_id;");
     
     // We also need to trigger re-activation.
-    if ( is_string($email) )
+    switch(getConfig('account_activation', 'none'))
     {
-      switch(getConfig('account_activation'))
-      {
-        case 'user':
-        case 'admin':
-          
-          if ( $session->user_level >= USER_LEVEL_MOD && getConfig('account_activation') == 'admin' )
-            // Don't require re-activation by admins for admins
-            break;
-          
-          // retrieve username
-          if ( !$username )
-          {
-            $q = $this->sql('SELECT username FROM '.table_prefix.'users WHERE user_id='.$user_id.';');
-            if($db->numrows() < 1)
-            {
-              $errors[] = 'The username could not be selected.';
-            }
-            else
-            {
-              $row = $db->fetchrow();
-              $username = $row['username'];
-            }
-          }
-          if ( !$username )
-            return $errors;
-          
-          // Generate a totally random activation key
-          $actkey = sha1 ( microtime() . mt_rand() );
-          $a = $this->send_activation_mail($username, $actkey);
-          if(!$a)
-          {
-            $this->admin_activation_request($username);
-          }
-          // Deactivate the account until e-mail is confirmed
-          $q = $db->sql_query('UPDATE '.table_prefix.'users SET account_active=0,activation_key=\'' . $actkey . '\' WHERE user_id=' . $user_id . ';');
+      case 'user':
+      case 'admin':
+        
+        // Note: even with admin activation, activation e-mails are sent when an e-mail is changed.
+        
+        if ( $session->user_level >= USER_LEVEL_MOD && getConfig('account_activation') == 'admin' )
+          // Trust admins and moderators
           break;
-      }
+        
+        // retrieve username
+        if ( !$username )
+        {
+          $q = $this->sql('SELECT username FROM ' . table_prefix . "users WHERE user_id = $user_id;");
+          if($db->numrows() < 1)
+          {
+            $errors[] = 'The username could not be selected.';
+          }
+          else
+          {
+            $row = $db->fetchrow();
+            $username = $row['username'];
+          }
+        }
+        if ( !$username )
+          return $errors;
+        
+        // Generate an activation key
+        $actkey = sha1 ( microtime() . mt_rand() );
+        $a = $this->send_activation_mail($username, $actkey);
+        if(!$a)
+        {
+          $this->admin_activation_request($username);
+        }
+        // Deactivate the account until e-mail is confirmed
+        $q = $db->sql_query('UPDATE ' . table_prefix . "users SET account_active = 0, activation_key = '$actkey' WHERE user_id = $user_id;");
+        break;
     }
     
     // Yay! We're done
