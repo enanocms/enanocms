@@ -141,6 +141,8 @@ class SHA256
       $HASH = Array(0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19);
       $W = Array(64);
       /* append padding */
+      if ( !isset($m[$l >> 5]) )
+        $m[$l >> 5] = 0;
       $m[$l >> 5] |= 0x80 << (24 - $l % 32);
       $m[(($l + 64 >> 9) << 4) + 15] = $l;
       for ( $i = 0; $i<count($m); $i+=16 ) {
