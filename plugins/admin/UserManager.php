@@ -88,7 +88,7 @@ function page_Admin_UserManager()
         $real_name = $_POST['real_name'];
       }
       
-      $signature = RenderMan::preprocess_text($_POST['signature'], true, true);
+      $signature = RenderMan::preprocess_text($_POST['signature'], true, false);
       
       $user_level = intval($_POST['user_level']);
       if ( $user_level < USER_LEVEL_MEMBER || $user_level > USER_LEVEL_ADMIN )
@@ -128,7 +128,10 @@ function page_Admin_UserManager()
         $homepage = '';
       }
       
-      if ( count($errors) < 1 )
+      // true for quiet operation
+      list(, , $avatar_post_fail) = avatar_post($user_id, true);
+      
+      if ( count($errors) < 1 && !$avatar_post_fail )
       {
         $q = $db->sql_query('SELECT u.user_level, u.user_has_avatar, u.avatar_type FROM '.table_prefix.'users AS u WHERE u.user_id = ' . $user_id . ';');
         if ( !$q )
@@ -174,167 +177,6 @@ function page_Admin_UserManager()
         {
           $to_update_users['account_active'] = "0";
           $to_update_users['activation_key'] = sha1($session->dss_rand());
-        }
-        
-        // Avatar validation
-        $action = ( isset($_POST['avatar_action']) ) ? $_POST['avatar_action'] : 'keep';
-        $avi_path = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
-        switch($action)
-        {
-          case 'keep':
-          default:
-            break;
-          case 'remove':
-            if ( $has_avi )
-            {
-              // First switch the avatar off
-              $to_update_users['user_has_avatar'] = '0';
-              @unlink($avi_path);
-            }
-            break;
-          case 'set_http':
-          case 'set_file':
-            // Hackish way to preserve the UNIX philosophy of reusing as much code as possible
-            if ( $action == 'set_http' )
-            {
-              // Check if this action is enabled
-              if ( getConfig('avatar_upload_http', 1) !== 1 )
-              {
-                // non-localized, only appears on hack attempt
-                $errors[] = 'Uploads over HTTP are disabled.';
-                break;
-              }
-              // Download the file
-              require_once( ENANO_ROOT . '/includes/http.php' );
-              
-              if ( !preg_match('/^http:\/\/([a-z0-9-\.]+)(:([0-9]+))?\/(.+)$/', $_POST['avatar_http_url'], $match) )
-              {
-                $errors[] = $lang->get('usercp_avatar_invalid_url');
-                break;
-              }
-              
-              $hostname = $match[1];
-              $uri = '/' . $match[4];
-              $port = ( $match[3] ) ? intval($match[3]) : 80;
-              $max_size = intval(getConfig('avatar_max_size'));
-              
-              // Get temporary file
-              $tempfile = tempnam(false, "enanoavatar_{$user_id}");
-              if ( !$tempfile )
-                $errors[] = 'Error getting temp file.';
-              
-              @unlink($tempfile);
-              $request = new Request_HTTP($hostname, $uri, 'GET', $port);
-              $result = $request->write_response_to_file($tempfile, 50, $max_size);
-              if ( !$result || $request->response_code != HTTP_OK )
-              {
-                @unlink($tempfile);
-                $errors[] = $lang->get('usercp_avatar_bad_write');
-                break;
-              }
-              
-              // Response written. Proceed to validation...
-            }
-            else
-            {
-              // Check if this action is enabled
-              if ( getConfig('avatar_upload_file', 1) !== 1 )
-              {
-                // non-localized, only appears on hack attempt
-                $errors[] = 'Uploads from the browser are disabled.';
-                break;
-              }
-              
-              $max_size = intval(getConfig('avatar_max_size'));
-              
-              $file =& $_FILES['avatar_file'];
-              $tempfile =& $file['tmp_name'];
-              if ( filesize($tempfile) > $max_size )
-              {
-                @unlink($tempfile);
-                $errors[] = $lang->get('usercp_avatar_file_too_large');
-                break;
-              }
-            }
-            $file_type = get_image_filetype($tempfile);
-            if ( !$file_type )
-            {
-              unlink($tempfile);
-              $errors[] = $lang->get('usercp_avatar_bad_filetype');
-              break;
-            }
-            
-            $avi_path_new = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $file_type;
-            
-            // The file type is good - validate dimensions and animation
-            switch($file_type)
-            {
-              case 'png':
-                $is_animated = is_png_animated($tempfile);
-                $dimensions = png_get_dimensions($tempfile);
-                break;
-              case 'gif':
-                $is_animated = is_gif_animated($tempfile);
-                $dimensions = gif_get_dimensions($tempfile);
-                break;
-              case 'jpg':
-                $is_animated = false;
-                $dimensions = jpg_get_dimensions($tempfile);
-                break;
-              default:
-                $errors[] = 'API mismatch';
-                break 2;
-            }
-            // Did we get invalid size data? If so the image is probably corrupt.
-            if ( !$dimensions )
-            {
-              @unlink($tempfile);
-              $errors[] = $lang->get('usercp_avatar_corrupt_image');
-              break;
-            }
-            // Is the image animated?
-            if ( $is_animated && getConfig('avatar_enable_anim') !== '1' )
-            {
-              @unlink($tempfile);
-              $errors[] = $lang->get('usercp_avatar_disallowed_animation');
-              break;
-            }
-            // Check image dimensions
-            list($image_x, $image_y) = $dimensions;
-            $max_x = intval(getConfig('avatar_max_width'));
-            $max_y = intval(getConfig('avatar_max_height'));
-            if ( $image_x > $max_x || $image_y > $max_y )
-            {
-              @unlink($tempfile);
-              $errors[] = $lang->get('usercp_avatar_too_large');
-              break;
-            }
-            // All good!
-            @unlink($avi_path);
-            if ( rename($tempfile, $avi_path_new) )
-            {
-              $to_update_users['user_has_avatar'] = '1';
-              $to_update_users['avatar_type'] = $file_type;
-            }
-            else
-            {
-              // move failed - turn avatar off
-              $to_update_users['user_has_avatar'] = '0';
-            }
-            break;
-          case 'set_gravatar':
-            // set avatar to use Gravatar
-            // first, remove old image
-            if ( $has_avi )
-            {
-              @unlink($avi_path);
-            }
-            // set to gravatar mode
-            $to_update_users['user_has_avatar'] = '1';
-            $to_update_users['avatar_type'] = 'grv';
-            
-            $has_avi = 1;
-            break;
         }
         
         if ( count($errors) < 1 )
@@ -422,14 +264,17 @@ function page_Admin_UserManager()
       }
     }
     
-    if ( count($errors) > 0 )
+    if ( count($errors) > 0 || $avatar_post_fail )
     {
-      echo '<div class="error-box">
-              <b>' . $lang->get('acpum_err_validation_fail') . '</b>
-              <ul>
-                <li>' . implode("</li>\n        <li>", $errors) . '</li>
-              </ul>
-            </div>';
+      if ( count($errors) > 0 )
+      {
+        echo '<div class="error-box">
+                <b>' . $lang->get('acpum_err_validation_fail') . '</b>
+                <ul>
+                  <li>' . implode("</li>\n        <li>", $errors) . '</li>
+                </ul>
+              </div>';
+      }
       $form = new Admin_UserManager_SmartForm();
       $form->user_id = $user_id;
       $form->username = $username;
@@ -1090,32 +935,21 @@ class Admin_UserManager_SmartForm
                   <td class="row2">
                     {lang:acpum_avatar_lbl_change}
                   </td>
-                  <td class="row1">
+                  <td class="row1" id="avatar_upload_btns_{UUID}">
                     <script type="text/javascript">
                       function admincp_users_avatar_set_{UUID}(elParent)
                       {
+                        $('td#avatar_upload_btns_{UUID} > div:visible').hide('blind');
                         switch(elParent.value)
                         {
-                          case 'keep':
-                          case 'remove':
-                            \$dynano('avatar_upload_http_{UUID}').object.style.display = 'none';
-                            \$dynano('avatar_upload_file_{UUID}').object.style.display = 'none';
-                            \$dynano('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
-                            break;
                           case 'set_http':
-                            \$dynano('avatar_upload_http_{UUID}').object.style.display = 'block';
-                            \$dynano('avatar_upload_file_{UUID}').object.style.display = 'none';
-                            \$dynano('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
+                            $('#avatar_upload_http_{UUID}').show('blind');
                             break;
                           case 'set_file':
-                            \$dynano('avatar_upload_http_{UUID}').object.style.display = 'none';
-                            \$dynano('avatar_upload_file_{UUID}').object.style.display = 'block';
-                            \$dynano('avatar_upload_gravatar_{UUID}').object.style.display = 'none';
+                            $('#avatar_upload_file_{UUID}').show('blind');
                             break;
                           case 'set_gravatar':
-                            \$dynano('avatar_upload_gravatar_{UUID}').object.style.display = 'block';
-                            \$dynano('avatar_upload_http_{UUID}').object.style.display = 'none';
-                            \$dynano('avatar_upload_file_{UUID}').object.style.display = 'none';
+                            $('#avatar_upload_gravatar_{UUID}').show('blind');
                             break;
                         }
                       }

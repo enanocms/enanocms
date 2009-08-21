@@ -197,8 +197,9 @@ class Request_HTTP
   
   function Request_HTTP($host, $uri, $method = 'GET', $port = 80)
   {
-    if ( !preg_match('/^(([a-z0-9-]+\.)*?)([a-z0-9-]+)$/', $host) )
+    if ( !preg_match('/^(?:(([a-z0-9-]+\.)*?)([a-z0-9-]+)|\[[a-f0-9:]+\])$/', $host) )
       throw new Exception(__CLASS__ . ': Invalid hostname');
+    // Yes - this really does support IPv6 URLs!
     $this->host = $host;
     $this->uri = $uri;
     if ( is_int($port) && $port >= 1 && $port <= 65535 )
