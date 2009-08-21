@@ -1250,7 +1250,7 @@ class sessionManager {
     }
     if($db->numrows() < 1)
     {
-      echo '(debug) $session->validate_session: Key was not found in database: ' . $key_md5 . '<br />';
+      // echo '(debug) $session->validate_session: Key was not found in database: ' . $key_md5 . '<br />';
       return false;
     }
     $row = $db->fetchrow();
