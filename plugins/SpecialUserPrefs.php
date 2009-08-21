@@ -1066,7 +1066,7 @@ function avatar_post($user_id, $quiet = false)
         break;
       }
       // Is the image animated?
-      if ( $is_animated && getConfig('avatar_enable_anim') !== '1' )
+      if ( $is_animated && getConfig('avatar_enable_anim', 0) !== 1 )
       {
         @unlink($tempfile);
         echo '<div class="error-box">' . $lang->get('usercp_avatar_disallowed_animation') . '</div>';
