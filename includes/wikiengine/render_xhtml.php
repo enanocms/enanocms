@@ -25,11 +25,10 @@ class Carpenter_Render_Xhtml
   
   public function heading($text, $pieces)
   {
-    static $tocid = -1;
     foreach ( $pieces as $i => $piece )
     {
-      $tocid++;
-      $tag = '<h' . $piece['level'] . ' id="toc' . $tocid . '">';
+      $tocid = sanitize_page_id(trim($piece['text']));
+      $tag = '<h' . $piece['level'] . ' id="head:' . $tocid . '">';
       $tag .= trim($piece['text']);
       $tag .= '</h' . $piece['level'] . '>';
       
