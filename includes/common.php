@@ -226,21 +226,6 @@ $sep = ( strstr(contentPath, '?') ) ? '&' : '?';
 define('urlSeparator', $sep);
 unset($sep); // save 10 bytes of memory...
 
-// Sometimes there are critical failures triggered by initialization functions in the Enano API that are recurring
-// and cannot be fixed except for manual intervention. This is where that code should go.
-if ( isset($_GET['do']) && $_GET['do'] == 'diag' && isset($_GET['sub']) )
-{
-  switch($_GET['sub'])
-  {
-    case 'cookie_destroy':
-      unset($_COOKIE['sid']);
-      setcookie('sid', '', time()-3600*24, scriptPath);
-      setcookie('sid', '', time()-3600*24, scriptPath.'/');
-      die('Session cookie cleared. <a href="'.htmlspecialchars($_SERVER['PHP_SELF']).'">Continue</a>');
-      break;
-  }
-}
-
 // Build the list of system tables (this is mostly done in constants.php, but that's before table_prefix is known)
 if ( defined('table_prefix') && !defined('ENANO_TABLELIST_PREFIXED') )
 {
