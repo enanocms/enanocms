@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -680,7 +679,7 @@ function page_Admin_UserManager()
         else $cls = 'row2';
         $coppa = ( $row['user_coppa'] == '1' ) ? '<b>' . $lang->get('acpum_coppauser_yes') . '</b>' : $lang->get('acpum_coppauser_no');
         echo '<tr>
-                <td class="'.$cls.'">'.enano_date('F d, Y h:i a', $row['time_id']).'</td>
+                <td class="'.$cls.'">'.enano_date(ED_DATE | ED_TIME, $row['time_id']).'</td>
                 <td class="'.$cls.'">'.$row['author'].'</td>
                 <td class="'.$cls.'">'.$row['edit_summary'].'</td>
                 <td style="text-align: center;" class="' . $cls . '">' . $coppa . '</td>

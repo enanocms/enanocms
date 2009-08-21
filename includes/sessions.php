@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  * sessions.php - everything related to security and user management
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -156,6 +155,20 @@ class sessionManager {
    */
    
   var $auth_level = 1;
+  
+  /**
+   * Preference for date formatting
+   * @var string
+   */
+  
+  var $date_format = DATE_4;
+  
+  /**
+   * Preference for time formatting
+   * @var string
+   */
+  
+  var $time_format = TIME_24_NS;
   
   /**
    * State variable to track if a session timed out
@@ -724,11 +737,11 @@ class sessionManager {
       // This wasn't logged in <1.0.2, dunno how it slipped through
       if ( $level > USER_LEVEL_MEMBER )
         $this->sql('INSERT INTO ' . table_prefix . "logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES\n"
-                   . '  (\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', '
+                   . '  (\'security\', \'admin_auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', '
                       . '\''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
         $this->sql('INSERT INTO ' . table_prefix . "logs(log_type,action,time_id,date_string,author,edit_summary) VALUES\n"
-                   . '  (\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', '
+                   . '  (\'security\', \'auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', '
                       . '\''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
       
       // Do we also need to increment the lockout countdown?
@@ -826,9 +839,9 @@ class sessionManager {
       if($sess)
       {
         if($level > USER_LEVEL_MEMBER)
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
         else
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
         $code = $plugins->setHook('login_success');
         foreach ( $code as $cmd )
@@ -849,9 +862,9 @@ class sessionManager {
     else
     {
       if($level > USER_LEVEL_MEMBER)
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
       else
-        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+        $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
       // Do we also need to increment the lockout countdown?
       if ( !defined('IN_ENANO_INSTALL') && $lockout_data['lockout_policy'] != 'disable' )
@@ -967,6 +980,7 @@ class sessionManager {
       // For now, make the cookie last forever, we can change this in 1.1.x
       setcookie( 'sid', $session_key, time()+15552000, scriptPath.'/', null, $GLOBALS['is_https']);
       $_COOKIE['sid'] = $session_key;
+      $this->sid = $session_key;
     }
     // $keyhash is stored in the database, this is for compatibility with the older DB structure
     $keyhash = md5($session_key);
@@ -1192,7 +1206,7 @@ class sessionManager {
                       . "           u.reg_time, u.account_active, u.activation_key, u.user_lang, u.user_timezone, u.user_title, u.user_dst,\n"
                       . "           k.salt, k.source_ip, k.time, k.auth_level, k.key_type, x.user_id, x.user_aim, x.user_yahoo, x.user_msn,\n"
                       . "           x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public,\n"
-                      . "           x.disable_js_fx";
+                      . "           x.disable_js_fx, x.date_format, x.time_format";
     
     $joins = "  LEFT JOIN " . table_prefix . "users AS u\n"
             . "    ON ( u.user_id=k.user_id )\n"
@@ -1221,14 +1235,14 @@ class sessionManager {
     
     if ( !$query && ( defined('IN_ENANO_INSTALL') or defined('IN_ENANO_UPGRADE') ) )
     {
-      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,\'\' AS password_salt,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone, \'0;0;0;0;60\' AS user_dst, ' . SK_SHORT . ' AS key_type FROM '.table_prefix.'session_keys AS k
+      $key_md5 = $loose_call ? $key : md5($key);
+      $query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,\'\' AS password_salt,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone, \'0;0;0;0;60\' AS user_dst, ' . SK_SHORT . ' AS key_type, k.salt FROM '.table_prefix.'session_keys AS k
                              LEFT JOIN '.table_prefix.'users AS u
                                ON ( u.user_id=k.user_id )
                              LEFT JOIN '.table_prefix.'privmsgs AS p
                                ON ( p.message_to=u.username AND p.message_read=0 )
-                             WHERE k.session_key=\''.$key.'\'
-                               AND k.salt=\''.$salt.'\'
-                             GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level;');
+                             WHERE k.session_key=\''.$key_md5.'\'
+                             GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,k.salt;');
     }
     else if ( !$query )
     {
@@ -1236,7 +1250,7 @@ class sessionManager {
     }
     if($db->numrows() < 1)
     {
-      // echo '(debug) $session->validate_session: Key was not found in database<br />';
+      echo '(debug) $session->validate_session: Key was not found in database: ' . $key_md5 . '<br />';
       return false;
     }
     $row = $db->fetchrow();
@@ -1345,6 +1359,11 @@ class sessionManager {
       else
         $user_extra[$column] = '';
     }
+    
+    if ( isset($row['date_format']) )
+      $this->date_format = $row['date_format'];
+    if ( isset($row['time_format']) )
+      $this->time_format = $row['time_format'];
     
     $this->user_extra = $user_extra;
     // Leave the rest to PHP's automatic garbage collector ;-)
@@ -2229,7 +2248,7 @@ class sessionManager {
   function admin_activation_request($u)
   {
     global $db;
-    $this->sql('INSERT INTO '.table_prefix.'logs(log_type, action, time_id, date_string, author, edit_summary) VALUES(\'admin\', \'activ_req\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$this->username.'\', \''.$db->escape($u).'\');');
+    $this->sql('INSERT INTO '.table_prefix.'logs(log_type, action, time_id, date_string, author, edit_summary) VALUES(\'admin\', \'activ_req\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$this->username.'\', \''.$db->escape($u).'\');');
   }
   
   /**
@@ -2245,11 +2264,11 @@ class sessionManager {
     $r = mysql_affected_rows();
     if ( $r > 0 )
     {
-      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_good\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
+      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
     }
     else
     {
-      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_bad\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
+      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
     }
     return $r;
   }

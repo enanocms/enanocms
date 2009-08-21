@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  * Installation package
  * upgrade.php - Upgrade interface
  *
@@ -19,7 +18,7 @@ define('IN_ENANO', 1);
 // The list of versions in THIS AND PREVIOUS branches, in chronological order.
 $enano_versions = array();
 $enano_versions['1.0'] = array('1.0', '1.0.1', '1.0.2b1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.0.6');
-$enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6');
+$enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6', '1.1.7');
 
 // If true, this will do a full langimport instead of only adding new strings.
 // Will probably be left on, but some change probably needs to be made to mark
@@ -108,6 +107,9 @@ if ( !isset($_GET['stage']) )
 
 if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_level < USER_LEVEL_ADMIN ) )
 {
+  // if we're not logged in, destroy any existing session keys in the browser
+  @setcookie('sid', '', time() - 86400);
+  
   $ui->set_visible_stage($stg_login);
   if ( isset($_POST['do_login']) )
   {

@@ -137,6 +137,7 @@ ul.useropts li:hover {
 
 ul.useropts li:hover > a {
   padding: 2px 12px 4px 12px;
+  color: #b9d0e3;
 }
 
 ul.useropts li.logout:hover > a {

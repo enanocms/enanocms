@@ -12,8 +12,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -1482,7 +1481,7 @@ function page_Admin_DBBackup()
     $filename = 'enano_backup_' . enano_date('ymd') . '.sql' . $aesext;
     ob_start();
     // Spew some headers
-    $headdate = enano_date('F d, Y \a\t h:i a');
+    $headdate = enano_date(ED_DATE | ED_TIME);
     echo <<<HEADER
 -- Enano CMS SQL backup
 -- Generated on {$headdate} by {$session->username}
@@ -1494,7 +1493,7 @@ HEADER;
     $tables = array_merge($base, $add);
     
     // Log it!
-    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'db_backup\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(implode(', ', $tables)) . '\')');
+    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'db_backup\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(implode(', ', $tables)) . '\')');
     if ( !$e )
       $db->_die();
     

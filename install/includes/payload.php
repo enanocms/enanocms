@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  * Installation package
  * payload.php - Installer payload (the installation logic)
  *
@@ -425,7 +424,7 @@ function stg_init_logs()
   global $db, $session, $paths, $template, $plugins; // Common objects
   global $installer_version;
   
-  $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES(\'security\', \'install_enano\', ' . time() . ', \'' . enano_date('d M Y h:i a') . '\', \'' . $db->escape($_POST['username']) . '\', \'' . $db->escape(enano_version()) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
+  $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs(log_type,action,time_id,date_string,author,page_text,edit_summary) VALUES(\'security\', \'install_enano\', ' . time() . ', \'' . enano_date(ED_DATE | ED_TIME) . '\', \'' . $db->escape($_POST['username']) . '\', \'' . $db->escape(enano_version()) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
   if ( !$q )
   {
     echo '<p><tt>MySQL return: ' . $db->sql_error() . '</tt></p>';

@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -398,8 +397,8 @@ class Namespace_Default
       echo '<div class="info-box" style="margin-left: 0; margin-top: 5px;">
               <b>' . $lang->get('page_msg_archived_title') . '</b><br />
               ' . $lang->get('page_msg_archived_body', array(
-                  'archive_date' => enano_date('F d, Y', $this->revision_time),
-                  'archive_time' => enano_date('h:i a', $this->revision_time),
+                  'archive_date' => enano_date(ED_DATE, $this->revision_time),
+                  'archive_time' => enano_date(ED_TIME, $this->revision_time),
                   'current_link' => makeUrlNS($this->namespace, $this->page_id),
                   'restore_link' => makeUrlNS($this->namespace, $this->page_id, 'do=edit&amp;revid='.$this->revision_id),
                   'restore_onclick' => 'ajaxEditor(\''.$this->revision_id.'\'); return false;',
@@ -580,7 +579,7 @@ class Namespace_Default
       {
         $r = $db->fetchrow();
         $standard_404 .= '<p>' . $lang->get('page_msg_404_was_deleted', array(
-                  'delete_time' => enano_date('d M Y h:i a', $r['time_id']),
+                  'delete_time' => enano_date(ED_DATE | ED_TIME, $r['time_id']),
                   'delete_reason' => htmlspecialchars($r['edit_summary']),
                   'rollback_flags' => 'href="'.makeUrl($paths->page, 'do=rollback&amp;id='.$r['log_id']).'" onclick="ajaxRollback(\''.$r['log_id'].'\'); return false;"'
                 ))

@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  * pageutils.php - a class that handles raw page manipulations, used mostly by AJAX requests or their old-fashioned form-based counterparts
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -205,7 +204,7 @@ class PageUtils {
     
     $qa = $db->sql_query('INSERT INTO ' . table_prefix.'pages(name,urlname,namespace,visible,protected,delvote_ips) VALUES(\'' . $db->escape($name) . '\', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\', '. ( $visible ? '1' : '0' ) .', ' . $prot . ', \'' . $db->escape(serialize($ips)) . '\');');
     $qb = $db->sql_query('INSERT INTO ' . table_prefix.'page_text(page_id,namespace) VALUES(\'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
-    $qc = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'create\', \'' . $session->username . '\', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
+    $qc = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \'DEPRECATED\', \'page\', \'create\', \'' . $session->username . '\', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
     
     if($qa && $qb && $qc)
       return 'good';
@@ -332,7 +331,7 @@ class PageUtils {
         if($ticker < $numrows) echo '<td class="' . $cls . '" style="padding: 0;"><input ' . $s2 . 'name="diff2" type="radio" value="' . $r['time_id'] . '" id="diff2_' . $r['time_id'] . '" class="clsDiff2Radio" onclick="selectDiff2Button(this);" /></td>'."\n"; else echo '<td class="' . $cls . '"></td>';
         
         // Date and time
-        echo '<td class="' . $cls . '" style="white-space: nowrap;">' . enano_date('d M Y h:i a', intval($r['time_id'])) . '</td class="' . $cls . '">'."\n";
+        echo '<td class="' . $cls . '" style="white-space: nowrap;">' . enano_date(ED_DATE | ED_TIME, intval($r['time_id'])) . '</td class="' . $cls . '">'."\n";
         
         // User
         if ( $session->get_permissions('mod_misc') && is_valid_ip($r['author']) )
@@ -408,7 +407,7 @@ class PageUtils {
         echo '<tr>';
         
         // Date and time
-        echo '<td class="' . $cls . '">' . enano_date('d M Y h:i a', intval($r['time_id'])) . '</td class="' . $cls . '">';
+        echo '<td class="' . $cls . '">' . enano_date(ED_DATE | ED_TIME, intval($r['time_id'])) . '</td class="' . $cls . '">';
         
         // User
         echo '<td class="' . $cls . '"><a href="'.makeUrlNS('User', sanitize_page_id($r['author'])).'" ';
@@ -630,7 +629,7 @@ class PageUtils {
         $strings['SUBJECT'] = $s;
         
         // Date and time
-        $strings['DATETIME'] = enano_date('F d, Y h:i a', $row['time']);
+        $strings['DATETIME'] = enano_date(ED_DATE | ED_TIME, $row['time']);
         
         // User level
         switch($row['user_level'])
@@ -1011,7 +1010,7 @@ class PageUtils {
       $row = $db->fetchrow();
       $db->free_result();
       $minor_edit = ( ENANO_DBLAYER == 'MYSQL' ) ? 'false' : '0';
-      $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.enano_date('d M Y h:i a').'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.$minor_edit.');';
+      $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.$minor_edit.');';
       if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
     }
     return $lang->get('ajax_clearlogs_success');
@@ -1043,7 +1042,7 @@ class PageUtils {
       return $lang->get('etc_access_denied_need_reauth');
     }
     
-    $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.enano_date('d M Y h:i a').'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
+    $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
     if(!$e) $db->_die('The page log entry could not be inserted.');
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'categories WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'');
     if(!$e) $db->_die('The page categorization entries could not be deleted.');
@@ -1600,8 +1599,8 @@ class PageUtils {
     }
     $text1 = $row1['page_text'];
     $text2 = $row2['page_text'];
-    $time1 = enano_date('F d, Y h:i a', $row1['time_id']);
-    $time2 = enano_date('F d, Y h:i a', $row2['time_id']);
+    $time1 = enano_date(ED_DATE | ED_TIME, $row1['time_id']);
+    $time2 = enano_date(ED_DATE | ED_TIME, $row2['time_id']);
     $_ob = "
     <p>" . $lang->get('history_lbl_comparingrevisions') . " {$time1} &rarr; {$time2}</p>
     ";

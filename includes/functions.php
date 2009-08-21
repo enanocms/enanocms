@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -258,6 +257,31 @@ function enano_date($string, $timestamp = false)
   if ( !is_int($timestamp) && !is_double($timestamp) && strval(intval($timestamp)) !== $timestamp )
     $timestamp = time();
   
+  if ( is_int($string) )
+  {
+    global $session, $lang;
+    $date_fmt = is_object($session) ? $session->date_format : DATE_4;
+    $time_fmt = is_object($session) ? $session->time_format : TIME_24_NS;
+    
+    // within a week? use a relative date
+    if ( $timestamp + ( 86400 * 7 ) >= time() && $string & ED_DATE && is_object($lang) && is_object($session) )
+    {
+      $relative_date = get_relative_date($timestamp);
+      if ( $string === ED_DATE )
+        // why do more work if we're done?
+        return $relative_date;
+    }
+    
+    $flags = $string;
+    $string = array();
+    if ( $flags & ED_DATE && !isset($relative_date) )
+      $string[] = $date_fmt;
+    if ( $flags & ED_TIME )
+      $string[] = $time_fmt;
+    
+    $string = implode(' ', $string);
+  }
+  
   // perform timestamp offset
   global $timezone;
   // it's gonna be in minutes, so multiply by 60 to offset the unix timestamp
@@ -272,7 +296,63 @@ function enano_date($string, $timestamp = false)
   }
   
   // Let PHP do the work for us =)
-  return gmdate($string, $timestamp);
+  $result = gmdate($string, $timestamp);
+  if ( isset($relative_date) )
+  {
+    $result = "$relative_date, $result";
+  }
+  return $result;
+}
+
+/**
+ * Get a relative date ("Today"/"Yesterday"/"N days ago")
+ * @param int Timestamp
+ * @return string
+ */
+
+function get_relative_date($time)
+{
+  global $lang, $session;
+  // Our formatting string to pass to enano_date()
+  // This should not include minute/second info, only today's date in whatever format suits your fancy
+  $formatstring = $session->date_format;
+  // Today's date
+  $today = enano_date($formatstring);
+  // Yesterday's date
+  $yesterday = enano_date($formatstring, (time() - (24*60*60)));
+  // Date on the input
+  $then = enano_date($formatstring, $time);
+  // "X days ago" logic
+  for ( $i = 2; $i <= 6; $i++ )
+  {
+    // hours_in_day * minutes_in_hour * seconds_in_minute * num_days
+    $offset = 24 * 60 * 60 * $i;
+    $days_ago = enano_date($formatstring, (time() - $offset));
+    // so does the input timestamp match the date from $i days ago?
+    if ( $then == $days_ago )
+    {
+      // yes, return $i
+      return $lang->get('userfuncs_ml_date_daysago', array('days_ago' => $i));
+    }
+  }
+  // either yesterday, today, or before 6 days ago
+  switch($then)
+  {
+    case $today:
+      return $lang->get('userfuncs_ml_date_today');
+    case $yesterday:
+      return $lang->get('userfuncs_ml_date_yesterday');
+    default:
+      return $then;
+  }
+  //     .--.
+  //    |o_o |
+  //    |!_/ |
+  //   //   \ \
+  //  (|     | )
+  // /'\_   _/`\
+  // \___)=(___/
+  return 'Linux rocks!';
 }
 
 /**
@@ -1233,7 +1313,8 @@ function enano_codename()
       '1.1.3'  => 'Caoineag alpha 3',
       '1.1.4'  => 'Caoineag alpha 4',
       '1.1.5'  => 'Caoineag alpha 5',
-      '1.1.6'  => 'Caoineag beta 1'
+      '1.1.6'  => 'Caoineag beta 1',
+      '1.1.7'  => 'Caoineag beta 2'
     );
   $version = enano_version();
   if ( isset($names[$version]) )

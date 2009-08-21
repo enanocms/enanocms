@@ -12,8 +12,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute it and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -454,6 +453,9 @@ function page_Special_Preferences()
         $hobbies = htmlspecialchars($_POST['hobbies']);
         $hobbies = $db->escape($hobbies);
         
+        $date_format = $db->escape(htmlspecialchars($_POST['date_format']));
+        $time_format = $db->escape(htmlspecialchars($_POST['time_format']));
+        
         $email_public = ( isset($_POST['email_public']) ) ? '1' : '0';
         $disable_js_fx = ( isset($_POST['disable_js_fx']) ) ? '1' : '0';
         
@@ -483,6 +485,8 @@ function page_Special_Preferences()
         $session->user_extra['user_job'] = $occupation;
         $session->user_extra['user_hobbies'] = $hobbies;
         $session->user_extra['email_public'] = intval($email_public);
+        $session->date_format = $date_format;
+        $session->time_format = $time_format;
         
         // user title
         $user_title_col = '';
@@ -536,7 +540,8 @@ function page_Special_Preferences()
         
         $q = $db->sql_query('UPDATE '.table_prefix."users_extra SET user_aim='$imaddr_aim',user_yahoo='$imaddr_yahoo',user_msn='$imaddr_msn',
                                user_xmpp='$imaddr_xmpp',user_homepage='$homepage',user_location='$location',user_job='$occupation',
-                               user_hobbies='$hobbies',email_public=$email_public,disable_js_fx=$disable_js_fx
+                               user_hobbies='$hobbies',email_public=$email_public,disable_js_fx=$disable_js_fx,date_format='$date_format',
+                               time_format='$time_format'
                                WHERE user_id=$session->user_id;");
         
         if ( !$q )
@@ -630,6 +635,34 @@ function page_Special_Preferences()
           <tr>
             <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_changetheme_title'); ?></td>
             <td class="row1"><?php echo $lang->get('usercp_publicinfo_field_changetheme_hint'); ?> <a href="<?php echo makeUrlNS('Special', 'ChangeStyle/' . $paths->page); ?>" onclick="ajaxChangeStyle(); return false;"><?php echo $lang->get('usercp_publicinfo_field_changetheme'); ?></a></td>
+          </tr>
+          <tr>
+            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_dateformat'); ?></td>
+            <td class="row1">
+            <select name="date_format">
+              <?php
+              foreach ( array(DATE_1, DATE_2, DATE_3, DATE_4) as $format )
+              {
+                $selected = $format === $session->date_format ? ' selected="selected"' : '';
+                echo '<option value="' . $format . '"' . $selected . '>' . enano_date($format) . '</option>';
+              }
+              ?>
+            </select>
+            </td>
+          </tr>
+          <tr>
+            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_timeformat'); ?></td>
+            <td class="row1">
+            <select name="time_format">
+              <?php
+              foreach ( array(TIME_12_NS, TIME_12_S, TIME_24_NS, TIME_24_S) as $format )
+              {
+                $selected = $format === $session->time_format ? ' selected="selected"' : '';
+                echo '<option value="' . $format . '"' . $selected . '>' . enano_date($format) . '</option>';
+              }
+              ?>
+            </select>
+            </td>
           </tr>
           <tr>
             <td class="row3" colspan="2"><?php echo $lang->get('usercp_publicinfo_field_timezone'); ?> <?php echo $tz_select; ?><br /><small><?php echo $lang->get('usercp_publicinfo_field_timezone_hint'); ?></small></td>
