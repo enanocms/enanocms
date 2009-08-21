@@ -640,7 +640,7 @@ function page_Special_Autofill()
           if ( !$q )
             $db->die_json();
           
-          while ( $row = $db->fetchrow() )
+          while ( $row = $db->fetchrow($q) )
           {
             $key = array(
               'name' => $row['username'],
