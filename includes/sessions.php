@@ -835,7 +835,10 @@ class sessionManager {
           'success' => false,
           'error' => 'too_big_for_britches'
         );
+      
+      // grant session
       $sess = $this->register_session($row['user_id'], $username, ( isset($password_hmac) ? $password_hmac : $password ), $level, $remember);
+      
       if($sess)
       {
         if($level > USER_LEVEL_MEMBER)

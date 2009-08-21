@@ -59,6 +59,24 @@ function page_Admin_UserManager()
       if ( !$q )
         $db->_die();
       echo '<div class="info-box">' . $lang->get('acpum_msg_delete_success') . '</div>';
+      
+      // deleting own account?
+      if ( $user_id === $session->user_id )
+      {
+        // cute little hack to boot them out of the admin panel
+        echo '<script type="text/javascript">
+          addOnloadHook(function()
+          {
+            setTimeout(function()
+            {
+              eraseCookie("sid");
+              ENANO_SID = false;
+              auth_level = USER_LEVEL_MEMBER;
+              window.location = makeUrlNS("Special", "Login");
+            }, 3000);
+          });
+        </script>';
+      }
     }
     else
     {
@@ -264,7 +282,7 @@ function page_Admin_UserManager()
       }
     }
     
-    if ( count($errors) > 0 || $avatar_post_fail )
+    if ( count($errors) > 0 || @$avatar_post_fail )
     {
       if ( count($errors) > 0 )
       {
