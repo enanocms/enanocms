@@ -312,6 +312,7 @@ class Comments
           $subj = htmlspecialchars($data['subj']);
           $text = RenderMan::preprocess_text($data['text'], true, false);
           $src = $text;
+          $sql_subj = $db->escape($subj);
           $sql_text = $db->escape($text);
           $text = RenderMan::render($text);
           $appr = ( getConfig('approve_comments', '0') == '1' ) ? COMMENT_UNAPPROVED : COMMENT_APPROVED;
@@ -325,7 +326,7 @@ class Comments
           
           // Send it to the database
           $q = $db->sql_query('INSERT INTO '.table_prefix.'comments(page_id,namespace,name,subject,comment_data,approved, time, user_id, ip_address) VALUES' . "\n  " .
-                             "('$this->page_id', '$this->namespace', '$name', '$subj', '$sql_text', $appr, $time, {$session->user_id}, '$ip');");
+                             "('$this->page_id', '$this->namespace', '$name', '$sql_subj', '$sql_text', $appr, $time, {$session->user_id}, '$ip');");
           if(!$q)
             $db->die_json();
           
