@@ -2602,7 +2602,7 @@ function page_Special_EditSidebar()
           }
           if(isset($_GET['ajax']))
           {
-            ob_end_clean();
+            @ob_end_clean();
             die('GOOD');
           }
           break;
