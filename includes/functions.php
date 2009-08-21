@@ -565,7 +565,7 @@ function csrf_request_confirm()
     }
   }
   
-  ob_end_clean();
+  @ob_end_clean();
   
   $output->set_title($lang->get('user_csrf_confirm_title'));
   $output->header();
@@ -848,7 +848,7 @@ function die_semicritical($t, $p, $no_wrapper = false)
   global $db, $session, $paths, $template, $plugins; // Common objects
   $db->close();
   
-  if ( ob_get_status() )
+  if ( @ob_get_status() )
     ob_end_clean();
 
   // If the config hasn't been fetched yet, call grinding_halt.
@@ -889,7 +889,7 @@ function die_friendly($t, $p)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
 
-  if ( ob_get_status() )
+  if ( @ob_get_status() )
     ob_end_clean();
 
   $paths->cpage['name'] = $t;
@@ -918,7 +918,7 @@ function grinding_halt($t, $p)
   if ( is_object($db) )
     $db->close();
   
-  if ( ob_get_status() )
+  if ( @ob_get_status() )
     ob_end_clean();
   
   if ( defined('ENANO_CLI') )
