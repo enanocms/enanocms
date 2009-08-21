@@ -305,6 +305,10 @@ function page_Special_Preferences()
       $template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_signature_title');
       break;
     case 'Profile':
+    case 'Home':
+      if ( isset($_POST['submit']) )
+        csrf_request_confirm();
+      
       $template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_publicinfo_title');
       break;
   }
@@ -778,6 +782,8 @@ function page_Special_Preferences()
         </table>
       </div>
       <?php
+      // CSRF protection
+      echo '<input type="hidden" name="cstok" value="' . $session->csrf_token . '" />';
       echo '</form>';
       break;
     case 'Avatar':
