@@ -99,6 +99,10 @@ class Carpenter
     $parser_class = "Carpenter_Parse_" . ucwords($this->parser);
     $renderer_class = "Carpenter_Render_" . ucwords($this->renderer);
     
+    // empty?
+    if ( trim($text) === '' )
+      return $text;
+    
     // include files, if we haven't already
     if ( !class_exists($parser_class) )
     {
