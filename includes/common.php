@@ -381,22 +381,25 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Finished base_classes_initted hook');
   
-  // For special and administration pages, sometimes there is a "preloader" function that must be run
-  // before the session manager and/or path manager get the init signal. Call it here.  
-  $p = RenderMan::strToPageId($paths->get_pageid_from_url());
-  if( ( $p[1] == 'Admin' || $p[1] == 'Special' ) && function_exists('page_'.$p[1].'_'.$p[0].'_preloader'))
-  {
-    call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
-  }
-  
-  profiler_log('Checked for preloader');
-  
   // One quick security check...
   if ( !is_valid_ip($_SERVER['REMOTE_ADDR']) )
   {
     die('SECURITY: spoofed IP address: ' . htmlspecialchars($_SERVER['REMOTE_ADDR']));
   }
-
+  
+  // For special and administration pages, sometimes there is a "preloader" function that must be run
+  // before the session manager and/or path manager get the init signal. Call it here.
+  $title = get_title(true);
+  list($page_id, $namespace) = RenderMan::strToPageID($title);
+  list($page_id_top) = explode('/', $page_id);
+  $fname = "page_{$namespace}_{$page_id_top}_preloader";
+  if( ( $namespace == 'Admin' || $namespace == 'Special' ) && function_exists($fname))
+  {
+    call_user_func($fname);
+  }
+  
+  profiler_log('Checked for (and ran, if applicable) preloader');
+  
   // All checks passed! Start the main components up.  
   $session->start();
   
@@ -423,7 +426,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Ran session_started hook');
   
-  $paths->init();
+  $paths->init($title);
   
   // setup output format
   if ( defined('ENANO_OUTPUT_FORMAT') )

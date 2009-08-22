@@ -246,6 +246,56 @@ function get_main_page($force_logged_in = false)
 }
 
 /**
+ * Get the requested page title, taking into account all the different possible URL parsing schemes.
+ * @param bool If true (default), runs the result through sanitize_page_id().
+ * @param bool If true (default is false), and the return is a Special or Admin page, trims off anything beyond and including the first slash.
+ * @return string
+ */
+
+function get_title($sanitize = true, $chop_special = false)
+{
+  $title = '';
+  if ( isset($_GET['title']) )
+  {
+    $title = $_GET['title'];
+  }
+  else if ( isset($_SERVER['PATH_INFO']) )
+  {
+    // fix for apache + CGI (occurred on a GoDaddy server, thanks mm3)
+    if ( @substr(@$_SERVER['GATEWAY_INTERFACE'], 0, 3) === 'CGI' && $_SERVER['PATH_INFO'] == scriptPath . '/index.php' )
+    {
+      // do nothing; ignore PATH_INFO
+    }
+    else
+    {
+      $title = substr($_SERVER['PATH_INFO'], ( strpos($_SERVER['PATH_INFO'], '/') ) + 1 );
+    }
+  }
+  else
+  {
+    // This method really isn't supported because apache has a habit of passing dots as underscores, thus corrupting the request
+    // If you really want to try it, the URI format is yoursite.com/?/Page_title
+    if ( !empty($_SERVER['QUERY_STRING']) && substr($_SERVER['QUERY_STRING'], 0, 1) == '/' )
+    {
+      $pos = ( ($_ = strpos($_SERVER['QUERY_STRING'], '&')) !== false ) ? $_ - 1: 0x7FFFFFFF;
+      $title = substr($_SERVER['QUERY_STRING'], 1, $pos);
+    }
+  }
+  
+  if ( $chop_special )
+  {
+    list(, $ns) = RenderMan::strToPageID($title);
+    if ( $ns == 'Special' || $ns == 'Admin' )
+    {
+      list($title) = explode('/', $title);
+    }
+  }
+  
+  return ( $sanitize ) ? sanitize_page_id($title) : $title;
+}
+ 
+
+/**
  * Enano replacement for date(). Accounts for individual users' timezone preferences.
  * @param string Date-formatted string
  * @param int Optional - UNIX timestamp value to use. If omitted, the current time is used.
@@ -264,7 +314,7 @@ function enano_date($string, $timestamp = false)
     $time_fmt = is_object($session) ? $session->time_format : TIME_24_NS;
     
     // within a week? use a relative date
-    if ( $timestamp + ( 86400 * 7 ) >= time() && $string & ED_DATE && is_object($lang) && is_object($session) )
+    if ( $timestamp + ( 86400 * 7 ) >= time() && $string & ED_DATE && is_object($lang) && is_object($session) && !($string & ED_DATE_FULL) )
     {
       $relative_date = get_relative_date($timestamp);
       if ( $string === ED_DATE )
@@ -3426,6 +3476,7 @@ function parse_ipv6_range_regex($range)
   //   2001:470-471:054-b02b::5-bb
   // up to:
   //   2001:0470-0471:0054-b02b:0000:0000:0000:0005-00bb
+  $range = preg_replace('/^:/', '0000:', $range);
   $range = explode(':', $range);
   $expanded = '';
   $size = count($range);
@@ -3647,6 +3698,36 @@ function __hexdigitrange($low, $high)
     // ???? this should never happen
     return __hexdigitrange($high, $low); 
   }
+}
+
+/**
+ * Expand an IPv6 address to full form
+ * @param string ::1, 2001:470:e054::2
+ * @return string 0000:0000:0000:0000:0000:0000:0000:0001, 2001:0470:e054:0000:0000:0000:0000:0002
+ */
+
+function expand_ipv6_address($addr)
+{
+  $expanded = array();
+  $addr = explode(':', $addr);
+  foreach ( $addr as $i => $bytepair )
+  {
+    if ( empty($bytepair) )
+    {
+      // ::
+      while ( count($expanded) < (8 - count($addr) + $i + 1) )
+      {
+        $expanded[] = '0000';
+      }
+    }
+    else
+    {
+      while ( strlen($bytepair) < 4 )
+        $bytepair = "0$bytepair";
+      $expanded[] = $bytepair;
+    }
+  }
+  return implode(':', $expanded);
 }
 
 /**

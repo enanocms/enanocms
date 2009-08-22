@@ -328,7 +328,7 @@ function page_Admin_UserManager()
     # END VALIDATION
     #
   }
-  else if ( isset($_POST['action']['go']) || ( isset($_GET['src']) && $_GET['src'] == 'get' ) )
+  else if ( isset($_POST['action']['go']) || ( isset($_GET['src']) && $_GET['src'] == 'get' ) || ($pathsuser = $paths->getParam(0)) )
   {
     if ( isset($_GET['user']) )
     {
@@ -341,6 +341,10 @@ function page_Admin_UserManager()
     else if ( isset($_POST['username']) )
     {
       $username =& $_POST['username'];
+    }
+    else if ( $pathsuser )
+    {
+      $username = str_replace('_', ' ', dirtify_page_id($pathsuser));
     }
     else
     {

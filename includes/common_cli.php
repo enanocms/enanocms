@@ -180,16 +180,6 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Finished base_classes_initted hook');
   
-  // For special and administration pages, sometimes there is a "preloader" function that must be run
-  // before the session manager and/or path manager get the init signal. Call it here.  
-  $p = RenderMan::strToPageId($paths->get_pageid_from_url());
-  if( ( $p[1] == 'Admin' || $p[1] == 'Special' ) && function_exists('page_'.$p[1].'_'.$p[0].'_preloader'))
-  {
-    call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
-  }
-  
-  profiler_log('Checked for preloader');
-  
   // One quick security check...
   if ( isset($_SERVER['REMOTE_ADDR']) )
   {

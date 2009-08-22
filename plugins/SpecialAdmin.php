@@ -2226,26 +2226,22 @@ EOF;
         <td width="100%" valign="top">
           <div class="pad" id="ajaxPageContainer">
           <?php
-          if(isset($_GET['module'])) 
+          if ( isset($_GET['module']) ) 
           {
-            // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
-            $k = array_keys($paths->nslist);
-            for ( $i = 0; $i < sizeof($paths->nslist); $i++ )
+            list($module) = explode('/', $_GET['module']);
+            list($page_id, $namespace) = RenderMan::strToPageID($module);
+            if ( $namespace != 'Admin' )
             {
-              $ln = strlen( $paths->nslist[ $k[ $i ] ] );
-              if ( substr($_GET['module'], 0, $ln) == $paths->nslist[$k[$i]] )
-              {
-                $ns = $k[$i];
-                $nm = substr($_GET['module'], $ln, strlen($_GET['module']));
-              }
+              echo '<div class="error-box">Module must be in the Admin namespace</div>';
             }
-            $fname = 'page_'.$ns.'_'.$nm;
-            $s = strpos($fname, '?noheaders');
-            if($s) $fname = substr($fname, 0, $s);
-            $paths->cpage['module'] = $_GET['module'];
-            if ( function_exists($fname) && $_GET['module'] != $paths->nslist['Special'] . 'Administration' )
+            else
             {
-              call_user_func($fname);
+              $paths->fullpage = $_GET['module'];
+              $paths->cpage['module'] = $_GET['module'];
+              $page = new PageProcessor($page_id, $namespace);
+              $page->send_headers = false;
+              $page->send();
+              $paths->fullpage = $paths->page;
             }
           } 
           else 
