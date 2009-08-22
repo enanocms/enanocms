@@ -617,51 +617,15 @@ class RenderMan {
   public static function parse_internal_links($text, $tplcode = false, $do_exist_check = true, $match_page_id = false, $match_namespace = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    
-    if ( is_string($tplcode) )
-    {
-      $parser = $template->makeParserText($tplcode);
-    }
+  
+    $parser = is_string($tplcode) ? $template->makeParserText($tplcode) : false;
     
     // stage 1 - links with alternate text
     preg_match_all('/\[\[([^\[\]<>\{\}\|]+)\|(.+?)\]\]/', $text, $matches);
     foreach ( $matches[0] as $i => $match )
     {
       list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
-      if ( ($pos = strrpos($page_id, '#')) !== false )
-      {
-        $hash = substr($page_id, $pos);
-        $page_id = substr($page_id, 0, $pos);
-      }
-      else
-      {
-        $hash = '';
-      }
-      $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
-      
-      $url = makeUrl($pid_clean, false, true) . $hash;
-      $inner_text = $matches[2][$i];
-      $quot = '"';
-      $exists = ( ($do_exist_check && isPage($pid_clean)) || !$do_exist_check ) ? '' : ' class="wikilink-nonexistent"';
-      
-      if ( $match_page_id && $match_namespace && $pid_clean === $paths->get_pathskey($match_page_id, $match_namespace) )
-        $exists .= ' class="currentpage"';
-      
-      if ( $tplcode )
-      {
-        $parser->assign_vars(array(
-            'HREF' => $url,
-            'FLAGS' => $exists,
-            'TEXT' => $inner_text
-          ));
-        $link = $parser->run();
-      }
-      else
-      {
-        $omatch = self::escape_parser_hint_attrib($match);
-        $link = "<!--#internallink src=\"$omatch\" --><a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a><!--#/internallink-->";
-      }
-      
+      $link = self::generate_internal_link($namespace, $page_id, $matches[2][$i], $match, $parser, $do_exist_check, $match_page_id, $match_namespace);
       $text = str_replace($match, $link, $text);
     }
     
@@ -671,34 +635,73 @@ class RenderMan {
     {
       list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
       $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
-      
-      $url = makeUrl($pid_clean, false, true);
       $inner_text = ( isPage($pid_clean) ) ? htmlspecialchars(get_page_title($pid_clean)) : htmlspecialchars($matches[1][$i]);
-      $quot = '"';
-      $exists = ( ($do_exist_check && isPage($pid_clean)) || !$do_exist_check ) ? '' : ' class="wikilink-nonexistent"';
       
-      if ( $match_page_id && $match_namespace && $pid_clean === $paths->get_pathskey($match_page_id, $match_namespace) )
-        $exists .= ' class="currentpage"';
-      
-      if ( $tplcode )
-      {
-        $parser->assign_vars(array(
-            'HREF' => $url,
-            'FLAGS' => $exists,
-            'TEXT' => $inner_text
-          ));
-        $link = $parser->run();
-      }
-      else
-      {
-        $omatch = self::escape_parser_hint_attrib($match);
-        $link = "<!--#internallink src=\"$omatch\" --><a href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a><!--#/internallink-->";
-      }
+      $link = self::generate_internal_link($namespace, $page_id, $inner_text, $match, $parser, $do_exist_check, $match_page_id, $match_namespace);
       
       $text = str_replace($match, $link, $text);
     }
     
     return $text;
+  }
+  
+  /**
+   * Internal link generation function
+   * @access private
+   * @return string HTML
+   */
+  
+  private static function generate_internal_link($namespace, $page_id, $inner_text, $match, $parser = false, $do_exist_check = true, $match_page_id = false, $match_namespace = false)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    if ( ($pos = strrpos($page_id, '#')) !== false )
+    {
+      $hash = substr($page_id, $pos);
+      $page_id = substr($page_id, 0, $pos);
+    }
+    else
+    {
+      $hash = '';
+    }
+    
+    if ( $namespace == 'Admin' )
+    {
+      // No linking directly to Admin pages!
+      $get = 'module=' . $paths->nslist[$namespace] . sanitize_page_id($page_id);
+      $pid_clean = $paths->nslist['Special'] . 'Administration';
+      $onclick = ' onclick="ajaxLoginNavTo(\'Special\', \'Administration\', USER_LEVEL_ADMIN, \'' . addslashes($get) . '\'); return false;"';
+    }
+    else
+    {
+      $get = false;
+      $onclick = '';
+      $pid_clean = $paths->nslist[$namespace] . sanitize_page_id($page_id);
+    }
+    
+    $url = makeUrl($pid_clean, $get, true) . $hash;
+    $quot = '"';
+    $exists = ( ($do_exist_check && isPage($pid_clean)) || !$do_exist_check ) ? '' : ' class="wikilink-nonexistent"';
+    
+    if ( $match_page_id && $match_namespace && $pid_clean === $paths->get_pathskey($match_page_id, $match_namespace) )
+      $exists .= ' class="currentpage"';
+    
+    if ( $parser )
+    {
+      $parser->assign_vars(array(
+          'HREF' => $url,
+          'FLAGS' => $exists,
+          'TEXT' => $inner_text
+        ));
+      $link = $parser->run();
+    }
+    else
+    {
+      $omatch = self::escape_parser_hint_attrib($match);
+      $link = "<!--#internallink src=\"$omatch\" --><a{$onclick} href={$quot}{$url}{$quot}{$exists}>{$inner_text}</a><!--#/internallink-->";
+    }
+    
+    return $link;
   }
   
   /**
