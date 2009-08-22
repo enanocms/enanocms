@@ -1178,7 +1178,7 @@ JSEOF;
     
     $this->assign_vars(array(
         'PAGE_NAME' => htmlspecialchars($this->page->ns->cdata['name']),
-        'PAGE_URLNAME' => sanitize_page_id($this->page_id),
+        'PAGE_URLNAME' => $paths->nslist[$this->namespace] . sanitize_page_id($this->page_id),
         'TOOLBAR' => $tb,
         'TOOLBAR_EXTRAS' => $this->toolbar_menu,
         'STYLE_LINK' => makeUrlNS('Special', 'CSS', null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
@@ -3015,7 +3015,7 @@ class template_nodb
     {
       $js_dynamic .= '<script type="text/javascript" src="install.php?mode=langjs"></script>';
     }
-    $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var cdnPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1;</script>';
+    $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var cdnPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1; var msg_loading_component = \'Loading %component%...\';</script>';
     
     global $site_name, $site_desc;
     $site_default_name = ( !empty($site_name) ) ? $site_name : 'Critical error';

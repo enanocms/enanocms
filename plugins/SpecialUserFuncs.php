@@ -405,6 +405,10 @@ function page_Special_Login()
           echo '<input type="hidden" name="get_fwd" value="' . $get_string . '" />';
         }
       }
+      else if ( isset($_POST['get_fwd']) )
+      {
+        echo '<input type="hidden" name="get_fwd" value="' . htmlspecialchars($_POST['get_fwd']) . '" />';
+      }
       ?>
     </form>
     <?php
@@ -421,6 +425,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
   global $lang;
   require_once( ENANO_ROOT . '/includes/math.php' );
   
+  $paths->fullpage = $GLOBALS['title'];
   if ( $paths->getParam(0) === 'action.json' )
   {
     if ( !isset($_POST['r']) )

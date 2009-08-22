@@ -426,6 +426,28 @@ class sessionManager {
     return $result;
   }
   
+  /**
+   * Returns true if we're currently on a page that shouldn't be blocked even if we have an inactive or banned account
+   * @param bool strict - if true, whitelist of pages is even stricter (Login, Logout and CSS only). if false (default), admin access is allowed, assuming other factors allow it
+   * @return bool
+   */
+  
+  function on_critical_page($strict = false)
+  {
+    global $title;
+    list($page_id, $namespace) = RenderMan::strToPageID($title);
+    list($page_id) = explode('/', $page_id);
+    
+    if ( $strict )
+    {
+      return $namespace == 'Special' && in_array($page_id, array('CSS', 'Login', 'Logout'));
+    }
+    else
+    {
+      return $namespace == 'Admin' || ($namespace == 'Special' && in_array($page_id, array('CSS', 'Login', 'Logout', 'Administration')));
+    }
+  }
+  
   # Session restoration and permissions
   
   /**
@@ -452,13 +474,6 @@ class sessionManager {
       }
       if ( is_array($userdata) )
       {
-        $data = RenderMan::strToPageID($paths->get_pageid_from_url());
-        
-        if(!$this->compat && $userdata['account_active'] != 1 && $data[1] != 'Special' && $data[1] != 'Admin')
-        {
-          $this->show_inactive_error($userdata);
-        }
-        
         $this->sid = $_COOKIE['sid'];
         $this->user_logged_in = true;
         $this->user_id =       intval($userdata['user_id']);
@@ -565,6 +580,12 @@ class sessionManager {
     
     // make sure we aren't banned
     $this->check_banlist();
+    
+    // make sure the account is active
+    if ( !$this->compat && $this->user_logged_in && $userdata['account_active'] != 1 && !$this->on_critical_page() )
+    {
+      $this->show_inactive_error($userdata);
+    }
     
     // Printable page view? Probably the wrong place to control
     // it but $template is pretty dumb, it will just about always
@@ -1498,6 +1519,9 @@ class sessionManager {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
+    global $title;
+    $paths->init($title);
+    
     $language = intval(getConfig('default_language'));
     $lang = new Language($language);
     @setlocale(LC_ALL, $lang->lang_code);
@@ -1563,7 +1587,10 @@ class sessionManager {
       }
     }
     
-    die_semicritical($lang->get('user_login_noact_title'), '<p>' . $lang->get('user_login_noact_msg_intro') . ' '.$solution.'</p>' . $form);
+    global $output;
+    $output = new Output_HTML();
+    $output->set_title($lang->get('user_login_noact_title'));
+    die_friendly($lang->get('user_login_noact_title'), '<p>' . $lang->get('user_login_noact_msg_intro') . ' '.$solution.'</p>' . $form);
   }
   
   /**
@@ -1779,7 +1806,9 @@ class sessionManager {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
     
-    $col_reason = ( $this->compat ) ? '"No reason entered (session manager is in compatibility mode)" AS reason' : 'reason';
+    $col_reason = ( $this->compat ) ? '\'No reason available (session manager is in compatibility mode)\' AS reason' : 'reason';
+    $remote_addr = ( strstr($_SERVER['REMOTE_ADDR'], ':') ) ? expand_ipv6_address($_SERVER['REMOTE_ADDR']) : $_SERVER['REMOTE_ADDR'];
+    
     $banned = false;
     if ( $this->user_logged_in )
     {
@@ -1819,7 +1848,7 @@ class sessionManager {
             {
               continue;
             }
-            if ( preg_match("/$regexp/", $_SERVER['REMOTE_ADDR']) )
+            if ( preg_match("/$regexp/", $remote_addr) )
             {
               $reason = $reason_temp;
               $banned = true;
@@ -1862,8 +1891,11 @@ class sessionManager {
             // check range
             $regexp = parse_ip_range_regex($ban_value);
             if ( !$regexp )
+            {
+              die("bad regexp for $ban_value");
               continue;
-            if ( preg_match("/$regexp/", $_SERVER['REMOTE_ADDR']) )
+            }
+            if ( preg_match("/$regexp/", $remote_addr) )
             {
               $reason = $reason_temp;
               $banned = true;
@@ -1879,7 +1911,7 @@ class sessionManager {
       }
       $db->free_result();
     }
-    if ( $banned && $paths->get_pageid_from_url() != $paths->nslist['Special'].'CSS' )
+    if ( $banned && !$this->on_critical_page(true) )
     {
       // This guy is banned - kill the session, kill the database connection, bail out, and be pretty about it
       die_semicritical($lang->get('user_ban_msg_title'), '<p>' . $lang->get('user_ban_msg_body') . '</p><div class="error-box"><b>' . $lang->get('user_ban_lbl_reason') . '</b><br />' . $reason . '</div>');

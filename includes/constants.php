@@ -118,6 +118,7 @@ define('TIME_24_S', 'G:i:s');
 
 define('ED_DATE', 1);
 define('ED_TIME', 2);
+define('ED_DATE_FULL', 4);
 
 // Rendering options!
 
