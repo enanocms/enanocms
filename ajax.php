@@ -61,7 +61,7 @@
         $src = '';
       }
       
-      $auth_edit = ( $session->get_permissions('edit_page') && ( $session->get_permissions('even_when_protected') || !$paths->page_protected ) );
+      $auth_edit = ( $session->get_permissions('edit_page') && ( $session->get_permissions('even_when_protected') || !$page->ns->page_protected ) );
       $auth_wysiwyg = ( $session->get_permissions('edit_wysiwyg') );
       
       $return = array(
