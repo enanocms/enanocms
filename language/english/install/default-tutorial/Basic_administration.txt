@@ -1,0 +1,66 @@
+The <acronym title="Administration Control Panel">ACP</acronym> is where you can go to manage things most users can't, such as website configuration, security settings, users, and plugins. This tutorial page covers the basic parts of the administration panel.
+
+To get started, open this link in a new browser window or tab: [[Special:Administration|Administration panel]]. You'll probably be asked to enter your password again; if prompted, please do so.
+
+== Layout of the ACP ==
+
+Enano's administration panel combines design elements from several other web applications with our own bits of design. It emphasizes familiarity and tries to be as self-explanatory as possible. We accomplish this by using lots of text and, except when such a design would be limiting, working with the same 2-column layout in every page.
+
+=== RTFD (Read The Friendly Descriptions) ===
+
+Except for completely self-explanatory basic options, all controls have descriptions of what exactly they do, in smaller text just below the label. This layout lets you scan quickly for what you're looking for, but puts help a glance away when you need it.
+
+== Applets ==
+
+There are 20 applets that make up Enano's administration panel. This might seem intimidating, but applets are sorted by category in Enano 1.2, so it's easy to find what you're looking for.
+
+'''Administration panel home:''' This shows you basic information about your website. Here you can find statistics, version information, active alerts, and instructions for getting support for Enano.
+'''General configuration:''' Here is where basic parameters of your site can be viewed and changed. There are a lot of settings here that can affect your site's security and permissions, so read everything twice on here.
+'''File uploads:''' Specific options related to Enano's file uploading feature.
+'''Allowed file types:''' Configure which file extensions may be uploaded through the [[Special:UploadFile|Upload File]] page.
+'''Manage pages:''' Batch control of pages, plus specific administrator options like moving pages to a new URL.
+'''Edit page content:''' Merely a front-end for finding and editing pages. This was included in Enano 1.0, so we left it in just in case you're still looking for this button here.
+'''Manage page groups:''' Group pages together, so that you can assign the same set of permissions to multiple pages at once.
+'''Manage themes:''' Install themes, change the default theme, and view or change permissions.
+'''Manage plugins:''' Install, remove, upgrade, and enable or disable installed plugins. This is also where you can see the list of system plugins (plugins that run basic functions) that come bundled with Enano.
+'''Backup database:''' Download a copy of your database that can be restored if something ever goes wrong with your website. This is only available on Enano installations based on MySQL.
+'''Language manager:''' View and change languages your site uses. You can also edit individual strings to customize your site.
+'''Cache settings:''' Check the status of individual caches. Caching lets Enano save some generated values so that pages can be produced faster.
+'''Manage users:''' Edit or delete user accounts on your website. Here you can reset passwords, activate or deactivate accounts, and a lot more.
+'''Edit user groups:''' Create, edit, and delete user groups. User groups let you place any number of users within one common category, so you can assign permissions, username colors (ranks) and more to lots of users at the same time.
+'''COPPA support:''' Enable or disable Enano's support for COPPA, a United States law that requires websites with a target audience under the age of 13 to seek parental consent before allowing new members to participate.
+'''Mass e-mail:''' Send out an e-mail to everybody on your website, or to a certain user group.
+'''User ranks and titles:''' Assign different visual properties to user titles. In addition to changing the color and basic formatting, you can enter custom CSS rules.
+'''Security log:''' See a list of things done on your site that pertain to security. You can see successful and failed attempts to log in, information on actions taken with plugins, changing of sensitive settings, and more.
+'''Ban control:''' Ban (or unban) people by username, IP address or e-mail address from your website.
+'''Log out of admin panel:''' Tell Enano that you're finished working with the admin panel and wish to discard your privileged state, so that a password is required to use the administration panel again. You should always use this when you're finished using the ACP.
+
+== Getting started ==
+
+OK, you should have, in a separate browser window or tab, the ACP home page now. On the left you should see a tree menu with several different categories of applets. Click each one to open it, so that you can see everything. Also take the time now to click "Turn on keep-alive", since you'll be switching back and forth between your admin panel and this tutorial a lot.
+
+The right side is where the current ACP page is loaded. In this case, it should be the Administration Dashboard, also available through the "Administration panel home" link at the top of the menu. You should see a table with statistics about your website and, if you scroll down a bit, an alert or two. Finally, you can see your fresh new security log showing the date, time, and source IP address of your Enano installation as well as a pair of light-blue boxes with links to Enano documentation and support.
+
+Look to the far right: you'll see a light blue bar with an arrow peeking out. If you click that, you'll see your site's sidebar, so that you can navigate around from the admin panel. We usually keep this hidden because it makes space a bit limited on non-widescreen displays.
+
+Let's take a shot at some configuration. Click on "General configuration" in the navigation tree. Scroll down a little bit and look for something you'd like to change - we usually like to start by turning on approval of comments and visual confirmation when guests post to cut down on comment spam. If you can send e-mail from your server, try also setting account activation to "User." Save your changes by scrolling all the way to the bottom and clicking "Save Changes."
+
+Did you catch that? Not too hard. That's how just about all the forms in Enano work.
+
+== Install a plug-in ==
+
+Now we're ready for something a little more advanced. Let's start off with a relatively basic plugin: [http://enanocms.org/plugin/ajim2 AjIM2].
+
+Start off by downloading the plugin as instructed on the page. Unzip the file and upload the files to your webserver the same way you uploaded Enano. Make sure you put both the "AjIM2.0.php" file and the "ajim" folder under Enano's "plugins" folder.
+
+Now go to Manage Plugins in your ACP tab. You should see an entry for "AjIM 2.0". Click on it and watch the table cell expand. You'll see a description of the plugin as well as information like its author, version, and enanocms.org plugin page URL. Off to the right you'll see a button labeled "Install." Click it and confirm the installation when prompted. If all goes well, you'll see the page refresh and the entry for AjIM will now be green. Congratulations! You just installed your first plugin.
+
+Since AjIM adds a sidebar block, let's also go in and enable that. Expand the sidebar by clicking the light blue bar on the right side of the admin panel window and click "Edit the Sidebar." Then click "Create a new block." Select "Plugin block" from the drop-down box, then enter the name of the new block and which sidebar you want it on. Finally select "AjIM Shoutbox" from the last drop-down box and click Create new block. You'll see a message that says "The item was added" and the new AjIM Shoutbox block at the bottom of the sidebar you selected. Drag the gray handle at the top of the block to rearrange it, if you want. That's it - AjIM is installed and enabled on your site.
+
+Most plugins are easy to install but need just a little help to become fully integrated with your site. For example, if you install [http://enanocms.org/plugin/snapr Snapr] or [http://enanocms.org/plugin/newsboy Newsboy], you might want to edit your Navigation sidebar block to add a link or change your main page. Plugins are totally flexible in this regard, so experiment - a plugin often drives the main feature of an Enano site.
+
+== That's it! ==
+
+Now you're familiar with the administration control panel. We've accomplished a knowledge of Enano's basic features and familiarized ourselves with its interface. Now it's time to explore some more advanced features.
+
+[[Moderation|Next step: Moderation, security, and access controls &raquo;]]

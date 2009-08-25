@@ -24,6 +24,7 @@
       
       if ( is_object($paths) && $head = $paths->sysMsg('SiteHeader') )
       {
+        echo '<a class="header-placeholder" href="' . makeUrl(get_main_page()) . '">&nbsp;</a>';
         echo $head;
       }
       else

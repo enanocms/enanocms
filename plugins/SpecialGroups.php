@@ -12,7 +12,6 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2007 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -377,7 +376,7 @@ function page_Special_Usergroups()
       foreach ( $pending as $member )
       {
         
-        $date = enano_date('F d, Y', $member['reg_time']);
+        $date = enano_date(ED_DATE, $member['reg_time']);
         $cls = ( $cls == 'row2' ) ? 'row1' : 'row2';
         $addy = $email->encryptEmail($member['email']);
         
@@ -423,7 +422,7 @@ function page_Special_Usergroups()
       if ( $member['is_mod'] != 1 )
         break;
       
-      $date = enano_date('F d, Y', $member['reg_time']);
+      $date = enano_date(ED_DATE, $member['reg_time']);
       $cls = ( $cls == 'row2' ) ? 'row1' : 'row2';
       $addy = $email->encryptEmail($member['email']);
       
@@ -447,7 +446,7 @@ function page_Special_Usergroups()
       if ( $member['is_mod'] == 1 )
         continue;
       
-      $date = enano_date('F d, Y', $member['reg_time']);
+      $date = enano_date(ED_DATE, $member['reg_time']);
       $cls = ( $cls == 'row2' ) ? 'row1' : 'row2';
       $addy = $email->encryptEmail($member['email']);
       

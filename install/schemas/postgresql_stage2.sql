@@ -136,6 +136,8 @@ CREATE TABLE {{TABLE_PREFIX}}users_extra(
   user_hobbies text,
   email_public smallint NOT NULL DEFAULT 0,
   disable_js_fx smallint NOT NULL DEFAULT 0,
+  date_format varchar(32) NOT NULL DEFAULT 'F d, Y',
+  time_format varchar(32) NOT NULL DEFAULT 'G:i',
   PRIMARY KEY ( user_id ) 
 );
 

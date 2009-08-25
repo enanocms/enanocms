@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -247,7 +246,7 @@ class emailer
     {
       $this->mimeOut .= "From: ".$szFromAddress."\n";
       $this->mimeOut .= "To: ".$this->emailAddress."\n";
-      $this->mimeOut .= "Date: ".enano_date("D, d M Y H:i:s") . " UT\n";
+      $this->mimeOut .= "Date: ".enano_date('r') . " UT\n";
       $this->mimeOut .= "Reply-To:".$szFromAddress."\n";
       $this->mimeOut .= "Subject: ".$this->mailSubject."\n";
       $this->mimeOut .= "X-Mailer: PHP/".phpversion()."\n";

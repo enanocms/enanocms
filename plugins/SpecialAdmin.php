@@ -12,8 +12,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -1482,7 +1481,7 @@ function page_Admin_DBBackup()
     $filename = 'enano_backup_' . enano_date('ymd') . '.sql' . $aesext;
     ob_start();
     // Spew some headers
-    $headdate = enano_date('F d, Y \a\t h:i a');
+    $headdate = enano_date(ED_DATE | ED_TIME);
     echo <<<HEADER
 -- Enano CMS SQL backup
 -- Generated on {$headdate} by {$session->username}
@@ -1494,7 +1493,7 @@ HEADER;
     $tables = array_merge($base, $add);
     
     // Log it!
-    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'db_backup\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(implode(', ', $tables)) . '\')');
+    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'db_backup\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(implode(', ', $tables)) . '\')');
     if ( !$e )
       $db->_die();
     
@@ -2227,26 +2226,22 @@ EOF;
         <td width="100%" valign="top">
           <div class="pad" id="ajaxPageContainer">
           <?php
-          if(isset($_GET['module'])) 
+          if ( isset($_GET['module']) ) 
           {
-            // Look for a namespace prefix in the urlname, and assign a different namespace, if necessary
-            $k = array_keys($paths->nslist);
-            for ( $i = 0; $i < sizeof($paths->nslist); $i++ )
+            list($module) = explode('/', $_GET['module']);
+            list($page_id, $namespace) = RenderMan::strToPageID($module);
+            if ( $namespace != 'Admin' )
             {
-              $ln = strlen( $paths->nslist[ $k[ $i ] ] );
-              if ( substr($_GET['module'], 0, $ln) == $paths->nslist[$k[$i]] )
-              {
-                $ns = $k[$i];
-                $nm = substr($_GET['module'], $ln, strlen($_GET['module']));
-              }
+              echo '<div class="error-box">Module must be in the Admin namespace</div>';
             }
-            $fname = 'page_'.$ns.'_'.$nm;
-            $s = strpos($fname, '?noheaders');
-            if($s) $fname = substr($fname, 0, $s);
-            $paths->cpage['module'] = $_GET['module'];
-            if ( function_exists($fname) && $_GET['module'] != $paths->nslist['Special'] . 'Administration' )
+            else
             {
-              call_user_func($fname);
+              $paths->fullpage = $_GET['module'];
+              $paths->cpage['module'] = $_GET['module'];
+              $page = new PageProcessor($page_id, $namespace);
+              $page->send_headers = false;
+              $page->send();
+              $paths->fullpage = $paths->page;
             }
           } 
           else 
@@ -2603,7 +2598,7 @@ function page_Special_EditSidebar()
           }
           if(isset($_GET['ajax']))
           {
-            ob_end_clean();
+            @ob_end_clean();
             die('GOOD');
           }
           break;

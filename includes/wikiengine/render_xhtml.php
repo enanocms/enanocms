@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -26,11 +25,10 @@ class Carpenter_Render_Xhtml
   
   public function heading($text, $pieces)
   {
-    static $tocid = -1;
     foreach ( $pieces as $i => $piece )
     {
-      $tocid++;
-      $tag = '<h' . $piece['level'] . ' id="toc' . $tocid . '">';
+      $tocid = sanitize_page_id(trim($piece['text']));
+      $tag = '<h' . $piece['level'] . ' id="head:' . $tocid . '">';
       $tag .= trim($piece['text']);
       $tag .= '</h' . $piece['level'] . '>';
       

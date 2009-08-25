@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -201,7 +200,7 @@ class Namespace_User extends Namespace_Default
                 ' . $lang->get('userpage_lbl_joined') . '
               </td>
               <td class="row1" style="text-align: left; width: 25%;">
-                ' . enano_date('F d, Y h:i a', $userdata['reg_time']) . '
+                ' . enano_date(ED_DATE | ED_TIME, $userdata['reg_time']) . '
               </td>';
       echo '  <td class="row2" style="text-align: right; width: 25%;">
                 ' . $lang->get('userpage_lbl_num_comments') . '
@@ -238,7 +237,7 @@ class Namespace_User extends Namespace_Default
       {
         do 
         {
-          $row['time'] = enano_date('F d, Y', $row['time']);
+          $row['time'] = enano_date(ED_DATE, $row['time']);
           $comments[] = $row;
         }
         while ( $row = $db->fetchrow() );

@@ -1247,30 +1247,26 @@ window.ajaxAdminPage = function()
   window.location = loc;
 }
 
-var navto_ns;
-var navto_pg;
-var navto_ul;
-
-window.ajaxLoginNavTo = function(namespace, page_id, min_level)
+window.ajaxLoginNavTo = function(namespace, page_id, min_level, get)
 {
   // IE <6 pseudo-compatibility
   if ( KILL_SWITCH )
     return true;
-  navto_pg = page_id;
-  navto_ns = namespace;
-  navto_ul = min_level;
+  void(namespace);
+  void(page_id);
+  get = get || false;
   if ( auth_level < min_level )
   {
     ajaxPromptAdminAuth(function(k) {
       ENANO_SID = k;
-      auth_level = navto_ul;
-      var loc = makeUrlNS(navto_ns, navto_pg);
+      auth_level = min_level;
+      var loc = makeUrlNS(namespace, page_id, get);
       if ( (ENANO_SID + ' ').length > 1 )
         window.location = loc;
     }, min_level);
     return false;
   }
-  var loc = makeUrlNS(navto_ns, navto_pg);
+  var loc = makeUrlNS(namespace, page_id, get);
   window.location = loc;
 }
 

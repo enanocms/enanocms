@@ -2,8 +2,7 @@
 
 /**
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  * paths.php - The part of Enano that actually manages content. Everything related to page handling and namespaces is in here.
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -19,7 +18,7 @@
  
 class pathManager
 {
-  public $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $external_api_page;
+  public $title, $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $external_api_page;
   
   /**
    * List of custom processing functions for namespaces. This is protected so trying to do anything with it will throw an error.
@@ -119,39 +118,7 @@ class pathManager
     $this->template_cache = Array();
   }
   
-  function parse_url($sanitize = true)
-  {
-    $title = '';
-    if ( isset($_GET['title']) )
-    {
-      $title = $_GET['title'];
-    }
-    else if ( isset($_SERVER['PATH_INFO']) )
-    {
-      // fix for apache + CGI (occurred on a GoDaddy server, thanks mm3)
-      if ( @substr(@$_SERVER['GATEWAY_INTERFACE'], 0, 3) === 'CGI' && $_SERVER['PATH_INFO'] == scriptPath . '/index.php' )
-      {
-        // do nothing; ignore PATH_INFO
-      }
-      else
-      {
-        $title = substr($_SERVER['PATH_INFO'], ( strpos($_SERVER['PATH_INFO'], '/') ) + 1 );
-      }
-    }
-    else
-    {
-      // This method really isn't supported because apache has a habit of passing dots as underscores, thus corrupting the request
-      // If you really want to try it, the URI format is yoursite.com/?/Page_title
-      if ( !empty($_SERVER['QUERY_STRING']) && substr($_SERVER['QUERY_STRING'], 0, 1) == '/' )
-      {
-        $pos = ( ($_ = strpos($_SERVER['QUERY_STRING'], '&')) !== false ) ? $_ - 1: 0x7FFFFFFF;
-        $title = substr($_SERVER['QUERY_STRING'], 1, $pos);
-      }
-    }
-    return ( $sanitize ) ? sanitize_page_id($title) : $title;
-  }
-  
-  function init()
+  function init($title)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang;
@@ -165,7 +132,9 @@ class pathManager
     
     if ( defined('ENANO_INTERFACE_INDEX') || defined('ENANO_INTERFACE_AJAX') || defined('IN_ENANO_UPGRADE') )
     {
-      $title = $this->parse_url(false);
+      if ( empty($title) )
+        $title = get_title();
+      
       if ( empty($title) && get_main_page() != '' )
       {
         $this->main_page();
@@ -471,16 +440,7 @@ class pathManager
   }
   function get_pageid_from_url()
   {
-    $url = $this->parse_url();
-    if ( substr($url, 0, strlen($this->nslist['Special'])) == $this->nslist['Special'] ||
-         substr($url, 0, strlen($this->nslist['Admin']))   == $this->nslist['Admin'])
-    {
-      list(, $ns) = RenderMan::strToPageID($url);
-      $upart = substr($url, strlen($this->nslist[$ns]));
-      list($upart) = explode('/', $upart);
-      $url = $this->nslist[$ns] . $upart;
-    }
-    return $url;
+    return get_title(true, true);
   }
   // Parses a (very carefully formed) array into Javascript code compatible with the Tigra Tree Menu used in the admin menu
   function parseAdminTree() 
@@ -591,7 +551,7 @@ class pathManager
   }
   function getParam($id = 0)
   {
-    $title = $this->parse_url(false);
+    $title = $this->fullpage;
     list(, $ns) = RenderMan::strToPageID($title);
     $title = substr($title, strlen($this->nslist[$ns]));
     $regex = '/^' . str_replace('/', '\\/', preg_quote($this->nslist[$ns])) . '\\/?/';
@@ -603,7 +563,7 @@ class pathManager
   
   function getAllParams()
   {
-    $title = $this->parse_url(false);
+    $title = $this->fullpage;
     $regex = '/^' . str_replace('/', '\\/', preg_quote($this->nslist[$this->namespace])) . '\\/?/';
     $title = preg_replace($regex, '', $title);
     $title = explode('/', $title);

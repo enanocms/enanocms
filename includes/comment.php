@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -157,7 +156,7 @@ class Comments
             }
             
             // Format date
-            $row['time'] = enano_date('F d, Y h:i a', $row['time']);
+            $row['time'] = enano_date(ED_DATE | ED_TIME, $row['time']);
             
             // Format signature
             $row['signature'] = ( !empty($row['signature']) ) ? RenderMan::render($row['signature']) : '';
@@ -313,20 +312,21 @@ class Comments
           $subj = htmlspecialchars($data['subj']);
           $text = RenderMan::preprocess_text($data['text'], true, false);
           $src = $text;
+          $sql_subj = $db->escape($subj);
           $sql_text = $db->escape($text);
           $text = RenderMan::render($text);
           $appr = ( getConfig('approve_comments', '0') == '1' ) ? COMMENT_UNAPPROVED : COMMENT_APPROVED;
           if ( $appr === COMMENT_APPROVED && $spam_policy === 'moderate' && !$spamcheck )
             $appr = COMMENT_SPAM;
           $time = time();
-          $date = enano_date('F d, Y h:i a', $time);
+          $date = enano_date(ED_DATE | ED_TIME, $time);
           $ip = $_SERVER['REMOTE_ADDR'];
           if ( !is_valid_ip($ip) )
             die('Hacking attempt');
           
           // Send it to the database
           $q = $db->sql_query('INSERT INTO '.table_prefix.'comments(page_id,namespace,name,subject,comment_data,approved, time, user_id, ip_address) VALUES' . "\n  " .
-                             "('$this->page_id', '$this->namespace', '$name', '$subj', '$sql_text', $appr, $time, {$session->user_id}, '$ip');");
+                             "('$this->page_id', '$this->namespace', '$name', '$sql_subj', '$sql_text', $appr, $time, {$session->user_id}, '$ip');");
           if(!$q)
             $db->die_json();
           

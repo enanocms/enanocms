@@ -1,7 +1,67 @@
-OK, I lied. The beta doesn't have a tutorial.
+At its heart, Enano is a wiki. Why is this special? Because content is at the heart of the Enano design, not an afterthought. In Enano, editing - like most other tasks - is done right on the page. The page is updated live so you can see your changes right away. You can edit a page simply by clicking the "Edit this page" button on the shiny black toolbar. Create a page simply by editing it - the first time you save it, it will be created automatically.
 
-=== Oh noes! What am I to do? ===
+=== Your first edit ===
 
-For now, use the [http://enanocms.org/download?series=1.0 stable releases] of Enano if you don't feel comfortable. Also read the [http://docs.enanocms.org/ documentation] - it won't give you a tutorial ''per se'', but it will explain how to run an Enano website. If you're stuck, try our [http://forum.enanocms.org/ support forums] or see [http://enanocms.org/Support other support options].
+Let's try some basic editing now. Click the "edit this page" button you see on the textual toolbar at the top of this page. Type between the two HTML comments (&lt;!-- like this --&gt;) you see in the text box (you might have to scroll down a bit). Click "Save Changes" - you should see what you typed show up right away!
 
-<div class="error-box">Remember that this is a beta release of Enano. We don't provide official support for problems, but we will fix bugs and take suggestions. Take this into account when you post for help - it will make getting an answer more likely!</div>
+==== User-entered text ====
+
+<!-- Put your own text below this line! -->
+
+<!-- Put your own text above this line! -->
+
+=== Create your first page ===
+
+Now let's try creating a page. Open [[My first page|this link]] in a new browser tab or window so that you can keep these instructions available. Click the same "edit this page" button and type some text. What you typed should be visible on the page now!
+
+=== Add some flair ===
+
+Have you noticed the way links and headings look on this page? They are embedded using a very simple language called ''wikitext''. You can use wikitext to organize and format your page, and to link to other pages. Linking to other pages is what makes a wiki, a wiki.
+
+To use bold text:
+
+<code><nowiki>'''Your text here'''</nowiki></code>
+
+To use italic text:
+
+<code><nowiki>''Your text here''</nowiki></code>
+
+Create a link:
+
+<code><nowiki>[[Page title]]</nowiki></code>
+
+Create a link, but using your own text:
+
+<code><nowiki>[[Page title|Your text here]]</nowiki></code>
+
+Create a large heading:
+
+<code><nowiki>== Your text here ==</nowiki></code>
+
+Create a medium heading:
+
+<code><nowiki>=== Your text here ===</nowiki></code>
+
+Create a small heading:
+
+<code><nowiki>==== Your text here ====</nowiki></code>
+
+Link to an external site:
+
+<code><nowiki>[http://www.example.com/ Your text here]</nowiki></code>
+
+== Visual editing ==
+
+If you prefer to design your documents in a more graphical way, click the <a href="#" onclick="return false;" class="abutton abutton_blue image"><img width="16" height="16" src="images/spacer.gif" style="background-image: url(images/editor/sprite.png); background-repeat: no-repeat; background-position: -112px 0px;" /> Convert to HTML</a> button in the editor. Enano includes [http://tinymce.moxiecode.com/ TinyMCE], a widely-used graphical editor for the web.
+
+== Moving up from Enano 1.0? ==
+
+Good news: You don't have to learn anything new to use Enano 1.2's formatting syntax or editor. We've improved the interface of the editor a lot though. Enano 1.2 also has new features like auto-saving and the ability to detect when someone else saves the page while you're working on it. Another new feature is a guard against automatically closing out the editor, so it's much harder to lose a page you're working on.
+
+The biggest change to page editing in Enano 1.2 is the way the renderer behaves when you use TinyMCE to edit the page. We made this process a lot smarter so the wikitext engine doesn't try to apply formatting that should already be done by TinyMCE. This means, however, that you can't use certain bits of wikitext syntax - such as bold, italics, headings and tables - that are already covered through TinyMCE features.
+
+== All done! ==
+
+That's it! Now you know how to write pages with Enano. Let's move on and learn how to do some basic administration of your new website.
+
+[[Basic_administration|Next step: Basic administation &raquo;]]

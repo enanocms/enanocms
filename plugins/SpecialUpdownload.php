@@ -12,8 +12,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  * SpecialUpdownload.php - handles uploading and downloading of user-uploaded files - possibly the most rigorously security-enforcing script in all of Enano, although sessions.php comes in a close second
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -128,13 +127,13 @@ function page_Special_UploadFile()
     if(!$db->sql_query('INSERT INTO '.table_prefix.'files(time_id,page_id,filename,size,mimetype,file_extension,file_key) VALUES('.$utime.', \''.$urln.'\', \''.$filename.'\', '.$flen.', \''.$type.'\', \''.$ext.'\', \''.$key.'\')')) $db->_die('The file data entry could not be inserted.');
     if(!isset($_POST['update']))
     {
-      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.$utime.', \''.enano_date('d M Y h:i a').'\', \'page\', \'create\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\');')) $db->_die('The page log could not be updated.');
+      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.$utime.', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'create\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\');')) $db->_die('The page log could not be updated.');
       if(!$db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace,protected,delvotes,delvote_ips) VALUES(\''.$filename.'\', \''.$urln.'\', \'File\', 0, 0, \'\')')) $db->_die('The page listing entry could not be inserted.');
       if(!$db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace,page_text,char_tag) VALUES(\''.$urln.'\', \'File\', \''.$comments.'\', \''.$chartag.'\')')) $db->_die('The page text entry could not be inserted.');
     }
     else
     {
-      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.$utime.', \''.enano_date('d M Y h:i a').'\', \'page\', \'reupload\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\', \''.$comments.'\');')) $db->_die('The page log could not be updated.');
+      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.$utime.', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'reupload\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\', \''.$comments.'\');')) $db->_die('The page log could not be updated.');
     }
     $cache->purge('page_meta');
     die_friendly($lang->get('upload_success_title'), '<p>' . $lang->get('upload_success_body', array('file_link' => makeUrlNS('File', $filename))) . '</p>');

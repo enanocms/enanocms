@@ -135,6 +135,8 @@ CREATE TABLE {{TABLE_PREFIX}}users_extra(
   user_hobbies text,
   email_public tinyint(1) NOT NULL DEFAULT 0,
   disable_js_fx tinyint(1) NOT NULL DEFAULT 0,
+  date_format varchar(32) NOT NULL DEFAULT 'F d, Y',
+  time_format varchar(32) NOT NULL DEFAULT 'G:i',
   PRIMARY KEY ( user_id ) 
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 

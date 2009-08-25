@@ -74,6 +74,15 @@ body.simple div#header {
   margin: 100px auto 0 auto;
 }
 
+a.header-placeholder {
+  display: block;
+  width: 60%;
+  min-width: 500px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 div#header h1 {
   margin: 0;
   font-weight: normal;
@@ -137,6 +146,7 @@ ul.useropts li:hover {
 
 ul.useropts li:hover > a {
   padding: 2px 12px 4px 12px;
+  color: #b9d0e3;
 }
 
 ul.useropts li.logout:hover > a {

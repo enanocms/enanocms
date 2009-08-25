@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -176,7 +175,7 @@ function seclog_format_inner($r, $f = false)
     case "u_to_mod"        : $return .= $lang->get('acpsl_entry_u_to_mod'         , array('username' => $r['page_text'])); break;
     case "view_comment_ip" : $return .= $lang->get('acpsl_entry_view_comment_ip'  , array('username' => htmlspecialchars($r['page_text']))); break;
   }
-  $return .= '</td><td class="'.$cls.'">'.enano_date('d M Y h:i a', $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="' . $lang->get('acpsl_tip_reverse_dns') . '">'.$r['edit_summary'].'</td></tr>';
+  $return .= '</td><td class="'.$cls.'">'.enano_date(ED_DATE | ED_TIME, $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="' . $lang->get('acpsl_tip_reverse_dns') . '">'.$r['edit_summary'].'</td></tr>';
   return $return;
 }
 

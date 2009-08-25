@@ -66,7 +66,7 @@ function MessageBox(type, title, message)
     master_div.style.top = '-10000px';
     master_div.style.position = ( IE ) ? 'absolute' : 'fixed';
   }
-  z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex : getHighestZ();
+  z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex + 1: getHighestZ() + 1;
   mydiv.style.backgroundColor = '#FFFFFF';
   mydiv.style.padding = '10px';
   mydiv.style.marginBottom = '1px';

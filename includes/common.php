@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -44,7 +43,7 @@ define('ENANO_COMMON_ROOT_LOADED', 1);
 // be the expected output of enano_version(), which will always be in the
 // format of 1.0.2, 1.0.2a1, 1.0.2b1, 1.0.2RC1
 // You'll want to change this for custom distributions.
-$version = '1.1.6';
+$version = '1.1.7';
 
 /**
  * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it
@@ -227,21 +226,6 @@ $sep = ( strstr(contentPath, '?') ) ? '&' : '?';
 define('urlSeparator', $sep);
 unset($sep); // save 10 bytes of memory...
 
-// Sometimes there are critical failures triggered by initialization functions in the Enano API that are recurring
-// and cannot be fixed except for manual intervention. This is where that code should go.
-if ( isset($_GET['do']) && $_GET['do'] == 'diag' && isset($_GET['sub']) )
-{
-  switch($_GET['sub'])
-  {
-    case 'cookie_destroy':
-      unset($_COOKIE['sid']);
-      setcookie('sid', '', time()-3600*24, scriptPath);
-      setcookie('sid', '', time()-3600*24, scriptPath.'/');
-      die('Session cookie cleared. <a href="'.htmlspecialchars($_SERVER['PHP_SELF']).'">Continue</a>');
-      break;
-  }
-}
-
 // Build the list of system tables (this is mostly done in constants.php, but that's before table_prefix is known)
 if ( defined('table_prefix') && !defined('ENANO_TABLELIST_PREFIXED') )
 {
@@ -397,22 +381,25 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Finished base_classes_initted hook');
   
-  // For special and administration pages, sometimes there is a "preloader" function that must be run
-  // before the session manager and/or path manager get the init signal. Call it here.  
-  $p = RenderMan::strToPageId($paths->get_pageid_from_url());
-  if( ( $p[1] == 'Admin' || $p[1] == 'Special' ) && function_exists('page_'.$p[1].'_'.$p[0].'_preloader'))
-  {
-    call_user_func('page_'.$p[1].'_'.$p[0].'_preloader');
-  }
-  
-  profiler_log('Checked for preloader');
-  
   // One quick security check...
   if ( !is_valid_ip($_SERVER['REMOTE_ADDR']) )
   {
     die('SECURITY: spoofed IP address: ' . htmlspecialchars($_SERVER['REMOTE_ADDR']));
   }
-
+  
+  // For special and administration pages, sometimes there is a "preloader" function that must be run
+  // before the session manager and/or path manager get the init signal. Call it here.
+  $title = get_title(true);
+  list($page_id, $namespace) = RenderMan::strToPageID($title);
+  list($page_id_top) = explode('/', $page_id);
+  $fname = "page_{$namespace}_{$page_id_top}_preloader";
+  if( ( $namespace == 'Admin' || $namespace == 'Special' ) && function_exists($fname))
+  {
+    call_user_func($fname);
+  }
+  
+  profiler_log('Checked for (and ran, if applicable) preloader');
+  
   // All checks passed! Start the main components up.  
   $session->start();
   
@@ -439,7 +426,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Ran session_started hook');
   
-  $paths->init();
+  $paths->init($title);
   
   // setup output format
   if ( defined('ENANO_OUTPUT_FORMAT') )

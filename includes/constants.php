@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  * constants.php - important defines used Enano-wide
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -102,6 +101,24 @@ define('FIRST_SUNDAY', 1);
 define('SECOND_SUNDAY', 2);
 define('THIRD_SUNDAY', 3);
 define('LAST_SUNDAY', 4);
+
+// Date types
+define('DATE_1', 'y/m/d');
+define('DATE_2', 'y/d/m');
+define('DATE_3', 'Y-m-d');
+define('DATE_4', 'F d, Y');
+// 12 hour, no seconds
+define('TIME_12_NS', 'g:i A');
+// 12 hour, seconds
+define('TIME_12_S', 'g:i:s A');
+// 24 hour, no seconds
+define('TIME_24_NS', 'G:i');
+// 24 hour, seconds
+define('TIME_24_S', 'G:i:s');
+
+define('ED_DATE', 1);
+define('ED_TIME', 2);
+define('ED_DATE_FULL', 4);
 
 // Rendering options!
 

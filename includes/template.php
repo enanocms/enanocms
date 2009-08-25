@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -1179,7 +1178,7 @@ JSEOF;
     
     $this->assign_vars(array(
         'PAGE_NAME' => htmlspecialchars($this->page->ns->cdata['name']),
-        'PAGE_URLNAME' => sanitize_page_id($this->page_id),
+        'PAGE_URLNAME' => $paths->nslist[$this->namespace] . sanitize_page_id($this->page_id),
         'TOOLBAR' => $tb,
         'TOOLBAR_EXTRAS' => $this->toolbar_menu,
         'STYLE_LINK' => makeUrlNS('Special', 'CSS', null, true), //contentPath.$paths->nslist['Special'].'CSS' . $p,
@@ -2596,7 +2595,7 @@ EOF;
     $messages = array();
     while ( $row = $db->fetchrow() )
     {
-      $messages[] = '<a href="' . makeUrlNS('Special', 'PrivateMessages/View/' . $row['message_id']) . '" title="Sent ' . enano_date('F d, Y h:i a', $row['date']) . ' by ' . $row['message_from'] . '">' . $row['subject'] . '</a>';
+      $messages[] = '<a href="' . makeUrlNS('Special', 'PrivateMessages/View/' . $row['message_id']) . '" title="Sent ' . enano_date(ED_DATE | ED_TIME, $row['date']) . ' by ' . $row['message_from'] . '">' . $row['subject'] . '</a>';
     }
     $ob .= implode(",\n    " , $messages)."\n";
     $ob .= '</div>'."\n";
@@ -3016,7 +3015,7 @@ class template_nodb
     {
       $js_dynamic .= '<script type="text/javascript" src="install.php?mode=langjs"></script>';
     }
-    $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var cdnPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1;</script>';
+    $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var cdnPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1; var msg_loading_component = \'Loading %component%...\';</script>';
     
     global $site_name, $site_desc;
     $site_default_name = ( !empty($site_name) ) ? $site_name : 'Critical error';

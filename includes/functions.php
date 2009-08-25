@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -247,6 +246,56 @@ function get_main_page($force_logged_in = false)
 }
 
 /**
+ * Get the requested page title, taking into account all the different possible URL parsing schemes.
+ * @param bool If true (default), runs the result through sanitize_page_id().
+ * @param bool If true (default is false), and the return is a Special or Admin page, trims off anything beyond and including the first slash.
+ * @return string
+ */
+
+function get_title($sanitize = true, $chop_special = false)
+{
+  $title = '';
+  if ( isset($_GET['title']) )
+  {
+    $title = $_GET['title'];
+  }
+  else if ( isset($_SERVER['PATH_INFO']) )
+  {
+    // fix for apache + CGI (occurred on a GoDaddy server, thanks mm3)
+    if ( @substr(@$_SERVER['GATEWAY_INTERFACE'], 0, 3) === 'CGI' && $_SERVER['PATH_INFO'] == scriptPath . '/index.php' )
+    {
+      // do nothing; ignore PATH_INFO
+    }
+    else
+    {
+      $title = substr($_SERVER['PATH_INFO'], ( strpos($_SERVER['PATH_INFO'], '/') ) + 1 );
+    }
+  }
+  else
+  {
+    // This method really isn't supported because apache has a habit of passing dots as underscores, thus corrupting the request
+    // If you really want to try it, the URI format is yoursite.com/?/Page_title
+    if ( !empty($_SERVER['QUERY_STRING']) && substr($_SERVER['QUERY_STRING'], 0, 1) == '/' )
+    {
+      $pos = ( ($_ = strpos($_SERVER['QUERY_STRING'], '&')) !== false ) ? $_ - 1: 0x7FFFFFFF;
+      $title = substr($_SERVER['QUERY_STRING'], 1, $pos);
+    }
+  }
+  
+  if ( $chop_special )
+  {
+    list(, $ns) = RenderMan::strToPageID($title);
+    if ( $ns == 'Special' || $ns == 'Admin' )
+    {
+      list($title) = explode('/', $title);
+    }
+  }
+  
+  return ( $sanitize ) ? sanitize_page_id($title) : $title;
+}
+ 
+
+/**
  * Enano replacement for date(). Accounts for individual users' timezone preferences.
  * @param string Date-formatted string
  * @param int Optional - UNIX timestamp value to use. If omitted, the current time is used.
@@ -257,6 +306,31 @@ function enano_date($string, $timestamp = false)
 {
   if ( !is_int($timestamp) && !is_double($timestamp) && strval(intval($timestamp)) !== $timestamp )
     $timestamp = time();
+  
+  if ( is_int($string) )
+  {
+    global $session, $lang;
+    $date_fmt = is_object($session) ? $session->date_format : DATE_4;
+    $time_fmt = is_object($session) ? $session->time_format : TIME_24_NS;
+    
+    // within a week? use a relative date
+    if ( $timestamp + ( 86400 * 7 ) >= time() && $string & ED_DATE && is_object($lang) && is_object($session) && !($string & ED_DATE_FULL) )
+    {
+      $relative_date = get_relative_date($timestamp);
+      if ( $string === ED_DATE )
+        // why do more work if we're done?
+        return $relative_date;
+    }
+    
+    $flags = $string;
+    $string = array();
+    if ( $flags & ED_DATE && !isset($relative_date) )
+      $string[] = $date_fmt;
+    if ( $flags & ED_TIME )
+      $string[] = $time_fmt;
+    
+    $string = implode(' ', $string);
+  }
   
   // perform timestamp offset
   global $timezone;
@@ -272,7 +346,63 @@ function enano_date($string, $timestamp = false)
   }
   
   // Let PHP do the work for us =)
-  return gmdate($string, $timestamp);
+  $result = gmdate($string, $timestamp);
+  if ( isset($relative_date) )
+  {
+    $result = "$relative_date, $result";
+  }
+  return $result;
+}
+
+/**
+ * Get a relative date ("Today"/"Yesterday"/"N days ago")
+ * @param int Timestamp
+ * @return string
+ */
+
+function get_relative_date($time)
+{
+  global $lang, $session;
+  // Our formatting string to pass to enano_date()
+  // This should not include minute/second info, only today's date in whatever format suits your fancy
+  $formatstring = $session->date_format;
+  // Today's date
+  $today = enano_date($formatstring);
+  // Yesterday's date
+  $yesterday = enano_date($formatstring, (time() - (24*60*60)));
+  // Date on the input
+  $then = enano_date($formatstring, $time);
+  // "X days ago" logic
+  for ( $i = 2; $i <= 6; $i++ )
+  {
+    // hours_in_day * minutes_in_hour * seconds_in_minute * num_days
+    $offset = 24 * 60 * 60 * $i;
+    $days_ago = enano_date($formatstring, (time() - $offset));
+    // so does the input timestamp match the date from $i days ago?
+    if ( $then == $days_ago )
+    {
+      // yes, return $i
+      return $lang->get('userfuncs_ml_date_daysago', array('days_ago' => $i));
+    }
+  }
+  // either yesterday, today, or before 6 days ago
+  switch($then)
+  {
+    case $today:
+      return $lang->get('userfuncs_ml_date_today');
+    case $yesterday:
+      return $lang->get('userfuncs_ml_date_yesterday');
+    default:
+      return $then;
+  }
+  //     .--.
+  //    |o_o |
+  //    |!_/ |
+  //   //   \ \
+  //  (|     | )
+  // /'\_   _/`\
+  // \___)=(___/
+  return 'Linux rocks!';
 }
 
 /**
@@ -485,7 +615,7 @@ function csrf_request_confirm()
     }
   }
   
-  ob_end_clean();
+  @ob_end_clean();
   
   $output->set_title($lang->get('user_csrf_confirm_title'));
   $output->header();
@@ -768,7 +898,7 @@ function die_semicritical($t, $p, $no_wrapper = false)
   global $db, $session, $paths, $template, $plugins; // Common objects
   $db->close();
   
-  if ( ob_get_status() )
+  if ( @ob_get_status() )
     ob_end_clean();
 
   // If the config hasn't been fetched yet, call grinding_halt.
@@ -809,7 +939,7 @@ function die_friendly($t, $p)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
 
-  if ( ob_get_status() )
+  if ( @ob_get_status() )
     ob_end_clean();
 
   $paths->cpage['name'] = $t;
@@ -838,7 +968,7 @@ function grinding_halt($t, $p)
   if ( is_object($db) )
     $db->close();
   
-  if ( ob_get_status() )
+  if ( @ob_get_status() )
     ob_end_clean();
   
   if ( defined('ENANO_CLI') )
@@ -1233,7 +1363,8 @@ function enano_codename()
       '1.1.3'  => 'Caoineag alpha 3',
       '1.1.4'  => 'Caoineag alpha 4',
       '1.1.5'  => 'Caoineag alpha 5',
-      '1.1.6'  => 'Caoineag beta 1'
+      '1.1.6'  => 'Caoineag beta 1',
+      '1.1.7'  => 'Caoineag beta 2'
     );
   $version = enano_version();
   if ( isset($names[$version]) )
@@ -3345,6 +3476,7 @@ function parse_ipv6_range_regex($range)
   //   2001:470-471:054-b02b::5-bb
   // up to:
   //   2001:0470-0471:0054-b02b:0000:0000:0000:0005-00bb
+  $range = preg_replace('/^:/', '0000:', $range);
   $range = explode(':', $range);
   $expanded = '';
   $size = count($range);
@@ -3566,6 +3698,36 @@ function __hexdigitrange($low, $high)
     // ???? this should never happen
     return __hexdigitrange($high, $low); 
   }
+}
+
+/**
+ * Expand an IPv6 address to full form
+ * @param string ::1, 2001:470:e054::2
+ * @return string 0000:0000:0000:0000:0000:0000:0000:0001, 2001:0470:e054:0000:0000:0000:0000:0002
+ */
+
+function expand_ipv6_address($addr)
+{
+  $expanded = array();
+  $addr = explode(':', $addr);
+  foreach ( $addr as $i => $bytepair )
+  {
+    if ( empty($bytepair) )
+    {
+      // ::
+      while ( count($expanded) < (8 - count($addr) + $i + 1) )
+      {
+        $expanded[] = '0000';
+      }
+    }
+    else
+    {
+      while ( strlen($bytepair) < 4 )
+        $bytepair = "0$bytepair";
+      $expanded[] = $bytepair;
+    }
+  }
+  return implode(':', $expanded);
 }
 
 /**

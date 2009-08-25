@@ -2,8 +2,7 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  * class_http.php - Pure PHP HTTP client library
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
@@ -198,8 +197,9 @@ class Request_HTTP
   
   function Request_HTTP($host, $uri, $method = 'GET', $port = 80)
   {
-    if ( !preg_match('/^(([a-z0-9-]+\.)*?)([a-z0-9-]+)$/', $host) )
+    if ( !preg_match('/^(?:(([a-z0-9-]+\.)*?)([a-z0-9-]+)|\[[a-f0-9:]+\])$/', $host) )
       throw new Exception(__CLASS__ . ': Invalid hostname');
+    // Yes - this really does support IPv6 URLs!
     $this->host = $host;
     $this->uri = $uri;
     if ( is_int($port) && $port >= 1 && $port <= 65535 )

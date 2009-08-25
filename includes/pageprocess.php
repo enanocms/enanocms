@@ -2,9 +2,8 @@
 
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
- * Version 1.1.6 (Caoineag beta 1)
  * pageprocess.php - intelligent retrieval of pages
- * Copyright (C) 2006-2008 Dan Fuhry
+ * Copyright (C) 2006-2009 Dan Fuhry
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
@@ -457,7 +456,7 @@ class PageProcessor
     $time = time();
     $edit_summary = ( strval($edit_summary) === $edit_summary ) ? $db->escape($edit_summary) : '';
     $minor_edit = ( $minor_edit ) ? '1' : '0';
-    $date_string = enano_date('d M Y h:i a');
+    $date_string = enano_date(ED_DATE | ED_TIME);
     
     // Insert log entry
     $sql = 'INSERT INTO ' . table_prefix . "logs ( time_id, date_string, log_type, action, page_id, namespace, author, page_text, edit_summary, minor_edit, page_format )\n"
@@ -590,7 +589,7 @@ class PageProcessor
     
     // Query 3: Log entry
     $db->sql_query('INSERT INTO ' . table_prefix."logs(time_id, date_string, log_type, action, author, page_id, namespace)\n"
-                   . "  VALUES ( " . time() . ", '" . enano_date('d M Y h:i a') . "', 'page', 'create', \n"
+                   . "  VALUES ( " . time() . ", 'DEPRECATED', 'page', 'create', \n"
                    . "          '" . $db->escape($session->username) . "', '" . $db->escape($this->page_id) . "', '" . $this->namespace . "');");
     if ( !$q )
       $db->_die('PageProcessor page creation - logging stage');
@@ -653,7 +652,7 @@ class PageProcessor
     $log_entry = $db->fetchrow();
     $db->free_result();
     
-    $dateline = enano_date('d M Y h:i a', $log_entry['time_id']);
+    $dateline = enano_date(ED_DATE | ED_TIME, $log_entry['time_id']);
     
     // Let's see, what do we have here...
     switch ( $log_entry['action'] )
@@ -1133,7 +1132,7 @@ class PageProcessor
     global $email;
     
     // Log it for crying out loud
-    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \''.enano_date('d M Y h:i a').'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \'DEPRECATED\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
     
     $ob = '';
     //$template->tpl_strings['PAGE_NAME'] = 'Access denied';
