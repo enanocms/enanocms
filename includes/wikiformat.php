@@ -62,6 +62,7 @@ class Carpenter
       'blockquote',
       'tables',
       'heading',
+      'hr',
       // note: can't be named list ("list" is a PHP language construct)
       'multilist',
       'bold',

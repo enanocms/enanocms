@@ -20,7 +20,8 @@ class Carpenter_Render_Xhtml
     'italic' => '<em>\\1</em>',
     'underline' => '<span style="text-decoration: underline;">\\1</span>',
     'externalwithtext' => '<a href="\\1" onclick="window.open(this.href); return false;">\\2</a>',
-    'externalnotext' => '<a href="\\1" onclick="window.open(this.href); return false;">\\1</a>'
+    'externalnotext' => '<a href="\\1" onclick="window.open(this.href); return false;">\\1</a>',
+    'hr' => '<hr />'
   );
   
   public function heading($text, $pieces)

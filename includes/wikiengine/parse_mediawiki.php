@@ -18,7 +18,8 @@ class Carpenter_Parse_MediaWiki
     'italic' => "/''(.+?)''/",
     'underline' => '/__(.+?)__/',
     'externalwithtext' => '#\[((?:https?|irc|ftp)://.+?) (.+?)\]#',
-    'externalnotext' => '#\[((?:https?|irc|ftp)://.+?)\]#'
+    'externalnotext' => '#\[((?:https?|irc|ftp)://.+?)\]#',
+    'hr' => '/^[-]{4,} *$/m'
   );
   
   private $blockquote_rand_id;
