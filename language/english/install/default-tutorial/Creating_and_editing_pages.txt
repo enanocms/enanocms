@@ -26,13 +26,17 @@ To use italic text:
 
 <code><nowiki>''Your text here''</nowiki></code>
 
-Create a link:
+Create an ''internal link'' to a page on your site:
 
 <code><nowiki>[[Page title]]</nowiki></code>
 
-Create a link, but using your own text:
+Create an internal link, but using your own text:
 
 <code><nowiki>[[Page title|Your text here]]</nowiki></code>
+
+Link to an external site:
+
+<code><nowiki>[http://www.example.com/ Your text here]</nowiki></code>
 
 Create a large heading:
 
@@ -46,13 +50,13 @@ Create a small heading:
 
 <code><nowiki>==== Your text here ====</nowiki></code>
 
-Link to an external site:
-
-<code><nowiki>[http://www.example.com/ Your text here]</nowiki></code>
-
 == Visual editing ==
 
 If you prefer to design your documents in a more graphical way, click the <a href="#" onclick="return false;" class="abutton abutton_blue image"><img width="16" height="16" src="images/spacer.gif" style="background-image: url(images/editor/sprite.png); background-repeat: no-repeat; background-position: -112px 0px;" /> Convert to HTML</a> button in the editor. Enano includes [http://tinymce.moxiecode.com/ TinyMCE], a widely-used graphical editor for the web.
+
+== Advanced wikitext ==
+
+See [http://docs.enanocms.org/Help:Appendix_A Appendix A] in the Enano documentation for some more advanced wikitext formatting tips.
 
 == Moving up from Enano 1.0? ==
 
