@@ -164,7 +164,7 @@ class RenderMan {
     if ( !$smilies )
       $flags |= RENDER_NOSMILIES;
     
-    if ( $flags & ~RENDER_NOSMILIES )
+    if ( !($flags & RENDER_NOSMILIES) )
     {
       $text = RenderMan::smilieyize($text);
     }
@@ -216,6 +216,50 @@ class RenderMan {
     if ( $flags & RENDER_WIKI_TEMPLATE )
     {
       // FIXME: Where is noinclude/nodisplay being processed in the pipeline? (Seems to be processed, but not here)
+    }
+    
+    //
+    // Set rules for the rendering process
+    //
+    
+    if ( $flags & RENDER_BLOCK && !($flags & RENDER_INLINE) )
+    {
+      // block only
+      $carpenter->disable_all_rules();
+      foreach ( array('blockquote', 'tables', 'heading', 'hr', 'multilist', 'bold', 'italic', 'underline', 'paragraph', 'blockquotepost') as $rule )
+      {
+        $carpenter->enable_rule($rule);
+      }
+      
+      $code = $plugins->setHook('render_block_only');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+    }
+    else if ( $flags & RENDER_INLINE && !($flags & RENDER_BLOCK) )
+    {
+      // inline only
+      $carpenter->disable_all_rules();
+      foreach ( array('bold', 'italic', 'underline', 'externalwithtext', 'externalnotext', 'image', 'internallink') as $rule )
+      {
+        $carpenter->enable_rule($rule);
+      }
+      
+      $code = $plugins->setHook('render_inline_only');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
+    }
+    else
+    {
+      // full render
+      $code = $plugins->setHook('render_full');
+      foreach ( $code as $cmd )
+      {
+        eval($cmd);
+      }
     }
     $text = $carpenter->render($text);
     

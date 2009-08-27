@@ -316,6 +316,29 @@ class Carpenter
   }
   
   /**
+   * Disables all rules.
+   * @return null
+   */
+  
+  public function disable_all_rules()
+  {
+    $this->rules = array();
+    return null;
+  }
+  
+  /**
+   * Enables a rule
+   * @param string rule
+   * @return null
+   */
+   
+  public function enable_rule($rule)
+  {
+    $this->rules[] = $rule;
+    return null;
+  }
+  
+  /**
    * Make a rule exclusive (the only one called)
    * @param string stage
    * @return null

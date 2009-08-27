@@ -533,10 +533,12 @@ class Namespace_Default
     }
   }
   
-  public function error_404($userpage = false)
+  public function error_404()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang, $output;
+    
+    $userpage = $this->namespace == 'User';
     
     @header('HTTP/1.1 404 Not Found');
     

@@ -439,7 +439,7 @@ class Namespace_User extends Namespace_Default
     }
     else
     {
-      $this->error_404(true);
+      $this->error_404();
     }
     
     echo '</div>'; // tab:content
