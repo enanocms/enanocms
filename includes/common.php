@@ -389,8 +389,8 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   // For special and administration pages, sometimes there is a "preloader" function that must be run
   // before the session manager and/or path manager get the init signal. Call it here.
-  $title = get_title(true);
-  list($page_id, $namespace) = RenderMan::strToPageID($title);
+  $urlname = get_title(true);
+  list($page_id, $namespace) = RenderMan::strToPageID($urlname);
   list($page_id_top) = explode('/', $page_id);
   $fname = "page_{$namespace}_{$page_id_top}_preloader";
   if( ( $namespace == 'Admin' || $namespace == 'Special' ) && function_exists($fname))
@@ -426,7 +426,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Ran session_started hook');
   
-  $paths->init($title);
+  $paths->init($urlname);
   
   // setup output format
   if ( defined('ENANO_OUTPUT_FORMAT') )

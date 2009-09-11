@@ -425,7 +425,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
   global $lang;
   require_once( ENANO_ROOT . '/includes/math.php' );
   
-  $paths->fullpage = $GLOBALS['title'];
+  $paths->fullpage = $GLOBALS['urlname'];
   if ( $paths->getParam(0) === 'action.json' )
   {
     if ( !isset($_POST['r']) )
