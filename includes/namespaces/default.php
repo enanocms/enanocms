@@ -435,7 +435,7 @@ class Namespace_Default
         // Page format is XHTML. This means we want to disable functionality that MCE takes care of, while still retaining
         // the ability to wikilink, the ability to use images, etc. Basically, RENDER_INLINEONLY disables all behavior in
         // the rendering engine/Text_Wiki that conflicts with MCE.
-        $text = '?>' . RenderMan::render($text, RENDER_WIKI_DEFAULT | RENDER_INLINEONLY);
+        $text = '?>' . RenderMan::render($text, RENDER_INLINE);
       }
     }
     else
@@ -533,10 +533,12 @@ class Namespace_Default
     }
   }
   
-  public function error_404($userpage = false)
+  public function error_404()
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     global $lang, $output;
+    
+    $userpage = $this->namespace == 'User';
     
     @header('HTTP/1.1 404 Not Found');
     

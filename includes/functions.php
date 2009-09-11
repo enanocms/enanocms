@@ -3157,11 +3157,18 @@ function gzip_output()
 {
   global $do_gzip;
   
+  $gzip_supported = false;
+  if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) )
+  {
+    $encodings = explode(',', $_SERVER['HTTP_ACCEPT_ENCODING']);
+    $gzip_supported = in_array('gzip', $encodings) || in_array('deflate', $encodings);
+  }
+  
   //
   // Compress buffered output if required and send to browser
   // Sorry, doesn't work in IE. What else is new?
   //
-  if ( $do_gzip && function_exists('gzdeflate') && !strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') && !headers_sent() )
+  if ( $do_gzip && function_exists('gzdeflate') && !strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') && !headers_sent() && $gzip_supported )
   {
     $gzip_contents = ob_get_contents();
     ob_end_clean();

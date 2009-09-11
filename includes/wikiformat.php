@@ -62,6 +62,7 @@ class Carpenter
       'blockquote',
       'tables',
       'heading',
+      'hr',
       // note: can't be named list ("list" is a PHP language construct)
       'multilist',
       'bold',
@@ -311,6 +312,29 @@ class Carpenter
         return null;
       }
     }
+    return null;
+  }
+  
+  /**
+   * Disables all rules.
+   * @return null
+   */
+  
+  public function disable_all_rules()
+  {
+    $this->rules = array();
+    return null;
+  }
+  
+  /**
+   * Enables a rule
+   * @param string rule
+   * @return null
+   */
+   
+  public function enable_rule($rule)
+  {
+    $this->rules[] = $rule;
     return null;
   }
   

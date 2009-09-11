@@ -60,7 +60,7 @@
         $src = '';
       }
       
-      $auth_edit = ( $session->get_permissions('edit_page') && ( $session->get_permissions('even_when_protected') || !$paths->page_protected ) );
+      $auth_edit = ( $session->get_permissions('edit_page') && ( $session->get_permissions('even_when_protected') || !$page->ns->page_protected ) );
       $auth_wysiwyg = ( $session->get_permissions('edit_wysiwyg') );
       
       $return = array(
@@ -75,7 +75,7 @@
           'have_draft' => false
         );
       
-      $return['page_format'] = $paths->cpage['page_format'];
+      $return['page_format'] = $page->ns->cdata['page_format'];
       if ( $return['page_format'] == 'xhtml' )
       {
         // gently process headings to make tinymce format them correctly
@@ -491,7 +491,7 @@
       switch($_GET['to'])
       {
         case 'xhtml':
-          $result = RenderMan::render($_POST['text'], RENDER_WIKI_DEFAULT | RENDER_BLOCKONLY);
+          $result = RenderMan::render($_POST['text'], RENDER_BLOCK | RENDER_NOSMILIES, false);
           break;
         case 'wikitext':
           $result = RenderMan::reverse_render($_POST['text']);

@@ -441,7 +441,8 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
   form.appendChild(preview_anchor);
   form.appendChild(preview_container);
   form.appendChild(ta_wrapper);
-  form.appendChild(tblholder);
+  if ( !readonly )
+    form.appendChild(tblholder);
   form.innerHTML += '<div style="margin: 10px 0 0 0;">' + toolbar + '</div>';
   edcon.appendChild(form);
   

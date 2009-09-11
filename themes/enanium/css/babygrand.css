@@ -23,6 +23,11 @@ body {
   font-size: 9pt;
 }
 
+body#tinymce {
+  background-image: none;
+  background-color: #f0f0f0;
+}
+
 table#body-wrapper {
   width: 100%;
 }
