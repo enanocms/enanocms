@@ -448,25 +448,81 @@ class Request_HTTP
       $this->_parse_response_code($buffer);
       $this->response = $buffer;
     }
+    // obey redirects
+    $i = 0;
+    while ( $i < 20 )
+    {
+      $incoming_headers = $this->get_response_headers_array();
+      if ( !$incoming_headers )
+        break;
+      if ( isset($incoming_headers['Location']) )
+      {
+        // we've been redirected...
+        $new_uri = $this->_resolve_uri($incoming_headers['Location']);
+        if ( !$new_uri )
+        {
+          // ... bad URI, ignore Location header.
+          break;
+        }
+        // change location
+        $this->host = $new_uri['host'];
+        $this->port = $new_uri['port'];
+        $this->uri  = $new_uri['uri'];
+        $get = '';
+        
+        // reset
+        $this->sock_close($this->socket);
+        $this->_sock_open($this->socket);
+        $this->_write_request($this->socket, $headers, $cookies, $get, $post);
+        $buffer = $this->_read_until_newlines($this->socket);
+        $this->state = 3;
+        $this->_parse_response_code($buffer);
+        $this->response = $buffer;
+        $i++;
+      }
+      else
+      {
+        break;
+      }
+    }
+    if ( $i == 20 )
+    {
+      throw new Exception(__METHOD__ . ": Redirect trap. Request_HTTP doesn't do cookies, btw.");
+    }
+    
     if ( $this->state == 3 )
     {
       // Determine transfer encoding
       $is_chunked = preg_match("/Transfer-Encoding: (chunked)\r?\n/", $this->response);
-      
-      $buffer = '';
-      while ( !feof($this->socket) )
+      if ( preg_match("/^Content-Length: ([0-9]+)[\s]*$/mi", $this->response, $match) && !$is_chunked )
       {
-        $part = fgets($this->socket, 1024);
-        if ( $is_chunked && preg_match("/^([a-f0-9]+)\x0D\x0A$/", $part, $match) )
+        $size = intval($match[1]);
+        if ( $this->debug )
         {
-          $chunklen = hexdec($match[1]);
-          $part = ( $chunklen > 0 ) ? fread($this->socket, $chunklen) : '';
-          // remove the last newline from $part
-          $part = preg_replace("/\r?\n\$/m", "", $part);
+          echo "Pulling response using fread(), size $size\n";
         }
-        $buffer .= $part;
+        $this->response .= fread($this->socket, $size);
       }
-      $this->response .= $buffer;
+      else
+      {
+        if ( $this->debug )
+          echo "Pulling response using chunked handler\n";
+          
+        $buffer = '';
+        while ( !feof($this->socket) )
+        {
+          $part = fgets($this->socket, 1024);
+          if ( $is_chunked && preg_match("/^([a-f0-9]+)\x0D\x0A$/", $part, $match) )
+          {
+            $chunklen = hexdec($match[1]);
+            $part = ( $chunklen > 0 ) ? fread($this->socket, $chunklen) : '';
+            // remove the last newline from $part
+            $part = preg_replace("/\r?\n\$/", "", $part);
+          }
+          $buffer .= $part;
+        }
+        $this->response .= $buffer;
+      }
     }
     $this->state = 4;
     
@@ -639,6 +695,50 @@ class Request_HTTP
   }
   
   /**
+   * Resolves, based on current settings and URI, a URI string to an array consisting of a host, port, and new URI. Returns false on error.
+   * @param string
+   * @return array
+   */
+  
+  function _resolve_uri($uri)
+  {
+    // long ass regexp w00t
+    if ( !preg_match('#^(?:https?://((?:(?:[a-z0-9-]+\.)*)(?:[a-z0-9-]+)|\[[a-f0-9:]+\])(?::([0-9]+))?)?(/)(.*)$#i', $uri, $match) )
+    {
+      // bad target URI
+      return false;
+    }
+    $hostpart = $match[1];
+    if ( empty($hostpart) )
+    {
+      // use existing host
+      $host = $this->host;
+      $port = $this->port;
+    }
+    else
+    {
+      $host = $match[1];
+      $port = empty($match[2]) ? 80 : intval($match[2]);
+    }
+    // is this an absolute URI, or relative?
+    if ( empty($match[3]) )
+    {
+      // relative
+      $uri = dirname($this->uri) . $match[4];
+    }
+    else
+    {
+      // absolute
+      $uri = '/' . $match[4];
+    }
+    return array(
+        'host' => $host,
+        'port' => $port,
+        'uri'  => $uri
+      );
+  }
+  
+  /**
    * Returns only the response headers.
    * @return string
    */
@@ -652,7 +752,11 @@ class Request_HTTP
     else if ( $this->state == 4 )
     {
       $pos_end = strpos($this->response, "\r\n\r\n");
-      $data = substr($this->response, 0, $pos_start);
+      if ( empty($pos_end) )
+      {
+        $pos_end = strpos($this->response, "\n\n");
+      }
+      $data = substr($this->response, 0, $pos_end);
       return $data;
     }
     else
@@ -688,6 +792,10 @@ class Request_HTTP
   {
     $data = $this->get_response();
     $pos_start = strpos($data, "\r\n\r\n") + 4;
+    if ( $pos_start == 4 )
+    {
+      $pos_start = strpos($data, "\n\n") + 4;
+    }
     $data = substr($data, $pos_start);
     return $data;
   }
@@ -723,6 +831,7 @@ class Request_HTTP
   {
     if ( $this->debug )
       echo htmlspecialchars($data);
+    
     return fputs($socket, $data);
   }
   
@@ -793,4 +902,3 @@ class Request_HTTP
   
 }
 
-?>
