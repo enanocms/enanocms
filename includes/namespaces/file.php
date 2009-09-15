@@ -87,17 +87,22 @@ class Namespace_File extends Namespace_Default
     $html .= $lang->get('onpage_filebox_lbl_size', array('size' => $size));
     
     $html .= '<br />' . $lang->get('onpage_filebox_lbl_uploaded') . ' ' . $datestring . '</p>';
-    if ( substr($mimetype, 0, 6) != 'image/' && ( substr($mimetype, 0, 5) != 'text/' || $mimetype == 'text/html' || $mimetype == 'text/javascript' ) )
+    // are we dealing with an image?
+    $is_image = substr($mimetype, 0, 6) == 'image/';
+    
+    // for anything other than plain text and 
+    if ( !$is_image && ( substr($mimetype, 0, 5) != 'text/' || $mimetype == 'text/html' || $mimetype == 'text/javascript' ) )
     {
       $html .= '<div class="warning-box">
               ' . $lang->get('onpage_filebox_msg_virus_warning') . '
             </div>';
     }
-    if ( substr($mimetype, 0, 6) == 'image/' )
+    if ( $is_image )
     {
+      // show a thumbnail of the image
       $html .= '<p>
               <a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn).'">
-                <img style="border: 0;" alt="'.$paths->page.'" src="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.htmlspecialchars(urlSeparator).'preview').'" />
+                <img style="border: 0;" alt="' . htmlspecialchars($paths->page) . '" src="' . makeUrlNS('Special', "DownloadFile/$selfn/{$r['time_id']}", 'preview', true) . '" />
               </a>
             </p>';
     }
@@ -105,13 +110,24 @@ class Namespace_File extends Namespace_Default
             <a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">
               ' . $lang->get('onpage_filebox_btn_download') . '
             </a>';
-    if(!$paths->page_protected && ( $paths->wiki_mode || $session->get_permissions('upload_new_version') ))
+    // allow reupload if:
+    //   * we are allowed to upload new versions, and
+    //      - the file is unprotected, or
+    //      - we have permission to override protection
+    
+    if ( !$this->perms )
+      $this->perms = $session->fetch_page_acl($this->page_id, $this->namespace);
+    
+    if ( $this->perms->get_permissions('upload_new_version') && ( !$this->page_protected || $this->perms->get_permissions('even_when_protected') ) )
     {
-      $html .= '  |  <a href="'.makeUrlNS('Special', 'UploadFile'.'/'.$selfn).'">
+      // upload new version link
+      $html .= '  |  <a href="'.makeUrlNS('Special', "UploadFile/$selfn", false, true).'">
               ' . $lang->get('onpage_filebox_btn_upload_new') . '
             </a>';
     }
+    // close off paragraph
     $html .= '</p>';
+    // only show this if there's more than one revision
     if ( $db->numrows() > 1 )
     {
       // requery, sql_result_seek() doesn't work on postgres
@@ -132,9 +148,10 @@ class Namespace_File extends Namespace_Default
       
       $html .= '<h3>' . $lang->get('onpage_filebox_heading_history') . '</h3><p>';
       $last_rollback_id = false;
+      $download_flag = $is_image ? false : 'download';
       while ( $r = $db->fetchrow($q) )
       {
-        $html .= '(<a href="'.makeUrlNS('Special', 'DownloadFile'.'/'.$selfn.'/'.$r['time_id'].htmlspecialchars(urlSeparator).'download').'">' . $lang->get('onpage_filebox_btn_this_version') . '</a>) ';
+        $html .= '(<a href="'.makeUrlNS('Special', "DownloadFile/$selfn/{$r['time_id']}", $download_flag, true).'">' . $lang->get('onpage_filebox_btn_this_version') . '</a>) ';
         if ( $session->get_permissions('history_rollback') && $last_rollback_id )
           $html .= ' (<a href="#rollback:' . $last_rollback_id . '" onclick="ajaxRollback(\''.$last_rollback_id.'\'); return false;">' . $lang->get('onpage_filebox_btn_revert') . '</a>) ';
         else if ( $session->get_permissions('history_rollback') && !$last_rollback_id )
@@ -173,6 +190,78 @@ class Namespace_File extends Namespace_Default
     $db->free_result();
     $html .= '</div><br />';
     return $html;
+  }
+  
+  /**
+   * Delete a file from the database and filesystem based on file ID.
+   * @param int File ID
+   * @return null
+   */
+  
+  public static function delete_file($file_id)
+  {
+    global $db, $session, $paths, $template, $plugins; // Common objects
+    
+    if ( !is_int($file_id) )
+      // seriously?
+      return null;
+    
+    // pull file info
+    $q = $db->sql_query('SELECT filename, page_id, time_id, file_extension, file_key FROM ' . table_prefix . "files WHERE file_id = $file_id;");
+    if ( !$q )
+      $db->_die();
+    
+    if ( $db->numrows() < 1 )
+    {
+      $db->free_result();
+      return null;
+    }
+    
+    $row = $db->fetchrow();
+    $db->free_result();
+    
+    // make sure the image isn't used by multiple revisions
+    $q = $db->sql_query('SELECT 1 FROM ' . table_prefix . "files WHERE file_key = '{$row['file_key']}';");
+    if ( !$q )
+      $db->_die();
+    if ( $db->numrows() < 1 )
+    {
+      // remove from filesystem
+      $file_path = ENANO_ROOT . "/files/{$row['file_key']}{$row['file_extension']}";
+      @unlink($file_path);
+      // old filename standard
+      $file_path = ENANO_ROOT . "/files/{$row['file_key']}-{$row['time_id']}{$row['file_extension']}";
+      @unlink($file_path);
+    }
+    $db->free_result();
+    
+    // remove from cache
+    if ( $dp = @opendir(ENANO_ROOT . '/cache/') )
+    {
+      $regexp = '#' . preg_quote($row['filename']) . '-' . $row['time_id'] . '-[0-9]+x[0-9]+' . preg_quote($row['file_extension']) . '#';
+      while ( $dh = @readdir($dp) )
+      {
+        if ( preg_match($regexp, $dh) )
+        {
+          // it's a match, delete the cached thumbnail
+          @unlink(ENANO_ROOT . "/cache/$dh");
+        }
+      }
+      closedir($dp);
+    }
+    
+    // remove from database
+    $q = $db->sql_query('DELETE FROM ' . table_prefix . "files WHERE file_id = $file_id;");
+    if ( !$q )
+      $db->_die();
+    
+    // remove from logs
+    $page_id_db = $db->escape($row['page_id']);
+    $q = $db->sql_query('DELETE FROM ' . table_prefix . "logs WHERE page_id = '{$page_id_db}' AND namespace = 'File' AND action = 'reupload' AND time_id = {$row['time_id']};");
+    if ( !$q )
+      $db->_die();
+    
+    return true;
   }
 }
 

@@ -79,6 +79,7 @@ var enano_lang = {
       
       flushlogs_warning_stern: '<h3>You are about to <span style="color: red;">destroy</span> all logged edits and actions on this page.</h3><p>Unlike deleting or editing this page, this action is <u>not reversible</u>! You should only do this if you are desparate for database space.</p><p>Do you really want to continue?</p>',
       flushlogs_btn_submit: 'Flush logs',
+      flushlogs_backup_summary: 'Automatic backup created when logs were purged',
       
       delvote_warning_stern: '<h3>Your vote counts.</h3><p>If you think that this page is not relavent to the content on this site, or if it looks like this page was only created in an attempt to spam the site, you can request that this page be deleted by an administrator.</p><p>After you vote, you should leave a comment explaining the reason for your vote, especially if you are the first person to vote against this page.</p>',
       

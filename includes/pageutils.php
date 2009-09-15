@@ -998,21 +998,50 @@ class PageUtils {
     {
       return $lang->get('etc_access_denied_need_reauth');
     }
-    $e = $db->sql_query('DELETE FROM ' . table_prefix.'logs WHERE page_id=\'' . $db->escape($page_id) . '\' AND namespace=\'' . $db->escape($namespace) . '\';');
-    if(!$e) $db->_die('The log entries could not be deleted.');
+    
+    $page_id_db = $db->escape($page_id);
+    $namespace_db = $db->escape($namespace);
+    
+    // If we're flushing a file, also clear all revisions before the current
+    if ( $namespace == 'File' )
+    {
+      $q = $db->sql_query('SELECT file_id FROM ' . table_prefix . "files WHERE page_id='$page_id_db' ORDER BY time_id DESC;");
+      if ( !$q )
+        $db->_die();
+      // discard first row (current revision)
+      $db->fetchrow();
+      $id_list = array();
+      while ( $row = $db->fetchrow() )
+        $id_list[] = $row['file_id'];
+      
+      require_once(ENANO_ROOT . '/includes/namespaces/file.php');
+      
+      // clear out each file
+      foreach ( $id_list as $id )
+        Namespace_File::delete_file($id);
+    }
+    
+    $q = $db->sql_query('DELETE FROM ' . table_prefix . "logs WHERE page_id='$page_id_db' AND namespace='$namespace';");
+    if ( !$q )
+      $db->_die('The log entries could not be deleted.');
     
     // If the page exists, make a backup of it in case it gets spammed/vandalized
     // If not, the admin's probably deleting a trash page
     if ( isPage($paths->get_pathskey($page_id, $namespace)) )
     {
-      $e = $db->sql_query('SELECT page_text,char_tag FROM ' . table_prefix.'page_text WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';');
-      if(!$e) $db->_die('The current page text could not be selected; as a result, creating the backup of the page failed. Please make a backup copy of the page by clicking Edit this page and then clicking Save Changes.');
+      $q = $db->sql_query('SELECT page_text,char_tag FROM ' . table_prefix . "page_text WHERE page_id='$page_id_db' AND namespace='$namespace_db';");
+      if ( !$q )
+        $db->_die('The current page text could not be selected; as a result, creating the backup of the page failed. Please make a backup copy of the page by clicking Edit this page and then clicking Save Changes.');
       $row = $db->fetchrow();
       $db->free_result();
       $minor_edit = ( ENANO_DBLAYER == 'MYSQL' ) ? 'false' : '0';
-      $q='INSERT INTO ' . table_prefix.'logs(log_type,action,time_id,date_string,page_id,namespace,page_text,char_tag,author,edit_summary,minor_edit) VALUES(\'page\', \'edit\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $db->escape($row['page_text']) . '\', \'' . $row['char_tag'] . '\', \'' . $session->username . '\', \''."Automatic backup created when logs were purged".'\', '.$minor_edit.');';
-      if(!$db->sql_query($q)) $db->_die('The history (log) entry could not be inserted into the logs table.');
+      $username = $db->escape($session->username);
+      $q = 'INSERT INTO ' . table_prefix . "logs ( log_type, action, time_id, date_string, page_id, namespace, page_text, char_tag, author, edit_summary, minor_edit ) VALUES\n"
+         . "  ('page', 'edit', " . time() . ", 'DEPRECATED', '$page_id', '$namespace', '" . $db->escape($row['page_text']) . "', '', '{$username}', '" . $lang->get('page_flushlogs_backup_summary') . "', $minor_edit);";
+      if ( !$db->sql_query($q) )
+        $db->_die('The history (log) entry could not be inserted into the logs table.');
     }
+    
     return $lang->get('ajax_clearlogs_success');
   }
   
