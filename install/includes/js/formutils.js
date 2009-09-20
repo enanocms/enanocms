@@ -87,14 +87,14 @@ function init_hint(input, hint)
       if ( input.type == 'radio' )
       {
         var tr = getParentTR(input).parentNode.parentNode.parentNode;
-        var span_width = $(tr).Width() - 24;
+        var span_width = $dynano(tr).Width() - 24;
       }
       else
       {
-        var span_width = $(input).Width() - 24;
+        var span_width = $dynano(input).Width() - 24;
       }
-      var span_top = $(input).Top() + $(input).Height();
-      var span_left = $(input).Left();
+      var span_top = $dynano(input).Top() + $dynano(input).Height();
+      var span_left = $dynano(input).Left();
       hint.style.top = span_top + 'px';
       hint.style.left = span_left + 'px';
       hint.style.width = span_width + 'px';
@@ -141,10 +141,10 @@ function install_set_ajax_loading()
   var hider = document.createElement('div');
   hider.style.position = 'absolute';
   hider.style.backgroundColor = '#FFFFFF';
-  hider.style.top = $(base).Top() + 'px';
-  hider.style.left = $(base).Left() + 'px';
-  hider.style.width = $(base).Width() + 'px';
-  hider.style.height = $(base).Height() + 'px';
+  hider.style.top = $dynano(base).Top() + 'px';
+  hider.style.left = $dynano(base).Left() + 'px';
+  hider.style.width = $dynano(base).Width() + 'px';
+  hider.style.height = $dynano(base).Height() + 'px';
   hider.style.backgroundPosition = 'center center';
   hider.style.backgroundImage = 'url(../images/loading-big.gif)';
   hider.style.backgroundRepeat = 'no-repeat';
