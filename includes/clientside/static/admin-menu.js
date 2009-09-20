@@ -216,3 +216,88 @@ function addslashes(text)
   text = text.replace(/"/g, '\\"');
   return text;
 }
+
+// *******************************************
+//  Table collapsing
+// *******************************************
+
+function admin_table_onload(page)
+{
+  if ( page != namespace_list['Admin'] + 'GeneralConfig' )
+  {
+    return true;
+  }
+  var collapse_state = admin_table_get_cookie(page);
+  if ( collapse_state == 0 )
+    collapse_state = 0xffffffff;
+  $('#ajaxPageContainer > form > div.tblholder > table').each(function(i, table)
+    {
+      // skip if this is a one-row table
+      if ( $('tr:first', table).get(0) == $('tr:last', table).get(0) )
+        return;
+      
+      var open = (collapse_state >> i) & 1 > 0 ? true : false;
+      
+      var ypos = open ? 0 : 12;
+      
+      var div = document.createElement('div');
+      $(div).html(gen_sprite_html(scriptPath + '/themes/admin/images/thcollapse.png', 12, 12, ypos, 0));
+      $(div).click(function()
+        {
+          admin_table_click(this);
+        }).css('cursor', 'pointer').css('float', 'right');
+      div.thetable = table;
+      div.index = i;
+      div.thepage = page;
+      div.openstate = open;
+      $('tr > th:first', table).prepend(div);
+      if ( !open )
+        admin_table_collapse(table, true);
+    });
+}
+
+function admin_table_click(mydiv)
+{
+  var table = mydiv.thetable;
+  var i = mydiv.index;
+  var page = mydiv.thepage;
+  var collapse_state = admin_table_get_cookie(page);
+  
+  if ( mydiv.openstate )
+  {
+    $('img', mydiv).css('background-position', '0px -12px');
+    var new_collapse_state = collapse_state & ~Math.pow(2, i);
+    console.debug(new_collapse_state);
+    mydiv.openstate = false;
+    admin_table_collapse(table);
+  }
+  else
+  {
+    $('img', mydiv).css('background-position', '0px 0px');
+    var new_collapse_state = collapse_state | Math.pow(2, i);
+    console.debug(new_collapse_state);
+    mydiv.openstate = true;
+    admin_table_expand(table);
+  }
+  createCookie('admin_th:' + page, new_collapse_state, 3650);
+}
+
+function admin_table_get_cookie(page)
+{
+  var cookievalue = parseInt(readCookie('admin_th:' + page));
+  if ( isNaN(cookievalue) )
+    cookievalue = 0;
+  return cookievalue;
+}
+
+function admin_table_collapse(table, noanim)
+{
+  var targetheight = $('tr > th:first', table).height();
+  $('tr', table).hide();
+  $('tr:first', table).show();
+}
+
+function admin_table_expand(table)
+{
+  $('tr', table).show();
+}

@@ -1038,6 +1038,8 @@ function page_Admin_GeneralConfig()
     </table>
   </div>
 </form>
+
+<script type="text/javascript">addOnloadHook(function() { admin_table_onload(namespace_list['Admin'] + 'GeneralConfig') });</script>
   <?php
 }
 
@@ -2165,6 +2167,9 @@ function page_Special_Administration()
               document.getElementById('ajaxPageContainer').innerHTML = ajax.responseText;
               fadeInfoBoxes();
               autofill_onload();
+              admin_table_onload(t);
+              // allow JS hooks
+              eval(getHook('admin_page_onload'));
             }
           }
         });
