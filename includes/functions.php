@@ -1978,7 +1978,7 @@ function sanitize_html($html, $filter_php = true)
   }
   
   // Strip out code sections that will be postprocessed by Text_Wiki
-  preg_match_all(';^<code(\s[^>]*)?>((?:(?R)|.)*?)\n</code>(\s|$);msi', $html, $code_match);
+  preg_match_all(';^<code(\s[^>]*)?>((?:(?R)|.)*?)</code>(\s|$);msi', $html, $code_match);
   $i = 0;
   foreach ( $code_match[0] as $code )
   {
@@ -2103,7 +2103,7 @@ function sanitize_html($html, $filter_php = true)
   // Vulnerability reported by fuzion from nukeit.org:
   // XSS in closing HTML tag style attribute
   // Fix: escape all closing tags with non-whitelisted characters
-  $html = preg_replace('!</((?:.*)([^a-z0-9-_:]+)(?:.*))>!', '&lt;/\\1&gt;', $html);
+  $html = preg_replace('!</((?:.*)([^a-z0-9-_:]+)(?:.*))>!i', '&lt;/\\1&gt;', $html);
 
   // Restore stripped comments
   $i = 0;
