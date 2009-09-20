@@ -144,7 +144,14 @@ function page_Special_Login()
     $level = USER_LEVEL_MEMBER;
   }
   if ( $level <= USER_LEVEL_MEMBER && $session->user_logged_in )
+  {
+    if ( $target = $paths->getAllParams() )
+    {
+      redirect(makeUrl($target), '', '', 0);
+    }
     $paths->main_page();
+  }
+  
   $template->header();
   echo '<form action="'.makeUrl($paths->nslist['Special'].'Login').'" method="post" name="loginform" onsubmit="try{runEncryption();}catch(e){};">';
   $header = ( $level > USER_LEVEL_MEMBER ) ? $lang->get('user_login_message_short_elev') : $lang->get('user_login_message_short');
