@@ -2169,7 +2169,7 @@ function page_Special_Administration()
               autofill_onload();
               admin_table_onload(t);
               // allow JS hooks
-              eval(getHook('admin_page_onload'));
+              eval(setHook('admin_page_onload'));
             }
           }
         });
