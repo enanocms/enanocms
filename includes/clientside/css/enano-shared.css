@@ -484,6 +484,8 @@ span.pm_link_folder {
   display: block;
   text-decoration: none;
   padding: 3px;
+  border-radius: 5px 0 0 5px;
+  -moz-border-radius: 5px 0 0 5px;
 }
 
 span.pm_link_selected {
@@ -500,11 +502,17 @@ div.pm_break {
   height: 10px;
 }
 
+span#pm_btn_compose {
+  margin-top: 5px;
+}
+
 div.pm_main {
   background-color: #c3d9ff;
   padding: 5px 5px 3px 5px;
   margin-left: 12em;
   min-height: 16em;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
 }
 
 div.pm_main_trash {

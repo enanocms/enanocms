@@ -373,7 +373,10 @@ function page_Special_Login()
          ?>
          
          <tr>
-           <th colspan="3" style="text-align: center" class="subhead"><input type="submit" name="login" value="Log in" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '4' : '2'; ?>" /></th>
+           <th colspan="3" style="text-align: center" class="subhead">
+             <input type="hidden" name="login" value="true" />
+             <input type="submit" value="Log in" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '4' : '2'; ?>" />
+           </th>
          </tr>
       </table>
     </div>
