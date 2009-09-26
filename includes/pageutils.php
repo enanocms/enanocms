@@ -257,7 +257,7 @@ class PageUtils {
       return 'DNE';
     }
     
-    if ( isPage($pname['password']) )
+    if ( isPage($pname) )
     {
       $password_exists = ( !empty($cdata['password']) && $cdata['password'] !== sha1('') );
       if ( $password_exists && $password !== $cdata['password'] )

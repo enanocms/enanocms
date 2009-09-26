@@ -135,7 +135,7 @@ class pathManager
       if ( empty($title) )
         $title = get_title();
       
-      if ( empty($title) && get_main_page() != '' )
+      if ( empty($title) && getConfig('main_page', 'Main_Page') != '' && getConfig('main_page', getConfig('main_page', 'Main_Page')) != '' )
       {
         $this->main_page();
       }
