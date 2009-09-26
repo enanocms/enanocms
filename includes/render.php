@@ -664,8 +664,11 @@ class RenderMan {
   
     $parser = is_string($tplcode) ? $template->makeParserText($tplcode) : false;
     
+    // allow blank urlname?
+    $repeater = have_blank_urlname_page() ? '*' : '+';
+    
     // stage 1 - links with alternate text
-    preg_match_all('/\[\[([^\[\]<>\{\}\|]+)\|(.+?)\]\]/', $text, $matches);
+    preg_match_all('/\[\[([^\[\]<>\{\}\|]' . $repeater . ')\|(.+?)\]\]/', $text, $matches);
     foreach ( $matches[0] as $i => $match )
     {
       list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);
@@ -674,7 +677,7 @@ class RenderMan {
     }
     
     // stage 2 - links with no alternate text
-    preg_match_all('/\[\[([^\[\]<>\{\}\|]+)\]\]/', $text, $matches);
+    preg_match_all('/\[\[([^\[\]<>\{\}\|]' . $repeater . ')\]\]/', $text, $matches);
     foreach ( $matches[0] as $i => $match )
     {
       list($page_id, $namespace) = RenderMan::strToPageID($matches[1][$i]);

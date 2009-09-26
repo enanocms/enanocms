@@ -293,7 +293,16 @@ function get_title($sanitize = true, $chop_special = false)
   
   return ( $sanitize ) ? sanitize_page_id($title) : $title;
 }
- 
+
+/**
+ * Returns true if we are allowed to have a page with a fully blank URL string. This page magically exists when you set the main page to blank.
+ * @return bool
+ */
+
+function have_blank_urlname_page()
+{
+  return getConfig('main_page', 'Main_Page') == '' || getConfig('main_page', getConfig('main_page', 'Main_Page')) == '';
+}
 
 /**
  * Enano replacement for date(). Accounts for individual users' timezone preferences.
