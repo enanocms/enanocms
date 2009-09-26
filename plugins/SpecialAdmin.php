@@ -908,7 +908,8 @@ function page_Admin_GeneralConfig()
     </tr>                      
     <tr>
       <td class="row3" style="width: 50%;">
-        <?php echo $lang->get('acpgc_field_enano_link_title'); ?>
+        <b><?php echo $lang->get('acpgc_field_enano_link_title'); ?></b><br />
+        <small><?php echo $lang->get('acpgc_field_enano_link_hint'); ?></small>
       </td>
       <td class="row1">
         <label>

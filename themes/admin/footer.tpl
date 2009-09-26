@@ -1,6 +1,8 @@
           </div>
           <div class="footer">
-            {COPYRIGHT}<br />[[EnanoPoweredLink]] &bull; &copy; 2006-2009 Dan Fuhry
+            {COPYRIGHT}
+            <!-- You may remove the following line, but it will affect your support from the Enano project. See: http://enanocms.org/powered-link -->
+            <br />[[EnanoPoweredLink]] &bull; &copy; 2006-2009 Dan Fuhry
           </div>
         </td>
         <td class="right"></td>

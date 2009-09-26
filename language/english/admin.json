@@ -428,7 +428,8 @@ var enano_lang = {
       
       // Section: promote Enano
       heading_promoteenano: 'Promote Enano',
-      field_enano_link_title: 'If you think Enano is nice, or if you want to show your support for the Enano team, you can do so by placing a link to the Enano homepage in your Links sidebar block. You absolutely don\'t have to do this, and you won\'t get degraded support if you don\'t. Because Enano is still relatively new in the CMS world, it needs all the attention it can get - and you can easily help to spread the word using this link. Note that this is different from the "Powered by Enano" link in the footer of the page - our philosophy and guidelines regarding the About Enano page and its associated link on every page are discussed on the <a href="http://enanocms.org/Licensing_specifics">Enano website</a>.',
+      field_enano_link_title: 'Show link to enanocms.org on the sidebar',
+      field_enano_link_hint: 'You may help show your support for Enano with this link. This is entirely optional and the Enano project does not discriminate against sites that disable this button. (This differs from our policy on the "Powered by Enano" link; see <a href="http://enanocms.org/powered-link" onclick="window.open(this.href); return false;">this page</a> for more information.)',
       field_enano_link: 'Place a link to enanocms.org on the sidebar',
       
       // Section: SF.net logo

@@ -9,8 +9,9 @@
                  
                  -Dan
                  -->
-          <b>{COPYRIGHT}</b><br />
-          Powered by <a href="{URL_ABOUT_ENANO}">Enano</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>&nbsp;&nbsp;|&nbsp;&nbsp;Time: [[GenTime]]s<!-- BEGIN auth_admin -->&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{REPORT_URI}">[[NumQueries]] SQL</a><!-- END auth_admin -->
+          <b>{COPYRIGHT}</b>
+          <!-- You may remove the following line, but it will affect your support from the Enano project. See: http://enanocms.org/powered-link -->
+          <br />[[EnanoPoweredLinkLong]]&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>&nbsp;&nbsp;|&nbsp;&nbsp;Time: [[GenTime]]s<!-- BEGIN auth_admin -->&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{REPORT_URI}">[[NumQueries]] SQL</a><!-- END auth_admin -->
           <!-- Do not remove this line or scheduled tasks will not run. -->
           <img alt=" " src="{SCRIPTPATH}/cron.php" width="1" height="1" />
         </div>

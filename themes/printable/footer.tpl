@@ -8,8 +8,9 @@
                  -Dan
                  -->
             <div id="credits">
-              {COPYRIGHT}<br />
-              Powered by <a href="http://enanocms.org">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
+              {COPYRIGHT}
+              <!-- You may remove the following line, but it will affect your support from the Enano project. See: http://enanocms.org/powered-link -->
+              <br />Powered by <a href="http://enanocms.org">Enano</a>  |  <a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.1</a>  |  <a href="http://jigsaw.w3.org/css-validator/validator?uri=referer">Valid CSS</a>  |  [[Stats]]
             </div>
             
   </body>
