@@ -144,10 +144,6 @@ window.ajaxProtectSubmit = function(el)
       if ( response.success )
       {
         whiteOutReportSuccess(whitey);
-        setTimeout(function()
-          {
-            miniPromptDestroy(mp);
-          }, 1250);
         // update protect button
         var btn = $('#tb_ajax_protect_btn').get(0);
         btn.level = level;
@@ -584,10 +580,6 @@ window.ajaxResetDelVotes = function()
             ajaxGet(stdAjaxPrefix+'&_mode=resetdelvotes', function(ajax) {
               if ( ajax.readyState == 4 && ajax.status == 200 ) {
                 whiteOutReportSuccess(whitey);
-                setTimeout(function()
-                  {
-                    miniPromptDestroy(box);
-                  }, 1250);
                 
                 item = document.getElementById('mdgDeleteVoteNoticeBox');
                 if(item)

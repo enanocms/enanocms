@@ -233,8 +233,7 @@ function MessageBox(type, title, message)
   this.destroy = function()
     {
       var mbdiv = document.getElementById('messageBox');
-      mbdiv.parentNode.removeChild(mbdiv.nextSibling);
-      mbdiv.parentNode.removeChild(mbdiv);
+      mbdiv.parentNode.parentNode.removeChild(mbdiv.parentNode);
       if ( !mb_previously_had_darkener )
         enlighten(true);
     };
@@ -292,7 +291,7 @@ function messagebox_click(obj, mb)
   else
   {
     var to = fly_out_top(maindiv, true, false);
-    setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.removeChild(mbdiv.nextSibling); mbdiv.parentNode.removeChild(mbdiv); if ( !mb_previously_had_darkener ) enlighten(true);", to);
+    setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.parentNode.removeChild(mbdiv.parentNode); if ( !mb_previously_had_darkener ) enlighten(true);", to);
   }
   if(typeof mb.onclick[val] == 'function')
   {
@@ -578,31 +577,53 @@ function miniPromptMessage(parms)
 
 function whiteOutMiniPrompt(el)
 {
-  var top = getScrollOffset();
-  var left = ( getWidth() / 2 ) - ( 320 / 2);
+  el = miniPromptGetParent(el);
   var width = 320;
   var height = $dynano(el).Height() - 58;
+  var topoffset = 27;
+  
+  var container = document.createElement('div');
+  container.style.padding = topoffset + 'px 0 0 0';
+
+  var top = getScrollOffset();
+  var left = getWidth() / 2 - width / 2;
+  
+  // using fixed here allows modal windows to be blacked out
+  container.style.position = 'absolute';
+  container.style.top = ( top - topoffset ) + 'px';
+  container.style.left = left + 'px';
+  container.style.zIndex = 1000;
   
   var blackout = document.createElement('div');
-  // using fixed here allows modal windows to be blacked out
-  blackout.style.position = ( el.style.position == 'fixed' ) ? 'fixed' : 'absolute';
-  blackout.style.top = top + 'px';
-  blackout.style.left = left + 'px';
+  blackout.style.backgroundColor = '#ffffff';
   blackout.style.width = width + 'px';
   blackout.style.height = height + 'px';
-  
-  blackout.style.backgroundColor = '#FFFFFF';
   domObjChangeOpac(60, blackout);
   var background = ( $dynano(el).Height() < 48 ) ? 'url(' + scriptPath + '/images/loading.gif)' : 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
   blackout.style.backgroundImage = background;
   blackout.style.backgroundPosition = 'center center';
   blackout.style.backgroundRepeat = 'no-repeat';
-  blackout.style.zIndex = '1000';
+  blackout.isMiniPrompt = true;
+  blackout.miniPromptObj = el;
   
+  container.appendChild(blackout);
   var body = document.getElementsByTagName('body')[0];
-  body.appendChild(blackout);
+  body.appendChild(container);
   
   return blackout;
+}
+
+function whiteOutDestroyOnMiniPrompt(whitey)
+{
+  var body = document.getElementsByTagName('body')[0];
+  var parent = whitey.miniPromptObj;
+  fly_out_top([parent, whitey.parentNode], true, true);
+  setTimeout(function()
+    {
+      body.removeChild(parent);
+      body.removeChild(whitey.parentNode);
+    }, 1000 * FI_MULTIPLIER);
+  enlighten(true, 'miniprompt_darkener');
 }
 
 function testMPMessageBox()
@@ -619,7 +640,18 @@ function testMPMessageBox()
         },
         sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 0 ],
         onclick: function() {
-          miniPromptDestroy(this);
+          var w = whiteOutMiniPrompt(this);
+          var me = this;
+          setTimeout(function()
+            {
+              whiteOutReportSuccess(w, true);
+              void(me);
+              setTimeout(function()
+                {
+                  miniPromptDestroy(me);
+                }, 1250);
+            }, 500);
+          return false;
         }
       },
       {
@@ -627,7 +659,12 @@ function testMPMessageBox()
         color: 'blue',
         sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 16 ],
         onclick: function() {
-          miniPromptDestroy(this);
+          var w = whiteOutMiniPrompt(this);
+          setTimeout(function()
+            {
+              whiteOutReportSuccess(w);
+            }, 1500);
+          return false;
         }
       },
       {

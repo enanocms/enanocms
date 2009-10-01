@@ -672,20 +672,28 @@ function whiteOutElement(el)
  * briefly fades in, then fades out and destroys the box so as to re-allow control over the underlying element
  */
 
-function whiteOutReportSuccess(whitey)
+function whiteOutReportSuccess(whitey, nodestroy_mp)
 {
-  whiteOutDestroyWithImage(whitey, cdnPath + '/images/check.png');
+  whiteOutDestroyWithImage(whitey, cdnPath + '/images/check.png', nodestroy_mp);
 }
 
-function whiteOutReportFailure(whitey)
+function whiteOutReportFailure(whitey, nodestroy_mp)
 {
-  whiteOutDestroyWithImage(whitey, cdnPath + '/images/checkbad.png');
+  if ( typeof(nodestroy_mp) == undefined )
+    nodestroy_mp = true;
+    
+  whiteOutDestroyWithImage(whitey, cdnPath + '/images/checkbad.png', nodestroy_mp);
 }
 
-function whiteOutDestroyWithImage(whitey, image)
+function whiteOutDestroyWithImage(whitey, image, nodestroy_mp)
 {
   // fade the status indicator in and then out
   whitey.style.backgroundImage = 'url(' + image + ')';
+  if ( whitey.isMiniPrompt && !nodestroy_mp )
+  {
+    whiteOutDestroyOnMiniPrompt(whitey);
+    return true;
+  }
   if ( aclDisableTransitionFX )
   {
     domObjChangeOpac(80, whitey);
@@ -868,7 +876,7 @@ function getHighestZ()
   var divs = document.getElementsByTagName('div');
   for(var i = 0; i < divs.length; i++)
   {
-    if(divs[i].style.zIndex > z) z = divs[i].style.zIndex;
+    if(divs[i].style.zIndex > z && divs[i].style.display != 'none' && divs[i].innerHTML != '') z = divs[i].style.zIndex;
   }
   return parseInt(z);
 }

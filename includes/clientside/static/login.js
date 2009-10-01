@@ -1170,10 +1170,6 @@ window.ajaxInitLogout = function()
           }, function(response)
             {
               whiteOutReportSuccess(whitey);
-                setTimeout(function()
-                  {
-                    miniPromptDestroy(mp);
-                  }, 1250);
             });
           return false;
         }

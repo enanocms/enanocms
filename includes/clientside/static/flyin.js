@@ -10,6 +10,8 @@ var FI_IN = 1;
 var FI_OUT = 2;
 var FI_UP = 1;
 var FI_DOWN = 2;
+// increase to slow down transitions (for debug)
+var FI_MULTIPLIER = 1;
 
 /**
  * You can thank Robert Penner for the math used here. Ported from an ActionScript class.
@@ -68,6 +70,11 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
 {
   if ( !element || typeof(element) != 'object' )
     return false;
+  
+  // force to array
+  if ( !element.length )
+    element = [ element ];
+  
   // target dimensions
   var top, left;
   // initial dimensions
@@ -81,10 +88,11 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
   // temp vars
   var dim, off, diff, dist, ratio, opac_factor;
   // setup element
-  element.style.position = 'absolute';
+  for ( var i = 0; i < element.length; i++ )
+    element[i].style.position = 'absolute';
   
-  dim = [ $dynano(element).Height(), $dynano(element).Width() ];
-  off = [ $dynano(element).Top(), $dynano(element).Left() ];
+  dim = [ $dynano(element[0]).Height(), $dynano(element[0]).Width() ];
+  off = [ $dynano(element[0]).Top(), $dynano(element[0]).Left() ];
   
   if ( height_taken_care_of )
   {
@@ -127,7 +135,7 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
   
   var frames = 100;
   var timeout = 0;
-  var timerstep = 8;
+  var timerstep = 8 * FI_MULTIPLIER;
   
   // cache element so it can be changed from within setTimeout()
   var rand_seed = Math.floor(Math.random() * 1000000);
@@ -137,11 +145,17 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
   {
     topc = GlideEffect.easeInOut(i, topi, diff_top, frames);
     leftc = GlideEffect.easeInOut(i, lefti, diff_left, frames);
-    var code = 'var o = fly_in_cache['+rand_seed+']; o.style.top=\''+topc+'px\';';
+    
+    var code = 'var element = fly_in_cache[' + rand_seed + '];' + "\n";
+    code +=    'for ( var i = 0; i < element.length; i++ )' + "\n";
+    code +=    '{' + "\n";
+    code +=    '  element[i].style.top = "' + topc + 'px";' + "\n";
     if ( !height_taken_care_of )
-      code += ' o.style.left=\''+leftc+'px\'';
-    code += ';';
+      code +=  '  element[i].style.left = "' + leftc + 'px";' + "\n";
+    code +=    '}';
+    
     setTimeout(code, timeout);
+    
     timeout += timerstep;
     
     var ratio = i / frames;
@@ -152,7 +166,14 @@ function fly_core(element, nofade, origin, direction, height_taken_care_of)
       var opac_factor = ratio * 100;
       if ( direction == FI_OUT )
         opac_factor = 100 - opac_factor;
-      setTimeout('var o = fly_in_cache['+rand_seed+']; domObjChangeOpac('+opac_factor+', o);', timeout);
+      
+      var code = 'var element = fly_in_cache[' + rand_seed + '];' + "\n";
+      code +=    'for ( var i = 0; i < element.length; i++ )' + "\n";
+      code +=    '{' + "\n";
+      code +=    '  domObjChangeOpac(' + opac_factor + ', element[i]);' + "\n";
+      code +=    '}';
+      
+      setTimeout(code, timeout);
     }
     
   }
