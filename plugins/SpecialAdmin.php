@@ -2579,7 +2579,6 @@ function page_Special_EditSidebar()
           $cache->purge('anon_sidebar');
           if(isset($_GET['ajax']))
           {
-            ob_end_clean();
             die('GOOD');
           }
           echo '<div class="error-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_block_deleted') . '</div>';
@@ -2604,7 +2603,6 @@ function page_Special_EditSidebar()
           }
           if(isset($_GET['ajax']))
           {
-            @ob_end_clean();
             die('GOOD');
           }
           break;
@@ -2619,7 +2617,6 @@ function page_Special_EditSidebar()
           }
           if(isset($_GET['ajax']))
           {
-            ob_end_clean();
             die('GOOD');
           }
           break;
@@ -2631,7 +2628,6 @@ function page_Special_EditSidebar()
             $template->footer();
             exit;
           }
-          ob_end_clean();
           $r = $db->fetchrow();
           $db->free_result();
           $cache->purge('anon_sidebar');
