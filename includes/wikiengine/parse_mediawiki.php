@@ -182,7 +182,31 @@ class Carpenter_Parse_MediaWiki
     
     // Wrap all block level tags
     RenderMan::tag_strip('_paragraph_bypass', $text, $_nw);
-    $text = preg_replace("/<($blocklevel)(?: .+?>|>)(?:(?R)|.*?)<\/\\1>/s", '<_paragraph_bypass>$0</_paragraph_bypass>', $text);
+    // I'm not sure why I had to go through all these alternatives. Trying to bring it
+    // all down to one by ?'ing subpatterns was causing things to return empty and throwing
+    // errors in the parser. Eventually, around ~3:57AM I just settled on this motherf---er
+    // of a regular expression.
+    $regex = ";
+              <($blocklevel)
+              (?:
+                # self closing, no attributes
+                [ ]*/>
+              |
+                # self closing, attributes
+                [ ][^>]+? />
+              |
+                # with inner text, no attributes
+                >
+                (?: (?R) | .*? )*</\\1>
+              |
+                # with inner text and attributes
+                [ ][^>]+?     # attributes
+                >
+                (?: (?R) | .*? )*</\\1>
+              )
+                ;sx";
+                
+    $text = preg_replace($regex, '<_paragraph_bypass>$0</_paragraph_bypass>', $text);
     RenderMan::tag_unstrip('_paragraph_bypass', $text, $_nw, true);
     
     // This is potentially a hack. It allows the parser to stick in <_paragraph_bypass> tags

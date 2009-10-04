@@ -29,7 +29,7 @@ define( 'MW_ATTRIBS_REGEX',
     ($space*=$space*
     (?:
      # The attribute value: quoted or alone
-      ".'"'."([^<".'"'."]*)".'"'."
+      \"([^<\"]*)\"
      | '([^<']*)'
      |  ([a-zA-Z0-9!#$%&()*,\\-.\\/:;<>?@[\\]^_`{|}~]+)
      |  (\#[0-9a-fA-F]+) # Technically wrong, but lots of

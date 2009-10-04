@@ -152,7 +152,14 @@ class Carpenter
       }
       
       // execute rule
+      $text_before = $text;
       $text = $this->perform_render_step($text, $rule, $parser, $renderer);
+      if ( empty($text) )
+      {
+        trigger_error("Wikitext was empty after rule \"$rule\"; restoring backup", E_USER_WARNING);
+        $text = $text_before;
+      }
+      unset($text_before);
       
       // run posthooks
       foreach ( $this->hooks as $hook )

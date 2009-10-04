@@ -29,6 +29,8 @@ class Carpenter_Render_Xhtml
     foreach ( $pieces as $i => $piece )
     {
       $tocid = sanitize_page_id(trim($piece['text']));
+      // (bad) workaround for links in headings
+      $tocid = str_replace(array('[', ']'), '', $tocid);
       $tag = '<h' . $piece['level'] . ' id="head:' . $tocid . '">';
       $tag .= trim($piece['text']);
       $tag .= '</h' . $piece['level'] . '>';
