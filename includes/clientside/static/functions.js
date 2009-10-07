@@ -691,7 +691,10 @@ function whiteOutDestroyWithImage(whitey, image, nodestroy_mp)
   whitey.style.backgroundImage = 'url(' + image + ')';
   if ( whitey.isMiniPrompt && !nodestroy_mp )
   {
-    whiteOutDestroyOnMiniPrompt(whitey);
+    setTimeout(function()
+      {
+        whiteOutDestroyOnMiniPrompt(whitey);
+      }, 500);
     return true;
   }
   if ( aclDisableTransitionFX )
