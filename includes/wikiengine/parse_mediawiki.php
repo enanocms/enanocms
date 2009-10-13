@@ -206,7 +206,17 @@ class Carpenter_Parse_MediaWiki
               )
                 ;sx";
                 
-    $text = preg_replace($regex, '<_paragraph_bypass>$0</_paragraph_bypass>', $text);
+    // using preg_replace here sometimes gives us empty strings probably because we're using $0
+    // in the replace formatter. so we'll just take care of it explicitly here with preg_match_all
+    // and good ole str_replace_once.
+    if ( preg_match_all($regex, $text, $matches) )
+    {
+      foreach ( $matches[0] as $match )
+      {
+        $text = str_replace_once($match, '<_paragraph_bypass>' . $match . '</_paragraph_bypass>', $text);
+      }
+    }
+    
     RenderMan::tag_unstrip('_paragraph_bypass', $text, $_nw, true);
     
     // This is potentially a hack. It allows the parser to stick in <_paragraph_bypass> tags
