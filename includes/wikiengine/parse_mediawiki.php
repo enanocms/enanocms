@@ -209,13 +209,31 @@ class Carpenter_Parse_MediaWiki
     // using preg_replace here sometimes gives us empty strings probably because we're using $0
     // in the replace formatter. so we'll just take care of it explicitly here with preg_match_all
     // and good ole str_replace_once.
+    
+    // FIXME this regexp can cause crashes under win32 PHP due to some apache limitations... possibly
+    // write a non-regexp based replacement. same bug as the comment block above, apparently
+    
+    // oh. and we're using this tokens thing because for identical matches, the first match will
+    // get wrapped X number of times instead of all matches getting wrapped once; replacing each
+    // with a unique token id remedies this
+    
+    $tokens = array();
+    $rand_id = sha1(microtime() . mt_rand());
     if ( preg_match_all($regex, $text, $matches) )
     {
-      foreach ( $matches[0] as $match )
+      foreach ( $matches[0] as $i => $match )
       {
-        $text = str_replace_once($match, '<_paragraph_bypass>' . $match . '</_paragraph_bypass>', $text);
+        $text = str_replace_once($match, "{_pb_:$rand_id:$i}", $text);
+        $tokens[$i] = '<_paragraph_bypass>' . $match . '</_paragraph_bypass>';
       }
     }
+    
+    foreach ( $tokens as $i => $match )
+    {
+      $text = str_replace_once("{_pb_:$rand_id:$i}", $match, $text);
+    }
+    
+    // die('<pre>' . htmlspecialchars($text) . '</pre>');
     
     RenderMan::tag_unstrip('_paragraph_bypass', $text, $_nw, true);
     
