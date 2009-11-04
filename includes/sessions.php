@@ -676,12 +676,10 @@ class sessionManager {
    * @param string $password The password -OR- the MD5 hash of the password if $already_md5ed is true
    * @param bool $already_md5ed This should be set to true if $password is an MD5 hash, and should be false if it's plaintext. Defaults to false.
    * @param int $level The privilege level we're authenticating for, defaults to 0
-   * @param string $captcha_hash Optional. If we're locked out and the lockout policy is captcha, this should be the identifier for the code.
-   * @param string $captcha_code Optional. If we're locked out and the lockout policy is captcha, this should be the code the user entered.
    * @param bool $remember Optional. If true, remembers the session for X days. Otherwise, assigns a short session. Defaults to false.
    */
   
-  function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false, $remember = false)
+  function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $remember = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -702,40 +700,6 @@ class sessionManager {
     if($this->compat)
     {
       return $this->login_compat($username, md5($password), $level);
-    }
-    
-    // Lockout check
-    if ( !defined('IN_ENANO_INSTALL') )
-    {
-      $lockout_data = $this->get_lockout_info($lockout_data);
-      
-      $captcha_good = false;
-      if ( $lockout_data['lockout_policy'] == 'captcha' && $captcha_hash && $captcha_code )
-      {
-        // policy is captcha -- check if it's correct, and if so, bypass lockout check
-        $real_code = $this->get_captcha($captcha_hash);
-        if ( strtolower($real_code) === strtolower($captcha_code) )
-        {
-          $captcha_good = true;
-        }
-      }
-      if ( $lockout_data['lockout_policy'] != 'disable' && !$captcha_good )
-      {
-        if ( $lockout_data['lockout_fails'] >= $lockout_data['lockout_threshold'] )
-        {
-          // ooh boy, somebody's in trouble ;-)
-          return array(
-              'success' => false,
-              'error' => 'locked_out',
-              'lockout_threshold' => $lockout_data['lockout_threshold'],
-              'lockout_duration' => ( $lockout_data['lockout_duration'] ),
-              'lockout_fails' => $lockout_data['lockout_fails'],
-              'lockout_policy' => $lockout_data['lockout_policy'],
-              'time_rem' => $lockout_data['time_rem'],
-              'lockout_last_time' => $lockout_data['lockout_last_time']
-            );
-        }
-      }
     }
     
     // Instanciate the Rijndael encryption object
@@ -766,7 +730,14 @@ class sessionManager {
                       . '\''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
       
       // Do we also need to increment the lockout countdown?
-      if ( @$lockout_data['lockout_policy'] != 'disable' && !defined('IN_ENANO_INSTALL') )
+      if ( !defined('IN_ENANO_INSTALL') )
+        $lockout_data = $this->get_lockout_info();
+      else
+        $lockout_data = array(
+          'lockout_policy' => 'disable'
+          );
+      
+      if ( $lockout_data['lockout_policy'] != 'disable' && !defined('IN_ENANO_INSTALL') )
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
@@ -891,20 +862,11 @@ class sessionManager {
         $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
       // Do we also need to increment the lockout countdown?
-      if ( !defined('IN_ENANO_INSTALL') && $lockout_data['lockout_policy'] != 'disable' )
+      if ( !defined('IN_ENANO_INSTALL') && getConfig('lockout_policy', 'lockout') !== 'disable' )
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
         $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
-        $lockout_data['lockout_fails']++;
-        return array(
-            'success' => false,
-            'error' => ( $lockout_data['lockout_fails'] >= $lockout_data['lockout_threshold'] ) ? 'locked_out' : 'invalid_credentials',
-            'lockout_threshold' => $lockout_data['lockout_threshold'],
-            'lockout_duration' => ( $lockout_data['lockout_duration'] ),
-            'lockout_fails' => $lockout_data['lockout_fails'],
-            'lockout_policy' => $lockout_data['lockout_policy']
-          );
       }
         
       return array(
@@ -1071,7 +1033,7 @@ class sessionManager {
    * @return bool True if locked out, false otherwise
    */
   
-  function get_lockout_info(&$lockdata)
+  function get_lockout_info()
   {
     global $db;
     
@@ -1096,14 +1058,14 @@ class sessionManager {
       $row = $db->fetchrow($q);
       $locked_out = ( $fails >= $threshold );
       $lockdata = array(
-          'locked_out' => $locked_out,
-          'lockout_threshold' => $threshold,
-          'lockout_duration' => ( $duration / 60 ),
-          'lockout_fails' => $fails,
-          'lockout_policy' => $policy,
-          'lockout_last_time' => $row['timestamp'],
+          'active' => $locked_out,
+          'threshold' => $threshold,
+          'duration' => ( $duration / 60 ),
+          'fails' => $fails,
+          'policy' => $policy,
+          'last_time' => $row['timestamp'],
           'time_rem' => $locked_out ? ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ) : 0,
-          'captcha' => ''
+          'captcha' => $policy == 'captcha' ? $this->make_captcha() : ''
         );
       $db->free_result();
     }
@@ -1111,12 +1073,12 @@ class sessionManager {
     {
       // disabled; send back default dataset
       $lockdata = array(
-        'locked_out' => false,
-        'lockout_threshold' => $threshold,
-        'lockout_duration' => ( $duration / 60 ),
-        'lockout_fails' => 0,
-        'lockout_policy' => $policy,
-        'lockout_last_time' => 0,
+        'active' => false,
+        'threshold' => $threshold,
+        'duration' => ( $duration / 60 ),
+        'fails' => 0,
+        'policy' => $policy,
+        'last_time' => 0,
         'time_rem' => 0,
         'captcha' => ''
       );
@@ -3869,59 +3831,20 @@ EOF;
     // Check for the mode
     if ( !isset($req['mode']) )
     {
-      return array(
-          'mode' => 'error',
-          'error' => 'ERR_JSON_NO_MODE'
-        );
+      return $this->get_login_response('api_error', 'ERR_JSON_NO_MODE');
     }
     
     // Main processing switch
     switch ( $req['mode'] )
     {
       default:
-        return array(
-            'mode' => 'error',
-            'error' => 'ERR_JSON_INVALID_MODE'
-          );
+        return $this->get_login_response('api_error', 'ERR_JSON_INVALID_MODE');
         break;
       case 'getkey':
         
         $this->start();
         
-        $locked_out = $this->get_lockout_info($lockdata);
-        
-        $response = array('mode' => 'build_box');
-        $response['allow_diffiehellman'] = $dh_supported;
-        
-        $response['username'] = ( $this->user_logged_in ) ? $this->username : false;
-        $response['aes_key'] = $this->rijndael_genkey();
-        
-        $response['extended_time'] = intval(getConfig('session_remember_time', '30'));
-        
-        // Lockout info
-        $response['locked_out'] = $locked_out;
-        
-        $response['lockout_info'] = $lockdata;
-        if ( $lockdata['lockout_policy'] == 'captcha' && $locked_out )
-        {
-          $response['lockout_info']['captcha'] = $this->make_captcha();
-        }
-        
-        // Can we do Diffie-Hellman? If so, generate and stash a public/private key pair.
-        if ( $dh_supported )
-        {
-          $dh_key_priv = dh_gen_private();
-          $dh_key_pub = dh_gen_public($dh_key_priv);
-          $dh_key_priv = $_math->str($dh_key_priv);
-          $dh_key_pub = $_math->str($dh_key_pub);
-          $response['dh_public_key'] = $dh_key_pub;
-          // store the keys in the DB
-          $q = $db->sql_query('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
-          if ( !$q )
-            $db->die_json();
-        }
-        
-        return $response;
+        return $this->get_login_response('initial');
         break;
       case 'login_dh':
         // User is requesting a login and has sent Diffie-Hellman data.
@@ -3937,10 +3860,7 @@ EOF;
         // Check the key
         if ( !ctype_digit($dh_public) || !ctype_digit($req['dh_client_key']) )
         {
-          return array(
-            'mode' => 'error',
-            'error' => 'ERR_DH_KEY_NOT_NUMERIC'
-          );
+          return $this->get_login_response('api_error', 'ERR_DH_KEY_NOT_NUMERIC');
         }
         
         // Fetch private key
@@ -3950,10 +3870,7 @@ EOF;
         
         if ( $db->numrows() < 1 )
         {
-          return array(
-            'mode' => 'error',
-            'error' => 'ERR_DH_KEY_NOT_FOUND'
-          );
+          return $this->get_login_response('api_error', 'ERR_DH_KEY_NOT_FOUND');
         }
         
         list($dh_private, $dh_key_id) = $db->fetchrow_num();
@@ -3972,10 +3889,7 @@ EOF;
         $dh_secret_check = sha1($dh_secret);
         if ( $dh_secret_check !== $dh_hash )
         {
-          return array(
-            'mode' => 'error',
-            'error' => 'ERR_DH_HASH_NO_MATCH',
-          );
+          return $this->get_login_response('api_error', 'ERR_DH_HASH_NO_MATCH');
         }
         
         // All good! Generate the AES key
@@ -3987,10 +3901,7 @@ EOF;
           $aes_key = $this->fetch_public_key($req['key_aes']);
           if ( !$aes_key )
           {
-            return array(
-              'mode' => 'error',
-              'error' => 'ERR_AES_LOOKUP_FAILED'
-            );
+            return $this->get_login_response('api_error', 'ERR_AES_LOOKUP_FAILED');
           }
           $userinfo_crypt = $req['userinfo'];
         }
@@ -4003,10 +3914,7 @@ EOF;
         $userinfo_json = $aes->decrypt($userinfo_crypt, $aes_key, ENC_HEX, true);
         if ( !$userinfo_json )
         {
-          return array(
-            'mode' => 'error',
-            'error' => 'ERR_AES_DECRYPT_FAILED'
-          );
+          return $this->get_login_response('api_error', 'ERR_AES_DECRYPT_FAILED');
         }
         // de-JSON user info
         try
@@ -4015,22 +3923,41 @@ EOF;
         }
         catch ( Exception $e )
         {
-          return array(
-            'mode' => 'error',
-            'error' => 'ERR_USERINFO_DECODE_FAILED'
-          );
+          return $this->get_login_response('api_error', 'ERR_USERINFO_DECODE_FAILED');
+        }
+        
+      case 'login_pt':
+        // plaintext login
+        if ( $req['mode'] == 'login_pt' )
+        {
+          $userinfo = isset($req['userinfo']) ? $req['userinfo'] : array();
         }
         
         if ( !isset($userinfo['username']) || !isset($userinfo['password']) )
         {
-          return array(
-            'mode' => 'error',
-            'error' => 'ERR_USERINFO_MISSING_VALUES'
-          );
+          return $this->get_login_response('api_error', 'ERR_USERINFO_MISSING_VALUES');
         }
         
         $username =& $userinfo['username'];
         $password =& $userinfo['password'];
+        
+        // locked out? check captcha
+        $lockout_data = $this->get_lockout_info();
+        if ( $lockout_data['policy'] == 'captcha' && $lockout_data['active'] )
+        {
+          // policy is captcha -- check if it's correct, and if so, bypass lockout check
+          $real_code = $this->get_captcha($req['captcha_hash']);
+          if ( strtolower($real_code) !== strtolower($req['captcha_code']) )
+          {
+            // captcha is bad
+            return $this->get_login_response('login_failure', 'lockout_bad_captcha');
+          }
+        }
+        else if ( $lockout_data['policy'] == 'lockout' && $lockout_data['active'] )
+        {
+          // we're fully locked out
+          return $this->get_login_response('login_failure', 'lockout_request_denied');
+        }
         
         // At this point if any extra info was injected into the login data packet, we need to let plugins process it
         /**
@@ -4049,12 +3976,12 @@ EOF;
           $result = eval($cmd);
           if ( $result === true )
           {
-            return array(
-                'mode' => 'login_success',
-                'key' => ( $this->sid_super ) ? $this->sid_super : false,
+            return $this->get_login_response('login_success', false, array(
+                'key' => $this->sid_super,
                 'user_id' => $this->user_id,
-                'user_level' => $this->user_level
-              );
+                'user_level' => $this->user_level,
+                'reset' => false
+              ));
           }
           else if ( is_array($result) )
           {
@@ -4063,45 +3990,33 @@ EOF;
               // Pass back any additional information from the error response
               $append = $result;
               unset($append['mode'], $append['error']);
+              $append['from_plugin'] = true;
               
-              $return = array(
-                'mode' => 'login_failure',
-                'error_code' => $result['error'],
-                // Use this to provide a way to respawn the login box
-                'respawn_info' => $this->process_login_request(array('mode' => 'getkey'))
-              );
-              
-              $return = array_merge($append, $return);
-              return $return;
+              return $this->get_login_response('login_failure', $result['error'], $append);
             }
           }
         }
         
-        // If we're logging in with a temp password, attach to the login_password_reset hook to send our JSON response
-        // A bit hackish since it just dies with the response :-(
-        $plugins->attachHook('login_password_reset', '$this->process_login_request(array(\'mode\' => \'respond_password_reset\', \'user_id\' => $row[\'user_id\'], \'temp_password\' => $this->pk_encrypt($password)));');
-        
         // attempt the login
-        // function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false)
-        $login_result = $this->login_without_crypto($username, $password, false, intval($req['level']), @$req['captcha_hash'], @$req['captcha_code'], @$req['remember']);
+        $login_result = $this->login_without_crypto($username, $password, false, intval($req['level']), @$req['remember']);
         
         if ( $login_result['success'] )
         {
-          return array(
-              'mode' => 'login_success',
-              'key' => ( $this->sid_super ) ? $this->sid_super : false,
+          return $this->get_login_response('login_success', false, array(
+              'key' => $this->sid_super,
               'user_id' => $this->user_id,
-              'user_level' => $this->user_level
-            );
+              'user_level' => $this->user_level,
+            ));
+        }
+        else if ( !$login_result['success'] && $login_result['error'] === 'valid_reset' )
+        {
+          return $this->get_login_response('reset_pass_used', false, array(
+              'redirect_url' => $login_result['redirect_url']
+            ));
         }
         else
         {
-          return array(
-              'mode' => 'login_failure',
-              'error_code' => $login_result['error'],
-              // Use this to provide a way to respawn the login box
-              'respawn_info' => $this->process_login_request(array('mode' => 'getkey'))
-            );
+          return $this->get_login_response('login_failure', 'invalid_credentials');
         }
         
         break;
@@ -4162,6 +4077,58 @@ EOF;
         break;
     }
     
+  }
+  
+  /**
+   * Generate a packet to send to the client for logins.
+   * @param string mode
+   * @param array 
+   * @return array
+   */
+  
+  function get_login_response($mode, $error = false, $base = array())
+  {
+    $this->start();
+    
+    // init
+    $response = $base;
+    // modules in the packet
+    $response['mode'] = $mode;
+    $response['error'] = $error;
+    $response['crypto'] = $mode !== 'login_success' ? $this->get_login_crypto_packet() : false;
+    $response['lockout'] = $mode !== 'login_success' ? $this->get_lockout_info() : false;
+    $response['extended_time'] = intval(getConfig('session_remember_time', '30'));
+    $response['username'] = $this->user_logged_in ? $this->username : false;
+    return $response;
+  }
+  
+  /**
+   * Get a packet of crypto flags for login.
+   * @return array
+   */
+  
+  function get_login_crypto_packet()
+  {
+    global $dh_supported, $_math;
+    
+    $response = array();
+    
+    $response['dh_enable'] = $dh_supported;
+    $response['aes_key'] = $this->rijndael_genkey();
+    
+    // Can we do Diffie-Hellman? If so, generate and stash a public/private key pair.
+    if ( $dh_supported )
+    {
+      $dh_key_priv = dh_gen_private();
+      $dh_key_pub = dh_gen_public($dh_key_priv);
+      $dh_key_priv = $_math->str($dh_key_priv);
+      $dh_key_pub = $_math->str($dh_key_pub);
+      $response['dh_public_key'] = $dh_key_pub;
+      // store the keys in the DB
+      $this->sql('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+    }
+    
+    return $response;
   }
   
 }

@@ -115,13 +115,14 @@ window.ajaxLoginInit = function(call_on_finish, user_level)
   var title = ( user_level > USER_LEVEL_MEMBER ) ? $lang.get('user_login_ajax_prompt_title_elev') : $lang.get('user_login_ajax_prompt_title');
   logindata.mb_object = new MessageBox(MB_OKCANCEL | MB_ICONLOCK, title, '');
   
+  //
+  // Cancel function: called when the "Cancel" button is clicked
+  //
   logindata.mb_object.onclick['Cancel'] = function()
   {
-    // Hide the error message and captcha
-    if ( document.getElementById('ajax_login_error_box') )
-    {
-      document.getElementById('ajax_login_error_box').parentNode.removeChild(document.getElementById('ajax_login_error_box'));
-    }
+    // Hide the error message, if any
+    $('ajax_login_error_box').remove();
+    // Hide the captcha, if any
     if ( document.getElementById('autoCaptcha') )
     {
       var to = fly_out_top(document.getElementById('autoCaptcha'), false, true);
@@ -130,7 +131,7 @@ window.ajaxLoginInit = function(call_on_finish, user_level)
           d.parentNode.removeChild(d);
         }, to);
     }
-    // Ask the server to clean our key
+    // Ask the server to delete the encryption key we're using
     ajaxLoginPerformRequest({
         mode: 'clean_key',
         key_aes: logindata.key_aes,
@@ -138,8 +139,10 @@ window.ajaxLoginInit = function(call_on_finish, user_level)
     });
   };
   
+  // Clicking OK will not cause the box to destroy, as this function returns true.
   logindata.mb_object.onbeforeclick['OK'] = function()
   {
+    // Just call the submitter and let it take care of everything
     ajaxLoginSubmitForm();
     return true;
   }
@@ -160,7 +163,8 @@ window.ajaxLoginInit = function(call_on_finish, user_level)
 }
 
 /**
- * For compatibility only.
+ * For compatibility only. Really, folks, it's ajaxLoginInit. If you need a
+ * mnemonic device, use "two 'in's."
  */
 
 window.ajaxLogonInit = function(call_on_finish, user_level)
@@ -170,7 +174,7 @@ window.ajaxLogonInit = function(call_on_finish, user_level)
 
 /**
  * Sets the contents of the AJAX login window to the appropriate status message.
- * @param int One of AJAX_STATUS_*
+ * @param int One of AJAX_STATUS_* constants
  */
 
 window.ajaxLoginSetStatus = function(status)
@@ -365,7 +369,7 @@ window.ajaxLoginSetStatus = function(status)
     case null:
     case undefined:
       logindata.showing_status = false;
-      return null;
+      return;
       break;
   }
   logindata.showing_status = true;
@@ -374,6 +378,7 @@ window.ajaxLoginSetStatus = function(status)
 /**
  * Performs an AJAX logon request to the server and calls ajaxLoginProcessResponse() on the result.
  * @param object JSON packet to send
+ * @param function Optional function to call on the response as well.
  */
 
 window.ajaxLoginPerformRequest = function(json, _hookfunc)
@@ -420,12 +425,15 @@ window.ajaxLoginProcessResponse = function(response, hookfunc)
     }
     return false;
   }
+  
   // Main mode switch
   switch ( response.mode )
   {
-    case 'build_box':
+    case 'initial':
       // Rid ourselves of any loading windows
       ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
+      // show any errors
+      ajaxLoginShowFriendlyError(response);
       // The server wants us to build the login form, all the information is there
       ajaxLoginBuildForm(response);
       break;
@@ -433,49 +441,33 @@ window.ajaxLoginProcessResponse = function(response, hookfunc)
       ajaxLoginSetStatus(AJAX_STATUS_SUCCESS);
       logindata.successfunc(response.key, response);
       break;
-    case 'login_failure':
-      // Rid ourselves of any loading windows
-      ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
-      document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
-      var mb_parent = document.getElementById('messageBox').parentNode;
-      var do_respawn = ( typeof(response.respawn) == 'boolean' && response.respawn == true ) || typeof(response.respawn) != 'boolean';
-      if ( do_respawn )
-      {
-        $(mb_parent).effect("shake", {}, 200);
-        setTimeout(function()
-          {
-            document.getElementById('messageBox').style.backgroundColor = '#FFF';
-            
-            ajaxLoginBuildForm(response.respawn_info);
-            ajaxLoginShowFriendlyError(response);
-          }, 2500);
-      }
-      else
-      {
-        ajaxLoginShowFriendlyError(response);
-      }
-      break;
-    case 'login_success_reset':
+    case 'reset_pass_used':
+      // We logged in with a temporary password. Prompt the user to go to the temp password page and
+      // reset their real password. If they click no, treat it as a login failure, as no session key
+      // is actually issued when this type of login is performed.
+      
       var conf = confirm($lang.get('user_login_ajax_msg_used_temp_pass'));
       if ( conf )
       {
         var url = makeUrlNS('Special', 'PasswordReset/stage2/' + response.user_id + '/' + response.temp_password);
         window.location = url;
+        break;
       }
-      else
-      {
-        // treat as a failure
-        ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
-        document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
-        var mb_parent = document.getElementById('messageBox').parentNode;
-        $(mb_parent).effect("shake", {}, 1500);
-        setTimeout(function()
-          {
-            document.getElementById('messageBox').style.backgroundColor = '#FFF';
-            ajaxLoginBuildForm(response.respawn_info);
-            // don't show an error here, just silently respawn
-          }, 2500);
-      }
+      // else, treat as a failure
+    default:
+      // Rid ourselves of any loading windows
+      ajaxLoginSetStatus(AJAX_STATUS_DESTROY);
+      document.getElementById('messageBox').style.backgroundColor = '#C0C0C0';
+      var mb_parent = document.getElementById('messageBox').parentNode;
+      $(mb_parent).effect("shake", {}, 200);
+      setTimeout(function()
+        {
+          document.getElementById('messageBox').style.backgroundColor = '#FFF';
+          console.debug(response);
+          ajaxLoginShowFriendlyError(response);
+          ajaxLoginBuildForm(response);
+        }, 2500);
+      
       break;
     case 'logout_success':
       if ( ENANO_SID )
@@ -512,7 +504,7 @@ window.ajaxLoginBuildForm = function(data)
   var div = document.createElement('div');
   div.id = 'ajax_login_form';
   
-  var show_captcha = ( data.locked_out.locked_out && data.locked_out.lockout_policy == 'captcha' ) ? data.locked_out.captcha : false;
+  var show_captcha = ( data.lockout.active && data.lockout.policy == 'captcha' ) ? data.lockout.captcha : false;
   
   // text displayed on re-auth
   if ( logindata.user_level > USER_LEVEL_MEMBER )
@@ -586,8 +578,6 @@ window.ajaxLoginBuildForm = function(data)
   tr2.appendChild(td2_2);
   table.appendChild(tr2);
   
-  eval(setHook('login_build_form'));
-  
   // Field - captcha
   if ( show_captcha )
   {
@@ -616,6 +606,14 @@ window.ajaxLoginBuildForm = function(data)
     tr3.appendChild(td3_2);
     table.appendChild(tr3);
   }
+  
+  // ok, this is a compatibility hack
+  data.locked_out = { locked_out: data.lockout.active };
+  
+  // hook for the login form
+  eval(setHook('login_build_form'));
+  
+  delete(data.locked_out);
   
   // Done building the main part of the form
   form.appendChild(table);
@@ -696,7 +694,7 @@ window.ajaxLoginBuildForm = function(data)
     lbl_dh.innerHTML = $lang.get('user_login_ajax_check_dh_ie');
     boxen.appendChild(lbl_dh);
   }
-  else if ( !data.allow_diffiehellman )
+  else if ( !data.crypto.dh_enable )
   {
     // create hidden control - server requested that DiffieHellman be disabled (usually means not supported)
     var check_dh = document.createElement('input');
@@ -769,24 +767,21 @@ window.ajaxLoginBuildForm = function(data)
   
   // Post operations: show captcha window
   if ( show_captcha )
+  {
     ajaxShowCaptcha(show_captcha);
+  }
   
   // Post operations: stash encryption keys and All That Jazz(TM)
-  logindata.key_aes = data.aes_key;
-  logindata.key_dh = data.dh_public_key;
+  logindata.key_aes = data.crypto_aes_key;
+  logindata.key_dh = data.crypto.dh_public_key;
   logindata.captcha_hash = show_captcha;
-  logindata.loggedin_username = data.username
+  logindata.loggedin_username = data.username;
   
-  // Are we locked out? If so simulate an error and disable the controls
-  if ( data.lockout_info.lockout_policy == 'lockout' && data.locked_out.locked_out )
+  // If policy is lockout, also disable controls
+  if ( data.lockout.policy == 'lockout' && data.lockout.active )
   {
     f_username.setAttribute('disabled', 'disabled');
     f_password.setAttribute('disabled', 'disabled');
-    var fake_packet = {
-      error_code: 'locked_out',
-      respawn_info: data
-    };
-    ajaxLoginShowFriendlyError(fake_packet);
   }
 }
 
@@ -978,11 +973,10 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
 
 window.ajaxLoginShowFriendlyError = function(response)
 {
-  if ( !response.respawn_info )
-    return false;
-  if ( !response.error_code )
-    return false;
   var text = ajaxLoginGetErrorText(response);
+  if ( text == false )
+    return true;
+    
   if ( document.getElementById('ajax_login_error_box') )
   {
     // console.info('Reusing existing error-box');
@@ -1021,85 +1015,53 @@ window.ajaxLoginShowFriendlyError = function(response)
 
 window.ajaxLoginGetErrorText = function(response)
 {
-  if ( !response.error_code.match(/^[a-z0-9]+_[a-z0-9_]+$/) )
+  if ( response.lockout )
   {
-    return response.error_code;
+    // set this pluralality thing
+    response.lockout.plural = response.lockout.time_rem == 1 ? '' : $lang.get('meta_plural');
   }
-  switch ( response.error_code )
+  
+  if ( response.mode == 'initial' )
   {
-    default:
-      eval(setHook('ajax_login_process_error'));
-      if ( !ls )
-      {
-        var ls = $lang.get('user_err_' + response.error_code);
-        if ( ls == 'user_err_' + response.error_code )
-          // Adding response here allows language strings to utilize additional information passed from the error packet
-          ls = $lang.get(response.error_code, response);
-      }
-      
-      return ls;
-      break;
-    case 'locked_out':
-      if ( response.respawn_info.lockout_info.lockout_policy == 'lockout' )
-      {
-        return $lang.get('user_err_locked_out', { 
-                  lockout_threshold: response.respawn_info.lockout_info.lockout_threshold,
-                  lockout_duration: response.respawn_info.lockout_info.lockout_duration,
-                  time_rem: response.respawn_info.lockout_info.time_rem,
-                  plural: ( response.respawn_info.lockout_info.time_rem == 1 ) ? '' : $lang.get('meta_plural'),
-                  captcha_blurb: ''
-                });
+    // Just showing the box for the first time. If there's an error now, it's based on a preexisting lockout.
+    if ( response.lockout.active )
+    {
+      return $lang.get('user_err_locked_out_initial_' + response.lockout.policy, response.lockout);
+    }
+    return false;
+  }
+  else
+  {
+    // An attempt was made.
+    switch(response.mode)
+    {
+      case 'login_failure':
+        // Generic login user error.
+        var error = '', x;
+        if ( (x = $lang.get(response.error)) != response.error )
+          error = x;
+        else
+          error = $lang.get('user_err_' + response.error);
+        if ( response.lockout.active && response.lockout.policy == 'lockout' )
+        {
+          // Lockout enforcement was just activated.
+          return $lang.get('user_err_locked_out_initial_' + response.lockout.policy, response.lockout);
+        }
+        else if ( response.lockout.policy != 'disable' && !response.lockout.active && response.lockout.fails > 0 )
+        {
+          // Lockout is in a warning state.
+          error += ' ' + $lang.get('user_err_invalid_credentials_' + response.lockout.policy, response.lockout);
+        }
+        return error;
         break;
-      }
-    case 'invalid_credentials':
-      var base = $lang.get('user_err_invalid_credentials');
-      if ( response.respawn_info.locked_out.locked_out )
-      {
-        base += ' ';
-        var captcha_blurb = '';
-        switch(response.respawn_info.lockout_info.lockout_policy)
-        {
-          case 'captcha':
-            captcha_blurb = $lang.get('user_err_locked_out_captcha_blurb');
-            break;
-          case 'lockout':
-            break;
-          default:
-            base += 'WTF? Shouldn\'t be locked out with lockout policy set to disable. ';
-            break;
-        }
-        base += $lang.get('user_err_locked_out', { 
-                  captcha_blurb: captcha_blurb,
-                  lockout_threshold: response.respawn_info.lockout_info.lockout_threshold,
-                  lockout_duration: response.respawn_info.lockout_info.lockout_duration,
-                  time_rem: response.respawn_info.lockout_info.time_rem,
-                  plural: ( response.respawn_info.lockout_info.time_rem == 1 ) ? '' : $lang.get('meta_plural')
-                });
-      }
-      else if ( response.respawn_info.lockout_info.lockout_policy == 'lockout' || response.respawn_info.lockout_info.lockout_policy == 'captcha' )
-      {
-        // if we have a lockout policy of captcha or lockout, then warn the user
-        switch ( response.respawn_info.lockout_info.lockout_policy )
-        {
-          case 'captcha':
-            base += $lang.get('user_err_invalid_credentials_lockout_captcha', { 
-                fails: response.respawn_info.lockout_info.lockout_fails,
-                lockout_threshold: response.respawn_info.lockout_info.lockout_threshold,
-                lockout_duration: response.respawn_info.lockout_info.lockout_duration
-              });
-            break;
-          case 'lockout':
-            base += $lang.get('user_err_invalid_credentials_lockout', { 
-                fails: response.respawn_info.lockout_info.lockout_fails,
-                lockout_threshold: response.respawn_info.lockout_info.lockout_threshold,
-                lockout_duration: response.respawn_info.lockout_info.lockout_duration
-              });
-            break;
-        }
-      }
-      return base;
-      break;
+      case 'api_error':
+        // Error in the API.
+        return $lang.get('user_err_login_generic_title') + ': ' + $lang.get('user_' + response.error.toLowerCase());
+        break;
+    }
   }
+  
+  return typeof(response.error) == 'string' ? response.error : false;
 }
 
 window.ajaxShowCaptcha = function(code)
@@ -1302,6 +1264,7 @@ window.ajaxDynamicReauth = function(adminpage, level)
   {
     level = USER_LEVEL_ADMIN;
   }
+  
   ajaxLogonInit(function(k, response)
     {
       ajaxLoginReplaceSIDInline(k, old_sid, level);

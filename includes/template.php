@@ -1212,6 +1212,7 @@ JSEOF;
     $protected = is_object($this->page) ? $this->page->ns->cdata['really_protected'] : false;
     
     // Generate the dynamic javascript vars
+    // Sorry. I know. This block is a mess.
     $js_dynamic = '    <script type="text/javascript">// <![CDATA[
       // This section defines some basic and very important variables that are used later in the static Javascript library.
       // SKIN DEVELOPERS: The template variable for this code block is {JS_DYNAMIC_VARS}. This MUST be inserted BEFORE the tag that links to the main Javascript lib.
@@ -1234,11 +1235,11 @@ JSEOF;
       var disable_redirect = ' . ( isset($_GET['redirect']) && $_GET['redirect'] == 'no' ? 'true' : 'false' ) . ';
       var pref_disable_js_fx = ' . ( @$session->user_extra['disable_js_fx'] == 1 ? 'true' : 'false' ) . ';
       var csrf_token = "' . $session->csrf_token . '";
-      var prot = ' . ( ($protected) ? 'true' : 'false' ) .'; // No, hacking this var won\'t work, it\'s re-checked on the server
+      var prot = ' . ( ($protected) ? 'true' : 'false' ) .';
       var ENANO_SPECIAL_CREATEPAGE = \''. makeUrl($paths->nslist['Special'].'CreatePage') .'\';
       var ENANO_CREATEPAGE_PARAMS = \'_do=&pagename='. $this->page_id .'&namespace=' . $this->namespace . '\';
       var ENANO_SPECIAL_CHANGESTYLE = \''. makeUrlNS('Special', 'ChangeStyle') .'\';
-      var namespace_list = new Array();
+      var namespace_list = [];
       var msg_loading_component = \'' . addslashes($lang->get('ajax_msg_loading_component')) . '\';
       var AES_BITS = '.AES_BITS.';
       var AES_BLOCKSIZE = '.AES_BLOCKSIZE.';
@@ -1246,9 +1247,9 @@ JSEOF;
       var ENANO_LANG_ID = ' . $lang->lang_id . ';
       var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";';
     
-    foreach($paths->nslist as $k => $c)
+    foreach ( $paths->nslist as $k => $c )
     {
-      $js_dynamic .= "namespace_list['{$k}'] = '$c';";
+      $js_dynamic .= "namespace_list['{$k}'] = '" . addslashes($c) . "';";
     }
     $js_dynamic .= "\n    //]]>\n    </script>";
     

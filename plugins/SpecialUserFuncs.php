@@ -48,101 +48,27 @@ $__login_status = '';
 function page_Special_Login()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  global $__login_status;
-  global $lang;
+  global $login_result;
+  global $lang, $output;
   
-  require_once(ENANO_ROOT . '/includes/math.php');
-  require_once(ENANO_ROOT . '/includes/diffiehellman.php');
-  global $dh_supported;
-  
-  $locked_out = false;
-  // are we locked out?
-  $threshold = ( $_ = getConfig('lockout_threshold') ) ? intval($_) : 5;
-  $duration  = ( $_ = getConfig('lockout_duration') ) ? intval($_) : 15;
-  // convert to minutes
-  $duration  = $duration * 60;
-  $policy = ( $x = getConfig('lockout_policy') && in_array(getConfig('lockout_policy'), array('lockout', 'disable', 'captcha')) ) ? getConfig('lockout_policy') : 'lockout';
-  if ( $policy != 'disable' )
-  {
-    $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
-    $timestamp_cutoff = time() - $duration;
-    $q = $session->sql('SELECT timestamp FROM '.table_prefix.'lockout WHERE timestamp > ' . $timestamp_cutoff . ' AND ipaddr = \'' . $ipaddr . '\' ORDER BY timestamp DESC;');
-    $fails = $db->numrows();
-    if ( $fails >= $threshold )
-    {
-      $row = $db->fetchrow();
-      $locked_out = true;
-      $lockdata = array(
-          'locked_out' => true,
-          'lockout_threshold' => $threshold,
-          'lockout_duration' => ( $duration / 60 ),
-          'lockout_fails' => $fails,
-          'lockout_policy' => $policy,
-          'lockout_last_time' => $row['timestamp'],
-          'time_rem' => ( $duration / 60 ) - round( ( time() - $row['timestamp'] ) / 60 ),
-          'captcha' => ''
-        );
-      if ( $policy == 'captcha' )
-      {
-        $lockdata['captcha'] = $session->make_captcha();
-      }
-    }
-    $db->free_result();
-  }
-  
-  if ( isset($_GET['act']) && $_GET['act'] == 'getkey' )
-  {
-    header('Content-type: text/javascript');
-    $username = ( $session->user_logged_in ) ? $session->username : false;
-    $response = Array(
-      'username' => $username,
-      'key' => $pubkey,
-      'challenge' => $challenge,
-      'locked_out' => false
-      );
-    
-    if ( $locked_out )
-    {
-      foreach ( $lockdata as $x => $y )
-      {
-        $response[$x] = $y;
-      }
-      unset($x, $y);
-    }
-    
-    // 1.1.3: generate diffie hellman key
-    $response['dh_supported'] = $dh_supported;
-    if ( $dh_supported )
-    {
-      $dh_key_priv = dh_gen_private();
-      $dh_key_pub = dh_gen_public($dh_key_priv);
-      $dh_key_priv = $_math->str($dh_key_priv);
-      $dh_key_pub = $_math->str($dh_key_pub);
-      $response['dh_public_key'] = $dh_key_pub;
-      // store the keys in the DB
-      $q = $db->sql_query('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
-      if ( !$q )
-        $db->die_json();
-    }
-    
-    $response = enano_json_encode($response);
-    echo $response;
-    return null;
-  }
-  
+  // Determine which level we're going up to
   $level = ( isset($_GET['level']) && in_array($_GET['level'], array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9') ) ) ? intval($_GET['level']) : USER_LEVEL_MEMBER;
   if ( isset($_POST['login']) )
   {
-    if ( in_array($_POST['auth_level'], array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9') ) )
+    if ( in_array($_POST['level'], array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9') ) )
     {
-      $level = intval($_POST['auth_level']);
+      $level = intval($_POST['level']);
     }
   }
-  
+  // Don't allow going from guest straight to elevated
+  // FIXME do we want to allow this with a CSRF check?
   if ( $level > USER_LEVEL_MEMBER && !$session->user_logged_in )
   {
     $level = USER_LEVEL_MEMBER;
   }
+  
+  // If we're already at or above this level, redirect to the target page or, if no target
+  // specified, back to the main page.
   if ( $level <= USER_LEVEL_MEMBER && $session->user_logged_in )
   {
     if ( $target = $paths->getAllParams() )
@@ -152,176 +78,136 @@ function page_Special_Login()
     $paths->main_page();
   }
   
-  $template->header();
-  echo '<form action="'.makeUrl($paths->nslist['Special'].'Login').'" method="post" name="loginform" onsubmit="try{runEncryption();}catch(e){};">';
-  $header = ( $level > USER_LEVEL_MEMBER ) ? $lang->get('user_login_message_short_elev') : $lang->get('user_login_message_short');
-  if ( isset($_POST['login']) )
-  {
-    $errstring = $__login_status['error'];
-    switch($__login_status['error'])
-    {
-      case 'key_not_found':
-        $errstring = $lang->get('user_err_key_not_found');
-        break;
-      case 'ERR_DH_KEY_NOT_FOUND':
-        $errstring = $lang->get('user_err_dh_key_not_found'); // . " -- {$__login_status['debug']}";
-        break;
-      case 'ERR_DH_KEY_NOT_INTEGER':
-        $errstring = $lang->get('user_err_dh_key_not_numeric');
-        break;
-      case 'key_wrong_length':
-        $errstring = $lang->get('user_err_key_wrong_length');
-        break;
-      case 'too_big_for_britches':
-        $errstring = $lang->get('user_err_too_big_for_britches');
-        break;
-      case 'invalid_credentials':
-        $errstring = $lang->get('user_err_invalid_credentials');
-        if ( getConfig('lockout_policy', 'lockout') == 'lockout' )
-        {
-          $errstring .= $lang->get('user_err_invalid_credentials_lockout', array('fails' => $__login_status['lockout_fails']));
-        }
-        else if ( getConfig('lockout_policy', 'lockout') == 'captcha' )
-        {
-          $errstring .= $lang->get('user_err_invalid_credentials_lockout_captcha', array('fails' => $__login_status['lockout_fails']));
-        }
-        break;
-      case 'backend_fail':
-        $errstring = $lang->get('user_err_backend_fail');
-        break;
-      case 'locked_out':
-        $attempts = intval($__login_status['lockout_fails']);
-        if ( $attempts > $__login_status['lockout_threshold'])
-          $attempts = $__login_status['lockout_threshold'];
-        
-        $server_time = time();
-        $time_rem = ( intval(@$__login_status['lockout_last_time']) == time() ) ? $__login_status['lockout_duration'] : $__login_status['lockout_duration'] - round( ( $server_time - $__login_status['lockout_last_time'] ) / 60 );
-        if ( $time_rem < 1 )
-          $time_rem = $__login_status['lockout_duration'];
-        
-        $s = ( $time_rem == 1 ) ? '' : $lang->get('meta_plural');
-        
-        $captcha_string = ( $__login_status['lockout_policy'] == 'captcha' ) ? $lang->get('user_err_locked_out_captcha_blurb') : '';
-        $errstring = $lang->get('user_err_locked_out', array('plural' => $s, 'captcha_blurb' => $captcha_string, 'time_rem' => $time_rem));
-        
-        break;
-      default:
-        $errstring = $lang->get($errstring);
-        break;
-    }
-    echo '<div class="error-box-mini">'.$errstring.'</div>';
-  }
+  // Lockout aliasing
+  $lockout =& $login_result['lockout'];
+  
+  $output->header();
+  echo '<form action="' . makeUrl($paths->nslist['Special'].'Login') . '" method="post" name="loginform" onsubmit="try { return runEncryption(); } catch(e) { console.error(e); };">';
+  
   if ( $p = $paths->getAllParams() )
   {
-    echo '<input type="hidden" name="return_to" value="'.$p.'" />';
+    echo '<input type="hidden" name="return_to" value="' . htmlspecialchars($p) . '" />';
   }
   else if ( isset($_POST['login']) && isset($_POST['return_to']) )
   {
-    echo '<input type="hidden" name="return_to" value="'.htmlspecialchars($_POST['return_to']).'" />';
+    echo '<input type="hidden" name="return_to" value="' . htmlspecialchars($_POST['return_to']) . '" />';
   }
+  
+  // determine what the "remember me" checkbox should say
+  $session_time = intval(getConfig('session_remember_time', '30'));
+  if ( $session_time === 0 )
+  {
+    // sessions are infinite
+    $text_remember = $lang->get('user_login_check_remember_infinite');
+  }
+  else
+  {
+    // is the number of days evenly divisible by 7? if so, use weeks
+    if ( $session_time % 7 == 0 )
+    {
+      $session_time = $session_time / 7;
+      $unit = 'week';
+    }
+    else
+    {
+      $unit = 'day';
+    }
+    // if it's not equal to 1, pluralize it
+    if ( $session_time != 1 )
+    {
+      $unit .= $lang->get('meta_plural');
+    }
+    $text_remember = $lang->get('user_login_check_remember', array(
+        'session_length' => $session_time,
+        'length_units' => $lang->get("etc_unit_$unit")
+      ));
+  }
+  
+  if ( $error_text = login_get_error($login_result) )
+  {
+    echo '<div class="error-box-mini">' . htmlspecialchars($error_text) . '</div>';
+  }
+  
+  //
+  // START FORM
+  //
   ?>
     <div class="tblholder">
       <table border="0" style="width: 100%;" cellspacing="1" cellpadding="4">
         <tr>
-          <th colspan="3"><?php echo $header; ?></th>
+          <th colspan="3">
+            <!-- Table header: "Please enter..." -->
+            <?php echo ( $level > USER_LEVEL_MEMBER ) ? $lang->get('user_login_message_short_elev') : $lang->get('user_login_message_short'); ?>
+          </th>
         </tr>
         <tr>
           <td colspan="3" class="row1">
+            <!-- Introduction text -->
             <?php
             if ( $level <= USER_LEVEL_MEMBER )
-            {
               echo '<p>' . $lang->get('user_login_body', array('reg_link' => makeUrlNS('Special', 'Register'))) . '</p>';
-            }
             else
-            {
               echo '<p>' . $lang->get('user_login_body_elev') . '</p>';
-            }
             ?>
           </td>
         </tr>
         <tr>
+          <!-- Username field -->
           <td class="row2">
             <?php echo $lang->get('user_login_field_username'); ?>:
           </td>
           <td class="row1">
-            <input name="username" size="25" type="text" <?php
-              if ( $level <= USER_LEVEL_MEMBER )
-              {
-                echo 'tabindex="1" ';
-              }
-              else
-              {
-                echo 'tabindex="3" ';
-              }
-              if ( $session->user_logged_in )
-              {
-                echo 'value="' . $session->username . '"';
-              }
-              ?> />
+            <input name="username" size="25" type="text" value="<?php echo $session->user_logged_in ? htmlspecialchars($session->username) : ''; ?>" />
           </td>
-          <?php if ( $level <= USER_LEVEL_MEMBER ) { ?>
-          <td rowspan="<?php echo ( ( $locked_out && $lockdata['lockout_policy'] == 'captcha' ) ) ? '4' : '2'; ?>" class="row3">
+          <?php if ( $level <= USER_LEVEL_MEMBER ): ?>
+          <!-- Forgot password / create account links -->
+          <td rowspan="<?php echo ( ( $lockout['active'] && $lockout['policy'] == 'captcha' ) ) ? '4' : '2'; ?>" class="row3">
             <small><?php echo $lang->get('user_login_forgotpass_blurb', array('forgotpass_link' => makeUrlNS('Special', 'PasswordReset'))); ?><br />
             <?php echo $lang->get('user_login_createaccount_blurb', array('reg_link' => makeUrlNS('Special', 'Register'))); ?></small>
           </td>
-          <?php } ?>
+          <?php endif; ?>
         </tr>
         <tr>
+          <!-- Password field -->
           <td class="row2">
             <?php echo $lang->get('user_login_field_password'); ?>:
-          </td><td class="row1"><input name="pass" size="25" type="password" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '2' : '1'; ?>" /></td>
+          </td><td class="row1"><input name="password" size="25" type="password" /></td>
          </tr>
+         
          <?php
-         if ( $locked_out && $lockdata['lockout_policy'] == 'captcha' )
+         // CAPTCHA?
+         if ( $lockout['active'] && $lockout['policy'] == 'captcha' )
          {
            ?>
+           <!-- CAPTCHA -->
            <tr>
-             <td class="row2" rowspan="2"><?php echo $lang->get('user_login_field_captcha'); ?>:<br /></td><td class="row1"><input type="hidden" name="captcha_hash" value="<?php echo $lockdata['captcha']; ?>" /><input name="captcha_code" size="25" type="text" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '4'; ?>" /></td>
+             <td class="row2" rowspan="2">
+               <?php echo $lang->get('user_login_field_captcha'); ?>:
+               <br />
+             </td>
+             <td class="row1">
+               <input type="hidden" name="captcha_hash" value="<?php echo $lockout['captcha']; ?>" />
+               <input name="captcha_code" size="25" type="text" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '3' : '4'; ?>" />
+             </td>
            </tr>
            <tr>
              <td class="row3">
-               <img src="<?php echo makeUrlNS('Special', 'Captcha/' . $lockdata['captcha']) ?>" onclick="this.src=this.src+'/a';" style="cursor: pointer;" />
+               <img src="<?php echo makeUrlNS('Special', 'Captcha/' . $lockout['captcha']) ?>" onclick="this.src=this.src+'/a';" style="cursor: pointer;" />
              </td>
            </tr>
            <?php
          }
+         
+         // Run hooks
          $code = $plugins->setHook('login_form_html');
          foreach ( $code as $cmd )
          {
            eval($cmd);
          }
+         
+         // level-2 only: "Remember me" switch
          if ( $level <= USER_LEVEL_MEMBER )
          {
-           // "remember me" switch
-           // first order of business is to determine what the checkbox should say
-           $session_time = intval(getConfig('session_remember_time', '30'));
-           if ( $session_time === 0 )
-           {
-             // sessions are infinite
-             $text_remember = $lang->get('user_login_check_remember_infinite');
-           }
-           else
-           {
-             // is the number of days evenly divisible by 7? if so, use weeks
-             if ( $session_time % 7 == 0 )
-             {
-               $session_time = $session_time / 7;
-               $unit = 'week';
-             }
-             else
-             {
-               $unit = 'day';
-             }
-             // if it's not equal to 1, pluralize it
-             if ( $session_time != 1 )
-             {
-               $unit .= 's';
-             }
-             $text_remember = $lang->get('user_login_check_remember', array(
-                 'session_length' => $session_time,
-                 'length_units' => $lang->get("etc_unit_$unit")
-               ));
-           }
            ?>
            <tr>
              <td class="row2">
@@ -334,9 +220,16 @@ function page_Special_Login()
                </label>
              </td>
            </tr>
+           
+         <!-- Crypto notice -->
            <?php
          }
-         if ( $level <= USER_LEVEL_MEMBER && ( !isset($_GET['use_crypt']) || ( isset($_GET['use_crypt']) && $_GET['use_crypt']!='0' ) ) )
+         
+         // lol DeMorgan'd
+         $crypto_disable = ( isset($_GET['use_crypt']) && $_GET['use_crypt'] == '0' );
+         
+         // Crypto disable: crypto on, normal login
+         if ( $level <= USER_LEVEL_MEMBER && !$crypto_disable )
          {
            echo '<tr>
              <td class="row3" colspan="3">';
@@ -349,7 +242,8 @@ function page_Special_Login()
            echo '  </td>
            </tr>';
          }
-         else if ( $level <= USER_LEVEL_MEMBER && ( isset($_GET['use_crypt']) && $_GET['use_crypt']=='0' ) )
+         // Crypto disable: crypto OFF, normal login
+         else if ( $level <= USER_LEVEL_MEMBER && $crypto_disable )
          {
            echo '<tr>
              <td class="row3" colspan="3">';
@@ -362,7 +256,8 @@ function page_Special_Login()
            echo '  </td>
            </tr>';
          }
-         else if ( $level > USER_LEVEL_MEMBER && !strstr($_SERVER['HTTP_USER_AGENT'], 'iPhone') && $dh_supported )
+         // Crypto disable: crypto on, ELEV login
+         else if ( $level > USER_LEVEL_MEMBER && $GLOBALS['dh_supported'] )
          {
            echo '<tr>';
            echo '<td class="row3" colspan="3">';
@@ -372,15 +267,17 @@ function page_Special_Login()
          }
          ?>
          
+         <!-- Submit button -->
          <tr>
            <th colspan="3" style="text-align: center" class="subhead">
              <input type="hidden" name="login" value="true" />
-             <input type="submit" value="Log in" tabindex="<?php echo ( $level <= USER_LEVEL_MEMBER ) ? '4' : '2'; ?>" />
+             <input type="submit" value="<?php echo $lang->get('user_login_btn_log_in'); ?>" />
            </th>
          </tr>
       </table>
     </div>
-      <input type="hidden" name="auth_level" value="<?php echo (string)$level; ?>" />
+    
+      <input type="hidden" name="level" value="<?php echo (string)$level; ?>" />
       <?php if ( $level <= USER_LEVEL_MEMBER ): ?>
       <script type="text/javascript">
         document.forms.loginform.username.focus();
@@ -422,19 +319,20 @@ function page_Special_Login()
       ?>
     </form>
     <?php
-      echo $session->aes_javascript('loginform', 'pass');
+      if ( !$crypto_disable )
+        echo $session->aes_javascript('loginform', 'password');
     ?>
   <?php
-  $template->footer();
+  $output->footer();
 }
 
 function page_Special_Login_preloader() // adding _preloader to the end of the function name calls the function before $session and $paths setup routines are called
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
-  global $__login_status;
+  global $login_result;
   global $lang;
-  require_once( ENANO_ROOT . '/includes/math.php' );
   
+  // Are we calling the JSON interface?
   $paths->fullpage = $GLOBALS['urlname'];
   if ( $paths->getParam(0) === 'action.json' )
   {
@@ -459,82 +357,31 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
     $db->close();
     exit;
   }
-  if ( isset($_GET['act']) && $_GET['act'] == 'ajaxlogin' )
+  
+  // No. Process incoming results from the HTML version.
+  if ( isset($_POST['login']) )
   {
-    echo 'This version of the Enano LoginAPI is deprecated. Please clear your browser\'s cache and try your login again. Developers, please use the action.json method instead.';
-    return true;
-  }
-  if(isset($_POST['login']))
-  {
-    $captcha_hash = ( isset($_POST['captcha_hash']) ) ? $_POST['captcha_hash'] : false;
-    $captcha_code = ( isset($_POST['captcha_code']) ) ? $_POST['captcha_code'] : false;
+    $_POST['password'] = $session->get_aes_post();
     
-    try
+    $result = $session->process_login_request(array(
+        'mode' => 'login_pt',
+        'userinfo' => $_POST,
+        'level' => $_POST['level'],
+        'captcha_hash' => isset($_POST['captcha_hash']) ? $_POST['captcha_hash'] : false,
+        'captcha_code' => isset($_POST['captcha_code']) ? $_POST['captcha_code'] : false
+      ));
+    
+    if ( $result['mode'] === 'login_success' )
     {
-      $password = $session->get_aes_post('pass');
-    }
-    catch ( Exception $e )
-    {
-      $__login_status = array(
-        'mode' => 'error',
-        'error' => $e->getMessage()
-      );
-      return false;
-    }
-    
-    // These are to allow auth plugins to work universally between JSON and HTML login forms
-    $userinfo =& $_POST;
-    $userinfo['password'] =& $password;
-    $req = array(
-      'level' => intval($_POST['auth_level']),
-      'remember' => isset($_POST['remember'])
-    );
-    
-    // At this point if any extra fields were injected into the login form, we need to let plugins process it
-    
-    /**
-     * Called upon processing an incoming login request from the plain HTML login form.. If you added anything to the form,
-     * that will be in the $userinfo array here and on $_POST. Expected return values are: true if your plugin has
-     * not only succeeded but ALSO issued a session key (bypass the whole Enano builtin login process) and an associative array
-     * with "mode" set to "error" and an error string in "error" to send an error back to the client. Any return value other
-     * than these will be ignored.
-     * @hook login_process_userdata_json
-     */
-     
-    $skip_normal_login = false;
-    
-    $code = $plugins->setHook('login_process_userdata_json');
-    foreach ( $code as $cmd )
-    {
-      $result = eval($cmd);
-      if ( $result === true )
-      {
-        $skip_normal_login = true;
-        $result = array('success' => true);
-        break;
-      }
-      else if ( is_array($result) )
-      {
-        if ( isset($result['mode']) && $result['mode'] === 'error' && isset($result['error']) )
-        {
-          $__login_status = array(
-            'mode' => 'error',
-            'error' => $result['error']
-          );
-          return false;
-        }
-      }
-    }
-    
-    if ( !$skip_normal_login )
-    {
-      $result = $session->login_without_crypto($_POST['username'], $password, false, intval($_POST['auth_level']), $captcha_hash, $captcha_code, isset($_POST['remember']));
-    }
-    
-    if($result['success'])
-    {
+      //
+      // LOGIN SUCCESS.
+      // Redirect as necessary.
+      //
+      
+      // Load our preferences
       $session->start();
       
+      // Decode get_add
       $get_add = false;
       if ( isset($_POST['get_fwd']) )
       {
@@ -553,9 +400,10 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
         }
       }
       
-      $template->load_theme($session->theme, $session->style);
-      if(isset($_POST['return_to']))
+      // Going to a user-specified page?
+      if ( isset($_POST['return_to']) )
       {
+        // yea
         $name = get_page_title($_POST['return_to']);
         $subst = array(
             'username' => $session->username,
@@ -565,6 +413,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
       }
       else
       {
+        // No, redirect them to the main page
         $subst = array(
             'username' => $session->username,
             'redir_target' => $lang->get('user_login_success_body_mainpage')
@@ -572,34 +421,90 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
         redirect( makeUrl(get_main_page(), $get_add), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
       }
     }
-    else
+    else if ( $result['mode'] === 'login_success_reset' )
     {
-      if ( $result['error'] === 'valid_reset' )
-      {
-        header('HTTP/1.1 302 Temporary Redirect');
-        header('Location: ' . $result['redirect_url']);
-        
-        $db->close();
-        exit();
-      }
-      $GLOBALS['__login_status'] = $result;
+      // They logged in with a temporary password; send them to the reset form
+      redirect($result['redirect_url'], '', '', 0);
     }
+    // Otherwise, the result is likely an error.
+    $login_result = $result;
+  }
+  else
+  {
+    $login_result = $session->process_login_request(array(
+        'mode' => 'getkey'
+      ));
+  }
+  
+  // This is a bit of a hack. The login form generates AES and DiffieHellman keys on its
+  // own, so we need to clean up the ones from the login request API.
+  if ( !empty($login_result['crypto']) )
+  {
+    $session->process_login_request(array(
+        'mode' => 'clean_key',
+        'key_aes' => $login_result['crypto']['aes_key'],
+        'key_dh' => $login_result['crypto']['dh_public_key'],
+      ));
   }
 }
 
-function SpecialLogin_SendResponse_PasswordReset($user_id, $passkey)
+/**
+ * Given a Login API response, find the appropriate error text, if any.
+ * @param array LoginAPI response
+ * @return mixed Error string, or bool(false) if no error.
+ */
+
+function login_get_error($response)
 {
-  $response = Array(
-      'result' => 'success_reset',
-      'user_id' => $user_id,
-      'temppass' => $passkey
-    );
+  global $lang;
   
-  $response = enano_json_encode($response);
-  echo $response;
+  if ( !empty($response['lockout']) )
+  {
+    // set this pluralality thing
+    $response['lockout']['plural'] = $response['lockout']['time_rem'] == 1 ? '' : $lang->get('meta_plural');
+  }
   
-  $db->close();
-  exit;
+  if ( $response['mode'] == 'initial' )
+  {
+    // Just showing the box for the first time. If there's an error now, it's based on a preexisting lockout.
+    if ( $response['lockout']['active'] )
+    {
+      return $lang->get('user_err_locked_out_initial_' . $response['lockout']['policy'], $response['lockout']);
+    }
+    return false;
+  }
+  else
+  {
+    // An attempt was made.
+    switch($response['mode'])
+    {
+      case 'login_failure':
+        // Generic login user error.
+        $error = '';
+        if ( ($x = $lang->get($response['error'])) != $response['error'] )
+          $error = $x;
+        else
+          $error = $lang->get('user_err_' . $response['error']);
+        if ( $response['lockout']['active'] && $response['lockout']['policy'] == 'lockout' )
+        {
+          // Lockout enforcement was just activated.
+          return $lang->get('user_err_locked_out_initial_' . $response['lockout']['policy'], $response['lockout']);
+        }
+        else if ( $response['lockout']['policy'] != 'disable' && !$response['lockout']['active'] && $response['lockout']['fails'] > 0 )
+        {
+          // Lockout is in a warning state.
+          $error .= ' ' . $lang->get('user_err_invalid_credentials_' . $response['lockout']['policy'], $response['lockout']);
+        }
+        return $error;
+        break;
+      case 'api_error':
+        // Error in the API.
+        return $lang->get('user_err_login_generic_title') + ': ' + $lang->get('user_' . strtolower($response['error']));
+        break;
+    }
+  }
+  
+  return is_string($response['error']) ? $response['error'] : false;
 }
 
 function page_Special_Logout()

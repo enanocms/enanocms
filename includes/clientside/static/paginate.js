@@ -237,7 +237,7 @@ window.jspaginator_goto = function(pagin_id, jump_to)
   
   // White-out the old div and fade in the new one
   
-  if ( IE || is_Safari )
+  if ( IE || is_Safari || aclDisableTransitionFX )
   {
     current_div.style.display = 'none';
     new_div.style.display = 'block';
