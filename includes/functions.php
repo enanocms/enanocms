@@ -5194,7 +5194,7 @@ function which($executable)
     foreach ( $extensions as $ext )
     {
       $fullpath = "$dir/{$executable}{$ext}";
-      if ( file_exists($fullpath) && is_executable($fullpath) )
+      if ( @file_exists($fullpath) && @is_executable($fullpath) )
       {
         return $fullpath;
       }
