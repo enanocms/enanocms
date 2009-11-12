@@ -153,6 +153,13 @@ class Request_HTTP
   var $headers = array();
   
   /**
+   * Follow server-side redirects; defaults to true.
+   * @var bool
+   */
+  
+  var $follow_redirects = true;
+  
+  /**
    * Cached response.
    * @var string, or bool:false if the request hasn't been sent yet
    */
@@ -450,7 +457,7 @@ class Request_HTTP
     }
     // obey redirects
     $i = 0;
-    while ( $i < 20 )
+    while ( $i < 20 && $this->follow_redirects )
     {
       $incoming_headers = $this->get_response_headers_array();
       if ( !$incoming_headers )
