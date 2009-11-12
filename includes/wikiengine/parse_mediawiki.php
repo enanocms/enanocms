@@ -219,6 +219,14 @@ class Carpenter_Parse_MediaWiki
     
     $tokens = array();
     $rand_id = sha1(microtime() . mt_rand());
+    
+    // Temporary hack to fix crashes under win32. Sometime I'll write a loop based
+    // parser for this whole section. Maybe. Perhaps the Apache folks will fix their
+    // Windows binaries first.
+    if ( PHP_OS == 'WIN32' || PHP_OS == 'WINNT' )
+    {
+      $regex = str_replace("(?: (?R) | .*? )*", "(?: .*? )", $regex);
+    }
     if ( preg_match_all($regex, $text, $matches) )
     {
       foreach ( $matches[0] as $i => $match )
@@ -234,7 +242,7 @@ class Carpenter_Parse_MediaWiki
     }
     
     // die('<pre>' . htmlspecialchars($text) . '</pre>');
-    
+	
     RenderMan::tag_unstrip('_paragraph_bypass', $text, $_nw, true);
     
     // This is potentially a hack. It allows the parser to stick in <_paragraph_bypass> tags
