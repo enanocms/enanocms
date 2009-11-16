@@ -772,7 +772,7 @@ window.ajaxLoginBuildForm = function(data)
   }
   
   // Post operations: stash encryption keys and All That Jazz(TM)
-  logindata.key_aes = data.crypto_aes_key;
+  logindata.key_aes = data.crypto.aes_key;
   logindata.key_dh = data.crypto.dh_public_key;
   logindata.captcha_hash = show_captcha;
   logindata.loggedin_username = data.username;
