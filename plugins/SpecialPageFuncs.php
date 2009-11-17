@@ -373,17 +373,17 @@ function page_Special_About_Enano()
   $uname = @file_get_contents('/proc/sys/kernel/ostype');
   if($uname == "Linux\n")
     $platform = 'Linux';
-  else if(file_exists('/hurd/pfinet')) // I have a little experience with GNU/Hurd :-) http://hurdvm.enanocms.org/
+  else if(@file_exists('/hurd/pfinet')) // I have a little experience with GNU/Hurd :-) http://hurdvm.enanocms.org/
     $platform = 'GNU/Hurd';
   else if(strtolower(PHP_OS) == 'winnt')
     $platform = 'Windows NT';
   else if(strtolower(PHP_OS) == 'win32')
     $platform = 'Windows 9x/DOS';
-  else if(file_exists('/System/Library/CoreServices/SystemVersion.plist'))
+  else if(@file_exists('/System/Library/CoreServices/SystemVersion.plist'))
     $platform = 'Mac OS X';
-  else if(file_exists('/bin/bash'))
+  else if(@file_exists('/bin/bash'))
     $platform = 'Other GNU';
-  else if(is_dir('/bin'))
+  else if(@is_dir('/bin'))
     $platform = 'Other POSIX';
   $template->header();
   ?>
