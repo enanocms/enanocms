@@ -182,10 +182,17 @@ class Carpenter_Parse_MediaWiki
     
     // Wrap all block level tags
     RenderMan::tag_strip('_paragraph_bypass', $text, $_nw);
+    
     // I'm not sure why I had to go through all these alternatives. Trying to bring it
     // all down to one by ?'ing subpatterns was causing things to return empty and throwing
     // errors in the parser. Eventually, around ~3:57AM I just settled on this motherf---er
     // of a regular expression.
+    
+    // FIXME: This regexp triggers a known PHP stack size issue under win32 and possibly
+    // other platforms (<http://bugs.php.net/bug.php?id=47689>). The workaround is going to
+    // involve writing our own parser that takes care of recursion without using the stack,
+    // which is going to be a bitch, and may not make it in until Caoineag RCs.
+    
     $regex = ";
               <($blocklevel)
               (?:
@@ -206,13 +213,6 @@ class Carpenter_Parse_MediaWiki
               )
                 ;sx";
                 
-    // using preg_replace here sometimes gives us empty strings probably because we're using $0
-    // in the replace formatter. so we'll just take care of it explicitly here with preg_match_all
-    // and good ole str_replace_once.
-    
-    // FIXME this regexp can cause crashes under win32 PHP due to some apache limitations... possibly
-    // write a non-regexp based replacement. same bug as the comment block above, apparently
-    
     // oh. and we're using this tokens thing because for identical matches, the first match will
     // get wrapped X number of times instead of all matches getting wrapped once; replacing each
     // with a unique token id remedies this
