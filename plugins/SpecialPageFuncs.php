@@ -410,7 +410,8 @@ function page_Special_About_Enano()
         </p>
         <p>
           The developers and maintainers of Enano strongly believe that software should not only be free to use, but free to be modified,
-          distributed, and used to create derivative works. For more information about Free Software, check out the
+          distributed, and used to create derivative works. To help achieve this goal, we use licensing terms that require you to pass on
+          the freedoms we give you when you share Enano. For more information about Free Software, check out the
           <a href="http://en.wikipedia.org/wiki/Free_Software" onclick="window.open(this.href); return false;">Wikipedia page</a> or
           the <a href="http://www.fsf.org/" onclick="window.open(this.href); return false;">Free Software Foundation's</a> homepage.
         </p>
