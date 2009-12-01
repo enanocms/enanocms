@@ -151,7 +151,7 @@ function page_Admin_UserManager()
       
       if ( count($errors) < 1 && !$avatar_post_fail )
       {
-        $q = $db->sql_query('SELECT u.user_level, u.user_has_avatar, u.avatar_type FROM '.table_prefix.'users AS u WHERE u.user_id = ' . $user_id . ';');
+        $q = $db->sql_query('SELECT u.user_level, u.user_has_avatar, u.avatar_type, u.username FROM '.table_prefix.'users AS u WHERE u.user_id = ' . $user_id . ';');
         if ( !$q )
           $db->_die();
         
@@ -164,6 +164,7 @@ function page_Admin_UserManager()
         $existing_level =& $row['user_level'];
         $avi_type =& $row['avatar_type'];
         $has_avi = ( $row['user_has_avatar'] == 1 );
+        $old_username = $row['username'];
         $db->free_result();
         
         $to_update_users = array();
@@ -221,7 +222,7 @@ function page_Admin_UserManager()
             $update_sql .= ( empty($update_sql) ? '' : ',' ) . "$key=$value";
           }
           
-          $update_sql = 'UPDATE '.table_prefix."users SET $update_sql WHERE user_id=$user_id;";
+          $update_sql = 'UPDATE ' . table_prefix . "users SET $update_sql WHERE user_id=$user_id;";
           
           $update_sql_extra = '';
           
@@ -239,6 +240,33 @@ function page_Admin_UserManager()
           
           if ( !$db->sql_query($update_sql_extra) )
             $db->_die();
+          
+          // If the username was changed, we need to update their user page as well
+          if ( $old_username != $username )
+          {
+            $page = new PageProcessor($old_username, 'User');
+            if ( $page->exists() )
+            {
+              // they have a user page, rename it
+              $old_urlname = $db->escape(sanitize_page_id($old_username));
+              $new_urlname = $db->escape(sanitize_page_id($username));
+              $sql = array(
+                      'UPDATE ' . table_prefix . "pages      SET urlname = '$new_urlname' WHERE urlname = '$old_urlname' AND namespace = 'User';",
+                      // Change the page's title ONLY if it exactly matches the old username
+                      'UPDATE ' . table_prefix . "pages      SET name = '" . $db->escape($username) . "' WHERE urlname = '$new_urlname' AND name = '" . $db->escape($old_username) . "' AND namespace = 'User';",
+                      'UPDATE ' . table_prefix . "logs       SET page_id = '$new_urlname' WHERE page_id = '$old_urlname' AND namespace = 'User';",
+                      'UPDATE ' . table_prefix . "tags       SET page_id = '$new_urlname' WHERE page_id = '$old_urlname' AND namespace = 'User';",
+                      'UPDATE ' . table_prefix . "comments   SET page_id = '$new_urlname' WHERE page_id = '$old_urlname' AND namespace = 'User';",
+                      'UPDATE ' . table_prefix . "page_text  SET page_id = '$new_urlname' WHERE page_id = '$old_urlname' AND namespace = 'User';",
+                      'UPDATE ' . table_prefix . "categories SET page_id = '$new_urlname' WHERE page_id = '$old_urlname' AND namespace = 'User';"
+                    );
+              foreach ( $sql as $q )
+              {
+                if ( !$db->sql_query($q) )
+                  $db->_die('UserManager renaming user page post-username change');
+              }
+            }
+          }
           
           if ( $existing_level != $user_level )
           {
