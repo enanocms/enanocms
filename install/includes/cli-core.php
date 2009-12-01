@@ -29,6 +29,8 @@ if ( !defined('ENANO_CLI') )
   exit;
 }
 
+require_once( ENANO_ROOT . '/install/includes/libenanoinstall.php' );
+
 if ( defined('ENANO_INSTALLED') )
 {
   // start up the API to let it error out if something's wrong
@@ -108,7 +110,7 @@ for ( $i = 1; $i < count($argv); $i++ )
     case '--url-scheme':
     case '-r':
       $urlscheme_temp = @$argv[++$i];
-      if ( in_array($urlscheme_temp, array('standard', 'short', 'rewrite')) )
+      if ( in_array($urlscheme_temp, array('standard', 'short', 'rewrite', 'tiny')) )
         $urlscheme = $urlscheme_temp;
       break;
     case '--language':
@@ -441,6 +443,27 @@ else
   $failed = true;
 }
 
+// Test: crypto
+$crypto_backend = install_get_crypto_backend();
+if ( !$silent )
+{
+  echo '  ' . $lang->get('sysreqs_req_crypto') . ': ';
+  switch($crypto_backend)
+  {
+    case 'bcmath':
+      echo parse_shellcolor_string($lang->get('cli_test_warn') . " [<c 0;33>" . $lang->get("sysreqs_req_{$crypto_backend}") . "</c>]") . "\n";
+      $warnings[] = $lang->get('sysreqs_req_help_crypto_bcmath');
+      break;
+    case 'none':
+      echo parse_shellcolor_string($lang->get('cli_test_warn') . " [<c 0;31>" . $lang->get("sysreqs_req_notfound") . "</c>]") . "\n";
+      $warnings[] = $lang->get('sysreqs_req_help_crypto_none');
+      break;
+    default:
+      echo parse_shellcolor_string($lang->get('cli_test_pass') . " [<c 0;32>" . $lang->get("sysreqs_req_{$crypto_backend}") . "</c>]") . "\n";
+      break;
+  }
+}
+
 // Write tests
 $req_config_w = write_test('config.new.php');
 $req_htaccess_w = write_test('.htaccess.new');
@@ -471,27 +494,6 @@ if ( !$req_imagick )
   $warnings[] = $lang->get('sysreqs_req_help_imagemagick');
 
 if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_imagemagick') . ': ' . parse_shellcolor_string($lang->get($req_imagick ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
-
-// Extension test: GMP
-$req_gmp = function_exists('gmp_init');
-if ( !$req_gmp )
-  $warnings[] = $lang->get('sysreqs_req_help_gmp');
-
-if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_gmp') . ': ' . parse_shellcolor_string($lang->get($req_gmp ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
-
-// Extension test: Big_Int
-$req_bigint = function_exists('bi_from_str');
-if ( !$req_bigint && !$req_gmp )
-  $warnings[] = $lang->get('sysreqs_req_help_bigint');
-
-if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_bigint') . ': ' . parse_shellcolor_string($lang->get($req_bigint ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
-
-// Extension test: BCMath
-$req_bcmath = function_exists('bcadd');
-if ( !$req_bcmath && !$req_bigint && !$req_gmp )
-  $warnings[] = $lang->get('sysreqs_req_help_bcmath');
-
-if ( !$silent ) echo '  ' . $lang->get('sysreqs_req_bcmath') . ': ' . parse_shellcolor_string($lang->get($req_bcmath ? 'cli_test_pass' : 'cli_test_warn')) . "\n";
 
 if ( !empty($warnings) && !$silent )
 {

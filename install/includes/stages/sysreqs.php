@@ -16,6 +16,8 @@
 if ( !defined('IN_ENANO_INSTALL') )
   die();
 
+require_once(ENANO_ROOT . '/install/includes/libenanoinstall.php');
+
 global $failed, $warned;
 
 $failed = false;
@@ -127,20 +129,12 @@ $req_imagick = which('convert');
 if ( !$req_imagick )
   $warnings[] = $lang->get('sysreqs_req_help_imagemagick');
 
-// Extension test: GMP
-$req_gmp = function_exists('gmp_init');
-if ( !$req_gmp )
-  $warnings[] = $lang->get('sysreqs_req_help_gmp');
+$crypto_backend = install_get_crypto_backend();
 
-// Extension test: Big_Int
-$req_bigint = function_exists('bi_from_str');
-if ( !$req_bigint && !$req_gmp )
-  $warnings[] = $lang->get('sysreqs_req_help_bigint');
-
-// Extension test: BCMath
-$req_bcmath = function_exists('bcadd');
-if ( !$req_bcmath && !$req_bigint && !$req_gmp )
-  $warnings[] = $lang->get('sysreqs_req_help_bcmath');
+if ( $crypto_backend == 'none' )
+  $warnings[] = $lang->get('sysreqs_req_help_crypto_none');
+else if ( $crypto_backend == 'bcmath' )
+  $warnings[] = $lang->get('sysreqs_req_help_crypto_bcmath');
 
 ?>
 
@@ -265,6 +259,24 @@ endif;
 </tr>
 
 <tr>
+  <td>
+    <?php echo $lang->get('sysreqs_req_crypto'); ?>
+  </td>
+  <?php
+  if ( in_array($crypto_backend, array('bcmath', 'bigint', 'gmp')) )
+  {
+    echo '<td class="good">' . $lang->get("sysreqs_req_{$crypto_backend}") . '</td>';
+  }
+  else
+  {
+    echo '<td class="bad">' . $lang->get("sysreqs_req_notfound") . '</td>';
+  }
+  ?>
+</tr>
+
+<!-- Database -->
+
+<tr>
   <th colspan="2"><?php echo $lang->get('sysreqs_heading_dbms'); ?></th>
 </tr>
 
@@ -373,52 +385,6 @@ endif;
   <?php
   if ( $req_imagick ):
     echo '<td class="good">' . $lang->get('sysreqs_req_found') . ' <small>(' . htmlspecialchars($req_imagick) . ')</small></td>';
-  else:
-    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
-  endif;
-  ?>
-</tr>
-
-<tr>
-  <th colspan="2"><?php echo $lang->get('sysreqs_heading_crypto'); ?></th>
-</tr>
-
-<tr>
-  <td>
-    <?php echo $lang->get('sysreqs_req_gmp'); ?><br />
-    <small><?php echo $lang->get('sysreqs_req_hint_gmp'); ?></small>
-  </td>
-  <?php
-  if ( $req_gmp ):
-    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
-  else:
-    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
-  endif;
-  ?>
-</tr>
-
-<tr>
-  <td>
-    <?php echo $lang->get('sysreqs_req_bigint'); ?><br />
-    <small><?php echo $lang->get('sysreqs_req_hint_bigint'); ?></small>
-  </td>
-  <?php
-  if ( $req_bigint ):
-    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
-  else:
-    echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
-  endif;
-  ?>
-</tr>
-
-<tr>
-  <td>
-    <?php echo $lang->get('sysreqs_req_bcmath'); ?><br />
-    <small><?php echo $lang->get('sysreqs_req_hint_bcmath'); ?></small>
-  </td>
-  <?php
-  if ( $req_bcmath ):
-    echo '<td class="good">' . $lang->get('sysreqs_req_supported') . '</td>';
   else:
     echo '<td class="bad">' . $lang->get('sysreqs_req_notfound') . '</td>';
   endif;

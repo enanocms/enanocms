@@ -116,6 +116,25 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   exit;
 }
 
+function install_get_crypto_backend()
+{
+  $crypto_backend = 'none';
+
+  // Extension test: BCMath
+  if ( function_exists('bcadd') )
+    $crypto_backend = 'bcmath';
+  
+  // Extension test: Big_Int
+  if ( function_exists('bi_from_str') )
+    $crypto_backend = 'bigint';
+  
+  // Extension test: GMP
+  if ( function_exists('gmp_init') )
+    $crypto_backend = 'gmp';
+  
+  return $crypto_backend;
+}
+
 function enano_perform_upgrade($target_branch)
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
