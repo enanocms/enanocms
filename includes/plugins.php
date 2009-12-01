@@ -188,10 +188,14 @@ class pluginLoader {
       return array();
     }
     
+    // The "\r?" in this regular expression is the result of an embarrassing failure during a job related meeting.
+    // I was demoing the authoring of an Enano plugin and simply could not figure out why the plugin would not
+    // show up in the admin panel.
+
     $regexp = '#^/\*\*!([a-z0-9_]+)'  // block header and type
             . '(([\s]+[a-z0-9_]+[\s]*=[\s]*".+?"[\s]*;)*)' // parameters
-            . '[\s]*\*\*' . "\n"      // spacing and header close
-            . '([\w\W]+?)' . "\n"     // value
+            . '[\s]*\*\*' . "\r?\n"      // spacing and header close
+            . '([\w\W]+?)' . "\r?\n"     // value
             . '\*\*!\*/'              // closing comment
             . '#m';
             
