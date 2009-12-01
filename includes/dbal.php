@@ -157,7 +157,7 @@ class mysql {
     
     if ( !$manual_credentials )
     {
-      if ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') )
+      if ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') && !defined('ENANO_INSTALLED') )
       {
         @include(ENANO_ROOT.'/config.new.php');
       }
