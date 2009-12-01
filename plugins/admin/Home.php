@@ -70,7 +70,7 @@ function page_Admin_Home()
       if ( $n == 1 )
         $s = $lang->get('acphome_msg_inactive_users_one', array('um_flags' => $um_flags));
       else
-        $s = $lang->get('acphome_msg_inactive_users_plural', array('um_flags' => $um_flags));
+        $s = $lang->get('acphome_msg_inactive_users_plural', array('um_flags' => $um_flags, 'num_users' => $n));
       echo '<div class="acphome-box notice">
               <h3>' . $lang->get('acphome_heading_inactive_users') . '</h3>
               ' . $s . '
