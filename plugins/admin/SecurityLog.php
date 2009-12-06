@@ -32,7 +32,7 @@ function page_Admin_SecurityLog()
   
   // Not calling the real fetcher because we have to paginate the results
   $offset = ( isset($_GET['offset']) ) ? intval($_GET['offset']) : 0;
-  $q = $db->sql_query('SELECT COUNT(time_id) as num FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;');
+  $q = $db->sql_query('SELECT COUNT(time_id) as num FROM '.table_prefix.'logs WHERE log_type=\'security\' GROUP BY log_id, time_id, log_type, action ORDER BY time_id DESC, action ASC;');
   if ( !$q )
     $db->_die();
   $row = $db->fetchrow();
