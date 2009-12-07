@@ -89,7 +89,7 @@ var enano_lang = {
       delvote_btn_submit: 'Vote to delete this page',
       delvote_reset_btn_submit: 'Reset votes',
       
-      delete_warning_stern: '<h3>You are about to <span style="color: red;">destroy</span> this page.</h3><p>While the deletion of the page itself is completely reversible, it is impossible to recover any comments or category information on this page. If this is a file page, the file along with all older revisions of it will be permanently deleted. Also, any custom information that this page is tagged with, such as a custom name, protection status, or additional settings such as whether to allow comments, will be permanently lost.</p><p>Are you <u>absolutely sure</u> that you want to continue?<br />You will not be asked again.</p>',
+      delete_warning_stern: '<h3>Confirm page deletion</h3><p>The contents of the page will not be deleted; you will still be able to recover the page using the History feature.</p><p>Please be aware, however, that the following information is not recoverable:</p><ul><li>The list of categories this page belongs to</li><li>Every file revision associated with this page (if this page is in the File namespace)</li><li>Comments on this page</li></ul><p>To delete this page, enter a reason below, and then click Delete this Page.</p>',
       delete_err_need_reason: 'Please enter a reason for deleting this page.',
       delete_btn_submit: 'Delete this page',
       delete_lbl_reason: 'Reason for deleting:',

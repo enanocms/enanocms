@@ -542,7 +542,7 @@ ORDER BY l1.time_id DESC;');
     $template->footer();
     break;
   case 'deletepage':
-    if(!$session->get_permissions('delete_page'))
+    if ( !$session->get_permissions('delete_page') )
     {
       die_friendly($lang->get('etc_access_denied_short'), '<p>' . $lang->get('etc_access_denied') . '</p>');
     }
@@ -551,8 +551,8 @@ ORDER BY l1.time_id DESC;');
       redirect(makeUrlNS('Special', "Login/{$paths->page}", 'target_do=deletepage&level=' . $session->user_level, false), $lang->get('etc_access_denied_short'), $lang->get('etc_access_denied_need_reauth'), 0);
     }
     
-    require_once(ENANO_ROOT.'/includes/pageutils.php');
-    if(isset($_POST['_adiossucker']))
+    require_once(ENANO_ROOT . '/includes/pageutils.php');
+    if ( isset($_POST['_adiossucker']) )
     {
       $reason = ( isset($_POST['reason']) ) ? $_POST['reason'] : false;
       if ( empty($reason) )
@@ -572,7 +572,7 @@ ORDER BY l1.time_id DESC;');
          <?php echo $lang->get('page_delete_warning_stern'); ?>
          <?php if ( isset($error) ) echo "<p>$error</p>"; ?>
          <p><?php echo $lang->get('page_delete_lbl_reason'); ?> <input type="text" name="reason" size="50" /></p>
-         <p><input type="submit" name="_adiossucker" value="<?php echo htmlspecialchars($lang->get('page_delete_btn_submit')); ?>" style="color: red; font-weight: bold;" /></p>
+         <p><input type="submit" name="_adiossucker" value="<?php echo htmlspecialchars($lang->get('page_delete_btn_submit')); ?>" style="font-weight: bold;" /></p>
       </form>
       <?php
     $template->footer();
