@@ -2,7 +2,7 @@
 
 If you're reading this, you just installed the beta version of [http://enanocms.org/Caoineag Enano 1.2.0], the next-generation release of Enano. Congratulations!
 
-If you find any bugs, we'd really like it if you let us know either via the [http://forum.enanocms.org/ forum] or [irc://irc.freenode.net/#enano IRC]. Enano's a big project, so tracking down bugs is hard and we need your help to do it.
+If you find any bugs, please report them on our [http://code.google.com/p/enanocms/issues/list issue tracker] or in [irc://irc.freenode.net/#enano IRC]. Enano's a big project, so tracking down bugs is hard and we need your help to do it.
 
 === Support (or lack thereof) ===
 
