@@ -3353,6 +3353,8 @@ class sessionManager {
    
   function acl_check_deps($type, $debug = false)
   {
+    global $paths;
+    
     // This will only happen if the permissions table is hacked or improperly accessed
     if(!isset($this->acl_deps[$type]))
       return true;
@@ -3367,6 +3369,12 @@ class sessionManager {
       for ( $i = 0; $i < $j; $i++ )
       {
         $b = $deps;
+        if ( !$this->check_acl_scope($deps[$i], $paths->namespace) )
+        {
+          // Action $type depends on action $deps[$i] which cannot be satisfied because $deps[$i] is out of scope.
+          trigger_error("acl_check_deps: $type depends on {$deps[$i]} which is not within scope of $paths->namespace; this indicats a bug in ACL rule specification", E_USER_WARNING);
+          return false;
+        }
         $deps = array_merge($deps, $this->acl_deps[$deps[$i]]);
         if( $b == $deps )
         {
@@ -4524,6 +4532,12 @@ class Session_ACLPageInfo {
       for ( $i = 0; $i < $j; $i++ )
       {
         $b = $deps;
+        if ( !isset($this->acl_deps[$deps[$i]]) )
+        {
+          // Action $type depends on action $deps[$i] which cannot be satisfied because $deps[$i] is out of scope.
+          trigger_error("acl_check_deps: $type depends on {$deps[$i]} which is not within scope of $this->namespace; this indicats a bug in ACL rule specification", E_USER_WARNING);
+          return false;
+        }
         $deps = array_merge($deps, $this->acl_deps[$deps[$i]]);
         if( $b == $deps )
         {
