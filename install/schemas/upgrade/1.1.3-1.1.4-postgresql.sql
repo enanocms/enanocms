@@ -33,6 +33,9 @@ CREATE AGGREGATE {{TABLE_PREFIX}}array_accum (anyelement)
 DELETE FROM {{TABLE_PREFIX}}ranks WHERE rank_id = 4;
 INSERT INTO {{TABLE_PREFIX}}ranks(rank_id, rank_title, rank_style) VALUES
   (4, 'user_rank_guest', '');
+  
+-- For some reason this is required, it came up in my QA testing on a2hosting
+SELECT NEXTVAL('{{TABLE_PREFIX}}ranks_rank_id_seq'::regclass);
 
 -- Other rank-related columns
 ALTER TABLE {{TABLE_PREFIX}}groups ADD COLUMN group_rank int DEFAULT NULL;
