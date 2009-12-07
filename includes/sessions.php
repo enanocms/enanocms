@@ -1971,7 +1971,10 @@ class sessionManager {
     $actkey = sha1 ( microtime() . mt_rand() );
 
     // We good, create the user
-    $this->sql('INSERT INTO '.table_prefix.'users ( username, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa, user_registration_ip ) VALUES ( \''.$username.'\', \''.$email.'\', \''.$real_name.'\', \''.$template->default_theme.'\', \''.$template->default_style.'\', '.time().', '.$active.', \''.$actkey.'\', '.USER_LEVEL_CHPREF.', ' . $coppa_col . ', \'' . $ip . '\' );');
+    $this->sql('INSERT INTO ' . table_prefix . "users ( username, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa,\n"
+             . "                                        user_registration_ip, user_lang, user_has_avatar, avatar_type ) VALUES\n"
+             . "  ( '$username', '$email', '$real_name', '$template->default_theme', '$template->default_style', " . time() . ", $active, '$actkey', \n"
+             . "    " . USER_LEVEL_CHPREF . ", $coppa_col, '$ip', $lang->lang_id, 0, 'png' );");
     
     // Get user ID and create users_extra entry
     $q = $this->sql('SELECT user_id FROM '.table_prefix."users WHERE username='$username';");
