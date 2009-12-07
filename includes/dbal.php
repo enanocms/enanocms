@@ -511,6 +511,28 @@ class mysql {
     return mysql_affected_rows();
   }
   
+  /**
+   * Get a list of columns in the given table
+   * @param string Table
+   * @return array
+   */
+  
+  function columns_in($table)
+  {
+    if ( !is_string($table) )
+      return false;
+    $q = $this->sql_query("SHOW COLUMNS IN $table;");
+    if ( !$q )
+      $this->_die();
+    
+    $columns = array();
+    while ( $row = $this->fetchrow_num() )
+    {
+      $columns[] = $row[0];
+    }
+    return $columns;
+  }
+  
   function sql_type_cast(&$value)
 	{
 		if ( is_float($value) )
@@ -1217,6 +1239,30 @@ class postgresql {
     if(!$r) $r = $this->latest_result;
     if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
     return pg_affected_rows();
+  }
+  
+  /**
+   * Get a list of columns in the given table
+   * @param string Table
+   * @return array
+   */
+  
+  function columns_in($table)
+  {
+    if ( !is_string($table) )
+      return false;
+    $q = $this->sql_query("SELECT * FROM $table LIMIT 1 OFFSET 0;");
+    if ( !$q )
+      $this->_die();
+    if ( $this->numrows() < 1 )
+    {
+      // FIXME: Have another way to do this if the table is empty
+      return false;
+    }
+    
+    $row = $this->fetchrow();
+    $this->free_result();
+    return array_keys($row);
   }
   
   function sql_type_cast(&$value)

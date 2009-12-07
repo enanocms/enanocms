@@ -82,6 +82,8 @@ class Namespace_User extends Namespace_Default
     $target_username = preg_replace('/^' . str_replace('/', '\\/', preg_quote($paths->nslist['User'])) . '/', '', $target_username);
     list($target_username) = explode('/', $target_username);
     
+    $ux_columns = $db->columns_in(table_prefix . 'users_extra');
+    
     $output->set_title($this->title);
     $q = $db->sql_query('SELECT u.username, u.user_id AS authoritative_uid, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.*, COUNT(c.comment_id) AS n_comments
                            FROM '.table_prefix.'users u
@@ -90,7 +92,7 @@ class Namespace_User extends Namespace_Default
                            LEFT JOIN '.table_prefix.'comments AS c
                              ON ( ( c.user_id=u.user_id AND c.name=u.username AND c.approved=1 ) OR ( c.comment_id IS NULL AND c.approved IS NULL ) )
                            WHERE u.username=\'' . $db->escape($target_username) . '\'
-                           GROUP BY u.username, u.user_id, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.user_id, x.user_aim, x.user_yahoo, x.user_msn, x.user_xmpp, x.user_homepage, x.user_location, x.user_job, x.user_hobbies, x.email_public;');
+                           GROUP BY u.username, u.user_id, u.real_name, u.email, u.reg_time, u.user_has_avatar, u.avatar_type, x.' . implode(', x.', $ux_columns) . ';');
     if ( !$q )
       $db->_die();
     
