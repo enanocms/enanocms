@@ -1926,6 +1926,11 @@ class PageUtils {
               'rules' => array()
             );
           
+          $acl_columns = 'a.' . implode(', a.', $db->columns_in(table_prefix . 'acl'));
+          $users_columns = 'u.' . implode(', u.', $db->columns_in(table_prefix . 'users'));
+          $groups_columns = 'g.' . implode(', g.', $db->columns_in(table_prefix . 'groups'));
+          $pg_columns = 'p.' . implode(', p.', array('pg_id', 'pg_type', 'pg_name', 'pg_target'));
+          
           $q = $db->sql_query("SELECT a.rule_id, u.username, g.group_name, a.target_type, a.target_id, a.page_id, a.namespace, a.rules, p.pg_name\n"
                   . "  FROM " . table_prefix . "acl AS a\n"
                   . "  LEFT JOIN " . table_prefix . "users AS u\n"
@@ -1933,9 +1938,9 @@ class PageUtils {
                   . "  LEFT JOIN " . table_prefix . "groups AS g\n"
                   . "    ON ( (a.target_type = " . ACL_TYPE_GROUP . " AND a.target_id = g.group_id) OR (g.group_id IS NULL) )\n"
                   . "  LEFT JOIN " . table_prefix . "page_groups as p\n"
-                  . "    ON ( (a.namespace = '__PageGroup' AND a.page_id = p.pg_id) OR (p.pg_id IS NULL) )\n"
+                  . "    ON ( (a.namespace = '__PageGroup' AND a.page_id = CAST(p.pg_id AS CHAR)) OR (p.pg_id IS NULL) )\n"
                   . "  WHERE ( a.target_type = " . ACL_TYPE_USER . " OR a.target_type = " . ACL_TYPE_GROUP . " )\n"
-                  . "  GROUP BY a.rule_id\n"
+                  . "  GROUP BY a.rule_id, $acl_columns, $users_columns, $groups_columns, $pg_columns\n"
                   . "  ORDER BY a.target_type ASC, a.rule_id ASC;"
                 );
           
