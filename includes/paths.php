@@ -80,9 +80,9 @@ class pathManager
     $session->register_acl_type('mod_misc',               AUTH_DISALLOW, 'perm_mod_misc',               Array(),                                                  'All');
     $session->register_acl_type('edit_cat',               AUTH_WIKIMODE, 'perm_edit_cat',               Array('read'),                                            'Article|User|Project|Template|File|Help|System|Category');
     $session->register_acl_type('even_when_protected',    AUTH_DISALLOW, 'perm_even_when_protected',    Array('edit_page', 'rename', 'mod_comments', 'edit_cat'), 'Article|User|Project|Template|File|Help|System|Category');
-    $session->register_acl_type('upload_files',           AUTH_DISALLOW, 'perm_upload_files',           Array('create_page'),                                     'Article|User|Project|Template|File|Help|System|Category|Special');
-    $session->register_acl_type('upload_new_version',     AUTH_WIKIMODE, 'perm_upload_new_version',     Array('upload_files'),                                    'Article|User|Project|Template|File|Help|System|Category|Special');
-    $session->register_acl_type('create_page',            AUTH_WIKIMODE, 'perm_create_page',            Array(),                                                  'Article|User|Project|Template|File|Help|System|Category|Special');
+    $session->register_acl_type('create_page',            AUTH_WIKIMODE, 'perm_create_page',            Array(),                                                  'All');
+    $session->register_acl_type('upload_files',           AUTH_DISALLOW, 'perm_upload_files',           Array('create_page'),                                     'All');
+    $session->register_acl_type('upload_new_version',     AUTH_WIKIMODE, 'perm_upload_new_version',     Array('upload_files'),                                    'All');
     $session->register_acl_type('html_in_pages',          AUTH_DISALLOW, 'perm_html_in_pages',          Array('edit_page'),                                       'Article|User|Project|Template|File|Help|System|Category|Admin');
     $session->register_acl_type('php_in_pages',           AUTH_DISALLOW, 'perm_php_in_pages',           Array('edit_page', 'html_in_pages'),                      'Article|User|Project|Template|File|Help|System|Category|Admin');
     $session->register_acl_type('custom_user_title',      AUTH_DISALLOW, 'perm_custom_user_title',      Array(),                                                  'User|Special');

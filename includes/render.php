@@ -929,8 +929,8 @@ class RenderMan {
       eval($cmd);
     }
     
-    $can_do_php = ( $session->get_permissions('php_in_pages') && !$strip_all_php );
-    $can_do_html = $session->get_permissions('html_in_pages');
+    $can_do_php = ( !$strip_all_php && $session->get_permissions('php_in_pages') );
+    $can_do_html = $session->check_acl_scope('html_in_pages', $paths->namespace) && $session->get_permissions('html_in_pages');
     
     if ( $can_do_html && !$can_do_php )
     {
