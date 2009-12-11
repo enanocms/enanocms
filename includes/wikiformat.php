@@ -70,6 +70,8 @@ class Carpenter
       'underline',
       'externalwithtext',
       'externalnotext',
+      'mailtowithtext',
+      'mailtonotext',
       'image',
       'internallink',
       'paragraph',

@@ -144,6 +144,18 @@ class Carpenter_Render_Xhtml
     
     return $text;
   }
+  
+  public function mailtonotext($pieces)
+  {
+    $pieces[2] = $pieces[1];
+    return $this->mailtowithtext($pieces);
+  }
+  
+  public function mailtowithtext($pieces)
+  {
+    global $email;
+    return $email->encryptEmail($pieces[1], '', '', $pieces[2]);
+  }
 }
 
 // Alias internal link parsing to RenderMan's method

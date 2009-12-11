@@ -19,6 +19,8 @@ class Carpenter_Parse_MediaWiki
     'underline' => '/__(.+?)__/',
     'externalwithtext' => '#\[((?:https?|irc|ftp)://.+?) (.+?)\]#',
     'externalnotext' => '#\[((?:https?|irc|ftp)://.+?)\]#',
+    'mailtonotext' => '#\[mailto:([^ \]]+?)\]#',
+    'mailtowithtext' => '#\[mailto:([^ \]]+?) (.+?)\]#',
     'hr' => '/^[-]{4,} *$/m'
   );
   
