@@ -116,7 +116,7 @@ CREATE TABLE {{TABLE_PREFIX}}users(
   user_registration_ip varchar(39),
   user_rank int(12) UNSIGNED DEFAULT NULL,
   user_rank_userset tinyint(1) NOT NULL DEFAULT 0,
-  user_timezone int(12) UNSIGNED NOT NULL DEFAULT 0,
+  user_timezone int(12) UNSIGNED NOT NULL DEFAULT 1440,
   user_title varchar(64) DEFAULT NULL,
   user_group mediumint(5) NOT NULL DEFAULT 1,
   user_dst varchar(11) NOT NULL DEFAULT '0;0;0;0;60',

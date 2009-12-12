@@ -348,10 +348,34 @@ function enano_date($string, $timestamp = false)
   
   // are we in DST?
   global $dst_params;
+  $dst_offset = 0;
   if ( check_timestamp_dst($timestamp, $dst_params[0], $dst_params[1], $dst_params[2], $dst_params[3]) )
   {
     // offset for DST
     $timestamp += ( $dst_params[4] * 60 );
+    $dst_offset = $dst_params[4];
+  }
+  
+  // Does this date string include a timezone? If so, gmdate() will report UTC, which is wrong
+  // FIXME This is kind of a halfass replacement...
+  foreach ( array('e', 'T', 'O', 'P') as $char )
+  {
+    if ( ($pos = strpos($string, $char)) !== false )
+    {
+      if ( $string{ $pos - 1 } != '\\' )
+      {
+        // add in our own timezone string
+        // FIXME: l10n? (do we need to? does anyone really not know what "GMT" means? even uglier escaping?)
+        $tzi = '\\G\\M\\T';
+        $tzo = $timezone + $dst_offset;
+        $sign = $tzo > 0 ? '+' : '-';
+        $tzi .= $sign . (intval(abs($tzo / 60)));
+        if ( $tzo % 60 )
+          $tzi .= sprintf(":%02d", abs($tzo) % 60);
+        
+        $string = substr($string, 0, $pos) . $tzi . substr($string, $pos + 1);
+      }
+    }
   }
   
   // Let PHP do the work for us =)
