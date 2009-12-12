@@ -1,18 +1,7 @@
-Enano 1.1.6 - Known Bugs and Issues
+Enano 1.1.7 - Known Bugs and Issues
 
-  These are the issues in Enano 1.1.6 that the development team knows
-  about, but did not have time to fix before this release was
-  scheduled. Hopefully all of these will be fixed in the next release.
+You can view a list of known issues and open feature requests for Enano in our
+Google Code issue tracker at:
 
-- Internet Explorer support is a disaster. We do care, but we don't
-  act like the project depends on it. Most of Enano's IE woes are
-  in Javascript stuff which means admin tools, and we hope that
-  sensible administrators will use a browser other than IE.
-  
-  Plus, we're slowly moving over to jQuery which is much more IE-
-  friendly than our own in-house libraries.
+  <http://bugs.enanocms.org/open>
 
-- There may be miscellaneous bugs, some serious, with the way pages
-  are handled: title formatting, wrong buttons showing up, PHP
-  warnings, etc. This is the result of a significant backend change
-  and will be all polished up and shiny by the time we go into RC.

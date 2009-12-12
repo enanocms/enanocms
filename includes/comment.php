@@ -143,6 +143,7 @@ class Comments
             // Format text
             $row['comment_data'] = RenderMan::render($row['comment_data']);
             
+            // Hide it if it's a post from a foe
             if ( $row['is_buddy'] == 1 && $row['is_friend'] == 0 )
             {
               $seed = md5(sha1(mt_rand() . microtime()));
