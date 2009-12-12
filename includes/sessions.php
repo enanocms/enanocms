@@ -3487,10 +3487,11 @@ class sessionManager {
   /**
    * For the given code ID, returns the correct CAPTCHA code, or false on failure
    * @param string $hash The unique ID assigned to the code
+   * @param bool If true, the code is NOT deleted from the database. Use with caution!
    * @return string The correct confirmation code
    */
   
-  function get_captcha($hash)
+  function get_captcha($hash, $nodelete = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     
@@ -3516,7 +3517,10 @@ class sessionManager {
     list($code_id, $code) = $db->fetchrow_num();
     
     $db->free_result();
-    $this->sql('DELETE FROM ' . table_prefix . "captcha WHERE code_id = $code_id;");
+    
+    // delete it
+    if ( !$nodelete )
+      $this->sql('DELETE FROM ' . table_prefix . "captcha WHERE code_id = $code_id;");
     
     return $code;
   }

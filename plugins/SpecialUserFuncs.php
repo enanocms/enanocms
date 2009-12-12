@@ -817,10 +817,10 @@ function page_Special_Register()
                 </small>
               </td>
               <td class="row1">
-                <img id="captchaimg" alt="CAPTCHA image" src="<?php echo makeUrlNS('Special', 'Captcha/'.$captchacode); ?>" /><br />
-                <span id="b_username"></span>
+                <img id="captchaimg" alt="CAPTCHA image" src="<?php echo makeUrlNS('Special', 'Captcha/'.$captchacode); ?>" style="cursor: pointer;" onclick="regenCaptcha(); return false;" />
               </td>
               <td class="row1">
+                <img alt="Good/bad icon" src="<?php echo scriptPath; ?>/images/checkbad.png" id="s_captcha" />
               </td>
             </tr>
             
@@ -828,7 +828,8 @@ function page_Special_Register()
             <tr>
               <td class="row1" colspan="2">
                 <?php echo $lang->get('user_reg_lbl_field_captcha_code'); ?>
-                <input tabindex="6" name="captchacode" type="text" size="10" />
+                <input tabindex="6" name="captchacode" type="text" size="10" onkeyup="validateCaptcha(this);" />
+                <img id="captchaajax" width="16" height="16" src="<?php echo cdnPath; ?>/images/spacer.gif" />
                 <input type="hidden" name="captchahash" value="<?php echo $captchacode; ?>" />
               </td>
             </tr>
@@ -1060,7 +1061,48 @@ function page_Special_Register()
           {
             var frm = document.forms.regform;
             document.getElementById('captchaimg').src = '<?php echo makeUrlNS("Special", "Captcha/$captchacode"); ?>/'+Math.floor(Math.random() * 100000);
+            frm.captchacode.value = '';
             return false;
+          }
+          function validateCaptcha(input)
+          {
+            var frm = document.forms.regform;
+            if ( input.value.length < 7 )
+            {
+              return false;
+            }
+            var valid_field = document.getElementById('s_captcha');
+            var loader_img = document.getElementById('captchaajax');
+            loader_img.src = cdnPath + '/images/loading.gif';
+            ajaxGet(makeUrlNS('Special', 'Captcha/' + frm.captchahash.value + '/validate=' + input.value), function(ajax)
+              {
+                if ( ajax.readyState == 4 && ajax.status == 200 )
+                {
+                  var response = String(ajax.responseText + '');
+                  if ( !check_json_response(response) )
+                  {
+                    handle_invalid_json(response);
+                    return false;
+                  }
+                  response = parseJSON(response);
+                  if ( response.valid )
+                  {
+                    loader_img.src = cdnPath + '/images/spacer.gif';
+                    valid_field.src = cdnPath + '/images/check.png';
+                  }
+                  else
+                  {
+                    valid_field.src = cdnPath + '/images/checkbad.png';
+                    regenCaptcha();
+                    document.getElementById('captchaimg').onload = function()
+                    {
+                      document.getElementById('captchaajax').src = cdnPath + '/images/spacer.gif';
+                      input.focus();
+                    };
+                    input.value = '';
+                  }
+                }
+              });
           }
           addOnloadHook(function()
             {
@@ -1282,6 +1324,24 @@ function page_Special_Captcha()
   {
     $paths->main_page();
   }
+  
+  if ( $validate_code = $paths->getParam(1) )
+  {
+    if ( preg_match('/^validate=(.+)$/', $validate_code, $match) )
+    {
+      header('Content-type: text/javascript');
+      $code = $session->get_captcha($hash, true);
+      $valid = strtolower($code) === strtolower($match[1]);
+      if ( !$valid )
+      {
+        $session->make_captcha(7, $hash);
+      }
+      echo enano_json_encode(array(
+        'valid' => $valid
+        ));
+      exit;
+    }
+  }
 
   $session->make_captcha(7, $hash);
   $code = $session->generate_captcha_code();
@@ -1292,6 +1352,8 @@ function page_Special_Captcha()
     if ( stristr($code, $word) )
     {
       // but don't put too much effort into this (will only correct this once)
+      // I mean, face it. If it generates one of those words twice in a row, either the local root has had
+      // way too much fun with his /dev/random, or this server is just plain gutter-minded.
       $code = $session->generate_captcha_code();
       break;
     }
