@@ -253,9 +253,12 @@ if ( !defined('ENANO_CONSTANTS') )
   define('ENANO_CONSTANTS', '');
 }
 
-// The AES encryption key used to store passwords. We have a very specific
-// reason for doing this; see the rationale at:
+// The AES encryption key used for encrypting various bits of information,
+// such as cookies, that should not be editable by users. Read about
+// Enano's security model at:
 //   http://docs.enanocms.org/Help:Appendix_B
+// This key was at one point used for passwords as well, but this is no
+// longer true.
 \$crypto_key = '$site_key';
 
 EOF;
