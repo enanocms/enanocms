@@ -33,8 +33,12 @@
       $page->password = $password;
       
       $have_draft = false;
-      if ( $src = $page->fetch_source() )
+      // Kinda hacky fix for issue 7: draft restore not offered for nonexistent pages
+      if ( $src = $page->fetch_source() || !$page->exists() )
       {
+        if ( !$page->exists() )
+          $src = '';
+        
         $allowed = true;
         $q = $db->sql_query('SELECT author, time_id, page_text, edit_summary, page_format FROM ' . table_prefix . 'logs WHERE log_type = \'page\' AND action = \'edit\'
                                AND page_id = \'' . $db->escape($paths->page_id) . '\'
