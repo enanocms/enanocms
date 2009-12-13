@@ -42,36 +42,18 @@ class mysql {
   var $errhandler;
   var $dbms_name = 'MySQL';
   
-  function enable_errorhandler()
-  {
-    if ( !defined('ENANO_DEBUG') )
-      return true;
-    // echo "DBAL: enabling error handler<br />";
-    if ( function_exists('debug_backtrace') )
-    {
-      $this->errhandler = set_error_handler('db_error_handler');
-    }
-  }
-  
-  function disable_errorhandler()
-  {
-    if ( !defined('ENANO_DEBUG') )
-      return true;
-    // echo "DBAL: disabling error handler<br />";
-    if ( $this->errhandler )
-    {
-      set_error_handler($this->errhandler);
-    }
-    else
-    {
-      restore_error_handler();
-    }
-  }
+  /**
+   * Get a flat textual list of queries that have been made.
+   */
   
   function sql_backtrace()
   {
     return implode("\n-------------------------------------------------------------------\n", $this->query_backtrace);
   }
+  
+  /**
+   * Connect to the database, but only if a connection isn't already up.
+   */
   
   function ensure_connection()
   {
@@ -81,67 +63,83 @@ class mysql {
     }
   }
   
-  function _die($t = '') {
+  /**
+   * Exit Enano, dumping out a friendly error message indicating a database error on the way out.
+   * @param string Description or location of error; defaults to none
+   */
+ 
+  function _die($t = '')
+  {
     if ( defined('ENANO_HEADERS_SENT') )
-    {
       ob_clean();
-    }
     
-    if ( !headers_sent() )
-      header('HTTP/1.1 500 Internal Server Error');
+    $internal_text = $this->get_error($t);
     
-    $bt = $this->latest_query; // $this->sql_backtrace();
-    $e = htmlspecialchars(mysql_error());
-    if($e=='') $e='&lt;none&gt;';
-    $t = ( !empty($t) ) ? $t : '&lt;No error description provided&gt;';
-    global $email;
-    $email_info = ( defined('ENANO_CONFIG_FETCHED') && is_object($email) ) ? ', at &lt;' . $email->jscode() . $email->encryptEmail(getConfig('contact_email')) . '&gt;' : '';
-    $internal_text = '<h3>The site was unable to finish serving your request.</h3>
-                      <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site' . $email_info . '.</p>
-                      <p>Description or location of error: '.$t.'<br />
-                      Error returned by MySQL extension: ' . $e . '<br />
-                      Most recent SQL query:</p>
-                      <pre>'.$bt.'</pre>';
-    if ( defined('IN_ENANO_INSTALL') && is_object(@$GLOBALS['ui']) )
-    {
-      global $ui;
-      echo '<h2>Database error!</h2>';
-      echo $internal_text;
-      $ui->show_footer();
-      
-      exit;
-    }
-    if(defined('ENANO_CONFIG_FETCHED')) die_semicritical('Database error', $internal_text);
-    else                                   grinding_halt('Database error', $internal_text);
+    if ( defined('ENANO_CONFIG_FETCHED') )
+      // config is in, we can show a slightly nicer looking error page
+      die_semicritical('Database error', $internal_text);
+    else
+      // no config, display using no-DB template engine
+      grinding_halt('Database error', $internal_text);
+    
     exit;
   }
   
+  /**
+   * Get the internal text used for a database error message.
+   * @param string Description or location of error; defaults to none
+   */
+  
+  function get_error($t = '')
+  {
+    @header('HTTP/1.1 500 Internal Server Error');
+    
+    $bt = $this->latest_query;
+    $e = htmlspecialchars($this->sql_error());
+    if ( empty($e) )
+      $e = '&lt;none&gt;';
+    
+    global $email;
+    
+    // As long as the admin's e-mail is accessible, display it.
+    $email_info = ( defined('ENANO_CONFIG_FETCHED') && is_object($email) )
+                    ? ', at &lt;' . $email->jscode() . $email->encryptEmail(getConfig('contact_email')) . '&gt;'
+                    : '';
+    
+    $internal_text = "<h3>The site was unable to finish serving your request.</h3>
+                      <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site{$email_info}.</p>
+                      <p>Description or location of error: $t<br />
+                      Error returned by $this->dbms_name extension: $e</p>
+                      <p>Most recent SQL query:</p>
+                      <pre>$bt</pre>";
+    return $internal_text;
+  }
+  
+  /**
+   * Exit Enano and output a JSON format datbase error.
+   * @param string Description or location of error; defaults to none
+   */
+  
   function die_json($loc = false)
   {
-    $e = str_replace("\n", "\\n", addslashes(htmlspecialchars(mysql_error())));
+    $e = str_replace("\n", "\\n", addslashes(htmlspecialchars($this->sql_error())));
     $q = str_replace("\n", "\\n", addslashes($this->latest_query));
     $loc = ( $loc ) ? addslashes("\n\nDescription or location of error: $loc") : "";
     $loc .= "\n\nPlease report the full text of this error to the administrator of the site. If you believe that this is a bug with the software, please contact support@enanocms.org.";
     $loc = str_replace("\n", "\\n", $loc);
-    $t = "{\"mode\":\"error\",\"error\":\"An error occurred during database query.\\nQuery was:\\n  $q\\n\\nError returned by MySQL: $e$loc\"}";
+    $t = "{\"mode\":\"error\",\"error\":\"An error occurred during database query.\\nQuery was:\\n  $q\\n\\nError returned by {$this->dbms_name}: $e$loc\"}";
     die($t);
   }
   
-  function get_error($t = '') {
-    header('HTTP/1.1 500 Internal Server Error');
-    $bt = $this->sql_backtrace();
-    $e = htmlspecialchars(mysql_error());
-    if($e=='') $e='&lt;none&gt;';
-    global $email;
-    $email_info = ( defined('ENANO_CONFIG_FETCHED') && is_object($email) ) ? ', at &lt;' . $email->jscode() . $email->encryptEmail(getConfig('contact_email')) . '&gt;' : '';
-    $internal_text = '<h3>The site was unable to finish serving your request.</h3>
-                      <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site' . $email_info . '.</p>
-                      <p>Description or location of error: '.$t.'<br />
-                      Error returned by MySQL extension: ' . $e . '<br />
-                      Most recent SQL query:</p>
-                      <pre>'.$bt.'</pre>';
-    return $internal_text;
-  }
+  /**
+   * Connect to the database.
+   * @param bool If true, enables all other parameters. Defaults to false, which emans that you can call this function with no arguments and it will fetch information from the config file.
+   * @param string Database server hostname
+   * @param string Database server username
+   * @param string Database server password
+   * @param string Name of the database
+   * @param int Optional port number to connect over
+   */
   
   function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false, $dbport = false)
   {
@@ -244,6 +242,13 @@ class mysql {
     return true;
   }
   
+  /**
+   * Make a SQL query.
+   * @param string Query
+   * @param bool If false, skips all checks and logging stages. If you're doing a ton of queries, set this to true; in all other cases, leave at the default of false.
+   * @return resource or false on failure
+   */
+  
   function sql_query($q, $log_query = true)
   {
     if ( $this->debug && function_exists('debug_backtrace') )
@@ -298,6 +303,13 @@ class mysql {
     
     return $r;
   }
+  
+  /**
+   * Make a SQL query, but do not have PHP buffer all the results. Useful for queries that are expected to return a huge number of results.
+   * @param string Query
+   * @param bool If false, skips all checks and logging stages. If you're doing a ton of queries, set this to true; in all other cases, leave at the default of false.
+   * @return resource or false on failure
+   */
   
   function sql_unbuffered_query($q, $log_query = true)
   {
@@ -381,20 +393,12 @@ class mysql {
    
   function sql_data_seek($pos, $result = false)
   {
-    if(!$result)
+    if ( !$result )
       $result = $this->latest_result;
-    if(!$result)
-    {
+    if ( !$result )
       return false;
-    }
-    if(mysql_data_seek($result, $pos))
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    
+    return mysql_data_seek($result, $pos) ? true : false;
   }
   
   /**
@@ -406,10 +410,11 @@ class mysql {
   function report_query($query)
   {
     global $session;
-    if(is_object($session) && defined('ENANO_MAINSTREAM'))
+    if ( is_object($session) && defined('ENANO_MAINSTREAM') )
       $username = $session->username;
     else
       $username = 'Unavailable';
+    
     $query = $this->escape($query);
     $q = $this->sql_query('INSERT INTO '.table_prefix.'logs(log_type,     action,         time_id,    date_string, page_text,      author,            edit_summary)
                                                      VALUES(\'security\', \'sql_inject\', '.time().', \'\',        \''.$query.'\', \''.$username.'\', \''.$_SERVER['REMOTE_ADDR'].'\');');
@@ -425,7 +430,14 @@ class mysql {
     return @mysql_insert_id();
   }
   
-  function fetchrow($r = false) {
+  /**
+   * Fetch one row from the given query as an associative array.
+   * @param resource The resource returned from sql_query; if this isn't provided, the last result resource is used.
+   * @return array
+   */
+  
+  function fetchrow($r = false)
+  {
     if ( !$this->_conn )
       return false;
     
@@ -436,30 +448,48 @@ class mysql {
       $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
     
     $row = mysql_fetch_assoc($r);
-    /*
-    if ( empty($row) )
-    {
-      $GLOBALS['do_gzip'] = false;
-      echo '<pre>' . enano_debug_print_backtrace(true) . '</pre>';
-    }
-    */
     
     return integerize_array($row);
   }
   
-  function fetchrow_num($r = false) {
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+  /**
+   * Fetch one row from the given query as a numeric array.
+   * @param resource The resource returned from sql_query; if this isn't provided, the last result resource is used.
+   * @return array
+   */
+  
+  function fetchrow_num($r = false)
+  {
+    if ( !$r )
+      $r = $this->latest_result;
+    if ( !$r )
+      $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    
     $row = mysql_fetch_row($r);
     return integerize_array($row);
   }
   
-  function numrows($r = false) {
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
-    $n = mysql_num_rows($r);
-    return $n;
+  /**
+   * Get the number of results for a given query.
+   * @param resource The resource returned from sql_query; if this isn't provided, the last result resource is used.
+   * @return array
+   */
+  
+  function numrows($r = false)
+  {
+    if ( !$r )
+      $r = $this->latest_result;
+    if ( !$r )
+      $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
+    
+    return mysql_num_rows($r);
   }
+  
+  /**
+   * Escape a string so that it may safely be included in a SQL query.
+   * @param string String to escape
+   * @return string Escaped string
+   */
   
   function escape($str)
   {
@@ -467,48 +497,31 @@ class mysql {
     return $str;
   }
   
+  /**
+   * Free the given result from memory. Use this when completely finished with a result resource.
+   * @param resource The resource returned from sql_query; if this isn't provided, the last result resource is used.
+   * @return null
+   */
+  
   function free_result($result = false)
   {
-    if(!$result)
+    if ( !$result )
       $result = $this->latest_result;
-    if(!$result)
-    {
+    if ( !$result )
       return null;
-    }
+    
     @mysql_free_result($result);
     return null;
   }
   
-  function close() {
+  /**
+   * Close the database connection
+   */
+  
+  function close()
+  {
     @mysql_close($this->_conn);
     unset($this->_conn);
-  }
-  
-  // phpBB DBAL compatibility
-  function sql_fetchrow($r = false)
-  {
-    return $this->fetchrow($r);
-  }
-  function sql_freeresult($r = false)
-  {
-    if(!$this->_conn) return false;
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
-    @mysql_free_result($r);
-  }
-  function sql_numrows($r = false)
-  {
-    if(!$this->_conn) return false;
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
-    return mysql_num_rows($r);
-  }
-  function sql_affectedrows($r = false, $f = false, $n = false)
-  {
-    if(!$this->_conn) return false;
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid MySQL resource was passed.');
-    return mysql_affected_rows();
   }
   
   /**
@@ -533,226 +546,16 @@ class mysql {
     return $columns;
   }
   
-  function sql_type_cast(&$value)
-	{
-		if ( is_float($value) )
-		{
-			return doubleval($value);
-		}
-		if ( is_integer($value) || is_bool($value) )
-		{
-			return intval($value);
-		}
-		if ( is_string($value) || empty($value) )
-		{
-			return '\'' . $this->sql_escape_string($value) . '\'';
-		}
-		// uncastable var : let's do a basic protection on it to prevent sql injection attempt
-		return '\'' . $this->sql_escape_string(htmlspecialchars($value)) . '\'';
-	}
-
-	function sql_statement(&$fields, $fields_inc='')
-	{
-		// init result
-		$this->sql_fields = $this->sql_values = $this->sql_update = '';
-		if ( empty($fields) && empty($fields_inc) )
-		{
-			return;
-		}
-
-		// process
-		if ( !empty($fields) )
-		{
-			$first = true;
-			foreach ( $fields as $field => $value )
-			{
-				// field must contain a field name
-				if ( !empty($field) && is_string($field) )
-				{
-					$value = $this->sql_type_cast($value);
-					$this->sql_fields .= ( $first ? '' : ', ' ) . $field;
-					$this->sql_values .= ( $first ? '' : ', ' ) . $value;
-					$this->sql_update .= ( $first ? '' : ', ' ) . $field . ' = ' . $value;
-					$first = false;
-				}
-			}
-		}
-		if ( !empty($fields_inc) )
-		{
-			foreach ( $fields_inc as $field => $indent )
-			{
-				if ( $indent != 0 )
-				{
-					$this->sql_update .= (empty($this->sql_update) ? '' : ', ') . $field . ' = ' . $field . ($indent < 0 ? ' - ' : ' + ') . abs($indent);
-				}
-			}
-		}
-	}
-
-	function sql_stack_reset($id='')
-	{
-		if ( empty($id) )
-		{
-			$this->sql_stack_fields = array();
-			$this->sql_stack_values = array();
-		}
-		else
-		{
-			$this->sql_stack_fields[$id] = array();
-			$this->sql_stack_values[$id] = array();
-		}
-	}
-
-	function sql_stack_statement(&$fields, $id='')
-	{
-		$this->sql_statement($fields);
-		if ( empty($id) )
-		{
-			$this->sql_stack_fields = $this->sql_fields;
-			$this->sql_stack_values[] = '(' . $this->sql_values . ')';
-		}
-		else
-		{
-			$this->sql_stack_fields[$id] = $this->sql_fields;
-			$this->sql_stack_values[$id][] = '(' . $this->sql_values . ')';
-		}
-	}
-
-	function sql_stack_insert($table, $transaction=false, $line='', $file='', $break_on_error=true, $id='')
-	{
-		if ( (empty($id) && empty($this->sql_stack_values)) || (!empty($id) && empty($this->sql_stack_values[$id])) )
-		{
-			return false;
-		}
-		switch( SQL_LAYER )
-		{
-			case 'mysql':
-			case 'mysql4':
-				if ( empty($id) )
-				{
-					$sql = 'INSERT INTO ' . $table . '
-								(' . $this->sql_stack_fields . ') VALUES ' . implode(",\n", $this->sql_stack_values);
-				}
-				else
-				{
-					$sql = 'INSERT INTO ' . $table . '
-								(' . $this->sql_stack_fields[$id] . ') VALUES ' . implode(",\n", $this->sql_stack_values[$id]);
-				}
-				$this->sql_stack_reset($id);
-				return $this->sql_query($sql, $transaction, $line, $file, $break_on_error);
-				break;
-			default:
-				$count_sql_stack_values = empty($id) ? count($this->sql_stack_values) : count($this->sql_stack_values[$id]);
-				$result = !empty($count_sql_stack_values);
-				for ( $i = 0; $i < $count_sql_stack_values; $i++ )
-				{
-					if ( empty($id) )
-					{
-						$sql = 'INSERT INTO ' . $table . '
-									(' . $this->sql_stack_fields . ') VALUES ' . $this->sql_stack_values[$i];
-					}
-					else
-					{
-						$sql = 'INSERT INTO ' . $table . '
-									(' . $this->sql_stack_fields[$id] . ') VALUES ' . $this->sql_stack_values[$id][$i];
-					}
-					$result &= $this->sql_query($sql, $transaction, $line, $file, $break_on_error);
-				}
-				$this->sql_stack_reset($id);
-				return $result;
-				break;
-		}
-	}
-
-	function sql_subquery($field, $sql, $line='', $file='', $break_on_error=true, $type=TYPE_INT)
-	{
-		// sub-queries doable
-		$this->sql_get_version();
-		if ( !in_array(SQL_LAYER, array('mysql', 'mysql4')) || (($this->sql_version[0] + ($this->sql_version[1] / 100)) >= 4.01) )
-		{
-			return $sql;
-		}
-
-		// no sub-queries
-		$ids = array();
-		$result = $this->sql_query(trim($sql), false, $line, $file, $break_on_error);
-		while ( $row = $this->sql_fetchrow($result) )
-		{
-			$ids[] = $type == TYPE_INT ? intval($row[$field]) : '\'' . $this->sql_escape_string($row[$field]) . '\'';
-		}
-		$this->sql_freeresult($result);
-		return empty($ids) ? 'NULL' : implode(', ', $ids);
-	}
-
-	function sql_col_id($expr, $alias)
-	{
-		$this->sql_get_version();
-		return in_array(SQL_LAYER, array('mysql', 'mysql4')) && (($this->sql_version[0] + ($this->sql_version[1] / 100)) <= 4.01) ? $alias : $expr;
-	}
-
-	function sql_get_version()
-	{
-		if ( empty($this->sql_version) )
-		{
-			$this->sql_version = array(0, 0, 0);
-			switch ( SQL_LAYER )
-			{
-				case 'mysql':
-				case 'mysql4':
-					if ( function_exists('mysql_get_server_info') )
-					{
-						$lo_version = explode('-', mysql_get_server_info());
-						$this->sql_version = explode('.', $lo_version[0]);
-						$this->sql_version = array(intval($this->sql_version[0]), intval($this->sql_version[1]), intval($this->sql_version[2]), $lo_version[1]);
-					}
-					break;
-
-				case 'postgresql':
-				case 'mssql':
-				case 'mssql-odbc':
-				default:
-					break;
-			}
-		}
-		return $this->sql_version;
-	}
-
-	function sql_error()
+  /**
+   * Get the text of the most recent error.
+   * @return string
+   */
+  
+  function sql_error()
 	{
     return mysql_error();
 	}
-  function sql_escape_string($t) 
-  {
-    return mysql_real_escape_string($t);
-  }
-  function sql_close()
-  {
-    $this->close();
-  }
-  function sql_fetchrowset($query_id = 0)
-	{
-		if( !$query_id )
-		{
-			$query_id = $this->query_result;
-		}
-
-		if( $query_id )
-		{
-			unset($this->rowset[$query_id]);
-			unset($this->row[$query_id]);
-
-			while($this->rowset[$query_id] = mysql_fetch_array($query_id, MYSQL_ASSOC))
-			{
-				$result[] = $this->rowset[$query_id];
-			}
-
-			return $result;
-		}
-		else
-		{
-			return false;
-		}
-	}
+  
   /**
    * Generates and outputs a report of all the SQL queries made during execution. Should only be called after everything's over with.
    */
@@ -828,17 +631,26 @@ class mysql {
   }
 }
 
-class postgresql {
+class postgresql
+{
   var $num_queries, $query_backtrace, $query_times, $query_sources, $latest_result, $latest_query, $_conn, $sql_stack_fields, $sql_stack_values, $debug;
   var $row = array();
 	var $rowset = array();
   var $errhandler;
   var $dbms_name = 'PostgreSQL';
   
+  /**
+   * Get a flat textual list of queries that have been made.
+   */
+  
   function sql_backtrace()
   {
     return implode("\n-------------------------------------------------------------------\n", $this->query_backtrace);
   }
+  
+  /**
+   * Connect to the database, but only if a connection isn't already up.
+   */
   
   function ensure_connection()
   {
@@ -848,31 +660,66 @@ class postgresql {
     }
   }
   
-  function _die($t = '') {
-    if(defined('ENANO_HEADERS_SENT')) {
+  /**
+   * Exit Enano, dumping out a friendly error message indicating a database error on the way out.
+   * @param string Description or location of error; defaults to none
+   */
+ 
+  function _die($t = '')
+  {
+    if ( defined('ENANO_HEADERS_SENT') )
       ob_clean();
-    }
-    header('HTTP/1.1 500 Internal Server Error');
-    $bt = $this->latest_query; // $this->sql_backtrace();
-    $e = htmlspecialchars(pg_last_error());
-    if($e=='') $e='&lt;none&gt;';
-    $t = ( !empty($t) ) ? $t : '&lt;No error description provided&gt;';
-    global $email;
-    $email_info = ( defined('ENANO_CONFIG_FETCHED') && is_object($email) ) ? ', at &lt;' . $email->jscode() . $email->encryptEmail(getConfig('contact_email')) . '&gt;' : '';
-    $internal_text = '<h3>The site was unable to finish serving your request.</h3>
-                      <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site' . $email_info . '.</p>
-                      <p>Description or location of error: '.$t.'<br />
-                      Error returned by PostgreSQL extension: ' . $e . '<br />
-                      Most recent SQL query:</p>
-                      <pre>'.$bt.'</pre>';
-    if(defined('ENANO_CONFIG_FETCHED')) die_semicritical('Database error', $internal_text);
-    else                                   grinding_halt('Database error', $internal_text);
+    
+    $internal_text = $this->get_error($t);
+    
+    if ( defined('ENANO_CONFIG_FETCHED') )
+      // config is in, we can show a slightly nicer looking error page
+      die_semicritical('Database error', $internal_text);
+    else
+      // no config, display using no-DB template engine
+      grinding_halt('Database error', $internal_text);
+    
     exit;
   }
   
+  /**
+   * Get the internal text used for a database error message.
+   * @param string Description or location of error; defaults to none
+   */
+  
+  function get_error($t = '')
+  {
+    @header('HTTP/1.1 500 Internal Server Error');
+    
+    $bt = $this->latest_query;
+    $e = htmlspecialchars($this->sql_error());
+    if ( empty($e) )
+      $e = '&lt;none&gt;';
+    
+    global $email;
+    
+    // As long as the admin's e-mail is accessible, display it.
+    $email_info = ( defined('ENANO_CONFIG_FETCHED') && is_object($email) )
+                    ? ', at &lt;' . $email->jscode() . $email->encryptEmail(getConfig('contact_email')) . '&gt;'
+                    : '';
+    
+    $internal_text = "<h3>The site was unable to finish serving your request.</h3>
+                      <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site{$email_info}.</p>
+                      <p>Description or location of error: $t<br />
+                      Error returned by $this->dbms_name extension: $e</p>
+                      <p>Most recent SQL query:</p>
+                      <pre>$bt</pre>";
+    return $internal_text;
+  }
+  
+  /**
+   * Exit Enano and output a JSON format datbase error.
+   * @param string Description or location of error; defaults to none
+   */
+  
   function die_json($loc = false)
   {
-    $e = str_replace("\n", "\\n", addslashes(htmlspecialchars(pg_last_error())));
+    $e = str_replace("\n", "\\n", addslashes(htmlspecialchars($this->sql_error())));
     $q = str_replace("\n", "\\n", addslashes($this->latest_query));
     $loc = ( $loc ) ? addslashes("\n\nDescription or location of error: $loc") : "";
     $loc .= "\n\nPlease report the full text of this error to the administrator of the site. If you believe that this is a bug with the software, please contact support@enanocms.org.";
@@ -881,21 +728,15 @@ class postgresql {
     die($t);
   }
   
-  function get_error($t = '') {
-    @header('HTTP/1.1 500 Internal Server Error');
-    $bt = $this->sql_backtrace();
-    $e = htmlspecialchars(pg_last_error());
-    if($e=='') $e='&lt;none&gt;';
-    global $email;
-    $email_info = ( defined('ENANO_CONFIG_FETCHED') && is_object($email) ) ? ', at &lt;' . $email->jscode() . $email->encryptEmail(getConfig('contact_email')) . '&gt;' : '';
-    $internal_text = '<h3>The site was unable to finish serving your request.</h3>
-                      <p>We apologize for the inconveience, but an error occurred in the Enano database layer. Please report the full text of this page to the administrator of this site' . $email_info . '.</p>
-                      <p>Description or location of error: '.$t.'<br />
-                      Error returned by ' . $this->dbms_name . ' extension: ' . $e . '<br />
-                      Most recent SQL query:</p>
-                      <pre>'.$bt.'</pre>';
-    return $internal_text;
-  }
+  /**
+   * Connect to the database.
+   * @param bool If true, enables all other parameters. Defaults to false, which emans that you can call this function with no arguments and it will fetch information from the config file.
+   * @param string Database server hostname
+   * @param string Database server username
+   * @param string Database server password
+   * @param string Name of the database
+   * @param int Optional port number to connect over
+   */
   
   function connect($manual_credentials = false, $dbhost = false, $dbuser = false, $dbpasswd = false, $dbname = false, $dbport = false)
   {
@@ -979,6 +820,13 @@ class postgresql {
     return true;
   }
   
+  /**
+   * Make a SQL query.
+   * @param string Query
+   * @param bool If false, skips all checks and logging stages. If you're doing a ton of queries, set this to true; in all other cases, leave at the default of false.
+   * @return resource or false on failure
+   */
+  
   function sql_query($q)
   {
     if ( $this->debug && function_exists('debug_backtrace') )
@@ -1020,6 +868,13 @@ class postgresql {
     $this->latest_result = $r;
     return $r;
   }
+  
+  /**
+   * Make a SQL query, but do not have PHP buffer all the results. Useful for queries that are expected to return a huge number of results.
+   * @param string Query
+   * @param bool If false, skips all checks and logging stages. If you're doing a ton of queries, set this to true; in all other cases, leave at the default of false.
+   * @return resource or false on failure
+   */
   
   function sql_unbuffered_query($q)
   {
@@ -1079,20 +934,12 @@ class postgresql {
    
   function sql_data_seek($pos, $result = false)
   {
-    if(!$result)
+    if ( !$result )
       $result = $this->latest_result;
-    if(!$result)
-    {
+    if ( !$result )
       return false;
-    }
-    if(pg_result_seek($result, $pos))
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    
+    return pg_result_seek($result, $pos) ? true : false;
   }
   
   /**
@@ -1172,27 +1019,64 @@ class postgresql {
     return false;
   }
   
-  function fetchrow($r = false) {
-    if(!$this->_conn) return false;
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
+  /**
+   * Fetch one row from the given query as an associative array.
+   * @param resource The resource returned from sql_query; if this isn't provided, the last result resource is used.
+   * @return array
+   */
+  
+  function fetchrow($r = false)
+  {
+    if ( !$this->_conn )
+      return false;
+    if ( !$r )
+      $r = $this->latest_result;
+    if ( !$r )
+      $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
+    
     $row = pg_fetch_assoc($r);
     return integerize_array($row);
   }
   
-  function fetchrow_num($r = false) {
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
+  /**
+   * Fetch one row from the given query as a numeric array.
+   * @param resource The resource returned from sql_query; if this isn't provided, the last result resource is used.
+   * @return array
+   */
+  
+  function fetchrow_num($r = false)
+  {
+    if ( !$r )
+      $r = $this->latest_result;
+    if ( !$r )
+      $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
+    
     $row = pg_fetch_row($r);
     return integerize_array($row);
   }
   
-  function numrows($r = false) {
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
+  /**
+   * Get the number of results for a given query.
+   * @param resource The resource returned from sql_query; if this isn't provided, the last result resource is used.
+   * @return array
+   */
+  
+  function numrows($r = false)
+  {
+    if ( !$r )
+      $r = $this->latest_result;
+    if ( !$r )
+      $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
+    
     $n = pg_num_rows($r);
     return $n;
   }
+  
+  /**
+   * Escape a string so that it may safely be included in a SQL query.
+   * @param string String to escape
+   * @return string Escaped string
+   */
   
   function escape($str)
   {
@@ -1200,45 +1084,32 @@ class postgresql {
     return $str;
   }
   
+  /**
+   * Free the given result from memory. Use this when completely finished with a result resource.
+   * @param resource The resource returned from sql_query; if this isn't provided, the last result resource is used.
+   * @return null
+   */
+  
   function free_result($result = false)
   {
-    if(!$result)
+    if ( !$result )
       $result = $this->latest_result;
-    if(!$result)
-    {
+    
+    if ( !$result )
       return null;
-    }
+    
     @pg_free_result($result);
     return null;
   }
   
-  function close() {
+  /**
+   * Close the database connection
+   */
+  
+  function close()
+  {
     @pg_close($this->_conn);
     unset($this->_conn);
-  }
-  
-  // phpBB DBAL compatibility
-  function sql_fetchrow($r = false)
-  {
-    return $this->fetchrow($r);
-  }
-  function sql_freeresult($r = false)
-  {
-    if(!$this->_conn) return false;
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
-    $this->free_result($r);
-  }
-  function sql_numrows($r = false)
-  {
-    return $this->numrows();
-  }
-  function sql_affectedrows($r = false, $f = false, $n = false)
-  {
-    if(!$this->_conn) return false;
-    if(!$r) $r = $this->latest_result;
-    if(!$r) $this->_die('$db->fetchrow(): an invalid ' . $this->dbms_name . ' resource was passed.');
-    return pg_affected_rows();
   }
   
   /**
@@ -1265,190 +1136,6 @@ class postgresql {
     return array_keys($row);
   }
   
-  function sql_type_cast(&$value)
-	{
-		if ( is_float($value) )
-		{
-			return doubleval($value);
-		}
-		if ( is_integer($value) || is_bool($value) )
-		{
-			return intval($value);
-		}
-		if ( is_string($value) || empty($value) )
-		{
-			return '\'' . $this->sql_escape_string($value) . '\'';
-		}
-		// uncastable var : let's do a basic protection on it to prevent sql injection attempt
-		return '\'' . $this->sql_escape_string(htmlspecialchars($value)) . '\'';
-	}
-
-	function sql_statement(&$fields, $fields_inc='')
-	{
-		// init result
-		$this->sql_fields = $this->sql_values = $this->sql_update = '';
-		if ( empty($fields) && empty($fields_inc) )
-		{
-			return;
-		}
-
-		// process
-		if ( !empty($fields) )
-		{
-			$first = true;
-			foreach ( $fields as $field => $value )
-			{
-				// field must contain a field name
-				if ( !empty($field) && is_string($field) )
-				{
-					$value = $this->sql_type_cast($value);
-					$this->sql_fields .= ( $first ? '' : ', ' ) . $field;
-					$this->sql_values .= ( $first ? '' : ', ' ) . $value;
-					$this->sql_update .= ( $first ? '' : ', ' ) . $field . ' = ' . $value;
-					$first = false;
-				}
-			}
-		}
-		if ( !empty($fields_inc) )
-		{
-			foreach ( $fields_inc as $field => $indent )
-			{
-				if ( $indent != 0 )
-				{
-					$this->sql_update .= (empty($this->sql_update) ? '' : ', ') . $field . ' = ' . $field . ($indent < 0 ? ' - ' : ' + ') . abs($indent);
-				}
-			}
-		}
-	}
-
-	function sql_stack_reset($id='')
-	{
-		if ( empty($id) )
-		{
-			$this->sql_stack_fields = array();
-			$this->sql_stack_values = array();
-		}
-		else
-		{
-			$this->sql_stack_fields[$id] = array();
-			$this->sql_stack_values[$id] = array();
-		}
-	}
-
-	function sql_stack_statement(&$fields, $id='')
-	{
-		$this->sql_statement($fields);
-		if ( empty($id) )
-		{
-			$this->sql_stack_fields = $this->sql_fields;
-			$this->sql_stack_values[] = '(' . $this->sql_values . ')';
-		}
-		else
-		{
-			$this->sql_stack_fields[$id] = $this->sql_fields;
-			$this->sql_stack_values[$id][] = '(' . $this->sql_values . ')';
-		}
-	}
-
-	function sql_stack_insert($table, $transaction=false, $line='', $file='', $break_on_error=true, $id='')
-	{
-		if ( (empty($id) && empty($this->sql_stack_values)) || (!empty($id) && empty($this->sql_stack_values[$id])) )
-		{
-			return false;
-		}
-		switch( SQL_LAYER )
-		{
-			case 'mysql':
-			case 'mysql4':
-				if ( empty($id) )
-				{
-					$sql = 'INSERT INTO ' . $table . '
-								(' . $this->sql_stack_fields . ') VALUES ' . implode(",\n", $this->sql_stack_values);
-				}
-				else
-				{
-					$sql = 'INSERT INTO ' . $table . '
-								(' . $this->sql_stack_fields[$id] . ') VALUES ' . implode(",\n", $this->sql_stack_values[$id]);
-				}
-				$this->sql_stack_reset($id);
-				return $this->sql_query($sql, $transaction, $line, $file, $break_on_error);
-				break;
-			default:
-				$count_sql_stack_values = empty($id) ? count($this->sql_stack_values) : count($this->sql_stack_values[$id]);
-				$result = !empty($count_sql_stack_values);
-				for ( $i = 0; $i < $count_sql_stack_values; $i++ )
-				{
-					if ( empty($id) )
-					{
-						$sql = 'INSERT INTO ' . $table . '
-									(' . $this->sql_stack_fields . ') VALUES ' . $this->sql_stack_values[$i];
-					}
-					else
-					{
-						$sql = 'INSERT INTO ' . $table . '
-									(' . $this->sql_stack_fields[$id] . ') VALUES ' . $this->sql_stack_values[$id][$i];
-					}
-					$result &= $this->sql_query($sql, $transaction, $line, $file, $break_on_error);
-				}
-				$this->sql_stack_reset($id);
-				return $result;
-				break;
-		}
-	}
-
-	function sql_subquery($field, $sql, $line='', $file='', $break_on_error=true, $type=TYPE_INT)
-	{
-		// sub-queries doable
-		$this->sql_get_version();
-		if ( !in_array(SQL_LAYER, array('mysql', 'mysql4')) || (($this->sql_version[0] + ($this->sql_version[1] / 100)) >= 4.01) )
-		{
-			return $sql;
-		}
-
-		// no sub-queries
-		$ids = array();
-		$result = $this->sql_query(trim($sql), false, $line, $file, $break_on_error);
-		while ( $row = $this->sql_fetchrow($result) )
-		{
-			$ids[] = $type == TYPE_INT ? intval($row[$field]) : '\'' . $this->sql_escape_string($row[$field]) . '\'';
-		}
-		$this->sql_freeresult($result);
-		return empty($ids) ? 'NULL' : implode(', ', $ids);
-	}
-
-	function sql_col_id($expr, $alias)
-	{
-		$this->sql_get_version();
-		return in_array(SQL_LAYER, array('mysql', 'mysql4')) && (($this->sql_version[0] + ($this->sql_version[1] / 100)) <= 4.01) ? $alias : $expr;
-	}
-
-	function sql_get_version()
-	{
-		if ( empty($this->sql_version) )
-		{
-			$this->sql_version = array(0, 0, 0);
-			switch ( SQL_LAYER )
-			{
-				case 'mysql':
-				case 'mysql4':
-					if ( function_exists('mysql_get_server_info') )
-					{
-						$lo_version = explode('-', mysql_get_server_info());
-						$this->sql_version = explode('.', $lo_version[0]);
-						$this->sql_version = array(intval($this->sql_version[0]), intval($this->sql_version[1]), intval($this->sql_version[2]), $lo_version[1]);
-					}
-					break;
-
-				case 'postgresql':
-				case 'mssql':
-				case 'mssql-odbc':
-				default:
-					break;
-			}
-		}
-		return $this->sql_version;
-	}
-
 	function sql_error()
 	{
 		if ( $this->_conn )
@@ -1460,38 +1147,7 @@ class postgresql {
 			return ( defined('IN_ENANO_INSTALL') ) ? $GLOBALS["lang"]->get('dbpgsql_msg_err_auth') : 'Access to the database was denied. Ensure that your database exists and that your username and password are correct.';
 		}
 	}
-  function sql_escape_string($t) 
-  {
-    return mysql_real_escape_string($t);
-  }
-  function sql_close()
-  {
-    $this->close();
-  }
-  function sql_fetchrowset($query_id = 0)
-	{
-		if( !$query_id )
-		{
-			$query_id = $this->query_result;
-		}
 
-		if( $query_id )
-		{
-			unset($this->rowset[$query_id]);
-			unset($this->row[$query_id]);
-
-			while($this->rowset[$query_id] = mysql_fetch_array($query_id, MYSQL_ASSOC))
-			{
-				$result[] = $this->rowset[$query_id];
-			}
-
-			return $result;
-		}
-		else
-		{
-			return false;
-		}
-	}
   /**
    * Generates and outputs a report of all the SQL queries made during execution. Should only be called after everything's over with.
    */
