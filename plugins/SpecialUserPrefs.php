@@ -250,6 +250,7 @@ function page_Special_Preferences()
             if ( getConfig('pw_strength_enable') == '1' )
             {
               $score_inp = password_score($newpass);
+              $score_min = getConfig('pw_strength_minimum', -10);
               if ( $score_inp < $score_min )
                 $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_password_too_weak', array('score' => $score_inp)) . '</div>';
             }
