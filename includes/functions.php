@@ -4790,7 +4790,7 @@ function enano_clean_json($json)
           '#/\*(.+)\*/\s*$#Us'
         ), '', $json);
     
-  $json = preg_replace('/([,\{\[])([\s]*?)([a-z0-9_]+)([\s]*?):/', '\\1\\2"\\3" :', $json);
+  $json = preg_replace('/([,\{\[])(?:[\r\n]+)([\s]*?)([a-z0-9_]+)([\s]*?):/', '\\1\\2"\\3" :', $json);
   
   return $json;
 }
