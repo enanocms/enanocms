@@ -987,16 +987,10 @@ class Namespace_Default
     $page_id_db = $db->escape($page_id);
     $namespace_db = $db->escape($namespace);
     
-    $q = $db->sql_query('SELECT p.*, COUNT(ca.comment_id) AS comments_approved, COUNT(cu.comment_id) AS comments_unapproved, COUNT(cs.comment_id) AS comments_spam'
-                         . ' FROM ' . table_prefix . "pages AS p\n"
-                      . "  LEFT JOIN " . table_prefix . "comments AS ca\n"
-                      . "    ON ( (ca.approved = " . COMMENT_APPROVED . " AND ca.page_id = p.urlname ) OR ca.comment_id IS NULL)\n"
-                      . "  LEFT JOIN " . table_prefix . "comments AS cu\n"
-                      . "    ON ( (cu.approved = " . COMMENT_UNAPPROVED . " AND cu.page_id = p.urlname ) OR cu.comment_id IS NULL)\n"
-                      . "  LEFT JOIN " . table_prefix . "comments AS cs\n"
-                      . "    ON ( (cs.approved = " . COMMENT_SPAM . " AND cs.page_id = p.urlname ) OR cs.comment_id IS NULL)\n"
+    $q = $db->sql_query('SELECT p.*'
+                      . '    FROM ' . table_prefix . "pages AS p\n"
                       . "  WHERE p.urlname = '$page_id_db' AND p.namespace = '$namespace_db'\n"
-                      . "  GROUP BY p.urlname, p.name, p.namespace, p.page_order, p.special, p.visible, p.protected, p.wiki_mode, p.comments_on, p.delvotes, p.delvote_ips, p.page_format, p.password;");
+                      . "    GROUP BY p.urlname, p.name, p.namespace, p.page_order, p.special, p.visible, p.protected, p.wiki_mode, p.comments_on, p.delvotes, p.delvote_ips, p.page_format, p.password;");
     
     if ( !$q )
       $db->_die();
@@ -1009,6 +1003,26 @@ class Namespace_Default
     }
     
     $row = $db->fetchrow();
+    
+    // Get comment counts
+    $q = $db->sql_query('SELECT approved FROM ' . table_prefix . "comments WHERE page_id = '$page_id_db' AND namespace = '$namespace_db';");
+    // yay parallel assignment
+    $row['comments_approved'] = $row['comments_unapproved'] = $row['comments_spam'] = 0;
+    while ( $commentrow = $db->fetchrow() )
+      switch($commentrow['approved'])
+      {
+        case COMMENT_APPROVED:
+        default:
+          $row['comments_approved']++;
+          break;
+        case COMMENT_UNAPPROVED:
+          $row['comments_unapproved']++;
+          break;
+        case COMMENT_SPAM:
+          $row['comments_spam']++;
+          break;
+      }
+    
     $cache[$pathskey] = $row;
     return $row;
   }
