@@ -235,16 +235,33 @@ var enano_lang = {
       stat_lastupdate_never: 'Never',
       
       heading_alerts: 'Active alerts',
+      
       msg_demo_title: 'Enano is running in demo mode.',
       msg_demo_body: 'If you borked something up, or if you\'re done testing, you can <a href="%reset_url%">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.',
+      
       msg_install_files_title: 'Installer files found',
       msg_install_files_body: 'Please delete the install/ directory from your Enano installation folder &ndash; it contains sensitive tools that might allow your site to be compromised.',
+      
       heading_updates: 'Check for updates',
       msg_updates_info: 'The Enano team will on occasion release new versions of Enano. We always recommend that you run the latest available version because many releases contain security patches. Enano checks for updates by looking at an <a href="%updates_url%">XML file</a> and doesn\'t share any information about your site.',
       btn_check_updates: 'Check for updates',
+      
       heading_inactive_users: 'Users are awaiting activation',
       msg_inactive_users_one: '1 user has requested manual account activation. You can activate the account by going to the <a %um_flags%>User Manager</a>.',
       msg_inactive_users_plural: '%num_users% users have requested manual account activation. You can activate those accounts by going to the <a %um_flags%>User Manager</a>.',
+      
+      msg_users_locked_out: 'Active IP address lockouts',
+      msg_users_locked_out_hint: 'The following IP addresses have been automatically locked out from login attempts. You can delete these active lockouts, if you choose.',
+      th_locked_out_ip: 'IP address',
+      th_locked_out_username: 'Username (most recent attempt)',
+      th_locked_out_status: 'Status',
+      th_locked_out_time: 'Time remaining',
+      lbl_locked_out_warned: 'Warned (failures: %fail_count%)',
+      lbl_locked_out_banned: 'Locked out',
+      btn_lockout_unblock: 'Unblock',
+      btn_lockout_clear: 'Clear',
+      msg_lockout_clear_success: 'The IP address %ip% has been cleared from the active lockout list.',
+      
       heading_docs: 'Enano documentation',
       msg_docs_info: 'The <a href="http://docs.enanocms.org/" onclick="window.open(this.href); return false;">Enano administrator\'s handbook</a> is maintained as a wiki. It will help you get started with Enano and learn about how we do things differently.',
       heading_support: 'Get support',

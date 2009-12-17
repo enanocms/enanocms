@@ -274,6 +274,7 @@ CREATE TABLE {{TABLE_PREFIX}}lockout(
   ipaddr varchar(40) NOT NULL,
   action ENUM('credential', 'level') NOT NULL DEFAULT 'credential',
   timestamp int(12) NOT NULL DEFAULT 0,
+  username varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY ( id )
 ) CHARACTER SET `utf8` COLLATE `utf8_bin`;
 

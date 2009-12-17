@@ -671,7 +671,7 @@ function page_Admin_GeneralConfig()
           <small><?php echo $lang->get('acpgc_field_passminimum_hint'); ?></small>
         </td>
         <td class="row1">
-          <input type="text" name="pw_strength_minimum" value="<?php echo ( $x = getConfig('pw_strength_minimum') ) ? $x : '-10'; ?>" />
+          <input type="text" name="pw_strength_minimum" value="<?php echo strval(getConfig('pw_strength_minimum', -10)); ?>" />
         </td>
       </tr>
       
@@ -2081,7 +2081,7 @@ function page_Special_Administration()
     echo $lang->get('adm_page_tagline');
     ?>
     <script type="text/javascript">
-    function ajaxPage(t)
+    function ajaxPage(t, qs)
     {
       if ( KILL_SWITCH )
       {
@@ -2134,9 +2134,9 @@ function page_Special_Administration()
           });
         return;
       }
-      ajaxPageBin(t);
+      ajaxPageBin(t, qs);
     }
-    function ajaxPageBin(t)
+    function ajaxPageBin(t, qs)
     {
       if ( KILL_SWITCH )
       {
@@ -2144,8 +2144,11 @@ function page_Special_Administration()
         return false;
       }
       document.getElementById('ajaxPageContainer').innerHTML = '<div class="wait-box">Loading page...</div>';
-      ajaxGet('<?php echo scriptPath; ?>/ajax.php?title='+t+'&_mode=getpage&noheaders&auth=' + ENANO_SID, function(ajax) {
-          if ( ajax.readyState == 4 && ajax.status == 200 ) {
+      qs = qs ? '&' + qs : '';
+      ajaxGet(makeUrl(t, 'noheaders' + qs), function(ajax)
+        {
+          if ( ajax.readyState == 4 && ajax.status == 200 )
+          {
             var response = String(ajax.responseText + '');
             if ( check_json_response(response) )
             {

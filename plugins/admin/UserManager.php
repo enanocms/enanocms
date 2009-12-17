@@ -590,10 +590,12 @@ function page_Admin_UserManager()
               </tr>';
       }
       echo '</table>';
+      echo '</div>';
     }
     $db->free_result();
   }
   
+  acp_usermanager_lockouts();
 }
 
 /**
@@ -1221,4 +1223,81 @@ EOF;
   
 }
 
-?>
+function acp_usermanager_lockouts($homewrap = false)
+{
+  global $db, $session, $paths, $template, $plugins; // Common objects
+  global $lang;
+  
+  // Locked out users
+  
+  if ( !empty($_GET['clear_lockout']) && is_valid_ip($_GET['clear_lockout']) )
+  {
+    $ip = $db->escape($_GET['clear_lockout']);
+    $q = $db->sql_query('DELETE FROM ' . table_prefix . "lockout WHERE ipaddr = '$ip' AND timestamp > ( " . time() . " - (" . getConfig('lockout_duration', 15) . "*60) );");
+    if ( !$q )
+      $db->_die();
+    
+    echo '<div class="info-box">' . $lang->get('acphome_msg_lockout_clear_success', array('ip' => htmlspecialchars($ip))) . '</div>';
+  }
+  
+  $q = $db->sql_query('SELECT COUNT(id) AS fail_count, ipaddr, username, timestamp FROM ' . table_prefix . "lockout\n"
+                    . "  WHERE timestamp > ( " . time() . " - " . intval(getConfig('lockout_duration', 15)) . "*60 ) GROUP BY ipaddr ORDER BY COUNT(id) DESC, timestamp DESC;");
+  if ( !$q )
+    $db->_die();
+  
+  if ( $db->numrows() > 0 )
+  {
+    if ( $homewrap )
+      echo '<div class="acphome-box notice">';
+    echo '<h3>' . $lang->get('acphome_msg_users_locked_out') . '</h3>';
+    echo '<p>' . $lang->get('acphome_msg_users_locked_out_hint') . '</p>';
+    
+    ?>
+    <div class="tblholder" style="margin-bottom: 10px;">
+    <table width="100%" cellspacing="1" cellpadding="4">
+      <tr>
+        <th><?php echo $lang->get('acphome_th_locked_out_ip'); ?></th>
+        <th><?php echo $lang->get('acphome_th_locked_out_username'); ?></th>
+        <th><?php echo $lang->get('acphome_th_locked_out_status'); ?></th>
+        <th><?php echo $lang->get('acphome_th_locked_out_time'); ?></th>
+        <th></th>
+      </tr>
+    <?php
+    
+    while ( $row = $db->fetchrow() )
+    {
+      echo '<tr>';
+      echo '<td class="row1">' . htmlspecialchars($row['ipaddr']) . '</td>';
+      echo '<td class="row2">' . htmlspecialchars($row['username']) . '</td>';
+      // status
+      echo '<td class="row1" style="text-align: center;">' .
+            ( $row['fail_count'] >= getConfig('lockout_threshold', 5)
+                ? '<b>' . $lang->get('acphome_lbl_locked_out_banned') . '</b>'
+                : $lang->get('acphome_lbl_locked_out_warned', array('fail_count' => $row['fail_count']))
+            )
+            . '</td>';
+      // time left
+      if ( $row['fail_count'] >= getConfig('lockout_threshold', 5) )
+      {
+        $expire_time = $row['timestamp'] + ( getConfig('lockout_duration', 15) * 60 );
+        $time_left = round(($expire_time - time()) / 60);
+        $minutes = $time_left == 1 ? $lang->get('etc_unit_minute') : $lang->get('etc_unit_minutes');
+        echo '<td class="row2" style="text-align: center;">' . "$time_left $minutes" . '</td>';
+      }
+      else
+      {
+        echo '<td class="row2" style="text-align: center;">&ndash;</td>';
+      }
+      // action
+      $btn_text = $row['fail_count'] >= getConfig('lockout_threshold', 5) ? $lang->get('acphome_btn_lockout_unblock') : $lang->get('acphome_btn_lockout_clear');
+      echo '<td class="row1" style="text-align: center;"><a href="#" onclick="ajaxPage(\'' . $paths->nslist['Admin'] . 'UserManager\', \'clear_lockout=' . htmlspecialchars($row['ipaddr']) . '\'); return false;">' . $btn_text . '</a></td>';
+      echo '</tr>';
+    }
+    echo '</table>';
+    echo '</div>';
+    if ( $homewrap )
+      echo '</div>';
+  }
+  
+  $db->free_result();
+}

@@ -224,6 +224,10 @@ div.acphome-box p {
   margin: 0 0 10px 0;
 }
 
+div.acphome-box div.tblholder table {
+  color: black;
+}
+
 div.acphome-box.warning {
   background-color: #900000;
   color: #fff;
@@ -247,6 +251,14 @@ div.acphome-box.warning a:link, div.acphome-box.notice a:link {
 
 div.acphome-box.warning a:hover, div.acphome-box.notice a:hover {
   color: #fff !important;
+}
+
+div.acphome-box div.tblholder table a {
+  color: #294F75 !important;
+}
+
+div.acphome-box div.tblholder table a:hover {
+  color: #597FA5 !important;
 }
 
 th.systemversion a {

@@ -79,6 +79,8 @@ function page_Admin_Home()
   }
   $db->free_result();
   
+  acp_usermanager_lockouts(true);
+  
   // Update checker
   echo '<div class="acphome-box info">';
     echo '<h3>' . $lang->get('acphome_heading_updates') . '</h3>';

@@ -801,6 +801,10 @@ var enano_lang = {
       unit_months: 'months',
       unit_year: 'year',
       unit_years: 'years',
+      unit_minute: 'minute',
+      unit_minutes: 'minutes',
+      unit_minute_short: 'min',
+      unit_minutes_short: 'mins'
     }
   }
 };

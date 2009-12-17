@@ -737,19 +737,19 @@ class sessionManager {
           'lockout_policy' => 'disable'
           );
       
-      if ( $lockout_data['lockout_policy'] != 'disable' && !defined('IN_ENANO_INSTALL') )
+      if ( $lockout_data['policy'] != 'disable' && !defined('IN_ENANO_INSTALL') )
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
-        $lockout_data['lockout_fails']++;
+        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action, username) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\', \'' . $db->escape($username) . '\');');
+        $lockout_data['fails']++;
         return array(
             'success' => false,
-            'error' => ( $lockout_data['lockout_fails'] >= $lockout_data['lockout_threshold'] ) ? 'locked_out' : 'invalid_credentials',
-            'lockout_threshold' => $lockout_data['lockout_threshold'],
-            'lockout_duration' => ( $lockout_data['lockout_duration'] ),
-            'lockout_fails' => $lockout_data['lockout_fails'],
-            'lockout_policy' => $lockout_data['lockout_policy']
+            'error' => ( $lockout_data['fails'] >= $lockout_data['threshold'] ) ? 'locked_out' : 'invalid_credentials',
+            'lockout_threshold' => $lockout_data['threshold'],
+            'lockout_duration' => ( $lockout_data['duration'] ),
+            'lockout_fails' => $lockout_data['fails'],
+            'lockout_policy' => $lockout_data['policy']
           );
       }
       
@@ -866,7 +866,7 @@ class sessionManager {
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\');');
+        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\', \'' . $db->escape($username) . '\');');
       }
         
       return array(
@@ -981,7 +981,7 @@ class sessionManager {
     if(!is_int($user_id))
       die('Somehow an SQL injection attempt crawled into our session registrar! (1)');
     if(!is_int($level))
-      die('Somehow an SQL injection attempt crawled into our session registrar! (2)');
+      die(var_dump($level) . '<br />Somehow an SQL injection attempt crawled into our session registrar! (2)');
     
     // Update RAM
     $this->user_id = $user_id;

@@ -275,6 +275,7 @@ CREATE TABLE {{TABLE_PREFIX}}lockout(
   ipaddr varchar(40) NOT NULL,
   action varchar(20) NOT NULL DEFAULT 'credential',
   timestamp int NOT NULL DEFAULT 0,
+  username varchar(255) NOT NULL DEFAULT '',
   CHECK ( action IN ('credential', 'level') ),
   PRIMARY KEY ( id )
 );
