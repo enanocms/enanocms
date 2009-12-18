@@ -21,7 +21,8 @@ class Carpenter_Parse_MediaWiki
     'externalnotext' => '#\[((?:https?|irc|ftp)://.+?)\]#',
     'mailtonotext' => '#\[mailto:([^ \]]+?)\]#',
     'mailtowithtext' => '#\[mailto:([^ \]]+?) (.+?)\]#',
-    'hr' => '/^[-]{4,} *$/m'
+    'hr' => '/^[-]{4,} *$/m',
+    'code' => '/^<code>(?:\r?\n)?(.+?)(?:\r?\n)?<\/code>$/mis'
   );
   
   private $blockquote_rand_id;

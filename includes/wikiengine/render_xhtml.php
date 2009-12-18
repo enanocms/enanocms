@@ -156,6 +156,11 @@ class Carpenter_Render_Xhtml
     global $email;
     return $email->encryptEmail($pieces[1], '', '', $pieces[2]);
   }
+  
+  public function code($match)
+  {
+    return '<pre>' . htmlspecialchars($match[0]) . '</pre>';
+  }
 }
 
 // Alias internal link parsing to RenderMan's method

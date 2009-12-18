@@ -60,6 +60,7 @@ class Carpenter
       'lang',
       'templates',
       'blockquote',
+      'code',
       'tables',
       'heading',
       'hr',
