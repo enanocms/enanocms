@@ -108,7 +108,8 @@ function page_Special_UploadFile()
     $ext = substr($filename, strrpos($filename, '.'), strlen($filename));
     $flen = filesize($file['tmp_name']);
     
-    $comments = ( isset($_POST['update']) ) ? $db->escape($_POST['comments']) : $db->escape(RenderMan::preprocess_text($_POST['comments'], false, false));
+    $perms = $session->fetch_page_acl($filename, 'File');
+    $comments = ( isset($_POST['update']) ) ? $db->escape($_POST['comments']) : $db->escape(RenderMan::preprocess_text($_POST['comments'], false, false, true, $perms));
     $chartag = sha1(microtime());
     $urln = str_replace(' ', '_', $filename);
     

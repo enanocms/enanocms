@@ -917,8 +917,9 @@ class RenderMan {
    * @param bool $strip_all_php - if true, strips all PHP regardless of user permissions. Else, strips PHP only if user level < USER_LEVEL_ADMIN. Defaults to true.
    * @param bool $sqlescape - if true, sends text through $db->escape(). Otherwise returns unescaped text. Defaults to true.
    * @param bool $reduceheadings - if true, finds HTML headings and replaces them with wikitext. Else, does not touch headings. Defaults to true.
+   * @param Session_ACLPageInfo Optional permissions instance to check against, $session is used if not provided
    */
-  public static function preprocess_text($text, $strip_all_php = true, $sqlescape = true, $reduceheadings = true)
+  public static function preprocess_text($text, $strip_all_php = true, $sqlescape = true, $reduceheadings = true, $perms = false)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
     $random_id = md5( time() . mt_rand() );
@@ -929,8 +930,18 @@ class RenderMan {
       eval($cmd);
     }
     
-    $can_do_php = ( !$strip_all_php && $session->get_permissions('php_in_pages') );
-    $can_do_html = $session->check_acl_scope('html_in_pages', $paths->namespace) && $session->get_permissions('html_in_pages');
+    if ( !is_object($perms) )
+    {
+      $namespace = $paths->namespace;
+      $perms =& $session;
+    }
+    else
+    {
+      $namespace = $perms->namespace;
+    }
+    
+    $can_do_php = ( !$strip_all_php && $perms->get_permissions('php_in_pages') );
+    $can_do_html = $session->check_acl_scope('html_in_pages', $namespace) && $perms->get_permissions('html_in_pages');
     
     if ( $can_do_html && !$can_do_php )
     {
