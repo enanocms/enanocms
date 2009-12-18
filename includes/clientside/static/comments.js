@@ -5,13 +5,14 @@ var comment_render_track = 0;
 
 window.ajaxComments = function(parms)
 {
-  load_component(['l10n', 'paginate', 'template-compiler', 'toolbar', 'flyin']);
+  load_component(['l10n', 'paginate', 'template-compiler', 'toolbar', 'flyin', 'jquery', 'jquery-ui']);
   setAjaxLoading();
   var pid = strToPageID(title);
   if(!parms)
   {
     var parms = {
-      'mode' : 'fetch'
+      mode: 'fetch',
+      pagenum: 0
     };
   }
   parms.page_id = pid[0];
@@ -35,12 +36,24 @@ window.ajaxComments = function(parms)
       switch(response.mode)
       {
         case 'fetch':
-          document.getElementById('ajaxEditContainer').innerHTML = '<div class="wait-box">Rendering '+response.count_total+' comments...</div>';
           if(response.template)
             comment_template = response.template;
           setAjaxLoading();
           renderComments(response);
           unsetAjaxLoading();
+          break;
+        case 'refetch':
+          var html = '';
+          for ( var i = 0; i < response.comments.length; i++ )
+          {
+            html += window._render_comment(response.comments[i], response);
+          }
+          $('#' + response.passback.paginator_id + '_0')
+            .css('height', 'auto')
+            .css('background-color', 'transparent')
+            .css('background-image', 'none')
+            .fadeTo('fast', 100)
+            .html(html);
           break;
         case 'redraw':
           redrawComment(response);
@@ -118,7 +131,7 @@ window.renderComments = function(data)
   if ( data.count_total > 0 )
   {
     comment_render_track = 0;
-    var commentpages = new paginator(data.comments, _render_comment, 0, 10, data);
+    var commentpages = new paginator(data.comments, _render_comment, 0, data.per_page, data, Math.ceil(data.count_total / data.per_page), window._comment_page_flip);
     html += commentpages.html;
   }
   
@@ -628,6 +641,36 @@ window.comment_increment_unapproval = function()
     span.innerHTML = count_msg;
     status.appendChild(span);
   }
+}
+
+window._comment_page_flip = function(paginator, page_number)
+{
+  // get ID
+  var random_id = paginator.random_id;
+  // update paginate control
+  paginator.set_page(page_number);
+  $('.' + random_id + '_control').html(paginator._build_control(page_number));
+  paginator.offset = page_number;
+  // set to loading state
+  $('#' + random_id + '_0')
+    .css('height', 500)
+    .html('')
+    .fadeTo("fast", 0.7)
+    .css('background-position', 'center 51px')
+    .css('background-repeat', 'no-repeat')
+    .css('background-color', 'white')
+    .css('background-image', 'url(' + cdnPath + '/images/loading-big.gif' + ')')
+    .animate({ height: 150 }, 500, function()
+      {
+        // load the new comments
+        ajaxComments({
+            mode: 'fetch',
+            pagenum: page_number,
+            passback: {
+              paginator_id: random_id
+            }
+          });
+      });
 }
 
 window.viewCommentIP = function(id, local_id)

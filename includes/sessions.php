@@ -4356,9 +4356,10 @@ class Session_ACLPageInfo {
       ORDER BY target_type ASC, page_id ASC, namespace ASC;';
       
     $q = $session->sql($bs);
-    if ( $row = $db->fetchrow() )
+    if ( $row = $db->fetchrow($q, true) )
     {
-      do {
+      do
+      {
         $rules = $session->string_to_perm($row['rules']);
         $is_everyone = ( $row['target_type'] == ACL_TYPE_GROUP && $row['target_id'] == 1 );
         // log where this comes from

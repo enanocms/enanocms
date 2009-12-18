@@ -11,7 +11,7 @@
  
 var pagin_objects = new Object();
 
-window.paginator = function(data, callback, offset, perpage, passer)
+window.paginator = function(data, callback, offset, perpage, passer, ov_num_pages, ov_flip_func)
 {
   load_component('flyin');
   if ( !perpage || typeof(perpage) != 'number' || ( typeof(perpage) == 'number' && perpage < 1 ) )
@@ -30,9 +30,26 @@ window.paginator = function(data, callback, offset, perpage, passer)
     this.passer = passer;
   else
     this.passer = false;
-  this.num_pages = Math.ceil(data.length / perpage );
+  if ( ov_num_pages )
+  {
+    this.num_pages = ov_num_pages;
+    this.flip_func = ov_flip_func;
+  }
+  else
+  {
+    this.num_pages = Math.ceil(data.length / perpage);
+    this.flip_func = false;
+  }
   this.random_id = 'autopagin_' + Math.floor(Math.random() * 1000000);
   this._build_control = _build_paginator;
+  this.set_page = function(number)
+  {
+    this.offset = number * this.perpage;
+    var html = this._build_control(number);
+    var elements = getElementsByClassName(document.body, 'div', this.random_id + '_control');
+    for ( var i = 0; i < elements.length; i++ )
+      elements[i].innerHTML = html;
+  }
   if ( this.num_pages > 1 )
   {
     var pg_control = '<div class="'+this.random_id+'_control">'+this._build_control(0)+'</div>';
@@ -68,7 +85,7 @@ window.paginator = function(data, callback, offset, perpage, passer)
 
 window._build_paginator = function(this_page)
 {
-  var div_styling = ( IE ) ? 'width: 1px; margin: 10px auto 10px 0;' : 'display: table; margin: 10px 0 0 auto;';
+  var div_styling = ( IE ) ? 'width: 1px; margin: 10px auto 10px 0;' : 'display: table; margin: 10px 0 10px auto;';
   var begin = '<div class="tblholder" style="'+div_styling+'"><table border="0" cellspacing="1" cellpadding="4"><tr><th>' + $lang.get('paginate_lbl_page') + '</th>';
   var block = '<td class="row1" style="text-align: center; white-space: nowrap;">{LINK}</td>';
   var end = '</tr></table></div>';
@@ -201,6 +218,12 @@ window.jspaginator_goto = function(pagin_id, jump_to)
   if ( __paginateLock )
     return false;
   var theobj = pagin_objects[pagin_id];
+  if ( theobj.flip_func )
+  {
+    theobj.flip_func(theobj, jump_to);
+    __paginateLock = false;
+    return true;
+  }
   var current_div = false;
   var new_div = false;
   for ( var i = 0; i < theobj.num_pages; i++ )

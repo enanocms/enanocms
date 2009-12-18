@@ -829,7 +829,9 @@ JSEOF;
             COMMENT_UNAPPROVED => $cdata['comments_unapproved'],
             COMMENT_SPAM => $cdata['comments_spam']
           );
-        $num_comments = array_sum($approval_counts);
+        $num_comments = $session->check_acl_scope('mod_comments', $this->namespace) && $this->page->perms->get_permissions('mod_comments')
+                          ? array_sum($approval_counts)
+                          : $approval_counts[COMMENT_APPROVED];
       }
       else
       {

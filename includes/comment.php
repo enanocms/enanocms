@@ -97,6 +97,8 @@ class Comments
     }
     $ret = Array();
     $ret['mode'] = $data['mode'];
+    if ( isset($data['passback']) )
+      $ret['passback'] = $data['passback'];
     switch ( $data['mode'] )
     {
       case 'fetch':
@@ -106,6 +108,31 @@ class Comments
         {
           $ret['template'] = file_get_contents(ENANO_ROOT . '/themes/' . $template->theme . '/comment.tpl');
         }
+        $approve_clause = $this->perms->get_permissions('mod_comments') ? '' : " AND approved = " . COMMENT_APPROVED;
+        // Get totals
+        $q = $db->sql_query('SELECT approved FROM ' . table_prefix . "comments WHERE page_id = '$this->page_id' AND namespace = '$this->namespace'{$approve_clause};");
+        if ( !$q )
+          $db->die_json();
+        $counts = array('total' => 0, 'approved' => 0, 'unapproved' => 0, 'spam' => 0);
+        while ( $row = $db->fetchrow() )
+        {
+          $counts['total']++;
+          switch($row['approved']):
+            case COMMENT_APPROVED:   $counts['approved']++;   break;
+            case COMMENT_UNAPPROVED: $counts['unapproved']++; break;
+            case COMMENT_SPAM:       $counts['spam']++;       break;
+          endswitch;
+        }
+        $counts['unapproved'] = $counts['total'] - $counts['approved'];
+        $data['counts'] = $counts;
+        // FIXME, this should be a user preference eventually
+        $ret['per_page'] = $per_page = getConfig('comments_per_page', 10);
+        $page = ( !empty($data['pagenum']) ) ? intval($data['pagenum']) : 0;
+        if ( $page > 0 )
+        {
+          $ret['mode'] = 'refetch';
+        }
+        $limit_clause = "LIMIT $per_page OFFSET " . ($page * $per_page);
         $q = $db->sql_query('SELECT c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,( c.ip_address IS NOT NULL ) AS have_ip,u.user_level,u.user_id,u.email,u.signature,u.user_has_avatar,u.avatar_type, b.buddy_id IS NOT NULL AS is_buddy, ( b.is_friend IS NOT NULL AND b.is_friend=1 ) AS is_friend FROM '.table_prefix.'comments AS c
                                LEFT JOIN '.table_prefix.'users AS u
                                  ON (u.user_id=c.user_id)
@@ -115,21 +142,16 @@ class Comments
                                  ON ( ( u.user_rank = r.rank_id ) )
                                WHERE page_id=\'' . $this->page_id . '\'
                                  AND namespace=\'' . $this->namespace . '\'
+                                 ' . $approve_clause . '
                                GROUP BY c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,c.ip_address,u.user_level,u.user_id,u.email,u.signature,u.user_has_avatar,u.avatar_type,b.buddy_id,b.is_friend
-                               ORDER BY c.time ASC;');
-        $count_appr = 0;
-        $count_total = 0;
-        $count_unappr = 0;
+                               ORDER BY c.time ASC
+                               ' . $limit_clause . ';');
         $ret['comments'] = Array();
         if (!$q)
           $db->die_json();
         if ( $row = $db->fetchrow($q) )
         {
           do {
-            
-            // Increment counters
-            $count_total++;
-            ( $row['approved'] == 1 ) ? $count_appr++ : $count_unappr++;
             
             if ( !$this->perms->get_permissions('mod_comments') && $row['approved'] != COMMENT_APPROVED )
               continue;
@@ -174,9 +196,10 @@ class Comments
           } while ( $row = $db->fetchrow($q) );
         }
         $db->free_result();
-        $ret['count_appr'] = $count_appr;
-        $ret['count_total'] = $count_total;
-        $ret['count_unappr'] = $count_unappr;
+        $ret['count_appr'] = $counts['approved'];
+        $ret['count_total'] = $counts['total'];
+        $ret['count_visible'] = $this->perms->get_permissions('mod_comments') ? $counts['total'] : $counts['approved'];
+        $ret['count_unappr'] = $counts['unapproved'];
         $ret['auth_mod_comments'] = $this->perms->get_permissions('mod_comments');
         $ret['auth_post_comments'] = $this->perms->get_permissions('post_comments');
         $ret['auth_edit_comments'] = $this->perms->get_permissions('edit_comments');

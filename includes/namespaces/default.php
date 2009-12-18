@@ -1005,6 +1005,8 @@ class Namespace_Default
     $row = $db->fetchrow();
     
     // Get comment counts
+    // FIXME: Apparently there's a bit of recursion in here. Fetching permissions depends on this cdata function.
+    // Perhaps we should eliminate session's dependency on cdata? (What is it used for?)
     $q = $db->sql_query('SELECT approved FROM ' . table_prefix . "comments WHERE page_id = '$page_id_db' AND namespace = '$namespace_db';");
     // yay parallel assignment
     $row['comments_approved'] = $row['comments_unapproved'] = $row['comments_spam'] = 0;
