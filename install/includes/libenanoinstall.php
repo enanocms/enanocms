@@ -15,6 +15,16 @@
 
 $neutral_color = 'C';
 
+// Chat log from the night of the 1.1.7 release:
+// (09:08:20 PM) Neal: btw, did you figure out what caused the PHP fatal error in the 1.1.7
+//                     trunk for the CLI autoinstall script for the BitNami installer?
+// (09:08:38 PM) Dan: oh
+// (09:08:40 PM) Dan: eh
+// (09:08:45 PM) Dan: yeah i'll fix that real quick
+
+// Hence, the function_exists check.
+
+if ( !function_exists('run_installer_stage') ):
 function run_installer_stage($stage_id, $stage_name, $function, $failure_explanation, $allow_skip = true)
 {
   static $resumed = false;
@@ -60,6 +70,7 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
     return false;
   }
 }
+endif;
 
 function start_install_table()
 {
