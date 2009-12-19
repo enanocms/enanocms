@@ -459,8 +459,8 @@ class PageProcessor
     $date_string = enano_date(ED_DATE | ED_TIME);
     
     // Insert log entry
-    $sql = 'INSERT INTO ' . table_prefix . "logs ( time_id, date_string, log_type, action, page_id, namespace, author, page_text, edit_summary, minor_edit, page_format )\n"
-         . "  VALUES ( $time, '$date_string', 'page', 'edit', '{$this->page_id}', '{$this->namespace}', '$author', '$text', '$edit_summary', $minor_edit, '$page_format' );";
+    $sql = 'INSERT INTO ' . table_prefix . "logs ( time_id, date_string, log_type, action, page_id, namespace, author, author_uid, page_text, edit_summary, minor_edit, page_format )\n"
+         . "  VALUES ( $time, '$date_string', 'page', 'edit', '{$this->page_id}', '{$this->namespace}', '$author', $session->user_id, '$text', '$edit_summary', $minor_edit, '$page_format' );";
     if ( !$db->sql_query($sql) )
     {
       $this->raise_error($db->get_error());
@@ -588,9 +588,9 @@ class PageProcessor
       $db->_die('PageProcessor page creation - text stage');
     
     // Query 3: Log entry
-    $db->sql_query('INSERT INTO ' . table_prefix."logs(time_id, date_string, log_type, action, author, page_id, namespace)\n"
+    $db->sql_query('INSERT INTO ' . table_prefix."logs(time_id, date_string, log_type, action, author, author_uid, page_id, namespace)\n"
                    . "  VALUES ( " . time() . ", 'DEPRECATED', 'page', 'create', \n"
-                   . "          '" . $db->escape($session->username) . "', '" . $db->escape($this->page_id) . "', '" . $this->namespace . "');");
+                   . "          '" . $db->escape($session->username) . "', $session->user_id, '" . $db->escape($this->page_id) . "', '" . $this->namespace . "');");
     if ( !$q )
       $db->_die('PageProcessor page creation - logging stage');
     
@@ -1132,7 +1132,7 @@ class PageProcessor
     global $email;
     
     // Log it for crying out loud
-    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \'DEPRECATED\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,author_uid,edit_summary,page_text) VALUES(\'security\', \'illegal_page\', '.time().', \'DEPRECATED\', \''.$db->escape($session->username).'\', ' . $session->user_id . ', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(serialize(array($this->page_id, $this->namespace))) . '\')');
     
     $ob = '';
     //$template->tpl_strings['PAGE_NAME'] = 'Access denied';

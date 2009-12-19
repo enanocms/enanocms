@@ -273,14 +273,14 @@ function page_Admin_UserManager()
             // We need to update group memberships
             if ( $existing_level == USER_LEVEL_ADMIN ) 
             {
-              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_from_admin\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
+              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid,page_text) VALUES(\'security\',\'u_from_admin\',' . time() . ', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\', ' . $session->user_id . ', \'' . $db->escape($session->username) . '\', \'' . $db->escape($username) . '\');');
               if ( !$q )
                 $db->_die();
               $session->remove_user_from_group($user_id, GROUP_ID_ADMIN);
             }
             else if ( $existing_level == USER_LEVEL_MOD ) 
             {
-              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_from_mod\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
+              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid,page_text) VALUES(\'security\',\'u_from_mod\',' . time() . ', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\', ' . $session->user_id . ', \'' . $db->escape($session->username) . '\', \'' . $db->escape($username) . '\');');
               if ( !$q )
                 $db->_die();
               $session->remove_user_from_group($user_id, GROUP_ID_MOD);
@@ -288,14 +288,14 @@ function page_Admin_UserManager()
             
             if ( $user_level == USER_LEVEL_ADMIN )
             {
-              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_to_admin\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
+              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid,page_text) VALUES(\'security\',\'u_to_admin\',' . time() . ', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\', ' . $session->user_id . ', \'' . $db->escape($session->username) . '\', \'' . $db->escape($username) . '\');');
               if ( !$q )
                 $db->_die();
               $session->add_user_to_group($user_id, GROUP_ID_ADMIN, false);
             }
             else if ( $user_level == USER_LEVEL_MOD )
             {
-              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'u_to_mod\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '","' . $db->escape($username) . '");');
+              $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid,page_text) VALUES(\'security\',\'u_to_mod\',' . time() . ', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\', ' . $session->user_id . ', \'' . $db->escape($session->username) . '\', \'' . $db->escape($username) . '\');');
               if ( !$q )
                 $db->_die();
               $session->add_user_to_group($user_id, GROUP_ID_MOD, false);

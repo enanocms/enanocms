@@ -128,13 +128,13 @@ function page_Special_UploadFile()
     if(!$db->sql_query('INSERT INTO '.table_prefix.'files(time_id,page_id,filename,size,mimetype,file_extension,file_key) VALUES('.$utime.', \''.$urln.'\', \''.$filename.'\', '.$flen.', \''.$type.'\', \''.$ext.'\', \''.$key.'\')')) $db->_die('The file data entry could not be inserted.');
     if(!isset($_POST['update']))
     {
-      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.$utime.', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'create\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\');')) $db->_die('The page log could not be updated.');
+      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,author_uid,page_id,namespace) VALUES('.$utime.', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'create\', \''.$session->username.'\',' . $session->user_id . ', \''.$filename.'\', \''.'File'.'\');')) $db->_die('The page log could not be updated.');
       if(!$db->sql_query('INSERT INTO '.table_prefix.'pages(name,urlname,namespace,protected,delvotes,delvote_ips) VALUES(\''.$filename.'\', \''.$urln.'\', \'File\', 0, 0, \'\')')) $db->_die('The page listing entry could not be inserted.');
       if(!$db->sql_query('INSERT INTO '.table_prefix.'page_text(page_id,namespace,page_text,char_tag) VALUES(\''.$urln.'\', \'File\', \''.$comments.'\', \''.$chartag.'\')')) $db->_die('The page text entry could not be inserted.');
     }
     else
     {
-      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace,edit_summary) VALUES('.$utime.', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'reupload\', \''.$session->username.'\', \''.$filename.'\', \''.'File'.'\', \''.$comments.'\');')) $db->_die('The page log could not be updated.');
+      if(!$db->sql_query('INSERT INTO '.table_prefix.'logs(time_id,date_string,log_type,action,author,author_uid,page_id,namespace,edit_summary) VALUES('.$utime.', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'reupload\', \''.$session->username.'\',' . $session->user_id . ', \''.$filename.'\', \''.'File'.'\', \''.$comments.'\');')) $db->_die('The page log could not be updated.');
     }
     $cache->purge('page_meta');
     die_friendly($lang->get('upload_success_title'), '<p>' . $lang->get('upload_success_body', array('file_link' => makeUrlNS('File', $filename))) . '</p>');

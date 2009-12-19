@@ -248,13 +248,14 @@
             else
             {
               // Save the draft
-              $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs ( log_type, action, page_id, namespace, author, edit_summary, page_text, is_draft, time_id, page_format )
+              $q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs ( log_type, action, page_id, namespace, author, author_uid, edit_summary, page_text, is_draft, time_id, page_format )
                                      VALUES (
                                        \'page\',
                                        \'edit\',
                                        \'' . $db->escape($paths->page_id) . '\',
                                        \'' . $db->escape($paths->namespace) . '\',
                                        \'' . $db->escape($session->username) . '\',
+                                       ' . $session->user_id . ',
                                        \'' . $db->escape($request['summary']) . '\',
                                        \'' . $db->escape($src) . '\',
                                        1,

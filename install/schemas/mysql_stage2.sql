@@ -41,6 +41,7 @@ CREATE TABLE {{TABLE_PREFIX}}logs(
   page_text text,
   char_tag varchar(40),
   author varchar(63),
+  author_uid mediumint(8) NOT NULL DEFAULT 1,
   edit_summary text,
   minor_edit tinyint(1),
   page_format varchar(16) NOT NULL DEFAULT 'wikitext',

@@ -411,13 +411,19 @@ class mysql {
   {
     global $session;
     if ( is_object($session) && defined('ENANO_MAINSTREAM') )
+    {
       $username = $session->username;
+      $user_id = $session->user_id;
+    }
     else
+    {
       $username = 'Unavailable';
+      $user_id = 1;
+    } 
     
     $query = $this->escape($query);
-    $q = $this->sql_query('INSERT INTO '.table_prefix.'logs(log_type,     action,         time_id,    date_string, page_text,      author,            edit_summary)
-                                                     VALUES(\'security\', \'sql_inject\', '.time().', \'\',        \''.$query.'\', \''.$username.'\', \''.$_SERVER['REMOTE_ADDR'].'\');');
+    $q = $this->sql_query('INSERT INTO '.table_prefix.'logs(log_type,     action,         time_id,    date_string, page_text,      author,            author_uid,       edit_summary)
+                                                     VALUES(\'security\', \'sql_inject\', '.time().', \'\',        \''.$query.'\', \''.$username.'\', ' . $user_id . ', \''.$_SERVER['REMOTE_ADDR'].'\');');
   }
   
   /**
@@ -951,13 +957,20 @@ class postgresql
   function report_query($query)
   {
     global $session;
-    if(is_object($session) && defined('ENANO_MAINSTREAM'))
+    if ( is_object($session) && defined('ENANO_MAINSTREAM') )
+    {
       $username = $session->username;
+      $user_id = $session->user_id;
+    }
     else
+    {
       $username = 'Unavailable';
+      $user_id = 1;
+    } 
+    
     $query = $this->escape($query);
-    $q = $this->sql_query('INSERT INTO '.table_prefix.'logs(log_type,     action,         time_id,    date_string, page_text,      author,            edit_summary)
-                                                     VALUES(\'security\', \'sql_inject\', '.time().', \'\',        \''.$query.'\', \''.$username.'\', \''.$_SERVER['REMOTE_ADDR'].'\');');
+    $q = $this->sql_query('INSERT INTO '.table_prefix.'logs(log_type,     action,         time_id,    date_string, page_text,      author,            author_uid,       edit_summary)
+                                                     VALUES(\'security\', \'sql_inject\', '.time().', \'\',        \''.$query.'\', \''.$username.'\', ' . $user_id . ', \''.$_SERVER['REMOTE_ADDR'].'\');');
   }
   
   /**

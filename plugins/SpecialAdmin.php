@@ -1060,28 +1060,28 @@ function page_Admin_UploadConfig()
   {
     if(isset($_POST['enable_uploads']) && getConfig('enable_uploads') != '1')
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'upload_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid) VALUES(\'security\',\'upload_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\', ' . $session->user_id . ');');
       if ( !$q )
         $db->_die();
       setConfig('enable_uploads', '1');
     }
     else if ( !isset($_POST['enable_uploads']) && getConfig('enable_uploads') == '1' )
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'upload_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid) VALUES(\'security\',\'upload_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\', ' . $session->user_id . ');');
       if ( !$q )
         $db->_die();
       setConfig('enable_uploads', '0');
     }
     if(isset($_POST['enable_imagemagick']) && getConfig('enable_imagemagick') != '1')
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'magick_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid) VALUES(\'security\',\'magick_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\', ' . $session->user_id . ');');
       if ( !$q )
         $db->_die();
       setConfig('enable_imagemagick', '1');
     }
     else if ( !isset($_POST['enable_imagemagick']) && getConfig('enable_imagemagick') == '1' )
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'magick_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid) VALUES(\'security\',\'magick_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\', ' . $session->user_id . ');');
       if ( !$q )
         $db->_die();
       setConfig('enable_imagemagick', '0');
@@ -1096,14 +1096,14 @@ function page_Admin_UploadConfig()
     }
     if(isset($_POST['file_history']) && getConfig('file_history') != '1' )
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'filehist_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid) VALUES(\'security\',\'filehist_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\',' . $session->user_id . ');');
       if ( !$q )
         $db->_die();
       setConfig('file_history', '1');
     }
     else if ( !isset($_POST['file_history']) && getConfig('file_history') == '1' )
     {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'filehist_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid) VALUES(\'security\',\'filehist_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\',' . $session->user_id . ');');
       if ( !$q )
         $db->_die();
       setConfig('file_history', '0');
@@ -1115,7 +1115,7 @@ function page_Admin_UploadConfig()
         $_POST['imagemagick_path'] = '/usr/bin/convert';
       $old = getConfig('imagemagick_path');
       $oldnew = "{$old}||{$_POST['imagemagick_path']}";
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'magick_path\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\',\'' . $db->escape($oldnew) . '\');');
+      $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid,page_text) VALUES(\'security\',\'magick_path\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\',' . $session->user_id . ',\'' . $db->escape($oldnew) . '\');');
       if ( !$q )
         $db->_die();
       setConfig('imagemagick_path', $_POST['imagemagick_path']);
@@ -1266,191 +1266,6 @@ function page_Admin_UploadAllowedMimeTypes()
   <?php
 }
 
-/*
-function page_Admin_PluginManager()
-{
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
-  {
-    $login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
-    echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
-    echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
-    return;
-  }
-  
-  if(isset($_GET['action']))
-  {
-    if ( !isset($_GET['plugin']) )
-    {
-      echo '<div class="error-box">No plugin specified.</div>';
-    }
-    else if ( !preg_match('/^[A-z0-9_\.-]+\.php$/', $_GET['plugin']) )
-    {
-      echo '<div class="error-box">Hacking attempt</div>';
-    }
-    else
-    {
-      $plugin =& $_GET['plugin'];
-      switch($_GET['action'])
-      {
-        case "enable":
-          $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'plugin_enable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',"' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
-          if ( !$q )
-            $db->_die();
-          setConfig("plugin_$plugin", '1');
-          break;
-        case "disable":
-          if ( defined('ENANO_DEMO_MODE') && strstr($_GET['plugin'], 'Demo') )
-          {
-            echo('<h3>' . $lang->get('acppl_err_heading') . '</h3>
-                   <p>' . $lang->get('acppl_err_demo_plugin') . '</p>');
-            break;
-          }
-          if ( !in_array($plugin, $plugins->system_plugins) )
-          {
-            $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,page_text) VALUES(\'security\',\'plugin_disable\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',"' . $db->escape($session->username) . '","' . $db->escape($_GET['plugin']) . '");');
-            if ( !$q )
-              $db->_die();
-            setConfig("plugin_$plugin", '0');
-          }
-          else 
-          {
-            echo '<h3>' . $lang->get('acppl_err_heading') . '</h3>
-                   <p>' . $lang->get('acppl_err_system_plugin') . '</p>';
-          }
-          break;
-        case "reimport":
-          $plugin_id = substr($plugin, 0, -4);
-          if ( isset($plugins->loaded_plugins[$plugin_id]) )
-          {
-            // plugin file is safe, call import
-            $lang->import_plugin( ENANO_ROOT . "/plugins/$plugin" );
-            echo '<div class="info-box">' . $lang->get('acppl_msg_reimport_success') . '</div>';
-          }
-          break;
-      }
-    }
-  }
-  $dir = './plugins/';
-  $plugin_list = Array();
-  $system = Array();
-  $show_system = ( isset($_GET['show_system']) && $_GET['show_system'] == 'yes' );
-  
-  if (is_dir($dir))
-  {
-    if ($dh = opendir($dir))
-    {
-      while (($file = readdir($dh)) !== false)
-      {
-        if(preg_match('#^(.*?)\.php$#is', $file) && $file != 'index.php')
-        {
-          unset($thelist);
-          if ( in_array($file, $plugins->system_plugins) )
-          {
-            if ( !$show_system )
-              continue;
-            $thelist =& $system;
-          }
-          else
-          {
-            $thelist =& $plugin_list;
-          }
-          $f = file_get_contents($dir . $file);
-          $f = explode("\n", $f);
-          $f = array_slice($f, 2, 7);
-          $f[0] = substr($f[0], 13, strlen($f[0]));
-          $f[1] = substr($f[1], 12, strlen($f[1]));
-          $f[2] = substr($f[2], 13, strlen($f[2]));
-          $f[3] = substr($f[3], 8,  strlen($f[3]));
-          $f[4] = substr($f[4], 9,  strlen($f[4]));
-          $f[5] = substr($f[5], 12, strlen($f[5]));
-          $thelist[$file] = Array();
-          $thelist[$file]['name'] = $f[0];
-          $thelist[$file]['uri']  = $f[1];
-          $thelist[$file]['desc'] = $f[2];
-          $thelist[$file]['auth'] = $f[3];
-          $thelist[$file]['vers'] = $f[4];
-          $thelist[$file]['aweb'] = $f[5];
-          
-          if ( preg_match('/^[a-z0-9]+_[a-z0-9_]+$/', $thelist[$file]['name']) )
-            $thelist[$file]['name'] = $lang->get($thelist[$file]['name']);
-          
-          if ( preg_match('/^[a-z0-9]+_[a-z0-9_]+$/', $thelist[$file]['desc']) )
-            $thelist[$file]['desc'] = $lang->get($thelist[$file]['desc']);
-          
-        }
-      }
-      closedir($dh);
-    }
-    else
-    {
-      echo '<div class="error-box">' . $lang->get('acppl_err_open_dir') . '</div>';
-      return;
-    }
-  }
-  else
-  {
-    echo '<div class="error-box">' . $lang->get('acppl_err_missing_dir') . '</div>';
-    return;
-  }
-  echo('<div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
-      <tr>
-        <th>' . $lang->get('acppl_col_filename') . '</th>
-        <th>' . $lang->get('acppl_col_name') . '</th>
-        <th>' . $lang->get('acppl_col_description') . '</th>
-        <th>' . $lang->get('acppl_col_author') . '</th>
-        <th>' . $lang->get('acppl_col_version') . '</th>
-        <th></th>
-      </tr>');
-    $plugin_files_1 = array_keys($plugin_list);
-    $plugin_files_2 = array_keys($system);
-    $plugin_files = array_values(array_merge($plugin_files_1, $plugin_files_2));
-    $cls = 'row2';
-    for ( $i = 0; $i < sizeof($plugin_files); $i++ )
-    {
-      $cls = ( $cls == 'row2' ) ? 'row3' : 'row2';
-      $this_plugin = ( isset($system[$plugin_files[$i]]) ) ? $system[$plugin_files[$i]] : $plugin_list[$plugin_files[$i]];
-      $is_system = ( @$system[$plugin_files[$i]] );
-      $bgcolor = '';
-      if ( $is_system && $cls == 'row2' )
-        $bgcolor = ' style="background-color: #FFD8D8;"';
-      else if ( $is_system && $cls == 'row3' )
-        $bgcolor = ' style="background-color: #FFD0D0;"';
-      echo '<tr>
-              <td class="'.$cls.'"'.$bgcolor.'>'.$plugin_files[$i].'</td>
-              <td class="'.$cls.'"'.$bgcolor.'><a href="'.$this_plugin['uri'].'">'.$this_plugin['name'].'</a></td>
-              <td class="'.$cls.'"'.$bgcolor.'>'.$this_plugin['desc'].'</td>
-              <td class="'.$cls.'"'.$bgcolor.'><a href="'.$this_plugin['aweb'].'">'.$this_plugin['auth'].'</a></td>
-              <td class="'.$cls.'"'.$bgcolor.'>'.$this_plugin['vers'].'</td>
-              <td class="'.$cls.'"'.( $bgcolor != '' ? str_replace_once(';', '; text-align: center;', $bgcolor) : ' style="text-align: center;"' ).' nowrap="nowrap">';
-      if ( !in_array($plugin_files[$i], $plugins->system_plugins) )
-      {
-        if ( getConfig('plugin_'.$plugin_files[$i]) == '1' )
-        {
-          echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=disable&amp;plugin='.$plugin_files[$i].'">' . $lang->get('acppl_btn_disable') . '</a>';
-          echo ' | ';
-          echo '<a title="' . $lang->get('acppl_btn_reimport_tip') . '" href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=reimport&amp;plugin='.$plugin_files[$i].'">' . $lang->get('acppl_btn_reimport') . '</a>';
-        }
-        else
-        {
-          echo '<a href="'.makeUrl($paths->nslist['Special'].'Administration', 'module='.$paths->cpage['module']).'&amp;show_system=' . ( $show_system ? 'yes' : 'no' ) . '&amp;action=enable&amp;plugin='.$plugin_files[$i].'">' . $lang->get('acppl_btn_enable') . '</a>';
-        }
-      }
-      else
-      {
-        echo $lang->get('acppl_lbl_system_plugin');
-      }
-      echo '</td></tr>';
-    }
-    $showhide_link = ( $show_system ) ?
-    '<a style="color: white;" href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'] . '&show_system=no', true) . '">' . $lang->get('acppl_btn_hide_system') . '</a>' :
-    '<a style="color: white;" href="' . makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'] . '&show_system=yes', true) . '">' . $lang->get('acppl_btn_show_system') . '</a>' ;
-    echo '<tr><th colspan="6" class="subhead">'.$showhide_link.'</th></tr>';
-    echo '</table></div>';
-}
-*/
-
 function page_Admin_DBBackup()
 {
   global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1496,7 +1311,7 @@ HEADER;
     $tables = array_merge($base, $add);
     
     // Log it!
-    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'db_backup\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($session->username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(implode(', ', $tables)) . '\')');
+    $e = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,author_uid,edit_summary,page_text) VALUES(\'security\', \'db_backup\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($session->username).'\',' . $session->user_id . ', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', \'' . $db->escape(implode(', ', $tables)) . '\')');
     if ( !$e )
       $db->_die();
     

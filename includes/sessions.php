@@ -2248,7 +2248,7 @@ class sessionManager {
   function admin_activation_request($u)
   {
     global $db;
-    $this->sql('INSERT INTO '.table_prefix.'logs(log_type, action, time_id, date_string, author, edit_summary) VALUES(\'admin\', \'activ_req\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$this->username.'\', \''.$db->escape($u).'\');');
+    $this->sql('INSERT INTO '.table_prefix.'logs(log_type, action, time_id, date_string, author, author_uid, edit_summary) VALUES(\'admin\', \'activ_req\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$this->username.'\', ' . $session->user_id . ', \''.$db->escape($u).'\');');
   }
   
   /**
@@ -2260,15 +2260,16 @@ class sessionManager {
   function activate_account($user, $key)
   {
     global $db, $session, $paths, $template, $plugins; // Common objects
-    $this->sql('UPDATE '.table_prefix.'users SET account_active=1 WHERE username=\''.$db->escape($user).'\' AND activation_key=\''.$db->escape($key).'\';');
-    $r = mysql_affected_rows();
-    if ( $r > 0 )
+    $q = $this->sql('SELECT 1 FROM ' . table_prefix . 'users WHERE username = \''.$db->escape($user).'\' AND activation_key = \''.$db->escape($key).'\'');
+    if ( $db->numrows() > 0 )
     {
-      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
+      $new_key = md5(AESCrypt::randkey());
+      $this->sql('UPDATE ' . table_prefix . 'users SET account_active = 1, activation_key = \'' . $new_key . '\' WHERE username=\''.$db->escape($user).'\' AND activation_key=\''.$db->escape($key).'\';');
+      $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
     }
     else
     {
-      $e = $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
+      $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
     }
     return $r;
   }

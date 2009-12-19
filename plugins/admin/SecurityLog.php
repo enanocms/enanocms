@@ -38,7 +38,14 @@ function page_Admin_SecurityLog()
   $row = $db->fetchrow();
   $db->free_result();
   $count = intval($row['num']);
-  $q = $db->sql_query('SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;');
+
+  $l = 'SELECT action,date_string,author,author_uid,u.username,edit_summary,time_id,page_text FROM '.table_prefix."logs AS l\n"
+     . "  LEFT JOIN " . table_prefix . "users AS u\n"
+     . "    ON ( u.user_id = l.author_uid OR u.user_id IS NULL )\n"
+     . "  WHERE log_type='security'\n"
+     . "  ORDER BY time_id DESC, action ASC;";
+         
+  $q = $db->sql_query($l);
   if ( !$q )
     $db->_die();
    
@@ -71,7 +78,7 @@ function get_security_log($num = false)
   
   if ( $session->auth_level < USER_LEVEL_ADMIN )
   {
-    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author) VALUES(\'security\',\'seclog_unauth\',' . time() . ',"' . $db->escape($_SERVER['REMOTE_ADDR']) . '","' . $db->escape($session->username) . '");');
+    $q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid) VALUES(\'security\',\'seclog_unauth\',' . time() . ', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\', \'' . $db->escape($session->username) . '\', ' . $session->user_id . ');');
     if ( !$q )
       $db->_die();
     die('Security log: unauthorized attempt to fetch. Call has been logged and reported to the administrators.');
@@ -94,14 +101,13 @@ function get_security_log($num = false)
   // }
   // else
   // {
-    if(is_int($num))
-    {
-      $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC LIMIT '.$num.';';
-    }
-    else
-    {
-      $l = 'SELECT action,date_string,author,edit_summary,time_id,page_text FROM '.table_prefix.'logs WHERE log_type=\'security\' ORDER BY time_id DESC, action ASC;';
-    }
+    $limit_clause = is_int($num) ? " LIMIT $num" : '';
+    $l = 'SELECT action,date_string,author,author_uid,u.username,edit_summary,time_id,page_text FROM '.table_prefix."logs AS l\n"
+         . "  LEFT JOIN " . table_prefix . "users AS u\n"
+         . "    ON ( u.user_id = l.author_uid OR u.user_id IS NULL )\n"
+         . "  WHERE log_type='security'\n"
+         . "  ORDER BY time_id DESC, action ASC{$limit_clause};";
+    
     $q = $db->sql_query($l);
     while($r = $db->fetchrow($q))
     {
@@ -175,7 +181,13 @@ function seclog_format_inner($r, $f = false)
     case "u_to_mod"        : $return .= $lang->get('acpsl_entry_u_to_mod'         , array('username' => $r['page_text'])); break;
     case "view_comment_ip" : $return .= $lang->get('acpsl_entry_view_comment_ip'  , array('username' => htmlspecialchars($r['page_text']))); break;
   }
-  $return .= '</td><td class="'.$cls.'">'.enano_date(ED_DATE | ED_TIME, $r['time_id']).'</td><td class="'.$cls.'">'.$r['author'].'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="' . $lang->get('acpsl_tip_reverse_dns') . '">'.$r['edit_summary'].'</td></tr>';
+  $author_bit = '<span style="';
+  $rank_info = $session->get_user_rank($r['author_uid']);
+  $author_bit .= $rank_info['rank_style'];
+  $author_bit .= '">';
+  $author_bit .= $r['author_uid'] > 1 && !empty($r['username']) ? htmlspecialchars($r['username']) : htmlspecialchars($r['author']);
+  $author_bit .= '</span>';
+  $return .= '</td><td class="'.$cls.'">'.enano_date(ED_DATE | ED_TIME, $r['time_id']).'</td><td class="'.$cls.'">'.$author_bit.'</td><td class="'.$cls.'" style="cursor: pointer;" onclick="ajaxReverseDNS(this);" title="' . $lang->get('acpsl_tip_reverse_dns') . '">'.$r['edit_summary'].'</td></tr>';
   return $return;
 }
 

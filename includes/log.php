@@ -160,8 +160,10 @@ class LogDisplay
       $limit = ( $page_size > 0 ) ? "\n  LIMIT $page_size OFFSET $offset" : '';
     else
       $limit = ( $page_size > 0 ) ? "\n  LIMIT $offset, $page_size" : '';
-    $columns = ( $just_page_count ) ? 'COUNT(*)' : 'log_id, action, page_id, namespace, CHAR_LENGTH(page_text) AS revision_size, author, time_id, edit_summary, minor_edit';
+    $columns = ( $just_page_count ) ? 'COUNT(*)' : 'log_id, action, page_id, namespace, CHAR_LENGTH(page_text) AS revision_size, author, author_uid, u.username, time_id, edit_summary, minor_edit';
     $sql = 'SELECT ' . $columns . ' FROM ' . table_prefix . "logs AS l\n"
+         . "  LEFT JOIN " . table_prefix . "users AS u\n"
+         . "    ON ( u.user_id = l.author_uid OR u.user_id IS NULL )\n"
          . "  WHERE log_type = 'page' AND is_draft != 1$where_extra\n"
          . "  GROUP BY log_id, action, page_id, namespace, page_text, author, time_id, edit_summary, minor_edit\n"
          . "  ORDER BY time_id DESC $limit;";
@@ -386,14 +388,15 @@ class LogDisplay
     }
     
     // link to userpage
-    $cls = ( isPage($paths->nslist['User'] . $row['author']) ) ? '' : ' class="wikilink-nonexistent"';
-    $rank_info = $session->get_user_rank($row['author']);
-    $html .= '<a style="' . $rank_info['rank_style'] . '" href="' . makeUrlNS('User', sanitize_page_id($row['author']), false, true) . '"' . $cls . '>' . htmlspecialchars($row['author']) . '</a> ';
+    $real_username = $row['author_uid'] > 1 && !empty($row['username']) ? $row['username'] : $row['author'];
+    $cls = ( isPage($paths->nslist['User'] . $real_username) ) ? '' : ' class="wikilink-nonexistent"';
+    $rank_info = $session->get_user_rank($row['author_uid']);
+    $html .= '<a style="' . $rank_info['rank_style'] . '" href="' . makeUrlNS('User', sanitize_page_id($real_username), false, true) . '"' . $cls . '>' . htmlspecialchars($real_username) . '</a> ';
     $html .= '(';
-    $html .= '<a href="' . makeUrlNS('Special', 'PrivateMessages/Compose/To/' . sanitize_page_id($row['author']), false, true) . '">';
+    $html .= '<a href="' . makeUrlNS('Special', 'PrivateMessages/Compose/To/' . sanitize_page_id($real_username), false, true) . '">';
     $html .= $lang->get('pagetools_rc_btn_pm');
     $html .= '</a>, ';
-    $html .= '<a href="' . makeUrlNS('User', sanitize_page_id($row['author']), false, true) . '#do:comments">';
+    $html .= '<a href="' . makeUrlNS('User', sanitize_page_id($real_username), false, true) . '#do:comments">';
     $html .= $lang->get('pagetools_rc_btn_usertalk');
     $html .= '</a>';
     $html .= ') . . ';

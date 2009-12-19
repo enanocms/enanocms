@@ -204,7 +204,7 @@ class PageUtils {
     
     $qa = $db->sql_query('INSERT INTO ' . table_prefix.'pages(name,urlname,namespace,visible,protected,delvote_ips) VALUES(\'' . $db->escape($name) . '\', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\', '. ( $visible ? '1' : '0' ) .', ' . $prot . ', \'' . $db->escape(serialize($ips)) . '\');');
     $qb = $db->sql_query('INSERT INTO ' . table_prefix.'page_text(page_id,namespace) VALUES(\'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
-    $qc = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,page_id,namespace) VALUES('.time().', \'DEPRECATED\', \'page\', \'create\', \'' . $session->username . '\', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
+    $qc = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,author,author_uid,page_id,namespace) VALUES('.time().', \'DEPRECATED\', \'page\', \'create\', \'' . $session->username . '\', ' . $session->user_id . ', \'' . $db->escape($page_id) . '\', \'' . $namespace . '\');');
     
     if($qa && $qb && $qc)
       return 'good';
@@ -269,7 +269,11 @@ class PageUtils {
     $wiki = ( ( $cdata['wiki_mode'] == 2 && getConfig('wiki_mode') == '1') || $cdata['wiki_mode'] == 1) ? true : false;
     $prot = ( ( $cdata['protected'] == 2 && $session->user_logged_in && $session->reg_time + 60*60*24*4 < time() ) || $cdata['protected'] == 1) ? true : false;
     
-    $q = 'SELECT log_id,time_id,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action=\'edit\' AND page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\' AND is_draft != 1 ORDER BY time_id DESC;';
+    $q = 'SELECT log_id,time_id,date_string,page_id,namespace,author,author_uid,u.username,edit_summary,minor_edit FROM ' . table_prefix . "logs AS l\n"
+       . "  LEFT JOIN " . table_prefix . "users AS u\n"
+       . "    ON ( u.user_id = l.author_uid OR u.user_id IS NULL )\n"
+       . "  WHERE log_type='page' AND action='edit' AND page_id='$page_id' AND namespace='$namespace' AND is_draft != 1 ORDER BY time_id DESC;";
+    
     if ( !($q = $db->sql_query($q)) )
       $db->_die('The history data for the page "' . $paths->cpage['name'] . '" could not be selected.');
     
@@ -334,7 +338,9 @@ class PageUtils {
         echo '<td class="' . $cls . '" style="white-space: nowrap;">' . enano_date(ED_DATE | ED_TIME, intval($r['time_id'])) . '</td class="' . $cls . '">'."\n";
         
         // User
-        if ( $session->get_permissions('mod_misc') && is_valid_ip($r['author']) )
+        $real_username = $r['author_uid'] > 1 && !empty($r['username']) ? $r['username'] : $r['author'];
+        $rank_info = $session->get_user_rank($r['author_uid']);
+        if ( $session->get_permissions('mod_misc') && is_valid_ip($r['author']) && $r['author_uid'] == 1 )
         {
           $rc = ' style="cursor: pointer;" title="' . $lang->get('history_tip_rdns') . '" onclick="ajaxReverseDNS(this, \'' . $r['author'] . '\');"';
         }
@@ -342,12 +348,12 @@ class PageUtils {
         {
           $rc = '';
         }
-        echo '<td class="' . $cls . '"' . $rc . '><a href="'.makeUrlNS('User', sanitize_page_id($r['author'])).'" ';
-        if ( !isPage($paths->nslist['User'] . sanitize_page_id($r['author'])) )
+        echo '<td class="' . $cls . '"' . $rc . '><a href="'.makeUrlNS('User', sanitize_page_id($real_username)).'" ';
+        if ( !isPage($paths->nslist['User'] . sanitize_page_id($real_username)) )
         {
           echo 'class="wikilink-nonexistent"';
         }
-        echo '>' . $r['author'] . '</a></td class="' . $cls . '">'."\n";
+        echo 'style="' . $rank_info['rank_style'] . '">' . htmlspecialchars($real_username) . '</a></td class="' . $cls . '">'."\n";
         
         // Edit summary
         if ( $r['edit_summary'] == 'Automatic backup created when logs were purged' )
@@ -377,7 +383,12 @@ class PageUtils {
     }
     $db->free_result();
     echo '<h3>' . $lang->get('history_heading_other') . '</h3>';
-    $sql = 'SELECT log_id,time_id,action,date_string,page_id,namespace,author,edit_summary,minor_edit FROM ' . table_prefix.'logs WHERE log_type=\'page\' AND action!=\'edit\' AND page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\' ORDER BY time_id DESC;';
+    
+    $sql = 'SELECT log_id,action,time_id,date_string,page_id,namespace,author,author_uid,u.username,edit_summary,minor_edit FROM ' . table_prefix . "logs AS l\n"
+         . "  LEFT JOIN " . table_prefix . "users AS u\n"
+         . "    ON ( u.user_id = l.author_uid OR u.user_id IS NULL )\n"
+         . "  WHERE log_type='page' AND action!='edit' AND page_id='$page_id' AND namespace='$namespace' AND is_draft != 1 ORDER BY time_id DESC;";
+    
     if ( !( $q = $db->sql_query($sql)) )
     {
       $db->_die('The history data for the page "' . htmlspecialchars($paths->cpage['name']) . '" could not be selected.');
@@ -410,9 +421,22 @@ class PageUtils {
         echo '<td class="' . $cls . '">' . enano_date(ED_DATE | ED_TIME, intval($r['time_id'])) . '</td class="' . $cls . '">';
         
         // User
-        echo '<td class="' . $cls . '"><a href="'.makeUrlNS('User', sanitize_page_id($r['author'])).'" ';
-        if(!isPage($paths->nslist['User'] . sanitize_page_id($r['author']))) echo 'class="wikilink-nonexistent"';
-        echo '>' . $r['author'] . '</a></td class="' . $cls . '">';
+        $real_username = $r['author_uid'] > 1 && !empty($r['username']) ? $r['username'] : $r['author'];
+        $rank_info = $session->get_user_rank($r['author_uid']);
+        if ( $session->get_permissions('mod_misc') && is_valid_ip($r['author']) && $r['author_uid'] == 1 )
+        {
+          $rc = ' style="cursor: pointer;" title="' . $lang->get('history_tip_rdns') . '" onclick="ajaxReverseDNS(this, \'' . $r['author'] . '\');"';
+        }
+        else
+        {
+          $rc = '';
+        }
+        echo '<td class="' . $cls . '"' . $rc . '><a href="'.makeUrlNS('User', sanitize_page_id($real_username)).'" ';
+        if ( !isPage($paths->nslist['User'] . sanitize_page_id($real_username)) )
+        {
+          echo 'class="wikilink-nonexistent"';
+        }
+        echo 'style="' . $rank_info['rank_style'] . '">' . htmlspecialchars($real_username) . '</a></td class="' . $cls . '">'."\n";
         
         
         // Minor edit
@@ -1071,7 +1095,7 @@ class PageUtils {
       return $lang->get('etc_access_denied_need_reauth');
     }
     
-    $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,edit_summary) VALUES('.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
+    $e = $db->sql_query('INSERT INTO ' . table_prefix.'logs(time_id,date_string,log_type,action,page_id,namespace,author,author_uid,edit_summary) VALUES('.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \'page\', \'delete\', \'' . $page_id . '\', \'' . $namespace . '\', \'' . $session->username . '\', ' . $session->user_id . ', \'' . $db->escape(htmlspecialchars($reason)) . '\')');
     if(!$e) $db->_die('The page log entry could not be inserted.');
     $e = $db->sql_query('DELETE FROM ' . table_prefix.'categories WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\'');
     if(!$e) $db->_die('The page categorization entries could not be deleted.');
