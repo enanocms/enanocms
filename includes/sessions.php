@@ -866,7 +866,7 @@ class sessionManager {
       {
         $ipaddr = $db->escape($_SERVER['REMOTE_ADDR']);
         // increment fail count
-        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\', \'' . $db->escape($username) . '\');');
+        $this->sql('INSERT INTO '.table_prefix.'lockout(ipaddr, timestamp, action, username) VALUES(\'' . $ipaddr . '\', ' . time() . ', \'credential\', \'' . $db->escape($username) . '\');');
       }
         
       return array(

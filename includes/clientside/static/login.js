@@ -121,7 +121,7 @@ window.ajaxLoginInit = function(call_on_finish, user_level)
   logindata.mb_object.onclick['Cancel'] = function()
   {
     // Hide the error message, if any
-    $('ajax_login_error_box').remove();
+    $('#ajax_login_error_box').remove();
     // Hide the captcha, if any
     if ( document.getElementById('autoCaptcha') )
     {
