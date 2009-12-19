@@ -1,0 +1,5 @@
+=== Sorry - this part of the tutorial isn't finished yet! ===
+
+We're still working on this part of the tutorial. Contributions to the tutorial are always welcome.
+
+Contributing? See [http://bugs.enanocms.org/issue/11 Enano 1.1.8 issue 11]
