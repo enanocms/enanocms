@@ -17,7 +17,7 @@ define('IN_ENANO', 1);
 
 // The list of versions in THIS AND PREVIOUS branches, in chronological order.
 $enano_versions = array();
-$enano_versions['1.0'] = array('1.0', '1.0.1', '1.0.2b1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.0.6');
+$enano_versions['1.0'] = array('1.0', '1.0.1', '1.0.2b1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.0.6', '1.0.6pl1');
 $enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6', '1.1.7');
 
 // If true, this will do a full langimport instead of only adding new strings.
@@ -42,7 +42,7 @@ require_once('includes/libenanoinstall.php');
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');
 
-if ( in_array(enano_version(), array('1.0RC1', '1.0RC2', '1.0RC3', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.0.6', '1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5')) )
+if ( in_array(enano_version(), array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5')) || substr(enano_version(), 0, 3) == '1.0' )
   define('ENANO_UPGRADE_USE_AES_PASSWORDS', 1);
 
 // init languages
