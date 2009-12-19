@@ -584,6 +584,7 @@ var placeholder_list = {
   ajaxStartAdminLogin: 'login.js',
   ajaxLoginNavTo: 'login.js',
   ajaxLogonToElev: 'login.js',
+  ajaxLoginInit: 'login.js',
   ajaxAdminPage: 'login.js',
   ajaxAdminUser: 'login.js',
   mb_logout: 'login.js',
