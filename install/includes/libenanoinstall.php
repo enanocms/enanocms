@@ -15,16 +15,6 @@
 
 $neutral_color = 'C';
 
-// Chat log from the night of the 1.1.7 release:
-// (09:08:20 PM) Neal: btw, did you figure out what caused the PHP fatal error in the 1.1.7
-//                     trunk for the CLI autoinstall script for the BitNami installer?
-// (09:08:38 PM) Dan: oh
-// (09:08:40 PM) Dan: eh
-// (09:08:45 PM) Dan: yeah i'll fix that real quick
-
-// Hence, the function_exists check.
-
-if ( !function_exists('run_installer_stage') ):
 function run_installer_stage($stage_id, $stage_name, $function, $failure_explanation, $allow_skip = true)
 {
   static $resumed = false;
@@ -70,7 +60,6 @@ function run_installer_stage($stage_id, $stage_name, $function, $failure_explana
     return false;
   }
 }
-endif;
 
 function start_install_table()
 {
@@ -125,25 +114,6 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
   global $ui;
   $ui->show_footer();
   exit;
-}
-
-function install_get_crypto_backend()
-{
-  $crypto_backend = 'none';
-
-  // Extension test: BCMath
-  if ( function_exists('bcadd') )
-    $crypto_backend = 'bcmath';
-  
-  // Extension test: Big_Int
-  if ( function_exists('bi_from_str') )
-    $crypto_backend = 'bigint';
-  
-  // Extension test: GMP
-  if ( function_exists('gmp_init') )
-    $crypto_backend = 'gmp';
-  
-  return $crypto_backend;
 }
 
 function enano_perform_upgrade($target_branch)

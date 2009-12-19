@@ -5282,3 +5282,27 @@ function write_test($filename)
   }
 }
 
+/**
+ * Get the appropriate crypto backend for this server
+ * @return string
+ */
+
+function install_get_crypto_backend()
+{
+  $crypto_backend = 'none';
+
+  // Extension test: BCMath
+  if ( function_exists('bcadd') )
+    $crypto_backend = 'bcmath';
+  
+  // Extension test: Big_Int
+  if ( function_exists('bi_from_str') )
+    $crypto_backend = 'bigint';
+  
+  // Extension test: GMP
+  if ( function_exists('gmp_init') )
+    $crypto_backend = 'gmp';
+  
+  return $crypto_backend;
+}
+

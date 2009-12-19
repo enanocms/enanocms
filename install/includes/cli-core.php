@@ -29,8 +29,6 @@ if ( !defined('ENANO_CLI') )
   exit;
 }
 
-require_once( ENANO_ROOT . '/install/includes/libenanoinstall.php' );
-
 if ( defined('ENANO_INSTALLED') )
 {
   // start up the API to let it error out if something's wrong
