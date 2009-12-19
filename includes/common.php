@@ -208,7 +208,7 @@ profiler_log('Background/environment checks done');
 // even be installed. If this connection attempt fails and it's because of a missing or corrupt config file, the
 // user will be redirected (intelligently) to install.php.
 
-$config_file = ( defined('IN_ENANO_INSTALL') ) ? '/config.new.php' : '/config.php';
+$config_file = ( defined('IN_ENANO_INSTALL') && !defined('IN_ENANO_UPGRADE') ) ? '/config.new.php' : '/config.php';
 @include(ENANO_ROOT . $config_file);
 unset($dbuser, $dbpasswd);
 if ( !isset($dbdriver) )
