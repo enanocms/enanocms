@@ -869,8 +869,8 @@ class PageProcessor
     $page_name = $db->escape($page_name);
     $time = time();
     
-    $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs ( log_type, action, page_id, namespace, author, edit_summary, time_id, date_string ) VALUES\n"
-                      . "  ( 'page', 'rename', '{$this->page_id}', '{$this->namespace}', '$username', '$page_name', '$time', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );");
+    $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs ( log_type, action, page_id, namespace, author, author_uid, edit_summary, time_id, date_string ) VALUES\n"
+                      . "  ( 'page', 'rename', '{$this->page_id}', '{$this->namespace}', '$username', $session->user_id, '$page_name', '$time', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );");
     if ( !$q )
       $db->_die();
     
