@@ -3305,7 +3305,7 @@ class template_nodb
    * Assigns an array of string values to the template. Strings can be accessed from the template by inserting {KEY_NAME} in the template file.
    * @param $vars array
    */
-  function assign_vars($vars)
+  function assign_vars($vars, $_ignored = false)
   {
     if(is_array($this->tpl_strings))
       $this->tpl_strings = array_merge($this->tpl_strings, $vars);
@@ -3350,7 +3350,7 @@ class templateIndividualSafe extends template_nodb
    * Assigns an array of string values to the template. Strings can be accessed from the template by inserting {KEY_NAME} in the template file.
    * @param $vars array
    */
-  function assign_vars($vars)
+  function assign_vars($vars, $_ignored = false)
   {
     if(is_array($this->tpl_strings))
       $this->tpl_strings = array_merge($this->tpl_strings, $vars);
