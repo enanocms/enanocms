@@ -34,7 +34,7 @@ var tinymce_initted = false;
 
 var enano_tinymce_options = {
   mode : "none",
-  plugins : 'table,save,safari,pagebreak,style,layer,advhr,insertdatetime,searchreplace,spellchecker,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras' + do_popups,
+  plugins : 'table,save,safari,pagebreak,style,layer,advhr,insertdatetime,searchreplace,spellchecker,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,wordcount' + do_popups,
   theme : 'advanced',
   skin : _skin,
   theme_advanced_resize_horizontal : false,
@@ -62,7 +62,7 @@ var enano_tinymce_gz_options = {
 
 if ( !KILL_SWITCH && !DISABLE_MCE )
 {
-  var uri = scriptPath + '/includes/clientside/tinymce/tiny_mce_gzip.js?3211';
+  var uri = scriptPath + '/includes/clientside/tinymce/tiny_mce_gzip.js?327';
   var sc = document.createElement('script');
   sc.src = uri;
   sc.type = 'text/javascript';
