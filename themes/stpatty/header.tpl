@@ -4,9 +4,9 @@
     <title>{PAGE_NAME} &bull; {SITE_NAME}</title>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
     {JS_DYNAMIC_VARS}
-    <link rel="stylesheet" type="text/css" href="{CDNPATH}/includes/clientside/css/enano-shared.css" />
-    <link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/structure.css" />
-    <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css" />
+    <link rel="stylesheet" type="text/css" href="{CDNPATH}/includes/clientside/css/enano-shared.css?{ENANO_VERSION}" />
+    <link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/structure.css?{ENANO_VERSION}" />
+    <link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css?{ENANO_VERSION}" />
     {JS_HEADER}
     <!--[if lt IE 7]>
     <link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/ie-fixes-{STYLE_ID}.css" />

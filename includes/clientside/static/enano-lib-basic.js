@@ -294,7 +294,7 @@ function load_component(file)
   
   if ( !multiple )
     file = file + '.js';
-  var uri = ( ENANO_JSRES_COMPRESSED ) ? scriptPath + '/includes/clientside/jsres.php?f=' + (multiple ? file_flat : file ) : scriptPath + '/includes/clientside/static/' + file;
+  var uri = ( ENANO_JSRES_COMPRESSED ) ? scriptPath + '/includes/clientside/jsres.php?f=' + (multiple ? file_flat : file ) + '&' + enano_version : scriptPath + '/includes/clientside/static/' + file + '?' + enano_version;
   try
   {
     ajax.open('GET', uri, false);

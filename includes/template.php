@@ -514,13 +514,16 @@ class template
       $ash = '';
     }
     
+    // Append the Enano version to URLs to break the cache on upgrades
+    $enano_version = enano_version();
+    
     // Set up javascript includes
     // these depend heavily on whether we have a CDN to work with or not
     if ( getConfig('cdn_path') )
     {
       // we're on a CDN, point to static includes
       // CLI javascript compression script: includes/clientside/jscompress.php
-      $js_head = '<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/enano-lib-basic.js"></script>';
+      $js_head = '<script type="text/javascript" src="' . cdnPath . '/includes/clientside/static/enano-lib-basic.js?' . $enano_version . '"></script>';
       
       if ( !empty($this->js_preload) )
       {
@@ -536,12 +539,12 @@ class template
         
         foreach ( $this->js_preload as $script )
         {
-          $js_head .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/static/$script\"></script>";
+          $js_head .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/static/$script?$enano_version\"></script>";
           // special case for l10n: also load strings
           if ( $script == 'l10n.js' )
           {
             global $lang;
-            $js_head .= "\n    <script type=\"text/javascript\" src=\"" . makeUrlNS("Special", "LangExportJSON/$lang->lang_id") . "\"></script>";
+            $js_head .= "\n    <script type=\"text/javascript\" src=\"" . makeUrlNS("Special", "LangExportJSON/$lang->lang_id", "$enano_version") . "\"></script>";
           }
           $loadlines[] = "loaded_components['$script'] = true;";
         }
@@ -578,7 +581,7 @@ JSEOF;
       // point to jsres compressor
       $js_head .= <<<JSEOF
       <!-- Only load a basic set of functions for now. Let the rest of the API load when the page is finished. -->
-      <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php?early"></script>
+      <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php?early&$enano_version"></script>
 JSEOF;
       $js_foot = '';
       
@@ -593,16 +596,16 @@ JSEOF;
         {
           // special case for l10n: also load strings
           global $lang;
-          $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . makeUrlNS("Special", "LangExportJSON/$lang->lang_id") . "\"></script>";
+          $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . makeUrlNS("Special", "LangExportJSON/$lang->lang_id", $enano_version) . "\"></script>";
         }
         $scripts = implode(',', $this->js_preload);
-        $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/jsres.php?f=$scripts\"></script>";
+        $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/jsres.php?f=$scripts&$enano_version\"></script>";
         
       }
       
       $js_foot .= <<<JSEOF
     <!-- jsres.php is a wrapper script that compresses and caches single JS files to minimize requests -->
-    <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php"></script>
+    <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php?$enano_version"></script>
     <script type="text/javascript">//<![CDATA[
       // This initializes the Javascript runtime when the DOM is ready - not when the page is
       // done loading, because enano-lib-basic still has to load some 15 other script files
@@ -655,6 +658,7 @@ JSEOF;
         'JS_HEADER' => $js_head,
         'JS_FOOTER' => $js_foot,
         'URL_ABOUT_ENANO' => makeUrlNS('Special', 'About_Enano', '', true),
+        'ENANO_VERSION' => enano_version()
       ), true);
     
     $tpl_strings = array();
@@ -1247,7 +1251,8 @@ JSEOF;
       var AES_BLOCKSIZE = '.AES_BLOCKSIZE.';
       var pagepass = \''. ( ( isset($_REQUEST['pagepass']) ) ? sha1($_REQUEST['pagepass']) : '' ) .'\';
       var ENANO_LANG_ID = ' . $lang->lang_id . ';
-      var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";';
+      var ENANO_PAGE_TYPE = "' . addslashes($this->namespace_string) . '";
+      var enano_version = "' . enano_version() . '";';
     
     foreach ( $paths->nslist as $k => $c )
     {

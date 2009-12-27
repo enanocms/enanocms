@@ -19,7 +19,7 @@ var Language = function(lang_id)
     load_show_win('strings');
     console.info('Loading language ' + lang_id + ' via AJAX synchronous request');
     var ajax = ajaxMakeXHR();
-    var uri = makeUrlNS('Special', 'LangExportJSON/' + lang_id);
+    var uri = makeUrlNS('Special', 'LangExportJSON/' + lang_id, enano_version);
     ajax.open('GET', uri, false);
     ajax.send(null);
     if ( ajax.readyState == 4 && ajax.status == 200 )
