@@ -18,12 +18,12 @@ define('IN_ENANO', 1);
 // The list of versions in THIS AND PREVIOUS branches, in chronological order.
 $enano_versions = array();
 $enano_versions['1.0'] = array('1.0', '1.0.1', '1.0.2b1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.0.6', '1.0.6pl1');
-$enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6', '1.1.7');
+$enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6', '1.1.7', '1.1.8');
 
 // If true, this will do a full langimport instead of only adding new strings.
 // Will probably be left on, but some change probably needs to be made to mark
 // strings as customized in the DB.
-$do_langimport = true;
+$do_langimport = false;
 
 // Turn on every imaginable API hack to make common load on older databases
 define('IN_ENANO_UPGRADE', 1);
@@ -41,6 +41,13 @@ require_once('includes/libenanoinstall.php');
 // give syntax errors on PHP4. So much for that. The installer will warn about this anyway.
 require_once('includes/common.php');
 @ini_set('display_errors', 'on');
+
+// do langimport if below 1.1.7
+$versions_flipped = array_flip($enano_versions['1.1']);
+if ( !isset($versions_flipped[ enano_version() ]) || $versions_flipped[ enano_version() ] < $versions_flipped['1.1.7'] )
+{
+  $do_langimport = true;
+}
 
 if ( in_array(enano_version(), array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5')) || substr(enano_version(), 0, 3) == '1.0' )
   define('ENANO_UPGRADE_USE_AES_PASSWORDS', 1);
@@ -153,6 +160,9 @@ if ( !$session->user_logged_in || ( $session->user_logged_in && $session->auth_l
     echo $lang->get('upgrade_login_msg_auth_needed_body_level1');
   }
   ?></p>
+  <p>
+  <?php echo $lang->get('upgrade_login_msg_local_auth'); ?>
+  </p>
   <table border="0" cellspacing="0" cellpadding="5" style="margin: 0 auto;">
   <tr>
     <td><?php echo $lang->get('user_login_field_username'); ?>:</td>
