@@ -375,11 +375,11 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
     $and_clause = ( $where_any != '' ) ? 'AND ' : '';
     $where_req = ( count($where_req) > 0 ) ? "{$and_clause}" . implode(" AND\n  ", $where_req) : '';
 
-    $sql = 'SELECT ' . $concat_column . ' AS id, p.name FROM ' . table_prefix . "page_text AS t\n"
+    $sql = 'SELECT ' . $concat_column . ' AS id, p.name, t.page_text FROM ' . table_prefix . "page_text AS t\n"
             . "  LEFT JOIN " . table_prefix . "pages AS p\n"
             . "    ON ( p.urlname = t.page_id AND p.namespace = t.namespace )\n"
             . "  WHERE p.visible = 1 AND (\n    $where_any\n    $where_req\n  );";
-    if ( !($q = $db->sql_unbuffered_query($sql)) )
+    if ( !($q = $db->sql_query($sql)) )
       $db->_die('Error is in perform_search(), includes/search.php, query 2. Parsed query dump follows:<pre>(indexable) ' . htmlspecialchars(print_r($query, true)) . '(non-indexable) ' . htmlspecialchars(print_r($query_phrase, true)) . '</pre>');
 
     if ( $row = $db->fetchrow() )
@@ -387,16 +387,19 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
       do
       {
         $id =& $row['id'];
-        $inc = 1;
+        $inc = 0.0;
 
-        // Is this search term present in the page's title? If so, give extra points
-        preg_match("/^ns=$ns_list;pid=(.+)$/", $pages, $piecesparts);
-        $title = get_page_title_ns($piecesparts[2], $piecesparts[1]);
-        
+        $title = $row['name'];
         $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
-        if ( $test_func($title, $row['word']) || $test_func($piecesparts[2], $row['word']) )
+        
+        // Is this search term present in the page's title? If so, give extra points
+        $word_list = array_merge($query_phrase['any'], $query_phrase['req']);
+        foreach ( $word_list as $word )
         {
-          $inc = 1.5;
+          if ( $test_func($title, $word) )
+            $inc += 1.5;
+          else if ( $test_func($row['page_text'], $word) )
+            $inc += 1.0;
         }
         
         if ( isset($scores[$id]) )
@@ -794,7 +797,7 @@ function highlight_search_result($pt, $words, $case_sensitive = false)
   }
 
   $flag = ( $case_sensitive ) ? '' : 'i';
-  $regex = '/(' . implode('|', $words2) . ')/' . $flag;
+  $regex = '/(' . implode('|', str_replace('/', '\\/', $words2)) . ')/' . $flag;
   $pt = preg_replace($regex, '<highlight>\\1</highlight>', $pt);
 
   return $pt;
