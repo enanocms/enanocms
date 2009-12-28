@@ -2136,7 +2136,7 @@ function sanitize_html($html, $filter_php = true)
   // Vulnerability reported by fuzion from nukeit.org:
   // XSS in closing HTML tag style attribute
   // Fix: escape all closing tags with non-whitelisted characters
-  $html = preg_replace('!</((?:.*)([^a-z0-9-_:]+)(?:.*))>!i', '&lt;/\\1&gt;', $html);
+  $html = preg_replace('!</((?:[^>]*)([^a-z0-9_:>-]+)(?:[^>]*))>!i', '&lt;/\\1&gt;', $html);
 
   // Restore stripped comments
   $i = 0;
