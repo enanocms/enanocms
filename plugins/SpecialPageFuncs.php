@@ -298,7 +298,12 @@ function page_Special_AllPages()
   
   $db->free_result();
   
-  $q = $db->sql_unbuffered_query('SELECT CONCAT("ns=",namespace,";pid=",urlname) AS identifier, name FROM '.table_prefix.'pages WHERE visible!=0 ORDER BY name ASC;');
+  // This query needs to be generated based on the DBMS
+  $concat_column = ENANO_DBLAYER == 'MYSQL'
+                     ? 'CONCAT("ns=",namespace,";pid=",urlname)'
+                     : "'ns=' || namespace || ';pid=' || urlname";
+  
+  $q = $db->sql_unbuffered_query("SELECT $concat_column AS identifier, name FROM " . table_prefix . "pages WHERE visible != 0 ORDER BY name ASC;");
   if ( !$q )
     $db->_die();
   
