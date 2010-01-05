@@ -1358,6 +1358,10 @@ function smtp_send_email_core($mail_to, $subject, $message, $headers = '')
 
 function enano_version($long = false, $no_nightly = false)
 {
+  if ( !defined('ENANO_CONFIG_FETCHED') )
+  {
+    return function_exists('installer_enano_version') ? installer_enano_version() : $GLOBALS['enano_version'];
+  }
   $r = getConfig('enano_version');
   $rc = ( $long ) ? ' release candidate ' : 'RC';
   $b = ( $long ) ? ' beta ' : 'b';

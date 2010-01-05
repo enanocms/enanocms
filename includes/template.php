@@ -3023,7 +3023,7 @@ class template_nodb
     {
       $js_dynamic .= '<script type="text/javascript" src="install.php?mode=langjs"></script>';
     }
-    $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var cdnPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1; var msg_loading_component = \'Loading %component%...\';</script>';
+    $js_dynamic .= '<script type="text/javascript">var title="'. $title .'"; var scriptPath="'.scriptPath.'"; var cdnPath="'.scriptPath.'"; var ENANO_SID=""; var AES_BITS='.AES_BITS.'; var AES_BLOCKSIZE=' . AES_BLOCKSIZE . '; var pagepass=\'\'; var ENANO_LANG_ID = 1; var enano_version = \'' . enano_version() . '\'; var msg_loading_component = \'Loading %component%...\';</script>';
     
     global $site_name, $site_desc;
     $site_default_name = ( !empty($site_name) ) ? $site_name : 'Critical error';
@@ -3062,7 +3062,8 @@ class template_nodb
       'JS_DYNAMIC_VARS'=>$js_dynamic,
       'SIDEBAR_RIGHT'=>'',
       'REPORT_URI' => '',
-      'URL_ABOUT_ENANO' => 'http://enanocms.org/'
+      'URL_ABOUT_ENANO' => 'http://enanocms.org/',
+      'ENANO_VERSION' => enano_version()
       );
     $this->tpl_strings = array_merge($tpl_strings, $this->tpl_strings);
     
