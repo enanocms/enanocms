@@ -879,7 +879,8 @@ function getHighestZ()
   var divs = document.getElementsByTagName('div');
   for(var i = 0; i < divs.length; i++)
   {
-    if(divs[i].style.zIndex > z && divs[i].style.display != 'none' && divs[i].innerHTML != '') z = divs[i].style.zIndex;
+    if ( divs[i].style.zIndex > z && divs[i].style.display != 'none' )
+      z = divs[i].style.zIndex;
   }
   return parseInt(z);
 }
