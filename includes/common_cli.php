@@ -202,7 +202,7 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Ran session_started hook');
   
-  $paths->init();
+  $paths->init($paths->nslist['System'] . 'API');
   
   // We're ready for whatever life throws us now.
   define('ENANO_MAINSTREAM', '');
