@@ -186,10 +186,10 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
     }
 
     $col_word = ( $case_sensitive ) ? 'word' : 'word_lcase';
-    $where_any = ( count($where_any) > 0 ) ? '( ' . $col_word . ' LIKE \'%' . implode('%\' OR ' . $col_word . ' LIKE \'%', $where_any) . '%\' )' : '';
+    $where_any_str = ( count($where_any) > 0 ) ? '( ' . $col_word . ' LIKE \'%' . implode('%\' OR ' . $col_word . ' LIKE \'%', $where_any) . '%\' )' : '';
 
     // generate query
-    $sql = "SELECT word, page_names FROM " . table_prefix . "search_index WHERE {$where_any}";
+    $sql = "SELECT word, page_names FROM " . table_prefix . "search_index WHERE {$where_any_str}";
     if ( !($q = $db->sql_query($sql)) )
       $db->_die('Error is in perform_search(), includes/search.php, query 1');
 
@@ -200,99 +200,57 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
       {
         // get page list
         $pages =& $row['page_names'];
-        if ( strpos($pages, ',') )
-        {
-          // the term occurs in more than one page
-
-          // Find page IDs that contain commas
-          // This should never happen because commas are escaped by sanitize_page_id(). Nevertheless for compatibility with older
-          // databases, and to alleviate the concerns of hackers, we'll accommodate for page IDs with commas here by checking for
-          // IDs that don't match the pattern for stringified page ID + namespace. If it doesn't match, that means it's a continuation
-          // of the previous ID and should be concatenated to the previous entry.
-          $matches = explode(',', $pages);
-          $prev = false;
-          foreach ( $matches as $i => $_ )
-          {
-            $match =& $matches[$i];
-            if ( !preg_match("/^ns=$ns_list;pid=(.+)$/", $match) && $prev )
-            {
-              $matches[$prev] .= ',' . $match;
-              unset($match, $matches[$i]);
-              continue;
-            }
-            $prev = $i;
-          }
-          unset($match);
-
-          // Iterate through each of the results, assigning scores based on how many times the page has shown up.
-          // This works because this phase of the search is strongly word-based not page-based. If a page shows up
-          // multiple times while fetching the result rows from the search_index table, it simply means that page
-          // contains more than one of the terms the user searched for.
-
-          foreach ( $matches as $match )
-          {
-            $word_cs = (( $case_sensitive ) ? $row['word'] : strtolower($row['word']));
-            if ( isset($word_tracking[$match]) && in_array($word_cs, $word_tracking[$match]) )
-            {
-              continue;
-            }
-            if ( isset($word_tracking[$match]) )
-            {
-              if ( isset($word_tracking[$match]) )
-              {
-                $word_tracking[$match][] = ($word_cs);
-              }
-            }
-            else
-            {
-              $word_tracking[$match] = array($word_cs);
-            }
-            $inc = 1;
-
-            // Is this search term present in the page's title? If so, give extra points
-            preg_match("/^ns=$ns_list;pid=(.+)$/", $pages, $piecesparts);
-            $title = get_page_title_ns($piecesparts[2], $piecesparts[1]);
-            
-            $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
-            if ( $test_func($title, $row['word']) || $test_func($piecesparts[2], $row['word']) )
-            {
-              $inc = 1.5;
-            }
           
-            if ( isset($scores[$match]) )
-            {
-              $scores[$match] = $scores[$match] + $inc;
-            }
-            else
-            {
-              $scores[$match] = $inc;
-            }
+        // Find page IDs that contain commas
+        // This should never happen because commas are escaped by sanitize_page_id(). Nevertheless for compatibility with older
+        // databases, and to alleviate the concerns of hackers, we'll accommodate for page IDs with commas here by checking for
+        // IDs that don't match the pattern for stringified page ID + namespace. If it doesn't match, that means it's a continuation
+        // of the previous ID and should be concatenated to the previous entry.
+        $matches = strpos($pages, ',') ? explode(',', $pages) : array($pages);
+        $prev = false;
+        foreach ( $matches as $i => $_ )
+        {
+          $match =& $matches[$i];
+          if ( !preg_match("/^ns=$ns_list;pid=(.+)$/", $match) && $prev )
+          {
+            $matches[$prev] .= ',' . $match;
+            unset($match, $matches[$i]);
+            continue;
           }
+          $prev = $i;
         }
-        else
+        unset($match);
+
+        // Iterate through each of the results, assigning scores based on how many times the page has shown up.
+        // This works because this phase of the search is strongly word-based not page-based. If a page shows up
+        // multiple times while fetching the result rows from the search_index table, it simply means that page
+        // contains more than one of the terms the user searched for.
+
+        foreach ( $matches as $match )
         {
-          // the term only occurs in one page
           $word_cs = (( $case_sensitive ) ? $row['word'] : strtolower($row['word']));
-          
-          if ( isset($word_tracking[$pages]) && in_array($word_cs, $word_tracking[$pages]) )
+          if ( isset($word_tracking[$match]) && in_array($word_cs, $word_tracking[$match]) )
           {
             continue;
           }
-          if ( isset($word_tracking[$pages]) )
+          if ( isset($word_tracking[$match]) )
           {
-            if ( isset($word_tracking[$pages]) )
+            if ( isset($word_tracking[$match]) )
             {
-              $word_tracking[$pages][] = ($word_cs);
+              $word_tracking[$match][] = $word_cs;
             }
           }
           else
           {
-            $word_tracking[$pages] = array($word_cs);
+            $word_tracking[$match] = array($word_cs);
           }
+          
+          // echo '<pre>' . print_r($word_tracking, true) . '</pre>';
+          
           $inc = 1;
 
           // Is this search term present in the page's title? If so, give extra points
-          preg_match("/^ns=$ns_list;pid=(.+)$/", $pages, $piecesparts);
+          preg_match("/^ns=$ns_list;pid=(.+)$/", $match, $piecesparts);
           $title = get_page_title_ns($piecesparts[2], $piecesparts[1]);
           
           $test_func = ( $case_sensitive ) ? 'strstr' : 'stristr';
@@ -301,20 +259,42 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
             $inc = 1.5;
           }
           
-          if ( isset($scores[$pages]) )
+          // increase points if 2 or more words match a phrase in the title
+          for ( $i = 0; $i < count($where_any) - 1; $i++ )
           {
-            $scores[$pages] = $scores[$pages] + $inc;
+            $phrase = "{$where_any[$i]} {$where_any[$i + 1]}";
+            if ( $test_func($title, $phrase) )
+            {
+              $inc *= 1.25;
+            }
+          }
+          
+          // Deduct points if there are few similarities between the words
+          $lev_array = array();
+          foreach ( $where_any as $qword )
+          {
+            if ( strstr($word_cs, $qword) )
+              $lev_array[ $qword ] = levenshtein($qword, $word_cs);
+          }
+          if ( min($lev_array) > 3 )
+          {
+            $inc /= array_sum($lev_array) / count($lev_array);
+          }
+          
+          if ( isset($scores[$match]) )
+          {
+            $scores[$match] = $scores[$match] + $inc;
           }
           else
           {
-            $scores[$pages] = $inc;
+            $scores[$match] = $inc;
           }
         }
       }
       while ( $row = $db->fetchrow($q) );
     }
     $db->free_result($q);
-
+    
     //
     // STAGE 2: FIRST ELIMINATION ROUND
     // Iterate through the list of required terms. If a given page is not found to have the required term, eliminate it
@@ -400,6 +380,16 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
             $inc += 1.5;
           else if ( $test_func($row['page_text'], $word) )
             $inc += 1.0;
+        }
+        
+        // increase points if 2 or more words match a phrase in the title
+        for ( $i = 0; $i < count($word_list) - 1; $i++ )
+        {
+          $phrase = "{$word_list[$i]} {$word_list[$i + 1]}";
+          if ( $test_func($title, $phrase) )
+            $inc *= 1.25;
+          else if ( $test_func($row['page_text'], $phrase) )
+            $inc *= 1.125;
         }
         
         if ( isset($scores[$id]) )
@@ -559,6 +549,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
 
   // Divisor for calculating relevance scores
   $divisor = ( count($query['any']) + count($query_phrase['any']) + count($query['req']) + count($query['not']) ) * 1.5;
+  $divisor = max($divisor, max($scores));
   
   foreach ( $scores as $page_id => $score )
   {
