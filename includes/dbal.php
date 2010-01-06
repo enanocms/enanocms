@@ -521,6 +521,16 @@ class mysql {
   }
   
   /**
+   * Returns the number of rows affected.
+   * @return int
+   */
+  
+  function sql_affectedrows()
+  {
+    return mysql_affected_rows($this->_conn);
+  }
+  
+  /**
    * Close the database connection
    */
   
@@ -1160,6 +1170,16 @@ class postgresql
 			return ( defined('IN_ENANO_INSTALL') ) ? $GLOBALS["lang"]->get('dbpgsql_msg_err_auth') : 'Access to the database was denied. Ensure that your database exists and that your username and password are correct.';
 		}
 	}
+	
+	/**
+   * Returns the number of rows affected.
+   * @return int
+   */
+  
+  function sql_affectedrows()
+  {
+    return pg_affected_rows($this->latest_result);
+  }
 
   /**
    * Generates and outputs a report of all the SQL queries made during execution. Should only be called after everything's over with.
