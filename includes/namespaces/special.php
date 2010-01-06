@@ -47,7 +47,7 @@ class Namespace_Special extends Namespace_Default
     }
     
     $this->cdata = array(
-        'name' => $page_name,
+        'name' => $lang->get($page_name),
         'urlname' => $this->page_id,
         'namespace' => $this->namespace,
         'special' => 0,
