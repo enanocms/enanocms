@@ -398,7 +398,9 @@ function page_Special_About_Enano()
       <tr><th colspan="2" style="text-align: left;"><?php echo $lang->get('meta_enano_about_th'); ?></th></tr>
       <tr><td colspan="2" class="row3">
         <?php
-        echo $lang->get('meta_enano_about_poweredby');
+        echo $lang->get('meta_enano_about_poweredby', array(
+            'year'     => date('Y')
+          ));
         $subst = array(
             'gpl_link' => makeUrlNS('Special', 'GNU_General_Public_License')
           );
@@ -410,8 +412,8 @@ function page_Special_About_Enano()
         <h3>(English)</h3>
         <p>
           This website is powered by <a href="http://enanocms.org/">Enano</a>, the lightweight and open source CMS that everyone can use.
-          Enano is copyright &copy; 2006-2009 Dan Fuhry. For legal information, along with a list of libraries that Enano uses, please
-          see <a href="http://enanocms.org/Legal_information">Legal Information</a>.
+          Enano is copyright &copy; 2006-<?php echo date('Y'); ?> Dan Fuhry. For legal information, along with a list of libraries that
+          Enano uses, please see <a href="http://enanocms.org/Legal_information">Legal Information</a>.
         </p>
         <p>
           The developers and maintainers of Enano strongly believe that software should not only be free to use, but free to be modified,
