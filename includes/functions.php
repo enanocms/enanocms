@@ -974,9 +974,10 @@ function die_friendly($t, $p)
 
   if ( @ob_get_status() )
     ob_end_clean();
+  
+  global $output;
 
-  $paths->cpage['name'] = $t;
-  $template->tpl_strings['PAGE_NAME'] = $t;
+  $output->set_title($t);
   $template->header();
   echo $p;
   $template->footer();
@@ -1401,7 +1402,8 @@ function enano_codename()
       '1.1.4'  => 'Caoineag alpha 4',
       '1.1.5'  => 'Caoineag alpha 5',
       '1.1.6'  => 'Caoineag beta 1',
-      '1.1.7'  => 'Caoineag beta 2'
+      '1.1.7'  => 'Caoineag beta 2',
+      '1.1.8'  => 'Caoineag beta 3',
     );
   $version = enano_version();
   if ( isset($names[$version]) )

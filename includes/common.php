@@ -400,9 +400,6 @@ if ( !defined('IN_ENANO_INSTALL') )
   
   profiler_log('Checked for (and ran, if applicable) preloader');
   
-  // All checks passed! Start the main components up.  
-  $session->start();
-  
   // Add all of our built in special pages
   foreach ( array('SpecialUserFuncs', 'SpecialPageFuncs', 'SpecialAdmin', 'SpecialCSS', 'SpecialUpDownload', 'SpecialSearch', 'PrivateMessages', 'SpecialGroups', 'SpecialLog') as $plugin )
   {
@@ -413,6 +410,9 @@ if ( !defined('IN_ENANO_INSTALL') )
     }
   }
   profiler_log('Added special pages');
+  
+  // All checks passed! Start the main components up.  
+  $session->start();
   
   // This is where plugins will want to add pages from 1.1.x on out. You can still add
   // pages at base_classes_initted but the titles won't be localized. This is because

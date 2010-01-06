@@ -1299,7 +1299,7 @@ function page_Special_ActivateAccount()
     die_friendly($lang->get('userfuncs_activate_err_badlink_title'), '<p>' . $lang->get('userfuncs_activate_err_badlink_body') . '</p>');
   }
   $s = $session->activate_account(str_replace('_', ' ', $user), $key);
-  if ( $s > 0 )
+  if ( $s )
   {
     die_friendly($lang->get('userfuncs_activate_success_title'), '<p>' . $lang->get('userfuncs_activate_success_body') . '</p>');
   }

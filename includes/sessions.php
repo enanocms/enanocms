@@ -440,11 +440,11 @@ class sessionManager {
     
     if ( $strict )
     {
-      return $namespace == 'Special' && in_array($page_id, array('CSS', 'Login', 'Logout', 'LangExportJSON'));
+      return $namespace == 'Special' && in_array($page_id, array('CSS', 'Login', 'Logout', 'LangExportJSON', 'ActivateAccount'));
     }
     else
     {
-      return $namespace == 'Admin' || ($namespace == 'Special' && in_array($page_id, array('CSS', 'Login', 'Logout', 'Administration')));
+      return $namespace == 'Admin' || ($namespace == 'Special' && in_array($page_id, array('CSS', 'Login', 'Logout', 'Administration', 'LangExportJSON', 'ActivateAccount')));
     }
   }
   
@@ -2264,12 +2264,13 @@ class sessionManager {
       $new_key = md5(AESCrypt::randkey());
       $this->sql('UPDATE ' . table_prefix . 'users SET account_active = 1, activation_key = \'' . $new_key . '\' WHERE username=\''.$db->escape($user).'\' AND activation_key=\''.$db->escape($key).'\';');
       $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
+      return true;
     }
     else
     {
       $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'activ_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($user).'\', \''.$_SERVER['REMOTE_ADDR'].'\')');
+      return false;
     }
-    return $r;
   }
   
   /**
