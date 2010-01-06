@@ -434,13 +434,13 @@ class sessionManager {
   
   function on_critical_page($strict = false)
   {
-    global $title;
-    list($page_id, $namespace) = RenderMan::strToPageID($title);
+    global $urlname;
+    list($page_id, $namespace) = RenderMan::strToPageID($urlname);
     list($page_id) = explode('/', $page_id);
     
     if ( $strict )
     {
-      return $namespace == 'Special' && in_array($page_id, array('CSS', 'Login', 'Logout'));
+      return $namespace == 'Special' && in_array($page_id, array('CSS', 'Login', 'Logout', 'LangExportJSON'));
     }
     else
     {
@@ -582,7 +582,7 @@ class sessionManager {
     $this->check_banlist();
     
     // make sure the account is active
-    if ( !$this->compat && $this->user_logged_in && $userdata['account_active'] != 1 && !$this->on_critical_page() )
+    if ( !$this->compat && $this->user_logged_in && $userdata['account_active'] < 1 && !$this->on_critical_page() )
     {
       $this->show_inactive_error($userdata);
     }
@@ -2051,8 +2051,6 @@ class sessionManager {
       eval($cmd);
     }
     
-    // Uncomment to automatically log the user in (WARNING: commented out for a reason - doesn't consider activation and other things)
-    // $this->register_session($user_orig, $password);
     return 'success';
   }
   
