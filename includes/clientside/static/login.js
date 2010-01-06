@@ -1038,7 +1038,7 @@ window.ajaxLoginGetErrorText = function(response)
       case 'login_failure':
         // Generic login user error.
         var error = '', x;
-        if ( (x = $lang.get(response.error)) != response.error )
+        if ( (x = $lang.get(response.error)) != response.error || ! (/^[a-z0-9_]+/).test(response.error) )
           error = x;
         else
           error = $lang.get('user_err_' + response.error);
