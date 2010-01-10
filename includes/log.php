@@ -165,7 +165,7 @@ class LogDisplay
          . "  LEFT JOIN " . table_prefix . "users AS u\n"
          . "    ON ( u.user_id = l.author_uid OR u.user_id IS NULL )\n"
          . "  WHERE log_type = 'page' AND is_draft != 1$where_extra\n"
-         . "  GROUP BY log_id, action, page_id, namespace, page_text, author, time_id, edit_summary, minor_edit\n"
+         . "  GROUP BY log_id, action, page_id, namespace, page_text, author, author_uid, username, time_id, edit_summary, minor_edit\n"
          . "  ORDER BY time_id DESC $limit;";
     
     return $sql;
