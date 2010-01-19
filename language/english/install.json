@@ -396,7 +396,7 @@ var enano_lang_install = {
       url_schemes_body: '<p>The URL scheme allows you to decide how the URLs to your Enano pages will look.</p>
                          <p>The first option (Standard URLs) works on any web server. You should select it if your server doesn\'t run Apache, or
                             if you are at all unsure of your server\'s configuration. With this scheme, URLs at your site will look like <tt>
-                            http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.</p>
+                            http://yoursite.com/path-to-enano/index.php?title=Main_Page</tt>.</p>
                          <p>The second option, Small URLs, will be selected by default if Enano detects Apache. Small URLs are more friendly towards
                             search engines, but they don\'t work on very many non-Apache servers, or if PHP is set up through CGI on your server. Many
                             free and low-cost web hosts will configure PHP through CGI in order to keep your user account as the owner of any files that
