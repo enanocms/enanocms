@@ -22,7 +22,7 @@ class Carpenter_Parse_MediaWiki
     'mailtonotext' => '#\[mailto:([^ \]]+?)\]#',
     'mailtowithtext' => '#\[mailto:([^ \]]+?) (.+?)\]#',
     'hr' => '/^[-]{4,} *$/m',
-    'code' => '/^<code>(?:\r?\n)?(.+?)(?:\r?\n)?<\/code>$/mis'
+    'code' => '/^(?:<code>(?:\r?\n)?|<pre>)(.+?)(?:<\/pre>|(?:\r?\n)?<\/code>)$/mis'
   );
   
   private $blockquote_rand_id;
@@ -186,35 +186,9 @@ class Carpenter_Parse_MediaWiki
     // Wrap all block level tags
     RenderMan::tag_strip('_paragraph_bypass', $text, $_nw);
     
-    // I'm not sure why I had to go through all these alternatives. Trying to bring it
-    // all down to one by ?'ing subpatterns was causing things to return empty and throwing
-    // errors in the parser. Eventually, around ~3:57AM I just settled on this motherf---er
-    // of a regular expression.
+    // Find all opening and closing tags
     
-    // FIXME: This regexp triggers a known PHP stack size issue under win32 and possibly
-    // other platforms (<http://bugs.php.net/bug.php?id=47689>). The workaround is going to
-    // involve writing our own parser that takes care of recursion without using the stack,
-    // which is going to be a bitch, and may not make it in until Caoineag RCs.
-    
-    $regex = ";
-              <($blocklevel)
-              (?:
-                # self closing, no attributes
-                [ ]*/>
-              |
-                # self closing, attributes
-                [ ][^>]+? />
-              |
-                # with inner text, no attributes
-                >
-                (?: (?R) | .*? )*</\\1>
-              |
-                # with inner text and attributes
-                [ ][^>]+?     # attributes
-                >
-                (?: (?R) | .*? )*</\\1>
-              )
-                ;sx";
+    $regex = ";(<(?:/(?:$blocklevel)|(?:$blocklevel)(?: [^>]*?)?)>);s";
                 
     // oh. and we're using this tokens thing because for identical matches, the first match will
     // get wrapped X number of times instead of all matches getting wrapped once; replacing each
@@ -222,27 +196,46 @@ class Carpenter_Parse_MediaWiki
     
     $tokens = array();
     $rand_id = sha1(microtime() . mt_rand());
+    $tag_stack = array();
     
-    // Temporary hack to fix crashes under win32. Sometime I'll write a loop based
-    // parser for this whole section. Maybe. Perhaps the Apache folks will fix their
-    // Windows binaries first.
-    if ( PHP_OS == 'WIN32' || PHP_OS == 'WINNT' )
+    if ( $text_split = preg_split($regex, $text, -1, PREG_SPLIT_DELIM_CAPTURE) )
     {
-      $regex = str_replace("(?: (?R) | .*? )*", "(?: .*? )", $regex);
-    }
-    if ( preg_match_all($regex, $text, $matches) )
-    {
-      foreach ( $matches[0] as $i => $match )
+      $text = '';
+      // go through the text, extract tag names, and push them to a stack.
+      foreach ( $text_split as $splitpart )
       {
-        $text = str_replace_once($match, "{_pb_:$rand_id:$i}", $text);
-        $tokens[$i] = '<_paragraph_bypass>' . $match . '</_paragraph_bypass>';
+        if ( preg_match(";^<(/)?($blocklevel)( |>);i", $splitpart, $match) )
+        {
+          $tagname = $match[2];
+          if ( $match[1] == '/' )
+          {
+            // closing tag
+            if ( $tagname != ($top = array_pop($tag_stack)) )
+            {
+              // invalid - push back
+              array_push($tag_stack, $top);
+            }
+            else
+            {
+              // valid - if stack's at zero, add a </_paragraph_bypass>
+              if ( count($tag_stack) == 0 )
+                $splitpart .= '</_paragraph_bypass>';
+            }
+          }
+          else
+          {
+            // push
+            array_push($tag_stack, $tagname);
+            if ( count($tag_stack) == 1 )
+              $splitpart = '<_paragraph_bypass>' . $splitpart;
+          }
+        }
+        $text .= $splitpart;
       }
+      //echo '<pre>' . htmlspecialchars(print_r($text, true)) . '</pre>';
     }
     
-    foreach ( $tokens as $i => $match )
-    {
-      $text = str_replace_once("{_pb_:$rand_id:$i}", $match, $text);
-    }
+    // All things that should be para-bypassed now are surrounded by _paragraph_bypass tags.
     
     // die('<pre>' . htmlspecialchars($text) . '</pre>');
 	

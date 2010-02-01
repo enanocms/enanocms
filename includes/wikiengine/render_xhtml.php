@@ -159,7 +159,7 @@ class Carpenter_Render_Xhtml
   
   public function code($match)
   {
-    return '<pre>' . htmlspecialchars($match[1]) . '</pre>';
+    return '<pre class="wikitext-code"><final>' . htmlspecialchars($match[1]) . '</final></pre>';
   }
 }
 
