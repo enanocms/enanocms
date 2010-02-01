@@ -456,8 +456,8 @@ class Comments
         $name = $db->escape($name);
         $username = $db->escape($session->username);
         // log this action
-        $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs(time_id, log_type, action, page_text, author, edit_summary) VALUES\n  "
-                            . "( " . time() . ", 'security', 'view_comment_ip', '$name', '$username', '{$_SERVER['REMOTE_ADDR']}' );");
+        $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs(time_id, log_type, action, page_text, author, author_uid, edit_summary) VALUES\n  "
+                            . "( " . time() . ", 'security', 'view_comment_ip', '$name', '$username', $session->user_id, '{$_SERVER['REMOTE_ADDR']}' );");
         if ( !$q )
           $db->die_json();
         

@@ -1060,8 +1060,8 @@ class PageUtils {
       $db->free_result();
       $minor_edit = ( ENANO_DBLAYER == 'MYSQL' ) ? 'false' : '0';
       $username = $db->escape($session->username);
-      $q = 'INSERT INTO ' . table_prefix . "logs ( log_type, action, time_id, date_string, page_id, namespace, page_text, char_tag, author, edit_summary, minor_edit ) VALUES\n"
-         . "  ('page', 'edit', " . time() . ", 'DEPRECATED', '$page_id', '$namespace', '" . $db->escape($row['page_text']) . "', '', '{$username}', '" . $lang->get('page_flushlogs_backup_summary') . "', $minor_edit);";
+      $q = 'INSERT INTO ' . table_prefix . "logs ( log_type, action, time_id, date_string, page_id, namespace, page_text, char_tag, author, author_uid, edit_summary, minor_edit ) VALUES\n"
+         . "  ('page', 'edit', " . time() . ", 'DEPRECATED', '$page_id', '$namespace', '" . $db->escape($row['page_text']) . "', '', '{$username}', $session->user_id, '" . $lang->get('page_flushlogs_backup_summary') . "', $minor_edit);";
       if ( !$db->sql_query($q) )
         $db->_die('The history (log) entry could not be inserted into the logs table.');
     }
@@ -1274,8 +1274,8 @@ class PageUtils {
     
     // log action
     $time = time();
-    $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs (time_id, log_type, action, edit_summary, page_text, author, page_id, namespace) VALUES\n"
-                      . "  ( $time, 'page', 'votereset', '$delvotes', '$delvote_ips', '$username', '$page_id', '$namespace' )");
+    $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs (time_id, log_type, action, edit_summary, page_text, author, author_uid, page_id, namespace) VALUES\n"
+                      . "  ( $time, 'page', 'votereset', '$delvotes', '$delvote_ips', '$username', $session->user_id, '$page_id', '$namespace' )");
     if ( !$q )
       $db->_die();
     

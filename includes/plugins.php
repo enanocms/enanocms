@@ -634,7 +634,13 @@ class pluginLoader {
       else
       {
         if ( !$db->sql_query($query) )
-          $db->die_json();
+        {
+          $return = array(
+              'mode' => 'error',
+              'error' => "[SQL] " . $db->sql_error()
+            );
+          break 2;
+        }
       }
     }
     
@@ -643,8 +649,8 @@ class pluginLoader {
     $ip_db       = $db->escape($_SERVER['REMOTE_ADDR']);
     $username_db = $db->escape($session->username);
     $file_db     = $db->escape($filename);
-    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, page_text) VALUES\n"
-                      . "  ('security', 'plugin_install', $time, '$ip_db', '$username_db', '$file_db');");
+    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, author_uid, page_text) VALUES\n"
+                      . "  ('security', 'plugin_install', $time, '$ip_db', '$username_db', $session->user_id, '$file_db');");
     if ( !$q )
       $db->_die();
     
@@ -790,7 +796,13 @@ class pluginLoader {
       else
       {
         if ( !$db->sql_query($query) )
-          $db->die_json();
+        {
+          $return = array(
+              'mode' => 'error',
+              'error' => "[SQL] " . $db->sql_error()
+            );
+          break 2;
+        }
       }
     }
     
@@ -799,8 +811,8 @@ class pluginLoader {
     $ip_db       = $db->escape($_SERVER['REMOTE_ADDR']);
     $username_db = $db->escape($session->username);
     $file_db     = $db->escape($filename);
-    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, page_text) VALUES\n"
-                      . "  ('security', 'plugin_uninstall', $time, '$ip_db', '$username_db', '$file_db');");
+    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, author_uid, page_text) VALUES\n"
+                      . "  ('security', 'plugin_uninstall', $time, '$ip_db', '$username_db', $session->user_id, '$file_db');");
     if ( !$q )
       $db->_die();
     
@@ -1016,7 +1028,13 @@ class pluginLoader {
       else
       {
         if ( !$db->sql_query($query) )
-          $db->die_json();
+        {
+          $return = array(
+              'mode' => 'error',
+              'error' => "[SQL] " . $db->sql_error()
+            );
+          break 2;
+        }
       }
     }
     
@@ -1025,8 +1043,8 @@ class pluginLoader {
     $ip_db       = $db->escape($_SERVER['REMOTE_ADDR']);
     $username_db = $db->escape($session->username);
     $file_db     = $db->escape($filename);
-    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, page_text) VALUES\n"
-                      . "  ('security', 'plugin_upgrade', $time, '$ip_db', '$username_db', '$file_db');");
+    $q = $db->sql_query('INSERT INTO '.table_prefix."logs(log_type, action, time_id, edit_summary, author, author_uid, page_text) VALUES\n"
+                      . "  ('security', 'plugin_upgrade', $time, '$ip_db', '$username_db', $session->user_id, '$file_db');");
     if ( !$q )
       $db->_die();
     
