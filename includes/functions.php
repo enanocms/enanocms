@@ -2739,7 +2739,7 @@ function dirtify_page_id($page_id)
     return $page_id;
   }
 
-  preg_match_all('/\.[A-Fa-f0-9][A-Fa-f0-9]/', $page_id, $matches);
+  preg_match_all('/\.[a-f0-9][a-f0-9]/', $page_id, $matches);
 
   foreach ( $matches[0] as $id => $char )
   {
