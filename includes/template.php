@@ -581,7 +581,7 @@ JSEOF;
       // point to jsres compressor
       $js_head .= <<<JSEOF
       <!-- Only load a basic set of functions for now. Let the rest of the API load when the page is finished. -->
-      <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php?early&$enano_version"></script>
+      <script type="text/javascript" src="$cdnpath/includes/clientside/jsres.php?early&amp;$enano_version"></script>
 JSEOF;
       $js_foot = '';
       
@@ -596,10 +596,10 @@ JSEOF;
         {
           // special case for l10n: also load strings
           global $lang;
-          $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . makeUrlNS("Special", "LangExportJSON/$lang->lang_id", $enano_version) . "\"></script>";
+          $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . makeUrlNS("Special", "LangExportJSON/$lang->lang_id", $enano_version, true) . "\"></script>";
         }
         $scripts = implode(',', $this->js_preload);
-        $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/jsres.php?f=$scripts&$enano_version\"></script>";
+        $js_foot .= "\n    <script type=\"text/javascript\" src=\"" . cdnPath . "/includes/clientside/jsres.php?f=$scripts&amp;$enano_version\"></script>";
         
       }
       
