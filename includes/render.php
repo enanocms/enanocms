@@ -351,6 +351,32 @@ class RenderMan {
   }
   
   /**
+   * Strip out an arbitrary HTML tag, pushing on to the existing list of stripped data.
+   * @access private
+   */
+  
+  public static function tag_strip_push($tag, &$text, &$stripdata)
+  {
+    if ( !is_array($stripdata) )
+    {
+      $stripdata = array(
+          'random_id' => md5( time() . mt_rand() ),
+          'blocks' => array()
+        );
+    }
+    $random_id =& $stripdata['random_id'];
+    
+    preg_match_all("#<$tag>(.*?)</$tag>#is", $text, $blocks);
+    
+    foreach ( $blocks[0] as $i => $match )
+    {
+      $j = count($stripdata['blocks']);
+      $stripdata['blocks'][] = $blocks[1][$i];
+      $text = str_replace($match, "{{$tag}:{$random_id}:{$j}}", $text);
+    }
+  }
+  
+  /**
    * Restore stripped <nowiki> tags.
    * @access private
    */

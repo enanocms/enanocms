@@ -231,6 +231,7 @@ var enano_lang = {
       stat_dbsize: 'Database size:',
       stat_dbsize_unsupported: 'Unsupported',
       stat_installdate: 'Site started:',
+      stat_installdate_ago: '(%days% %this.etc_unit_days% ago)',
       stat_lastupdate: 'Last Enano upgrade:',
       stat_lastupdate_never: 'Never',
       

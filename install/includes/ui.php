@@ -173,6 +173,7 @@ class Enano_Installer_UI
         var pagepass=\'\';
         var ENANO_LANG_ID = 1;
         var DISABLE_MCE = true;
+	var enano_version = \'' . installer_enano_version() . '\';
         var msg_loading_component = \'Loading %component%...\';
       </script>';
     

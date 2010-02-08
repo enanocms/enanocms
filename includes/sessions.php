@@ -834,9 +834,9 @@ class sessionManager {
       if($sess)
       {
         if($level > USER_LEVEL_MEMBER)
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
+          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,author_uid,edit_summary,page_text) VALUES(\'security\', \'admin_auth_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', ' . $row['user_id'] . ', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
         else
-          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
+          $this->sql('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,author_uid,edit_summary) VALUES(\'security\', \'auth_good\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', ' . $row['user_id'] . ', \''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
         
         $code = $plugins->setHook('login_success');
         foreach ( $code as $cmd )

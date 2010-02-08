@@ -315,7 +315,14 @@ function acphome_show_stats()
   }
   
   // Install date
+  $site_age = floor((time() - $install_date) / 86400);
   $install_date_human = MemberlistFormatter::format_date($install_date);
+  if ( $site_age > 7 )
+  {
+    $install_date_human .= ' ' . $lang->get('acphome_stat_installdate_ago', array(
+        'days' => number_format($site_age)
+      ));
+  }
   
   // Last upgrade
   $q = $db->sql_query('SELECT time_id FROM ' . table_prefix . "logs WHERE log_type = 'security' AND action = 'upgrade_enano' ORDER BY time_id DESC LIMIT 1;");
@@ -329,7 +336,14 @@ function acphome_show_stats()
   else
   {
     list($last_upgrade) = $db->fetchrow_num();
+    $ver_age = floor((time() - $last_upgrade) / 86400);
     $last_upgrade = MemberlistFormatter::format_date($last_upgrade);
+    if ( $ver_age > 7 )
+    {
+      $last_upgrade .= ' ' . $lang->get('acphome_stat_installdate_ago', array(
+          'days' => number_format($ver_age)
+        ));
+    }
   }
   $db->free_result();
   

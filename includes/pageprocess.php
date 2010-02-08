@@ -764,8 +764,8 @@ class PageProcessor
         
         // add reupload log entry
         $username = $db->escape($session->username);
-        $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs ( log_type, action, time_id, page_id, namespace, author, edit_summary ) VALUES\n"
-                          . "  ( 'page', 'reupload', $time, '$this->page_id', '$this->namespace', '$username', '__ROLLBACK__' )");
+        $q = $db->sql_query('INSERT INTO ' . table_prefix . "logs ( log_type, action, time_id, page_id, namespace, author, author_uid, edit_summary ) VALUES\n"
+                          . "  ( 'page', 'reupload', $time, '$this->page_id', '$this->namespace', '$username', $session->user_id, '__ROLLBACK__' )");
         if ( !$q )
           $db->die_json();
         
@@ -952,8 +952,8 @@ class PageProcessor
       case PROTECT_SEMI: $action = 'semiprot'; break;
     }
     
-    $sql = 'INSERT INTO ' . table_prefix . "logs ( log_type, action, page_id, namespace, author, edit_summary, time_id, page_text, date_string ) VALUES\n"
-         . "  ( 'page', '$action', '{$this->page_id}', '{$this->namespace}', '$username', '$reason', '$time', '$existing_protection', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );";
+    $sql = 'INSERT INTO ' . table_prefix . "logs ( log_type, action, page_id, namespace, author, author_uid, edit_summary, time_id, page_text, date_string ) VALUES\n"
+         . "  ( 'page', '$action', '{$this->page_id}', '{$this->namespace}', '$username', $author_uid, '$reason', '$time', '$existing_protection', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );";
     if ( !$db->sql_query($sql) )
     {
       $db->die_json();

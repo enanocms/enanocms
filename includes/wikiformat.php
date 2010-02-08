@@ -103,7 +103,7 @@ class Carpenter
     $parser_class = "Carpenter_Parse_" . ucwords($this->parser);
     $renderer_class = "Carpenter_Render_" . ucwords($this->renderer);
     
-    // empty?
+    // empty? (don't remove this. the parser will shit bricks later about rules returning empty strings)
     if ( trim($text) === '' )
       return $text;
     
@@ -159,7 +159,7 @@ class Carpenter
       $text = $this->perform_render_step($text, $rule, $parser, $renderer);
       if ( empty($text) )
       {
-        trigger_error("Wikitext was empty after rule \"$rule\"; restoring backup", E_USER_WARNING);
+        trigger_error("Wikitext was completely empty after rule \"$rule\"; restoring backup", E_USER_WARNING);
         $text = $text_before;
       }
       unset($text_before);
@@ -178,7 +178,11 @@ class Carpenter
           }
         }
       }
+      
+      RenderMan::tag_strip_push('final', $text, $final_stripdata);
     }
+    
+    RenderMan::tag_unstrip('final', $text, $final_stripdata);
     
     // run posthooks
     foreach ( $this->hooks as $hook )
