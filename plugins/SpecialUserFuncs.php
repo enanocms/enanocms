@@ -1293,6 +1293,7 @@ function page_Special_ActivateAccount()
   {
     die_friendly($lang->get('userfuncs_activate_err_badlink_title'), '<p>' . $lang->get('userfuncs_activate_err_badlink_body') . '</p>');
   }
+  $user = str_replace('_', ' ', dirtify_page_id($user));
   $key = $paths->getParam(1);
   if ( !$key )
   {
