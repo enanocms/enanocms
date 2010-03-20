@@ -340,7 +340,7 @@ class Comments
           $sql_text = $db->escape($text);
           $text = RenderMan::render($text);
           $appr = ( getConfig('approve_comments', '0') == '1' ) ? COMMENT_UNAPPROVED : COMMENT_APPROVED;
-          if ( $appr === COMMENT_APPROVED && $spam_policy === 'moderate' && !$spamcheck )
+          if ( $spam_policy === 'moderate' && !$spamcheck )
             $appr = COMMENT_SPAM;
           $time = time();
           $date = enano_date(ED_DATE | ED_TIME, $time);

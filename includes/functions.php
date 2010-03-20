@@ -221,7 +221,15 @@ function makeUrlComplete($n, $t, $query = false, $escape = false)
 
 function get_server_url()
 {
-  return 'http' . ( $GLOBALS['is_https'] ) . '://' . $_SERVER['HTTP_HOST'];
+  $server_name = false;
+  if ( isset($_SERVER['HTTP_HOST']) )
+  	$server_name = $_SERVER['HTTP_HOST'];
+  else if ( isset($_SERVER['SERVER_NAME']) )
+  	$server_name = $_SERVER['SERVER_NAME'];
+  else
+    $server_name = 'localhost';
+  
+  return 'http' . ( $GLOBALS['is_https'] ) . '://' . $server_name;
 }
 
 /**

@@ -399,7 +399,7 @@ window.redrawComment = function(data)
   }
   if ( data.approved && data.approved != '1' )
   {
-    document.getElementById('subject_' + data.id).innerHTML += ' <span style="color: #D84308">' + $lang.get('comment_msg_note_unapp') + '</span>';
+    document.getElementById('subject_' + data.id).innerHTML += ' <span style="color: #D84308">' + ( data.approved == '2' ? $lang.get('comment_msg_note_spam') : $lang.get('comment_msg_note_unapp') ) + '</span>';
   }
   if ( data.approved && ( typeof(data.approve_updated) == 'string' && data.approve_updated == 'yes' ) )
   {
@@ -495,7 +495,7 @@ window.materializeComment = function(data)
     tplvars.NAME = '<a href="' + makeUrlNS('User', data.name) + '">' + data.name + '</a>';
   
   if ( data.approved != '1' )
-    tplvars.SUBJECT += ' <span style="color: #D84308">' + $lang.get('comment_msg_note_unapp') + '</span>';
+    tplvars.SUBJECT += ' <span style="color: #D84308">' + ( data.approved == '2' ? $lang.get('comment_msg_note_spam') : $lang.get('comment_msg_note_unapp') ) + '</span>';
   
   // Name
   tplvars.NAME = data.name;
@@ -520,10 +520,10 @@ window.materializeComment = function(data)
     tplvars.USER_LEVEL += $lang.get(data.rank_data.rank_title);
   
   // Send PM link
-  tplvars.SEND_PM_LINK=(data.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( data.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br />':'';
+  tplvars.SEND_PM_LINK=(data.user_id>1)?'<a class="abutton icon abutton_blue" style="background-image: url(' + cdnPath + '/images/icons/send_pm.png);" onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/Compose/To/' + ( data.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_send_privmsg') + '</a><br /><br />':'';
   
   // Add buddy link
-  tplvars.ADD_BUDDY_LINK=(data.user_id>1)?'<a onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( data.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_add_buddy') + '</a><br />':'';
+  tplvars.ADD_BUDDY_LINK=(data.user_id>1)?'<a class="abutton icon abutton_green" style="background-image: url(' + cdnPath + '/images/icons/add_buddy.png);" onclick="window.open(this.href); return false;" href="'+ makeUrlNS('Special', 'PrivateMessages/FriendList/Add/' + ( data.name.replace(/ /g, '_') )) +'">' + $lang.get('comment_btn_add_buddy') + '</a><br />':'';
   
   // Edit link
   tplvars.EDIT_LINK='<a href="#edit_'+i+'" onclick="editComment(\''+i+'\', this); return false;" id="cmteditlink_'+i+'">' + $lang.get('comment_btn_edit') + '</a>';
