@@ -14,7 +14,7 @@
  */
 
 if ( !defined('IN_ENANO_INSTALL') )
-  die();
+	die();
 
 require ( ENANO_ROOT . '/install/includes/libenanoinstall.php' );
 require ( ENANO_ROOT . '/includes/sql_parse.php' );
@@ -22,10 +22,10 @@ require ( ENANO_ROOT . '/includes/common.php' );
 
 if ( !in_array($dbdriver, $supported_drivers) )
 {
-  $ui->show_header();
-  echo '<h3>Installation error</h3>
-         <p>ERROR: That database driver is not supported.</p>';
-  return true;
+	$ui->show_header();
+	echo '<h3>Installation error</h3>
+ 				<p>ERROR: That database driver is not supported.</p>';
+	return true;
 }
 
 $ui->show_header();
@@ -41,11 +41,11 @@ flush();
 
 function stg_load_files()
 {
-  global $dbdriver;
-  if ( !@include( ENANO_ROOT . "/install/includes/payload.php" ) )
-    return false;
-  
-  return true;
+	global $dbdriver;
+	if ( !@include( ENANO_ROOT . "/install/includes/payload.php" ) )
+		return false;
+	
+	return true;
 }
 
 start_install_table();
@@ -61,8 +61,8 @@ close_install_table();
 <h3><?php echo $lang->get('finish_msg_success_title'); ?></h3>
 <p><?php echo $lang->get('finish_msg_success_body', array('mainpage_link' => makeUrlNS('Article', 'Main_Page'))); ?></p>
 <?php 
-  echo $lang->get('finish_body');
-  echo '<p>' . $lang->get('finish_link_mainpage', array('mainpage_link' => scriptPath . '/index.php')) . '</p>';
+	echo $lang->get('finish_body');
+	echo '<p>' . $lang->get('finish_link_mainpage', array('mainpage_link' => scriptPath . '/index.php')) . '</p>';
 ?>
 <?php
 

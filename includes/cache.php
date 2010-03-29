@@ -21,70 +21,70 @@
 
 class CacheManager
 {
-  /**
-   * Fetch a cached piece of data.
-   * @param string Cache ID. The timestamp is checked automatically.
-   */
-  
-  public function fetch($cache_id)
-  {
-    if ( !preg_match('/^[a-z0-9_]+$/', $cache_id) )
-    {
-      throw new Exception('Cache ID must be letters, numbers, and underscores.');
-    }
-    $cache_file = ENANO_ROOT . "/cache/cache_$cache_id.php";
-    if ( file_exists($cache_file) )
-    {
-      require($cache_file);
-      if ( isset($_cache_data) && isset($_cache_ttl) && isset($_cache_timestamp) )
-      {
-        $cache_expire = $_cache_timestamp + ( 60 * $_cache_ttl);
-        if ( $cache_expire >= time() || $_cache_ttl === -1 )
-        {
-          return $_cache_data;
-        }
-      }
-    }
-    return false;
-  }
-  
-  /**
-   * Stores an array by var_export()ing it and saving it to disk.
-   * @param string Cache ID - human readable name for this store (letters, numbers, underscores)
-   * @param array Data to store
-   * @param int TTL for the cached array, in minutes. Defaults to 20. If set to -1, caches indefinitely.
-   * @return bool True on success, false on failure
-   */
-  
-  public function store($cache_id, $data, $ttl = 20)
-  {
-    if ( getConfig('cache_thumbs') != '1' )
-    {
-      // caching disabled
-      return false;
-    }
-    if ( !preg_match('/^[a-z0-9_]+$/', $cache_id) )
-    {
-      throw new Exception('Cache ID must be letters, numbers, and underscores.');
-    }
-    if ( !is_int($ttl) )
-    {
-      throw new Exception('TTL must be an integer');
-    }
-    
-    $cache_file = ENANO_ROOT . "/cache/cache_$cache_id.php";
-    if ( file_exists($cache_file) )
-    {
-      @unlink($cache_file);
-    }
-    $fh = @fopen($cache_file, 'w');
-    if ( !$fh )
-    {
-      throw new Exception('Failed to open file for writing.');
-    }
-    $exported = Language::var_export_string($data);
-    $now = time();
-    $content = <<<EOF
+	/**
+ 	* Fetch a cached piece of data.
+ 	* @param string Cache ID. The timestamp is checked automatically.
+ 	*/
+	
+	public function fetch($cache_id)
+	{
+		if ( !preg_match('/^[a-z0-9_]+$/', $cache_id) )
+		{
+			throw new Exception('Cache ID must be letters, numbers, and underscores.');
+		}
+		$cache_file = ENANO_ROOT . "/cache/cache_$cache_id.php";
+		if ( file_exists($cache_file) )
+		{
+			require($cache_file);
+			if ( isset($_cache_data) && isset($_cache_ttl) && isset($_cache_timestamp) )
+			{
+				$cache_expire = $_cache_timestamp + ( 60 * $_cache_ttl);
+				if ( $cache_expire >= time() || $_cache_ttl === -1 )
+				{
+					return $_cache_data;
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**
+ 	* Stores an array by var_export()ing it and saving it to disk.
+ 	* @param string Cache ID - human readable name for this store (letters, numbers, underscores)
+ 	* @param array Data to store
+ 	* @param int TTL for the cached array, in minutes. Defaults to 20. If set to -1, caches indefinitely.
+ 	* @return bool True on success, false on failure
+ 	*/
+	
+	public function store($cache_id, $data, $ttl = 20)
+	{
+		if ( getConfig('cache_thumbs') != '1' )
+		{
+			// caching disabled
+			return false;
+		}
+		if ( !preg_match('/^[a-z0-9_]+$/', $cache_id) )
+		{
+			throw new Exception('Cache ID must be letters, numbers, and underscores.');
+		}
+		if ( !is_int($ttl) )
+		{
+			throw new Exception('TTL must be an integer');
+		}
+		
+		$cache_file = ENANO_ROOT . "/cache/cache_$cache_id.php";
+		if ( file_exists($cache_file) )
+		{
+			@unlink($cache_file);
+		}
+		$fh = @fopen($cache_file, 'w');
+		if ( !$fh )
+		{
+			throw new Exception('Failed to open file for writing.');
+		}
+		$exported = Language::var_export_string($data);
+		$now = time();
+		$content = <<<EOF
 <?php
 /**
  * Automatically generated cache file.
@@ -96,35 +96,35 @@ class CacheManager
 \$_cache_data = $exported;
 
 EOF;
-    fwrite($fh, $content);
-    fclose($fh);
-    
-    return true;
-  }
-  
-  /**
-   * Deletes a cached item.
-   * @param string Cache ID.
-   * @return bool true on success or if item doesn't exist, false on failure
-   */
-  
-  public function purge($cache_id)
-  {
-    if ( !preg_match('/^[a-z0-9_]+$/', $cache_id) )
-    {
-      throw new Exception('Cache ID must be letters, numbers, and underscores.');
-    }
-    
-    $cache_file = ENANO_ROOT . "/cache/cache_$cache_id.php";
-    if ( file_exists($cache_file) )
-    {
-      if ( unlink($cache_file) )
-      {
-        return true;
-      }
-      return false;
-    }
-    return true;
-  }
+		fwrite($fh, $content);
+		fclose($fh);
+		
+		return true;
+	}
+	
+	/**
+ 	* Deletes a cached item.
+ 	* @param string Cache ID.
+ 	* @return bool true on success or if item doesn't exist, false on failure
+ 	*/
+	
+	public function purge($cache_id)
+	{
+		if ( !preg_match('/^[a-z0-9_]+$/', $cache_id) )
+		{
+			throw new Exception('Cache ID must be letters, numbers, and underscores.');
+		}
+		
+		$cache_file = ENANO_ROOT . "/cache/cache_$cache_id.php";
+		if ( file_exists($cache_file) )
+		{
+			if ( unlink($cache_file) )
+			{
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
 }
 

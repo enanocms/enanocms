@@ -1,12 +1,12 @@
 <?php
 /**!info**
 {
-  "Plugin Name"  : "plugin_specialuserprefs_title",
-  "Plugin URI"   : "http://enanocms.org/",
-  "Description"  : "plugin_specialuserprefs_desc",
-  "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.6",
-  "Author URI"   : "http://enanocms.org/"
+	"Plugin Name"  : "plugin_specialuserprefs_title",
+	"Plugin URI"   : "http://enanocms.org/",
+	"Description"  : "plugin_specialuserprefs_desc",
+	"Author"       : "Dan Fuhry",
+	"Version"      : "1.1.6",
+	"Author URI"   : "http://enanocms.org/"
 }
 **!*/
 
@@ -25,1143 +25,1143 @@ $userprefs_menu = Array();
 $userprefs_menu_links = Array();
 function userprefs_menu_add($section, $text, $link)
 {
-  global $userprefs_menu;
-  if ( isset($userprefs_menu[$section]) && is_array($userprefs_menu[$section]) )
-  {
-    $userprefs_menu[$section][] = Array(
-      'text' => $text,
-      'link' => $link
-      );
-  }
-  else
-  {
-    $userprefs_menu[$section] = Array(Array(
-      'text' => $text,
-      'link' => $link
-      ));
-  }
+	global $userprefs_menu;
+	if ( isset($userprefs_menu[$section]) && is_array($userprefs_menu[$section]) )
+	{
+		$userprefs_menu[$section][] = Array(
+			'text' => $text,
+			'link' => $link
+			);
+	}
+	else
+	{
+		$userprefs_menu[$section] = Array(Array(
+			'text' => $text,
+			'link' => $link
+			));
+	}
 }
 
 $plugins->attachHook('tpl_compile_sidebar', 'userprefs_jbox_setup($button, $tb, $menubtn);');
 
 function userprefs_jbox_setup(&$button, &$tb, &$menubtn)
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  
-  if ( $paths->namespace != 'Special' || $paths->page_id != 'Preferences' )
-    return false;
-  
-  $tb .= "<ul>$template->toolbar_menu</ul>";
-  $template->toolbar_menu = '';
-  
-  $button->assign_vars(array(
-      'TEXT' => $lang->get('usercp_btn_memberlist'),
-      'FLAGS' => '',
-      'PARENTFLAGS' => '',
-      'HREF' => makeUrlNS('Special', 'Memberlist')
-    ));
-  
-  $tb .= $button->run();
+	global $db, $session, $paths, $template, $plugins; // Common objects
+	global $lang;
+	
+	if ( $paths->namespace != 'Special' || $paths->page_id != 'Preferences' )
+		return false;
+	
+	$tb .= "<ul>$template->toolbar_menu</ul>";
+	$template->toolbar_menu = '';
+	
+	$button->assign_vars(array(
+			'TEXT' => $lang->get('usercp_btn_memberlist'),
+			'FLAGS' => '',
+			'PARENTFLAGS' => '',
+			'HREF' => makeUrlNS('Special', 'Memberlist')
+		));
+	
+	$tb .= $button->run();
 }
 
 function userprefs_menu_html()
 {
-  global $userprefs_menu;
-  global $userprefs_menu_links;
-  global $lang;
-  
-  $html = '';
-  $quot = '"';
-  
-  foreach ( $userprefs_menu as $section => $buttons )
-  {
-    $section_name = $section;
-    if ( preg_match('/^[a-z]+_[a-z_]+$/', $section) )
-    {
-      $section_name = $lang->get($section_name);
-    }
-    $html .= ( isset($userprefs_menu_links[$section]) ) ? "<a href={$quot}{$userprefs_menu_links[$section]}{$quot}>{$section_name}</a>\n        " : "<a>{$section_name}</a>\n        ";
-    $html .= "<ul>\n          ";
-    foreach ( $buttons as $button )
-    {
-      $buttontext = $button['text'];
-      if ( preg_match('/^[a-z]+_[a-z_]+$/', $buttontext) )
-      {
-        $buttontext = $lang->get($buttontext);
-      }
-      $html .= "  <li><a href={$quot}{$button['link']}{$quot}>{$buttontext}</a></li>\n          ";
-    }
-    $html .= "</ul>\n        ";
-  }
-  
-  return $html;
+	global $userprefs_menu;
+	global $userprefs_menu_links;
+	global $lang;
+	
+	$html = '';
+	$quot = '"';
+	
+	foreach ( $userprefs_menu as $section => $buttons )
+	{
+		$section_name = $section;
+		if ( preg_match('/^[a-z]+_[a-z_]+$/', $section) )
+		{
+			$section_name = $lang->get($section_name);
+		}
+		$html .= ( isset($userprefs_menu_links[$section]) ) ? "<a href={$quot}{$userprefs_menu_links[$section]}{$quot}>{$section_name}</a>\n        " : "<a>{$section_name}</a>\n        ";
+		$html .= "<ul>\n          ";
+		foreach ( $buttons as $button )
+		{
+			$buttontext = $button['text'];
+			if ( preg_match('/^[a-z]+_[a-z_]+$/', $buttontext) )
+			{
+				$buttontext = $lang->get($buttontext);
+			}
+			$html .= "  <li><a href={$quot}{$button['link']}{$quot}>{$buttontext}</a></li>\n          ";
+		}
+		$html .= "</ul>\n        ";
+	}
+	
+	return $html;
 }
 
 function userprefs_show_menu()
 {
-  echo '<div class="menu_nojs">
-          ' . userprefs_menu_html() . '
-          <span class="menuclear"></span>
-        </div>
-        <br />
-        ';
+	echo '<div class="menu_nojs">
+					' . userprefs_menu_html() . '
+					<span class="menuclear"></span>
+				</div>
+				<br />
+				';
 }
 
 function userprefs_menu_init()
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $userprefs_menu_links;
-  
-  userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_emailpassword', makeUrlNS('Special', 'Preferences/EmailPassword') . '" onclick="ajaxLoginNavTo(\'Special\', \'Preferences/EmailPassword\', '.USER_LEVEL_CHPREF.'); return false;');
-  userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_signature', makeUrlNS('Special', 'Preferences/Signature'));
-  // userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_publicinfo', makeUrlNS('Special', 'Preferences/Profile'));
-  userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_usergroups', makeUrlNS('Special', 'Usergroups'));
-  if ( getConfig('avatar_enable') == '1' )
-  {
-    userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_avatar', makeUrlNS('Special', 'Preferences/Avatar'));
-  }
-  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_inbox', makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'));
-  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_outbox', makeUrlNS('Special', 'PrivateMessages/Folder/Outbox'));
-  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_sent', makeUrlNS('Special', 'PrivateMessages/Folder/Sent'));
-  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_drafts', makeUrlNS('Special', 'PrivateMessages/Folder/Drafts'));
-  userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_archive', makeUrlNS('Special', 'PrivateMessages/Folder/Archive'));
-  
-  /*
-  // Reserved for Enano's Next Big Innovation.(TM)
-  userprefs_menu_add('Private messages', 'Inbox', makeUrlNS('Special',      'Private_Messages#folder:inbox'));
-  userprefs_menu_add('Private messages', 'Starred', makeUrlNS('Special',     'Private_Messages#folder:starred'));
-  userprefs_menu_add('Private messages', 'Sent items', makeUrlNS('Special', 'Private_Messages#folder:sent'));
-  userprefs_menu_add('Private messages', 'Drafts', makeUrlNS('Special',     'Private_Messages#folder:drafts'));
-  userprefs_menu_add('Private messages', 'Archive', makeUrlNS('Special',    'Private_Messages#folder:archive'));
-  userprefs_menu_add('Private messages', 'Trash', makeUrlNS('Special',    'Private_Messages#folder:trash'));
-  */
-  
-  $userprefs_menu_links['usercp_sec_profile'] = makeUrlNS('Special', 'Preferences');
-  $userprefs_menu_links['usercp_sec_pm']  = makeUrlNS('Special', 'PrivateMessages');
-  
-  $code = $plugins->setHook('userprefs_jbox');
-  foreach ( $code as $cmd )
-  {
-    eval($cmd);
-  }
+	global $db, $session, $paths, $template, $plugins; // Common objects
+	global $userprefs_menu_links;
+	
+	userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_emailpassword', makeUrlNS('Special', 'Preferences/EmailPassword') . '" onclick="ajaxLoginNavTo(\'Special\', \'Preferences/EmailPassword\', '.USER_LEVEL_CHPREF.'); return false;');
+	userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_signature', makeUrlNS('Special', 'Preferences/Signature'));
+	// userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_publicinfo', makeUrlNS('Special', 'Preferences/Profile'));
+	userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_usergroups', makeUrlNS('Special', 'Usergroups'));
+	if ( getConfig('avatar_enable') == '1' )
+	{
+		userprefs_menu_add('usercp_sec_profile', 'usercp_sec_profile_avatar', makeUrlNS('Special', 'Preferences/Avatar'));
+	}
+	userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_inbox', makeUrlNS('Special', 'PrivateMessages/Folder/Inbox'));
+	userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_outbox', makeUrlNS('Special', 'PrivateMessages/Folder/Outbox'));
+	userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_sent', makeUrlNS('Special', 'PrivateMessages/Folder/Sent'));
+	userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_drafts', makeUrlNS('Special', 'PrivateMessages/Folder/Drafts'));
+	userprefs_menu_add('usercp_sec_pm', 'usercp_sec_pm_archive', makeUrlNS('Special', 'PrivateMessages/Folder/Archive'));
+	
+	/*
+	// Reserved for Enano's Next Big Innovation.(TM)
+	userprefs_menu_add('Private messages', 'Inbox', makeUrlNS('Special',      'Private_Messages#folder:inbox'));
+	userprefs_menu_add('Private messages', 'Starred', makeUrlNS('Special',     'Private_Messages#folder:starred'));
+	userprefs_menu_add('Private messages', 'Sent items', makeUrlNS('Special', 'Private_Messages#folder:sent'));
+	userprefs_menu_add('Private messages', 'Drafts', makeUrlNS('Special',     'Private_Messages#folder:drafts'));
+	userprefs_menu_add('Private messages', 'Archive', makeUrlNS('Special',    'Private_Messages#folder:archive'));
+	userprefs_menu_add('Private messages', 'Trash', makeUrlNS('Special',    'Private_Messages#folder:trash'));
+	*/
+	
+	$userprefs_menu_links['usercp_sec_profile'] = makeUrlNS('Special', 'Preferences');
+	$userprefs_menu_links['usercp_sec_pm']  = makeUrlNS('Special', 'PrivateMessages');
+	
+	$code = $plugins->setHook('userprefs_jbox');
+	foreach ( $code as $cmd )
+	{
+		eval($cmd);
+	}
 }
 
 $plugins->attachHook('common_post', 'userprefs_menu_init();');
 
 function page_Special_Preferences()
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  global $timezone;
-  global $cache;
-  
-  // We need a login to continue
-  if ( !$session->user_logged_in )
-    redirect(makeUrlNS('Special', 'Login/' . $paths->page), 'Login required', 'You need to be logged in to access this page. Please wait while you are redirected to the login page.');
-  
-  // User ID - later this will be specified on the URL, but hardcoded for now
-  $uid = intval($session->user_id);
-  
-  // Instanciate the AES encryptor
-  $aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-  
-  // Basic user info
-  $q = $db->sql_query('SELECT username, password, email, real_name, signature, theme, style FROM '.table_prefix.'users WHERE user_id='.$uid.';');
-  if ( !$q )
-    $db->_die();
-  
-  $row = $db->fetchrow();
-  $db->free_result();
-  
-  $section = $paths->getParam(0);
-  if ( !$section )
-  {
-    $section = 'Home';
-  }
-  
-  $errors = '';
-  
-  switch ( $section )
-  {
-    case 'Avatar':
-      $template->preload_js('jquery');
-      $template->preload_js('jquery-ui');
-      break;
-    case 'EmailPassword':
-      // Require elevated privileges (well sortof)
-      if ( $session->auth_level < USER_LEVEL_CHPREF )
-      {
-        redirect(makeUrlNS('Special', 'Login/' . $paths->fullpage, 'level=' . USER_LEVEL_CHPREF, true), 'Authentication required', 'You need to re-authenticate to access this page.', 0);
-      }
-      
-      if ( isset($_POST['submit']) )
-      {
-        $email_changed = false;
-        // First do the e-mail address
-        if ( strlen($_POST['newemail']) > 0 )
-        {
-          switch('foo') // Same reason as in the password code...
-          {
-            case 'foo':
-              if ( $_POST['newemail'] != $_POST['newemail_conf'] )
-              {
-                $errors .= '<div class="error-box">' . $lang->get('usercp_emailpassword_err_email_no_match') . '</div>';
-                break;
-              }
-          }
-          $q = $db->sql_query('SELECT password FROM '.table_prefix.'users WHERE user_id='.$session->user_id.';');
-          if ( !$q )
-            $db->_die();
-          $row = $db->fetchrow();
-          $db->free_result();
-          
-          $new_email = $_POST['newemail'];
-          
-          $result = $session->change_email($session->user_id, $new_email);
-          if ( $result != 'success' )
-          {
-            $message = '<p>' . $lang->get('usercp_emailpassword_err_list') . '</p>';
-            $message .= '<ul><li>' . implode("</li>\n<li>", $result) . '</li></ul>';
-            die_friendly($lang->get('usercp_emailpassword_err_title'), $message);
-          }
-          $email_changed = true;
-        }
-        // Obtain password
-        if ( !empty($_POST['crypt_data']) || !empty($_POST['newpass']) || $session->password_change_disabled )
-        {
-          $newpass = $session->password_change_disabled ? '' : $session->get_aes_post('newpass');
-          // At this point we know if we _want_ to change the password...
-          
-          // We can't check the password to see if it matches the confirmation
-          // because the confirmation was destroyed during the encryption. I figured
-          // this wasn't a big deal because if the encryption worked, then either
-          // the Javascript validated it or the user hacked the form. In the latter
-          // case, if he's smart enough to hack the encryption code, he's probably
-          // smart enough to remember his password.
-          
-          if ( strlen($newpass) > 0 )
-          {
-            if ( defined('ENANO_DEMO_MODE') )
-              $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_demo') . '</div>';
-            // Perform checks
-            if ( strlen($newpass) < 6 )
-              $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_password_too_short') . '</div>';
-            if ( getConfig('pw_strength_enable') == '1' )
-            {
-              $score_inp = password_score($newpass);
-              $score_min = getConfig('pw_strength_minimum', -10);
-              if ( $score_inp < $score_min )
-                $errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_password_too_weak', array('score' => $score_inp)) . '</div>';
-            }
-            if ( $_POST['use_crypt'] == 'no' && $newpass != $_POST['newpass_confirm'] )
-            {
-              $errors .= '<div class="error-box">' . $lang->get('usercp_emailpassword_err_password_no_match') . '</div>';
-            }
-            // Encrypt new password
-            if ( empty($errors) )
-            {
-              // Perform the swap
-              $session->set_password($session->username, $newpass);
-              // Log out and back in
-              $username = $session->username;
-              $session->logout();
-              if ( $email_changed )
-              {
-                if ( getConfig('account_activation') == 'user' )
-                {
-                  redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
-                }
-                else if ( getConfig('account_activation') == 'admin' )
-                {
-                  redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
-                }
-              }
-              $session->login_without_crypto($username, $newpass);
-              redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_pass_success'), $lang->get('usercp_emailpassword_msg_password_changed'), 5);
-            }
-          }
-          else if ( $email_changed )
-          {
-            $session->logout(USER_LEVEL_CHPREF);
-            $activation = $session->user_level >= USER_LEVEL_MOD ? 'none' : getConfig('account_activation', 'none');
-            switch($activation)
-            {
-              default:
-                $message_body = $lang->get('usercp_emailpassword_msg_password_changed');
-                $timeout = 5;
-                break;
-              case 'admin':
-                $message_body = $lang->get('usercp_emailpassword_msg_need_activ_user');
-                $timeout = 20;
-                break;
-              case 'user':
-                $message_body = $lang->get('usercp_emailpassword_msg_need_activ_admin');
-                $timeout = 20;
-                break;
-            }
-            redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_email_success'), $message_body, $timeout);
-          }
-        }
-      }
-      $template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_emailpassword_title');
-      break;
-    case 'Signature':
-      $template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_signature_title');
-      break;
-    case 'Profile':
-    case 'Home':
-      if ( isset($_POST['submit']) )
-        csrf_request_confirm();
-      
-      $template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_publicinfo_title');
-      break;
-  }
-  
-  $template->header();
-  
-  // Output the menu
-  // This is not templatized because it conforms to the jBox menu standard.
-  
-  userprefs_show_menu();
-  
-  switch ( $section )
-  {
-    case 'EmailPassword':
-      
-      $errors = trim($errors);
-      if ( !empty($errors) )
-      {
-        echo $errors;
-      }
-      
-      echo '<form action="' . makeUrlNS('Special', 'Preferences/EmailPassword') . '" method="post" onsubmit="return runEncryption();" name="empwform" >';
-      echo '<fieldset>';
-      echo '<legend>' . $lang->get('usercp_emailpassword_grp_chpasswd') . '</legend>';
-      
-      // Password change form
-      if ( $session->password_change_disabled )
-      {
-        echo '<p>' . $lang->get('usercp_emailpassword_msg_change_disabled') . '</p>';
-        if ( $session->password_change_dest['url'] )
-        {
-          echo '<p>' . $lang->get('usercp_emailpassword_msg_change_disabled_url') . '
-                   <a onclick="window.open(this.href); return false;" href="' . htmlspecialchars($session->password_change_dest['url']) . '">' . htmlspecialchars($session->password_change_dest['title']) . '</a></p>';
-        }
-      }
-      else
-      {
-      echo $lang->get('usercp_emailpassword_field_newpass') . '<br />
-                <input type="password" name="newpass" size="30" tabindex="1" ' . ( getConfig('pw_strength_enable') == '1' ? 'onkeyup="password_score_field(this);" ' : '' ) . '/>' . ( getConfig('pw_strength_enable') == '1' ? '<span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span>' : '' ) . '
-              <br />
-              <br />
-              ' . $lang->get('usercp_emailpassword_field_newpass_confirm') . '<br />
-              <input type="password" name="newpass_confirm" size="30" tabindex="2" />
-              ' . ( getConfig('pw_strength_enable') == '1' ? '<br /><br /><div id="pwmeter"></div>
-              <small>' . $lang->get('usercp_emailpassword_msg_password_min_score') . '</small>' : '' );
-      }
-      echo '</fieldset><br />';
-      echo '<fieldset>
-        <legend>' . $lang->get('usercp_emailpassword_grp_chemail') . '</legend>
-        ' . $lang->get('usercp_emailpassword_field_newemail') . '<br />
-          <input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail" size="30" tabindex="3" />
-        <br />
-        <br />
-        ' . $lang->get('usercp_emailpassword_field_newemail_confirm') . '<br />
-          <input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail_conf" size="30" tabindex="4" />
-      </fieldset>
-      <br />
-      <div style="text-align: right;"><input type="submit" name="submit" value="' . $lang->get('etc_save_changes') . '" tabindex="5" /></div>';
-      
-      if ( !$session->password_change_disabled )
-        echo $session->generate_aes_form();
-      
-      echo '</form>';
-      
-      // ENCRYPTION CODE
-      ?>
-      <?php if ( !$session->password_change_disabled && getConfig('pw_strength_enable') == '1' ): ?>
-      <script type="text/javascript">
-      addOnloadHook(function()
-        {
-          password_score_field(document.forms.empwform.newpass);
-        });
-      </script>
-      <?php endif; ?>
-      <?php
-      echo $session->aes_javascript('empwform', 'newpass');
-      break;
-    case 'Signature':
-      if ( isset($_POST['new_sig']) )
-      {
-        $sig = $_POST['new_sig'];
-        $sig = RenderMan::preprocess_text($sig, true, false);
-        $sql_sig = $db->escape($sig);
-        $q = $db->sql_query('UPDATE '.table_prefix.'users SET signature=\'' . $sql_sig . '\' WHERE user_id=' . $session->user_id . ';');
-        if ( !$q )
-          $db->_die();
-        $session->signature = $sig;
-        echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_signature_msg_saved') . '</div>';
-      }
-      echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
-      echo $template->tinymce_textarea('new_sig', htmlspecialchars($session->signature));
-      echo '<input type="submit" value="' . $lang->get('usercp_signature_btn_save') . '" />';
-      echo '</form>';
-      break;
-    case "Profile":
-    case 'Home':
-      
-      global $email;
-      $userpage_id = $paths->nslist['User'] . sanitize_page_id($session->username);
-      $userpage_exists = ( isPage($userpage_id) ) ? '' : ' class="wikilink-nonexistent"';
-      $user_page = makeUrlNS('User', sanitize_page_id($session->username));
-      $site_admin = $email->encryptEmail(getConfig('contact_email'), '', '', $lang->get('usercp_intro_para3_admin_link'));
-      
-      echo '<h3 style="margin-top: 0;">' . $lang->get('usercp_intro_heading_main', array('username' => $session->username)) . '</h3>';
-      
-      echo  $lang->get('usercp_intro', array('userpage_link' => $user_page));
-      
-      $available_ranks = $session->get_user_possible_ranks($session->user_id);
-      $current_rank = $session->get_user_rank($session->user_id);
-      
-      if ( isset($_POST['submit']) )
-      {
-        $real_name = htmlspecialchars($_POST['real_name']);
-        $real_name = $db->escape($real_name);
-        
-        $timezone = intval($_POST['timezone']);
-        $tz_local = $timezone + 1440;
-        
-        $dst = $db->escape($_POST['dst']);
-        if ( !preg_match('/^[0-9]+;[0-9]+;[0-9]+;[0-9]+;[0-9]+$/', $dst) )
-          $dst = '0;0;0;0;60';
-        
-        $GLOBALS['dst_params'] = explode(';', $dst);
-        
-        $imaddr_aim = htmlspecialchars($_POST['imaddr_aim']);
-        $imaddr_aim = $db->escape($imaddr_aim);
-        
-        $imaddr_msn = htmlspecialchars($_POST['imaddr_msn']);
-        $imaddr_msn = $db->escape($imaddr_msn);
-        
-        $imaddr_yahoo = htmlspecialchars($_POST['imaddr_yahoo']);
-        $imaddr_yahoo = $db->escape($imaddr_yahoo);
-        
-        $imaddr_xmpp = htmlspecialchars($_POST['imaddr_xmpp']);
-        $imaddr_xmpp = $db->escape($imaddr_xmpp);
-        
-        $homepage = htmlspecialchars($_POST['homepage']);
-        $homepage = $db->escape($homepage);
-        
-        $location = htmlspecialchars($_POST['location']);
-        $location = $db->escape($location);
-        
-        $occupation = htmlspecialchars($_POST['occupation']);
-        $occupation = $db->escape($occupation);
-        
-        $hobbies = htmlspecialchars($_POST['hobbies']);
-        $hobbies = $db->escape($hobbies);
-        
-        $date_format = $db->escape(htmlspecialchars($_POST['date_format']));
-        $time_format = $db->escape(htmlspecialchars($_POST['time_format']));
-        
-        $email_public = ( isset($_POST['email_public']) ) ? '1' : '0';
-        $disable_js_fx = ( isset($_POST['disable_js_fx']) ) ? '1' : '0';
-        
-        $session->real_name = $real_name;
-        
-        if ( !preg_match('/@([a-z0-9-]+)(\.([a-z0-9-\.]+))?/', $imaddr_msn) && !empty($imaddr_msn) )
-        {
-          $imaddr_msn = "$imaddr_msn@hotmail.com";
-        }
-        
-        if ( !preg_match('#^https?://#', $homepage) )
-        {
-          $homepage = "http://$homepage";
-        }
-        
-        if ( !preg_match('/^http:\/\/([a-z0-9-.]+)([A-z0-9@#\$%\&:;<>,\.\?=\+\(\)\[\]_\/\\\\]*?)$/i', $homepage) )
-        {
-          $homepage = '';
-        }
-        
-        $session->user_extra['user_aim'] = $imaddr_aim;
-        $session->user_extra['user_msn'] = $imaddr_msn;
-        $session->user_extra['user_xmpp'] = $imaddr_xmpp;
-        $session->user_extra['user_yahoo'] = $imaddr_yahoo;
-        $session->user_extra['user_homepage'] = $homepage;
-        $session->user_extra['user_location'] = $location;
-        $session->user_extra['user_job'] = $occupation;
-        $session->user_extra['user_hobbies'] = $hobbies;
-        $session->user_extra['email_public'] = intval($email_public);
-        $session->date_format = $date_format;
-        $session->time_format = $time_format;
-        
-        // user title
-        $user_title_col = '';
-        if ( $session->get_permissions('custom_user_title') && isset($_POST['user_title']) )
-        {
-          $user_title = trim($_POST['user_title']);
-          if ( empty($user_title) )
-          {
-            $colval = 'NULL';
-            $session->user_title = null;
-          }
-          else
-          {
-            $colval = "'" . $db->escape($user_title) . "'";
-            $session->user_title = $user_title;
-          }
-          $user_title_col = ", user_title = $colval";
-        }
-        $user_rank_col = '';
-        if ( isset($_POST['user_rank']) && intval($_POST['user_rank']) != $current_rank['rank_id'] && count($available_ranks) > 1 )
-        {
-          if ( $_POST['user_rank'] == 'NULL' )
-          {
-            $user_rank_col = ", user_rank = NULL, user_rank_userset = 0";
-          }
-          else
-          {
-            $new_rank = intval($_POST['user_rank']);
-            $rank_allowed = false;
-            foreach ( $available_ranks as $rank )
-            {
-              if ( $rank['rank_id'] == $new_rank )
-              {
-                $rank_allowed = true;
-                break;
-              }
-            }
-            if ( $rank_allowed )
-            {
-              $user_rank_col = ", user_rank = $new_rank, user_rank_userset = 1";
-              // hack
-              $current_rank['rank_id'] = $new_rank;
-              $cache->purge('ranks');
-            }
-          }
-        }
-        
-        $q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name', user_timezone = {$tz_local}, user_dst = '$dst'{$user_title_col}{$user_rank_col} WHERE user_id=$session->user_id;");
-        if ( !$q )
-          $db->_die();
-        
-        $q = $db->sql_query('UPDATE '.table_prefix."users_extra SET user_aim='$imaddr_aim',user_yahoo='$imaddr_yahoo',user_msn='$imaddr_msn',
-                               user_xmpp='$imaddr_xmpp',user_homepage='$homepage',user_location='$location',user_job='$occupation',
-                               user_hobbies='$hobbies',email_public=$email_public,disable_js_fx=$disable_js_fx,date_format='$date_format',
-                               time_format='$time_format'
-                               WHERE user_id=$session->user_id;");
-        
-        if ( !$q )
-          $db->_die();
-        
-        // verify language id
-        $lang_id = strval(intval($_POST['lang_id']));
-        $q = $db->sql_query('SELECT 1 FROM ' . table_prefix . 'language WHERE lang_id = ' . $lang_id . ';');
-        if ( !$q )
-          $db->_die();
-        
-        if ( $db->numrows() > 0 )
-        {
-          $db->free_result();
-          
-          // unload / reload $lang, this verifies that the selected language works
-          // enano should die a violent death if the language fails to load
-          unset($GLOBALS['lang']);
-          unset($lang);
-          $lang_id = intval($lang_id);
-          $GLOBALS['lang'] = new Language($lang_id);
-          global $lang;
-          
-          $q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_lang = ' . $lang_id . " WHERE user_id = {$session->user_id};");
-          if ( !$q )
-            $db->_die();
-        }
-        else
-        {
-          $db->free_result();
-        }
-        
-        generate_cache_userranks();
-        
-        echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_publicinfo_msg_save_success') . '</div>';
-      }
-      
-      $lang_box = '<select name="lang_id">';
-      $q = $db->sql_query('SELECT lang_id, lang_name_native FROM ' . table_prefix . "language;");
-      if ( !$q )
-        $db->_die();
-      
-      while ( $row = $db->fetchrow_num() )
-      {
-        list($lang_id, $lang_name) = $row;
-        $lang_name = htmlspecialchars($lang_name);
-        $selected = ( $lang->lang_id == $lang_id ) ? ' selected="selected"' : '';
-        $lang_box .= "<option value=\"$lang_id\"$selected>$lang_name</option>";
-      }
-      
-      $lang_box .= '</select>';
-      
-      $tz_select = '<select name="timezone">';
-      $tz_list = $lang->get('tz_list');
-      try
-      {
-        $tz_list = enano_json_decode($tz_list);
-      }
-      catch(Exception $e)
-      {
-        die("Caught exception decoding timezone data: <pre>$e</pre>");
-      }
-      foreach ( $tz_list as $key => $i )
-      {
-        $i = ($i * 60);
-        $title = $lang->get("tz_title_{$key}");
-        $hrs = $lang->get("tz_hrs_{$key}");
-        $selected = ( $i == $timezone ) ? ' selected="selected"' : '';
-        $tz_select .= "<option value=\"$i\"$selected>$title</option>";
-      }
-      $tz_select .= '</select>';
-      
-      echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
-      ?>
-      <div class="tblholder">
-        <table border="0" cellspacing="1" cellpadding="4">
-          <tr>
-            <th colspan="2"><?php echo $lang->get('usercp_publicinfo_heading_main'); ?></th>
-          </tr>
-          <tr>
-            <td colspan="2" class="row3"><?php echo $lang->get('usercp_publicinfo_note_optional'); ?></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_realname'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="real_name" value="<?php echo $session->real_name; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_language') . '<br /><small>' . $lang->get('usercp_publicinfo_field_language_hint') . '</small>'; ?></td>
-            <td class="row1"><?php echo $lang_box; ?></td>
-          </tr>
-          <tr>
-            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_changetheme_title'); ?></td>
-            <td class="row1"><?php echo $lang->get('usercp_publicinfo_field_changetheme_hint'); ?> <a href="<?php echo makeUrlNS('Special', 'ChangeStyle/' . $paths->page); ?>" onclick="ajaxChangeStyle(); return false;"><?php echo $lang->get('usercp_publicinfo_field_changetheme'); ?></a></td>
-          </tr>
-          <tr>
-            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_dateformat'); ?></td>
-            <td class="row1">
-            <select name="date_format">
-              <?php
-              foreach ( array(DATE_1, DATE_2, DATE_3, DATE_4) as $format )
-              {
-                $selected = $format === $session->date_format ? ' selected="selected"' : '';
-                echo '<option value="' . $format . '"' . $selected . '>' . enano_date($format) . '</option>';
-              }
-              ?>
-            </select>
-            </td>
-          </tr>
-          <tr>
-            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_timeformat'); ?></td>
-            <td class="row1">
-            <select name="time_format">
-              <?php
-              foreach ( array(TIME_12_NS, TIME_12_S, TIME_24_NS, TIME_24_S) as $format )
-              {
-                $selected = $format === $session->time_format ? ' selected="selected"' : '';
-                echo '<option value="' . $format . '"' . $selected . '>' . enano_date($format) . '</option>';
-              }
-              ?>
-            </select>
-            </td>
-          </tr>
-          <tr>
-            <td class="row3" colspan="2"><?php echo $lang->get('usercp_publicinfo_field_timezone'); ?> <?php echo $tz_select; ?><br /><small><?php echo $lang->get('usercp_publicinfo_field_timezone_hint'); ?></small></td>
-          </tr>
-          <tr>
-            <td class="row2"><?php echo $lang->get('usercp_publicinfo_field_dst'); ?></td>
-            <td class="row1">
-              <select name="dst">
-                <?php
-                global $dst_profiles, $dst_params;
-                $user_dst = implode(';', $dst_params);
-                foreach ( $dst_profiles as $region => $data )
-                {
-                  $selected = ( $data === $user_dst ) ? ' selected="selected"' : '';
-                  echo '<option value="' . $data . '"' . $selected . '>' . $lang->get("tz_dst_$region") . '</option>';
-                }
-                ?>
-              </select>
-            </td>
-          </tr>
-          <?php
-          if ( $session->get_permissions('custom_user_title') ):
-          ?>
-            <tr>
-              <td class="row2">
-                <?php echo $lang->get('usercp_publicinfo_field_usertitle_title'); ?><br />
-                <small><?php echo $lang->get('usercp_publicinfo_field_usertitle_hint'); ?></small>
-              </td>
-              <td class="row1">
-                <input type="text" name="user_title" value="<?php echo htmlspecialchars($session->user_title); ?>" />
-              </td>
-            </tr>
-          <?php
-          endif;
-          if ( count($available_ranks) > 1 ):
-          ?>
-          <tr>
-            <td class="row2">
-              <?php echo $lang->get('usercp_publicinfo_field_rank_title'); ?><br />
-              <small><?php echo $lang->get('usercp_publicinfo_field_rank_hint'); ?></small>
-            </td>
-            <td class="row1">
-              <select name="user_rank">
-                <?php
-                foreach ( $available_ranks as $rank )
-                {
-                  $sel = ( $rank['rank_id'] == $current_rank['rank_id'] ) ? ' selected="selected"' : '';
-                  echo '<option' . $sel . ' value="' . $rank['rank_id'] . '" style="' . htmlspecialchars($rank['rank_style']) . '">';
-                  echo htmlspecialchars($lang->get($rank['rank_title']));
-                  echo '</option>';
-                }
-                ?>
-              </select>
-            </td>
-          </tr>
-          <?php
-          endif;
-          ?>
-          <tr>
-            <th class="subhead" colspan="2">
-              <?php echo $lang->get('usercp_publicinfo_th_im'); ?>
-            </th>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_aim'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="imaddr_aim" value="<?php echo $session->user_extra['user_aim']; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_wlm'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="imaddr_msn" value="<?php echo $session->user_extra['user_msn']; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_yim'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="imaddr_yahoo" value="<?php echo $session->user_extra['user_yahoo']; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_xmpp'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="imaddr_xmpp" value="<?php echo $session->user_extra['user_xmpp']; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <th class="subhead" colspan="2">
-              <?php echo $lang->get('usercp_publicinfo_th_contact'); ?>
-            </th>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_homepage'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="homepage" value="<?php echo $session->user_extra['user_homepage']; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_location'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="location" value="<?php echo $session->user_extra['user_location']; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_job'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="occupation" value="<?php echo $session->user_extra['user_job']; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_hobbies'); ?></td>
-            <td class="row1" style="width: 50%;"><input type="text" name="hobbies" value="<?php echo $session->user_extra['user_hobbies']; ?>" size="30" /></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><label for="chk_email_public"><?php echo $lang->get('usercp_publicinfo_field_email_public'); ?></label></td>
-            <td class="row1" style="width: 50%;"><label><input type="checkbox" id="chk_email_public" name="email_public" <?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?> size="30" /> <small><?php echo $lang->get('usercp_publicinfo_field_email_public_hint'); ?></small></label></td>
-          </tr>
-          <tr>
-            <td class="row2" style="width: 50%;"><label for="chk_jsfx"><?php echo $lang->get('usercp_publicinfo_field_jsfx'); ?></label></td>
-            <td class="row1" style="width: 50%;"><label><input type="checkbox" id="chk_jsfx" name="disable_js_fx" <?php if ($session->user_extra['disable_js_fx'] == 1) echo 'checked="checked"'; ?> size="30" /> <small><?php echo $lang->get('usercp_publicinfo_field_jsfx_hint'); ?></small></label></td>
-          </tr>
-          <tr>
-            <th class="subhead" colspan="2">
-              <input type="submit" name="submit" value="<?php echo $lang->get('usercp_publicinfo_btn_save'); ?>" />
-            </th>
-          </tr>
-        </table>
-      </div>
-      <?php
-      // CSRF protection
-      echo '<input type="hidden" name="cstok" value="' . $session->csrf_token . '" />';
-      echo '</form>';
-      break;
-    case 'Avatar':
-      if ( getConfig('avatar_enable', 0) !== 1 )
-      {
-        echo '<div class="error-box"><b>' . $lang->get('usercp_avatar_err_disabled_title') . '</b><br />' . $lang->get('usercp_avatar_err_disabled_body') . '</div>';
-        break;
-      }
-      
-      if ( isset($_POST['submit']) )
-      {
-        list($has_avi, $avi_type) = avatar_post($session->user_id);
-      }
-      else
-      {
-        // Determine current avatar
-        $q = $db->sql_query('SELECT user_has_avatar, avatar_type FROM ' . table_prefix . 'users WHERE user_id = ' . $session->user_id . ';');
-        if ( !$q )
-          $db->_die('Avatar CP selecting user\'s avatar data');
-        
-        list($has_avi, $avi_type) = $db->fetchrow_num();
-      }
-      
-      ?>
-      <script type="text/javascript">
-      
-        function avatar_select_field(elParent)
-        {
-          $('td#avatar_upload_btns > div:visible').hide('blind');
-          switch(elParent.value)
-          {
-            case 'set_http':
-              $('#avatar_upload_http').show('blind');
-              break;
-            case 'set_file':
-              $('#avatar_upload_file').show('blind');
-              break;
-            case 'set_gravatar':
-              $('#avatar_upload_gravatar').show('blind');
-              break;
-          }
-        }
-      
-      </script>
-      <?php
-      
-      echo '<form action="' . makeUrl($paths->fullpage) . '" method="post" enctype="multipart/form-data">';
-      echo '<div class="tblholder">';
-      echo '<table border="0" cellspacing="1" cellpadding="4">';
-      echo '<tr>
-              <th colspan="2">
-                ' . $lang->get('usercp_avatar_table_title') . '
-              </th>
-            </tr>';
-            
-      echo '<tr>
-              <td class="row2" style="width: 150px;">
-                ' . $lang->get('usercp_avatar_label_current') . '
-              </td>
-              <td class="row1" style="text-align: center;">';
-              
-      if ( $has_avi == 1 )
-      {
-        echo '<img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $session->username)) . '" src="' . make_avatar_url($session->user_id, $avi_type, $session->email) . '" />';
-      }
-      else
-      {
-        echo $lang->get('usercp_avatar_image_none');
-      }
-      
-      echo '    </td>
-              </tr>';
-              
-      echo '  <tr>
-                <td class="row2">
-                  ' . $lang->get('usercp_avatar_lbl_change') . '
-                </td>
-                <td class="row1" id="avatar_upload_btns">
-                  <label><input type="radio" name="avatar_action" value="keep" onclick="avatar_select_field(this);" checked="checked" /> ' . $lang->get('usercp_avatar_lbl_keep') . '</label><br />
-                  <label><input type="radio" name="avatar_action" value="remove" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_remove') . '</label><br />';
-      if ( getConfig('avatar_upload_http') == '1' )
-      {
-        echo '    <label><input type="radio" name="avatar_action" value="set_http" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_http') . '</label><br />
-                  <div id="avatar_upload_http" style="display: none; margin: 10px 0 0 2.2em;">
-                    ' . $lang->get('usercp_avatar_lbl_url') . ' <input type="text" name="avatar_http_url" size="40" value="http://" /><br />
-                    <small>' . $lang->get('usercp_avatar_lbl_url_desc') . ' ' . $lang->get('usercp_avatar_limits') . '</small>
-                  </div>';
-      }
-      if ( getConfig('avatar_upload_file') == '1' )
-      {
-        echo '    <label><input type="radio" name="avatar_action" value="set_file" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_file') . '</label><br />
-                  <div id="avatar_upload_file" style="display: none; margin: 10px 0 0 2.2em;">
-                    ' . $lang->get('usercp_avatar_lbl_file') . ' <input type="file" name="avatar_file" size="40" /><br />
-                    <small>' . $lang->get('usercp_avatar_lbl_file_desc') . ' ' . $lang->get('usercp_avatar_limits') . '</small>
-                  </div>';
-      }
-      if ( getConfig('avatar_upload_gravatar') == '1' )
-      {
-        $rating_images = array('g' => '0', 'pg' => '1', 'r' => '2', 'x' => '3');
-        $rating_id = $rating_images[ getConfig('gravatar_rating', 'g') ];
-        $rating_image = "http://s.gravatar.com/images/gravatars/ratings/$rating_id.gif";
-        $max_rating = getConfig('gravatar_rating', 'g');
-        echo '    <label><input type="radio" name="avatar_action" value="set_gravatar" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_gravatar') . ' <img alt=" " src="' . make_gravatar_url($session->email, 16) . '" /></label> (<a href="http://www.gravatar.com/" onclick="window.open(this); return false;">' . $lang->get('usercp_avatar_link_gravatar_info') . '</a>)
-                  <div id="avatar_upload_gravatar" style="display: none; margin: 10px 0 0 2.2em;">
-                    <div style="float: left; margin-right: 5px; margin-bottom: 20px;">
-                      <img alt=" " src="' . $rating_image . '" />
-                    </div>
-                    ' . $lang->get("usercp_avatar_gravatar_rating_$max_rating") . '
-                  </div>';
-      }
-      echo '    </td>
-              </tr>';
-              
-      echo '  <tr>
-                <th class="subhead" colspan="2">
-                  <input type="submit" name="submit" value="' . $lang->get('etc_save_changes') . '" />
-                </th>
-              </tr>';
-              
-      echo '</table>
-            </div>';
-      
-      break;
-    default:
-      $good = false;
-      $code = $plugins->setHook('userprefs_body', true);
-      foreach ( $code as $cmd )
-      {
-        if ( eval($cmd) )
-          $good = true;
-      }
-      if ( !$good )
-      {
-        echo '<h3>Invalid module</h3>
-              <p>Userprefs module "'.$section.'" not found.</p>';
-      }
-      break;
-  }
-  
-  $template->footer();
+	global $db, $session, $paths, $template, $plugins; // Common objects
+	global $lang;
+	global $timezone;
+	global $cache;
+	
+	// We need a login to continue
+	if ( !$session->user_logged_in )
+		redirect(makeUrlNS('Special', 'Login/' . $paths->page), 'Login required', 'You need to be logged in to access this page. Please wait while you are redirected to the login page.');
+	
+	// User ID - later this will be specified on the URL, but hardcoded for now
+	$uid = intval($session->user_id);
+	
+	// Instanciate the AES encryptor
+	$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+	
+	// Basic user info
+	$q = $db->sql_query('SELECT username, password, email, real_name, signature, theme, style FROM '.table_prefix.'users WHERE user_id='.$uid.';');
+	if ( !$q )
+		$db->_die();
+	
+	$row = $db->fetchrow();
+	$db->free_result();
+	
+	$section = $paths->getParam(0);
+	if ( !$section )
+	{
+		$section = 'Home';
+	}
+	
+	$errors = '';
+	
+	switch ( $section )
+	{
+		case 'Avatar':
+			$template->preload_js('jquery');
+			$template->preload_js('jquery-ui');
+			break;
+		case 'EmailPassword':
+			// Require elevated privileges (well sortof)
+			if ( $session->auth_level < USER_LEVEL_CHPREF )
+			{
+				redirect(makeUrlNS('Special', 'Login/' . $paths->fullpage, 'level=' . USER_LEVEL_CHPREF, true), 'Authentication required', 'You need to re-authenticate to access this page.', 0);
+			}
+			
+			if ( isset($_POST['submit']) )
+			{
+				$email_changed = false;
+				// First do the e-mail address
+				if ( strlen($_POST['newemail']) > 0 )
+				{
+					switch('foo') // Same reason as in the password code...
+					{
+						case 'foo':
+							if ( $_POST['newemail'] != $_POST['newemail_conf'] )
+							{
+								$errors .= '<div class="error-box">' . $lang->get('usercp_emailpassword_err_email_no_match') . '</div>';
+								break;
+							}
+					}
+					$q = $db->sql_query('SELECT password FROM '.table_prefix.'users WHERE user_id='.$session->user_id.';');
+					if ( !$q )
+						$db->_die();
+					$row = $db->fetchrow();
+					$db->free_result();
+					
+					$new_email = $_POST['newemail'];
+					
+					$result = $session->change_email($session->user_id, $new_email);
+					if ( $result != 'success' )
+					{
+						$message = '<p>' . $lang->get('usercp_emailpassword_err_list') . '</p>';
+						$message .= '<ul><li>' . implode("</li>\n<li>", $result) . '</li></ul>';
+						die_friendly($lang->get('usercp_emailpassword_err_title'), $message);
+					}
+					$email_changed = true;
+				}
+				// Obtain password
+				if ( !empty($_POST['crypt_data']) || !empty($_POST['newpass']) || $session->password_change_disabled )
+				{
+					$newpass = $session->password_change_disabled ? '' : $session->get_aes_post('newpass');
+					// At this point we know if we _want_ to change the password...
+					
+					// We can't check the password to see if it matches the confirmation
+					// because the confirmation was destroyed during the encryption. I figured
+					// this wasn't a big deal because if the encryption worked, then either
+					// the Javascript validated it or the user hacked the form. In the latter
+					// case, if he's smart enough to hack the encryption code, he's probably
+					// smart enough to remember his password.
+					
+					if ( strlen($newpass) > 0 )
+					{
+						if ( defined('ENANO_DEMO_MODE') )
+							$errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_demo') . '</div>';
+						// Perform checks
+						if ( strlen($newpass) < 6 )
+							$errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_password_too_short') . '</div>';
+						if ( getConfig('pw_strength_enable') == '1' )
+						{
+							$score_inp = password_score($newpass);
+							$score_min = getConfig('pw_strength_minimum', -10);
+							if ( $score_inp < $score_min )
+								$errors .= '<div class="error-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_emailpassword_err_password_too_weak', array('score' => $score_inp)) . '</div>';
+						}
+						if ( $_POST['use_crypt'] == 'no' && $newpass != $_POST['newpass_confirm'] )
+						{
+							$errors .= '<div class="error-box">' . $lang->get('usercp_emailpassword_err_password_no_match') . '</div>';
+						}
+						// Encrypt new password
+						if ( empty($errors) )
+						{
+							// Perform the swap
+							$session->set_password($session->username, $newpass);
+							// Log out and back in
+							$username = $session->username;
+							$session->logout();
+							if ( $email_changed )
+							{
+								if ( getConfig('account_activation') == 'user' )
+								{
+									redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_user'), 20);
+								}
+								else if ( getConfig('account_activation') == 'admin' )
+								{
+									redirect(makeUrl(get_main_page()), $lang->get('usercp_emailpassword_msg_profile_success'), $lang->get('usercp_emailpassword_msg_need_activ_admin'), 20);
+								}
+							}
+							$session->login_without_crypto($username, $newpass);
+							redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_pass_success'), $lang->get('usercp_emailpassword_msg_password_changed'), 5);
+						}
+					}
+					else if ( $email_changed )
+					{
+						$session->logout(USER_LEVEL_CHPREF);
+						$activation = $session->user_level >= USER_LEVEL_MOD ? 'none' : getConfig('account_activation', 'none');
+						switch($activation)
+						{
+							default:
+								$message_body = $lang->get('usercp_emailpassword_msg_password_changed');
+								$timeout = 5;
+								break;
+							case 'admin':
+								$message_body = $lang->get('usercp_emailpassword_msg_need_activ_user');
+								$timeout = 20;
+								break;
+							case 'user':
+								$message_body = $lang->get('usercp_emailpassword_msg_need_activ_admin');
+								$timeout = 20;
+								break;
+						}
+						redirect(makeUrlNS('Special', 'Preferences'), $lang->get('usercp_emailpassword_msg_email_success'), $message_body, $timeout);
+					}
+				}
+			}
+			$template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_emailpassword_title');
+			break;
+		case 'Signature':
+			$template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_signature_title');
+			break;
+		case 'Profile':
+		case 'Home':
+			if ( isset($_POST['submit']) )
+				csrf_request_confirm();
+			
+			$template->tpl_strings['PAGE_NAME'] = $lang->get('usercp_publicinfo_title');
+			break;
+	}
+	
+	$template->header();
+	
+	// Output the menu
+	// This is not templatized because it conforms to the jBox menu standard.
+	
+	userprefs_show_menu();
+	
+	switch ( $section )
+	{
+		case 'EmailPassword':
+			
+			$errors = trim($errors);
+			if ( !empty($errors) )
+			{
+				echo $errors;
+			}
+			
+			echo '<form action="' . makeUrlNS('Special', 'Preferences/EmailPassword') . '" method="post" onsubmit="return runEncryption();" name="empwform" >';
+			echo '<fieldset>';
+			echo '<legend>' . $lang->get('usercp_emailpassword_grp_chpasswd') . '</legend>';
+			
+			// Password change form
+			if ( $session->password_change_disabled )
+			{
+				echo '<p>' . $lang->get('usercp_emailpassword_msg_change_disabled') . '</p>';
+				if ( $session->password_change_dest['url'] )
+				{
+					echo '<p>' . $lang->get('usercp_emailpassword_msg_change_disabled_url') . '
+ 									<a onclick="window.open(this.href); return false;" href="' . htmlspecialchars($session->password_change_dest['url']) . '">' . htmlspecialchars($session->password_change_dest['title']) . '</a></p>';
+				}
+			}
+			else
+			{
+			echo $lang->get('usercp_emailpassword_field_newpass') . '<br />
+								<input type="password" name="newpass" size="30" tabindex="1" ' . ( getConfig('pw_strength_enable') == '1' ? 'onkeyup="password_score_field(this);" ' : '' ) . '/>' . ( getConfig('pw_strength_enable') == '1' ? '<span class="password-checker" style="font-weight: bold; color: #aaaaaa;"> Loading...</span>' : '' ) . '
+							<br />
+							<br />
+							' . $lang->get('usercp_emailpassword_field_newpass_confirm') . '<br />
+							<input type="password" name="newpass_confirm" size="30" tabindex="2" />
+							' . ( getConfig('pw_strength_enable') == '1' ? '<br /><br /><div id="pwmeter"></div>
+							<small>' . $lang->get('usercp_emailpassword_msg_password_min_score') . '</small>' : '' );
+			}
+			echo '</fieldset><br />';
+			echo '<fieldset>
+				<legend>' . $lang->get('usercp_emailpassword_grp_chemail') . '</legend>
+				' . $lang->get('usercp_emailpassword_field_newemail') . '<br />
+					<input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail" size="30" tabindex="3" />
+				<br />
+				<br />
+				' . $lang->get('usercp_emailpassword_field_newemail_confirm') . '<br />
+					<input type="text" value="' . ( isset($_POST['newemail']) ? htmlspecialchars($_POST['newemail']) : '' ) . '" name="newemail_conf" size="30" tabindex="4" />
+			</fieldset>
+			<br />
+			<div style="text-align: right;"><input type="submit" name="submit" value="' . $lang->get('etc_save_changes') . '" tabindex="5" /></div>';
+			
+			if ( !$session->password_change_disabled )
+				echo $session->generate_aes_form();
+			
+			echo '</form>';
+			
+			// ENCRYPTION CODE
+			?>
+			<?php if ( !$session->password_change_disabled && getConfig('pw_strength_enable') == '1' ): ?>
+			<script type="text/javascript">
+			addOnloadHook(function()
+				{
+					password_score_field(document.forms.empwform.newpass);
+				});
+			</script>
+			<?php endif; ?>
+			<?php
+			echo $session->aes_javascript('empwform', 'newpass');
+			break;
+		case 'Signature':
+			if ( isset($_POST['new_sig']) )
+			{
+				$sig = $_POST['new_sig'];
+				$sig = RenderMan::preprocess_text($sig, true, false);
+				$sql_sig = $db->escape($sig);
+				$q = $db->sql_query('UPDATE '.table_prefix.'users SET signature=\'' . $sql_sig . '\' WHERE user_id=' . $session->user_id . ';');
+				if ( !$q )
+					$db->_die();
+				$session->signature = $sig;
+				echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_signature_msg_saved') . '</div>';
+			}
+			echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
+			echo $template->tinymce_textarea('new_sig', htmlspecialchars($session->signature));
+			echo '<input type="submit" value="' . $lang->get('usercp_signature_btn_save') . '" />';
+			echo '</form>';
+			break;
+		case "Profile":
+		case 'Home':
+			
+			global $email;
+			$userpage_id = $paths->nslist['User'] . sanitize_page_id($session->username);
+			$userpage_exists = ( isPage($userpage_id) ) ? '' : ' class="wikilink-nonexistent"';
+			$user_page = makeUrlNS('User', sanitize_page_id($session->username));
+			$site_admin = $email->encryptEmail(getConfig('contact_email'), '', '', $lang->get('usercp_intro_para3_admin_link'));
+			
+			echo '<h3 style="margin-top: 0;">' . $lang->get('usercp_intro_heading_main', array('username' => $session->username)) . '</h3>';
+			
+			echo  $lang->get('usercp_intro', array('userpage_link' => $user_page));
+			
+			$available_ranks = $session->get_user_possible_ranks($session->user_id);
+			$current_rank = $session->get_user_rank($session->user_id);
+			
+			if ( isset($_POST['submit']) )
+			{
+				$real_name = htmlspecialchars($_POST['real_name']);
+				$real_name = $db->escape($real_name);
+				
+				$timezone = intval($_POST['timezone']);
+				$tz_local = $timezone + 1440;
+				
+				$dst = $db->escape($_POST['dst']);
+				if ( !preg_match('/^[0-9]+;[0-9]+;[0-9]+;[0-9]+;[0-9]+$/', $dst) )
+					$dst = '0;0;0;0;60';
+				
+				$GLOBALS['dst_params'] = explode(';', $dst);
+				
+				$imaddr_aim = htmlspecialchars($_POST['imaddr_aim']);
+				$imaddr_aim = $db->escape($imaddr_aim);
+				
+				$imaddr_msn = htmlspecialchars($_POST['imaddr_msn']);
+				$imaddr_msn = $db->escape($imaddr_msn);
+				
+				$imaddr_yahoo = htmlspecialchars($_POST['imaddr_yahoo']);
+				$imaddr_yahoo = $db->escape($imaddr_yahoo);
+				
+				$imaddr_xmpp = htmlspecialchars($_POST['imaddr_xmpp']);
+				$imaddr_xmpp = $db->escape($imaddr_xmpp);
+				
+				$homepage = htmlspecialchars($_POST['homepage']);
+				$homepage = $db->escape($homepage);
+				
+				$location = htmlspecialchars($_POST['location']);
+				$location = $db->escape($location);
+				
+				$occupation = htmlspecialchars($_POST['occupation']);
+				$occupation = $db->escape($occupation);
+				
+				$hobbies = htmlspecialchars($_POST['hobbies']);
+				$hobbies = $db->escape($hobbies);
+				
+				$date_format = $db->escape(htmlspecialchars($_POST['date_format']));
+				$time_format = $db->escape(htmlspecialchars($_POST['time_format']));
+				
+				$email_public = ( isset($_POST['email_public']) ) ? '1' : '0';
+				$disable_js_fx = ( isset($_POST['disable_js_fx']) ) ? '1' : '0';
+				
+				$session->real_name = $real_name;
+				
+				if ( !preg_match('/@([a-z0-9-]+)(\.([a-z0-9-\.]+))?/', $imaddr_msn) && !empty($imaddr_msn) )
+				{
+					$imaddr_msn = "$imaddr_msn@hotmail.com";
+				}
+				
+				if ( !preg_match('#^https?://#', $homepage) )
+				{
+					$homepage = "http://$homepage";
+				}
+				
+				if ( !preg_match('/^http:\/\/([a-z0-9-.]+)([A-z0-9@#\$%\&:;<>,\.\?=\+\(\)\[\]_\/\\\\]*?)$/i', $homepage) )
+				{
+					$homepage = '';
+				}
+				
+				$session->user_extra['user_aim'] = $imaddr_aim;
+				$session->user_extra['user_msn'] = $imaddr_msn;
+				$session->user_extra['user_xmpp'] = $imaddr_xmpp;
+				$session->user_extra['user_yahoo'] = $imaddr_yahoo;
+				$session->user_extra['user_homepage'] = $homepage;
+				$session->user_extra['user_location'] = $location;
+				$session->user_extra['user_job'] = $occupation;
+				$session->user_extra['user_hobbies'] = $hobbies;
+				$session->user_extra['email_public'] = intval($email_public);
+				$session->date_format = $date_format;
+				$session->time_format = $time_format;
+				
+				// user title
+				$user_title_col = '';
+				if ( $session->get_permissions('custom_user_title') && isset($_POST['user_title']) )
+				{
+					$user_title = trim($_POST['user_title']);
+					if ( empty($user_title) )
+					{
+						$colval = 'NULL';
+						$session->user_title = null;
+					}
+					else
+					{
+						$colval = "'" . $db->escape($user_title) . "'";
+						$session->user_title = $user_title;
+					}
+					$user_title_col = ", user_title = $colval";
+				}
+				$user_rank_col = '';
+				if ( isset($_POST['user_rank']) && intval($_POST['user_rank']) != $current_rank['rank_id'] && count($available_ranks) > 1 )
+				{
+					if ( $_POST['user_rank'] == 'NULL' )
+					{
+						$user_rank_col = ", user_rank = NULL, user_rank_userset = 0";
+					}
+					else
+					{
+						$new_rank = intval($_POST['user_rank']);
+						$rank_allowed = false;
+						foreach ( $available_ranks as $rank )
+						{
+							if ( $rank['rank_id'] == $new_rank )
+							{
+								$rank_allowed = true;
+								break;
+							}
+						}
+						if ( $rank_allowed )
+						{
+							$user_rank_col = ", user_rank = $new_rank, user_rank_userset = 1";
+							// hack
+							$current_rank['rank_id'] = $new_rank;
+							$cache->purge('ranks');
+						}
+					}
+				}
+				
+				$q = $db->sql_query('UPDATE '.table_prefix."users SET real_name='$real_name', user_timezone = {$tz_local}, user_dst = '$dst'{$user_title_col}{$user_rank_col} WHERE user_id=$session->user_id;");
+				if ( !$q )
+					$db->_die();
+				
+				$q = $db->sql_query('UPDATE '.table_prefix."users_extra SET user_aim='$imaddr_aim',user_yahoo='$imaddr_yahoo',user_msn='$imaddr_msn',
+ 															user_xmpp='$imaddr_xmpp',user_homepage='$homepage',user_location='$location',user_job='$occupation',
+ 															user_hobbies='$hobbies',email_public=$email_public,disable_js_fx=$disable_js_fx,date_format='$date_format',
+ 															time_format='$time_format'
+ 															WHERE user_id=$session->user_id;");
+				
+				if ( !$q )
+					$db->_die();
+				
+				// verify language id
+				$lang_id = strval(intval($_POST['lang_id']));
+				$q = $db->sql_query('SELECT 1 FROM ' . table_prefix . 'language WHERE lang_id = ' . $lang_id . ';');
+				if ( !$q )
+					$db->_die();
+				
+				if ( $db->numrows() > 0 )
+				{
+					$db->free_result();
+					
+					// unload / reload $lang, this verifies that the selected language works
+					// enano should die a violent death if the language fails to load
+					unset($GLOBALS['lang']);
+					unset($lang);
+					$lang_id = intval($lang_id);
+					$GLOBALS['lang'] = new Language($lang_id);
+					global $lang;
+					
+					$q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_lang = ' . $lang_id . " WHERE user_id = {$session->user_id};");
+					if ( !$q )
+						$db->_die();
+				}
+				else
+				{
+					$db->free_result();
+				}
+				
+				generate_cache_userranks();
+				
+				echo '<div class="info-box" style="margin: 0 0 10px 0;">' . $lang->get('usercp_publicinfo_msg_save_success') . '</div>';
+			}
+			
+			$lang_box = '<select name="lang_id">';
+			$q = $db->sql_query('SELECT lang_id, lang_name_native FROM ' . table_prefix . "language;");
+			if ( !$q )
+				$db->_die();
+			
+			while ( $row = $db->fetchrow_num() )
+			{
+				list($lang_id, $lang_name) = $row;
+				$lang_name = htmlspecialchars($lang_name);
+				$selected = ( $lang->lang_id == $lang_id ) ? ' selected="selected"' : '';
+				$lang_box .= "<option value=\"$lang_id\"$selected>$lang_name</option>";
+			}
+			
+			$lang_box .= '</select>';
+			
+			$tz_select = '<select name="timezone">';
+			$tz_list = $lang->get('tz_list');
+			try
+			{
+				$tz_list = enano_json_decode($tz_list);
+			}
+			catch(Exception $e)
+			{
+				die("Caught exception decoding timezone data: <pre>$e</pre>");
+			}
+			foreach ( $tz_list as $key => $i )
+			{
+				$i = ($i * 60);
+				$title = $lang->get("tz_title_{$key}");
+				$hrs = $lang->get("tz_hrs_{$key}");
+				$selected = ( $i == $timezone ) ? ' selected="selected"' : '';
+				$tz_select .= "<option value=\"$i\"$selected>$title</option>";
+			}
+			$tz_select .= '</select>';
+			
+			echo '<form action="'.makeUrl($paths->fullpage).'" method="post">';
+			?>
+			<div class="tblholder">
+				<table border="0" cellspacing="1" cellpadding="4">
+					<tr>
+						<th colspan="2"><?php echo $lang->get('usercp_publicinfo_heading_main'); ?></th>
+					</tr>
+					<tr>
+						<td colspan="2" class="row3"><?php echo $lang->get('usercp_publicinfo_note_optional'); ?></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_realname'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="real_name" value="<?php echo $session->real_name; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<td class="row2"><?php echo $lang->get('usercp_publicinfo_field_language') . '<br /><small>' . $lang->get('usercp_publicinfo_field_language_hint') . '</small>'; ?></td>
+						<td class="row1"><?php echo $lang_box; ?></td>
+					</tr>
+					<tr>
+						<td class="row2"><?php echo $lang->get('usercp_publicinfo_field_changetheme_title'); ?></td>
+						<td class="row1"><?php echo $lang->get('usercp_publicinfo_field_changetheme_hint'); ?> <a href="<?php echo makeUrlNS('Special', 'ChangeStyle/' . $paths->page); ?>" onclick="ajaxChangeStyle(); return false;"><?php echo $lang->get('usercp_publicinfo_field_changetheme'); ?></a></td>
+					</tr>
+					<tr>
+						<td class="row2"><?php echo $lang->get('usercp_publicinfo_field_dateformat'); ?></td>
+						<td class="row1">
+						<select name="date_format">
+							<?php
+							foreach ( array(DATE_1, DATE_2, DATE_3, DATE_4) as $format )
+							{
+								$selected = $format === $session->date_format ? ' selected="selected"' : '';
+								echo '<option value="' . $format . '"' . $selected . '>' . enano_date($format) . '</option>';
+							}
+							?>
+						</select>
+						</td>
+					</tr>
+					<tr>
+						<td class="row2"><?php echo $lang->get('usercp_publicinfo_field_timeformat'); ?></td>
+						<td class="row1">
+						<select name="time_format">
+							<?php
+							foreach ( array(TIME_12_NS, TIME_12_S, TIME_24_NS, TIME_24_S) as $format )
+							{
+								$selected = $format === $session->time_format ? ' selected="selected"' : '';
+								echo '<option value="' . $format . '"' . $selected . '>' . enano_date($format) . '</option>';
+							}
+							?>
+						</select>
+						</td>
+					</tr>
+					<tr>
+						<td class="row3" colspan="2"><?php echo $lang->get('usercp_publicinfo_field_timezone'); ?> <?php echo $tz_select; ?><br /><small><?php echo $lang->get('usercp_publicinfo_field_timezone_hint'); ?></small></td>
+					</tr>
+					<tr>
+						<td class="row2"><?php echo $lang->get('usercp_publicinfo_field_dst'); ?></td>
+						<td class="row1">
+							<select name="dst">
+								<?php
+								global $dst_profiles, $dst_params;
+								$user_dst = implode(';', $dst_params);
+								foreach ( $dst_profiles as $region => $data )
+								{
+									$selected = ( $data === $user_dst ) ? ' selected="selected"' : '';
+									echo '<option value="' . $data . '"' . $selected . '>' . $lang->get("tz_dst_$region") . '</option>';
+								}
+								?>
+							</select>
+						</td>
+					</tr>
+					<?php
+					if ( $session->get_permissions('custom_user_title') ):
+					?>
+						<tr>
+							<td class="row2">
+								<?php echo $lang->get('usercp_publicinfo_field_usertitle_title'); ?><br />
+								<small><?php echo $lang->get('usercp_publicinfo_field_usertitle_hint'); ?></small>
+							</td>
+							<td class="row1">
+								<input type="text" name="user_title" value="<?php echo htmlspecialchars($session->user_title); ?>" />
+							</td>
+						</tr>
+					<?php
+					endif;
+					if ( count($available_ranks) > 1 ):
+					?>
+					<tr>
+						<td class="row2">
+							<?php echo $lang->get('usercp_publicinfo_field_rank_title'); ?><br />
+							<small><?php echo $lang->get('usercp_publicinfo_field_rank_hint'); ?></small>
+						</td>
+						<td class="row1">
+							<select name="user_rank">
+								<?php
+								foreach ( $available_ranks as $rank )
+								{
+									$sel = ( $rank['rank_id'] == $current_rank['rank_id'] ) ? ' selected="selected"' : '';
+									echo '<option' . $sel . ' value="' . $rank['rank_id'] . '" style="' . htmlspecialchars($rank['rank_style']) . '">';
+									echo htmlspecialchars($lang->get($rank['rank_title']));
+									echo '</option>';
+								}
+								?>
+							</select>
+						</td>
+					</tr>
+					<?php
+					endif;
+					?>
+					<tr>
+						<th class="subhead" colspan="2">
+							<?php echo $lang->get('usercp_publicinfo_th_im'); ?>
+						</th>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_aim'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="imaddr_aim" value="<?php echo $session->user_extra['user_aim']; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_wlm'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="imaddr_msn" value="<?php echo $session->user_extra['user_msn']; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_yim'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="imaddr_yahoo" value="<?php echo $session->user_extra['user_yahoo']; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_xmpp'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="imaddr_xmpp" value="<?php echo $session->user_extra['user_xmpp']; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<th class="subhead" colspan="2">
+							<?php echo $lang->get('usercp_publicinfo_th_contact'); ?>
+						</th>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_homepage'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="homepage" value="<?php echo $session->user_extra['user_homepage']; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_location'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="location" value="<?php echo $session->user_extra['user_location']; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_job'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="occupation" value="<?php echo $session->user_extra['user_job']; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><?php echo $lang->get('usercp_publicinfo_field_hobbies'); ?></td>
+						<td class="row1" style="width: 50%;"><input type="text" name="hobbies" value="<?php echo $session->user_extra['user_hobbies']; ?>" size="30" /></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><label for="chk_email_public"><?php echo $lang->get('usercp_publicinfo_field_email_public'); ?></label></td>
+						<td class="row1" style="width: 50%;"><label><input type="checkbox" id="chk_email_public" name="email_public" <?php if ($session->user_extra['email_public'] == 1) echo 'checked="checked"'; ?> size="30" /> <small><?php echo $lang->get('usercp_publicinfo_field_email_public_hint'); ?></small></label></td>
+					</tr>
+					<tr>
+						<td class="row2" style="width: 50%;"><label for="chk_jsfx"><?php echo $lang->get('usercp_publicinfo_field_jsfx'); ?></label></td>
+						<td class="row1" style="width: 50%;"><label><input type="checkbox" id="chk_jsfx" name="disable_js_fx" <?php if ($session->user_extra['disable_js_fx'] == 1) echo 'checked="checked"'; ?> size="30" /> <small><?php echo $lang->get('usercp_publicinfo_field_jsfx_hint'); ?></small></label></td>
+					</tr>
+					<tr>
+						<th class="subhead" colspan="2">
+							<input type="submit" name="submit" value="<?php echo $lang->get('usercp_publicinfo_btn_save'); ?>" />
+						</th>
+					</tr>
+				</table>
+			</div>
+			<?php
+			// CSRF protection
+			echo '<input type="hidden" name="cstok" value="' . $session->csrf_token . '" />';
+			echo '</form>';
+			break;
+		case 'Avatar':
+			if ( getConfig('avatar_enable', 0) !== 1 )
+			{
+				echo '<div class="error-box"><b>' . $lang->get('usercp_avatar_err_disabled_title') . '</b><br />' . $lang->get('usercp_avatar_err_disabled_body') . '</div>';
+				break;
+			}
+			
+			if ( isset($_POST['submit']) )
+			{
+				list($has_avi, $avi_type) = avatar_post($session->user_id);
+			}
+			else
+			{
+				// Determine current avatar
+				$q = $db->sql_query('SELECT user_has_avatar, avatar_type FROM ' . table_prefix . 'users WHERE user_id = ' . $session->user_id . ';');
+				if ( !$q )
+					$db->_die('Avatar CP selecting user\'s avatar data');
+				
+				list($has_avi, $avi_type) = $db->fetchrow_num();
+			}
+			
+			?>
+			<script type="text/javascript">
+			
+				function avatar_select_field(elParent)
+				{
+					$('td#avatar_upload_btns > div:visible').hide('blind');
+					switch(elParent.value)
+					{
+						case 'set_http':
+							$('#avatar_upload_http').show('blind');
+							break;
+						case 'set_file':
+							$('#avatar_upload_file').show('blind');
+							break;
+						case 'set_gravatar':
+							$('#avatar_upload_gravatar').show('blind');
+							break;
+					}
+				}
+			
+			</script>
+			<?php
+			
+			echo '<form action="' . makeUrl($paths->fullpage) . '" method="post" enctype="multipart/form-data">';
+			echo '<div class="tblholder">';
+			echo '<table border="0" cellspacing="1" cellpadding="4">';
+			echo '<tr>
+							<th colspan="2">
+								' . $lang->get('usercp_avatar_table_title') . '
+							</th>
+						</tr>';
+						
+			echo '<tr>
+							<td class="row2" style="width: 150px;">
+								' . $lang->get('usercp_avatar_label_current') . '
+							</td>
+							<td class="row1" style="text-align: center;">';
+							
+			if ( $has_avi == 1 )
+			{
+				echo '<img alt="' . $lang->get('usercp_avatar_image_alt', array('username' => $session->username)) . '" src="' . make_avatar_url($session->user_id, $avi_type, $session->email) . '" />';
+			}
+			else
+			{
+				echo $lang->get('usercp_avatar_image_none');
+			}
+			
+			echo '    </td>
+							</tr>';
+							
+			echo '  <tr>
+								<td class="row2">
+									' . $lang->get('usercp_avatar_lbl_change') . '
+								</td>
+								<td class="row1" id="avatar_upload_btns">
+									<label><input type="radio" name="avatar_action" value="keep" onclick="avatar_select_field(this);" checked="checked" /> ' . $lang->get('usercp_avatar_lbl_keep') . '</label><br />
+									<label><input type="radio" name="avatar_action" value="remove" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_remove') . '</label><br />';
+			if ( getConfig('avatar_upload_http') == '1' )
+			{
+				echo '    <label><input type="radio" name="avatar_action" value="set_http" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_http') . '</label><br />
+									<div id="avatar_upload_http" style="display: none; margin: 10px 0 0 2.2em;">
+										' . $lang->get('usercp_avatar_lbl_url') . ' <input type="text" name="avatar_http_url" size="40" value="http://" /><br />
+										<small>' . $lang->get('usercp_avatar_lbl_url_desc') . ' ' . $lang->get('usercp_avatar_limits') . '</small>
+									</div>';
+			}
+			if ( getConfig('avatar_upload_file') == '1' )
+			{
+				echo '    <label><input type="radio" name="avatar_action" value="set_file" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_file') . '</label><br />
+									<div id="avatar_upload_file" style="display: none; margin: 10px 0 0 2.2em;">
+										' . $lang->get('usercp_avatar_lbl_file') . ' <input type="file" name="avatar_file" size="40" /><br />
+										<small>' . $lang->get('usercp_avatar_lbl_file_desc') . ' ' . $lang->get('usercp_avatar_limits') . '</small>
+									</div>';
+			}
+			if ( getConfig('avatar_upload_gravatar') == '1' )
+			{
+				$rating_images = array('g' => '0', 'pg' => '1', 'r' => '2', 'x' => '3');
+				$rating_id = $rating_images[ getConfig('gravatar_rating', 'g') ];
+				$rating_image = "http://s.gravatar.com/images/gravatars/ratings/$rating_id.gif";
+				$max_rating = getConfig('gravatar_rating', 'g');
+				echo '    <label><input type="radio" name="avatar_action" value="set_gravatar" onclick="avatar_select_field(this);" /> ' . $lang->get('usercp_avatar_lbl_set_gravatar') . ' <img alt=" " src="' . make_gravatar_url($session->email, 16) . '" /></label> (<a href="http://www.gravatar.com/" onclick="window.open(this); return false;">' . $lang->get('usercp_avatar_link_gravatar_info') . '</a>)
+									<div id="avatar_upload_gravatar" style="display: none; margin: 10px 0 0 2.2em;">
+										<div style="float: left; margin-right: 5px; margin-bottom: 20px;">
+											<img alt=" " src="' . $rating_image . '" />
+										</div>
+										' . $lang->get("usercp_avatar_gravatar_rating_$max_rating") . '
+									</div>';
+			}
+			echo '    </td>
+							</tr>';
+							
+			echo '  <tr>
+								<th class="subhead" colspan="2">
+									<input type="submit" name="submit" value="' . $lang->get('etc_save_changes') . '" />
+								</th>
+							</tr>';
+							
+			echo '</table>
+						</div>';
+			
+			break;
+		default:
+			$good = false;
+			$code = $plugins->setHook('userprefs_body', true);
+			foreach ( $code as $cmd )
+			{
+				if ( eval($cmd) )
+					$good = true;
+			}
+			if ( !$good )
+			{
+				echo '<h3>Invalid module</h3>
+							<p>Userprefs module "'.$section.'" not found.</p>';
+			}
+			break;
+	}
+	
+	$template->footer();
 }
 
 // Avatar POST processor
 function avatar_post($user_id, $quiet = false)
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  global $lang;
-  
-  $had_a_boo_boo = true;
-  
-  // Determine current avatar
-  $q = $db->sql_query('SELECT user_has_avatar, avatar_type FROM ' . table_prefix . 'users WHERE user_id = ' . $session->user_id . ';');
-  if ( !$q )
-    $db->_die('Avatar CP selecting user\'s avatar data');
-  
-  list($has_avi, $avi_type) = $db->fetchrow_num();
-  
-  $action = ( isset($_POST['avatar_action']) ) ? $_POST['avatar_action'] : 'keep';
-  $avi_path = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
-  switch($action)
-  {
-    case 'keep':
-    default:
-      $had_a_boo_boo = false;
-      break;
-    case 'remove':
-      if ( $has_avi )
-      {
-        // First switch the avatar off
-        $q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_has_avatar = 0 WHERE user_id = ' . $user_id . ';');
-        if ( !$q )
-          $db->_die('Avatar CP switching user avatar off');
-        
-        if ( @unlink($avi_path) )
-        {
-          $quiet || print '<div class="info-box">' . $lang->get('usercp_avatar_delete_success') . '</div>';
-        }
-        $has_avi = 0;
-      }
-      $had_a_boo_boo = false;
-      break;
-    case 'set_http':
-    case 'set_file':
-      // Hackish way to preserve the UNIX philosophy of reusing as much code as possible
-      if ( $action == 'set_http' )
-      {
-        // Check if this action is enabled
-        if ( getConfig('avatar_upload_http', 1) !== 1 )
-        {
-          // non-localized, only appears on hack attempt
-          echo '<div class="error-box">Uploads over HTTP are disabled.</div>';
-          break;
-        }
-        // Download the file
-        require_once( ENANO_ROOT . '/includes/http.php' );
-        
-        if ( !preg_match('/^http:\/\/((?:[a-z0-9-\.]+|\[[a-f0-9:]+\]))(:([0-9]+))?\/(.+)$/', $_POST['avatar_http_url'], $match) )
-        {
-          echo '<div class="error-box">' . $lang->get('usercp_avatar_invalid_url') . '</div>';
-          break;
-        }
-        
-        $hostname = $match[1];
-        $uri = '/' . $match[4];
-        $port = ( $match[3] ) ? intval($match[3]) : 80;
-        $max_size = intval(getConfig('avatar_max_size'));
-        
-        // Get temporary file
-        $tempfile = tempnam(false, "enanoavatar_{$user_id}");
-        if ( !$tempfile )
-          echo '<div class="error-box">Error getting temp file.</div>';
-        
-        @unlink($tempfile);
-        $request = new Request_HTTP($hostname, $uri, 'GET', $port);
-        // max download size: 2MB, keeps things reasonable
-        // note: we'll try to scale the image down before checking filesize
-        $result = $request->write_response_to_file($tempfile, 1160, 2097152);
-        if ( !$result || $request->response_code != HTTP_OK )
-        {
-          @unlink($tempfile);
-          echo '<div class="error-box">' . $lang->get('usercp_avatar_bad_write') . '</div>';
-          break;
-        }
-        
-        // Response written. Proceed to validation...
-      }
-      else
-      {
-        // Check if this action is enabled
-        if ( getConfig('avatar_upload_file', 1) !== 1 )
-        {
-          // non-localized, only appears on hack attempt
-          echo '<div class="error-box">Uploads from the browser are disabled.</div>';
-          break;
-        }
-        
-        $max_size = intval(getConfig('avatar_max_size'));
-        
-        $file =& $_FILES['avatar_file'];
-        $tempfile =& $file['tmp_name'];
-      }
-      $file_type = get_image_filetype($tempfile);
-      if ( !$file_type )
-      {
-        @unlink($tempfile);
-        echo '<div class="error-box">' . $lang->get('usercp_avatar_bad_filetype') . '</div>';
-        break;
-      }
-      
-      $avi_path_new = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $file_type;
-      
-      // The file type is good - validate dimensions and animation
-      switch($file_type)
-      {
-        case 'png':
-          $is_animated = is_png_animated($tempfile);
-          $dimensions = png_get_dimensions($tempfile);
-          break;
-        case 'gif':
-          $is_animated = is_gif_animated($tempfile);
-          $dimensions = gif_get_dimensions($tempfile);
-          break;
-        case 'jpg':
-          $is_animated = false;
-          $dimensions = jpg_get_dimensions($tempfile);
-          break;
-        default:
-          echo '<div class="error-box">API mismatch</div>';
-          break 2;
-      }
-      // Did we get invalid size data? If so the image is probably corrupt.
-      if ( !$dimensions )
-      {
-        @unlink($tempfile);
-        echo '<div class="error-box">' . $lang->get('usercp_avatar_corrupt_image') . '</div>';
-        break;
-      }
-      // Is the image animated?
-      if ( $is_animated && getConfig('avatar_enable_anim', 0) !== 1 )
-      {
-        @unlink($tempfile);
-        echo '<div class="error-box">' . $lang->get('usercp_avatar_disallowed_animation') . '</div>';
-        break;
-      }
-      // Check image dimensions
-      list($image_x, $image_y) = $dimensions;
-      $max_x = intval(getConfig('avatar_max_width'));
-      $max_y = intval(getConfig('avatar_max_height'));
-      if ( $image_x > $max_x || $image_y > $max_y )
-      {
-        // try to scale the image
-        try
-        {
-          @rename($tempfile, "$tempfile-unscaled.$file_type");
-          $scale_result = scale_image("$tempfile-unscaled.$file_type", "$tempfile.$file_type", $max_x, $max_y, true);
-          if ( $scale_result )
-          {
-            if ( !(@unlink("$tempfile-unscaled.$file_type") && @rename("$tempfile.$file_type", $tempfile)) )
-            {
-              // scale failed
-              @unlink("$tempfile-scale.$file_type");
-              echo '<div class="error-box">Rename failure: ' . $lang->get('usercp_avatar_too_large') . '</div>';
-              break;
-            }
-          }
-          else
-          {
-            @unlink($tempfile);
-            @unlink("$tempfile-unscaled.$file_type");
-            echo '<div class="error-box">Scale failure: ' . $lang->get('usercp_avatar_too_large') . '</div>';
-            break;
-          }
-        }
-        catch ( Exception $e )
-        {
-          // If we get here, the scaling process most definitely failed.
-          echo '<div class="error-box">EXCEPTION: ' . $lang->get('usercp_avatar_too_large') . '</div>';
-          break;
-        }
-      }
-      // Check file size last, so that the scale operation is considered
-      if ( filesize($tempfile) > $max_size )
-      {
-        @unlink($tempfile);
-        echo '<div class="error-box">' . $lang->get('usercp_avatar_file_too_large') . '</div>';
-        break;
-      }
-      // All good!
-      @unlink($avi_path);
-      if ( rename($tempfile, $avi_path_new) )
-      {
-        $q = $db->sql_query('UPDATE ' . table_prefix . "users SET user_has_avatar = 1, avatar_type = '$file_type' WHERE user_id = {$user_id};");
-        if ( !$q )
-          $db->_die('Avatar CP updating users table after successful avatar upload');
-        $has_avi = 1;
-        $avi_type = $file_type;
-        $quiet || print '<div class="info-box">' . $lang->get('usercp_avatar_upload_success') . '</div>';
-      }
-      else
-      {
-        echo '<div class="error-box">' . $lang->get('usercp_avatar_move_failed') . '</div>';
-      }
-      $had_a_boo_boo = false;
-      break;
-    case 'set_gravatar':
-      // set avatar to use Gravatar
-      // make sure we're allowed to do this
-      if ( getConfig('avatar_upload_gravatar') != '1' )
-      {
-        // access denied
-        break;
-      }
-      // first, remove old image
-      if ( $has_avi )
-      {
-        // First switch the avatar off
-        $q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_has_avatar = 0 WHERE user_id = ' . $user_id . ';');
-        if ( !$q )
-          $db->_die('Avatar CP switching user avatar off');
-        
-        @unlink($avi_path);
-      }
-      // set to gravatar mode
-      $q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_has_avatar = 1, avatar_type = \'grv\' WHERE user_id = ' . $user_id . ';');
-      if ( !$q )
-        $db->_die('Avatar CP switching user avatar off');
-        
-      $has_avi = 1;
-      $quiet || print '<div class="info-box">' . $lang->get('usercp_avatar_gravatar_success') . '</div>';
-      $had_a_boo_boo = false;
-      break;
-  }
-  return array($has_avi, $avi_type, $had_a_boo_boo);
+	global $db, $session, $paths, $template, $plugins; // Common objects
+	global $lang;
+	
+	$had_a_boo_boo = true;
+	
+	// Determine current avatar
+	$q = $db->sql_query('SELECT user_has_avatar, avatar_type FROM ' . table_prefix . 'users WHERE user_id = ' . $session->user_id . ';');
+	if ( !$q )
+		$db->_die('Avatar CP selecting user\'s avatar data');
+	
+	list($has_avi, $avi_type) = $db->fetchrow_num();
+	
+	$action = ( isset($_POST['avatar_action']) ) ? $_POST['avatar_action'] : 'keep';
+	$avi_path = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $avi_type;
+	switch($action)
+	{
+		case 'keep':
+		default:
+			$had_a_boo_boo = false;
+			break;
+		case 'remove':
+			if ( $has_avi )
+			{
+				// First switch the avatar off
+				$q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_has_avatar = 0 WHERE user_id = ' . $user_id . ';');
+				if ( !$q )
+					$db->_die('Avatar CP switching user avatar off');
+				
+				if ( @unlink($avi_path) )
+				{
+					$quiet || print '<div class="info-box">' . $lang->get('usercp_avatar_delete_success') . '</div>';
+				}
+				$has_avi = 0;
+			}
+			$had_a_boo_boo = false;
+			break;
+		case 'set_http':
+		case 'set_file':
+			// Hackish way to preserve the UNIX philosophy of reusing as much code as possible
+			if ( $action == 'set_http' )
+			{
+				// Check if this action is enabled
+				if ( getConfig('avatar_upload_http', 1) !== 1 )
+				{
+					// non-localized, only appears on hack attempt
+					echo '<div class="error-box">Uploads over HTTP are disabled.</div>';
+					break;
+				}
+				// Download the file
+				require_once( ENANO_ROOT . '/includes/http.php' );
+				
+				if ( !preg_match('/^http:\/\/((?:[a-z0-9-\.]+|\[[a-f0-9:]+\]))(:([0-9]+))?\/(.+)$/', $_POST['avatar_http_url'], $match) )
+				{
+					echo '<div class="error-box">' . $lang->get('usercp_avatar_invalid_url') . '</div>';
+					break;
+				}
+				
+				$hostname = $match[1];
+				$uri = '/' . $match[4];
+				$port = ( $match[3] ) ? intval($match[3]) : 80;
+				$max_size = intval(getConfig('avatar_max_size'));
+				
+				// Get temporary file
+				$tempfile = tempnam(false, "enanoavatar_{$user_id}");
+				if ( !$tempfile )
+					echo '<div class="error-box">Error getting temp file.</div>';
+				
+				@unlink($tempfile);
+				$request = new Request_HTTP($hostname, $uri, 'GET', $port);
+				// max download size: 2MB, keeps things reasonable
+				// note: we'll try to scale the image down before checking filesize
+				$result = $request->write_response_to_file($tempfile, 1160, 2097152);
+				if ( !$result || $request->response_code != HTTP_OK )
+				{
+					@unlink($tempfile);
+					echo '<div class="error-box">' . $lang->get('usercp_avatar_bad_write') . '</div>';
+					break;
+				}
+				
+				// Response written. Proceed to validation...
+			}
+			else
+			{
+				// Check if this action is enabled
+				if ( getConfig('avatar_upload_file', 1) !== 1 )
+				{
+					// non-localized, only appears on hack attempt
+					echo '<div class="error-box">Uploads from the browser are disabled.</div>';
+					break;
+				}
+				
+				$max_size = intval(getConfig('avatar_max_size'));
+				
+				$file =& $_FILES['avatar_file'];
+				$tempfile =& $file['tmp_name'];
+			}
+			$file_type = get_image_filetype($tempfile);
+			if ( !$file_type )
+			{
+				@unlink($tempfile);
+				echo '<div class="error-box">' . $lang->get('usercp_avatar_bad_filetype') . '</div>';
+				break;
+			}
+			
+			$avi_path_new = ENANO_ROOT . '/' . getConfig('avatar_directory') . '/' . $user_id . '.' . $file_type;
+			
+			// The file type is good - validate dimensions and animation
+			switch($file_type)
+			{
+				case 'png':
+					$is_animated = is_png_animated($tempfile);
+					$dimensions = png_get_dimensions($tempfile);
+					break;
+				case 'gif':
+					$is_animated = is_gif_animated($tempfile);
+					$dimensions = gif_get_dimensions($tempfile);
+					break;
+				case 'jpg':
+					$is_animated = false;
+					$dimensions = jpg_get_dimensions($tempfile);
+					break;
+				default:
+					echo '<div class="error-box">API mismatch</div>';
+					break 2;
+			}
+			// Did we get invalid size data? If so the image is probably corrupt.
+			if ( !$dimensions )
+			{
+				@unlink($tempfile);
+				echo '<div class="error-box">' . $lang->get('usercp_avatar_corrupt_image') . '</div>';
+				break;
+			}
+			// Is the image animated?
+			if ( $is_animated && getConfig('avatar_enable_anim', 0) !== 1 )
+			{
+				@unlink($tempfile);
+				echo '<div class="error-box">' . $lang->get('usercp_avatar_disallowed_animation') . '</div>';
+				break;
+			}
+			// Check image dimensions
+			list($image_x, $image_y) = $dimensions;
+			$max_x = intval(getConfig('avatar_max_width'));
+			$max_y = intval(getConfig('avatar_max_height'));
+			if ( $image_x > $max_x || $image_y > $max_y )
+			{
+				// try to scale the image
+				try
+				{
+					@rename($tempfile, "$tempfile-unscaled.$file_type");
+					$scale_result = scale_image("$tempfile-unscaled.$file_type", "$tempfile.$file_type", $max_x, $max_y, true);
+					if ( $scale_result )
+					{
+						if ( !(@unlink("$tempfile-unscaled.$file_type") && @rename("$tempfile.$file_type", $tempfile)) )
+						{
+							// scale failed
+							@unlink("$tempfile-scale.$file_type");
+							echo '<div class="error-box">Rename failure: ' . $lang->get('usercp_avatar_too_large') . '</div>';
+							break;
+						}
+					}
+					else
+					{
+						@unlink($tempfile);
+						@unlink("$tempfile-unscaled.$file_type");
+						echo '<div class="error-box">Scale failure: ' . $lang->get('usercp_avatar_too_large') . '</div>';
+						break;
+					}
+				}
+				catch ( Exception $e )
+				{
+					// If we get here, the scaling process most definitely failed.
+					echo '<div class="error-box">EXCEPTION: ' . $lang->get('usercp_avatar_too_large') . '</div>';
+					break;
+				}
+			}
+			// Check file size last, so that the scale operation is considered
+			if ( filesize($tempfile) > $max_size )
+			{
+				@unlink($tempfile);
+				echo '<div class="error-box">' . $lang->get('usercp_avatar_file_too_large') . '</div>';
+				break;
+			}
+			// All good!
+			@unlink($avi_path);
+			if ( rename($tempfile, $avi_path_new) )
+			{
+				$q = $db->sql_query('UPDATE ' . table_prefix . "users SET user_has_avatar = 1, avatar_type = '$file_type' WHERE user_id = {$user_id};");
+				if ( !$q )
+					$db->_die('Avatar CP updating users table after successful avatar upload');
+				$has_avi = 1;
+				$avi_type = $file_type;
+				$quiet || print '<div class="info-box">' . $lang->get('usercp_avatar_upload_success') . '</div>';
+			}
+			else
+			{
+				echo '<div class="error-box">' . $lang->get('usercp_avatar_move_failed') . '</div>';
+			}
+			$had_a_boo_boo = false;
+			break;
+		case 'set_gravatar':
+			// set avatar to use Gravatar
+			// make sure we're allowed to do this
+			if ( getConfig('avatar_upload_gravatar') != '1' )
+			{
+				// access denied
+				break;
+			}
+			// first, remove old image
+			if ( $has_avi )
+			{
+				// First switch the avatar off
+				$q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_has_avatar = 0 WHERE user_id = ' . $user_id . ';');
+				if ( !$q )
+					$db->_die('Avatar CP switching user avatar off');
+				
+				@unlink($avi_path);
+			}
+			// set to gravatar mode
+			$q = $db->sql_query('UPDATE ' . table_prefix . 'users SET user_has_avatar = 1, avatar_type = \'grv\' WHERE user_id = ' . $user_id . ';');
+			if ( !$q )
+				$db->_die('Avatar CP switching user avatar off');
+				
+			$has_avi = 1;
+			$quiet || print '<div class="info-box">' . $lang->get('usercp_avatar_gravatar_success') . '</div>';
+			$had_a_boo_boo = false;
+			break;
+	}
+	return array($has_avi, $avi_type, $had_a_boo_boo);
 }
 
 ?>

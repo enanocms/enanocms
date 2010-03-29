@@ -13,21 +13,21 @@
 
 class Namespace_API extends Namespace_Default
 {
-  function send()
-  {
-    global $output, $session;
-    $uri = scriptPath . '/' . $this->page_id;
-    if ( $output->naked )
-    {
-      $sep = ( strstr($uri, '?') ) ? '&' : '?';
-      $uri .= "{$sep}noheaders";
-    }
-    if ( $session->sid_super )
-    {
-      $sep = ( strstr($uri, '?') ) ? '&' : '?';
-      $uri .= "{$sep}auth={$session->sid_super}";
-    }
-    redirect( $uri, '', '', 0 );
-  }
+	function send()
+	{
+		global $output, $session;
+		$uri = scriptPath . '/' . $this->page_id;
+		if ( $output->naked )
+		{
+			$sep = ( strstr($uri, '?') ) ? '&' : '?';
+			$uri .= "{$sep}noheaders";
+		}
+		if ( $session->sid_super )
+		{
+			$sep = ( strstr($uri, '?') ) ? '&' : '?';
+			$uri .= "{$sep}auth={$session->sid_super}";
+		}
+		redirect( $uri, '', '', 0 );
+	}
 }
 

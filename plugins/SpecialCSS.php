@@ -1,12 +1,12 @@
 <?php
 /**!info**
 {
-  "Plugin Name"  : "plugin_specialcss_title",
-  "Plugin URI"   : "http://enanocms.org/",
-  "Description"  : "plugin_specialcss_desc",
-  "Author"       : "Dan Fuhry",
-  "Version"      : "1.1.6",
-  "Author URI"   : "http://enanocms.org/"
+	"Plugin Name"  : "plugin_specialcss_title",
+	"Plugin URI"   : "http://enanocms.org/",
+	"Description"  : "plugin_specialcss_desc",
+	"Author"       : "Dan Fuhry",
+	"Version"      : "1.1.6",
+	"Author URI"   : "http://enanocms.org/"
 }
 **!*/
 
@@ -25,24 +25,24 @@ global $db, $session, $paths, $template, $plugins; // Common objects
 
 function SpecialCSS_paths_init()
 {
-  global $paths;
-  register_special_page('CSS', 'specialpage_css', false);
+	global $paths;
+	register_special_page('CSS', 'specialpage_css', false);
 }
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
 
 function page_Special_CSS()
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  header('Content-type: text/css');
-  if ( isset($_GET['printable']) || $paths->getParam(0) == 'printable' )
-  {
-    echo $template->get_css('_printable.css');
-  }
-  else
-  {
-    echo $template->get_css();
-  }
+	global $db, $session, $paths, $template, $plugins; // Common objects
+	header('Content-type: text/css');
+	if ( isset($_GET['printable']) || $paths->getParam(0) == 'printable' )
+	{
+		echo $template->get_css('_printable.css');
+	}
+	else
+	{
+		echo $template->get_css();
+	}
 }
 
 ?>

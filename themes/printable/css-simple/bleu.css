@@ -5,15 +5,15 @@
 /* Basic definitions */
  
 html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
+	height: 100%;
+	margin: 0;
+	padding: 0;
 }
 
 body {
-  background-image: url(../images/bleu/bg.png);
-  font-family: trebuchet ms, verdana, arial, helvetica, sans-serif;
-  font-size: 9pt;
+	background-image: url(../images/bleu/bg.png);
+	font-family: trebuchet ms, verdana, arial, helvetica, sans-serif;
+	font-size: 9pt;
 }
 
 /* Dummy cells and backgrounds */
@@ -63,11 +63,11 @@ div.slideblock2                    { overflow: hidden; background-color: #DDD; m
 /* Header */
 
 table#enano-main td#head-main {
-  text-align: center;
+	text-align: center;
 }
 
 table#enano-main td#head-main h1 {
-  font-size: 14pt;
+	font-size: 14pt;
 }
 
 /* The "page tools" bar below the site logo but above the page content */
@@ -85,7 +85,7 @@ div.pagebar#pagebarpopup a, div#pagebarpopup2 a      { display: block; margin: 0
 
 /* Content area */
 table#enano-main td#main-main {
-  padding: 10px 0;
+	padding: 10px 0;
 }
 
 /* Text, headings, and links inside the main div (usually #ajaxEditContainer but used some other places as well) * /
@@ -107,8 +107,8 @@ table#enano-main td#main-main a[href ^="irc://"]:hover   { color: #A0C0E0; backg
 /* Footer */
 
 table#enano-main td#foot-main {
-  color: #AAA;
-  font-size: 7pt;
+	color: #AAA;
+	font-size: 7pt;
 }
 
 /* Styled boxes */

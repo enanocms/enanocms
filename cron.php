@@ -28,17 +28,17 @@ global $cron_tasks;
 
 foreach ( $cron_tasks as $interval => $tasks )
 {
-  $interval = doubleval($interval);
-  $last_run = intval(getConfig("cron_lastrun_ivl_$interval"));
-  $last_run_threshold = doubleval(time()) - ( 3600.0 * $interval );
-  if ( $last_run_threshold >= $last_run )
-  {
-    foreach ( $tasks as $task )
-    {
-      call_user_func($task);
-    }
-    setConfig("cron_lastrun_ivl_$interval", strval(time()));
-  }
+	$interval = doubleval($interval);
+	$last_run = intval(getConfig("cron_lastrun_ivl_$interval"));
+	$last_run_threshold = doubleval(time()) - ( 3600.0 * $interval );
+	if ( $last_run_threshold >= $last_run )
+	{
+		foreach ( $tasks as $task )
+		{
+			call_user_func($task);
+		}
+		setConfig("cron_lastrun_ivl_$interval", strval(time()));
+	}
 }
 
 $expiry_date = date('r', get_cron_next_run());
@@ -47,11 +47,11 @@ $etag = sha1($expiry_date);
 
 if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
 {
-  if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
-  {
-    header('HTTP/1.1 304 Not Modified');
-    exit();
-  }
+	if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
+	{
+		header('HTTP/1.1 304 Not Modified');
+		exit();
+	}
 }
 
 header("ETag: $etag");

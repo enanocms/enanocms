@@ -10,80 +10,80 @@
  */
  
 body {
-  background-color: #101d14;
-  /* color added in 1.0.2 to fix light text in dark desktop themes */
-  color: #202020;
-  background-image: url(../images/bghatching.gif);
+	background-color: #101d14;
+	/* color added in 1.0.2 to fix light text in dark desktop themes */
+	color: #202020;
+	background-image: url(../images/bghatching.gif);
 }
 div#bg {
-  background-image: url(../images/bgfade.png);
+	background-image: url(../images/bgfade.png);
 }
 div#rap {
-  background-image: url(../images/rap.png);
+	background-image: url(../images/rap.png);
 }
 div#title {
-  background-color: #6abd2b;
-  border-bottom-color: #237000;
-  background-image: url(../images/header.gif);
+	background-color: #6abd2b;
+	border-bottom-color: #237000;
+	background-image: url(../images/header.gif);
 }
 /* Footer */
 div.footer {
-  background-image: url(../images/footer.gif);
-  background-color: #6fba38;
-  color: #FFF;
+	background-image: url(../images/footer.gif);
+	background-color: #6fba38;
+	color: #FFF;
 }
 div.footer a {
-  color: #B3FF78;
+	color: #B3FF78;
 }
 
 /* Content area */
 div#maincontent h2 {
-  color: #53a018;
+	color: #53a018;
 }
 div#maincontent h2#pagetitle {
-  border-bottom: 1px solid #73c038;
-  color: #000000;
+	border-bottom: 1px solid #73c038;
+	color: #000000;
 }
 div#maincontent a:link, div#maincontent a:visited {
-  color: #237000;
+	color: #237000;
 }
 div#maincontent a:hover {
-  color: #033000;
-  border-bottom: 1px dotted #033000;
+	color: #033000;
+	border-bottom: 1px dotted #033000;
 }
 div#maincontent a.wikilink-nonexistent {
-  color: #AA0000;
+	color: #AA0000;
 }
 div#maincontent a.wikilink-nonexistent:hover {
-  color: #BA2000;
+	color: #BA2000;
 }
 /* Sidebar */
 div#sidebar h4, div.dbx-handle {
-  color: #FFF;
-  background-color: #104715;
-  border-bottom: 1px solid #93e058;
+	color: #FFF;
+	background-color: #104715;
+	border-bottom: 1px solid #93e058;
 }
 div#sidebar ul li a, div.dbx-content ul li a {
-  color: #000;
-  background-color: #60A745;
-  border-bottom: 1px solid #93e058;
+	color: #000;
+	background-color: #60A745;
+	border-bottom: 1px solid #93e058;
 }
 div#sidebar ul li a:hover, div.dbx-content ul li a:hover {
-  background-color: #70B755;
+	background-color: #70B755;
 }
 div#sidebar div, div.dbx-content2 {
-  background-color: #60A745;
-  border-bottom: 1px solid #93e058;
+	background-color: #60A745;
+	border-bottom: 1px solid #93e058;
 }
 div#sidebar div ul a {
-  color: #134000;
+	color: #134000;
 }
 div#sidebar div ul a:hover {
-  color: #033000;
-  border-bottom: 1px dotted #033000;
+	color: #033000;
+	border-bottom: 1px dotted #033000;
 }
 div#maincontent div.dbx-box a {
-  color: #000000;
+	color: #000000;
 }
 
 /*
@@ -91,33 +91,33 @@ div#maincontent div.dbx-box a {
  */
 
 div.menu, div.menu_nojs {
-  background-color: #93e058;
+	background-color: #93e058;
 }
 div.menu a, div.menu_nojs a, div.menu div.label, div.menu_nojs div.label {
-  color: #235000;
+	color: #235000;
 }
 div.menu div.label, div.menu_nojs div.label {
-  color: #002010;
+	color: #002010;
 }
 div.menu a.liteselected, div.menu_nojs a.liteselected, div.menu a.liteselected:hover, div.menu_nojs a.liteselected:hover, div.menu a:hover, div.menu_nojs a:hover {
-  color: #235000;
-  background-color: #A3F068;
+	color: #235000;
+	background-color: #A3F068;
 }
 div.menu input[type ^="text"], div.menu_nojs input[type ^="text"], div.menu input[type ^="password"], div.menu_nojs input[type ^="password"] {
-  background-color: #A3F068;
+	background-color: #A3F068;
 }
 div.menu input[type ^="text"]:hover, div.menu_nojs input[type ^="text"]:hover, div.menu input[type ^="password"]:hover, div.menu_nojs input[type ^="password"]:hover {
-  background-color: #AAF870;
+	background-color: #AAF870;
 }
 div.menu input[type ^="text"]:focus, div.menu_nojs input[type ^="text"]:focus, div.menu input[type ^="password"]:focus, div.menu_nojs input[type ^="password"]:focus {
-  background-color: #B3FF78;
+	background-color: #B3FF78;
 }
 div.menu a.current, div.menu_nojs a.current, div.menu a.current:hover, div.menu_nojs a.current:hover, div.menu a.selected, div.menu_nojs a.selected, div.menu a.selected:hover, div.menu_nojs a.selected:hover {
-  color: #000040;
-  background-color: #f4fff7;
+	color: #000040;
+	background-color: #f4fff7;
 }
 div.menu ul, div.menu_nojs ul {
-  background-color: #93e058;
+	background-color: #93e058;
 }
 
 /* Other Enano-related stuff */
@@ -174,47 +174,47 @@ blockquote, .mdg-comment, .mdg-infobox {
  
 /* group container(s) */
 #sbedit {
-  margin: 0;
-  padding: 0;
-  /* position:relative; /* additional outer containers must also have position:relative */
+	margin: 0;
+	padding: 0;
+	/* position:relative; /* additional outer containers must also have position:relative */
 }
 /* keyboard navigation tooltip */
 .dbx-tooltip {
-  display:block;
-  position:absolute;
-  margin:36px 0 0 125px;
-  width:185px;
-  border:1px solid #000;
-  background:#ffd;
-  color:#000;
-  font:normal normal normal 0.85em tahoma, arial, sans-serif;
-  padding:2px 4px 3px 5px;
-  text-align:left;
-  }
+	display:block;
+	position:absolute;
+	margin:36px 0 0 125px;
+	width:185px;
+	border:1px solid #000;
+	background:#ffd;
+	color:#000;
+	font:normal normal normal 0.85em tahoma, arial, sans-serif;
+	padding:2px 4px 3px 5px;
+	text-align:left;
+	}
 * html .dbx-tooltip { width:195px; }
 
 /* use CSS2 system colors in CSS2 browsers 
-   but not safari, which doesn't support them */
+ 	but not safari, which doesn't support them */
 *[class="dbx-tooltip"]:lang(en) {
-  border-color:InfoText;
-  background:InfoBackground;
-  color:InfoText;
-  font:small-caption;
-  font-weight:normal;
-  }
+	border-color:InfoText;
+	background:InfoBackground;
+	color:InfoText;
+	font:small-caption;
+	font-weight:normal;
+	}
 /* additional clone styles */
 .dbx-clone {
-  opacity: 0.8;
+	opacity: 0.8;
 }
 .dbx-content ul {
-  margin: 0; padding: 0;
-  list-style: none;
+	margin: 0; padding: 0;
+	list-style: none;
 }
 .dbx-content li a, .dbx-content li a:hover {
-  text-decoration: none;
+	text-decoration: none;
 }
 .dbx-content2 {
-  margin: 0px 1px 0px 1px;
+	margin: 0px 1px 0px 1px;
 }
 
 /* inputs */
@@ -224,17 +224,17 @@ input {
 }
 
 input, select, textarea {
-  background-color: #539018;
-  color: #FFF;
-  padding: 2px;
-  border: 1px solid #EEE;
+	background-color: #539018;
+	color: #FFF;
+	padding: 2px;
+	border: 1px solid #EEE;
 }
 
 input:hover {
-  background-color: #73b038;
+	background-color: #73b038;
 }
 
 input:active, input:focus {
-  background-color: #83c048;
+	background-color: #83c048;
 }
 

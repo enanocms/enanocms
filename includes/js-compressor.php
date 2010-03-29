@@ -84,8 +84,8 @@ class JavaScriptCompressor {
 
 	/**
 	 * public variables
-         * 	stats:string		after every compression has some informations
-         *      version:string		version of this class
+ 				* 	stats:string		after every compression has some informations
+ 				*      version:string		version of this class
 	 */
 	var	$stats = '',
 		$version = '0.8';
@@ -104,7 +104,7 @@ class JavaScriptCompressor {
 
 	/**
 	 * public constructor
-         * 	creates a new BaseConvert class variable (base 36)
+ 				* 	creates a new BaseConvert class variable (base 36)
 	 */
 	function __construct() {
 		$this->__SourceMap = new SourceMap();
@@ -120,9 +120,9 @@ class JavaScriptCompressor {
 
 	/**
 	 * public method
-         * 	getClean(mixed [, bool]):string
-         *      compress JavaScript removing comments and somespaces (on by default)
-         * @param	mixed		view example and notes on class comments
+ 				* 	getClean(mixed [, bool]):string
+ 				*      compress JavaScript removing comments and somespaces (on by default)
+ 				* @param	mixed		view example and notes on class comments
 	 */
 	function getClean($jsSource) {
 		return $this->__commonInitMethods($jsSource, false);
@@ -130,9 +130,9 @@ class JavaScriptCompressor {
 	
 	/**
 	 * public method
-         * 	getPacked(mixed):string
-         *      compress JavaScript replaceing words and removing comments and some spaces
-         * @param	mixed		view example and notes on class comments
+ 				* 	getPacked(mixed):string
+ 				*      compress JavaScript replaceing words and removing comments and some spaces
+ 				* @param	mixed		view example and notes on class comments
 	 */
 	function getPacked($jsSource) {
 		return $this->__commonInitMethods($jsSource, true);
@@ -373,124 +373,124 @@ class BaseConvert {
 * @Application        Last version of JavaScriptCompressor class use this one to map source code.
 */
 class SourceMap {
-    
-    /**
-     * public method
-         *     getMap(&$source:string, &$delimeters:array):array
-     * Maps the source code using $delimeters rules and returns map as an array
-         * NOTE: read comments to know more about map and delimeter
-         *
-         * @param    string        generic source code
-         * @param    array        array with nested array with code rules
-     */
-    function getMap(&$source, &$delimeters) {
-        
-        # "unsigned" integer variables
-        $sourcePosition = 0;
-        $delimetersPosition = 0;
-        $findLength = 0;
-        $len = 0;
-        $tempIndex = 0;
-        $sourceLength = strlen($source);
-        $delimetersLength = count($delimeters);
-        
-        # integer variables
-        $tempPosition = -1;
-        $endPosition = -1;
-        
-        # array variables
-        $map = array();
-        $tempMap = array();
-        $tempDelimeter = array();
-        
-        while($sourcePosition < $sourceLength) {
-            $endPosition = -1;
-            for($delimetersPosition = 0; $delimetersPosition < $delimetersLength; $delimetersPosition++) {
-                $tempPosition = strpos($source, $delimeters[$delimetersPosition]['start'], $sourcePosition);
-                if($tempPosition !== false && ($tempPosition < $endPosition || $endPosition === -1)) {
-                    $endPosition = $tempPosition;
-                    $tempIndex = $delimetersPosition;
-                }
-            }
-            if($endPosition !== -1) {
-                $sourcePosition = $endPosition;
-                $tempDelimeter = &$delimeters[$tempIndex];
-                $findLength = strlen($tempDelimeter['start']);
-                if(is_array($tempDelimeter['end'])) {
-                    $delimetersPosition = 0;
-                    $endPosition = -1;
-                    for($len = count($tempDelimeter['end']); $delimetersPosition < $len; $delimetersPosition++) {
-                        $tempPosition = strpos($source, $tempDelimeter['end'][$delimetersPosition], $sourcePosition + $findLength);
-                        if($tempPosition !== false && ($tempPosition < $endPosition || $endPosition === -1)) {
-                            $endPosition = $tempPosition;
-                            $tempIndex = $delimetersPosition;
-                        }    
-                    }
-                    if($endPosition !== -1)
-                        $endPosition = $endPosition + strlen($tempDelimeter['end'][$tempIndex]);
-                    else
-                        $endPosition = $sourceLength;
-                    array_push($map, array('name'=>$tempDelimeter['name'], 'start'=>$sourcePosition, 'end'=>$endPosition));
-                    $sourcePosition = $endPosition - 1;
-                }
-                elseif(isset($tempDelimeter['match'])) {
-                    $tempPosition = strpos($source, $tempDelimeter['end'], $sourcePosition + $findLength);
-                    $len = strlen($tempDelimeter['end']);
-                    if($tempPosition !== false && preg_match($tempDelimeter['match'], substr($source, $sourcePosition, $tempPosition - $sourcePosition + $len))) {
-                        $endPosition = isset($tempDelimeter['noslash']) ? $this->__endCharNoSlash($source, $sourcePosition, $tempDelimeter['end'], $sourceLength) : $tempPosition + $len;
-                        array_push($map, array('name'=>$tempDelimeter['name'], 'start'=>$sourcePosition, 'end'=>$endPosition));
-                        $sourcePosition = $endPosition - 1;
-                    }
-                }
-                else {
-                    if(isset($tempDelimeter['noslash']))
-                        $endPosition = $this->__endCharNoSlash($source, $sourcePosition, $tempDelimeter['end'], $sourceLength);
-                    else {
-                        $tempPosition = strpos($source, $tempDelimeter['end'], $sourcePosition + $findLength);
-                        if($tempPosition !== false)
-                            $endPosition = $tempPosition + strlen($tempDelimeter['end']);
-                        else
-                            $endPosition = $sourceLength;
-                    }
-                    array_push($map, array('name'=>$tempDelimeter['name'], 'start'=>$sourcePosition, 'end'=>$endPosition));
-                    $sourcePosition = $endPosition - 1;
-                }
-            }
-            else
-                $sourcePosition = $sourceLength - 1;
-            ++$sourcePosition;
-        }
-        $len = count($map);
-        if($len === 0)
-            array_push($tempMap, array('name'=>'code', 'start'=>0, 'end'=>$sourceLength));
-        else {
-            for($tempIndex = 0; $tempIndex < $len; $tempIndex++) {
-                if($tempIndex === 0 && $map[$tempIndex]['start'] > 0)
-                    array_push($tempMap, array('name'=>'code', 'start'=>0, 'end'=>$map[$tempIndex]['start']));
-                elseif($tempIndex > 0 && $map[$tempIndex]['start'] > $map[$tempIndex-1]['end'])
-                    array_push($tempMap, array('name'=>'code', 'start'=>$map[$tempIndex-1]['end'], 'end'=>$map[$tempIndex]['start']));
-                array_push($tempMap, array('name'=>$map[$tempIndex]['name'], 'start'=>$map[$tempIndex]['start'], 'end'=>$map[$tempIndex]['end']));
-                if($tempIndex + 1 === $len && $map[$tempIndex]['end'] < $sourceLength)
-                    array_push($tempMap, array('name'=>'code', 'start'=>$map[$tempIndex]['end'], 'end'=>$sourceLength));
-            }
-        }
-        return $tempMap;
-    }
-    
-    function __endCharNoSlash(&$source, $position, &$find, &$len) {
-        $temp = strlen($find);
-        do {
-            $position = strpos($source, $find, $position + 1);
-        }while($position !== false && !$this->__charNoSlash($source, $position));
-        if($position === false) $position = $len - $temp;
-        return $position + $temp;
-    }
-    
-    function __charNoSlash(&$source, &$position) {
-        $next = 1; $len = $position - $next;
-        while($len > 0 && $source{$len} === '\\') $len = $position - (++$next);
-        return (($next - 1) % 2 === 0);
-    }
+		
+		/**
+ 		* public method
+ 				*     getMap(&$source:string, &$delimeters:array):array
+ 		* Maps the source code using $delimeters rules and returns map as an array
+ 				* NOTE: read comments to know more about map and delimeter
+ 				*
+ 				* @param    string        generic source code
+ 				* @param    array        array with nested array with code rules
+ 		*/
+		function getMap(&$source, &$delimeters) {
+				
+				# "unsigned" integer variables
+				$sourcePosition = 0;
+				$delimetersPosition = 0;
+				$findLength = 0;
+				$len = 0;
+				$tempIndex = 0;
+				$sourceLength = strlen($source);
+				$delimetersLength = count($delimeters);
+				
+				# integer variables
+				$tempPosition = -1;
+				$endPosition = -1;
+				
+				# array variables
+				$map = array();
+				$tempMap = array();
+				$tempDelimeter = array();
+				
+				while($sourcePosition < $sourceLength) {
+						$endPosition = -1;
+						for($delimetersPosition = 0; $delimetersPosition < $delimetersLength; $delimetersPosition++) {
+								$tempPosition = strpos($source, $delimeters[$delimetersPosition]['start'], $sourcePosition);
+								if($tempPosition !== false && ($tempPosition < $endPosition || $endPosition === -1)) {
+										$endPosition = $tempPosition;
+										$tempIndex = $delimetersPosition;
+								}
+						}
+						if($endPosition !== -1) {
+								$sourcePosition = $endPosition;
+								$tempDelimeter = &$delimeters[$tempIndex];
+								$findLength = strlen($tempDelimeter['start']);
+								if(is_array($tempDelimeter['end'])) {
+										$delimetersPosition = 0;
+										$endPosition = -1;
+										for($len = count($tempDelimeter['end']); $delimetersPosition < $len; $delimetersPosition++) {
+												$tempPosition = strpos($source, $tempDelimeter['end'][$delimetersPosition], $sourcePosition + $findLength);
+												if($tempPosition !== false && ($tempPosition < $endPosition || $endPosition === -1)) {
+														$endPosition = $tempPosition;
+														$tempIndex = $delimetersPosition;
+												}    
+										}
+										if($endPosition !== -1)
+												$endPosition = $endPosition + strlen($tempDelimeter['end'][$tempIndex]);
+										else
+												$endPosition = $sourceLength;
+										array_push($map, array('name'=>$tempDelimeter['name'], 'start'=>$sourcePosition, 'end'=>$endPosition));
+										$sourcePosition = $endPosition - 1;
+								}
+								elseif(isset($tempDelimeter['match'])) {
+										$tempPosition = strpos($source, $tempDelimeter['end'], $sourcePosition + $findLength);
+										$len = strlen($tempDelimeter['end']);
+										if($tempPosition !== false && preg_match($tempDelimeter['match'], substr($source, $sourcePosition, $tempPosition - $sourcePosition + $len))) {
+												$endPosition = isset($tempDelimeter['noslash']) ? $this->__endCharNoSlash($source, $sourcePosition, $tempDelimeter['end'], $sourceLength) : $tempPosition + $len;
+												array_push($map, array('name'=>$tempDelimeter['name'], 'start'=>$sourcePosition, 'end'=>$endPosition));
+												$sourcePosition = $endPosition - 1;
+										}
+								}
+								else {
+										if(isset($tempDelimeter['noslash']))
+												$endPosition = $this->__endCharNoSlash($source, $sourcePosition, $tempDelimeter['end'], $sourceLength);
+										else {
+												$tempPosition = strpos($source, $tempDelimeter['end'], $sourcePosition + $findLength);
+												if($tempPosition !== false)
+														$endPosition = $tempPosition + strlen($tempDelimeter['end']);
+												else
+														$endPosition = $sourceLength;
+										}
+										array_push($map, array('name'=>$tempDelimeter['name'], 'start'=>$sourcePosition, 'end'=>$endPosition));
+										$sourcePosition = $endPosition - 1;
+								}
+						}
+						else
+								$sourcePosition = $sourceLength - 1;
+						++$sourcePosition;
+				}
+				$len = count($map);
+				if($len === 0)
+						array_push($tempMap, array('name'=>'code', 'start'=>0, 'end'=>$sourceLength));
+				else {
+						for($tempIndex = 0; $tempIndex < $len; $tempIndex++) {
+								if($tempIndex === 0 && $map[$tempIndex]['start'] > 0)
+										array_push($tempMap, array('name'=>'code', 'start'=>0, 'end'=>$map[$tempIndex]['start']));
+								elseif($tempIndex > 0 && $map[$tempIndex]['start'] > $map[$tempIndex-1]['end'])
+										array_push($tempMap, array('name'=>'code', 'start'=>$map[$tempIndex-1]['end'], 'end'=>$map[$tempIndex]['start']));
+								array_push($tempMap, array('name'=>$map[$tempIndex]['name'], 'start'=>$map[$tempIndex]['start'], 'end'=>$map[$tempIndex]['end']));
+								if($tempIndex + 1 === $len && $map[$tempIndex]['end'] < $sourceLength)
+										array_push($tempMap, array('name'=>'code', 'start'=>$map[$tempIndex]['end'], 'end'=>$sourceLength));
+						}
+				}
+				return $tempMap;
+		}
+		
+		function __endCharNoSlash(&$source, $position, &$find, &$len) {
+				$temp = strlen($find);
+				do {
+						$position = strpos($source, $find, $position + 1);
+				}while($position !== false && !$this->__charNoSlash($source, $position));
+				if($position === false) $position = $len - $temp;
+				return $position + $temp;
+		}
+		
+		function __charNoSlash(&$source, &$position) {
+				$next = 1; $len = $position - $next;
+				while($len > 0 && $source{$len} === '\\') $len = $position - (++$next);
+				return (($next - 1) % 2 === 0);
+		}
 }
 
 /**
@@ -502,25 +502,25 @@ class SourceMap {
 
 function perform_js_compress($text_or_file, $aggressive = false)
 {
-  static $compressor = false;
-  
-  if ( !is_object($compressor) )
-    $compressor = new JavaScriptCompressor();
-  
-  if ( strpos($text_or_file, "\n") )
-  {
-    $text =& $text_or_file;
-  }
-  else if ( file_exists($text_or_file) )
-  {
-    $text = file_get_contents($text_or_file);
-  }
-  else
-  {
-    $text =& $text_or_file;
-  }
-  
-  return ( $aggressive ) ? $compressor->getPacked($text) : $compressor->getClean($text);
+	static $compressor = false;
+	
+	if ( !is_object($compressor) )
+		$compressor = new JavaScriptCompressor();
+	
+	if ( strpos($text_or_file, "\n") )
+	{
+		$text =& $text_or_file;
+	}
+	else if ( file_exists($text_or_file) )
+	{
+		$text = file_get_contents($text_or_file);
+	}
+	else
+	{
+		$text =& $text_or_file;
+	}
+	
+	return ( $aggressive ) ? $compressor->getPacked($text) : $compressor->getClean($text);
 }
 
 ?>

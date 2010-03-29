@@ -17,30 +17,30 @@
 <!-- VAR sidebar_top -->
 <!-- ENDVAR sidebar_top -->
 <!-- VAR sidebar_section -->
-          <div class="slider">
-            <h4>
-              <!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
-              <a>{TITLE}</a>
-              <!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
-            </h4>
-            <div class="slideblock">
-              <ul class="linkblock">
-                {CONTENT}
-              </ul>
-            </div>
-          </div>
+					<div class="slider">
+						<h4>
+							<!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
+							<a>{TITLE}</a>
+							<!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
+						</h4>
+						<div class="slideblock">
+							<ul class="linkblock">
+								{CONTENT}
+							</ul>
+						</div>
+					</div>
 <!-- ENDVAR sidebar_section -->
 <!-- VAR sidebar_section_raw -->
-          <div class="slider">
-            <h4>
-              <!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
-              <a>{TITLE}</a>
-              <!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
-            </h4>
-            <div class="slideblock">
-              {CONTENT}
-            </div>
-          </div>
+					<div class="slider">
+						<h4>
+							<!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
+							<a>{TITLE}</a>
+							<!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
+						</h4>
+						<div class="slideblock">
+							{CONTENT}
+						</div>
+					</div>
 <!-- ENDVAR sidebar_section_raw -->
 <!-- VAR sidebar_bottom -->
 <!-- ENDVAR sidebar_bottom -->

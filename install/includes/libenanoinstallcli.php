@@ -15,21 +15,21 @@
 
 function run_installer_stage($stage_id, $stage_name, $function, $failure_explanation, $allow_skip = true)
 {
-  global $silent, $lang;
-  
-  if ( !$silent )
-    echo parse_shellcolor_string($lang->get("cli_msg_$stage_name"));
-  
-  $result = call_user_func($function);
-  
-  if ( !$result )
-  {
-    if ( !$silent )
-      echo parse_shellcolor_string($lang->get('cli_test_fail')) . "\n";
-    installer_fail($lang->get("cli_err_$stage_name"));
-  }
-  
-  if ( !$silent )
-    echo parse_shellcolor_string($lang->get('cli_msg_ok')) . "\n";
+	global $silent, $lang;
+	
+	if ( !$silent )
+		echo parse_shellcolor_string($lang->get("cli_msg_$stage_name"));
+	
+	$result = call_user_func($function);
+	
+	if ( !$result )
+	{
+		if ( !$silent )
+			echo parse_shellcolor_string($lang->get('cli_test_fail')) . "\n";
+		installer_fail($lang->get("cli_err_$stage_name"));
+	}
+	
+	if ( !$silent )
+		echo parse_shellcolor_string($lang->get('cli_msg_ok')) . "\n";
 }
 

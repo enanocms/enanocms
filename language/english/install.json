@@ -14,515 +14,515 @@
 // Language: ISO-639-3 eng (English)
 
 var enano_lang_install = {
-  categories: [
-    'meta', 'language', 'welcome', 'license', 'sysreqs', 'database', 'dbmysql', 'dbpgsql', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp', 'upgrade', 'cli'
-  ],
-  strings: {
-    meta: {
-      site_name: 'Enano installation',
-      site_desc: 'Install Enano on your server.',
-      enano_copyright: 'Enano and its various components, related documentation, and artwork are copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
-      sidebar_heading: 'Installation progress',
-      btn_article: 'installation page',
-      btn_continue: 'Continue',
-      lbl_before_continue: 'Before continuing:',
-      step: 'Step %step%: %title%',
-      
-      msg_err_verification: 'One or more of the form fields is incorrect. Please correct any information in the form that has an "X" next to it.',
-      
-      msg_err_stagefailed_title: 'Enano installation failed.',
-      msg_err_stagefailed_body: 'When you have corrected the error, click the button below to attempt to continue the installation.',
-      msg_err_stagefailed_mysqlerror: 'The error returned from MySQL was:',
-      btn_retry_installation: 'Retry installation',
-    },
-    language: {
-      modetitle: 'Language',
-    },
-    welcome: {
-      modetitle: 'Welcome',
-      heading: 'Welcome to Enano',
-      version: 'version',
-      branch_stable: 'stable',
-      branch_unstable: 'unstable',
-      aka: 'also affectionately known as "%codename%" <tt>:)</tt>',
-      btn_start: 'Start installation',
-    },
-    license: {
-      modetitle: 'License',
-      modetitle_long: 'License agreement',
-      heading: 'Welcome to the Enano installer.',
-      blurb_thankyou: 'Thank you for choosing Enano as your CMS. You\'ve selected the finest in design, the strongest in security, and the latest in Web 2.0 toys. Trust us, you\'ll like it.',
-      blurb_pleaseread: 'To get started, please read and accept the following license agreement. You\'ve probably seen it before.',
-      info_unstable_title: 'Notice for prerelease versions',
-      info_unstable_body: 'This version of Enano is designed only for testing and evaluation purposes. <b>It is not yet completely stable, and should not be used on production websites.</b> As with any Enano version, Dan Fuhry and the Enano team cannot be responsible for any damage, physical or otherwise, to any property as a result of the use of Enano. While security is a number one priority, sometimes things slip through.',
-      section_gpl_heading: 'Lawyer-readable version',
-      btn_i_agree: 'I agree to the license terms',
-      objective_ensure_agree: 'Ensure that you agree with the terms of the license',
-      objective_have_db_info: 'Have your database host, name, username, and password available',
-      gpl_blurb_inenglish: 'You may view a copy of the GNU General Public License in English in the file GPL-EN included with this package.',
-    },
-    sysreqs: {
-      modetitle: 'Requirements',
-      modetitle_long: 'Server requirements',
-      heading: 'Checking your server',
-      blurb: 'Enano has several requirements that must be met before it can be installed. If all is good then note any warnings and click Continue below.',
-      btn_refresh: 'Recheck server',
-      
-      req_supported: 'Supported',
-      req_notfound: 'Not found',
-      req_found: 'Found',
-      req_enabled: 'Enabled',
-      req_disabled: 'Disabled',
-      req_writable: 'Writable',
-      req_unwritable: 'Unwritable',
-      req_gmp: 'GNU Multi-Precision (GMP)',
-      req_bigint: 'Big_Int',
-      req_bcmath: 'BCMath',
-      
-      heading_serverenv: 'Server environment',
-      heading_dbms: 'Database servers',
-      heading_files: 'Writable files',
-      heading_images: 'Image manipulation',
-      
-      req_apache: 'Apache web server',
-      req_php: 'PHP version',
-      req_mysql: 'MySQL database support',
-      req_postgresql: 'PostgreSQL database support',
-      req_safemode: 'Safe Mode',
-      req_uploads: 'PHP file upload support',
-      req_ctype: 'PHP ctype_* validation functions',
-      req_crypto: 'Arbitrary precision (cryptographic) math',
-      req_config_writable: 'Configuration file: config.new.php',
-      req_htaccess_writable: 'Apache rewrite rules: .htaccess.new',
-      req_files_writable: 'File storage directory: files/',
-      req_cache_writable: 'Cache directory: cache/',
-      req_gd2: 'GD2 library',
-      req_imagemagick: 'ImageMagick',
-      
-      req_hint_htaccess_writable: 'Only needs to be writable if you plan to use Rewritten URLs.',
-      req_hint_gd2: 'Used for generating visual confirmation and resizing uploaded images',
-      req_hint_imagemagick: 'Faster alternative for resizing uploaded images',
-      
-      req_help_apache: 'Apache is the best server for Enano because it provides features that Enano can use, primarily support for Rewritten URLs.',
-      req_help_php: 'Enano requires PHP version 5.0.0 or later, and runs best under PHP 5.2.0 or later. (You are running PHP %php_version%).',
-      req_help_safemode: 'Safe Mode interferes with Enano\'s ability to operate properly. Thus, installing Enano with Safe Mode enabled is currently not supported.',
-      req_help_uploads: 'PHP file upload support is a prerequisite for uploading files via Enano\'s web interface.',
-      req_help_writable: 'Certain files need to be writable for installation and certain features to work properly. Use your FTP client\'s "CHMOD" feature to set numeric permissions on the items listed above: 666 for files, and 777 for directories. It\'s safest to CHMOD config.php to 444 once installation is complete.',
-      req_help_gd2: 'Without GD, Enano has to use a visual confirmation engine that generates weaker images that are easier to break.',
-      req_help_imagemagick: 'Without ImageMagick, Enano will use GD (if it is available) to scale images down. This is slightly slower.',
-      req_help_crypto_none: 'Your server has no support for arbitrary-precision math, which is required for encrypted logon. Your username and password will not be transmitted securely until one of the following PHP extensions is installed: GMP, Big_Int, or BCMath.',
-      req_help_crypto_bcmath: 'Your server supports arbitrary-precision math, but only through PHP\'s BCMath extension which is extremely slow. Expect the process of logging in to take 6-10 seconds.',
-      
-      err_no_dbms_title: 'No database backends are available.',
-      err_no_dbms_body: 'Enano requires at least one database backend to install. Please consult with your hosting provider to obtain help with this situation. If you are running a VPS or dedicated server, install the php-mysql or php-pgsql (on Red Hat&reg;-based distributions) or php5-mysql or php5-pgsql (on Debian-based distributions) packages. For Windows servers, ensure that the php_mysql or php_pgsql extension is enabled in php.ini.',
-      
-      summary_pass_title: 'Congratulations! Enano can run on this server.',
-      summary_pass_body: 'The system requirement check was successful and Enano has verified that it can run on this server with all available features. Below is a summary of what was checked. Click the Continue button below to proceed with installation.',
-      
-      summary_warn_title: 'Warnings encountered during server check',
-      summary_warn_body: 'Since some server features that Enano uses aren\'t available, Enano has turned its support for these features off. The warnings below provide information on how you can fix this.',
-      
-      summary_fail_title: 'Installation requirements not met',
-      summary_fail_body: 'As a precaution, Enano will not install until the above requirements have been met. Contact your server administrator or hosting company for support. If you still need help, please use the <a href="http://forum.enanocms.org/" onclick="window.open(this.href);">Enano support forums</a>.',
-      
-      objective_scalebacks: 'Review the list above to ensure that you are satisfied with any of Enano\'s workarounds for your server. If you need a particular feature and that feature is listed as disabled above, you should take the opportunity now to correct the problem.'
-    },
-    database: {
-      modetitle: 'Database',
-      modetitle_long: 'Database information',
-      heading_optionalinfo: 'Optional information',
-      
-      driver_heading: 'Choose a database driver',
-      driver_intro: 'The next step is to choose the database driver that Enano will use. In most cases this is MySQL, but there are certain advantages to PostgreSQL, which is made available only experimentally.',
-      driver_msg_virt_appliance: '<b>You\'re using the Enano virtual appliance.</b><br />Unless you configured the appliance manually, PostgreSQL support is not available. In 99% of cases you\'ll want to click MySQL below.',
-      driver_err_no_mysql: 'You don\'t have the MySQL PHP extension installed.',
-      driver_err_no_pgsql: 'You don\'t have the PostgreSQL PHP extensnion installed.',
-      driver_mysql: 'MySQL',
-      driver_mysql_intro: 'Click this button to use MySQL as the database backend for your site. Most web hosts support MySQL, and if you have administrative access to your MySQL server, you can create a new database and user during this installation process if you haven\'t done so already.',
-      driver_pgsql: 'PostgreSQL',
-      driver_pgsql_intro: 'Click this button to use PostgreSQL as the database backend for your site. While not as widely supported, PostgreSQL has more liberal licensing conditions and when properly configured is faster than MySQL. Some plugins may not work with the PostgreSQL driver.',
-      
-      objective_test: 'Check your MySQL connection using the "Test Connection" button.',
-      objective_uncrypt: 'Be aware that your database information will be transmitted unencrypted several times.',
-      
-      // database_post module
-      btn_go_back: 'Go back',
-      msg_success_title: 'Connection successful',
-      msg_success_body: 'The database has been contacted and initial tables created successfully. Redirecting...',
-      msg_success_redirect: 'Click if you\'re not redirected within 2 seconds',
-      
-      msg_post_fail_title: 'Database connection failed',
-      msg_post_fail_body: 'The installer couldn\'t connect to the database because something went wrong while the connection attempt was being made. Please press your browser\'s back button and correct your database information.',
-      msg_post_fail_desc: 'Error description:',
-      
-      msg_sql_fail_title: 'Database operation failed',
-      msg_sql_fail_body: 'The installer couldn\'t create one of the tables used for installation.',
-    },
-    dbmysql: {
-      msg_err_mysql_connect: '<b>Error:</b> The database server "%db_host%" couldn\'t be contacted.<br />%mysql_error%',
-      msg_err_mysql_auth: '<b>Error:</b> Access to MySQL under the specified credentials was denied.<br />%mysql_error%',
-      msg_err_mysql_dbperm: '<b>Error:</b> Access to the specified database using those login credentials was denied.<br />%mysql_error%',
-      msg_err_mysql_dbexist: '<b>Error:</b> The specified database does not exist<br />%mysql_error%',
-      msg_err_mysql_version: '<b>Error:</b> Your version of MySQL (%mysql_version%) is older than 4.1.17. Enano will still work, but there is a known bug with the comment system and MySQL 4.1.11 that involves some comments not being displayed, due to an issue with the PHP function mysql_fetch_row().',
-      
-      msg_warn_creating_db: '<b>Warning:</b> The database you specified does not exist. It will be created during installation.',
-      msg_warn_creating_user: '<b>Warning:</b> The specified regular user does not exist or the password is incorrect. The user will be created during installation. If the user already exists, the password will be reset.',
-      msg_warn_mysql_version: 'The MySQL version that your server is running could not be determined.',
-      
-      msg_info_mysql_good: 'Your version of MySQL meets Enano requirements.',
-      msg_test_success: 'All checks passed! You can use this database configuration with Enano.',
-      
-      blurb_needdb: 'Now we need some information that will allow Enano to contact your database server. Enano uses MySQL as a data storage backend, and we need to have access to a MySQL server in order to continue.',
-      blurb_howtomysql: 'If you do not have access to a MySQL server, and you are using your own server, you can download MySQL for free from <a href="http://www.mysql.com/">MySQL.com</a>. <b>Please note that, like Enano, MySQL is licensed under the GNU GPL.</b> If you need to modify MySQL and then distribute your modifications, you must either distribute them under the terms of the GPL or purchase a proprietary license.',
-      
-      vm_login_info: '<b>MySQL login information for this virtual appliance:</b><br /><br />Database hostname: %host%<br />Database login: username "%user%", password: "%pass%" (without quotes)<br />Database name: %name%',
-      
-      table_title: 'Database information',
-      
-      field_hostname_title: 'Database hostname',
-      field_hostname_body: 'This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost". To connect through a Unix socket, use the format ":/path/to/mysql.sock".',
-      field_port_title: 'Database port',
-      field_port_body: 'The TCP port Enano will use to connect to MySQL. This is 3306 on the vast majority of servers. This isn\'t relevant if you use a socket file.',
-      field_dbname_title: 'Database name',
-      field_dbname_body: 'The name of the actual database. If you don\'t already have a database, you can create one here, if you have the username and password of a MySQL user with administrative rights.',
-      field_dbauth_title: 'Database login',
-      field_dbauth_body: 'These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.',
-      field_tableprefix_title: 'Table prefix',
-      field_tableprefix_body: 'The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).',
-      field_rootauth_title: 'Database administrative login',
-      field_rootauth_body: 'If the MySQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.',
-      field_mysqlversion_title: 'MySQL version',
-      field_mysqlversion_blurb_willbechecked: 'MySQL version information will be checked when you click "Test Connection".',
-      field_droptables_title: 'Delete existing tables?',
-      field_droptables_body: 'If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.',
-      field_droptables_lbl: 'Drop existing tables',
-      
-      btn_testconnection: 'Test connection',
-    },
-    dbpgsql: {
-      msg_err_connect: 'There was a problem connecting to PostgreSQL. Please check your connection information above.',
-      msg_err_version: '<b>Error:</b> Your version of PostgreSQL (%pg_version%) is older than 8.2.5. Enano cannot be installed.',
-      
-      msg_warn_pg_version: 'The PostgreSQL version that your server is running could not be determined.',
-      msg_err_auth: 'Access to the database was denied. Ensure that your database exists and that your username and password are correct.',
-      
-      msg_info_version_good: 'Your version of PostgreSQL meets Enano requirements.',
-      msg_test_success: 'All checks passed! You can use this database configuration with Enano.',
-      
-      blurb_needdb: 'Now we need some information that will allow Enano to contact your database server. Enano uses PostgreSQL as a data storage backend, and we need to have access to a PostgreSQL server in order to continue.',
-      blurb_howtomysql: 'If you do not have access to a PostgreSQL server, and you are using your own server, you can download PostgreSQL for free from <a href="http://www.mysql.com/">PostgreSQL.com</a>. <b>Please note that, like Enano, PostgreSQL is licensed under the GNU GPL.</b> If you need to modify PostgreSQL and then distribute your modifications, you must either distribute them under the terms of the GPL or purchase a proprietary license.',
-      
-      vm_login_info: '<b>PostgreSQL login information for this virtual appliance:</b><br /><br />Database hostname: %host%<br />Database login: username "%user%", password: "%pass%" (without quotes)<br />Database name: %name%',
-      
-      table_title: 'Database information',
-      
-      field_hostname_title: 'Database hostname',
-      field_hostname_body: 'This is the hostname (or sometimes the IP address) of your PostgreSQL server. In many cases, this is "localhost".',
-      field_port_title: 'Database port',
-      field_port_body: 'The TCP port Enano will use to connect to PostgreSQL. This is 5432 on the vast majority of servers.',
-      field_dbname_title: 'Database name',
-      field_dbname_body: 'The name of the actual database. If you don\'t already have a database, you can create one here, if you have the username and password of a PostgreSQL user with administrative rights.',
-      field_dbauth_title: 'Database login',
-      field_dbauth_body: 'These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.',
-      field_tableprefix_title: 'Table prefix',
-      field_tableprefix_body: 'The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).',
-      field_rootauth_title: 'Database administrative login',
-      field_rootauth_body: 'If the PostgreSQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.',
-      field_pgsqlversion_title: 'PostgreSQL version',
-      field_pgsqlversion_blurb_willbechecked: 'PostgreSQL version information will be checked when you click "Test Connection".',
-      field_droptables_title: 'Delete existing tables?',
-      field_droptables_body: 'If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.',
-      field_droptables_lbl: 'Drop existing tables',
-      
-      btn_testconnection: 'Test connection',
-    },
-    website: {
-      modetitle: 'Site info',
-      modetitle_long: 'Website information',
-      header_blurb: 'The next step is to enter some information about your website. You can always change this information later, using the administration panel.',
-      
-      msg_ajax_test_fail_title: 'All tests failed',
-      msg_ajax_test_fail_body: 'None of the URL handling tests worked; you may have problems using Enano on your server.',
-      msg_bestmethod_rewrite: 'The installer has detected that using rewritten URLs is the best level that will work.',
-      msg_bestmethod_shortened: 'The installer has detected that using shortened URLs is the best level that will work.',
-      msg_bestmethod_tiny: 'The installer has detected that using tiny URLs is the best level that will work.',
-      msg_bestmethod_standard: 'The installer has detected that using standard URLs is the only level that will work.',
-      msg_modrewrite_enabled: 'Your copy of Enano has the Windows mod_rewrite workaround patch enabled.',
-      msg_modrewrite_necessary: 'If you don\'t plan to use the Rewritten URLs option below, you should go back and re-download Enano without this workaround enabled. The mod_rewrite issues Enano faces under Windows are caused by a security change in Apache 2.2 that is not present in Apache 2.0. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
-      msg_modrewrite_unnecessary: 'The Enano installer has detected that you\'re probably not running Apache 2.2 under Windows. You don\'t need this workaround unless you\'re using this specific software stack. Unless you\'re sure that you are running Apache 2.2 under Windows on your server, it is recommended that you disable the <tt>WINDOWS_MOD_REWRITE_WORKAROUNDS</tt> constant in includes/constants.php. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
-      msg_modrewrite_disabled: 'Your server is running Apache 2.2 on Windows, but the Windows mod_rewrite workaround patch is disabled.',
-      msg_modrewrite_maybeneeded: 'Do not use Rewritten URLs unless you re-download Enano with the Windows Patch enabled or uncomment the <tt>WINDOWS_MOD_REWRITE_WORKAROUNDS</tt> line in <tt>includes/constants.php</tt>. Otherwise you may have trouble accessing login and administration pages due to a bug in Apache. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
-      
-      field_name: 'Pick a name',
-      field_name_hint: 'Now for the fun part - it\'s time to name your website. Try to pick something that doesn\'t include any special characters, since this can make project-page URLs look botched.',
-      field_desc: 'Enter a short description',
-      field_desc_hint: 'Here you should enter a very short description of your site. Sometimes this is a slogan or, depending on the theme you\'ve chosen, a set of keywords that can go into a META description tag.',
-      field_copyright: 'Copyright info',
-      field_copyright_hint: 'The text you enter here will be shown at the bottom of most pages. Typically this is where a copyright notice would go. Keep it short and sweet; you can use <a href="http://docs.enanocms.org/Help:3.1">internal links</a> to link to project pages you\'ll create later.',
-      field_startwith: 'Start with:',
-      field_startwith_blank: 'A blank site with only a main page',
-      field_startwith_blank_hint: 'This is best if you\'ve worked with Enano or other wiki software before and for production installations. It installs one page which you can edit to immediately get started on your site.',
-      field_startwith_tutorial: 'The Enano tutorial suite',
-      field_startwith_tutorial_hint: 'This option installs several tutorial pages that help you to get started quickly if you\'re new to Enano.',
-      field_urlscheme: 'URL formatting',
-      field_urlscheme_hint: 'This lets you choose how URLs within your site will be formatted. If the setting you pick doesn\'t work, you can change it by editing config.php after installation.',
-      field_urlscheme_lbl_example: 'Example:',
-      field_urlscheme_opt_standard: 'Standard URLs',
-      field_urlscheme_opt_standard_hint: 'Compatible with all servers. This is the default option and should be used unless you\'re sure that one of the other options below will work.',
-      field_urlscheme_opt_shortened: 'Shortened URLs',
-      field_urlscheme_opt_shortened_hint: 'This eliminates the "?title=" portion of your URL, and instead uses a slash. This is occasionally more friendly to search engines.',
-      field_urlscheme_opt_rewrite: 'Rewritten URLs',
-      field_urlscheme_opt_rewrite_hint: 'Using this option, you can completely eliminate the "index.php" from URLs. This is the most friendly option to search engines and looks very professional, but requires support for URL rewriting on your server. Enano can configure this automatically on Apache and some IIS7 servers. Otherwise, you\'ll need a knowledge of regular expressions and it will be necessary to configure your server manually for this option to work.',
-      field_urlscheme_opt_tiny: '<span style="font-weight: bold; color: #a00;">(Experimental)</span> Tiny URLs',
-      field_urlscheme_opt_tiny_hint: 'This makes URLs very small - close to the size of Rewritten. However it doesn\'t work with every server, and we\'re still trying to experiment to find which servers it works with. If you can\'t use Rewritten URLs, you are encouraged to give this a try and let the Enano team know whether it works for you or not.',
-      btn_urlscheme_detect: 'Auto-detect the best formatting scheme',
-      
-      objective_verify: 'Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.',
-    },
-    login: {
-      modetitle: 'Admin login',
-      header_blurb: 'Next, enter your desired username and password. The account you create here will be used to administer your site.',
-      modetitle_long: 'Administration login',
-      
-      welcome_title: 'Administration account',
-      welcome_body: '<p>Now it\'s time to create the account you\'ll use to administer your site. The e-mail address you enter here will also be used for the global contact address; you can change this after installation is finished if need be.</p>
-                     <p>Do not forget the information you enter here. Otherwise you will be unable to administer your site.</p>',
-      err_verify_failure: 'One or more of the form fields contains an incorrect value. Please correct any fields that have an X next to them.',
-      err_rijndael_failed: 'Received a bad response from rijndaelEncrypt(). Shift-click "reload" or "refresh" (depending on your browser) and try again.',
-      field_username: 'Username',
-      field_password: 'Password',
-      aes_blurb: 'This will be encrypted with AES before it\'s sent to the server.',
-      field_password_confirm: '(confirm)',
-      field_email: 'E-mail',
-      
-      objective_remember: 'Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.',
-    },
-    confirm: {
-      modetitle: 'Review',
-      modetitle_long: 'Confirm installation',
-      
-      title: 'Enano is ready to install.',
-      body: 'Almost there! You\'ve entered all the information we need for now. Click the button below to install the Enano database.',
-      info_aes_title: 'A note on AES encryption:',
-      info_aes_body: 'Enano is currently configured to use %aes_bits%-bit AES encryption. While the default value of 192 bits is perfectly acceptable for most sites, those in need of extreme security will want to change this value to 256 bits (the maximum available strength). If you need to change the cipher strength, please edit the file includes/constants.php and then <u>restart</u> this installation. Do not click Continue below until you redo the installation process up until this point, or you will experience severe problems with logging into your site.',
-      
-      msg_installing_unstable_title: 'Unstable release',
-      msg_installing_unstable_body: 'You are installing an unstable release of Enano. Except for bug reports, no support of any kind is provided for this release. If this is a Release Candidate (RC), limited support is available via the Enano forums.',
-      
-      btn_install_enano: 'Install Enano!',
-    },
-    install: {
-      modetitle: 'Install',
-      modetitle_long: 'Database installation',
-      
-      title: 'Installing Enano',
-      body: 'Please wait while Enano creates its database and initial content on your server.',
-      heading_progress: 'Installation progress',
-      
-      stg_load_title: 'Load installer files',
-      stg_load_body: 'One of the files needed for installation couldn\'t be loaded. Please check your Enano directory.',
-      stg_setpass_title: 'Retrieve administrator password',
-      stg_setpass_body: 'The administrator password couldn\'t be decrypted. This really shouldn\'t happen.',
-      stg_genaes_title: 'Generate private key',
-      stg_genaes_body: 'Couldn\'t generate a private key for the site. This really shouldn\'t happen.',
-      stg_sqlparse_title: 'Prepare database schema',
-      stg_sqlparse_body: 'Couldn\'t load or parse the schema file. This really shouldn\'t happen.',
-      stg_payload_title: 'Install database',
-      stg_payload_body: 'There was a problem with an SQL query. Details are above.',
-      stg_writeconfig_title: 'Write configuration files',
-      stg_writeconfig_body: 'Enano was unable to write the configuration file with your site\'s database credentials. This is almost always because your configuration file does not have the correct permissions. On Windows servers, you may see this message even if the check on the System Requirements page passed. Temporarily running IIS as the Administrator user may help.',
-      
-      stg_startapi_title: 'Start the Enano API',
-      stg_startapi_body: 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.',
-      stg_importlang_title: 'Import default language',
-      stg_importlang_body: 'Enano couldn\'t import the English language file.',
-      stg_importcontent_title: 'Import default content',
-      stg_importcontent_body: 'Enano couldn\'t import the default site content.',
-      stg_initlogs_title: 'Initialize logs',
-      stg_initlogs_body: '<b>The session manager denied the request to flush logs for the main page.</b><br />
-                           While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
-                           properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
-                           to finish the installation, please be aware that you may be unable to log into your site.',
-      
-      stg_cleanup_title: 'Clean up encryption keys',
-      stg_cleanup_body: 'There was a database error while removing the temporary encryption keys from the database. For maximum site security you should delete the config entries install_aes_key and site_aes_key manually.',
-      stg_rename_title: 'Rename configuration files',
-      stg_rename_body: 'Enano couldn\'t rename the configuration files to their correct production names. <span style="font-weight: bold; color: red;">Please perform the following rename operations and then follow the instructions to finish the installation below.</span>
-                          <ul>
-                            <li>Rename config.new.php to config.php</li>
-                            <li>Rename .htaccess.new to .htaccess (only if you selected the Rewrite URL scheme)</li>
-                          </ul>
-                        %this.finish_body%
-                        %this.finish_link_mainpage%',
-      stg_buildindex_title: 'Initialize search index',
-      stg_buildindex_body: 'Something went wrong while the page manager was attempting to build a search index.',
-    },
-    finish: {
-      modetitle: 'Finish',
-      modetitle_long: 'Complete installation',
-      
-      heading_progress: 'Performing final installation steps',
-      msg_progress: 'Enano is cleaning up and performing some final installation tasks. Please wait...',
-      msg_success_title: 'Congratulations! You\'ve finished installing Enano.',
-      msg_success_body: 'Enano has finished setting up on your server. Now you can go to your <a href="%mainpage_link%">new website</a> and start creating content!',
-      
-      body: '<h3>Wait... Now what?</h3>
-             <p>Click the link below to see the main page for your website. Where to go from here:</p>
-             <ul>
-               <li>The first thing you should do is log into your site using the Log in link on the sidebar.</li>
-               <li>Go into the Administration panel, expand General, and click General Configuration. There you will be able to configure some basic information about your site.</li>
-               <li>Visit the <a href="http://enanocms.org/Category:Plugins" onclick="window.open(this.href); return false;">Enano Plugin Gallery</a> to download and use plugins on your site.</li>
-               <li>Periodically create a backup of your database and filesystem, in case something goes wrong. This should be done at least once a week &ndash; more for wiki-based sites.</li>
-               <li>Hire some moderators, to help you keep rowdy users tame.</li>
-               <li>Tell the <a href="http://enanocms.org/Contact_us">Enano team</a> what you think.</li>
-               <li><b>Spread the word about Enano by adding a link to the Enano homepage on your sidebar!</b> You can enable this option in the General Configuration section of the administration panel.</li>
-             </ul>',
-      link_mainpage: '<a href="%mainpage_link%">Go to your website...</a>',
-    },
-    pophelp: {
-      admin_embed_php_title: 'Allow administrators to embed PHP',
-      admin_embed_php_body: '<p>This option allows you to control whether anything between the standard &lt;?php and ?&gt; tags will be treated as
-                                PHP code by Enano. If this option is enabled, and members of the Administrators group use these tags, Enano will
-                                execute that code when the page is loaded. There are obvious potential security implications here, which should
-                                be carefully considered before enabling this option.</p>
-                             <p>If you are the only administrator of this site, or if you have a high level of trust for those will be administering
-                                the site with you, you should enable this to allow extreme customization of pages.</p>
-                             <p>Leave this option off if you are at all concerned about security – if your account is compromised and PHP embedding
-                                is enabled, an attacker can run arbitrary code on your server! Enabling this will also allow administrators to
-                                embed Javascript and arbitrary HTML and CSS.</p>
-                             <p>If you don\'t have experience coding in PHP, you can safely disable this option. You may change this at any time
-                                using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection.</p>',
-      url_schemes_title: 'URL schemes',
-      url_schemes_body: '<p>The URL scheme allows you to decide how the URLs to your Enano pages will look.</p>
-                         <p>The first option (Standard URLs) works on any web server. You should select it if your server doesn\'t run Apache, or
-                            if you are at all unsure of your server\'s configuration. With this scheme, URLs at your site will look like <tt>
-                            http://yoursite.com/path-to-enano/index.php?title=Main_Page</tt>.</p>
-                         <p>The second option, Small URLs, will be selected by default if Enano detects Apache. Small URLs are more friendly towards
-                            search engines, but they don\'t work on very many non-Apache servers, or if PHP is set up through CGI on your server. Many
-                            free and low-cost web hosts will configure PHP through CGI in order to keep your user account as the owner of any files that
-                            Enano generates. With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.
-                            </p>
-                         <p>The last option, Tiny URLs, is the most friendly URL scheme for search engines, because your URLs won\'t have any special characters
-                            at all in them. However, this only works if your webhost has configured Apache with support for mod_rewrite. Most of the time if your
-                            host supports this you will see a listing for it in their feature matrix. None of the popular Linux distributions (such as Ubuntu,
-                            Debian, Red Hat Enterprise Linux&trade;, Fedora, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
-                            home-brew server, you should consult your distribution\'s documentation for enabling mod_rewrite before selecting this option.
-                            With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
-                            </p>',
-      btn_close_window: 'Close window',
-    },
-    upgrade: {
-      system_title: 'Enano upgrade tool',
-      stg_welcome: 'Welcome',
-      stg_login: 'Login',
-      stg_confirm: 'Confirmation',
-      stg_upgrade: 'Perform upgrade',
-      stg_finish: 'Finish',
-      
-      welcome_banshee_heading: 'Welcome to Enano %enano_version%.',
-      welcome_banshee_para1: 'Enano 1.2 features support for multiple languages, better security, faster page loading, more tools, a revamped page editor, and much more. This migration tool will automatically make the changes to your database required for Enano 1.2.',
-      welcome_banshee_para2: 'The migration tool has been tested under many different installation scenarios, but isn\'t fully guaranteed to work. The Enano team can\'t be responsible if the migration fails. If you encounted problems, please be sure to post on the <a href="http://forum.enanocms.org/">Enano forums</a>.',
-      welcome_caoineag_heading: 'Welcome to the Enano upgrade tool.',
-      welcome_caoineag_para1: 'To use this version of Enano, some parts of your database need to be upgraded. This tool will automatically perform the upgrade for you.',
-      welcome_btn_continue: 'Start upgrade',
-      
-      login_msg_auth_needed_title: 'Authentication needed',
-      login_msg_auth_needed_body_level1: 'To continue, you need to log in. Please enter an administrator username and password below.',
-      login_msg_auth_needed_body_level2: 'To confirm the upgrade, you need to re-enter your login information. Please enter your username and password below.',
-      login_msg_local_auth: '<b>Note:</b> The upgrade tool doesn\'t recognize any authentication plugins. Even if you use authentication plugins in Enano, you need to enter a local administrator username and password to use this upgrade tool.',
-      login_btn_login: 'Log in',
-      login_err_failed: 'The following error occurred during the login process: %error_code%.',
-      
-      confirm_title: 'Confirm upgrade',
-      confirm_body: 'You are about to upgrade to Enano version <b>%enano_version%</b>. You should make sure that you\'ve done the following before you continue:',
-      confirm_objective_backup_fs: 'Back up Enano installation directory (<b>%dir%</b>)',
-      confirm_objective_backup_db: 'Back up Enano database, including non-Enano tables if any (<b>%dbname%</b>)',
-      confirm_warning_langimport: '<b>Warning!</b> This release of Enano has some changed strings. If you\'ve customized any language strings, those changes will be lost.',
-      confirm_btn_upgrade: 'Pimp my Enano!',
-      
-      msg_schema_complete_title: 'Database upgrades complete',
-      msg_schema_complete_body: 'You\'re past the hard part - all of the modifications to your database were successful. We need to perform a few final steps to finish the upgrade; just click the button below to finish everything up.',
-      btn_continue: 'Finish upgrade',
-      
-      err_current_title: 'Already running current version',
-      err_current_body: 'No database upgrades are needed right now, you\'re already running the Enano version set in this installer. Try <a href="%mainpage_link%">heading back to your site</a>. Think there\'s a mistake somewhere? <a href="http://forum.enanocms.org/">Let the Enano team know about it</a>.',
-      err_current_body_para2: 'You might also want to use the administration panel to check for updates, or <a href="http://enanocms.org/download">download the latest release</a> of Enano.',
-      err_post_not_available: 'You\'re trying to run the post-upgrade process, but your site isn\'t in the correct state for this.',
-      
-      post_status_title: 'Finishing upgrade',
-      post_status_body: 'Enano is cleaning up some data and finalizing the upgrade.',
-      post_status_finish_title: 'All done!',
-      post_status_finish_body: 'That\'s it - Enano has been upgraded. You should <a href="%mainpage_link%">go back to your site</a> now and make sure that everything works right. If you find a problem, be sure to report it to the <a href="http://forum.enanocms.org/">Enano development team</a>. (Make sure you disable any plugins first, since we can\'t easily tell if your problem is caused by the Enano core or by a plugin, unless all of your non-system plugins are disabled.)',
-      
-      stg_flushcache_title: 'Flush caches',
-      stg_flushcache_body: 'The upgrader failed to delete some cached data. You may experience some problems with file corruption or badly drawn pages until the caches expire, which is often no longer than 20 minutes.',
-      stg_setversion_title: 'Set Enano version and log upgrade',
-      stg_setversion_body: 'There was a problem finalizing the upgrade and inserting logs. You really shouldn\'t ever see this message, but calling setConfig(\'enano_version\', installer_enano_version()) should get you rolling again since everything else is probably done by now.',
-    },
-    cli: {
-      welcome_line1: '<c 1>Welcome to the <c 34>Enano</c></c> CMS<c 1> installation wizard.</c>\n',
-      welcome_line2: 'Installing Enano version <c 1>%enano_version%</c> on PHP <c 1>%php_version%</c>\n',
-      
-      prompt_driver: 'Database type (mysql or postgresql)',
-      prompt_dbhost: 'Hostname of database server',
-      prompt_dbport: 'Database server port',
-      prompt_dbuser: 'Database username',
-      prompt_dbpasswd: 'Database password',
-      prompt_dbname: 'Database name',
-      prompt_tblpfx: 'Table prefix',
-      prompt_user: 'Enano administrator username',
-      prompt_pass: 'Enano administrator password',
-      prompt_email: 'Contact e-mail',
-      prompt_sitename: 'Site name',
-      prompt_sitedesc: 'Site description',
-      prompt_copyright: 'Copyright notice',
-      prompt_urlscheme: 'URL scheme (standard, short, rewrite, or tiny)',
-      prompt_scriptpath: 'Now we need the path to Enano, relative to your website\'s document root,\nwithout a trailing slash. This should be based on the URL your site will\nuse. For example, if your site is http://yoursite.com/enano/, use the value\n"/enano" here. Leave this blank if Enano is in your document root, e.g.\nhttp://yoursite.com/index.php?title=Enano_page.\nSite URL',
-      prompt_confirm: 'Enter again to confirm',
-      msg_echo_warning: '(WARNING, will be echoed)',
-      
-      default_site_name: 'Enano site',
-      default_site_desc: 'My first Enano site',
-      default_copyright: '&copy; %year%',
-      
-      msg_testing_db: 'Testing database connectivity...',
-      
-      stage_sysreqs: '<c 34;1>Checking system.</c>\n',
-      test_pass: '<c 1;32>PASS</c>',
-      test_vwarn: '<c 1;33>WARNING</c>',
-      test_warn: '<c 0;31>FAIL</c><c 1> (optional)</c>',
-      test_fail: '<c 1;31>FAIL</c>',
-      
-      msg_test_warnings: '<c 1;33>The following warnings were generated during the check:</c>',
-      msg_tests_passed: '<c 32><c 1>All tests passed.</c> Installing Enano.</c>\n',
-      msg_installing_db_stage1: '<c 1>Installing database, stage 1...</c>',
-      msg_parsing_schema: '<c 1>Preparing installation payload...</c>',
-      msg_installing_db_stage2: '<c 1>Installing database, stage 2...</c>',
-      msg_writing_config: '<c 1>Generating config file...</c>',
-      msg_starting_api: '<c 1>Starting up the Enano API...</c>',
-      msg_importing_language: '<c 1>Importing default language...</c>',
-      msg_importing_content: '<c 1>Installing default content...</c>',
-      msg_initting_logs: '<c 1>Initializing logs...</c>',
-      msg_cleaning_up: '<c 1>Removing temporary data...</c>',
-      msg_initting_index: '<c 1>Initializing search index...</c>',
-      msg_renaming_config: '<c 1>Renaming config file...</c>',
-      
-      msg_ok: '<c 1;32>OK</c>',
-      msg_install_success: '<c 1;32>Congratulations!</c> <c 1>Enano was successfully installed.</c>\n<c 34>Now, navigate your browser to your Enano installation to make sure everything\nworks right. If you encounter problems, contact the Enano Team for support at\nhttp://forum.enanocms.org or in #enano on irc.freenode.net.</c> <c 34;1>Be sure to\nmention that you used the CLI installer.</c>\n',
-      
-      err_pass_no_match: '  <c 1>Passwords do not match.</c>\n',
-      err_db_connect_fail: 'Could not connect to the database',
-      err_sysreqs_fail: 'One or more system requirement checks has failed.',
-      err_no_drivers: 'Support for at least one database driver is required.',
-      err_schema_load: 'Could not load the database schema file.',
-      err_db_query: 'A database error occurred; see the message above for details.',
-      err_query_sanity_failed: 'The sanity check on a database query failed.',
-      err_writing_config: 'Could not write the configuration file.',
-      err_importing_language: 'Could not import the default language.',
-      err_initting_logs: 'Could not initialize Enano\'s logs.',
-      err_cleaning_up: 'Could not clean up the temporary data.',
-      err_initting_index: 'Could not initialize the search index.',
-      err_renaming_config: 'Could not rename config.new.php to config.php; please do this manually.',
-    }
-  }
+	categories: [
+		'meta', 'language', 'welcome', 'license', 'sysreqs', 'database', 'dbmysql', 'dbpgsql', 'website', 'login', 'confirm', 'install', 'finish', 'pophelp', 'upgrade', 'cli'
+	],
+	strings: {
+		meta: {
+			site_name: 'Enano installation',
+			site_desc: 'Install Enano on your server.',
+			enano_copyright: 'Enano and its various components, related documentation, and artwork are copyright &copy; 2006 Dan Fuhry.<br />This program is Free Software; see the file "GPL" included with this package for details.',
+			sidebar_heading: 'Installation progress',
+			btn_article: 'installation page',
+			btn_continue: 'Continue',
+			lbl_before_continue: 'Before continuing:',
+			step: 'Step %step%: %title%',
+			
+			msg_err_verification: 'One or more of the form fields is incorrect. Please correct any information in the form that has an "X" next to it.',
+			
+			msg_err_stagefailed_title: 'Enano installation failed.',
+			msg_err_stagefailed_body: 'When you have corrected the error, click the button below to attempt to continue the installation.',
+			msg_err_stagefailed_mysqlerror: 'The error returned from MySQL was:',
+			btn_retry_installation: 'Retry installation',
+		},
+		language: {
+			modetitle: 'Language',
+		},
+		welcome: {
+			modetitle: 'Welcome',
+			heading: 'Welcome to Enano',
+			version: 'version',
+			branch_stable: 'stable',
+			branch_unstable: 'unstable',
+			aka: 'also affectionately known as "%codename%" <tt>:)</tt>',
+			btn_start: 'Start installation',
+		},
+		license: {
+			modetitle: 'License',
+			modetitle_long: 'License agreement',
+			heading: 'Welcome to the Enano installer.',
+			blurb_thankyou: 'Thank you for choosing Enano as your CMS. You\'ve selected the finest in design, the strongest in security, and the latest in Web 2.0 toys. Trust us, you\'ll like it.',
+			blurb_pleaseread: 'To get started, please read and accept the following license agreement. You\'ve probably seen it before.',
+			info_unstable_title: 'Notice for prerelease versions',
+			info_unstable_body: 'This version of Enano is designed only for testing and evaluation purposes. <b>It is not yet completely stable, and should not be used on production websites.</b> As with any Enano version, Dan Fuhry and the Enano team cannot be responsible for any damage, physical or otherwise, to any property as a result of the use of Enano. While security is a number one priority, sometimes things slip through.',
+			section_gpl_heading: 'Lawyer-readable version',
+			btn_i_agree: 'I agree to the license terms',
+			objective_ensure_agree: 'Ensure that you agree with the terms of the license',
+			objective_have_db_info: 'Have your database host, name, username, and password available',
+			gpl_blurb_inenglish: 'You may view a copy of the GNU General Public License in English in the file GPL-EN included with this package.',
+		},
+		sysreqs: {
+			modetitle: 'Requirements',
+			modetitle_long: 'Server requirements',
+			heading: 'Checking your server',
+			blurb: 'Enano has several requirements that must be met before it can be installed. If all is good then note any warnings and click Continue below.',
+			btn_refresh: 'Recheck server',
+			
+			req_supported: 'Supported',
+			req_notfound: 'Not found',
+			req_found: 'Found',
+			req_enabled: 'Enabled',
+			req_disabled: 'Disabled',
+			req_writable: 'Writable',
+			req_unwritable: 'Unwritable',
+			req_gmp: 'GNU Multi-Precision (GMP)',
+			req_bigint: 'Big_Int',
+			req_bcmath: 'BCMath',
+			
+			heading_serverenv: 'Server environment',
+			heading_dbms: 'Database servers',
+			heading_files: 'Writable files',
+			heading_images: 'Image manipulation',
+			
+			req_apache: 'Apache web server',
+			req_php: 'PHP version',
+			req_mysql: 'MySQL database support',
+			req_postgresql: 'PostgreSQL database support',
+			req_safemode: 'Safe Mode',
+			req_uploads: 'PHP file upload support',
+			req_ctype: 'PHP ctype_* validation functions',
+			req_crypto: 'Arbitrary precision (cryptographic) math',
+			req_config_writable: 'Configuration file: config.new.php',
+			req_htaccess_writable: 'Apache rewrite rules: .htaccess.new',
+			req_files_writable: 'File storage directory: files/',
+			req_cache_writable: 'Cache directory: cache/',
+			req_gd2: 'GD2 library',
+			req_imagemagick: 'ImageMagick',
+			
+			req_hint_htaccess_writable: 'Only needs to be writable if you plan to use Rewritten URLs.',
+			req_hint_gd2: 'Used for generating visual confirmation and resizing uploaded images',
+			req_hint_imagemagick: 'Faster alternative for resizing uploaded images',
+			
+			req_help_apache: 'Apache is the best server for Enano because it provides features that Enano can use, primarily support for Rewritten URLs.',
+			req_help_php: 'Enano requires PHP version 5.0.0 or later, and runs best under PHP 5.2.0 or later. (You are running PHP %php_version%).',
+			req_help_safemode: 'Safe Mode interferes with Enano\'s ability to operate properly. Thus, installing Enano with Safe Mode enabled is currently not supported.',
+			req_help_uploads: 'PHP file upload support is a prerequisite for uploading files via Enano\'s web interface.',
+			req_help_writable: 'Certain files need to be writable for installation and certain features to work properly. Use your FTP client\'s "CHMOD" feature to set numeric permissions on the items listed above: 666 for files, and 777 for directories. It\'s safest to CHMOD config.php to 444 once installation is complete.',
+			req_help_gd2: 'Without GD, Enano has to use a visual confirmation engine that generates weaker images that are easier to break.',
+			req_help_imagemagick: 'Without ImageMagick, Enano will use GD (if it is available) to scale images down. This is slightly slower.',
+			req_help_crypto_none: 'Your server has no support for arbitrary-precision math, which is required for encrypted logon. Your username and password will not be transmitted securely until one of the following PHP extensions is installed: GMP, Big_Int, or BCMath.',
+			req_help_crypto_bcmath: 'Your server supports arbitrary-precision math, but only through PHP\'s BCMath extension which is extremely slow. Expect the process of logging in to take 6-10 seconds.',
+			
+			err_no_dbms_title: 'No database backends are available.',
+			err_no_dbms_body: 'Enano requires at least one database backend to install. Please consult with your hosting provider to obtain help with this situation. If you are running a VPS or dedicated server, install the php-mysql or php-pgsql (on Red Hat&reg;-based distributions) or php5-mysql or php5-pgsql (on Debian-based distributions) packages. For Windows servers, ensure that the php_mysql or php_pgsql extension is enabled in php.ini.',
+			
+			summary_pass_title: 'Congratulations! Enano can run on this server.',
+			summary_pass_body: 'The system requirement check was successful and Enano has verified that it can run on this server with all available features. Below is a summary of what was checked. Click the Continue button below to proceed with installation.',
+			
+			summary_warn_title: 'Warnings encountered during server check',
+			summary_warn_body: 'Since some server features that Enano uses aren\'t available, Enano has turned its support for these features off. The warnings below provide information on how you can fix this.',
+			
+			summary_fail_title: 'Installation requirements not met',
+			summary_fail_body: 'As a precaution, Enano will not install until the above requirements have been met. Contact your server administrator or hosting company for support. If you still need help, please use the <a href="http://forum.enanocms.org/" onclick="window.open(this.href);">Enano support forums</a>.',
+			
+			objective_scalebacks: 'Review the list above to ensure that you are satisfied with any of Enano\'s workarounds for your server. If you need a particular feature and that feature is listed as disabled above, you should take the opportunity now to correct the problem.'
+		},
+		database: {
+			modetitle: 'Database',
+			modetitle_long: 'Database information',
+			heading_optionalinfo: 'Optional information',
+			
+			driver_heading: 'Choose a database driver',
+			driver_intro: 'The next step is to choose the database driver that Enano will use. In most cases this is MySQL, but there are certain advantages to PostgreSQL, which is made available only experimentally.',
+			driver_msg_virt_appliance: '<b>You\'re using the Enano virtual appliance.</b><br />Unless you configured the appliance manually, PostgreSQL support is not available. In 99% of cases you\'ll want to click MySQL below.',
+			driver_err_no_mysql: 'You don\'t have the MySQL PHP extension installed.',
+			driver_err_no_pgsql: 'You don\'t have the PostgreSQL PHP extensnion installed.',
+			driver_mysql: 'MySQL',
+			driver_mysql_intro: 'Click this button to use MySQL as the database backend for your site. Most web hosts support MySQL, and if you have administrative access to your MySQL server, you can create a new database and user during this installation process if you haven\'t done so already.',
+			driver_pgsql: 'PostgreSQL',
+			driver_pgsql_intro: 'Click this button to use PostgreSQL as the database backend for your site. While not as widely supported, PostgreSQL has more liberal licensing conditions and when properly configured is faster than MySQL. Some plugins may not work with the PostgreSQL driver.',
+			
+			objective_test: 'Check your MySQL connection using the "Test Connection" button.',
+			objective_uncrypt: 'Be aware that your database information will be transmitted unencrypted several times.',
+			
+			// database_post module
+			btn_go_back: 'Go back',
+			msg_success_title: 'Connection successful',
+			msg_success_body: 'The database has been contacted and initial tables created successfully. Redirecting...',
+			msg_success_redirect: 'Click if you\'re not redirected within 2 seconds',
+			
+			msg_post_fail_title: 'Database connection failed',
+			msg_post_fail_body: 'The installer couldn\'t connect to the database because something went wrong while the connection attempt was being made. Please press your browser\'s back button and correct your database information.',
+			msg_post_fail_desc: 'Error description:',
+			
+			msg_sql_fail_title: 'Database operation failed',
+			msg_sql_fail_body: 'The installer couldn\'t create one of the tables used for installation.',
+		},
+		dbmysql: {
+			msg_err_mysql_connect: '<b>Error:</b> The database server "%db_host%" couldn\'t be contacted.<br />%mysql_error%',
+			msg_err_mysql_auth: '<b>Error:</b> Access to MySQL under the specified credentials was denied.<br />%mysql_error%',
+			msg_err_mysql_dbperm: '<b>Error:</b> Access to the specified database using those login credentials was denied.<br />%mysql_error%',
+			msg_err_mysql_dbexist: '<b>Error:</b> The specified database does not exist<br />%mysql_error%',
+			msg_err_mysql_version: '<b>Error:</b> Your version of MySQL (%mysql_version%) is older than 4.1.17. Enano will still work, but there is a known bug with the comment system and MySQL 4.1.11 that involves some comments not being displayed, due to an issue with the PHP function mysql_fetch_row().',
+			
+			msg_warn_creating_db: '<b>Warning:</b> The database you specified does not exist. It will be created during installation.',
+			msg_warn_creating_user: '<b>Warning:</b> The specified regular user does not exist or the password is incorrect. The user will be created during installation. If the user already exists, the password will be reset.',
+			msg_warn_mysql_version: 'The MySQL version that your server is running could not be determined.',
+			
+			msg_info_mysql_good: 'Your version of MySQL meets Enano requirements.',
+			msg_test_success: 'All checks passed! You can use this database configuration with Enano.',
+			
+			blurb_needdb: 'Now we need some information that will allow Enano to contact your database server. Enano uses MySQL as a data storage backend, and we need to have access to a MySQL server in order to continue.',
+			blurb_howtomysql: 'If you do not have access to a MySQL server, and you are using your own server, you can download MySQL for free from <a href="http://www.mysql.com/">MySQL.com</a>. <b>Please note that, like Enano, MySQL is licensed under the GNU GPL.</b> If you need to modify MySQL and then distribute your modifications, you must either distribute them under the terms of the GPL or purchase a proprietary license.',
+			
+			vm_login_info: '<b>MySQL login information for this virtual appliance:</b><br /><br />Database hostname: %host%<br />Database login: username "%user%", password: "%pass%" (without quotes)<br />Database name: %name%',
+			
+			table_title: 'Database information',
+			
+			field_hostname_title: 'Database hostname',
+			field_hostname_body: 'This is the hostname (or sometimes the IP address) of your MySQL server. In many cases, this is "localhost". To connect through a Unix socket, use the format ":/path/to/mysql.sock".',
+			field_port_title: 'Database port',
+			field_port_body: 'The TCP port Enano will use to connect to MySQL. This is 3306 on the vast majority of servers. This isn\'t relevant if you use a socket file.',
+			field_dbname_title: 'Database name',
+			field_dbname_body: 'The name of the actual database. If you don\'t already have a database, you can create one here, if you have the username and password of a MySQL user with administrative rights.',
+			field_dbauth_title: 'Database login',
+			field_dbauth_body: 'These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.',
+			field_tableprefix_title: 'Table prefix',
+			field_tableprefix_body: 'The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).',
+			field_rootauth_title: 'Database administrative login',
+			field_rootauth_body: 'If the MySQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.',
+			field_mysqlversion_title: 'MySQL version',
+			field_mysqlversion_blurb_willbechecked: 'MySQL version information will be checked when you click "Test Connection".',
+			field_droptables_title: 'Delete existing tables?',
+			field_droptables_body: 'If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.',
+			field_droptables_lbl: 'Drop existing tables',
+			
+			btn_testconnection: 'Test connection',
+		},
+		dbpgsql: {
+			msg_err_connect: 'There was a problem connecting to PostgreSQL. Please check your connection information above.',
+			msg_err_version: '<b>Error:</b> Your version of PostgreSQL (%pg_version%) is older than 8.2.5. Enano cannot be installed.',
+			
+			msg_warn_pg_version: 'The PostgreSQL version that your server is running could not be determined.',
+			msg_err_auth: 'Access to the database was denied. Ensure that your database exists and that your username and password are correct.',
+			
+			msg_info_version_good: 'Your version of PostgreSQL meets Enano requirements.',
+			msg_test_success: 'All checks passed! You can use this database configuration with Enano.',
+			
+			blurb_needdb: 'Now we need some information that will allow Enano to contact your database server. Enano uses PostgreSQL as a data storage backend, and we need to have access to a PostgreSQL server in order to continue.',
+			blurb_howtomysql: 'If you do not have access to a PostgreSQL server, and you are using your own server, you can download PostgreSQL for free from <a href="http://www.mysql.com/">PostgreSQL.com</a>. <b>Please note that, like Enano, PostgreSQL is licensed under the GNU GPL.</b> If you need to modify PostgreSQL and then distribute your modifications, you must either distribute them under the terms of the GPL or purchase a proprietary license.',
+			
+			vm_login_info: '<b>PostgreSQL login information for this virtual appliance:</b><br /><br />Database hostname: %host%<br />Database login: username "%user%", password: "%pass%" (without quotes)<br />Database name: %name%',
+			
+			table_title: 'Database information',
+			
+			field_hostname_title: 'Database hostname',
+			field_hostname_body: 'This is the hostname (or sometimes the IP address) of your PostgreSQL server. In many cases, this is "localhost".',
+			field_port_title: 'Database port',
+			field_port_body: 'The TCP port Enano will use to connect to PostgreSQL. This is 5432 on the vast majority of servers.',
+			field_dbname_title: 'Database name',
+			field_dbname_body: 'The name of the actual database. If you don\'t already have a database, you can create one here, if you have the username and password of a PostgreSQL user with administrative rights.',
+			field_dbauth_title: 'Database login',
+			field_dbauth_body: 'These fields should be the username and password of a user with "select", "insert", "update", "delete", "create table", and "replace" privileges for your database.',
+			field_tableprefix_title: 'Table prefix',
+			field_tableprefix_body: 'The value that you enter here will be added to the beginning of the name of each Enano table. You may use lowercase letters (a-z), numbers (0-9), and underscores (_).',
+			field_rootauth_title: 'Database administrative login',
+			field_rootauth_body: 'If the PostgreSQL database or username that you entered above does not exist yet, you can create them here, assuming that you have the login information for an administrative user (such as root). Leave these fields blank unless you need to use them.',
+			field_pgsqlversion_title: 'PostgreSQL version',
+			field_pgsqlversion_blurb_willbechecked: 'PostgreSQL version information will be checked when you click "Test Connection".',
+			field_droptables_title: 'Delete existing tables?',
+			field_droptables_body: 'If this option is checked, all the tables that will be used by Enano will be dropped (deleted) before the schema is executed. Do NOT use this option unless specifically instructed to.',
+			field_droptables_lbl: 'Drop existing tables',
+			
+			btn_testconnection: 'Test connection',
+		},
+		website: {
+			modetitle: 'Site info',
+			modetitle_long: 'Website information',
+			header_blurb: 'The next step is to enter some information about your website. You can always change this information later, using the administration panel.',
+			
+			msg_ajax_test_fail_title: 'All tests failed',
+			msg_ajax_test_fail_body: 'None of the URL handling tests worked; you may have problems using Enano on your server.',
+			msg_bestmethod_rewrite: 'The installer has detected that using rewritten URLs is the best level that will work.',
+			msg_bestmethod_shortened: 'The installer has detected that using shortened URLs is the best level that will work.',
+			msg_bestmethod_tiny: 'The installer has detected that using tiny URLs is the best level that will work.',
+			msg_bestmethod_standard: 'The installer has detected that using standard URLs is the only level that will work.',
+			msg_modrewrite_enabled: 'Your copy of Enano has the Windows mod_rewrite workaround patch enabled.',
+			msg_modrewrite_necessary: 'If you don\'t plan to use the Rewritten URLs option below, you should go back and re-download Enano without this workaround enabled. The mod_rewrite issues Enano faces under Windows are caused by a security change in Apache 2.2 that is not present in Apache 2.0. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
+			msg_modrewrite_unnecessary: 'The Enano installer has detected that you\'re probably not running Apache 2.2 under Windows. You don\'t need this workaround unless you\'re using this specific software stack. Unless you\'re sure that you are running Apache 2.2 under Windows on your server, it is recommended that you disable the <tt>WINDOWS_MOD_REWRITE_WORKAROUNDS</tt> constant in includes/constants.php. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
+			msg_modrewrite_disabled: 'Your server is running Apache 2.2 on Windows, but the Windows mod_rewrite workaround patch is disabled.',
+			msg_modrewrite_maybeneeded: 'Do not use Rewritten URLs unless you re-download Enano with the Windows Patch enabled or uncomment the <tt>WINDOWS_MOD_REWRITE_WORKAROUNDS</tt> line in <tt>includes/constants.php</tt>. Otherwise you may have trouble accessing login and administration pages due to a bug in Apache. <a href="http://enanocms.org/windows-patch" onclick="window.open(this.href); return false;">Learn more</a>',
+			
+			field_name: 'Pick a name',
+			field_name_hint: 'Now for the fun part - it\'s time to name your website. Try to pick something that doesn\'t include any special characters, since this can make project-page URLs look botched.',
+			field_desc: 'Enter a short description',
+			field_desc_hint: 'Here you should enter a very short description of your site. Sometimes this is a slogan or, depending on the theme you\'ve chosen, a set of keywords that can go into a META description tag.',
+			field_copyright: 'Copyright info',
+			field_copyright_hint: 'The text you enter here will be shown at the bottom of most pages. Typically this is where a copyright notice would go. Keep it short and sweet; you can use <a href="http://docs.enanocms.org/Help:3.1">internal links</a> to link to project pages you\'ll create later.',
+			field_startwith: 'Start with:',
+			field_startwith_blank: 'A blank site with only a main page',
+			field_startwith_blank_hint: 'This is best if you\'ve worked with Enano or other wiki software before and for production installations. It installs one page which you can edit to immediately get started on your site.',
+			field_startwith_tutorial: 'The Enano tutorial suite',
+			field_startwith_tutorial_hint: 'This option installs several tutorial pages that help you to get started quickly if you\'re new to Enano.',
+			field_urlscheme: 'URL formatting',
+			field_urlscheme_hint: 'This lets you choose how URLs within your site will be formatted. If the setting you pick doesn\'t work, you can change it by editing config.php after installation.',
+			field_urlscheme_lbl_example: 'Example:',
+			field_urlscheme_opt_standard: 'Standard URLs',
+			field_urlscheme_opt_standard_hint: 'Compatible with all servers. This is the default option and should be used unless you\'re sure that one of the other options below will work.',
+			field_urlscheme_opt_shortened: 'Shortened URLs',
+			field_urlscheme_opt_shortened_hint: 'This eliminates the "?title=" portion of your URL, and instead uses a slash. This is occasionally more friendly to search engines.',
+			field_urlscheme_opt_rewrite: 'Rewritten URLs',
+			field_urlscheme_opt_rewrite_hint: 'Using this option, you can completely eliminate the "index.php" from URLs. This is the most friendly option to search engines and looks very professional, but requires support for URL rewriting on your server. Enano can configure this automatically on Apache and some IIS7 servers. Otherwise, you\'ll need a knowledge of regular expressions and it will be necessary to configure your server manually for this option to work.',
+			field_urlscheme_opt_tiny: '<span style="font-weight: bold; color: #a00;">(Experimental)</span> Tiny URLs',
+			field_urlscheme_opt_tiny_hint: 'This makes URLs very small - close to the size of Rewritten. However it doesn\'t work with every server, and we\'re still trying to experiment to find which servers it works with. If you can\'t use Rewritten URLs, you are encouraged to give this a try and let the Enano team know whether it works for you or not.',
+			btn_urlscheme_detect: 'Auto-detect the best formatting scheme',
+			
+			objective_verify: 'Verify that your site information is correct. Again, all of the above settings can be changed from the administration panel.',
+		},
+		login: {
+			modetitle: 'Admin login',
+			header_blurb: 'Next, enter your desired username and password. The account you create here will be used to administer your site.',
+			modetitle_long: 'Administration login',
+			
+			welcome_title: 'Administration account',
+			welcome_body: '<p>Now it\'s time to create the account you\'ll use to administer your site. The e-mail address you enter here will also be used for the global contact address; you can change this after installation is finished if need be.</p>
+ 										<p>Do not forget the information you enter here. Otherwise you will be unable to administer your site.</p>',
+			err_verify_failure: 'One or more of the form fields contains an incorrect value. Please correct any fields that have an X next to them.',
+			err_rijndael_failed: 'Received a bad response from rijndaelEncrypt(). Shift-click "reload" or "refresh" (depending on your browser) and try again.',
+			field_username: 'Username',
+			field_password: 'Password',
+			aes_blurb: 'This will be encrypted with AES before it\'s sent to the server.',
+			field_password_confirm: '(confirm)',
+			field_email: 'E-mail',
+			
+			objective_remember: 'Remember the username and password you enter here! You will not be able to administer your site without the information you enter on this page.',
+		},
+		confirm: {
+			modetitle: 'Review',
+			modetitle_long: 'Confirm installation',
+			
+			title: 'Enano is ready to install.',
+			body: 'Almost there! You\'ve entered all the information we need for now. Click the button below to install the Enano database.',
+			info_aes_title: 'A note on AES encryption:',
+			info_aes_body: 'Enano is currently configured to use %aes_bits%-bit AES encryption. While the default value of 192 bits is perfectly acceptable for most sites, those in need of extreme security will want to change this value to 256 bits (the maximum available strength). If you need to change the cipher strength, please edit the file includes/constants.php and then <u>restart</u> this installation. Do not click Continue below until you redo the installation process up until this point, or you will experience severe problems with logging into your site.',
+			
+			msg_installing_unstable_title: 'Unstable release',
+			msg_installing_unstable_body: 'You are installing an unstable release of Enano. Except for bug reports, no support of any kind is provided for this release. If this is a Release Candidate (RC), limited support is available via the Enano forums.',
+			
+			btn_install_enano: 'Install Enano!',
+		},
+		install: {
+			modetitle: 'Install',
+			modetitle_long: 'Database installation',
+			
+			title: 'Installing Enano',
+			body: 'Please wait while Enano creates its database and initial content on your server.',
+			heading_progress: 'Installation progress',
+			
+			stg_load_title: 'Load installer files',
+			stg_load_body: 'One of the files needed for installation couldn\'t be loaded. Please check your Enano directory.',
+			stg_setpass_title: 'Retrieve administrator password',
+			stg_setpass_body: 'The administrator password couldn\'t be decrypted. This really shouldn\'t happen.',
+			stg_genaes_title: 'Generate private key',
+			stg_genaes_body: 'Couldn\'t generate a private key for the site. This really shouldn\'t happen.',
+			stg_sqlparse_title: 'Prepare database schema',
+			stg_sqlparse_body: 'Couldn\'t load or parse the schema file. This really shouldn\'t happen.',
+			stg_payload_title: 'Install database',
+			stg_payload_body: 'There was a problem with an SQL query. Details are above.',
+			stg_writeconfig_title: 'Write configuration files',
+			stg_writeconfig_body: 'Enano was unable to write the configuration file with your site\'s database credentials. This is almost always because your configuration file does not have the correct permissions. On Windows servers, you may see this message even if the check on the System Requirements page passed. Temporarily running IIS as the Administrator user may help.',
+			
+			stg_startapi_title: 'Start the Enano API',
+			stg_startapi_body: 'The Enano API could not be started. This is an error that should never occur; please contact the Enano team for support.',
+			stg_importlang_title: 'Import default language',
+			stg_importlang_body: 'Enano couldn\'t import the English language file.',
+			stg_importcontent_title: 'Import default content',
+			stg_importcontent_body: 'Enano couldn\'t import the default site content.',
+			stg_initlogs_title: 'Initialize logs',
+			stg_initlogs_body: '<b>The session manager denied the request to flush logs for the main page.</b><br />
+ 													While under most circumstances you can still <a href="install.php?mode=finish">finish the installation</a>, you should be aware that some servers cannot
+ 													properly set cookies due to limitations with PHP. These limitations are exposed primarily when this issue is encountered during installation. If you choose
+ 													to finish the installation, please be aware that you may be unable to log into your site.',
+			
+			stg_cleanup_title: 'Clean up encryption keys',
+			stg_cleanup_body: 'There was a database error while removing the temporary encryption keys from the database. For maximum site security you should delete the config entries install_aes_key and site_aes_key manually.',
+			stg_rename_title: 'Rename configuration files',
+			stg_rename_body: 'Enano couldn\'t rename the configuration files to their correct production names. <span style="font-weight: bold; color: red;">Please perform the following rename operations and then follow the instructions to finish the installation below.</span>
+													<ul>
+														<li>Rename config.new.php to config.php</li>
+														<li>Rename .htaccess.new to .htaccess (only if you selected the Rewrite URL scheme)</li>
+													</ul>
+												%this.finish_body%
+												%this.finish_link_mainpage%',
+			stg_buildindex_title: 'Initialize search index',
+			stg_buildindex_body: 'Something went wrong while the page manager was attempting to build a search index.',
+		},
+		finish: {
+			modetitle: 'Finish',
+			modetitle_long: 'Complete installation',
+			
+			heading_progress: 'Performing final installation steps',
+			msg_progress: 'Enano is cleaning up and performing some final installation tasks. Please wait...',
+			msg_success_title: 'Congratulations! You\'ve finished installing Enano.',
+			msg_success_body: 'Enano has finished setting up on your server. Now you can go to your <a href="%mainpage_link%">new website</a> and start creating content!',
+			
+			body: '<h3>Wait... Now what?</h3>
+ 						<p>Click the link below to see the main page for your website. Where to go from here:</p>
+ 						<ul>
+ 							<li>The first thing you should do is log into your site using the Log in link on the sidebar.</li>
+ 							<li>Go into the Administration panel, expand General, and click General Configuration. There you will be able to configure some basic information about your site.</li>
+ 							<li>Visit the <a href="http://enanocms.org/Category:Plugins" onclick="window.open(this.href); return false;">Enano Plugin Gallery</a> to download and use plugins on your site.</li>
+ 							<li>Periodically create a backup of your database and filesystem, in case something goes wrong. This should be done at least once a week &ndash; more for wiki-based sites.</li>
+ 							<li>Hire some moderators, to help you keep rowdy users tame.</li>
+ 							<li>Tell the <a href="http://enanocms.org/Contact_us">Enano team</a> what you think.</li>
+ 							<li><b>Spread the word about Enano by adding a link to the Enano homepage on your sidebar!</b> You can enable this option in the General Configuration section of the administration panel.</li>
+ 						</ul>',
+			link_mainpage: '<a href="%mainpage_link%">Go to your website...</a>',
+		},
+		pophelp: {
+			admin_embed_php_title: 'Allow administrators to embed PHP',
+			admin_embed_php_body: '<p>This option allows you to control whether anything between the standard &lt;?php and ?&gt; tags will be treated as
+																PHP code by Enano. If this option is enabled, and members of the Administrators group use these tags, Enano will
+																execute that code when the page is loaded. There are obvious potential security implications here, which should
+																be carefully considered before enabling this option.</p>
+ 														<p>If you are the only administrator of this site, or if you have a high level of trust for those will be administering
+																the site with you, you should enable this to allow extreme customization of pages.</p>
+ 														<p>Leave this option off if you are at all concerned about security – if your account is compromised and PHP embedding
+																is enabled, an attacker can run arbitrary code on your server! Enabling this will also allow administrators to
+																embed Javascript and arbitrary HTML and CSS.</p>
+ 														<p>If you don\'t have experience coding in PHP, you can safely disable this option. You may change this at any time
+																using the ACL editor by selecting the Administrators group and This Entire Website under the scope selection.</p>',
+			url_schemes_title: 'URL schemes',
+			url_schemes_body: '<p>The URL scheme allows you to decide how the URLs to your Enano pages will look.</p>
+ 												<p>The first option (Standard URLs) works on any web server. You should select it if your server doesn\'t run Apache, or
+														if you are at all unsure of your server\'s configuration. With this scheme, URLs at your site will look like <tt>
+														http://yoursite.com/path-to-enano/index.php?title=Main_Page</tt>.</p>
+ 												<p>The second option, Small URLs, will be selected by default if Enano detects Apache. Small URLs are more friendly towards
+														search engines, but they don\'t work on very many non-Apache servers, or if PHP is set up through CGI on your server. Many
+														free and low-cost web hosts will configure PHP through CGI in order to keep your user account as the owner of any files that
+														Enano generates. With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/index.php/Main_Page</tt>.
+														</p>
+ 												<p>The last option, Tiny URLs, is the most friendly URL scheme for search engines, because your URLs won\'t have any special characters
+														at all in them. However, this only works if your webhost has configured Apache with support for mod_rewrite. Most of the time if your
+														host supports this you will see a listing for it in their feature matrix. None of the popular Linux distributions (such as Ubuntu,
+														Debian, Red Hat Enterprise Linux&trade;, Fedora, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
+														home-brew server, you should consult your distribution\'s documentation for enabling mod_rewrite before selecting this option.
+														With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
+														</p>',
+			btn_close_window: 'Close window',
+		},
+		upgrade: {
+			system_title: 'Enano upgrade tool',
+			stg_welcome: 'Welcome',
+			stg_login: 'Login',
+			stg_confirm: 'Confirmation',
+			stg_upgrade: 'Perform upgrade',
+			stg_finish: 'Finish',
+			
+			welcome_banshee_heading: 'Welcome to Enano %enano_version%.',
+			welcome_banshee_para1: 'Enano 1.2 features support for multiple languages, better security, faster page loading, more tools, a revamped page editor, and much more. This migration tool will automatically make the changes to your database required for Enano 1.2.',
+			welcome_banshee_para2: 'The migration tool has been tested under many different installation scenarios, but isn\'t fully guaranteed to work. The Enano team can\'t be responsible if the migration fails. If you encounted problems, please be sure to post on the <a href="http://forum.enanocms.org/">Enano forums</a>.',
+			welcome_caoineag_heading: 'Welcome to the Enano upgrade tool.',
+			welcome_caoineag_para1: 'To use this version of Enano, some parts of your database need to be upgraded. This tool will automatically perform the upgrade for you.',
+			welcome_btn_continue: 'Start upgrade',
+			
+			login_msg_auth_needed_title: 'Authentication needed',
+			login_msg_auth_needed_body_level1: 'To continue, you need to log in. Please enter an administrator username and password below.',
+			login_msg_auth_needed_body_level2: 'To confirm the upgrade, you need to re-enter your login information. Please enter your username and password below.',
+			login_msg_local_auth: '<b>Note:</b> The upgrade tool doesn\'t recognize any authentication plugins. Even if you use authentication plugins in Enano, you need to enter a local administrator username and password to use this upgrade tool.',
+			login_btn_login: 'Log in',
+			login_err_failed: 'The following error occurred during the login process: %error_code%.',
+			
+			confirm_title: 'Confirm upgrade',
+			confirm_body: 'You are about to upgrade to Enano version <b>%enano_version%</b>. You should make sure that you\'ve done the following before you continue:',
+			confirm_objective_backup_fs: 'Back up Enano installation directory (<b>%dir%</b>)',
+			confirm_objective_backup_db: 'Back up Enano database, including non-Enano tables if any (<b>%dbname%</b>)',
+			confirm_warning_langimport: '<b>Warning!</b> This release of Enano has some changed strings. If you\'ve customized any language strings, those changes will be lost.',
+			confirm_btn_upgrade: 'Pimp my Enano!',
+			
+			msg_schema_complete_title: 'Database upgrades complete',
+			msg_schema_complete_body: 'You\'re past the hard part - all of the modifications to your database were successful. We need to perform a few final steps to finish the upgrade; just click the button below to finish everything up.',
+			btn_continue: 'Finish upgrade',
+			
+			err_current_title: 'Already running current version',
+			err_current_body: 'No database upgrades are needed right now, you\'re already running the Enano version set in this installer. Try <a href="%mainpage_link%">heading back to your site</a>. Think there\'s a mistake somewhere? <a href="http://forum.enanocms.org/">Let the Enano team know about it</a>.',
+			err_current_body_para2: 'You might also want to use the administration panel to check for updates, or <a href="http://enanocms.org/download">download the latest release</a> of Enano.',
+			err_post_not_available: 'You\'re trying to run the post-upgrade process, but your site isn\'t in the correct state for this.',
+			
+			post_status_title: 'Finishing upgrade',
+			post_status_body: 'Enano is cleaning up some data and finalizing the upgrade.',
+			post_status_finish_title: 'All done!',
+			post_status_finish_body: 'That\'s it - Enano has been upgraded. You should <a href="%mainpage_link%">go back to your site</a> now and make sure that everything works right. If you find a problem, be sure to report it to the <a href="http://forum.enanocms.org/">Enano development team</a>. (Make sure you disable any plugins first, since we can\'t easily tell if your problem is caused by the Enano core or by a plugin, unless all of your non-system plugins are disabled.)',
+			
+			stg_flushcache_title: 'Flush caches',
+			stg_flushcache_body: 'The upgrader failed to delete some cached data. You may experience some problems with file corruption or badly drawn pages until the caches expire, which is often no longer than 20 minutes.',
+			stg_setversion_title: 'Set Enano version and log upgrade',
+			stg_setversion_body: 'There was a problem finalizing the upgrade and inserting logs. You really shouldn\'t ever see this message, but calling setConfig(\'enano_version\', installer_enano_version()) should get you rolling again since everything else is probably done by now.',
+		},
+		cli: {
+			welcome_line1: '<c 1>Welcome to the <c 34>Enano</c></c> CMS<c 1> installation wizard.</c>\n',
+			welcome_line2: 'Installing Enano version <c 1>%enano_version%</c> on PHP <c 1>%php_version%</c>\n',
+			
+			prompt_driver: 'Database type (mysql or postgresql)',
+			prompt_dbhost: 'Hostname of database server',
+			prompt_dbport: 'Database server port',
+			prompt_dbuser: 'Database username',
+			prompt_dbpasswd: 'Database password',
+			prompt_dbname: 'Database name',
+			prompt_tblpfx: 'Table prefix',
+			prompt_user: 'Enano administrator username',
+			prompt_pass: 'Enano administrator password',
+			prompt_email: 'Contact e-mail',
+			prompt_sitename: 'Site name',
+			prompt_sitedesc: 'Site description',
+			prompt_copyright: 'Copyright notice',
+			prompt_urlscheme: 'URL scheme (standard, short, rewrite, or tiny)',
+			prompt_scriptpath: 'Now we need the path to Enano, relative to your website\'s document root,\nwithout a trailing slash. This should be based on the URL your site will\nuse. For example, if your site is http://yoursite.com/enano/, use the value\n"/enano" here. Leave this blank if Enano is in your document root, e.g.\nhttp://yoursite.com/index.php?title=Enano_page.\nSite URL',
+			prompt_confirm: 'Enter again to confirm',
+			msg_echo_warning: '(WARNING, will be echoed)',
+			
+			default_site_name: 'Enano site',
+			default_site_desc: 'My first Enano site',
+			default_copyright: '&copy; %year%',
+			
+			msg_testing_db: 'Testing database connectivity...',
+			
+			stage_sysreqs: '<c 34;1>Checking system.</c>\n',
+			test_pass: '<c 1;32>PASS</c>',
+			test_vwarn: '<c 1;33>WARNING</c>',
+			test_warn: '<c 0;31>FAIL</c><c 1> (optional)</c>',
+			test_fail: '<c 1;31>FAIL</c>',
+			
+			msg_test_warnings: '<c 1;33>The following warnings were generated during the check:</c>',
+			msg_tests_passed: '<c 32><c 1>All tests passed.</c> Installing Enano.</c>\n',
+			msg_installing_db_stage1: '<c 1>Installing database, stage 1...</c>',
+			msg_parsing_schema: '<c 1>Preparing installation payload...</c>',
+			msg_installing_db_stage2: '<c 1>Installing database, stage 2...</c>',
+			msg_writing_config: '<c 1>Generating config file...</c>',
+			msg_starting_api: '<c 1>Starting up the Enano API...</c>',
+			msg_importing_language: '<c 1>Importing default language...</c>',
+			msg_importing_content: '<c 1>Installing default content...</c>',
+			msg_initting_logs: '<c 1>Initializing logs...</c>',
+			msg_cleaning_up: '<c 1>Removing temporary data...</c>',
+			msg_initting_index: '<c 1>Initializing search index...</c>',
+			msg_renaming_config: '<c 1>Renaming config file...</c>',
+			
+			msg_ok: '<c 1;32>OK</c>',
+			msg_install_success: '<c 1;32>Congratulations!</c> <c 1>Enano was successfully installed.</c>\n<c 34>Now, navigate your browser to your Enano installation to make sure everything\nworks right. If you encounter problems, contact the Enano Team for support at\nhttp://forum.enanocms.org or in #enano on irc.freenode.net.</c> <c 34;1>Be sure to\nmention that you used the CLI installer.</c>\n',
+			
+			err_pass_no_match: '  <c 1>Passwords do not match.</c>\n',
+			err_db_connect_fail: 'Could not connect to the database',
+			err_sysreqs_fail: 'One or more system requirement checks has failed.',
+			err_no_drivers: 'Support for at least one database driver is required.',
+			err_schema_load: 'Could not load the database schema file.',
+			err_db_query: 'A database error occurred; see the message above for details.',
+			err_query_sanity_failed: 'The sanity check on a database query failed.',
+			err_writing_config: 'Could not write the configuration file.',
+			err_importing_language: 'Could not import the default language.',
+			err_initting_logs: 'Could not initialize Enano\'s logs.',
+			err_cleaning_up: 'Could not clean up the temporary data.',
+			err_initting_index: 'Could not initialize the search index.',
+			err_renaming_config: 'Could not rename config.new.php to config.php; please do this manually.',
+		}
+	}
 }

@@ -26,7 +26,7 @@ $ui->show_header();
 ?>
 <h2>Readme</h2>
 <p>This document contains important information you'll want to know before you install Enano. For installation instructions, please
-   see the <a href="http://docs.enanocms.org/Help:2.1">Enano installation guide</a>. <a href="index.php">Return to welcome menu &raquo;</a></p>
+ 	see the <a href="http://docs.enanocms.org/Help:2.1">Enano installation guide</a>. <a href="index.php">Return to welcome menu &raquo;</a></p>
 <pre class="scroller"><?php
 
 $readme = @file_get_contents('./README');

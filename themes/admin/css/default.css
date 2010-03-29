@@ -36,42 +36,42 @@ table.wrapper td.bottom-right { width: 37px; height: 44px; background-image: url
 /* Sidebar */
 td#td-sidebar                 { padding-right: 12px; height: 100%; }
 table#sidebar-show {
-  display: none;
-  width: 100%;
+	display: none;
+	width: 100%;
 }
 div#sidebar-hide {
-  width: 10px;
-  height: 100%;
-  background-color: #6587B8;
-  cursor: pointer;
-  position: absolute;
-  top: 0px;
-  background-repeat: no-repeat;
-  background-position: center center;
+	width: 10px;
+	height: 100%;
+	background-color: #6587B8;
+	cursor: pointer;
+	position: absolute;
+	top: 0px;
+	background-repeat: no-repeat;
+	background-position: center center;
 }
 div#sidebar-hide:hover {
-  background-color: #95B7E8;
+	background-color: #95B7E8;
 }
 div.expanded {
-  background-image: url(../images/collapse.gif);
-  right: 232px;
+	background-image: url(../images/collapse.gif);
+	right: 232px;
 }
 div.collapsed {
-  background-image: url(../images/expand.gif);
-  right: 0px;
+	background-image: url(../images/expand.gif);
+	right: 0px;
 }
 
 /* Content area */
 table.wrapper td.main h2.pagename {
-  border-bottom: 1px solid #456798;
-  margin-bottom: 0;
+	border-bottom: 1px solid #456798;
+	margin-bottom: 0;
 }
 
 table.wrapper td.main a {
-  color: #294F75;
+	color: #294F75;
 }
 table.wrapper td.main a:hover {
-  color: #597FA5;
+	color: #597FA5;
 }
 
 /*
@@ -79,194 +79,194 @@ table.wrapper td.main a:hover {
  */
 
 div.menu, div.menu_nojs {
-  background-color: #B0D0F0;
-  font-size: 7pt;
-  border-width: 0;
+	background-color: #B0D0F0;
+	font-size: 7pt;
+	border-width: 0;
 }
 div.menu a, div.menu_nojs a, div.menu div.label, div.menu_nojs div.label {
-  padding: 2.5pt 5px;
-  margin-right: 3px;
-  text-decoration: none;
-  display: block;
-  float: left;
-  color: #406080;
+	padding: 2.5pt 5px;
+	margin-right: 3px;
+	text-decoration: none;
+	display: block;
+	float: left;
+	color: #406080;
 }
 div.menu div.label, div.menu_nojs div.label {
-  color: #001020;
-  cursor: default;
+	color: #001020;
+	cursor: default;
 }
 div.menu span.sep, div.menu_nojs span.sep {
-  display: block;
-  float: left;
-  width: 5px;
+	display: block;
+	float: left;
+	width: 5px;
 }
 div.menu div.multopts, div.menu_nojs div.multopts {
-  line-height: 17pt;
+	line-height: 17pt;
 }
 div.menu div.multopts a, div.menu_nojs div.multopts a, div.menu div.multopts div.label, div.menu_nojs div.multopts div.label {
-  float: none;
-  display: inline;
+	float: none;
+	display: inline;
 }
 div.menu a.liteselected, div.menu_nojs a.liteselected, div.menu a.liteselected:hover, div.menu_nojs a.liteselected:hover, div.menu a:hover, div.menu_nojs a:hover {
-  color: #406080;
-  background-color: #D0F0FF;
+	color: #406080;
+	background-color: #D0F0FF;
 }
 div.menu input[type ^="text"], div.menu_nojs input[type ^="text"], div.menu input[type ^="password"], div.menu_nojs input[type ^="password"] {
-  border-width: 0;
-  font-size: 9pt;
-  padding: 4px 5px;
-  max-width: 70px;
-  background-color: #D0F0FF;
+	border-width: 0;
+	font-size: 9pt;
+	padding: 4px 5px;
+	max-width: 70px;
+	background-color: #D0F0FF;
 }
 div.menu input[type ^="text"]:hover, div.menu_nojs input[type ^="text"]:hover, div.menu input[type ^="password"]:hover, div.menu_nojs input[type ^="password"]:hover {
-  background-color: #E0F0FF;
+	background-color: #E0F0FF;
 }
 div.menu input[type ^="text"]:focus, div.menu_nojs input[type ^="text"]:focus, div.menu input[type ^="password"]:focus, div.menu_nojs input[type ^="password"]:focus {
-  background-color: #F0F0FF;
+	background-color: #F0F0FF;
 }
 div.menu input[type ^="button"], div.menu_nojs input[type ^="button"], div.menu input[type ^="submit"], div.menu_nojs input[type ^="submit"] {
-  border-width: 0;
-  font-size: 9pt;
-  padding: 3px 5px;
-  max-width: 70px;
+	border-width: 0;
+	font-size: 9pt;
+	padding: 3px 5px;
+	max-width: 70px;
 }
 div.menu a.current, div.menu_nojs a.current, div.menu a.current:hover, div.menu_nojs a.current:hover, div.menu a.selected, div.menu_nojs a.selected, div.menu a.selected:hover, div.menu_nojs a.selected:hover {
-  color: #000040;
-  background-color: #FFFFFF;
+	color: #000040;
+	background-color: #FFFFFF;
 }
 div.menu ul, div.menu_nojs ul {
-  display: none;
-  position: absolute;
-  padding: 0;
-  margin: 0;
-  background-color: #B0D0F0;
-  border-width: 0;
-  min-width: 120px;
+	display: none;
+	position: absolute;
+	padding: 0;
+	margin: 0;
+	background-color: #B0D0F0;
+	border-width: 0;
+	min-width: 120px;
 }
 div.menu ul li, div.menu_nojs ul li {
-  list-style: none;
+	list-style: none;
 }
 div.menu ul a, div.menu_nojs ul a {
-  float: none;
-  margin: 0;
+	float: none;
+	margin: 0;
 }
 span.menuclear {
-  font-size: 1px;
-  height: 0px;
-  width: 0px;
-  clear: left;
-  line-height: 0px;
-  display: block;
+	font-size: 1px;
+	height: 0px;
+	width: 0px;
+	clear: left;
+	line-height: 0px;
+	display: block;
 }
 
 /* Buttons - this is CSS3 */
 input[type ^="button"], input[type ^="submit"], button {
-  border-width: 1px;
-  border-color: #666;
-  border-style: solid;
-  background-color: #DDD;
-  color: #101010;
-  cursor: pointer;
-  font-size: 8pt;
-  font-family: arial, helvetica, sans-serif;
-  padding: 5px 3px;
-  background-image: url(../images/buttonbg.gif);
-  background-repeat: repeat-x;
+	border-width: 1px;
+	border-color: #666;
+	border-style: solid;
+	background-color: #DDD;
+	color: #101010;
+	cursor: pointer;
+	font-size: 8pt;
+	font-family: arial, helvetica, sans-serif;
+	padding: 5px 3px;
+	background-image: url(../images/buttonbg.gif);
+	background-repeat: repeat-x;
 }
 
 input[type ^="button"]:hover, input[type ^="submit"]:hover, button:hover {
-  border-color: #999;
+	border-color: #999;
 }
 
 input[type ^="button"]:active, input[type ^="submit"]:active, button:active {
-  padding: 6px 2px 4px 4px;
-  border-color: #333;
+	padding: 6px 2px 4px 4px;
+	border-color: #333;
 }
 
 input[type ^="text"], input[type ^="password"] {
-  background-color: #F8FBFF;
-  color: #202020;
-  border: 1px solid #254778;
-  font-size: 8pt;
-  font-family: arial, helvetica, sans-serif;
-  padding: 3px;
+	background-color: #F8FBFF;
+	color: #202020;
+	border: 1px solid #254778;
+	font-size: 8pt;
+	font-family: arial, helvetica, sans-serif;
+	padding: 3px;
 }
 
 input:disabled, input[disabled ^="disabled"], button:disabled, button[disabled ^="disabled"] {
-  border-color: #666666 !important;
-  background-image: none !important;
-  background-color: #DDD !important;
-  color: #888;
+	border-color: #666666 !important;
+	background-image: none !important;
+	background-color: #DDD !important;
+	color: #888;
 }
 
 /* ACP home elements */
 
 div.acphome-box {
-  border-radius: 4px;
-  -moz-border-radius: 4px;
-  padding: 14px 11px;
-  margin: 4px;
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	padding: 14px 11px;
+	margin: 4px;
 }
 
 div.acphome-box.halfwidth {
-  padding: 1.5%;
-  margin: 4px 0.5%;
-  float: left;
-  width: 46%;
+	padding: 1.5%;
+	margin: 4px 0.5%;
+	float: left;
+	width: 46%;
 }
 
 div.acphome-box h3 {
-  text-decoration: underline;
-  margin: 0 0 10px 0;
+	text-decoration: underline;
+	margin: 0 0 10px 0;
 }
 
 div.acphome-box p {
-  margin: 0 0 10px 0;
+	margin: 0 0 10px 0;
 }
 
 div.acphome-box div.tblholder table {
-  color: black;
+	color: black;
 }
 
 div.acphome-box.warning {
-  background-color: #900000;
-  color: #fff;
-  text-align: center;
-  font-weight: bold;
+	background-color: #900000;
+	color: #fff;
+	text-align: center;
+	font-weight: bold;
 }
 
 div.acphome-box.info {
-  background-color: #e2ecfe;
-  color: #202020;
+	background-color: #e2ecfe;
+	color: #202020;
 }
 
 div.acphome-box.notice {
-  background-color: #009000;
-  color: #fff;
+	background-color: #009000;
+	color: #fff;
 }
 
 div.acphome-box.warning a:link, div.acphome-box.notice a:link {
-  color: #eee;
+	color: #eee;
 }
 
 div.acphome-box.warning a:hover, div.acphome-box.notice a:hover {
-  color: #fff !important;
+	color: #fff !important;
 }
 
 div.acphome-box div.tblholder table a {
-  color: #294F75 !important;
+	color: #294F75 !important;
 }
 
 div.acphome-box div.tblholder table a:hover {
-  color: #597FA5 !important;
+	color: #597FA5 !important;
 }
 
 th.systemversion a {
-  font-weight: normal;
-  color: #fff !important;
+	font-weight: normal;
+	color: #fff !important;
 }
 
 th.systemversion a:hover {
-  font-weight: normal;
-  color: #ff0 !important;
+	font-weight: normal;
+	color: #ff0 !important;
 }

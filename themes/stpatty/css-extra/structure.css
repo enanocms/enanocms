@@ -10,133 +10,133 @@
  */
  
 html,body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+	margin: 0;
+	padding: 0;
+	height: 100%;
 }
 body {
-  background-repeat: repeat;
-  font-family: "Lucida Sans Unicode", sans-serif;
-  font-size: 75%;
+	background-repeat: repeat;
+	font-family: "Lucida Sans Unicode", sans-serif;
+	font-size: 75%;
 }
 body#tinymce {
-  background-color: white;
-  background-image: none;
+	background-color: white;
+	background-image: none;
 }
 div#bg {
-  min-height: 500px;
-  width: 100%;
-  background-repeat: repeat-x;
+	min-height: 500px;
+	width: 100%;
+	background-repeat: repeat-x;
 }
 div#rap {
-  width: 760px;
-  padding: 0 10px;
-  margin: 0 auto;
+	width: 760px;
+	padding: 0 10px;
+	margin: 0 auto;
 }
 div#title {
-  margin: 0px;
-  padding: 0px;
-  background-repeat: repeat-x;
-  vertical-align: middle;
+	margin: 0px;
+	padding: 0px;
+	background-repeat: repeat-x;
+	vertical-align: middle;
 }
 div#title h1 {
-  margin: 0px 10px 10px 10px;
-  padding-top: 30px;
-  text-align: left;
+	margin: 0px 10px 10px 10px;
+	padding-top: 30px;
+	text-align: left;
 }
 div#title h2 {
-  margin: 0px 10px 0px 10px;
-  padding-bottom: 40px;
-  text-align: left;
+	margin: 0px 10px 0px 10px;
+	padding-bottom: 40px;
+	text-align: left;
 }
 div.straightaway {
-  clear: both;
+	clear: both;
 }
 /* Footer */
 div.footer {
-  min-height: 40px;
-  padding: 10px;
-  background-repeat: repeat-x;
+	min-height: 40px;
+	padding: 10px;
+	background-repeat: repeat-x;
 }
 
 /* Content area */
 div#maincontent {
-  padding: 10px;
-  margin-right: 140px;
+	padding: 10px;
+	margin-right: 140px;
 }
 img#ajaxloadicon {
-  margin-top: 10px;
+	margin-top: 10px;
 }
 div#maincontent h2 {
-  margin: 10px 0;
-  padding: 0;
-  font-size: 16pt;
+	margin: 10px 0;
+	padding: 0;
+	font-size: 16pt;
 }
 div#maincontent p {
-  margin-left: 1em;
+	margin-left: 1em;
 }
 div#maincontent h2#pagetitle {
-  margin: 0;
-  font-size: 18pt;
+	margin: 0;
+	font-size: 18pt;
 }
 div#maincontent a:link, div#maincontent a:visited {
-  text-decoration: none;
+	text-decoration: none;
 }
 div#maincontent ul {
-  list-style: square;
+	list-style: square;
 }
 /* Sidebar */
 div#sidebar, div.dbx-box {
-  float: right;
-  width: 135px;
+	float: right;
+	width: 135px;
 }
 div#sidebar h4, div.dbx-handle {
-  margin: 0;
-  padding: 0 5px;
-  line-height: 25px;
-  font-weight: normal;
-  text-align: right;
-  text-transform: lowercase;
+	margin: 0;
+	padding: 0 5px;
+	line-height: 25px;
+	font-weight: normal;
+	text-align: right;
+	text-transform: lowercase;
 }
 div.dbx-handle {
-  text-align: left;
-  cursor: move;
+	text-align: left;
+	cursor: move;
 }
 div#sidebar ul, .dbx-content ul {
-  margin: 0;
-  padding: 0;
-  list-style: none !important;
+	margin: 0;
+	padding: 0;
+	list-style: none !important;
 }
 div#sidebar ul li, div.dbx-content ul li {
-  padding: 0;
+	padding: 0;
 }
 div#sidebar ul li a, div.dbx-content ul li a {
-  line-height: 25px;
-  padding: 0 7px;
-  text-decoration: none;
-  display: block;
+	line-height: 25px;
+	padding: 0 7px;
+	text-decoration: none;
+	display: block;
 }
 div#sidebar div, div.dbx-content2 {
-  width: 135px;
+	width: 135px;
 }
 div#sidebar div ul {
-  margin-left: 2em;
-  list-style: square;
+	margin-left: 2em;
+	list-style: square;
 }
 div#sidebar div ul a {
-  background-color: transparent;
-  display: inline;
-  border-bottom-width: 0px;
-  padding: 0;
+	background-color: transparent;
+	display: inline;
+	border-bottom-width: 0px;
+	padding: 0;
 }
 div#sidebar div ul a:hover {
-  background-color: transparent;
-  display: inline;
+	background-color: transparent;
+	display: inline;
 }
 div#sidebar div div {
-  background: transparent;
-  border-bottom-width: 0;
-  padding: 0;
+	background: transparent;
+	border-bottom-width: 0;
+	padding: 0;
 }
 
 /*
@@ -144,79 +144,79 @@ div#sidebar div div {
  */
 
 div.menu, div.menu_nojs {
-  font-size: 7pt;
-  border-width: 0;
+	font-size: 7pt;
+	border-width: 0;
 }
 div.menu a, div.menu_nojs a, div.menu div.label, div.menu_nojs div.label {
-  padding: 2.5pt 5px;
-  margin-right: 3px;
-  text-decoration: none;
-  display: block;
-  float: left;
-  border-bottom-width: 0 !important;
+	padding: 2.5pt 5px;
+	margin-right: 3px;
+	text-decoration: none;
+	display: block;
+	float: left;
+	border-bottom-width: 0 !important;
 }
 div.menu div.label, div.menu_nojs div.label {
-  cursor: default;
+	cursor: default;
 }
 div.menu span.sep, div.menu_nojs span.sep {
-  display: block;
-  float: left;
-  width: 5px;
+	display: block;
+	float: left;
+	width: 5px;
 }
 div.menu div.multopts, div.menu_nojs div.multopts {
-  line-height: 17pt;
+	line-height: 17pt;
 }
 div.menu div.multopts a, div.menu_nojs div.multopts a, div.menu div.multopts div.label, div.menu_nojs div.multopts div.label {
-  float: none;
-  display: inline;
+	float: none;
+	display: inline;
 }
 div.menu input[type ^="text"], div.menu_nojs input[type ^="text"], div.menu input[type ^="password"], div.menu_nojs input[type ^="password"] {
-  border-width: 0;
-  font-size: 9pt;
-  padding: 4px 5px;
-  max-width: 70px;
+	border-width: 0;
+	font-size: 9pt;
+	padding: 4px 5px;
+	max-width: 70px;
 }
 div.menu input[type ^="button"], div.menu_nojs input[type ^="button"], div.menu input[type ^="submit"], div.menu_nojs input[type ^="submit"] {
-  border-width: 0;
-  font-size: 9pt;
-  padding: 3px 5px;
-  max-width: 70px;
+	border-width: 0;
+	font-size: 9pt;
+	padding: 3px 5px;
+	max-width: 70px;
 }
 div.menu a.current, div.menu_nojs a.current, div.menu a.current:hover, div.menu_nojs a.current:hover, div.menu a.selected, div.menu_nojs a.selected, div.menu a.selected:hover, div.menu_nojs a.selected:hover {
-  font-weight: bold;
+	font-weight: bold;
 }
 div.menu ul, div.menu_nojs ul {
-  display: none;
-  position: absolute;
-  padding: 0;
-  margin: 0;
-  border-width: 0;
-  min-width: 120px;
+	display: none;
+	position: absolute;
+	padding: 0;
+	margin: 0;
+	border-width: 0;
+	min-width: 120px;
 }
 /*
 div.menu_nojs ul {
-  display: block !important;
+	display: block !important;
 }
 */
 div.menu ul li, div.menu_nojs ul li {
-  list-style: none;
+	list-style: none;
 }
 div.menu ul a, div.menu_nojs ul a {
-  float: none;
-  margin: 0;
+	float: none;
+	margin: 0;
 }
 /*
 span.menuclear {
-  font-size: 1px;
-  height: 0px;
-  width: 0px;
-  clear: left;
-  line-height: 0px;
-  display: block;
+	font-size: 1px;
+	height: 0px;
+	width: 0px;
+	clear: left;
+	line-height: 0px;
+	display: block;
 }
 */
 
 div.userpage_block {
-  clear: left;
+	clear: left;
 }
 

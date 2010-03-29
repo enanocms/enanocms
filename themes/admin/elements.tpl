@@ -17,24 +17,24 @@
 <!-- VAR sidebar_top -->
 <!-- ENDVAR sidebar_top -->
 <!-- VAR sidebar_section -->
-            <h4>
-              <!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
-              {TITLE}
-              <!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
-            </h4>
-            <ul>
-              {CONTENT}
-            </ul>
+						<h4>
+							<!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
+							{TITLE}
+							<!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
+						</h4>
+						<ul>
+							{CONTENT}
+						</ul>
 <!-- ENDVAR sidebar_section -->
 <!-- VAR sidebar_section_raw -->
-            <h4>
-              <!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
-              {TITLE}
-              <!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
-            </h4>
-            <div>
-              {CONTENT}
-            </div>
+						<h4>
+							<!-- BEGIN in_sidebar_admin -->{ADMIN_START}<!-- END in_sidebar_admin -->
+							{TITLE}
+							<!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
+						</h4>
+						<div>
+							{CONTENT}
+						</div>
 <!-- ENDVAR sidebar_section_raw -->
 <!-- VAR sidebar_bottom -->
 <!-- ENDVAR sidebar_bottom -->

@@ -25,18 +25,18 @@ define( 'MW_CHAR_REFS_REGEX',
  |(&)/x' );
 
 define( 'MW_ATTRIBS_REGEX',
-  "/(?:^|$space)($attrib+)
-    ($space*=$space*
-    (?:
-     # The attribute value: quoted or alone
-      \"([^<\"]*)\"
-     | '([^<']*)'
-     |  ([a-zA-Z0-9!#$%&()*,\\-.\\/:;<>?@[\\]^_`{|}~]+)
-     |  (\#[0-9a-fA-F]+) # Technically wrong, but lots of
-               # colors are specified like this.
-               # We'll be normalizing it.
-    )
-     )?(?=$space|\$)/sx" );
+	"/(?:^|$space)($attrib+)
+		($space*=$space*
+		(?:
+ 		# The attribute value: quoted or alone
+			\"([^<\"]*)\"
+ 		| '([^<']*)'
+ 		|  ([a-zA-Z0-9!#$%&()*,\\-.\\/:;<>?@[\\]^_`{|}~]+)
+ 		|  (\#[0-9a-fA-F]+) # Technically wrong, but lots of
+ 							# colors are specified like this.
+ 							# We'll be normalizing it.
+		)
+ 		)?(?=$space|\$)/sx" );
 
 /**
  * Take a tag soup fragment listing an HTML element's attributes
@@ -58,21 +58,21 @@ define( 'MW_ATTRIBS_REGEX',
  * @return string
  */
 function fixTagAttributes( $text, $element ) {
-  if( trim( $text ) == '' ) {
-    return '';
-  }
-  
-  $stripped = validateTagAttributes(
-    decodeTagAttributes( $text ), $element );
-  
-  $attribs = array();
-  foreach( $stripped as $attribute => $value ) {
-    $encAttribute = htmlspecialchars( $attribute );
-    $encValue = safeEncodeAttribute( $value );
-    
-    $attribs[] = "$encAttribute=".'"'."$encValue".'"'.""; // "
-  }
-  return count( $attribs ) ? ' ' . implode( ' ', $attribs ) : '';
+	if( trim( $text ) == '' ) {
+		return '';
+	}
+	
+	$stripped = validateTagAttributes(
+		decodeTagAttributes( $text ), $element );
+	
+	$attribs = array();
+	foreach( $stripped as $attribute => $value ) {
+		$encAttribute = htmlspecialchars( $attribute );
+		$encValue = safeEncodeAttribute( $value );
+		
+		$attribs[] = "$encAttribute=".'"'."$encValue".'"'.""; // "
+	}
+	return count( $attribs ) ? ' ' . implode( ' ', $attribs ) : '';
 }
 
 /**
@@ -82,25 +82,25 @@ function fixTagAttributes( $text, $element ) {
  * @return HTML-encoded text fragment
  */
 function safeEncodeAttribute( $text ) {
-  $encValue= encodeAttribute( $text );
-  
-  # Templates and links may be expanded in later parsing,
-  # creating invalid or dangerous output. Suppress this.
-  $encValue = strtr( $encValue, array(
-    '<'    => '&lt;',   // This should never happen,
-    '>'    => '&gt;',   // we've received invalid input
-    '"'    => '&quot;', // which should have been escaped.
-    '{'    => '&#123;',
-    '['    => '&#91;',
-    "''"   => '&#39;&#39;',
-    'ISBN' => '&#73;SBN',
-    'RFC'  => '&#82;FC',
-    'PMID' => '&#80;MID',
-    '|'    => '&#124;',
-    '__'   => '&#95;_',
-  ) );
+	$encValue= encodeAttribute( $text );
+	
+	# Templates and links may be expanded in later parsing,
+	# creating invalid or dangerous output. Suppress this.
+	$encValue = strtr( $encValue, array(
+		'<'    => '&lt;',   // This should never happen,
+		'>'    => '&gt;',   // we've received invalid input
+		'"'    => '&quot;', // which should have been escaped.
+		'{'    => '&#123;',
+		'['    => '&#91;',
+		"''"   => '&#39;&#39;',
+		'ISBN' => '&#73;SBN',
+		'RFC'  => '&#82;FC',
+		'PMID' => '&#80;MID',
+		'|'    => '&#124;',
+		'__'   => '&#95;_',
+	) );
 
-  return $encValue;
+	return $encValue;
 }
 
 /**
@@ -109,45 +109,45 @@ function safeEncodeAttribute( $text ) {
  * @return HTML-encoded text fragment
  */
 function encodeAttribute( $text ) {
-  
-  // In Enano 1.0.3, added this cheapo hack to keep ampersands
-  // from being double-sanitized. Thanks to markybob from #deluge.
-  
-  // htmlspecialchars() the "manual" way
-  $encValue = strtr( $text, array(
-    '&amp;'  => '&',
-    '&quot;' => '"',
-    '&lt;'   => '<',
-    '&gt;'   => '>',
-    '&#039;' => "'"
-  ) );
-  
-  $encValue = strtr( $text, array(
-    '&' => '&amp;',
-    '"' => '&quot;',
-    '<' => '&lt;',
-    '>' => '&gt;',
-    "'" => '&#039;'
-  ) );
-  
-  
-  // Whitespace is normalized during attribute decoding,
-  // so if we've been passed non-spaces we must encode them
-  // ahead of time or they won't be preserved.
-  $encValue = strtr( $encValue, array(
-    "\n" => '&#10;',
-    "\r" => '&#13;',
-    "\t" => '&#9;',
-  ) );
-  
-  return $encValue;
+	
+	// In Enano 1.0.3, added this cheapo hack to keep ampersands
+	// from being double-sanitized. Thanks to markybob from #deluge.
+	
+	// htmlspecialchars() the "manual" way
+	$encValue = strtr( $text, array(
+		'&amp;'  => '&',
+		'&quot;' => '"',
+		'&lt;'   => '<',
+		'&gt;'   => '>',
+		'&#039;' => "'"
+	) );
+	
+	$encValue = strtr( $text, array(
+		'&' => '&amp;',
+		'"' => '&quot;',
+		'<' => '&lt;',
+		'>' => '&gt;',
+		"'" => '&#039;'
+	) );
+	
+	
+	// Whitespace is normalized during attribute decoding,
+	// so if we've been passed non-spaces we must encode them
+	// ahead of time or they won't be preserved.
+	$encValue = strtr( $encValue, array(
+		"\n" => '&#10;',
+		"\r" => '&#13;',
+		"\t" => '&#9;',
+	) );
+	
+	return $encValue;
 }
 
 function unstripForHTML( $text ) {
-  global $mStripState;
-  $text = unstrip( $text, $mStripState );
-  $text = unstripNoWiki( $text, $mStripState );
-  return $text;
+	global $mStripState;
+	$text = unstrip( $text, $mStripState );
+	$text = unstripNoWiki( $text, $mStripState );
+	return $text;
 }
 
 /**
@@ -156,14 +156,14 @@ function unstripForHTML( $text ) {
  * @private
  */
 function unstripNoWiki( $text, &$state ) {
-  if ( !isset( $state['nowiki'] ) ) {
-    return $text;
-  }
+	if ( !isset( $state['nowiki'] ) ) {
+		return $text;
+	}
 
-  # TODO: good candidate for FSS
-  $text = strtr( $text, $state['nowiki'] );
-  
-  return $text;
+	# TODO: good candidate for FSS
+	$text = strtr( $text, $state['nowiki'] );
+	
+	return $text;
 }
 
 /**
@@ -181,30 +181,30 @@ function unstripNoWiki( $text, &$state ) {
  * @todo Check for unique id attribute :P
  */
 function validateTagAttributes( $attribs, $element ) {
-  $whitelist = array_flip( attributeWhitelist( $element ) );
-  $out = array();
-  foreach( $attribs as $attribute => $value ) {
-    if( !isset( $whitelist[$attribute] ) ) {
-      continue;
-    }
-    # Strip javascript "expression" from stylesheets.
-    # http://msdn.microsoft.com/workshop/author/dhtml/overview/recalc.asp
-    if( $attribute == 'style' ) {
-      $value = checkCss( $value );
-      if( $value === false ) {
-        # haxx0r
-        continue;
-      }
-    }
+	$whitelist = array_flip( attributeWhitelist( $element ) );
+	$out = array();
+	foreach( $attribs as $attribute => $value ) {
+		if( !isset( $whitelist[$attribute] ) ) {
+			continue;
+		}
+		# Strip javascript "expression" from stylesheets.
+		# http://msdn.microsoft.com/workshop/author/dhtml/overview/recalc.asp
+		if( $attribute == 'style' ) {
+			$value = checkCss( $value );
+			if( $value === false ) {
+				# haxx0r
+				continue;
+			}
+		}
 
-    if ( $attribute === 'id' )
-      $value = escapeId( $value );
+		if ( $attribute === 'id' )
+			$value = escapeId( $value );
 
-    // If this attribute was previously set, override it.
-    // Output should only have one attribute of each name.
-    $out[$attribute] = $value;
-  }
-  return $out;
+		// If this attribute was previously set, override it.
+		// Output should only have one attribute of each name.
+		$out[$attribute] = $value;
+	}
+	return $out;
 }
 
 /**
@@ -217,23 +217,23 @@ function validateTagAttributes( $attribs, $element ) {
  * @return mixed
  */
 function checkCss( $value ) {
-  $stripped = decodeCharReferences( $value );
+	$stripped = decodeCharReferences( $value );
 
-  // Remove any comments; IE gets token splitting wrong
-  $stripped = preg_replace( '!/\\*.*?\\*/!S', '', $stripped );
-  $value = $stripped;
+	// Remove any comments; IE gets token splitting wrong
+	$stripped = preg_replace( '!/\\*.*?\\*/!S', '', $stripped );
+	$value = $stripped;
 
-  // ... and continue checks
-  $stripped = preg_replace( '!\\\\([0-9A-Fa-f]{1,6})[ \\n\\r\\t\\f]?!e',
-    'codepointToUtf8(hexdec("$1"))', $stripped );
-  $stripped = str_replace( '\\', '', $stripped );
-  if( preg_match( '/(expression|tps*:\/\/|url\\s*\().*/is',
-      $stripped ) ) {
-    # haxx0r
-    return false;
-  }
-  
-  return $value;
+	// ... and continue checks
+	$stripped = preg_replace( '!\\\\([0-9A-Fa-f]{1,6})[ \\n\\r\\t\\f]?!e',
+		'codepointToUtf8(hexdec("$1"))', $stripped );
+	$stripped = str_replace( '\\', '', $stripped );
+	if( preg_match( '/(expression|tps*:\/\/|url\\s*\().*/is',
+			$stripped ) ) {
+		# haxx0r
+		return false;
+	}
+	
+	return $value;
 }
 
 /**
@@ -246,10 +246,10 @@ function checkCss( $value ) {
  * @static
  */
 function decodeCharReferences( $text ) {
-  return preg_replace_callback(
-    MW_CHAR_REFS_REGEX,
-    'decodeCharReferencesCallback',
-    $text );
+	return preg_replace_callback(
+		MW_CHAR_REFS_REGEX,
+		'decodeCharReferencesCallback',
+		$text );
 }
 
 /**
@@ -260,13 +260,13 @@ function decodeCharReferences( $text ) {
  * @return array
  */
 function attributeWhitelist( $element ) {
-  static $list;
-  if( !isset( $list ) ) {
-    $list = setupAttributeWhitelist();
-  }
-  return isset( $list[$element] )
-    ? $list[$element]
-    : array();
+	static $list;
+	if( !isset( $list ) ) {
+		$list = setupAttributeWhitelist();
+	}
+	return isset( $list[$element] )
+		? $list[$element]
+		: array();
 }
 
 /**
@@ -274,165 +274,165 @@ function attributeWhitelist( $element ) {
  * @return array
  */
 function setupAttributeWhitelist() {
-  global $db, $session, $paths, $template, $plugins;
-  $common = array( 'id', 'class', 'lang', 'dir', 'title', 'style' );
-  $block = array_merge( $common, array( 'align' ) );
-  $tablealign = array( 'align', 'char', 'charoff', 'valign' );
-  $tablecell = array( 'abbr',
-                      'axis',
-                      'headers',
-                      'scope',
-                      'rowspan',
-                      'colspan',
-                      'nowrap', # deprecated
-                      'width',  # deprecated
-                      'height', # deprecated
-                      'bgcolor' # deprecated
-                      );
+	global $db, $session, $paths, $template, $plugins;
+	$common = array( 'id', 'class', 'lang', 'dir', 'title', 'style' );
+	$block = array_merge( $common, array( 'align' ) );
+	$tablealign = array( 'align', 'char', 'charoff', 'valign' );
+	$tablecell = array( 'abbr',
+											'axis',
+											'headers',
+											'scope',
+											'rowspan',
+											'colspan',
+											'nowrap', # deprecated
+											'width',  # deprecated
+											'height', # deprecated
+											'bgcolor' # deprecated
+											);
 
-  # Numbers refer to sections in HTML 4.01 standard describing the element.
-  # See: http://www.w3.org/TR/html4/
-  $whitelist = array (
-    # 7.5.4
-    'div'        => $block,
-    'center'     => $common, # deprecated
-    'span'       => $block, # ??
+	# Numbers refer to sections in HTML 4.01 standard describing the element.
+	# See: http://www.w3.org/TR/html4/
+	$whitelist = array (
+		# 7.5.4
+		'div'        => $block,
+		'center'     => $common, # deprecated
+		'span'       => $block, # ??
 
-    # 7.5.5
-    'h1'         => $block,
-    'h2'         => $block,
-    'h3'         => $block,
-    'h4'         => $block,
-    'h5'         => $block,
-    'h6'         => $block,
+		# 7.5.5
+		'h1'         => $block,
+		'h2'         => $block,
+		'h3'         => $block,
+		'h4'         => $block,
+		'h5'         => $block,
+		'h6'         => $block,
 
-    # 7.5.6
-    # address
+		# 7.5.6
+		# address
 
-    # 8.2.4
-    # bdo
+		# 8.2.4
+		# bdo
 
-    # 9.2.1
-    'em'         => $common,
-    'strong'     => $common,
-    'cite'       => $common,
-    # dfn
-    'code'       => $common,
-    # samp
-    # kbd
-    'var'        => $common,
-    # abbr
-    # acronym
+		# 9.2.1
+		'em'         => $common,
+		'strong'     => $common,
+		'cite'       => $common,
+		# dfn
+		'code'       => $common,
+		# samp
+		# kbd
+		'var'        => $common,
+		# abbr
+		# acronym
 
-    # 9.2.2
-    'blockquote' => array_merge( $common, array( 'cite' ) ),
-    # q
+		# 9.2.2
+		'blockquote' => array_merge( $common, array( 'cite' ) ),
+		# q
 
-    # 9.2.3
-    'sub'        => $common,
-    'sup'        => $common,
+		# 9.2.3
+		'sub'        => $common,
+		'sup'        => $common,
 
-    # 9.3.1
-    'p'          => $block,
+		# 9.3.1
+		'p'          => $block,
 
-    # 9.3.2
-    'br'         => array( 'id', 'class', 'title', 'style', 'clear' ),
+		# 9.3.2
+		'br'         => array( 'id', 'class', 'title', 'style', 'clear' ),
 
-    # 9.3.4
-    'pre'        => array_merge( $common, array( 'width' ) ),
+		# 9.3.4
+		'pre'        => array_merge( $common, array( 'width' ) ),
 
-    # 9.4
-    'ins'        => array_merge( $common, array( 'cite', 'datetime' ) ),
-    'del'        => array_merge( $common, array( 'cite', 'datetime' ) ),
+		# 9.4
+		'ins'        => array_merge( $common, array( 'cite', 'datetime' ) ),
+		'del'        => array_merge( $common, array( 'cite', 'datetime' ) ),
 
-    # 10.2
-    'ul'         => array_merge( $common, array( 'type' ) ),
-    'ol'         => array_merge( $common, array( 'type', 'start' ) ),
-    'li'         => array_merge( $common, array( 'type', 'value' ) ),
+		# 10.2
+		'ul'         => array_merge( $common, array( 'type' ) ),
+		'ol'         => array_merge( $common, array( 'type', 'start' ) ),
+		'li'         => array_merge( $common, array( 'type', 'value' ) ),
 
-    # 10.3
-    'dl'         => $common,
-    'dd'         => $common,
-    'dt'         => $common,
+		# 10.3
+		'dl'         => $common,
+		'dd'         => $common,
+		'dt'         => $common,
 
-    # 11.2.1
-    'table'      => array_merge( $common,
-              array( 'summary', 'width', 'border', 'frame',
-                  'rules', 'cellspacing', 'cellpadding',
-                  'align', 'bgcolor',
-              ) ),
+		# 11.2.1
+		'table'      => array_merge( $common,
+							array( 'summary', 'width', 'border', 'frame',
+									'rules', 'cellspacing', 'cellpadding',
+									'align', 'bgcolor',
+							) ),
 
-    # 11.2.2
-    'caption'    => array_merge( $common, array( 'align' ) ),
+		# 11.2.2
+		'caption'    => array_merge( $common, array( 'align' ) ),
 
-    # 11.2.3
-    'thead'      => array_merge( $common, $tablealign ),
-    'tfoot'      => array_merge( $common, $tablealign ),
-    'tbody'      => array_merge( $common, $tablealign ),
+		# 11.2.3
+		'thead'      => array_merge( $common, $tablealign ),
+		'tfoot'      => array_merge( $common, $tablealign ),
+		'tbody'      => array_merge( $common, $tablealign ),
 
-    # 11.2.4
-    'colgroup'   => array_merge( $common, array( 'span', 'width' ), $tablealign ),
-    'col'        => array_merge( $common, array( 'span', 'width' ), $tablealign ),
+		# 11.2.4
+		'colgroup'   => array_merge( $common, array( 'span', 'width' ), $tablealign ),
+		'col'        => array_merge( $common, array( 'span', 'width' ), $tablealign ),
 
-    # 11.2.5
-    'tr'         => array_merge( $common, array( 'bgcolor' ), $tablealign ),
+		# 11.2.5
+		'tr'         => array_merge( $common, array( 'bgcolor' ), $tablealign ),
 
-    # 11.2.6
-    'td'         => array_merge( $common, $tablecell, $tablealign ),
-    'th'         => array_merge( $common, $tablecell, $tablealign ),
-    
-    # 12.2
-    # added by dan
-    'a'          => array_merge( $common, array( 'href', 'name' ) ),
-    
-    # 13.2
-    # added by dan
-    'img'        => array_merge( $common, array( 'src', 'width', 'height', 'alt' ) ),
+		# 11.2.6
+		'td'         => array_merge( $common, $tablecell, $tablealign ),
+		'th'         => array_merge( $common, $tablecell, $tablealign ),
+		
+		# 12.2
+		# added by dan
+		'a'          => array_merge( $common, array( 'href', 'name' ) ),
+		
+		# 13.2
+		# added by dan
+		'img'        => array_merge( $common, array( 'src', 'width', 'height', 'alt' ) ),
 
-    # 15.2.1
-    'tt'         => $common,
-    'b'          => $common,
-    'i'          => $common,
-    'big'        => $common,
-    'small'      => $common,
-    'strike'     => $common,
-    's'          => $common,
-    'u'          => $common,
+		# 15.2.1
+		'tt'         => $common,
+		'b'          => $common,
+		'i'          => $common,
+		'big'        => $common,
+		'small'      => $common,
+		'strike'     => $common,
+		's'          => $common,
+		'u'          => $common,
 
-    # 15.2.2
-    'font'       => array_merge( $common, array( 'size', 'color', 'face' ) ),
-    # basefont
+		# 15.2.2
+		'font'       => array_merge( $common, array( 'size', 'color', 'face' ) ),
+		# basefont
 
-    # 15.3
-    'hr'         => array_merge( $common, array( 'noshade', 'size', 'width' ) ),
+		# 15.3
+		'hr'         => array_merge( $common, array( 'noshade', 'size', 'width' ) ),
 
-    # XHTML Ruby annotation text module, simple ruby only.
-    # http://www.w3c.org/TR/ruby/
-    'ruby'       => $common,
-    # rbc
-    # rtc
-    'rb'         => $common,
-    'rt'         => $common, #array_merge( $common, array( 'rbspan' ) ),
-    'rp'         => $common,
-    
-    # For compatibility with the XHTML parser.
-    'nowiki'     => array(),
-    'noinclude'  => array(),
-    'nodisplay'  => array(),
-    'lang'       => array('code'),
-    
-    # XHTML stuff
-    'acronym'    => $common
-    );
-  
-  // custom tags can be added by plugins
-  $code = $plugins->setHook('html_attribute_whitelist');
-  foreach ( $code as $cmd )
-  {
-    eval($cmd);
-  }
-  
-  return $whitelist;
+		# XHTML Ruby annotation text module, simple ruby only.
+		# http://www.w3c.org/TR/ruby/
+		'ruby'       => $common,
+		# rbc
+		# rtc
+		'rb'         => $common,
+		'rt'         => $common, #array_merge( $common, array( 'rbspan' ) ),
+		'rp'         => $common,
+		
+		# For compatibility with the XHTML parser.
+		'nowiki'     => array(),
+		'noinclude'  => array(),
+		'nodisplay'  => array(),
+		'lang'       => array('code'),
+		
+		# XHTML stuff
+		'acronym'    => $common
+		);
+	
+	// custom tags can be added by plugins
+	$code = $plugins->setHook('html_attribute_whitelist');
+	foreach ( $code as $cmd )
+	{
+		eval($cmd);
+	}
+	
+	return $whitelist;
 }
 
 /**
@@ -452,14 +452,14 @@ function setupAttributeWhitelist() {
  * @return string
  */
 function escapeId( $id ) {
-  static $replace = array(
-    '%3A' => ':',
-    '%' => '.'
-  );
+	static $replace = array(
+		'%3A' => ':',
+		'%' => '.'
+	);
 
-  $id = urlencode( decodeCharReferences( strtr( $id, ' ', '_' ) ) );
+	$id = urlencode( decodeCharReferences( strtr( $id, ' ', '_' ) ) );
 
-  return str_replace( array_keys( $replace ), array_values( $replace ), $id );
+	return str_replace( array_keys( $replace ), array_values( $replace ), $id );
 }
 
 /**
@@ -470,32 +470,32 @@ function escapeId( $id ) {
  * @return array
  */
 function wfExplodeMarkup( $separator, $text ) {
-  $placeholder = "\x00";
-  
-  // Just in case...
-  $text = str_replace( $placeholder, '', $text );
-  
-  // Trim stuff
-  $replacer = new ReplacerCallback( $separator, $placeholder );
-  $cleaned = preg_replace_callback( '/(<.*?>)/', array( $replacer, 'go' ), $text );
-  
-  $items = explode( $separator, $cleaned );
-  foreach( $items as $i => $str ) {
-    $items[$i] = str_replace( $placeholder, $separator, $str );
-  }
-  
-  return $items;
+	$placeholder = "\x00";
+	
+	// Just in case...
+	$text = str_replace( $placeholder, '', $text );
+	
+	// Trim stuff
+	$replacer = new ReplacerCallback( $separator, $placeholder );
+	$cleaned = preg_replace_callback( '/(<.*?>)/', array( $replacer, 'go' ), $text );
+	
+	$items = explode( $separator, $cleaned );
+	foreach( $items as $i => $str ) {
+		$items[$i] = str_replace( $placeholder, $separator, $str );
+	}
+	
+	return $items;
 }
 
 class ReplacerCallback {
-  function ReplacerCallback( $from, $to ) {
-    $this->from = $from;
-    $this->to = $to;
-  }
-  
-  function go( $matches ) {
-    return str_replace( $this->from, $this->to, $matches[1] );
-  }
+	function ReplacerCallback( $from, $to ) {
+		$this->from = $from;
+		$this->to = $to;
+	}
+	
+	function go( $matches ) {
+		return str_replace( $this->from, $this->to, $matches[1] );
+	}
 }
 
 /**
@@ -507,33 +507,33 @@ class ReplacerCallback {
  * @return array
  */
 function decodeTagAttributes( $text ) {
-  $attribs = array();
+	$attribs = array();
 
-  if( trim( $text ) == '' ) {
-    return $attribs;
-  }
+	if( trim( $text ) == '' ) {
+		return $attribs;
+	}
 
-  $pairs = array();
-  if( !preg_match_all(
-    MW_ATTRIBS_REGEX,
-    $text,
-    $pairs,
-    PREG_SET_ORDER ) ) {
-    return $attribs;
-  }
+	$pairs = array();
+	if( !preg_match_all(
+		MW_ATTRIBS_REGEX,
+		$text,
+		$pairs,
+		PREG_SET_ORDER ) ) {
+		return $attribs;
+	}
 
-  foreach( $pairs as $set ) {
-    $attribute = strtolower( $set[1] );
-    $value = getTagAttributeCallback( $set );
-    
-    // Normalize whitespace
-    $value = preg_replace( '/[\t\r\n ]+/', ' ', $value );
-    $value = trim( $value );
-    
-    // Decode character references
-    $attribs[$attribute] = decodeCharReferences( $value );
-  }
-  return $attribs;
+	foreach( $pairs as $set ) {
+		$attribute = strtolower( $set[1] );
+		$value = getTagAttributeCallback( $set );
+		
+		// Normalize whitespace
+		$value = preg_replace( '/[\t\r\n ]+/', ' ', $value );
+		$value = trim( $value );
+		
+		// Decode character references
+		$attribs[$attribute] = decodeCharReferences( $value );
+	}
+	return $attribs;
 }
 
 /**
@@ -545,25 +545,25 @@ function decodeTagAttributes( $text ) {
  * @access private
  */
 function getTagAttributeCallback( $set ) {
-  if( isset( $set[6] ) ) {
-    # Illegal #XXXXXX color with no quotes.
-    return $set[6];
-  } elseif( isset( $set[5] ) ) {
-    # No quotes.
-    return $set[5];
-  } elseif( isset( $set[4] ) ) {
-    # Single-quoted
-    return $set[4];
-  } elseif( isset( $set[3] ) ) {
-    # Double-quoted
-    return $set[3];
-  } elseif( !isset( $set[2] ) ) {
-    # In XHTML, attributes must have a value.
-    # For 'reduced' form, return explicitly the attribute name here.
-    return $set[1];
-  } else {
-    die_friendly('Parser error', "<p>Tag conditions not met. This should never happen and is a bug.</p>" );
-  }
+	if( isset( $set[6] ) ) {
+		# Illegal #XXXXXX color with no quotes.
+		return $set[6];
+	} elseif( isset( $set[5] ) ) {
+		# No quotes.
+		return $set[5];
+	} elseif( isset( $set[4] ) ) {
+		# Single-quoted
+		return $set[4];
+	} elseif( isset( $set[3] ) ) {
+		# Double-quoted
+		return $set[3];
+	} elseif( !isset( $set[2] ) ) {
+		# In XHTML, attributes must have a value.
+		# For 'reduced' form, return explicitly the attribute name here.
+		return $set[1];
+	} else {
+		die_friendly('Parser error', "<p>Tag conditions not met. This should never happen and is a bug.</p>" );
+	}
 }
 
 /**
@@ -583,78 +583,78 @@ function getTagAttributeCallback( $set ) {
  * @access private
  */
 function mwStrip( $text, &$state, $stripcomments = false , $dontstrip = array () ) {
-  global $wgRandomKey;
-  $render = true;
+	global $wgRandomKey;
+	$render = true;
 
-  $wgRandomKey = "\x07UNIQ" . dechex(mt_rand(0, 0x7fffffff)) . dechex(mt_rand(0, 0x7fffffff));
-  $uniq_prefix =& $wgRandomKey;
-  $commentState = array();
-  
-  $elements = array( 'nowiki', 'gallery' );
-  
-  # Removing $dontstrip tags from $elements list (currently only 'gallery', fixing bug 2700)
-  foreach ( $elements AS $k => $v ) {
-    if ( !in_array ( $v , $dontstrip ) ) continue;
-    unset ( $elements[$k] );
-  }
-  
-  $matches = array();
-  $text = extractTagsAndParams( $elements, $text, $matches, $uniq_prefix );
+	$wgRandomKey = "\x07UNIQ" . dechex(mt_rand(0, 0x7fffffff)) . dechex(mt_rand(0, 0x7fffffff));
+	$uniq_prefix =& $wgRandomKey;
+	$commentState = array();
+	
+	$elements = array( 'nowiki', 'gallery' );
+	
+	# Removing $dontstrip tags from $elements list (currently only 'gallery', fixing bug 2700)
+	foreach ( $elements AS $k => $v ) {
+		if ( !in_array ( $v , $dontstrip ) ) continue;
+		unset ( $elements[$k] );
+	}
+	
+	$matches = array();
+	$text = extractTagsAndParams( $elements, $text, $matches, $uniq_prefix );
 
-  foreach( $matches as $marker => $data ) {
-    list( $element, $content, $params, $tag ) = $data;
-    if( $render ) {
-      $tagName = strtolower( $element );
-      switch( $tagName ) {
-      case '!--':
-        // Comment
-        if( substr( $tag, -3 ) == '-->' ) {
-          $output = $tag;
-        } else {
-          // Unclosed comment in input.
-          // Close it so later stripping can remove it
-          $output = "$tag-->";
-        }
-        break;
-      case 'html':
-        if( $wgRawHtml ) {
-          $output = $content;
-          break;
-        }
-        // Shouldn't happen otherwise. :)
-      case 'nowiki':
-        $output = wfEscapeHTMLTagsOnly( $content );
-        break;
-      default:
-      }
-    } else {
-      // Just stripping tags; keep the source
-      $output = $tag;
-    }
+	foreach( $matches as $marker => $data ) {
+		list( $element, $content, $params, $tag ) = $data;
+		if( $render ) {
+			$tagName = strtolower( $element );
+			switch( $tagName ) {
+			case '!--':
+				// Comment
+				if( substr( $tag, -3 ) == '-->' ) {
+					$output = $tag;
+				} else {
+					// Unclosed comment in input.
+					// Close it so later stripping can remove it
+					$output = "$tag-->";
+				}
+				break;
+			case 'html':
+				if( $wgRawHtml ) {
+					$output = $content;
+					break;
+				}
+				// Shouldn't happen otherwise. :)
+			case 'nowiki':
+				$output = wfEscapeHTMLTagsOnly( $content );
+				break;
+			default:
+			}
+		} else {
+			// Just stripping tags; keep the source
+			$output = $tag;
+		}
 
-    // Unstrip the output, because unstrip() is no longer recursive so 
-    // it won't do it itself
-    $output = unstrip( $output, $state );
+		// Unstrip the output, because unstrip() is no longer recursive so 
+		// it won't do it itself
+		$output = unstrip( $output, $state );
 
-    if( !$stripcomments && $element == '!--' ) {
-      $commentState[$marker] = $output;
-    } elseif ( $element == 'html' || $element == 'nowiki' ) {
-      $state['nowiki'][$marker] = $output;
-    } else {
-      $state['general'][$marker] = $output;
-    }
-  }
+		if( !$stripcomments && $element == '!--' ) {
+			$commentState[$marker] = $output;
+		} elseif ( $element == 'html' || $element == 'nowiki' ) {
+			$state['nowiki'][$marker] = $output;
+		} else {
+			$state['general'][$marker] = $output;
+		}
+	}
 
-  # Unstrip comments unless explicitly told otherwise.
-  # (The comments are always stripped prior to this point, so as to
-  # not invoke any extension tags / parser hooks contained within
-  # a comment.)
-  if ( !$stripcomments ) {
-    // Put them all back and forget them
-    $text = strtr( $text, $commentState );
-  }
+	# Unstrip comments unless explicitly told otherwise.
+	# (The comments are always stripped prior to this point, so as to
+	# not invoke any extension tags / parser hooks contained within
+	# a comment.)
+	if ( !$stripcomments ) {
+		// Put them all back and forget them
+		$text = strtr( $text, $commentState );
+	}
 
-  return $text;
+	return $text;
 }
 
 /**
@@ -676,65 +676,65 @@ function mwStrip( $text, &$state, $stripcomments = false , $dontstrip = array ()
  * @static
  */
 function extractTagsAndParams($elements, $text, &$matches, $uniq_prefix = ''){
-  static $n = 1;
-  $stripped = '';
-  $matches = array();
+	static $n = 1;
+	$stripped = '';
+	$matches = array();
 
-  $taglist = implode( '|', $elements );
-  $start = "/<($taglist)(\\s+[^>]*?|\\s*?)(\/?>)|<(!--)/i";
+	$taglist = implode( '|', $elements );
+	$start = "/<($taglist)(\\s+[^>]*?|\\s*?)(\/?>)|<(!--)/i";
 
-  while ( '' != $text ) {
-    $p = preg_split( $start, $text, 2, PREG_SPLIT_DELIM_CAPTURE );
-    $stripped .= $p[0];
-    if( count( $p ) < 5 ) {
-      break;
-    }
-    if( count( $p ) > 5 ) {
-      // comment
-      $element    = $p[4];
-      $attributes = '';
-      $close      = '';
-      $inside     = $p[5];
-    } else {
-      // tag
-      $element    = $p[1];
-      $attributes = $p[2];
-      $close      = $p[3];
-      $inside     = $p[4];
-    }
+	while ( '' != $text ) {
+		$p = preg_split( $start, $text, 2, PREG_SPLIT_DELIM_CAPTURE );
+		$stripped .= $p[0];
+		if( count( $p ) < 5 ) {
+			break;
+		}
+		if( count( $p ) > 5 ) {
+			// comment
+			$element    = $p[4];
+			$attributes = '';
+			$close      = '';
+			$inside     = $p[5];
+		} else {
+			// tag
+			$element    = $p[1];
+			$attributes = $p[2];
+			$close      = $p[3];
+			$inside     = $p[4];
+		}
 
-    $marker = "$uniq_prefix-$element-" . sprintf('%08X', $n++) . '-QINU';
-    $stripped .= $marker;
+		$marker = "$uniq_prefix-$element-" . sprintf('%08X', $n++) . '-QINU';
+		$stripped .= $marker;
 
-    if ( $close === '/>' ) {
-      // Empty element tag, <tag />
-      $content = null;
-      $text = $inside;
-      $tail = null;
-    } else {
-      if( $element == '!--' ) {
-        $end = '/(-->)/';
-      } else {
-        $end = "/(<\\/$element\\s*>)/i";
-      }
-      $q = preg_split( $end, $inside, 2, PREG_SPLIT_DELIM_CAPTURE );
-      $content = $q[0];
-      if( count( $q ) < 3 ) {
-        # No end tag -- let it run out to the end of the text.
-        $tail = '';
-        $text = '';
-      } else {
-        $tail = $q[1];
-        $text = $q[2];
-      }
-    }
-    
-    $matches[$marker] = array( $element,
-      $content,
-      decodeTagAttributes( $attributes ),
-      "<$element$attributes$close$content$tail" );
-  }
-  return $stripped;
+		if ( $close === '/>' ) {
+			// Empty element tag, <tag />
+			$content = null;
+			$text = $inside;
+			$tail = null;
+		} else {
+			if( $element == '!--' ) {
+				$end = '/(-->)/';
+			} else {
+				$end = "/(<\\/$element\\s*>)/i";
+			}
+			$q = preg_split( $end, $inside, 2, PREG_SPLIT_DELIM_CAPTURE );
+			$content = $q[0];
+			if( count( $q ) < 3 ) {
+				# No end tag -- let it run out to the end of the text.
+				$tail = '';
+				$text = '';
+			} else {
+				$tail = $q[1];
+				$text = $q[2];
+			}
+		}
+		
+		$matches[$marker] = array( $element,
+			$content,
+			decodeTagAttributes( $attributes ),
+			"<$element$attributes$close$content$tail" );
+	}
+	return $stripped;
 }
 
 /**
@@ -745,10 +745,10 @@ function extractTagsAndParams($elements, $text, &$matches, $uniq_prefix = ''){
  * @return string Escaped string
  */
 function wfEscapeHTMLTagsOnly( $in ) {
-  return str_replace(
-    array( '"', '>', '<' ),
-    array( '&quot;', '&gt;', '&lt;' ),
-    $in );
+	return str_replace(
+		array( '"', '>', '<' ),
+		array( '&quot;', '&gt;', '&lt;' ),
+		$in );
 }
 
 /**
@@ -758,14 +758,14 @@ function wfEscapeHTMLTagsOnly( $in ) {
  * @private
  */
 function unstrip( $text, &$state ) {
-  if ( !isset( $state['general'] ) ) {
-    return $text;
-  }
+	if ( !isset( $state['general'] ) ) {
+		return $text;
+	}
 
-  # TODO: good candidate for FSS
-  $text = strtr( $text, $state['general'] );
-  
-  return $text;
+	# TODO: good candidate for FSS
+	$text = strtr( $text, $state['general'] );
+	
+	return $text;
 }
 
 /**
@@ -776,11 +776,11 @@ function unstrip( $text, &$state ) {
  * @private
  */
 function decodeChar( $codepoint ) {
-  if( validateCodepoint( $codepoint ) ) {
-    return codepointToUtf8( $codepoint );
-  } else {
-    return UTF8_REPLACEMENT;
-  }
+	if( validateCodepoint( $codepoint ) ) {
+		return codepointToUtf8( $codepoint );
+	} else {
+		return UTF8_REPLACEMENT;
+	}
 }
 
 /**
@@ -792,12 +792,12 @@ function decodeChar( $codepoint ) {
  * @return string
  */
 function decodeEntity( $name ) {
-  global $wgHtmlEntities;
-  if( isset( $wgHtmlEntities[$name] ) ) {
-    return codepointToUtf8( $wgHtmlEntities[$name] );
-  } else {
-    return "&$name;";
-  }
+	global $wgHtmlEntities;
+	if( isset( $wgHtmlEntities[$name] ) ) {
+		return codepointToUtf8( $wgHtmlEntities[$name] );
+	} else {
+		return "&$name;";
+	}
 }
 
 /**
@@ -806,14 +806,14 @@ function decodeEntity( $name ) {
  * @return bool
  */
 function validateCodepoint( $codepoint ) {
-  return ($codepoint ==    0x09)
-    || ($codepoint ==    0x0a)
-    || ($codepoint ==    0x0d)
-    || ($codepoint >=    0x20 && $codepoint <=   0xd7ff)
-    || ($codepoint >=  0xe000 && $codepoint <=   0xfffd)
-    || ($codepoint >= 0x10000 && $codepoint <= 0x10ffff);
+	return ($codepoint ==    0x09)
+		|| ($codepoint ==    0x0a)
+		|| ($codepoint ==    0x0d)
+		|| ($codepoint >=    0x20 && $codepoint <=   0xd7ff)
+		|| ($codepoint >=  0xe000 && $codepoint <=   0xfffd)
+		|| ($codepoint >= 0x10000 && $codepoint <= 0x10ffff);
 }
-  
+	
 /**
  * Return UTF-8 sequence for a given Unicode code point.
  * May die if fed out of range data.
@@ -843,16 +843,16 @@ function codepointToUtf8( $codepoint ) {
  * @return string
  */
 function decodeCharReferencesCallback( $matches ) {
-  if( $matches[1] != '' ) {
-    return decodeEntity( $matches[1] );
-  } elseif( $matches[2] != '' ) {
-    return  decodeChar( intval( $matches[2] ) );
-  } elseif( $matches[3] != ''  ) {
-    return  decodeChar( hexdec( $matches[3] ) );
-  } elseif( $matches[4] != '' ) {
-    return  decodeChar( hexdec( $matches[4] ) );
-  }
-  # Last case should be an ampersand by itself
-  return $matches[0];
+	if( $matches[1] != '' ) {
+		return decodeEntity( $matches[1] );
+	} elseif( $matches[2] != '' ) {
+		return  decodeChar( intval( $matches[2] ) );
+	} elseif( $matches[3] != ''  ) {
+		return  decodeChar( hexdec( $matches[3] ) );
+	} elseif( $matches[4] != '' ) {
+		return  decodeChar( hexdec( $matches[4] ) );
+	}
+	# Last case should be an ampersand by itself
+	return $matches[0];
 }
 

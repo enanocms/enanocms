@@ -3,79 +3,79 @@
 
 window.templateParser = function(text)
 {
-  this.tpl_code    = text;
-  this.tpl_strings = new Object();
-  this.tpl_bool    = new Object();
-  this.assign_vars = __tpAssignVars;
-  this.assign_bool = __tpAssignBool;
-  this.run         = __tpRun;
+	this.tpl_code    = text;
+	this.tpl_strings = new Object();
+	this.tpl_bool    = new Object();
+	this.assign_vars = __tpAssignVars;
+	this.assign_bool = __tpAssignBool;
+	this.run         = __tpRun;
 }
 
 window.__tpAssignVars = function(vars)
 {
-  for(var i in vars)
-  {
-    this.tpl_strings[i] = vars[i];
-  }
+	for(var i in vars)
+	{
+		this.tpl_strings[i] = vars[i];
+	}
 }
 
 window.__tpAssignBool = function(vars)
 {
-  for(var i in vars)
-  {
-    this.tpl_bool[i] = ( vars[i] ) ? true : false; 
-  }
+	for(var i in vars)
+	{
+		this.tpl_bool[i] = ( vars[i] ) ? true : false; 
+	}
 }
 
 window.__tpRun = function()
 {
-  if(typeof(this.tpl_code) == 'string')
-  {
-    tpl_code = __tpCompileTemplate(this.tpl_code);
-    try {
-      compiled = eval(tpl_code);
-    }
-    catch(e)
-    {
-      alert(e);
-      aclDebug(tpl_code);
-    }
-    return compiled;
-  }
-  return false;
+	if(typeof(this.tpl_code) == 'string')
+	{
+		tpl_code = __tpCompileTemplate(this.tpl_code);
+		try {
+			compiled = eval(tpl_code);
+		}
+		catch(e)
+		{
+			alert(e);
+			aclDebug(tpl_code);
+		}
+		return compiled;
+	}
+	return false;
 }
 
 window.__tpCompileTemplate = function(code)
 {
-  // Compile plaintext/template code to javascript code
-  code = code.replace(/\\/g, "\\\\");
-  code = code.replace(/\'/g,  "\\'");
-  code = code.replace(/\"/g,  '\\"');
-  code = code.replace(new RegExp(unescape('%0A'), 'g'), '\\n');
-  code = "'" + code + "'";
-  code = code.replace(/\{([A-z0-9_-]+)\}/ig, "' + this.tpl_strings['$1'] + '");
-  code = code.replace(/\{lang:([a-z0-9_]+)\}/g, "' + $lang.get('$1') + '");
-  code = code.replace(/\<!-- IFSET ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- BEGINELSE \1 --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( typeof(this.tpl_strings['$1']) == 'string' ) ? '$2' : '$3' ) + '");
-  code = code.replace(/\<!-- IFSET ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( typeof(this.tpl_strings['$1']) == 'string' ) ? '$2' : '' ) + '");
-  code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- BEGINELSE \1 --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '$3' ) + '");
-  code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '' ) + '");
-  return code;
+	// Compile plaintext/template code to javascript code
+	code = code.replace(/\\/g, "\\\\");
+	code = code.replace(/\'/g,  "\\'");
+	code = code.replace(/\"/g,  '\\"');
+	code = code.replace(new RegExp(unescape('%0A'), 'g'), '\\n');
+	code = "'" + code + "'";
+	code = code.replace(/\{([A-z0-9_-]+)\}/ig, "' + this.tpl_strings['$1'] + '");
+	code = code.replace(/\{lang:([a-z0-9_]+)\}/g, "' + $lang.get('$1') + '");
+	code = code.replace(/\<!-- IFSET ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- BEGINELSE \1 --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( typeof(this.tpl_strings['$1']) == 'string' ) ? '$2' : '$3' ) + '");
+	code = code.replace(/\<!-- IFSET ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( typeof(this.tpl_strings['$1']) == 'string' ) ? '$2' : '' ) + '");
+	code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- BEGINELSE \1 --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '$3' ) + '");
+	code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '' ) + '");
+	return code;
 }
 
 window.__tpExtractVars = function(code)
 {
-  code = code.replace('\\', "\\\\");
-  code = code.replace("'",  "\\'");
-  code = code.replace('"',  '\\"');
-  code = code.replace(new RegExp(unescape('%0A'), 'g'), "\\n");
-  code = code.match(/\<!-- VAR ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- ENDVAR \1 -->/g);
-  code2 = '';
-  for(var i in code)
-    if(typeof(code[i]) == 'string')
-      code2 = code2 + code[i];
-  code = code2.replace(/\<!-- VAR ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- ENDVAR \1 -->/g, "'$1' : \"$2\",");
-  code = '( { ' + code + ' "________null________" : false } )';
-  vars = eval(code);
-  return vars;
+	code = code.replace('\\', "\\\\");
+	code = code.replace("'",  "\\'");
+	code = code.replace('"',  '\\"');
+	code = code.replace(new RegExp(unescape('%0A'), 'g'), "\\n");
+	code = code.match(/\<!-- VAR ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- ENDVAR \1 -->/g);
+	code2 = '';
+	for(var i in code)
+		if(typeof(code[i]) == 'string')
+			code2 = code2 + code[i];
+	code = code2.replace(/\<!-- VAR ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- ENDVAR \1 -->/g, "'$1' : \"$2\",");
+	code = '( { ' + code + ' "________null________" : false } )';
+	vars = eval(code);
+	return vars;
 }
 

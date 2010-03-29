@@ -14,7 +14,7 @@
  */
 
 if ( !defined('IN_ENANO_INSTALL') )
-  die();
+	die();
 
 require ( ENANO_ROOT . '/install/includes/libenanoinstall.php' );
 require ( ENANO_ROOT . '/includes/sql_parse.php' );
@@ -23,36 +23,36 @@ require ( ENANO_ROOT . '/config.new.php' );
 
 if ( !in_array($dbdriver, $supported_drivers) )
 {
-  $ui->show_header();
-  echo '<h3>Installation error</h3>
-         <p>ERROR: That database driver is not supported.</p>';
-  return true;
+	$ui->show_header();
+	echo '<h3>Installation error</h3>
+ 				<p>ERROR: That database driver is not supported.</p>';
+	return true;
 }
 
 $db = new $dbdriver();
 $result = $db->connect();
 if ( !$result )
 {
-  $ui->show_header();
-  // FIXME: l10n
-  ?>
-  <form action="install.php?stage=database" method="post" name="database_info">
-    <input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
-    <input type="hidden" name="driver" value="<?php echo $dbdriver; ?>" />
-    <h3><?php echo $lang->get('database_msg_post_fail_title'); ?></h3>
-    <p><?php echo $lang->get('database_msg_post_fail_body'); ?></p>
-    <p><?php echo $lang->get('database_msg_post_fail_desc'); ?>
-      <?php
-      echo $db->sql_error();
-      ?>
-    </p>
-    <p>
-      <!-- FIXME: l10n -->
-      <input type="submit" name="_cont" value="<?php echo $lang->get('database_btn_go_back'); ?>" />
-    </p>
-  </form>
-  <?php
-  return true;
+	$ui->show_header();
+	// FIXME: l10n
+	?>
+	<form action="install.php?stage=database" method="post" name="database_info">
+		<input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
+		<input type="hidden" name="driver" value="<?php echo $dbdriver; ?>" />
+		<h3><?php echo $lang->get('database_msg_post_fail_title'); ?></h3>
+		<p><?php echo $lang->get('database_msg_post_fail_body'); ?></p>
+		<p><?php echo $lang->get('database_msg_post_fail_desc'); ?>
+			<?php
+			echo $db->sql_error();
+			?>
+		</p>
+		<p>
+			<!-- FIXME: l10n -->
+			<input type="submit" name="_cont" value="<?php echo $lang->get('database_btn_go_back'); ?>" />
+		</p>
+	</form>
+	<?php
+	return true;
 }
 
 // we're connected to the database now.
@@ -72,11 +72,11 @@ flush();
 
 function stg_load_files()
 {
-  global $dbdriver;
-  if ( !@include( ENANO_ROOT . "/install/includes/payload.php" ) )
-    return false;
-  
-  return true;
+	global $dbdriver;
+	if ( !@include( ENANO_ROOT . "/install/includes/payload.php" ) )
+		return false;
+	
+	return true;
 }
 
 start_install_table();
@@ -93,14 +93,14 @@ $db->close();
 
 @define('ENANO_ALLOW_LOAD_NOLANG', 1);
 require(ENANO_ROOT . '/includes/common.php');
-        
+				
 if ( is_object($db) && is_object($session) )
 {
-  run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_sim_good', '...', false);
+	run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_sim_good', '...', false);
 }
 else
 {
-  run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_sim_bad', $lang->get('install_stg_startapi_body'), false);
+	run_installer_stage('startapi', $lang->get('install_stg_startapi_title'), 'stg_sim_bad', $lang->get('install_stg_startapi_body'), false);
 }
 
 // Import languages
@@ -117,10 +117,10 @@ close_install_table();
 
 ?>
 <form action="install.php?stage=finish" method="post" style="margin-top: 12px;">
-  <input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
-  <div style="text-align: center;">
-    <input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" tabindex="1" />
-  </div>
+	<input type="hidden" name="language" value="<?php echo $lang_id; ?>" />
+	<div style="text-align: center;">
+		<input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" tabindex="1" />
+	</div>
 </form>
 <?php
 

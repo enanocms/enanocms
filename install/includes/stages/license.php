@@ -14,90 +14,90 @@
  */
 
 if ( !defined('IN_ENANO_INSTALL') )
-  die();
+	die();
 
 function show_license($fb = false)
 {
-  global $lang;
-  global $installer_version;
-  ?>
-  <div class="scroller">
-  <?php
-    if ( !file_exists('./GPL') || !file_exists('./language/english/install/license-deed.html') )
-    {
-      echo 'Cannot find the license files.';
-    }
-    echo file_get_contents('./language/english/install/license-deed.html');
-    if ( $installer_version['type'] != 'stable' )
-    {
-      ?>
-      <h3><?php echo $lang->get('license_info_unstable_title'); ?></h3>
-      <p><?php echo $lang->get('license_info_unstable_body'); ?></p>
-      <?php
-    }
-    ?>
-    <h3><?php echo $lang->get('license_section_gpl_heading'); ?></h3>
-    <?php if ( $lang->lang_code != 'eng' ): ?>
-    <p><i><?php echo $lang->get('license_gpl_blurb_inenglish'); ?></i></p>
-    <?php endif; ?>
-    <?php echo wikiFormat(file_get_contents(ENANO_ROOT . '/GPL')); ?>
-   <?php
-   global $template;
-   if ( $fb )
-   {
-     echo '<p style="text-align: center;">Because I could never find the Create a Page button in PHP-Nuke.</p>';
-     echo '<p>' . str_replace('http://enanocms.org/', 'http://www.2robots.com/2003/10/15/web-portals-suck/', $template->fading_button) . '</p>';
-     echo '<p style="text-align: center;">It\'s not a portal, my friends.</p>';
-   }
-   ?>
+	global $lang;
+	global $installer_version;
+	?>
+	<div class="scroller">
+	<?php
+		if ( !file_exists('./GPL') || !file_exists('./language/english/install/license-deed.html') )
+		{
+			echo 'Cannot find the license files.';
+		}
+		echo file_get_contents('./language/english/install/license-deed.html');
+		if ( $installer_version['type'] != 'stable' )
+		{
+			?>
+			<h3><?php echo $lang->get('license_info_unstable_title'); ?></h3>
+			<p><?php echo $lang->get('license_info_unstable_body'); ?></p>
+			<?php
+		}
+		?>
+		<h3><?php echo $lang->get('license_section_gpl_heading'); ?></h3>
+		<?php if ( $lang->lang_code != 'eng' ): ?>
+		<p><i><?php echo $lang->get('license_gpl_blurb_inenglish'); ?></i></p>
+		<?php endif; ?>
+		<?php echo wikiFormat(file_get_contents(ENANO_ROOT . '/GPL')); ?>
+ 	<?php
+ 	global $template;
+ 	if ( $fb )
+ 	{
+ 		echo '<p style="text-align: center;">Because I could never find the Create a Page button in PHP-Nuke.</p>';
+ 		echo '<p>' . str_replace('http://enanocms.org/', 'http://www.2robots.com/2003/10/15/web-portals-suck/', $template->fading_button) . '</p>';
+ 		echo '<p style="text-align: center;">It\'s not a portal, my friends.</p>';
+ 	}
+ 	?>
  </div>
  <?php
 }
 
 function wikiFormat($text)
 {
-  require_once( ENANO_ROOT . '/includes/render.php' );
-  require_once( ENANO_ROOT . '/includes/wikiformat.php' );
-  require_once( ENANO_ROOT . '/includes/wikiengine/TagSanitizer.php' );
-  require_once( ENANO_ROOT . '/includes/wikiengine/Tables.php' );
-  
-  $carpenter = new Carpenter();
-  // disable rules that require the DB
-  $carpenter->disable_rule('templates');
-  $carpenter->disable_rule('internallink');
-  $carpenter->disable_rule('image');
-  
-  $text = $carpenter->render($text);
-  
-  return $text;
+	require_once( ENANO_ROOT . '/includes/render.php' );
+	require_once( ENANO_ROOT . '/includes/wikiformat.php' );
+	require_once( ENANO_ROOT . '/includes/wikiengine/TagSanitizer.php' );
+	require_once( ENANO_ROOT . '/includes/wikiengine/Tables.php' );
+	
+	$carpenter = new Carpenter();
+	// disable rules that require the DB
+	$carpenter->disable_rule('templates');
+	$carpenter->disable_rule('internallink');
+	$carpenter->disable_rule('image');
+	
+	$text = $carpenter->render($text);
+	
+	return $text;
 }
 
 ?>
-    <h3><?php echo $lang->get('license_heading'); ?></h3>
-     <p><?php echo $lang->get('license_blurb_thankyou'); ?></p>
-     <p><?php echo $lang->get('license_blurb_pleaseread'); ?></p>
-     <?php show_license(); ?>
-     <div class="pagenav">
-       <form action="install.php?stage=sysreqs" method="post">
-       <?php
-       echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
-       ?>
-         <table border="0">
-         <tr>
-           <td>
-             <input type="submit" value="<?php echo $lang->get('license_btn_i_agree'); ?>" />
-           </td>
-           <td>
-             <p>
-               <span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
-               &bull; <?php echo $lang->get('license_objective_ensure_agree'); ?><br />
-               &bull; <?php echo $lang->get('license_objective_have_db_info'); ?>
-             </p>
-           </td>
-         </tr>
-         </table>
-       </form>
-     </div>
-    <?php
+		<h3><?php echo $lang->get('license_heading'); ?></h3>
+ 		<p><?php echo $lang->get('license_blurb_thankyou'); ?></p>
+ 		<p><?php echo $lang->get('license_blurb_pleaseread'); ?></p>
+ 		<?php show_license(); ?>
+ 		<div class="pagenav">
+ 			<form action="install.php?stage=sysreqs" method="post">
+ 			<?php
+ 			echo '<input type="hidden" name="language" value="' . $lang_id . '" />';
+ 			?>
+ 				<table border="0">
+ 				<tr>
+ 					<td>
+ 						<input type="submit" value="<?php echo $lang->get('license_btn_i_agree'); ?>" />
+ 					</td>
+ 					<td>
+ 						<p>
+ 							<span style="font-weight: bold;"><?php echo $lang->get('meta_lbl_before_continue'); ?></span><br />
+ 							&bull; <?php echo $lang->get('license_objective_ensure_agree'); ?><br />
+ 							&bull; <?php echo $lang->get('license_objective_have_db_info'); ?>
+ 						</p>
+ 					</td>
+ 				</tr>
+ 				</table>
+ 			</form>
+ 		</div>
+		<?php
 
 ?>

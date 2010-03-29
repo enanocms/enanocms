@@ -21,11 +21,11 @@
 // First check to see if something already declared this function.... it happens often.
 if ( !function_exists('microtime_float') )
 {
-  function microtime_float()
-  {
-    list($usec, $sec) = explode(" ", microtime());
-    return ((float)$usec + (float)$sec);
-  }
+	function microtime_float()
+	{
+		list($usec, $sec) = explode(" ", microtime());
+		return ((float)$usec + (float)$sec);
+	}
 }
 
 $local_start = microtime_float();
@@ -43,25 +43,25 @@ $local_start = microtime_float();
 // .enanodev is found in the Enano root (not /repo/).
 if ( strpos(__FILE__, '/repo/') && ( file_exists('../../.enanodev') || file_exists('../../../.enanodev') ) )
 {
-  // We have a development directory. Remove /repo/ from the picture.
-  $filename = str_replace('/repo/', '/', __FILE__);
+	// We have a development directory. Remove /repo/ from the picture.
+	$filename = str_replace('/repo/', '/', __FILE__);
 }
 else
 {
-  // Standard Enano installation
-  $filename = __FILE__;
+	// Standard Enano installation
+	$filename = __FILE__;
 }
 
 // ENANO_ROOT is sometimes defined by plugins like AjIM that need the constant before the Enano API is initialized
 if ( !defined('ENANO_ROOT') )
-  define('ENANO_ROOT', dirname(dirname(dirname($filename))));
+	define('ENANO_ROOT', dirname(dirname(dirname($filename))));
 
 chdir(ENANO_ROOT);
 
 require('includes/common.php');
 if ( !defined('ENANO_CLI') )
 {
-  die_friendly('Not for web use', '<p>This script is designed to be run from a command-line environment.</p>');
+	die_friendly('Not for web use', '<p>This script is designed to be run from a command-line environment.</p>');
 }
 
 // if ( !getConfig('cdn_path') )
@@ -79,7 +79,7 @@ $have_zip = false;
 $path = ( isset($_SERVER['PATH']) ) ? $_SERVER['PATH'] : false;
 if ( !$path )
 {
-  die_semicritical('Can\'t get your PATH', 'Unable to get the PATH environment variable');
+	die_semicritical('Can\'t get your PATH', 'Unable to get the PATH environment variable');
 }
 
 $path = ( strtolower(PHP_OS) === 'win32' ) ? explode(';', $path) : explode(':', $path);
@@ -87,18 +87,18 @@ $pathext = ( strtolower(PHP_OS) === 'win32' ) ? '.exe' : '';
 
 foreach ( $path as $dir )
 {
-  if ( file_exists("$dir/zip$pathext") )
-  {
-    $have_zip = true;
-    break;
-  }
+	if ( file_exists("$dir/zip$pathext") )
+	{
+		$have_zip = true;
+		break;
+	}
 }
 
 if ( !$have_zip )
 {
-  // no zupport zor zipping ziles
-  echo "\x1B[31;1mnot found\x1B[0m\n\x1B[1mPlease install the zip utility using your distribution's package manager\nand then rerun this script.\x1B[0m";
-  exit(1);
+	// no zupport zor zipping ziles
+	echo "\x1B[31;1mnot found\x1B[0m\n\x1B[1mPlease install the zip utility using your distribution's package manager\nand then rerun this script.\x1B[0m";
+	exit(1);
 }
 
 echo "\x1B[1mall good\x1B[0m\n";
@@ -106,8 +106,8 @@ echo "\x1B[0;33mMinifying Javascript files...";
 
 if ( !@mkdir('includes/clientside/staticmin') )
 {
-  echo "\x1B[31;1mcouldn't create temp directory\x1B[0m\n\x1B[1mCheck permissions please, we couldn't create includes/clientside/staticmin.\x1B[0m";
-  exit(1);
+	echo "\x1B[31;1mcouldn't create temp directory\x1B[0m\n\x1B[1mCheck permissions please, we couldn't create includes/clientside/staticmin.\x1B[0m";
+	exit(1);
 }
 
 require('includes/clientside/jsres.php');
@@ -120,8 +120,8 @@ chdir('includes/clientside/staticmin');
 $handle = @fopen('./enano-lib-basic.js', 'w');
 if ( !$handle )
 {
-  echo "\x1B[31;1mcouldn't open file\x1B[0m\n\x1B[1mCheck permissions please, we couldn't create a file inside includes/clientside/staticmin.\x1B[0m";
-  exit(1);
+	echo "\x1B[31;1mcouldn't open file\x1B[0m\n\x1B[1mCheck permissions please, we couldn't create a file inside includes/clientside/staticmin.\x1B[0m";
+	exit(1);
 }
 
 fwrite($handle, $everything);
@@ -130,29 +130,29 @@ fclose($handle);
 // for each JS file in includes/clientside/static, compress & write
 if ( $dr = @opendir('../static') )
 {
-  while ( $dh = @readdir($dr) )
-  {
-    if ( !preg_match('/\.js$/', $dh) || $dh === 'enano-lib-basic.js' )
-      continue;
-    
-    $contents = @file_get_contents("../static/$dh");
-    $compressed = jsres_cache_check($dh, $contents);
-    $compressed = str_replace('/* JavaScriptCompressor 0.8 [www.devpro.it], thanks to Dean Edwards for idea [dean.edwards.name] */' . "\r\n", '', $compressed);
-    
-    $handle = @fopen("./$dh", 'w');
-    if ( !$handle )
-    {
-      echo "\x1B[31;1mcouldn't open file\x1B[0m\n\x1B[1mCheck permissions please, we couldn't create a file inside includes/clientside/staticmin.\x1B[0m";
-      exit(1);
-    }
-    fwrite($handle, $compressed);
-    fclose($handle);
-  }
+	while ( $dh = @readdir($dr) )
+	{
+		if ( !preg_match('/\.js$/', $dh) || $dh === 'enano-lib-basic.js' )
+			continue;
+		
+		$contents = @file_get_contents("../static/$dh");
+		$compressed = jsres_cache_check($dh, $contents);
+		$compressed = str_replace('/* JavaScriptCompressor 0.8 [www.devpro.it], thanks to Dean Edwards for idea [dean.edwards.name] */' . "\r\n", '', $compressed);
+		
+		$handle = @fopen("./$dh", 'w');
+		if ( !$handle )
+		{
+			echo "\x1B[31;1mcouldn't open file\x1B[0m\n\x1B[1mCheck permissions please, we couldn't create a file inside includes/clientside/staticmin.\x1B[0m";
+			exit(1);
+		}
+		fwrite($handle, $compressed);
+		fclose($handle);
+	}
 }
 else
 {
-  echo "\x1B[31;1mcouldn't open includes directory\x1B[0m\n\x1B[1mUnable to get our hands into includes/clientside/static/ to compress everything.\x1B[0m";
-  exit(1);
+	echo "\x1B[31;1mcouldn't open includes directory\x1B[0m\n\x1B[1mUnable to get our hands into includes/clientside/static/ to compress everything.\x1B[0m";
+	exit(1);
 }
 
 echo "\x1B[1mdone\x1B[0m\n";
@@ -161,9 +161,9 @@ echo "\x1B[0;33mCompressing into enano-lib.zip...";
 $result = system('zip -yrq9 ../enano-lib.zip *.js');
 if ( $result != 0 )
 {
-  // failure
-  echo "\x1B[31;1mzip creation failed\x1B[0m\n\x1B[1mzip returned result $result\x1B[0m";
-  exit(1);
+	// failure
+	echo "\x1B[31;1mzip creation failed\x1B[0m\n\x1B[1mzip returned result $result\x1B[0m";
+	exit(1);
 }
 
 echo "\x1B[1mdone\x1B[0m\n";
@@ -175,11 +175,11 @@ chdir('..');
 
 if ( $dr = @opendir('./staticmin') )
 {
-  while ( $dh = @readdir($dr) )
-  {
-    if ( preg_match('/\.js$/', $dh) )
-      unlink("./staticmin/$dh");
-  }
+	while ( $dh = @readdir($dr) )
+	{
+		if ( preg_match('/\.js$/', $dh) )
+			unlink("./staticmin/$dh");
+	}
 }
 
 @rmdir('./staticmin');

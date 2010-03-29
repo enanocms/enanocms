@@ -21,7 +21,7 @@ var Fat = {
 			if (r)
 			{
 				if (!r[1]) r[1] = "";
-        if (!o.id) o.id = 'autofat_'+Math.floor(Math.random() * 100000);
+				if (!o.id) o.id = 'autofat_'+Math.floor(Math.random() * 100000);
 				if (o.id) Fat.fade_element(o.id,null,null,"#"+r[1]);
 			}
 		}
@@ -66,7 +66,7 @@ var Fat = {
 	set_bgcolor : function (id, c)
 	{
 		var o = document.getElementById(id);
-    if(!o) return;
+		if(!o) return;
 		o.style.backgroundColor = c;
 	},
 	get_bgcolor : function (id)

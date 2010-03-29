@@ -13,28 +13,28 @@
 
 class Namespace_Template extends Namespace_Default
 {
-  function send()
-  {
-    global $output;
-    
-    $output->add_before_footer($this->display_categories());
-    $output->header();
-    
-    if ( $this->exists )
-    {
-      $text = $this->fetch_text();
-      $text = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '\\1', $text);
-      $text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
-      
-      $text = RenderMan::render( $text );
-      
-      eval( '?>' . $text );
-    }
-    else
-    {
-      $this->error_404();
-    }
-    
-    $output->footer();
-  }
+	function send()
+	{
+		global $output;
+		
+		$output->add_before_footer($this->display_categories());
+		$output->header();
+		
+		if ( $this->exists )
+		{
+			$text = $this->fetch_text();
+			$text = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '\\1', $text);
+			$text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '', $text);
+			
+			$text = RenderMan::render( $text );
+			
+			eval( '?>' . $text );
+		}
+		else
+		{
+			$this->error_404();
+		}
+		
+		$output->footer();
+	}
 }

@@ -16,33 +16,33 @@
 
 function doStats( $page_id = false, $namespace = false )
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  if(getConfig('log_hits') == '1')
-  {
-    if(!$page_id || !$namespace)
-    {
-      $page_id = $paths->page_id;
-      $namespace = $paths->namespace;
-    }
-    if($namespace == 'Special' || $namespace == 'Admin') 
-    {
-      return false;
-    }
-    static $stats_done = false;
-    static $stats_data = Array();
-    if(!$stats_done)
-    {
-      $q = $db->sql_query('INSERT INTO '.table_prefix.'hits (username,time,page_id,namespace) VALUES(\''.$db->escape($session->username).'\', '.time().', \''.$db->escape($page_id).'\', \''.$db->escape($namespace).'\')');
-      if(!$q)
-      {
-        echo $db->get_error();
-        return false;
-      }
-      $db->free_result();
-      $stats_done = true;
-      return true;
-    }
-  }
+	global $db, $session, $paths, $template, $plugins; // Common objects
+	if(getConfig('log_hits') == '1')
+	{
+		if(!$page_id || !$namespace)
+		{
+			$page_id = $paths->page_id;
+			$namespace = $paths->namespace;
+		}
+		if($namespace == 'Special' || $namespace == 'Admin') 
+		{
+			return false;
+		}
+		static $stats_done = false;
+		static $stats_data = Array();
+		if(!$stats_done)
+		{
+			$q = $db->sql_query('INSERT INTO '.table_prefix.'hits (username,time,page_id,namespace) VALUES(\''.$db->escape($session->username).'\', '.time().', \''.$db->escape($page_id).'\', \''.$db->escape($namespace).'\')');
+			if(!$q)
+			{
+				echo $db->get_error();
+				return false;
+			}
+			$db->free_result();
+			$stats_done = true;
+			return true;
+		}
+	}
 }
 
 /**
@@ -53,26 +53,26 @@ function doStats( $page_id = false, $namespace = false )
 
 function stats_top_pages($num = 5)
 {
-  global $db, $session, $paths, $template, $plugins; // Common objects
-  if(!is_int($num)) 
-  {
-    return false;
-  }
-  
-  $data = array();
-  $q = $db->sql_query('SELECT COUNT(hit_id) AS num_hits, page_id, namespace FROM '.table_prefix.'hits GROUP BY page_id, namespace ORDER BY num_hits DESC LIMIT ' . $num . ';');
-  
-  while ( $row = $db->fetchrow($q) )
-  {
-    $title = get_page_title_ns($row['page_id'], $row['namespace']);
-    $data[] = array(
-        'page_urlname' => $paths->get_pathskey($row['page_id'], $row['namespace']),
-        'page_title' => $title,
-        'num_hits' => $row['num_hits']
-      );
-  }
-  
-  return $data;
+	global $db, $session, $paths, $template, $plugins; // Common objects
+	if(!is_int($num)) 
+	{
+		return false;
+	}
+	
+	$data = array();
+	$q = $db->sql_query('SELECT COUNT(hit_id) AS num_hits, page_id, namespace FROM '.table_prefix.'hits GROUP BY page_id, namespace ORDER BY num_hits DESC LIMIT ' . $num . ';');
+	
+	while ( $row = $db->fetchrow($q) )
+	{
+		$title = get_page_title_ns($row['page_id'], $row['namespace']);
+		$data[] = array(
+				'page_urlname' => $paths->get_pathskey($row['page_id'], $row['namespace']),
+				'page_title' => $title,
+				'num_hits' => $row['num_hits']
+			);
+	}
+	
+	return $data;
 }
 
 ?>

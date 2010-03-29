@@ -16,7 +16,7 @@
 
 // if Enano's already loaded, we've been included from a helper script
 if ( defined('ENANO_CONFIG_FETCHED') )
-  define('ENANO_JSRES_SETUP_ONLY', 1);
+	define('ENANO_JSRES_SETUP_ONLY', 1);
 
 if ( !defined('ENANO_JSRES_SETUP_ONLY') ):
 
@@ -29,11 +29,11 @@ if ( !defined('ENANO_JSRES_SETUP_ONLY') ):
 // First check to see if something already declared this function.... it happens often.
 if ( !function_exists('microtime_float') )
 {
-  function microtime_float()
-  {
-    list($usec, $sec) = explode(" ", microtime());
-    return ((float)$usec + (float)$sec);
-  }
+	function microtime_float()
+	{
+		list($usec, $sec) = explode(" ", microtime());
+		return ((float)$usec + (float)$sec);
+	}
 }
 
 $local_start = microtime_float();
@@ -51,18 +51,18 @@ $disable_compress = ( strstr(@$_SERVER['HTTP_USER_AGENT'], 'MSIE') || defined('E
 // development server using the script found on hg.enanocms.org.
 if ( strpos(__FILE__, '/repo/') && ( file_exists('../../.enanodev') || file_exists('../../../.enanodev') ) )
 {
-  // We have a development directory. Remove /repo/ from the picture.
-  $filename = str_replace('/repo/', '/', __FILE__);
+	// We have a development directory. Remove /repo/ from the picture.
+	$filename = str_replace('/repo/', '/', __FILE__);
 }
 else
 {
-  // Standard Enano installation
-  $filename = __FILE__;
+	// Standard Enano installation
+	$filename = __FILE__;
 }
 
 // ENANO_ROOT is sometimes defined by plugins like AjIM that need the constant before the Enano API is initialized
 if ( !defined('ENANO_ROOT') )
-  define('ENANO_ROOT', dirname(dirname(dirname($filename))));
+	define('ENANO_ROOT', dirname(dirname(dirname($filename))));
 
 chdir(ENANO_ROOT);
 
@@ -76,25 +76,25 @@ endif; // ENANO_JSRES_SETUP_ONLY
 
 // Files safe to run full (aggressive) compression on
 $full_compress_safe = array(
-  // Sorted by file size, descending (du -b *.js | sort -n)
-  'crypto.js',
-  'ajax.js',
-  'editor.js',
-  'functions.js',
-  'login.js',
-  'acl.js',
-  'misc.js',
-  'comments.js',
-  'autofill.js',
-  'dropdown.js',
-  'paginate.js',
-  'enano-lib-basic.js',
-  'pwstrength.js',
-  'flyin.js',
-  'rank-manager.js',
-  'userpage.js',
-  'template-compiler.js',
-  'toolbar.js',
+	// Sorted by file size, descending (du -b *.js | sort -n)
+	'crypto.js',
+	'ajax.js',
+	'editor.js',
+	'functions.js',
+	'login.js',
+	'acl.js',
+	'misc.js',
+	'comments.js',
+	'autofill.js',
+	'dropdown.js',
+	'paginate.js',
+	'enano-lib-basic.js',
+	'pwstrength.js',
+	'flyin.js',
+	'rank-manager.js',
+	'userpage.js',
+	'template-compiler.js',
+	'toolbar.js',
 );
 
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code
@@ -107,13 +107,13 @@ if ( !defined('ENANO_JSRES_SETUP_ONLY') ):
 $do_gzip = false;
 if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) && getConfig('gzip_output', false) == 1 )
 {
-  $acceptenc = str_replace(' ', '', strtolower($_SERVER['HTTP_ACCEPT_ENCODING']));
-  $acceptenc = explode(',', $acceptenc);
-  if ( in_array('gzip', $acceptenc) )
-  {
-    $do_gzip = true;
-    ob_start();
-  }
+	$acceptenc = str_replace(' ', '', strtolower($_SERVER['HTTP_ACCEPT_ENCODING']));
+	$acceptenc = explode(',', $acceptenc);
+	if ( in_array('gzip', $acceptenc) )
+	{
+		$do_gzip = true;
+		ob_start();
+	}
 }
 
 // Output format will always be JS
@@ -129,16 +129,16 @@ $everything = "/* The code represented in this file is compressed for optimizati
 // note - obfuscated for optimization purposes. The exact same code except properly indented is in enano-lib-basic.
 if ( isset($_GET['early']) )
 {
-  header('ETag: enanocms-lib-early-r3');
-  header('Expires: Wed, 1 Jan 2020 00:00:00 GMT');
-  
-  echo <<<JSEOF
+	header('ETag: enanocms-lib-early-r3');
+	header('Expires: Wed, 1 Jan 2020 00:00:00 GMT');
+	
+	echo <<<JSEOF
 window.loaded_components = window.loaded_components || {};
 window.onload_complete = false;
 var onload_hooks = new Array();function addOnloadHook(func){if ( typeof ( func ) == 'function' ){if ( typeof(onload_hooks.push) == 'function' ){onload_hooks.push(func);}else{onload_hooks[onload_hooks.length] = func;};};}
 JSEOF;
-  
-  exit();
+	
+	exit();
 }
 
 // Load and parse enano_lib_basic
@@ -149,7 +149,7 @@ $pos_end_includes = strpos($file, '/*!END_INCLUDER*/');
 
 if ( !$pos_start_includes || !$pos_end_includes )
 {
-  die('// Error: enano-lib-basic does not have required metacomments');
+	die('// Error: enano-lib-basic does not have required metacomments');
 }
 
 $pos_end_includes += strlen('/*!END_INCLUDER*/');
@@ -157,16 +157,16 @@ $pos_end_includes += strlen('/*!END_INCLUDER*/');
 preg_match('/var thefiles = (\[([^\]]+?)\]);/', $file, $match);
 
 if ( empty($match) )
-  die('// Error: could not retrieve file list from enano-lib-basic');
+	die('// Error: could not retrieve file list from enano-lib-basic');
 
 // Decode file list
 try
 {
-  $file_list = enano_json_decode($match[1]);
+	$file_list = enano_json_decode($match[1]);
 }
 catch ( Exception $e )
 {
-  die("// Exception caught during file list parsing");
+	die("// Exception caught during file list parsing");
 }
 
 $apex = filemtime('includes/clientside/static/enano-lib-basic.js');
@@ -176,64 +176,64 @@ $after_includes = substr($file, $pos_end_includes);
 
 if ( isset($_GET['f']) )
 {
-  // requested a single file
-  $js_file =& $_GET['f'];
-  if ( strstr($js_file, ',') )
-  {
-    $filelist = explode(',', $js_file);
-    unset($js_file);
-    $everything = '';
-    foreach ( $filelist as $js_file )
-    {
-      if ( !preg_match('/^[a-z0-9_-]+\.js$/i', $js_file) )
-      {
-        header('HTTP/1.1 404 Not Found');
-        exit('Not found');
-      }
-      
-      $apex = filemtime("includes/clientside/static/$js_file");
-      
-      $file_contents = file_get_contents("includes/clientside/static/$js_file");
-      $everything .= jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true;';
-    }
-    $everything .= 'if ( onload_complete ) { runOnloadHooks(); onload_hooks = []; };';
-  }
-  else
-  {
-    if ( !preg_match('/^[a-z0-9_-]+\.js$/i', $js_file) )
-    {
-      header('HTTP/1.1 404 Not Found');
-      exit('Not found');
-    }
-    
-    $apex = filemtime("includes/clientside/static/$js_file");
-    
-    $file_contents = file_get_contents("includes/clientside/static/$js_file");
-    $everything = jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true; if ( onload_complete ) { runOnloadHooks(); onload_hooks = []; };';
-  }
+	// requested a single file
+	$js_file =& $_GET['f'];
+	if ( strstr($js_file, ',') )
+	{
+		$filelist = explode(',', $js_file);
+		unset($js_file);
+		$everything = '';
+		foreach ( $filelist as $js_file )
+		{
+			if ( !preg_match('/^[a-z0-9_-]+\.js$/i', $js_file) )
+			{
+				header('HTTP/1.1 404 Not Found');
+				exit('Not found');
+			}
+			
+			$apex = filemtime("includes/clientside/static/$js_file");
+			
+			$file_contents = file_get_contents("includes/clientside/static/$js_file");
+			$everything .= jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true;';
+		}
+		$everything .= 'if ( onload_complete ) { runOnloadHooks(); onload_hooks = []; };';
+	}
+	else
+	{
+		if ( !preg_match('/^[a-z0-9_-]+\.js$/i', $js_file) )
+		{
+			header('HTTP/1.1 404 Not Found');
+			exit('Not found');
+		}
+		
+		$apex = filemtime("includes/clientside/static/$js_file");
+		
+		$file_contents = file_get_contents("includes/clientside/static/$js_file");
+		$everything = jsres_cache_check($js_file, $file_contents) . ' loaded_components[\'' . $js_file . '\'] = true; if ( onload_complete ) { runOnloadHooks(); onload_hooks = []; };';
+	}
 }
 else
 {
-  // compress enano-lib-basic
-  $libbasic = "$before_includes\n$after_includes";
-  $libbasic = jsres_cache_check('enano-lib-basic.js', $libbasic);
-  $everything .= $libbasic;
-  
-  // $everything .= $before_includes;
-  // $everything .= $after_includes;
-  
-  foreach ( $file_list as $js_file )
-  {
-    $file_contents = file_get_contents("includes/clientside/static/$js_file");
-    $time = filemtime("includes/clientside/static/$js_file");
-    if ( $time > $apex )
-      $apex = $time;
-    
-    $file_contents = jsres_cache_check($js_file, $file_contents);
-    
-    $everything .= "\n\n// $js_file\n";
-    $everything .= "\n" . $file_contents;
-  }
+	// compress enano-lib-basic
+	$libbasic = "$before_includes\n$after_includes";
+	$libbasic = jsres_cache_check('enano-lib-basic.js', $libbasic);
+	$everything .= $libbasic;
+	
+	// $everything .= $before_includes;
+	// $everything .= $after_includes;
+	
+	foreach ( $file_list as $js_file )
+	{
+		$file_contents = file_get_contents("includes/clientside/static/$js_file");
+		$time = filemtime("includes/clientside/static/$js_file");
+		if ( $time > $apex )
+			$apex = $time;
+		
+		$file_contents = jsres_cache_check($js_file, $file_contents);
+		
+		$everything .= "\n\n// $js_file\n";
+		$everything .= "\n" . $file_contents;
+	}
 }
 
 // generate ETag
@@ -241,11 +241,11 @@ $etag = base64_encode(hexdecode(sha1($everything)));
 
 if ( isset($_SERVER['HTTP_IF_NONE_MATCH']) )
 {
-  if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
-  {
-    header('HTTP/1.1 304 Not Modified');
-    exit();
-  }
+	if ( "\"$etag\"" == $_SERVER['HTTP_IF_NONE_MATCH'] )
+	{
+		header('HTTP/1.1 304 Not Modified');
+		exit();
+	}
 }
 
 // generate expires header
@@ -257,7 +257,7 @@ $date = date('r', $apex);
 
 if ( defined('ENANO_JSRES_SETUP_ONLY') )
 {
-  return; // we're done setting up, break out
+	return; // we're done setting up, break out
 }
 
 header("Date: $date");
@@ -265,7 +265,7 @@ header("Last-Modified: $date");
 header("ETag: \"$etag\"");
 header("Expires: $expires");
 if ( !$do_gzip )
-  header("Content-Length: " . strlen($everything));
+	header("Content-Length: " . strlen($everything));
 
 $local_end = microtime_float();
 $local_gentime = $local_end - $local_start;
@@ -276,7 +276,7 @@ echo $everything;
 
 if ( $do_gzip )
 {
-  gzip_output();
+	gzip_output();
 }
 
 /**
@@ -288,68 +288,68 @@ if ( $do_gzip )
 
 function jsres_cache_check($js_file, $file_contents)
 {
-  global $full_compress_safe, $compress_unsafe;
-  global $disable_compress;
-  
-  if ( $disable_compress )
-    return $file_contents;
-  
-  $file_md5 = md5($file_contents);
-  
-  // Is this file cached?
-  $cache_path = ENANO_ROOT . "/cache/jsres_$js_file.json";
-  $loaded_cache = false;
-  
-  if ( file_exists($cache_path) )
-  {
-    // Load the cache file and parse it.
-    $cache_file = file_get_contents($cache_path);
-    try
-    {
-      $cache_file = enano_json_decode($cache_file);
-    }
-    catch ( Exception $e )
-    {
-      // Don't do anything - let our fallbacks come into place
-    }
-    if ( is_array($cache_file) && isset($cache_file['md5']) && isset($cache_file['src']) )
-    {
-      if ( $cache_file['md5'] === $file_md5 )
-      {
-        @header("X-Cache-Status: cache HIT, hash $file_md5");
-        $loaded_cache = true;
-        $file_contents = $cache_file['src'];
-      }
-    }
-  }
-  if ( !$loaded_cache && getConfig('cache_thumbs') == '1' )
-  {
-    // Try to open the cache file and write to it. If we can't do that, just don't compress the code.
-    $handle = @fopen($cache_path, 'w');
-    if ( $handle )
-    {
-      $aggressive = in_array($js_file, $full_compress_safe);
-      if ( !in_array($js_file, $compress_unsafe) )
-        $file_contents = perform_js_compress($file_contents, $aggressive);
-      
-      $payload = enano_json_encode(array(
-          'md5' => $file_md5,
-          'src' => $file_contents
-        ));
-      fwrite($handle, $payload);
-      fclose($handle);
-      @header("X-Cache-Status: cache MISS, new generated");
-    }
-    else
-    {
-      @header("X-Cache-Status: cache MISS, not generated");
-    }
-  }
-  else if ( !$loaded_cache )
-  {
-    @header("X-Cache-Status: cache MISS, not generated");
-  }
-  
-  return $file_contents;
+	global $full_compress_safe, $compress_unsafe;
+	global $disable_compress;
+	
+	if ( $disable_compress )
+		return $file_contents;
+	
+	$file_md5 = md5($file_contents);
+	
+	// Is this file cached?
+	$cache_path = ENANO_ROOT . "/cache/jsres_$js_file.json";
+	$loaded_cache = false;
+	
+	if ( file_exists($cache_path) )
+	{
+		// Load the cache file and parse it.
+		$cache_file = file_get_contents($cache_path);
+		try
+		{
+			$cache_file = enano_json_decode($cache_file);
+		}
+		catch ( Exception $e )
+		{
+			// Don't do anything - let our fallbacks come into place
+		}
+		if ( is_array($cache_file) && isset($cache_file['md5']) && isset($cache_file['src']) )
+		{
+			if ( $cache_file['md5'] === $file_md5 )
+			{
+				@header("X-Cache-Status: cache HIT, hash $file_md5");
+				$loaded_cache = true;
+				$file_contents = $cache_file['src'];
+			}
+		}
+	}
+	if ( !$loaded_cache && getConfig('cache_thumbs') == '1' )
+	{
+		// Try to open the cache file and write to it. If we can't do that, just don't compress the code.
+		$handle = @fopen($cache_path, 'w');
+		if ( $handle )
+		{
+			$aggressive = in_array($js_file, $full_compress_safe);
+			if ( !in_array($js_file, $compress_unsafe) )
+				$file_contents = perform_js_compress($file_contents, $aggressive);
+			
+			$payload = enano_json_encode(array(
+					'md5' => $file_md5,
+					'src' => $file_contents
+				));
+			fwrite($handle, $payload);
+			fclose($handle);
+			@header("X-Cache-Status: cache MISS, new generated");
+		}
+		else
+		{
+			@header("X-Cache-Status: cache MISS, not generated");
+		}
+	}
+	else if ( !$loaded_cache )
+	{
+		@header("X-Cache-Status: cache MISS, not generated");
+	}
+	
+	return $file_contents;
 }
 

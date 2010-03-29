@@ -29,287 +29,287 @@ var mb_previously_had_darkener = false;
 
 function MessageBox(type, title, message)
 {
-  if ( !aclDisableTransitionFX )
-  {
-    load_component('flyin');
-  }
-  
-  var y = getScrollOffset();
-  
-  // Prevent multiple instances
-  if ( document.getElementById('messageBox') )
-    return;
-  
-  if ( document.getElementById('specialLayer_darkener') )
-    if ( document.getElementById('specialLayer_darkener').style.display == 'block' )
-      mb_previously_had_darkener = true;
-  if ( !mb_previously_had_darkener )
-    darken(true);
-  if ( aclDisableTransitionFX )
-  {
-    document.getElementById('specialLayer_darkener').style.zIndex = '5';
-  }
-  var master_div = document.createElement('div');
-  master_div.style.zIndex = getHighestZ() + 1;
-  var mydiv = document.createElement('div');
-  mydiv.style.height = '200px';
-  w = getWidth();
-  h = getHeight();
-  if ( aclDisableTransitionFX )
-  {
-    master_div.style.left = ((w / 2) - 200)+'px';
-    master_div.style.top = ((h / 2) + y - 120)+'px';
-    master_div.style.position = 'absolute';
-  }
-  else
-  {
-    master_div.style.top = '-10000px';
-    master_div.style.position = ( IE ) ? 'absolute' : 'fixed';
-  }
-  z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex + 1: getHighestZ() + 1;
-  mydiv.style.backgroundColor = '#FFFFFF';
-  mydiv.style.padding = '10px';
-  mydiv.style.marginBottom = '1px';
-  mydiv.id = 'messageBox';
-  mydiv.style.overflow = 'auto';
-  
-  var buttondiv = document.createElement('div');
-  
-  mydiv.style.width = '400px';
-  buttondiv.style.width = '400px';
-  
-  w = getWidth();
-  h = getHeight();
-  if ( aclDisableTransitionFX )
-  {
-    //buttondiv.style.left = ((w / 2) - 200)+'px';
-    //buttondiv.style.top = ((h / 2) + y + 101)+'px';
-  }
-  //buttondiv.style.position = ( IE ) ? 'absolute' : 'fixed';
-  z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex : getHighestZ();
-  buttondiv.style.backgroundColor = '#C0C0C0';
-  buttondiv.style.padding = '10px';
-  buttondiv.style.textAlign = 'right';
-  buttondiv.style.verticalAlign = 'middle';
-  buttondiv.id = 'messageBoxButtons';
-  
-  this.clickHandler = function() { messagebox_click(this, mb_current_obj); };
-  
-  if( ( type & MB_ICONINFORMATION || type & MB_ICONSTOP || type & MB_ICONQUESTION || type & MB_ICONEXCLAMATION ) && !(type & MB_ICONLOCK) )
-  {
-    mydiv.style.paddingLeft = '50px';
-    mydiv.style.width = '360px';
-    mydiv.style.backgroundRepeat = 'no-repeat';
-    mydiv.style.backgroundPosition = '8px 8px';
-  }
-  else if ( type & MB_ICONLOCK )
-  {
-    mydiv.style.paddingLeft = '50px';
-    mydiv.style.width = '360px';
-    mydiv.style.backgroundRepeat = 'no-repeat';
-  }
-  
-  if(type & MB_ICONINFORMATION)
-  {
-    mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/info.png\')';
-  }
-  
-  if(type & MB_ICONQUESTION)
-  {
-    mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/question.png\')';
-  }
-  
-  if(type & MB_ICONSTOP)
-  {
-    mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/error.png\')';
-  }
-  
-  if(type & MB_ICONEXCLAMATION)
-  {
-    mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/warning.png\')';
-  }
-  
-  if(type & MB_ICONLOCK)
-  {
-    mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/lock.png\')';
-  }
-  
-  if(type & MB_OK)
-  {
-    btn = document.createElement('input');
-    btn.type = 'button';
-    btn.value = $lang.get('etc_ok');
-    btn._GenericName = 'OK';
-    btn.onclick = this.clickHandler;
-    btn.style.margin = '0 3px';
-    buttondiv.appendChild(btn);
-  }
-  
-  if(type & MB_OKCANCEL)
-  {
-    btn = document.createElement('input');
-    btn.type = 'button';
-    btn.value = $lang.get('etc_ok');
-    btn._GenericName = 'OK';
-    btn.onclick = this.clickHandler;
-    btn.style.margin = '0 3px';
-    buttondiv.appendChild(btn);
-    
-    btn = document.createElement('input');
-    btn.type = 'button';
-    btn.value = $lang.get('etc_cancel');
-    btn._GenericName = 'Cancel';
-    btn.onclick = this.clickHandler;
-    btn.style.margin = '0 3px';
-    buttondiv.appendChild(btn);
-  }
-  
-  if(type & MB_YESNO)
-  {
-    btn = document.createElement('input');
-    btn.type = 'button';
-    btn.value = $lang.get('etc_yes');
-    btn._GenericName = 'Yes';
-    btn.onclick = this.clickHandler;
-    btn.style.margin = '0 3px';
-    buttondiv.appendChild(btn);
-    
-    btn = document.createElement('input');
-    btn.type = 'button';
-    btn.value = $lang.get('etc_no');
-    btn._GenericName = 'No';
-    btn.onclick = this.clickHandler;
-    btn.style.margin = '0 3px';
-    buttondiv.appendChild(btn);
-  }
-  
-  if(type & MB_YESNOCANCEL)
-  {
-    btn = document.createElement('input');
-    btn.type = 'button';
-    btn.value = $lang.get('etc_yes');
-    btn._GenericName = 'Yes';
-    btn.onclick = this.clickHandler;
-    btn.style.margin = '0 3px';
-    buttondiv.appendChild(btn);
-    
-    btn = document.createElement('input');
-    btn.type = 'button';
-    btn.value = $lang.get('etc_no');
-    btn._GenericName = 'No';
-    btn.onclick = this.clickHandler;
-    btn.style.margin = '0 3px';
-    buttondiv.appendChild(btn);
-    
-    btn = document.createElement('input');
-    btn.type = 'button';
-    btn.value = $lang.get('etc_cancel');
-    btn._GenericName = 'Cancel';
-    btn.onclick = this.clickHandler;
-    btn.style.margin = '0 3px';
-    buttondiv.appendChild(btn);
-  }
-  
-  heading = document.createElement('h2');
-  heading.innerHTML = title;
-  heading.style.color = '#50A0D0';
-  heading.style.fontFamily = 'trebuchet ms, verdana, arial, helvetica, sans-serif';
-  heading.style.fontSize = '12pt';
-  heading.style.fontWeight = 'lighter';
-  heading.style.textTransform = 'lowercase';
-  heading.style.marginTop = '0';
-  mydiv.appendChild(heading);
-  
-  var text = document.createElement('div');
-  text.innerHTML = String(message);
-  this.text_area = text;
-  mydiv.appendChild(text);
-  
-  this.updateContent = function(text)
-    {
-      this.text_area.innerHTML = text;
-    };
-    
-  this.destroy = function()
-    {
-      var mbdiv = document.getElementById('messageBox');
-      mbdiv.parentNode.parentNode.removeChild(mbdiv.parentNode);
-      if ( !mb_previously_had_darkener )
-        enlighten(true);
-    };
-  
-  //domObjChangeOpac(0, mydiv);
-  //domObjChangeOpac(0, master_div);
-  
-  body = document.getElementsByTagName('body');
-  body = body[0];
-  master_div.appendChild(mydiv);
-  master_div.appendChild(buttondiv);
-  
-  body.appendChild(master_div);
-  
-  if ( !aclDisableTransitionFX )
-    setTimeout('mb_runFlyIn();', 100);
-  
-  this.onclick = new Array();
-  this.onbeforeclick = new Array();
-  mb_current_obj = this;
+	if ( !aclDisableTransitionFX )
+	{
+		load_component('flyin');
+	}
+	
+	var y = getScrollOffset();
+	
+	// Prevent multiple instances
+	if ( document.getElementById('messageBox') )
+		return;
+	
+	if ( document.getElementById('specialLayer_darkener') )
+		if ( document.getElementById('specialLayer_darkener').style.display == 'block' )
+			mb_previously_had_darkener = true;
+	if ( !mb_previously_had_darkener )
+		darken(true);
+	if ( aclDisableTransitionFX )
+	{
+		document.getElementById('specialLayer_darkener').style.zIndex = '5';
+	}
+	var master_div = document.createElement('div');
+	master_div.style.zIndex = getHighestZ() + 1;
+	var mydiv = document.createElement('div');
+	mydiv.style.height = '200px';
+	w = getWidth();
+	h = getHeight();
+	if ( aclDisableTransitionFX )
+	{
+		master_div.style.left = ((w / 2) - 200)+'px';
+		master_div.style.top = ((h / 2) + y - 120)+'px';
+		master_div.style.position = 'absolute';
+	}
+	else
+	{
+		master_div.style.top = '-10000px';
+		master_div.style.position = ( IE ) ? 'absolute' : 'fixed';
+	}
+	z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex + 1: getHighestZ() + 1;
+	mydiv.style.backgroundColor = '#FFFFFF';
+	mydiv.style.padding = '10px';
+	mydiv.style.marginBottom = '1px';
+	mydiv.id = 'messageBox';
+	mydiv.style.overflow = 'auto';
+	
+	var buttondiv = document.createElement('div');
+	
+	mydiv.style.width = '400px';
+	buttondiv.style.width = '400px';
+	
+	w = getWidth();
+	h = getHeight();
+	if ( aclDisableTransitionFX )
+	{
+		//buttondiv.style.left = ((w / 2) - 200)+'px';
+		//buttondiv.style.top = ((h / 2) + y + 101)+'px';
+	}
+	//buttondiv.style.position = ( IE ) ? 'absolute' : 'fixed';
+	z = ( aclDisableTransitionFX ) ? document.getElementById('specialLayer_darkener').style.zIndex : getHighestZ();
+	buttondiv.style.backgroundColor = '#C0C0C0';
+	buttondiv.style.padding = '10px';
+	buttondiv.style.textAlign = 'right';
+	buttondiv.style.verticalAlign = 'middle';
+	buttondiv.id = 'messageBoxButtons';
+	
+	this.clickHandler = function() { messagebox_click(this, mb_current_obj); };
+	
+	if( ( type & MB_ICONINFORMATION || type & MB_ICONSTOP || type & MB_ICONQUESTION || type & MB_ICONEXCLAMATION ) && !(type & MB_ICONLOCK) )
+	{
+		mydiv.style.paddingLeft = '50px';
+		mydiv.style.width = '360px';
+		mydiv.style.backgroundRepeat = 'no-repeat';
+		mydiv.style.backgroundPosition = '8px 8px';
+	}
+	else if ( type & MB_ICONLOCK )
+	{
+		mydiv.style.paddingLeft = '50px';
+		mydiv.style.width = '360px';
+		mydiv.style.backgroundRepeat = 'no-repeat';
+	}
+	
+	if(type & MB_ICONINFORMATION)
+	{
+		mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/info.png\')';
+	}
+	
+	if(type & MB_ICONQUESTION)
+	{
+		mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/question.png\')';
+	}
+	
+	if(type & MB_ICONSTOP)
+	{
+		mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/error.png\')';
+	}
+	
+	if(type & MB_ICONEXCLAMATION)
+	{
+		mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/warning.png\')';
+	}
+	
+	if(type & MB_ICONLOCK)
+	{
+		mydiv.style.backgroundImage = 'url(\''+scriptPath+'/images/lock.png\')';
+	}
+	
+	if(type & MB_OK)
+	{
+		btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = $lang.get('etc_ok');
+		btn._GenericName = 'OK';
+		btn.onclick = this.clickHandler;
+		btn.style.margin = '0 3px';
+		buttondiv.appendChild(btn);
+	}
+	
+	if(type & MB_OKCANCEL)
+	{
+		btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = $lang.get('etc_ok');
+		btn._GenericName = 'OK';
+		btn.onclick = this.clickHandler;
+		btn.style.margin = '0 3px';
+		buttondiv.appendChild(btn);
+		
+		btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = $lang.get('etc_cancel');
+		btn._GenericName = 'Cancel';
+		btn.onclick = this.clickHandler;
+		btn.style.margin = '0 3px';
+		buttondiv.appendChild(btn);
+	}
+	
+	if(type & MB_YESNO)
+	{
+		btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = $lang.get('etc_yes');
+		btn._GenericName = 'Yes';
+		btn.onclick = this.clickHandler;
+		btn.style.margin = '0 3px';
+		buttondiv.appendChild(btn);
+		
+		btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = $lang.get('etc_no');
+		btn._GenericName = 'No';
+		btn.onclick = this.clickHandler;
+		btn.style.margin = '0 3px';
+		buttondiv.appendChild(btn);
+	}
+	
+	if(type & MB_YESNOCANCEL)
+	{
+		btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = $lang.get('etc_yes');
+		btn._GenericName = 'Yes';
+		btn.onclick = this.clickHandler;
+		btn.style.margin = '0 3px';
+		buttondiv.appendChild(btn);
+		
+		btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = $lang.get('etc_no');
+		btn._GenericName = 'No';
+		btn.onclick = this.clickHandler;
+		btn.style.margin = '0 3px';
+		buttondiv.appendChild(btn);
+		
+		btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = $lang.get('etc_cancel');
+		btn._GenericName = 'Cancel';
+		btn.onclick = this.clickHandler;
+		btn.style.margin = '0 3px';
+		buttondiv.appendChild(btn);
+	}
+	
+	heading = document.createElement('h2');
+	heading.innerHTML = title;
+	heading.style.color = '#50A0D0';
+	heading.style.fontFamily = 'trebuchet ms, verdana, arial, helvetica, sans-serif';
+	heading.style.fontSize = '12pt';
+	heading.style.fontWeight = 'lighter';
+	heading.style.textTransform = 'lowercase';
+	heading.style.marginTop = '0';
+	mydiv.appendChild(heading);
+	
+	var text = document.createElement('div');
+	text.innerHTML = String(message);
+	this.text_area = text;
+	mydiv.appendChild(text);
+	
+	this.updateContent = function(text)
+		{
+			this.text_area.innerHTML = text;
+		};
+		
+	this.destroy = function()
+		{
+			var mbdiv = document.getElementById('messageBox');
+			mbdiv.parentNode.parentNode.removeChild(mbdiv.parentNode);
+			if ( !mb_previously_had_darkener )
+				enlighten(true);
+		};
+	
+	//domObjChangeOpac(0, mydiv);
+	//domObjChangeOpac(0, master_div);
+	
+	body = document.getElementsByTagName('body');
+	body = body[0];
+	master_div.appendChild(mydiv);
+	master_div.appendChild(buttondiv);
+	
+	body.appendChild(master_div);
+	
+	if ( !aclDisableTransitionFX )
+		setTimeout('mb_runFlyIn();', 100);
+	
+	this.onclick = new Array();
+	this.onbeforeclick = new Array();
+	mb_current_obj = this;
 }
 
 var messagebox = MessageBox;
 
 function mb_runFlyIn()
 {
-  var mydiv = document.getElementById('messageBox');
-  var maindiv = mydiv.parentNode;
-  fly_in_top(maindiv, true, false);
+	var mydiv = document.getElementById('messageBox');
+	var maindiv = mydiv.parentNode;
+	fly_in_top(maindiv, true, false);
 }
 
 function messagebox_click(obj, mb)
 {
-  val = ( typeof ( obj._GenericName ) == 'string' ) ? obj._GenericName : obj.value;
-  if(typeof mb.onbeforeclick[val] == 'function')
-  {
-    var o = mb.onbeforeclick[val];
-    var resp = o();
-    if ( resp )
-      return false;
-    o = false;
-  }
-  
-  var mydiv = document.getElementById('messageBox');
-  var maindiv = mydiv.parentNode;
-  
-  if ( aclDisableTransitionFX )
-  {
-    var mbdiv = document.getElementById('messageBox');
-    mbdiv.parentNode.removeChild(mbdiv.nextSibling);
-    mbdiv.parentNode.removeChild(mbdiv);
-    if ( !mb_previously_had_darkener )
-      enlighten(true);
-  }
-  else
-  {
-    var to = fly_out_top(maindiv, true, false);
-    setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.parentNode.removeChild(mbdiv.parentNode); if ( !mb_previously_had_darkener ) enlighten(true);", to);
-  }
-  if(typeof mb.onclick[val] == 'function')
-  {
-    (mb.onclick[val])();
-  }
+	val = ( typeof ( obj._GenericName ) == 'string' ) ? obj._GenericName : obj.value;
+	if(typeof mb.onbeforeclick[val] == 'function')
+	{
+		var o = mb.onbeforeclick[val];
+		var resp = o();
+		if ( resp )
+			return false;
+		o = false;
+	}
+	
+	var mydiv = document.getElementById('messageBox');
+	var maindiv = mydiv.parentNode;
+	
+	if ( aclDisableTransitionFX )
+	{
+		var mbdiv = document.getElementById('messageBox');
+		mbdiv.parentNode.removeChild(mbdiv.nextSibling);
+		mbdiv.parentNode.removeChild(mbdiv);
+		if ( !mb_previously_had_darkener )
+			enlighten(true);
+	}
+	else
+	{
+		var to = fly_out_top(maindiv, true, false);
+		setTimeout("var mbdiv = document.getElementById('messageBox'); mbdiv.parentNode.parentNode.removeChild(mbdiv.parentNode); if ( !mb_previously_had_darkener ) enlighten(true);", to);
+	}
+	if(typeof mb.onclick[val] == 'function')
+	{
+		(mb.onclick[val])();
+	}
 }
 
 function testMessageBox()
 {
-  mb = new MessageBox(MB_OKCANCEL|MB_ICONINFORMATION, 'Javascripted dynamic message boxes', 'This is soooooo coool, now if only document.createElement() worked in IE!<br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text');
-  mb.onclick['OK'] = function()
-    {
-      alert('You clicked OK!');
-    }
-  mb.onbeforeclick['Cancel'] = function()
-    {
-      alert('You clicked Cancel!');
-    }
+	mb = new MessageBox(MB_OKCANCEL|MB_ICONINFORMATION, 'Javascripted dynamic message boxes', 'This is soooooo coool, now if only document.createElement() worked in IE!<br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text<br /><br /><br /><br /><br />this is some more text');
+	mb.onclick['OK'] = function()
+		{
+			alert('You clicked OK!');
+		}
+	mb.onbeforeclick['Cancel'] = function()
+		{
+			alert('You clicked Cancel!');
+		}
 }
 
 /**
@@ -319,64 +319,64 @@ function testMessageBox()
 
 function miniPrompt(call_on_create)
 {
-  if ( !aclDisableTransitionFX )
-  {
-    load_component(['flyin', 'jquery', 'jquery-ui', 'fadefilter']);
-  }
-  else
-  {
-    load_component(['fadefilter']);
-  }
-  var darkener = darken(aclDisableTransitionFX, 40, 'miniprompt_darkener');
-  
-  var wrapper = document.createElement('div');
-  wrapper.className = 'miniprompt';
-  var top = document.createElement('div');
-  top.className = 'mp-top';
-  var body = document.createElement('div');
-  body.className = 'mp-body';
-  var bottom = document.createElement('div');
-  bottom.className = 'mp-bottom';
-  if ( typeof(call_on_create) == 'function' )
-  {
-    call_on_create(body);
-  }
-  wrapper.appendChild(top);
-  wrapper.appendChild(body);
-  wrapper.appendChild(bottom);
-  var left = ( getWidth() / 2 ) - ( 388 / 2 );
-  wrapper.style.left = left + 'px';
-  var top = getScrollOffset() - 27;
-  wrapper.style.top = top + 'px';
-  domObjChangeOpac(0, wrapper);
-  var realbody = document.getElementsByTagName('body')[0];
-  realbody.appendChild(wrapper);
-  
-  if ( aclDisableTransitionFX )
-  {
-    domObjChangeOpac(100, wrapper);
-  }
-  else
-  {
-    fly_in_top(wrapper, true, true);
-    
-    setTimeout(function()
-      {
-        domObjChangeOpac(100, wrapper);
-      }, 40);
-  }
-  
-  // set the darkener's onclick to refocus/shake the miniprompt
-  darkener.miniprompt = wrapper;
-  darkener.onclick = function()
-  {
-    if ( !aclDisableTransitionFX )
-    {
-      $(this.miniprompt).effect("pulsate", { times: 2 }, 200);
-    }
-  }
-  
-  return wrapper;
+	if ( !aclDisableTransitionFX )
+	{
+		load_component(['flyin', 'jquery', 'jquery-ui', 'fadefilter']);
+	}
+	else
+	{
+		load_component(['fadefilter']);
+	}
+	var darkener = darken(aclDisableTransitionFX, 40, 'miniprompt_darkener');
+	
+	var wrapper = document.createElement('div');
+	wrapper.className = 'miniprompt';
+	var top = document.createElement('div');
+	top.className = 'mp-top';
+	var body = document.createElement('div');
+	body.className = 'mp-body';
+	var bottom = document.createElement('div');
+	bottom.className = 'mp-bottom';
+	if ( typeof(call_on_create) == 'function' )
+	{
+		call_on_create(body);
+	}
+	wrapper.appendChild(top);
+	wrapper.appendChild(body);
+	wrapper.appendChild(bottom);
+	var left = ( getWidth() / 2 ) - ( 388 / 2 );
+	wrapper.style.left = left + 'px';
+	var top = getScrollOffset() - 27;
+	wrapper.style.top = top + 'px';
+	domObjChangeOpac(0, wrapper);
+	var realbody = document.getElementsByTagName('body')[0];
+	realbody.appendChild(wrapper);
+	
+	if ( aclDisableTransitionFX )
+	{
+		domObjChangeOpac(100, wrapper);
+	}
+	else
+	{
+		fly_in_top(wrapper, true, true);
+		
+		setTimeout(function()
+			{
+				domObjChangeOpac(100, wrapper);
+			}, 40);
+	}
+	
+	// set the darkener's onclick to refocus/shake the miniprompt
+	darkener.miniprompt = wrapper;
+	darkener.onclick = function()
+	{
+		if ( !aclDisableTransitionFX )
+		{
+			$(this.miniprompt).effect("pulsate", { times: 2 }, 200);
+		}
+	}
+	
+	return wrapper;
 }
 
 /**
@@ -387,19 +387,19 @@ function miniPrompt(call_on_create)
 
 function miniPromptGetParent(obj)
 {
-  while ( true )
-  {
-    // prevent infinite loops
-    if ( !obj || obj.tagName == 'BODY' )
-      return false;
-    
-    if ( $dynano(obj).hasClass('miniprompt') )
-    {
-      return obj;
-    }
-    obj = obj.parentNode;
-  }
-  return false;
+	while ( true )
+	{
+		// prevent infinite loops
+		if ( !obj || obj.tagName == 'BODY' )
+			return false;
+		
+		if ( $dynano(obj).hasClass('miniprompt') )
+		{
+			return obj;
+		}
+		obj = obj.parentNode;
+	}
+	return false;
 }
 
 /**
@@ -411,27 +411,27 @@ function miniPromptGetParent(obj)
 
 function miniPromptDestroy(obj, nofade)
 {
-  obj = miniPromptGetParent(obj);
-  if ( !obj )
-    return false;
-  
-  // found it
-  var parent = obj.parentNode;
-  // if ( !nofade )
-  //   enlighten(aclDisableTransitionFX);
-  enlighten((aclDisableTransitionFX || nofade), 'miniprompt_darkener');
-  if ( aclDisableTransitionFX || nofade )
-  {
-    parent.removeChild(obj);
-  }
-  else
-  {
-    var timeout = fly_out_top(obj, true, true);
-    setTimeout(function()
-      {
-        parent.removeChild(obj);
-      }, timeout);
-  }
+	obj = miniPromptGetParent(obj);
+	if ( !obj )
+		return false;
+	
+	// found it
+	var parent = obj.parentNode;
+	// if ( !nofade )
+	//   enlighten(aclDisableTransitionFX);
+	enlighten((aclDisableTransitionFX || nofade), 'miniprompt_darkener');
+	if ( aclDisableTransitionFX || nofade )
+	{
+		parent.removeChild(obj);
+	}
+	else
+	{
+		var timeout = fly_out_top(obj, true, true);
+		setTimeout(function()
+			{
+				parent.removeChild(obj);
+			}, timeout);
+	}
 }
 
 /**
@@ -440,7 +440,7 @@ function miniPromptDestroy(obj, nofade)
 
 function miniPromptTest()
 {
-  miniPrompt(function(div) { div.innerHTML = 'hello world! <a href="#" onclick="miniPromptDestroy(this); return false;">destroy me</a>'; });
+	miniPrompt(function(div) { div.innerHTML = 'hello world! <a href="#" onclick="miniPromptDestroy(this); return false;">destroy me</a>'; });
 }
 
 /**
@@ -448,127 +448,127 @@ function miniPromptTest()
  * @example
  <code>
  miniPromptMessage({
-   title: 'Delete page',
-   message: 'Do you really want to delete this page? This is reversible unless you clear the page logs.',
-   buttons: [
-     {
-       text: 'Delete',
-       color: 'red',
-       style: {
-         fontWeight: 'bold'
-       },
-       onclick: function() {
-         ajaxDeletePage();
-         miniPromptDestroy(this);
-       }
-     },
-     {
-       text: 'cancel',
-       onclick: function() {
-         miniPromptDestroy(this);
-       }
-     }
-   ]
+ 	title: 'Delete page',
+ 	message: 'Do you really want to delete this page? This is reversible unless you clear the page logs.',
+ 	buttons: [
+ 		{
+ 			text: 'Delete',
+ 			color: 'red',
+ 			style: {
+ 				fontWeight: 'bold'
+ 			},
+ 			onclick: function() {
+ 				ajaxDeletePage();
+ 				miniPromptDestroy(this);
+ 			}
+ 		},
+ 		{
+ 			text: 'cancel',
+ 			onclick: function() {
+ 				miniPromptDestroy(this);
+ 			}
+ 		}
+ 	]
  });
  </code>
  */
 
 function miniPromptMessage(parms)
 {
-  if ( ( !parms.title && !parms.message ) || !parms.buttons )
-    return false;
-  
-  return miniPrompt(function(parent)
-    {
-      try
-      {
-        if ( parms.title )
-        {
-          var h3 = document.createElement('h3');
-          h3.appendChild(document.createTextNode(parms.title));
-        }
-        if ( parms.message )
-        {
-          var body = document.createElement('p');
-          var message = parms.message.split(unescape('%0A'));
-          for ( var i = 0; i < message.length; i++ )
-          {
-            body.appendChild(document.createTextNode(message[i]));
-            if ( i + 1 < message.length )
-              body.appendChild(document.createElement('br'));
-          }
-        }
-        
-        parent.style.textAlign = 'center';
-        
-        if ( parms.title )
-          parent.appendChild(h3);
-        if ( parms.message )
-          parent.appendChild(body);
-        parent.appendChild(document.createElement('br'));
-        
-        // construct buttons
-        for ( var i = 0; i < parms.buttons.length; i++ )
-        {
-          var button = parms.buttons[i];
-          button.input = document.createElement('a');
-          button.input.href = '#';
-          button.input.clickAction = button.onclick;
-          button.input.className = 'abutton';
-          if ( button.color )
-          {
-            button.input.className += ' abutton_' + button.color;
-          }
-          button.input.appendChild(document.createTextNode(button.text));
-          if ( button.style )
-          {
-            for ( var j in button.style )
-            {
-              button.input.style[j] = button.style[j];
-            }
-          }
-          if ( button.sprite )
-          {
-            var sprite = gen_sprite(button.sprite[0], button.sprite[1], button.sprite[2], button.sprite[3], button.sprite[4]);
-            sprite.style.position = 'relative';
-            sprite.style.top = '3px';
-            button.input.insertBefore(sprite, button.input.firstChild);
-            insertAfter(button.input, document.createTextNode(' '), sprite);
-          }
-          else if ( button.image )
-          {
-            button.input.className += ' icon';
-            button.input.style.backgroundImage = 'url(' + button.image + ')';
-          }
-          button.input.onclick = function(e)
-          {
-            try
-            {
-              this.clickAction(e);
-            }
-            catch(e)
-            {
-              console.error(e);
-            }
-            return false;
-          }
-          parent.appendChild(button.input);
-        }
-        // don't focus this in opera - it looks kinda ugly
-        if ( parms.buttons[0] && !window.opera )
-        {
-          var timeout = ( aclDisableTransitionFX ) ? 10 : 1000;
-          setTimeout(function()
-            {
-              parms.buttons[0].input.focus();
-            }, timeout);
-        }
-      }
-      catch ( e )
-      {
-        console.error(e);
-      }
-    });
+	if ( ( !parms.title && !parms.message ) || !parms.buttons )
+		return false;
+	
+	return miniPrompt(function(parent)
+		{
+			try
+			{
+				if ( parms.title )
+				{
+					var h3 = document.createElement('h3');
+					h3.appendChild(document.createTextNode(parms.title));
+				}
+				if ( parms.message )
+				{
+					var body = document.createElement('p');
+					var message = parms.message.split(unescape('%0A'));
+					for ( var i = 0; i < message.length; i++ )
+					{
+						body.appendChild(document.createTextNode(message[i]));
+						if ( i + 1 < message.length )
+							body.appendChild(document.createElement('br'));
+					}
+				}
+				
+				parent.style.textAlign = 'center';
+				
+				if ( parms.title )
+					parent.appendChild(h3);
+				if ( parms.message )
+					parent.appendChild(body);
+				parent.appendChild(document.createElement('br'));
+				
+				// construct buttons
+				for ( var i = 0; i < parms.buttons.length; i++ )
+				{
+					var button = parms.buttons[i];
+					button.input = document.createElement('a');
+					button.input.href = '#';
+					button.input.clickAction = button.onclick;
+					button.input.className = 'abutton';
+					if ( button.color )
+					{
+						button.input.className += ' abutton_' + button.color;
+					}
+					button.input.appendChild(document.createTextNode(button.text));
+					if ( button.style )
+					{
+						for ( var j in button.style )
+						{
+							button.input.style[j] = button.style[j];
+						}
+					}
+					if ( button.sprite )
+					{
+						var sprite = gen_sprite(button.sprite[0], button.sprite[1], button.sprite[2], button.sprite[3], button.sprite[4]);
+						sprite.style.position = 'relative';
+						sprite.style.top = '3px';
+						button.input.insertBefore(sprite, button.input.firstChild);
+						insertAfter(button.input, document.createTextNode(' '), sprite);
+					}
+					else if ( button.image )
+					{
+						button.input.className += ' icon';
+						button.input.style.backgroundImage = 'url(' + button.image + ')';
+					}
+					button.input.onclick = function(e)
+					{
+						try
+						{
+							this.clickAction(e);
+						}
+						catch(e)
+						{
+							console.error(e);
+						}
+						return false;
+					}
+					parent.appendChild(button.input);
+				}
+				// don't focus this in opera - it looks kinda ugly
+				if ( parms.buttons[0] && !window.opera )
+				{
+					var timeout = ( aclDisableTransitionFX ) ? 10 : 1000;
+					setTimeout(function()
+						{
+							parms.buttons[0].input.focus();
+						}, timeout);
+				}
+			}
+			catch ( e )
+			{
+				console.error(e);
+			}
+		});
 }
 
 /**
@@ -577,105 +577,105 @@ function miniPromptMessage(parms)
 
 function whiteOutMiniPrompt(el)
 {
-  el = miniPromptGetParent(el);
-  var width = 320;
-  var height = $dynano(el).Height() - 58;
-  var topoffset = 27;
-  
-  var container = document.createElement('div');
-  container.style.padding = topoffset + 'px 0 0 0';
+	el = miniPromptGetParent(el);
+	var width = 320;
+	var height = $dynano(el).Height() - 58;
+	var topoffset = 27;
+	
+	var container = document.createElement('div');
+	container.style.padding = topoffset + 'px 0 0 0';
 
-  var top = getScrollOffset();
-  var left = getWidth() / 2 - width / 2;
-  
-  // using fixed here allows modal windows to be blacked out
-  container.style.position = 'absolute';
-  container.style.top = ( top - topoffset ) + 'px';
-  container.style.left = left + 'px';
-  container.style.zIndex = 1000;
-  
-  var blackout = document.createElement('div');
-  blackout.style.backgroundColor = '#ffffff';
-  blackout.style.width = width + 'px';
-  blackout.style.height = height + 'px';
-  domObjChangeOpac(60, blackout);
-  var background = ( $dynano(el).Height() < 48 ) ? 'url(' + scriptPath + '/images/loading.gif)' : 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
-  blackout.style.backgroundImage = background;
-  blackout.style.backgroundPosition = 'center center';
-  blackout.style.backgroundRepeat = 'no-repeat';
-  blackout.isMiniPrompt = true;
-  blackout.miniPromptObj = el;
-  
-  container.appendChild(blackout);
-  var body = document.getElementsByTagName('body')[0];
-  body.appendChild(container);
-  
-  return blackout;
+	var top = getScrollOffset();
+	var left = getWidth() / 2 - width / 2;
+	
+	// using fixed here allows modal windows to be blacked out
+	container.style.position = 'absolute';
+	container.style.top = ( top - topoffset ) + 'px';
+	container.style.left = left + 'px';
+	container.style.zIndex = 1000;
+	
+	var blackout = document.createElement('div');
+	blackout.style.backgroundColor = '#ffffff';
+	blackout.style.width = width + 'px';
+	blackout.style.height = height + 'px';
+	domObjChangeOpac(60, blackout);
+	var background = ( $dynano(el).Height() < 48 ) ? 'url(' + scriptPath + '/images/loading.gif)' : 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
+	blackout.style.backgroundImage = background;
+	blackout.style.backgroundPosition = 'center center';
+	blackout.style.backgroundRepeat = 'no-repeat';
+	blackout.isMiniPrompt = true;
+	blackout.miniPromptObj = el;
+	
+	container.appendChild(blackout);
+	var body = document.getElementsByTagName('body')[0];
+	body.appendChild(container);
+	
+	return blackout;
 }
 
 function whiteOutDestroyOnMiniPrompt(whitey)
 {
-  var body = document.getElementsByTagName('body')[0];
-  var parent = whitey.miniPromptObj;
-  fly_out_top([parent, whitey.parentNode], true, true);
-  setTimeout(function()
-    {
-      body.removeChild(parent);
-      body.removeChild(whitey.parentNode);
-    }, 1000 * FI_MULTIPLIER);
-  enlighten(true, 'miniprompt_darkener');
+	var body = document.getElementsByTagName('body')[0];
+	var parent = whitey.miniPromptObj;
+	fly_out_top([parent, whitey.parentNode], true, true);
+	setTimeout(function()
+		{
+			body.removeChild(parent);
+			body.removeChild(whitey.parentNode);
+		}, 1000 * FI_MULTIPLIER);
+	enlighten(true, 'miniprompt_darkener');
 }
 
 function testMPMessageBox()
 {
-  miniPromptMessage({
-    title: 'The Game of LIFE question #73',
-    message: 'You just got your girlfriend pregnant. Please select an option:',
-    buttons: [
-      {
-        text: 'Abort',
-        color: 'red',
-        style: {
-          fontWeight: 'bold'
-        },
-        sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 0 ],
-        onclick: function() {
-          var w = whiteOutMiniPrompt(this);
-          var me = this;
-          setTimeout(function()
-            {
-              whiteOutReportSuccess(w, true);
-              void(me);
-              setTimeout(function()
-                {
-                  miniPromptDestroy(me);
-                }, 1250);
-            }, 500);
-          return false;
-        }
-      },
-      {
-        text: 'Retry',
-        color: 'blue',
-        sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 16 ],
-        onclick: function() {
-          var w = whiteOutMiniPrompt(this);
-          setTimeout(function()
-            {
-              whiteOutReportSuccess(w);
-            }, 1500);
-          return false;
-        }
-      },
-      {
-        text: 'Ignore',
-        color: 'green',
-        sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 32 ],
-        onclick: function() {
-          miniPromptDestroy(this);
-        }
-      }
-    ]
-  });
+	miniPromptMessage({
+		title: 'The Game of LIFE question #73',
+		message: 'You just got your girlfriend pregnant. Please select an option:',
+		buttons: [
+			{
+				text: 'Abort',
+				color: 'red',
+				style: {
+					fontWeight: 'bold'
+				},
+				sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 0 ],
+				onclick: function() {
+					var w = whiteOutMiniPrompt(this);
+					var me = this;
+					setTimeout(function()
+						{
+							whiteOutReportSuccess(w, true);
+							void(me);
+							setTimeout(function()
+								{
+									miniPromptDestroy(me);
+								}, 1250);
+						}, 500);
+					return false;
+				}
+			},
+			{
+				text: 'Retry',
+				color: 'blue',
+				sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 16 ],
+				onclick: function() {
+					var w = whiteOutMiniPrompt(this);
+					setTimeout(function()
+						{
+							whiteOutReportSuccess(w);
+						}, 1500);
+					return false;
+				}
+			},
+			{
+				text: 'Ignore',
+				color: 'green',
+				sprite: [ cdnPath + '/images/icons/abortretryignore-sprite.png', 16, 16, 0, 32 ],
+				onclick: function() {
+					miniPromptDestroy(this);
+				}
+			}
+		]
+	});
 }
 

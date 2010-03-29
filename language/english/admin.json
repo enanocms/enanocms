@@ -11,1233 +11,1233 @@
  */
 
 var enano_lang = {
-  categories: [
-    'meta', 'adm', 'acl', 'adminusers',
-    'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acplm', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl',
-    'acpcm', 'acpbc', 'acplo', 'acptm', 'acpur', 'sbedit',
-  ],
-  strings: {
-    meta: {
-      adm: 'Administration panel nav menu',
-      acl: 'Access control list editor',
-      acphome: 'ACP: Home',
-      acpgc: 'ACP: General configuration',
-      acpup: 'ACP: File uploads',
-      acpft: 'ACP: Allowed file types',
-      acppm: 'ACP: Manage pages',
-      acped: 'ACP: Edit page content',
-      acptm: 'ACP: Theme manager',
-      acppl: 'ACP: Manage plugins',
-      acpdb: 'ACP: Database backup',
-      acplm: 'ACP: Language manager',
-      acpcm: 'ACP: Cache settings',
-      acppg: 'ACP: Page groups',
-      acpum: 'ACP: User management',
-      acpur: 'ACP: User rank management',
-      acpug: 'ACP: User group management',
-      acpcp: 'ACP: COPPA support',
-      acpmm: 'ACP: Mass e-mail',
-      acpsl: 'ACP: Security log',
-      acpbc: 'ACP: Ban control',
-      acplo: 'ACP: Logout page',
-      sbedit: 'Sidebar editor',
-    },
-    adm: {
-      page_tagline: 'Administer your Enano website.',
-      
-      cat_general: 'General',
-      cat_content: 'Content',
-      cat_appearance: 'System and maintenance',
-      cat_users: 'Users',
-      cat_security: 'Security',
-      cat_plugins: 'Plugin configuration',
-      
-      page_general_config: 'General configuration',
-      page_file_uploads: 'File uploads',
-      page_file_types: 'Allowed file types',
-      
-      page_manager: 'Manage pages',
-      page_editor: 'Edit page content',
-      page_pg_groups: 'Manage page groups',
-      
-      page_themes: 'Manage themes',
-      page_plugins: 'Manage plugins',
-      page_db_backup: 'Backup database',
-      page_lang_manager: 'Language manager',
-      page_cache_manager: 'Cache settings',
-      
-      page_users: 'Manage users',
-      page_user_groups: 'Edit user groups',
-      page_coppa: 'COPPA support',
-      page_mass_email: 'Mass e-mail',
-      page_user_ranks: 'User ranks and titles',
-      
-      page_security_log: 'Security log',
-      page_ban_control: 'Ban control',
-      
-      btn_home: 'Administration panel home',
-      btn_logout: 'Log out of admin panel',
-      btn_keepalive_off: 'Turn on keep-alive',
-      btn_keepalive_on: 'Turn off keep-alive',
-      btn_keepalive_about: 'About keep-alive',
-      btn_keepalive_loading: 'Loading keep-alive button...',
-      
-      err_not_auth_title: 'Error: Not authenticated',
-      err_not_auth_body: 'It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="%login_link%">re-authenticate</a> to continue.',
-    },
-    acl: {
-      err_access_denied: 'You are not authorized to view or edit access control lists.',
-      err_missing_template: 'It seems that (a) the file acledit.tpl is missing from this theme, and (b) the JSON response is working.',
-      err_user_not_found: 'The username you entered was not found.',
-      err_bad_group_id: 'The group ID you submitted is not valid.',
-      err_demo: 'Editing access control lists is disabled in the administration demo.',
-      err_zero_list: 'Supplied rule list has a length of zero',
-      err_pleaseselect_targettype: 'Please select a target type.',
-      err_pleaseselect_username: 'Please enter a username.',
-      err_select_preset: 'Please select a preset to load.',
-      err_preset_name_empty: 'Please enter a name for this preset.',
-      err_preset_is_blank: 'The preset you entered seems completely empty (i.e. all permissions set to "inherit")',
-      
-      radio_usergroup: 'A usergroup',
-      radio_user: 'A specific user',
-      radio_scope_thispage: 'Only this page',
-      radio_scope_wholesite: 'The entire website',
-      radio_scope_pagegroup: 'A group of pages',
-      
-      lbl_scope: 'What should this access rule control?',
-      lbl_welcome_title: 'Manage page access',
-      lbl_welcome_body: 'Please select who should be affected by this access rule.',
-      lbl_trace_title: 'View effective permissions',
-      lbl_trace_body: 'See what permissions are effective and where. <a href="http://docs.enanocms.org/Help:4.2" onclick="window.open(this.href); return false;">Learn about precedence and scope</a>',
-      lbl_editwin_title_create: 'Create access rule',
-      lbl_editwin_title_edit: 'Editing permissions',
-      lbl_editwin_body: 'This panel allows you to edit what the %target_type% "<b>%target%</b>" can do on <b>%scope_type%</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.',
-      lbl_deleterule: 'Delete this rule',
-      lbl_save_success_title: 'Permissions updated',
-      lbl_save_success_body: 'The permissions for %target_name% on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.',
-      lbl_delete_success: 'Rule deleted. ',
-      lbl_preset_load_title: 'Load a preset',
-      lbl_preset_load: 'Select a preset...',
-      lbl_preset_save_title: 'Enter a name for this preset',
-      lbl_field_inherit: 'Inherit',
-      lbl_field_deny: 'Deny',
-      lbl_field_disallow: 'Disallow',
-      lbl_field_wikimode: 'Wiki mode',
-      lbl_field_allow: 'Allow',
-      lbl_help: '<p>
-                   <b>Permission types:</b>
-                 </p>
-                 <ul>
-                   <li><b>Allow</b> means that the user is allowed to access the item</li>
-                   <li><b>Wiki mode</b> means the user can access the item if wiki mode is active (per-page wiki mode is taken into account)</li>
-                   <li><b>Disallow</b> means the user is denied access unless something allows it.</li>
-                   <li><b>Deny</b> means that the user is denied access to the item. This setting overrides all other permissions.</li>
-                   <li><b>Inherit</b> forces the permission to be unset and thus inherited from the defaults. Setting every permission to Inherit is the same as deleting the rule.</li>
-                 </ul>',
-      lbl_trace_user: 'See permissions for:',
-      lbl_trace_page: 'On page:',
-      
-      scope_type_wholesite: 'this entire site',
-      scope_type_thispage: 'this page',
-      scope_type_pagegroup: 'this group of pages',
-      
-      target_type_user: 'user',
-      target_type_group: 'group',
-      
-      msg_guest_howto: 'To edit permissions for guests, select "a specific user", and enter Anonymous as the username.',
-      msg_deleterule_confirm: 'Do you really want to delete this rule?',
-      msg_closeacl_confirm_title: 'Close the ACL manager?',
-      msg_closeacl_confirm_body: 'This will cancel any changes that you haven\'t saved.',
-      msg_deny_everyone_confirm: 'CAUTION: You are setting a Deny ruling for everyone on this site. This will block the selected actions from being performed at all. Do you really want to do this?\n\nPlease also note that the following core pages cannot be blocked: Special:Login, Special:Logout, and Special:LangExportJSON.',
-      
-      msg_scale_intro_title: 'Existing ACL rules',
-      msg_scale_intro_body: 'This is a list of all the existing ACL rules on your site. You can click an entry to edit it. Selecting the same criteria in the user and group selection page will also allow editing a rule.',
-      
-      msg_scale_allow: 'Allow',
-      msg_scale_mostly_allow: 'Mostly allow',
-      msg_scale_some_allow: 'Some allow',
-      msg_scale_mixed: 'Mixed',
-      msg_scale_some_deny: 'Some deny',
-      msg_scale_mostly_deny: 'Mostly deny',
-      msg_scale_deny: 'Deny',
-      
-      msg_list_user: '(User: %username%)',
-      msg_list_group: '(Group: %group%)',
-      msg_list_on_page: ' on page: %page_name%',
-      msg_list_on_page_group: ' for page group: %page_group%',
-      msg_list_entire_site: ' for the entire site',
-      msg_list_score: 'Score: %score% (%desc%) %info%',
-      msg_no_presets: 'No presets are defined. Define a preset by setting all the ACL settings to what you want, and then hitting Save. <a %close_flags%>Close</a>',
-      msg_debug_main_title: 'View effective permissions',
-      msg_debug_main_body: 'This tool allows you to see what actual permissions are in use. It can be helpful if you are struggling to determine why a certain action is being allowed or denied. There are two views available for this window: you can either view the information sorted by individual actions, or group actions by which rule sets them.',
-      msg_trace_key: 'Color guide',
-      msg_failed_deps: 'Failed dependencies: ',
-      
-      btn_success_dismiss: 'dismiss',
-      btn_success_close: 'close manager',
-      btn_deleterule: 'Delete rule',
-      btn_createrule: 'Create rule',
-      btn_returnto_editor: 'Return to ACL editor',
-      btn_returnto_userscope: 'Return to user/scope selection',
-      btn_show_existing: '&raquo; View existing rules',
-      btn_view_effective: '&raquo; Show diagnostic tools',
-      btn_close: 'Close ACL wizard',
-      btn_edit_presets: 'Presets: <a %load_flags%>Load</a> | <a %save_flags%>Save</a>',
-      btn_load_preset: 'Load preset',
-      btn_save_preset: 'Save preset',
-      btn_edit_rule: 'edit',
-      btn_view_key: 'View color key',
-      btn_sort_perm: 'Sort individually',
-      btn_sort_rule: 'Sort by rule',
-      
-      inherit_enano_default: 'Enano defaults',
-      inherit_global_everyone: 'Rule for everyone on the entire site',
-      inherit_global_group: 'Rule for the group "%group_name%" on the entire site',
-      inherit_global_user: 'Rule for this user on the entire site',
-      inherit_pg_everyone: 'Rule for everyone in the page group "%pg_name"',
-      inherit_pg_group: 'Rule for the group "%group_name%" in the page group "%pg_name%"',
-      inherit_pg_user: 'Rule for this user in the page group "%pg_name%"',
-      inherit_local_everyone: 'Rule for everyone on this page',
-      inherit_local_group: 'Rule for the group "%group_name%" on this page',
-      inherit_local_user: 'Rule for this user on this page',
-      
-      inherit_key_enano_default: '%this.acl_inherit_enano_default% (most broad)',
-      inherit_key_global_everyone: '%this.acl_inherit_global_everyone%',
-      inherit_key_global_group: 'Rule for a user group on the entire site',
-      inherit_key_global_user: '%this.acl_inherit_global_user%',
-      inherit_key_pg_everyone: 'Rule for everyone in a specific page group',
-      inherit_key_pg_group: 'Rule for a usergroup on a specific page group',
-      inherit_key_pg_user: 'Rule for this user in a specific page group',
-      inherit_key_local_everyone: '%this.acl_inherit_local_everyone%',
-      inherit_key_local_group: 'Rule for a specific usergroup on this page',
-      inherit_key_local_user: '%this.acl_inherit_local_user% (most specific)',
-    },
-    acphome: {
-      heading_main: 'Welcome to the Administration Dashboard.',
-      welcome_line1: 'Thanks for choosing Enano as your site\'s CMS! The administration panel gives you control over nearly every aspect of your site. The links to the left allow you to navigate around the panel. Below you will find some statistics on your site and any alerts you might need to attend to.',
-      
-      // Stats!
-      stat_header: 'Site statistics',
-      stat_enano_version: 'Enano CMS %version% (%releasename%)<br /><a href="%aboutlink%">View server information and license</a>',
-      stat_numpages: 'Number of pages:',
-      stat_edits: 'Number of edits made:',
-      stat_edits_data: '%edit_count% (average of %per_day% per day)',
-      stat_comments: 'Number of comments:',
-      stat_comments_data: '%comment_count% (average of %per_day% per day)',
-      stat_users: 'Number of users:',
-      stat_filesize: 'Total size of uploaded files:',
-      stat_cachesize: 'Total size of cache:',
-      stat_avatarsize: 'Space occupied by avatars:',
-      stat_dbsize: 'Database size:',
-      stat_dbsize_unsupported: 'Unsupported',
-      stat_installdate: 'Site started:',
-      stat_installdate_ago: '(%days% %this.etc_unit_days% ago)',
-      stat_lastupdate: 'Last Enano upgrade:',
-      stat_lastupdate_never: 'Never',
-      
-      heading_alerts: 'Active alerts',
-      
-      msg_demo_title: 'Enano is running in demo mode.',
-      msg_demo_body: 'If you borked something up, or if you\'re done testing, you can <a href="%reset_url%">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.',
-      
-      msg_install_files_title: 'Installer files found',
-      msg_install_files_body: 'Please delete the install/ directory from your Enano installation folder &ndash; it contains sensitive tools that might allow your site to be compromised.',
-      
-      heading_updates: 'Check for updates',
-      msg_updates_info: 'The Enano team will on occasion release new versions of Enano. We always recommend that you run the latest available version because many releases contain security patches. Enano checks for updates by looking at an <a href="%updates_url%">XML file</a> and doesn\'t share any information about your site.',
-      btn_check_updates: 'Check for updates',
-      
-      heading_inactive_users: 'Users are awaiting activation',
-      msg_inactive_users_one: '1 user has requested manual account activation. You can activate the account by going to the <a %um_flags%>User Manager</a>.',
-      msg_inactive_users_plural: '%num_users% users have requested manual account activation. You can activate those accounts by going to the <a %um_flags%>User Manager</a>.',
-      
-      msg_users_locked_out: 'Active IP address lockouts',
-      msg_users_locked_out_hint: 'The following IP addresses have been automatically locked out from login attempts. You can delete these active lockouts, if you choose.',
-      th_locked_out_ip: 'IP address',
-      th_locked_out_username: 'Username (most recent attempt)',
-      th_locked_out_status: 'Status',
-      th_locked_out_time: 'Time remaining',
-      lbl_locked_out_warned: 'Warned (failures: %fail_count%)',
-      lbl_locked_out_banned: 'Locked out',
-      btn_lockout_unblock: 'Unblock',
-      btn_lockout_clear: 'Clear',
-      msg_lockout_clear_success: 'The IP address %ip% has been cleared from the active lockout list.',
-      
-      heading_docs: 'Enano documentation',
-      msg_docs_info: 'The <a href="http://docs.enanocms.org/" onclick="window.open(this.href); return false;">Enano administrator\'s handbook</a> is maintained as a wiki. It will help you get started with Enano and learn about how we do things differently.',
-      heading_support: 'Get support',
-      msg_support_info: 'Stuck? Think you found a bug? Tell us about it! Post a message in the <a href="http://forum.enanocms.org/" onclick="window.open(this.href); return false;">Enano support forums</a> to obtain community support for Enano. You may also be interested in our <a href="http://enanocms.org/Support" onclick="window.open(this.href); return false;">other support channels</a>.',
-      
-      heading_top_pages: 'Most requested pages',
-      th_toppages_page: 'Page',
-      th_toppages_hits: 'Hits',
-      heading_seclog: 'Security log',
-      msg_seclog_info: 'This list shows the 5 most recent actions/attempted actions performed by administrators on this site. This also includes attempts to view blocked pages and use the administration panel without appropriate privileges. You can view a complete list using the link below.',
-      btn_seclog_full: 'Full security log',
-    },
-    acpgc: {
-      err_avatar_dir_invalid: 'You have entered an invalid avatar directory.',
-      err_avatar_dir_not_exist: 'The avatar directory you entered does not exist in the filesystem.',
-      msg_save_success: 'Your changes to the site configuration have been saved.',
-      
-      // Section: global site options
-      heading_main: 'Global site options',
-      heading_submain: 'These options control the entire site.',
-      field_site_name: 'Site name:',
-      field_site_desc: 'Site description:',
-      field_main_page: 'Main page:',
-      field_main_page_option_same: 'Use the same main page for everyone',
-      field_main_page_option_members: 'Use a different main page for members:',
-      field_main_page_members: 'Main page for members:',
-      field_copyright: 'Copyright notice shown on pages:',
-      field_copyright_hint: 'Hint: To make a copyright symbol (&copy;), type <tt>&amp;copy;</tt>.',
-      field_contactemail: 'Contact e-mail',
-      field_contactemail_hint: 'All e-mail sent from this site will appear to have come from the address shown here.',
-      
-      // Section: wiki mode
-      heading_wikimode: 'Wiki mode',
-      field_wikimode_intro: 'Enano can also act as a wiki, meaning anyone can edit and create pages. To enable Wiki Mode, check the box to the right.',
-      field_wikimode_info_sanitize: 'In Wiki Mode, certain HTML tags such as &lt;script&gt; and &lt;object&gt; are disabled, and all PHP code is disabled, except if the person editing the page is an administrator.',
-      field_wikimode_info_history: 'Also, Enano keeps complete page history, which makes restoring vandalized pages easy. You can also protect pages so that they cannot be edited.',
-      field_wikimode: 'Enable Wiki Mode',
-      field_editnotice_title: 'Edit page notice',
-      field_editnotice_info: 'When Wiki Mode is enabled, anyone can edit pages. Check the box below and enter a message to display it whenever the page editor is opened. Administrators often use this field to display a legal disclaimer or a notice of what license the user agrees to submit their content under.',
-      field_editnotice: 'Show a message whenever pages are edited',
-      field_edit_require_captcha_title: 'Require visual confirmation for guests editing pages',
-      field_edit_require_captcha_hint: 'If this is enabled, guests will be asked to enter a visual confirmation code before saving changes to a page.',
-      field_edit_require_captcha: 'Require guests to complete a CAPTCHA when editing pages',
-      
-      // Section: statistics and hit counting
-      heading_stats: 'Statistics and hit counting',
-      stats_intro: 'Enano has the ability to show statistics for every page on the site. This allows you to keep very close track of who is visiting your site, and from where.',
-      stats_hint_privacy: 'Unfortunately, some users don\'t like being logged. For this reason, you should state clearly what is logged (usually the username or IP address, current time, page name, and referer URL) in your privacy policy. If your site is primarily geared towards children, and you are a United States citizen, you are required to have a privacy policy stating exactly what is being logged under the terms of the Childrens\' Online Privacy Protection Act.',
-      field_stats_enable: 'Log all page hits',
-      field_stats_hint: 'This excludes special and administration pages.',
-      
-      // Section: comment system
-      heading_comments: 'Comment system',
-      field_enable_comments: 'Enable the comment system',
-      field_approve_comments: 'Require approval before article comments can be shown',
-      field_comment_allow_guests: 'Allow guests to post comments',
-      field_comment_allow_guests_yes: 'Yes',
-      field_comment_allow_guests_captcha: 'Require visual confirmation',
-      field_comment_allow_guests_no: 'No (require login)',
-      field_comment_spam_policy: 'Spam policy:',
-      field_comment_spam_policy_hint: 'This requres a <a href="http://enanocms.org/Category:Spam_filtering">spam filtering plugin</a> to be installed.',
-      field_comment_spam_policy_moderate: 'Moderate comments (default)',
-      field_comment_spam_policy_reject: 'Reject post',
-      field_comment_spam_policy_accept: 'Ignore and accept posts',
-      
-      // Section: disable site
-      heading_disablesite: 'Disable all site access',
-      field_disablesite_hint: 'Disabling the site allows you to work on the site without letting non-administrators see or use it.',
-      field_disablesite: 'Disable this site',
-      field_disablesite_message: 'Message to show to users:',
-      
-      // Section: default theme
-      heading_default_theme: 'Visual defaults',
-      field_default_theme: 'Default theme for guests and new users:',
-      
-      // Section: breadcrumbs
-      field_breadcrumb_mode: 'Enable breadcrumbs:',
-      field_breadcrumb_mode_subpages: 'Only with a slash in the URL (default)',
-      field_breadcrumb_mode_always: 'Always',
-      field_breadcrumb_mode_never: 'Never',
-      
-      // Section: CDN
-      field_cdn_path: 'URL to <acronym title="Content Delivery Network">CDN</acronym> server:',
-      field_cdn_path_hint: 'A CDN, or Content Delivery Network, allows downloading of shared Enano components from a server designed to serve out only images, CSS, and script files. Since a browser can open separate connections for the page and for images and scripts, the page loads faster. Leave this blank to just use Enano\'s local files (default).',
-      field_cdn_path_example: 'Example: <tt>http://cdn.mycompany.com/enano/',
-      
-      // Section: gzip
-      field_gzip: 'Enable gzip compression',
-      field_gzip_hint: 'Compress pages using before sending them to the user. At the cost of a small amount of CPU, this can save a lot of bandwidth. This only enables compression for HTML and some Javascript; to gzip compress CSS and images, please consult your webserver\'s documentation.',
-      field_gzip_lbl: 'Use gzip compression',
-      field_gzip_btn_check: 'Check server for support',
-      field_gzip_check_msg_server_does_it: 'Your server performs gzip compression on its own. There is no need to enable it in Enano, and if you do, you may cause Enano to stop working.',
-      field_gzip_check_msg_server_good: 'Your server is not automatically compressing PHP-generated pages, so Enano\'s compression facilities are needed.',
-      field_gzip_check_msg_php_bad: 'PHP does not have gzip support enabled.',
-      field_gzip_check_msg_php_good: 'Found gzip compression support in PHP.',
-      field_gzip_check_msg_success: 'Success - all server checks passed. You can enable gzip support.',
-      field_gzip_check_msg_failure: 'Server check failed. Unless you think Enano is wrong, don\'t enable gzip below.',
-      
-      // Main section: users and communication
-      heading_users: 'Users and communication',
-      
-      // Section: account activation
-      heading_activate: 'User account activation',
-      activate_intro_line1: 'If you would like to require users to confirm their e-mail addresses by way of account activation, you can enable this behavior here. If this option is set to "None", users will be able to register and use this site without confirming their e-mail addresses. If this option is set to "User", users will automatically be sent e-mails upon registration with a link to activate their accounts. And lastly, if this option is set to "Admin", users\' accounts will not be active until an administrator activates the account.',
-      activate_intro_line2: 'You may also disable registration completely if needed.',
-      activate_intro_sfnet_warning: 'Note: if you are using a SourceForge.net server, do not select User. SourceForge.net does not allow e-mails to be sent from project web sites.',
-      field_activate: 'Account activation:',
-      field_activate_disable: 'Disable registration',
-      field_activate_none: 'None',
-      field_activate_user: 'User',
-      field_activate_admin: 'Admin',
-      
-      // Section: terms of use (TOU)
-      heading_tou: 'Registration agreement/Terms of Use',
-      field_tou: 'Registration agreement',
-      field_tou_hint: 'The text you enter here will be displayed to users upon any attempt to create an account on this site.',
-      
-      // Section: account lockouts
-      heading_lockout: 'Account lockouts',
-      lockout_intro: 'Configure Enano to prevent or restrict logins for a specified period of time if a user enters an incorrect password a specific number of times.',
-      field_lockout_threshold: 'Lockout threshold:',
-      field_lockout_threshold_hint: 'How many times can a user enter wrong credentials before a lockout goes into effect?',
-      field_lockout_duration: 'Lockout duration:',
-      field_lockout_duration_hint: 'This is how long an account lockout should last, in minutes.',
-      field_lockout_policy: 'Lockout policy:',
-      field_lockout_policy_hint: 'What should be done when a lockout goes into effect?',
-      field_lockout_policy_nothing: 'Don\'t do anything',
-      field_lockout_policy_captcha: 'Require visual confirmation',
-      field_lockout_policy_lockout: 'Prevent all login attempts',
-      
-      // Section: password strength
-      heading_passstrength: 'Password strength',
-      field_passstrength_title: 'Enable password strength analysis',
-      field_passstrength_hint: 'This should be enabled in most cases. When this is enabled, a strength meter and a numerical score will be displayed wherever a password can be changed.',
-      field_passstrength: 'Enabled',
-      field_passminimum_title: 'Minimum strength score',
-      field_passminimum_hint: 'This is the lowest score a password will be allowed to have. -10 will allow any password. A score of under -3 is considered weak, under 1 is fair, under 4 is good, under 10 is strong, and 10 and above are very strong. The scale is open-ended. This only has an effect if the meter is enabled above.',
-      
-      // Section: e-mail
-      heading_email: 'E-mail sent from the site',
-      field_email_method: 'E-mail sending method:',
-      field_email_method_hint: 'Try using the built-in e-mail method first. If that doesn\'t work, you will need to enter valid SMTP information here.',
-      field_email_method_builtin: 'PHP\'s built-in mail() function',
-      field_email_method_smtp: 'Use an external SMTP server',
-      field_email_smtp_hostname: 'SMTP hostname:',
-      field_email_smtp_hostname_hint: 'This option only applies to the external SMTP mode.',
-      field_email_smtp_auth: 'SMTP credentials:',
-      field_email_smtp_username: 'Username:',
-      field_email_smtp_password: 'Password:',
-      
-      // Section: Sessions
-      heading_sessions: 'User sessions',
-      hint_sessions_noelev: '<b>Remember:</b> Settings here only affect normal logins - you can\'t change the length of sessions that give you elevated privileges, such as the re-authentication that occurs when you access the administration panel. <a href="http://docs.enanocms.org/Help:Appendix_B" onclick="window.open(this.href); return false;">Read about Enano\'s security model</a>.',
-      field_short_time: 'Length of short sessions in minutes:',
-      field_short_time_hint: 'This is how long a user\'s session will last when they don\'t check the "remember me" checkbox. Short sessions are automatically renewed every time a page is loaded.',
-      field_long_time: 'Length of extended sessions in days:',
-      field_long_time_hint: 'This is how long a user\'s session will last when the "remember me" checkbox is selected during their login. Long sessions can\'t be renewed - they always last a fixed amount of time. Set this to 0 to make extended sessions infinite, e.g. they are only terminated when the user logs out manually (this may present a security risk).',
-      
-      // Section: avatars
-      heading_avatars: 'Avatars',
-      avatars_intro: 'Avatars are small images that users can display on their profiles and in comments.',
-      field_avatar_enable: 'Enable avatar support:',
-      field_avatar_enable_hint: 'Supported formats are JPEG, PNG, and GIF&trade;.',
-      field_avatar_enable_label: 'Enabled',
-      field_avatar_max_filesize: 'Maximum avatar file size:',
-      field_avatar_max_filesize_hint: 'For smaller sites, the highest value for this should be about 50KB, 51200. Larger sites with more visitors will likely want to use something much smaller, such as 10KB.',
-      field_avatar_max_dimensions: 'Maximum avatar dimensions:',
-      field_avatar_max_dimensions_hint: 'The format is width &#215; height. Typically you want to have this square (the same width and height). These are only maximum dimensions; users are not prevented from having smaller images.',
-      field_avatar_allow_anim_title: 'Allow animated avatars:',
-      field_avatar_allow_anim_hint: 'If this is checked, users can upload APNG and Animated GIF&trade; avatars. Sometimes such images can be specifically made to be distracting, like rapidly flashing images. If this is unchecked, these formats will be blocked, and only still PNGs and GIFs will be allowed.',
-      field_avatar_allow_anim: 'Don\'t block animated images',
-      field_avatar_upload_methods: 'Allowed upload methods:',
-      field_avatar_upload_file: 'Allow users to upload image files from their computers',
-      field_avatar_upload_http: 'Allow users to enter a URL to their desired avatar',
-      field_avatar_upload_gravatar: 'Allow users to use their <a href="http://www.gravatar.com/" onclick="window.open(this.href); return false;">Gravatar</a>',
-      field_avatar_gravatar_rating: 'Highest allowed rating for Gravatar images:',
-      field_avatar_gravatar_rating_g: 'G (no objectionable content)',
-      field_avatar_gravatar_rating_pg: 'PG (rude gestures, immodest dress, mild swearing/violence)',
-      field_avatar_gravatar_rating_r: 'R (profanity, violence, nudity, hard drug use)',
-      field_avatar_gravatar_rating_x: 'X (hardcore sexual images, extremely disturbing violence)',
-      field_avatar_directory: 'Avatar storage directory:',
-      field_avatar_directory_hint: 'This should be relative to your Enano root and should contain only alphanumeric characters and forward slashes, even if your server runs Windows.',
-      
-      // Section: misc options
-      heading_usermisc: 'Other user options',
-      field_userpage_acl_title: 'New users can edit their user pages:',
-      field_userpage_acl_hint: 'This setting will cause Enano to grant certain rights to newly registered users, effective only on their user page. These rights include creating their page, editing their page, and posting comments. Since it generates a new ACL rule, you are able to override new permissions. This setting will only take effect on new users - it does not affect the permissions of those already registered.',
-      field_userpage_acl: 'Grant editing rights to new users on their user pages',
-      
-      // Main section: sidebar links
-      heading_sidebar: 'Sidebar links',
-      
-      // Section: promote Enano
-      heading_promoteenano: 'Promote Enano',
-      field_enano_link_title: 'Show link to enanocms.org on the sidebar',
-      field_enano_link_hint: 'You may help show your support for Enano with this link. This is entirely optional and the Enano project does not discriminate against sites that disable this button. (This differs from our policy on the "Powered by Enano" link; see <a href="http://enanocms.org/powered-link" onclick="window.open(this.href); return false;">this page</a> for more information.)',
-      field_enano_link: 'Place a link to enanocms.org on the sidebar',
-      
-      // Section: SF.net logo
-      heading_sfnet_logo: 'SourceForge.net logo',
-      sfnet_intro: 'All projects hosted by SourceForge.net are required to display an official SourceForge.net logo on their pages.  If you want to display a SourceForge.net logo on the sidebar, check the box below, enter your group ID, and select an image type.',
-      field_sfnet_display: 'Display the SourceForge.net logo on the right sidebar',
-      field_sfnet_group_id: 'Group ID:',
-      field_sfnet_logo_style: 'Logo style:',
-      field_sfnet_logo_style_1: '88x31%this.etc_unit_pixels_short%, white',
-      field_sfnet_logo_style_2: '125x37%this.etc_unit_pixels_short%, white',
-      field_sfnet_logo_style_3: '125x37%this.etc_unit_pixels_short%, black',
-      field_sfnet_logo_style_4: '125x37%this.etc_unit_pixels_short%, blue',
-      field_sfnet_logo_style_5: '210x62%this.etc_unit_pixels_short%, white',
-      field_sfnet_logo_style_6: '210x62%this.etc_unit_pixels_short%, black',
-      field_sfnet_logo_style_7: '210x62%this.etc_unit_pixels_short%, blue',
-      
-      // Section: W3C validation buttons
-      heading_w3clogos: 'W3C compliance logos',
-      w3clogos_intro: 'Enano generates (by default) Valid XHTML 1.1 code, plus valid CSS.  If you want to show this off, check the appropriate boxes below.',
-      w3clogos_btn_html32: 'HTML 3.2',
-      w3clogos_btn_html40: 'HTML 4.0',
-      w3clogos_btn_html401: 'HTML 4.01',
-      w3clogos_btn_xhtml10: 'XHTML 1.0',
-      w3clogos_btn_xhtml11: 'XHTML 1.1',
-      w3clogos_btn_css: 'CSS',
-      
-      // Section Defective By Design link
-      heading_dbd: 'Defective By Design Anti-DRM button',
-      dbd_intro: 'The Enano project is strongly against Digital Restrictions Management.',
-      dbd_explain: 'DRM infringes on consumer rights by using technical locks to prevent you from using your Fair Use rights granted by copyright law. This means that consumers are harmed in many ways, for example when they can\'t copy purchased digital media to their own devices. Furthermore, since most DRM schemes are proprietary and designed to prevent interoperability, you can be locked you into a specific brand or product. You can help spread consumer awareness and show your opposition to DRM through this button. It\'s as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
-      field_stopdrm: 'Help stop DRM by placing a link to DBD on the sidebar!',
-      
-      // Save button
-      btn_save_changes: 'Save changes'
-    },
-    acpup: {
-      heading_main: 'File upload configuration',
-      intro: 'Enano supports the ability to upload files to your website and store the files in the database. This enables you to embed images and such into pages without manually writing the HTML. However, the upload feature can sometimes pose a risk to your site, as viruses and executable files can sometimes be uploaded.',
-      field_enable: 'Enable file uploads',
-      field_max_size: 'Maximum file size:',
-      info_magick: 'You can allow Enano to generate thumbnails of images automatically. This feature requires ImageMagick to work properly. If your server does not have ImageMagick on it, Enano will try to use the GD library (if available) to scale images. This can be slower, but it works on a wider range of servers. If even that does not work, Enano will simply make your users\' browsers scale the images. In most cases this is fine, but if you are uploading large (>100KB) images and embedding them inside of pages, you should try to enable ImageMagick or configure GD because transferring these large images many times can cost you quite a lot of bandwidth.',
-      field_magick_enable: 'Use ImageMagick to scale images',
-      field_magick_path: 'Path to ImageMagick:',
-      err_magick_not_found: '<b>Warning:</b> the file "%magick_path%" was not found, and the ImageMagick file path was not updated.',
-      // Translators: for the path here, please be sure to use a double-backslash in the Windows path. Avoid translating the file paths
-      // anyway since they're generally the same even on non-English Windows systems.
-      field_magick_path_hint: 'On Linux and Unix servers, the most likely options here are /usr/bin/convert and /usr/local/bin/convert. If you server runs Windows, then ImageMagick is most likely to be C:\\Windows\\Convert.exe or C:\\Windows\\System32\\Convert.exe.',
-      info_cache: 'If you use ImageMagick to scale images, your server will be very busy constantly scaling images if your website is busy, and your site may experience slowdowns. You can dramatically speed up this scaling process if you use a directory to cache thumbnail images.',
-      info_cache_chmod: '<b>Please note:</b> the cache/ directory on your server <u>must</u> be writable by the server. While this is not usually a problem on Windows servers, most Linux/Unix servers will require you to CHMOD the cache/ directory to 777. See your FTP client\'s user guide for more information on how to do this.',
-      msg_cache_not_writable: ' <b>At present, it seems that the cache directory is not writable. The checkbox below has been disabled to maintain the stability of Enano.</b>',
-      field_cache: 'Cache thumbnailed images',
-      info_history: 'Lastly, you can choose whether file history will be saved. If this option is turned on, you will be able to roll back any malicious changes made to uploaded files, but this requires a significant amount of filesystem storage. You should probably leave this option enabled unless you have less than 250MB of disk space on your hosting account or server.',
-      field_history: 'Keep a history of uploaded files',
-      btn_save: 'Save changes',
-    },
-    acpft: {
-      // Nope. There isn't anything else. Sorry to disappoint.
-      heading_main: 'Allowed file types',
-      hint: 'Using the form below, you can decide which file types are allowed to be uploaded to this site.',
-      msg_saved: 'Your changes have been saved.',
-      msg_demo_mode: 'Hmm, enabling executables, are we? Tsk tsk. I\'d love to know what\'s in that EXE file you want to upload. OK, maybe you didn\'t enable EXEs. But nevertheless, changing allowed filetypes is disabled in the demo.',
-    },
-    acppl: {
-      heading_main: 'Plugin management',
-      intro: 'This interface allows you to control what plugins are in use on this site. Everything you do on this page will be shown in the security logs. Some plugins don\'t fully support the newer features like installation, upgrading and uninstalls. Installing these plugins will still work, but sometimes authors include setup instructions in the plugin file. You should check the file for further setup instructions once the plugin is installed.',
-      
-      lbl_plugin_name: '<b>%plugin%</b> by %author%',
-      lbl_status_installed: 'Installed',
-      lbl_status_uninstalled: 'Not installed',
-      lbl_status_system: 'System plugin',
-      lbl_status_need_upgrade: 'Disabled (needs upgrade)',
-      lbl_status_disabled: 'Disabled',
-      lbl_filename: 'Filename:',
-      lbl_plugin_site: 'Plugin homepage:',
-      lbl_author_site: 'Author homepage:',
-      lbl_version: 'Version:',
-      lbl_installed_version: 'Installed version:',
-      
-      btn_install: 'Install',
-      btn_disable: 'Disable',
-      btn_enable: 'Enable',
-      btn_upgrade: 'Upgrade',
-      btn_uninstall: 'Uninstall',
-      btn_reimport: 'Re-import strings',
-      
-      msg_confirm_uninstall: 'Uninstalling this plugin may cause the loss of data that was created with it. You should only uninstall a plugin if you are certain you\'ll have no further use for it; in fact, you don\'t even need to uninstall a plugin if you\'re deleting it from the filesystem.',
-      msg_confirm_install: 'Plugins are not supported by the Enano project and could harm your site if malicious. You should only install plugins from sources that you trust.',
-      msg_confirm_reimport: 'Re-importing strings will reload all language data from the plugin file. This should fix missing messages, but any customizations you have made to the plugin\'s language strings will be lost.',
-      
-      msg_confirm_authext_title: 'This plugin is an authentication extension.',
-      msg_confirm_authext_body: 'This plugin hooks into Enano\'s login system. It might be used to allow non-password-based authentication. If there is a security vulnerability in this plugin, it might open your site up to attack. Only continue if you trust the author of this plugin.\n\nBe sure to be vigilant in checking for updates to this plugin.',
-      
-      err_upgrade_not_supported: 'This plugin doesn\'t support automatic upgrades. The version number has been updated so the plugin will be re-enabled, but you should check the plugin file to see if the author provided instructions for finishing the upgrade.',
-      err_upgrade_bad_version: 'This plugin cannot be upgraded because you are running a version of the plugin that is not listed in the plugin\'s version list.',
-      err_upgrade_bad_target_version: 'This plugin cannot be upgraded because it does not support its own version. Please contact the author and ask them to fix this.',
-      err_upgrade_to_older: 'You are trying to upgrade to an older release of this plugin. This is unsupported and must be done manually.',
-      err_upgrade_bad_query: 'There is a problem with one of the SQL queries the plugin is trying to make.',
-      err_dmbs_not_supported: 'This plugin doesn\'t support %dbdriver% databases.',
-      err_import_no_strings: 'This plugin doesn\'t have language support.',
-      err_demo_mode: 'You can\'t manipulate plugins in the Enano demo for security reasons.',
-      
-      msg_old_entries_title: 'Import old plugin installation data',
-      msg_old_entries_body: 'There is still data from the old plugin structure in your database. You can import this to the new structure automatically using the button below.',
-      btn_import_old: 'Import old plugin settings',
-    },
-    acppm: {
-      heading_main: 'Edit page properties',
-      hint: 'This panel allows you to edit various properties of pages that aren\'t visible anywhere else. In addition to renaming pages, you can also change their <a href="http://docs.enanocms.org/Help:2.3" onclick="window.open(this.href); return false;">URL string</a> and options such as whether to index the page for searching or bypass Enano\'s template engine.',
-      err_page_not_found: 'No pages matching that search string could be found.',
-      msg_results_ambiguous_title: 'Ambiguous search results',
-      msg_results_ambiguous_body: 'Multiple pages that matched your search terms were found. Please select the page you wish to modify:',
-      ambig_btn_viewpage: 'View',
-      err_ambig_absolute: 'Your database is corrupt as it contains multiple pages with the same urlname and namespace.',
-      lbl_field_search: 'Search for a page title or URL string:',
-      heading_select_page_from_list: 'Select page from a list',
-      hint_select_page_from_list: 'You can also select the page you want to modify from the list below. The list is broken into sections of 100 pages, so if you have a lot of pages on your site, you can click the pagination control below to view more pages.',
-      
-      // Edit form
-      heading_editing: 'Editing page:',
-      lbl_page_name: 'Page\'s title:',
-      lbl_page_urlname: 'URL string:',
-      lbl_page_urlname_hint: 'No spaces, and don\'t enter the namespace prefix (e.g. User:). Changing this value is usually not a good idea, especially for templates and project pages, because it will invalidate the page\'s current URL.',
-      lbl_namespace: 'Namespace (URL prefix):',
-      ns_article: '[No prefix, default Article namespace]',
-      heading_advanced: 'Advanced options',
-      msg_file_ns_warning: '<b>WARNING:</b> Changing the namespace to something other than "File" will delete the uploaded file and all previous revisions of it.',
-      lbl_enable_comments_title: 'Allow comments to be posted on this page?',
-      lbl_enable_comments_hint: 'This option has no effect if comments are disabled globally in the administration panel. This option is enabled by default.',
-      lbl_enable_comments: 'Enable comments on this page',
-      lbl_special_title: 'Mark page as self-contained?',
-      lbl_special_hint: 'This option enables you to use your own HTML headers and other code. If you enable this, only the raw contents of the page will be displayed instead of Enano\'s full page formatting and styles. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages (dependent on permissions), meaning you can use Enano\'s API on the page.',
-      lbl_special: 'Bypass the template engine for this page',
-      lbl_visible_title: 'Make page publicly listed?',
-      lbl_visible_hint: 'If you enable this option, this page will be indexed for searching and will appear in public page lists such as Special:AllPages. This option is enabled by default. Disabling this does not protect the page from unauthorized access. If you want to keep this page from being accessed without authorization, you should create a new ACL rule or password-protect the page.',
-      lbl_visible: 'Allow page to be indexed and listed',
-      lbl_protected_title: 'Protect page from edits?',
-      lbl_protected_off: 'Unprotected',
-      lbl_protected_on: 'Fully protected',
-      lbl_protected_semi: 'Semi-protected',
-      lbl_protected_hint: 'This option only has an effect if Wiki Mode is enabled. Selecting Unprotected means that any user (unless specifically blacklisted) can edit this page. Fully protected means that only administrators can edit the page. Semi-protected restricts editing to administrators and users that have been registered for at least four days.<br /><br /><b>Above all, no users except administrators can edit this page unless an ACL specifically allows it or Wiki Mode is enabled.</b>',
-      lbl_wikimode_title: 'Enable Wiki Mode for this page?',
-      lbl_wikimode_on: 'Enabled',
-      lbl_wikimode_off: 'Disabled',
-      lbl_wikimode_global: 'Inherit global setting',
-      lbl_wikimode_hint: 'By default, all pages use the Wiki Mode setting defined in General Configuration. You can override that using this field. Be aware that there are advantages and disadvantages to Wiki Mode. For example, Wiki Mode encourages collaboration, but also permits vandalism. See the <a href="http://docs.enanocms.org/Help:2.5" onclick="window.open(this.href); return false;">Enano Documentation article on Wiki Mode</a> for more information.',
-      lbl_delete_title: 'Delete this page?',
-      lbl_delete_hint: 'Remember that deleting pages is always reversible unless you clear the page\'s logs after deleting it.',
-      lbl_delete: 'Delete this page when I click Save',
-      
-      err_invalid_page_name: 'Please enter a name for the page.',
-      err_invalid_url_string: 'Please enter a URL string for the page.',
-      err_invalid_namespace: 'The namespace you selected is, for whatever reason, not valid.',
-      err_invalid_protection: 'The protection level selected is invalid.',
-      err_invalid_wiki_mode: 'The Wiki Mode level selected is invalid.',
-      err_header: 'There were one or more problems that prevented the page from being saved:',
-      delete_reason: 'Administrative deletion from admin CP; contact webmaster for details',
-      
-      msg_save_success: 'Your changes to the page have been saved. <a href="%viewpage_url%">View page &raquo;</a>',
-    },
-    acped: {
-      heading_main: 'Edit page content',
-      hint: 'This panel allows you to edit the contents of pages that are stored in the database.',
-      // The rest of this section is identical to the first parts of the acppm category by default (you can copy and paste).
-      err_page_not_found: 'No pages matching that search string could be found.',
-      msg_results_ambiguous_title: 'Ambiguous search results',
-      msg_results_ambiguous_body: 'Multiple pages that matched your search terms were found. Please select the page you wish to edit:',
-      ambig_btn_viewpage: 'View',
-      err_ambig_absolute: 'Your database is corrupt as it contains multiple pages with the same urlname and namespace.',
-      lbl_field_search: 'Search for a page title or URL string:',
-      heading_select_page_from_list: 'Select page from a list',
-      hint_select_page_from_list: 'You can also select the page you want to edit from the list below. The list is broken into sections of 100 pages, so if you have a lot of pages on your site, you can click the pagination control below to view more pages.',
-    },
-    acptm: {
-      heading_edit_themes: 'Installed themes',
-      btn_system_themes_show: '&raquo; Show system themes',
-      btn_system_themes_hide: '&raquo; Hide system themes',
-      btn_theme_edit: 'Edit',
-      btn_theme_system: 'System theme',
-      heading_install_themes: 'Themes available for installation',
-      btn_theme_install: 'Install',
-      
-      // Editor
-      heading_theme_edit: 'Editing theme: %theme_name%',
-      field_theme_name: 'Theme name:',
-      field_default_style: 'Select a default style:',
-      field_default_theme: 'Site-wide default theme:',
-      field_default_msg_current: 'This is the current default',
-      field_default_btn_make_default: 'Make this the default theme when I click Save',
-      field_disable_title: 'Disable theme: ',
-      field_disable: 'Prevent all users and guests from using this theme',
-      heading_theme_groups: 'User and group policy',
-      field_policy: 'Theme access policy:',
-      field_policy_allow_all: 'Allow everyone to use this theme',
-      field_policy_whitelist: 'Only allow the users and groups I select below',
-      field_policy_blacklist: 'Allow everyone except what I select below',
-      field_acl_heading_groups: 'Groups',
-      field_acl_heading_users: 'Users',
-      field_acl_add_user: 'Add a user: ',
-      btn_uninstall_theme: 'Uninstall theme',
-      msg_uninstall_confirm: 'Are you sure you want to uninstall this theme?',
-      
-      err_invalid_username: 'Please enter a valid username.',
-      err_username_not_found: 'The user you entered does not exist.',
-      err_save_validation_failed: 'One or more of the fields in the form is incorrect. Please ensure that you have entered a proper value for all of the fields in the theme editing form, and then click %this.etc_save_changes% again.',
-      err_uninstalling_default: 'You cannot uninstall the default theme.',
-      err_uninstalling_oxygen: 'You cannot uninstall the Oxygen theme because it\'s used for important functions such as database errors.',
-      warn_cant_disable_default: 'Please note that the theme was not disabled because it is currently the default.',
-      warn_access_with_default: 'If you selected to whitelist or blacklist certain users, that choice will not apply to guests because this is the default theme.',
-      msg_save_success: 'Your changes to this theme have been saved.',
-      msg_uninstall_success: 'The selected theme has been uninstalled.',
-    },
-    acpcm: {
-      heading_main: 'Performance and caching settings',
-      intro: 'From this page you can control what information on your site is stored in cache files. Caching speeds up Enano performance by allowing data to be retrieved from the disk instead of querying the database. Sometimes the cache isn\'t updated immediately when the database is. From this page you can control what is cached, and you can clear specific caches to force them to refresh.',
-      msg_refresh_warning: 'Some of the caches on this page will automatically refresh immediately even if you click Clear. This is because any use of the component will invoke the cache. To disable this behavior, you must disable caching site-wide.',
-      table_header: 'Cache settings',
-      lbl_enable_cache: 'Enable the cache (recommended)',
-      hint_enable_cache: 'To use the cache, the folder "cache" in the Enano root directory needs to be writable by the server. You can usually accomplish this by using your FTP client\'s CHMOD feature to set the permissions on this folder to 777. Learn more <a href="http://en.wikipedia.org/wiki/Chmod" onclick="window.open(this.href); return false;">about UNIX permissions</a>.',
-      btn_clear_all: 'Clear all caches',
-      hint_clear_all: 'To force all caches (except image thumbnails) on the site to empty, click this button. Certain caches, such as language data, must be regenerated in order to fully refresh the cache. It is recommended that you use "%this.acpcm_btn_refresh_all%" below to clear all caches and then regenerate them.',
-      btn_refresh_all: 'Refresh all caches',
-      hint_refresh_all: 'This will clear all caches (except image thumbnails) on the site to empty and then regenerate, except certain components that are cached on demand.',
-      
-      th_individual_caches: 'Individual caches',
-      btn_clear: 'Clear',
-      btn_refresh: 'Refresh',
-      
-      cache_page_desc_title: 'Page metadata',
-      cache_page_desc_body: 'Information about pages on the site is stored in this cache. This cache is updated when a page is created, renamed or deleted, and it expires every 20 minutes.',
-      cache_ranks_desc_title: 'User ranks',
-      cache_ranks_desc_body: 'Since user ranks take a long time to calculate, fully computed rank data is cached to speed loading of comments and user pages. This cache is updated when any user information is changed, and its expiry time is 15 minutes.',
-      cache_sidebar_desc_title: 'Sidebar for guest users',
-      cache_sidebar_desc_body: 'Rendering the sidebar is a CPU-intensive process because of the number of templates that must be parsed and the custom logic in sidebars. As a result, the fully rendered sidebar is cached for guests. This cache is updated when the sidebar editor is used and expires every 10 minutes.',
-      cache_plugins_desc_title: 'Plugin metadata',
-      cache_plugins_desc_body: 'Plugin files contain special information in the headers that allow Enano to read information about the plugin. Since it takes time to read and parse this information, metadata about plugins is cached. This cache is updated when any change is detected to the first 10 lines of a PHP file in the plugins/ directory.',
-      cache_template_desc_title: 'Template files',
-      cache_template_desc_body: 'Page templates have a lot of logic that takes time to process. They are compiled and then cached on disk to speed loading. This cache is cleared whenever a template file is changed. This cachs cannot be refreshed, as refreshes take place incrementally.',
-      cache_aes_desc_title: 'Encrypted session keys',
-      cache_aes_desc_body: 'Enano encrypts session keys using the AES encryption cipher. Decrypted session keys are cached on the server in a way that is inaccessible to users browsing the site. This cache is dynamically updated whenever a string is sent to the AES decryption module. Clearing it may cause a temporary increase in the load on your site and should only be done if disk space is a concern. This cache is limited to 5,000 keys; when this limit is reached, the oldest 2,500 keys are deleted.',
-      cache_lang_desc_title: 'Language strings',
-      cache_lang_desc_body: 'Language strings, or the text that makes up the Enano user interface, are cached on the disk because they take up a large amount of space in the database. Caching this information allows Enano to minimize bandwidth used when communicating with the database server.',
-      cache_js_desc_title: 'Compressed Javascript runtimes',
-      cache_js_desc_body: 'The on-page tools that Enano provides require a significant amount of Javascript code, which is compressed and cached for better load times. This cache is updated whenever any of the Javascript files are changed, but it is an incremental cache, meaning that it cannot be refreshed manually (only cleared).',
-      cache_thumbs_desc_title: 'Image thumbnails',
-      cache_thumbs_desc_body: 'Thumbnails (preview-size versions of uploaded images) can take up to 2 seconds to generate, usually increasing load times and potentially causing increased server load. This cache is refreshed on demand. Clearing this cache may cause increased loads on your server.',
-      cache_wikieditnotice_desc_title: 'Wiki mode legal notice',
-      cache_wikieditnotice_desc_body: 'This notice is rendered and cached to reduce database queries. If you use templates in your edit notice, you need to clear this cache to see the changes take effect. This cache expires every 60 minutes.',
-      
-      msg_action_success: 'The action you requested was successful.',
-      err_action_failed: 'There was an error during the requested action.'
-    },
-    acpdb: {
-      err_not_supported_title: 'Not supported',
-      err_not_supported_desc: 'This function is only supported under the MySQL database driver.',
-      err_demo_mode_title: 'Access denied',
-      err_demo_mode_desc: 'Since you\'re using the Enano demo, we can\'t allow database backups. Sorry.',
-      
-      intro: 'This page allows you to back up your Enano database should something go miserably wrong.',
-      lbl_system_tables: 'Export tables that are part of the Enano core',
-      lbl_additional_tables: 'Additional tables to export:',
-      lbl_include_structure: 'Include table structure',
-      lbl_include_data: 'Include table data',
-      btn_create_backup: 'Create backup',
-    },
-    acplm: {
-      // Language installation
-      heading_install: 'Languages available for installation',
-      col_lang_id: 'ID',
-      col_lang_code: 'Shorthand code',
-      col_lang_name: 'Language name (native)',
-      col_lang_name_eng: 'Language name (English)',
-      btn_install_language: 'Install',
-      err_lang_install_demo: 'Modifying, installing, and uninstalling languages is disabled in the demo for security reasons.',
-      msg_lang_install_success: 'The language pack %lang_name% has been installed.',
-      
-      // Editor portal
-      heading_editor_portal: 'Edit installed languages',
-      portal_btn_edit: 'Modify',
-      portal_btn_unin: 'Uninstall',
-      
-      // Properties table
-      heading_modify: 'Edit language info',
-      th_lang_basic: 'Basic language properties',
-      field_lang_name_native: 'Language name (native):',
-      field_lang_name_english: 'Language name (in English):',
-      field_lang_code: 'Shorthand code:',
-      field_lang_code_hint: 'You can\'t change this because it needs to be compliant with <a onclick="window.open(this.href); return false;" href="http://en.wikipedia.org/wiki/ISO_639-3">ISO 639-3</a>.',
-      msg_basic_save_success: 'Changes saved.',
-      
-      // String editor portal
-      heading_edit_strings_portal: 'Edit strings',
-      msg_edit_strings_portal_intro: 'You can edit the actual language strings used in this language. Be sure to preserve any variables (in the format of %variable_name%) even if you\'re translating a language. If you\'re translating all of Enano into a new language, you should edit the JSON files instead of using this console, so that comments in the language files can be preserved.',
-      btn_edit_strings_portal: 'Edit strings &raquo;',
-      
-      // Re-import button and explanation
-      heading_reimport_portal: 'Re-import this language',
-      msg_reimport_portal_intro: 'If you accidentally changed a lot of strings, you can re-import this language from the original language files. This will <b>destroy</b> any modifications you have made to the default set of strings, but any strings you\'ve added will be preserved. This is almost the same effect as re-installing the language. Don\'t stop this process while it\'s running, the re-import can take a long time.',
-      btn_reimport: 'Re-import language',
-      msg_reimport_success: 'The language was re-imported successfully. All Enano preset strings for this language have been restored.',
-      
-      // String editor
-      editor_heading: 'Editing category: %cat_name%',
-      editor_col_string_name: 'String name',
-      editor_col_string_content: 'String',
-      editor_btn_revert: 'Revert',
-      editor_btn_cancel: 'Cancel',
-      msg_string_save_success: 'Your changes have been saved.',
-      
-      // Backup interface
-      heading_backup: 'Backup language',
-      backup_intro: 'You can back up this language to make preserving custom strings easier if you ever migrate your Enano installation or re-install. Backed-up language files can be restored by using FTP or equivalent to copy the backup file to the language\'s folder, renaming it to "backup.json", and re-importing the language.',
-      btn_create_backup: 'Download backup',
-      
-      // Uninstaller
-      uninstall_confirm_title: 'Confirm uninstallation of language',
-      uninstall_confirm_body: 'Do you really want to uninstall this language? If you continue, all users that have selected this language will be reset to use the default. It is recommended that you create a backup of this language before you uninstall it if you have changed any strings.',
-      btn_uninstall_confirm: 'Confirm uninstallation',
-      btn_uninstall_cancel: 'Cancel',
-      err_cant_uninstall_default: 'You cannot uninstall the default language.',
-      msg_uninstall_success: 'The language has been uninstalled.',
-    },
-    acppg: {
-      // Main menu
-      heading_main: 'Manage page groups',
-      hint_intro: 'Enano\'s page grouping system allows you to build sets of pages that can be controlled by a single ACL rule. This makes managing features such as a members-only section of your site a lot easier. If you don\'t use the ACL system, you probably don\'t need to use page groups.',
-      col_group_name: 'Group name',
-      col_type: 'Type',
-      col_target: 'Target',
-      col_actions: 'Actions',
-      gtype_catlink: 'Link to category',
-      gtype_tagged: 'Group of pages with one tag',
-      gtype_static: 'Static group of pages',
-      gtype_regex: 'Regular expression match',
-      gtype_regex_long: 'Perl-compatible regular expression (advanced)',
-      lbl_tag: 'Tag:',
-      lbl_category: 'Category:',
-      lbl_regex: 'Expression:',
-      btn_edit: 'Edit',
-      btn_delete: 'Delete',
-      msg_no_groups: 'No page groups defined.',
-      btn_create_new: 'Create new group',
-      
-      // Creation form
-      err_no_cats: 'There aren\'t any categories on this site.',
-      th_create: 'Create page group',
-      field_group_name: 'Group name:',
-      field_group_name_hint: 'This should be short, descriptive, and human-readable.',
-      field_group_type: 'Group type:',
-      
-      field_member_pages: 'Member pages:',
-      field_member_pages_hint: 'Click the "plus" button to add more fields.',
-      field_target_category: 'Include pages in this category:',
-      field_target_category_hint: 'Pages in subcategories are <u>not</u> included, however subcategory pages themselves are.',
-      field_target_category_hint2: '<b>Reminder:</b> Enano does not automatically place any access controls on the category. If you don\'t want users to be able to freely add and remove pages from the category (assuming Wiki Mode is enabled for the category) then you need to enable protection on the category using the button on the more options menu.',
-      field_target_tag: 'Include pages with this tag:',
-      field_target_regex: 'Regular expression:',
-      field_target_regex_hint: 'Be sure to include the starting and ending delimiters and any flags you might need.<br />
-                                These pages might help: <a href="http://us.php.net/manual/en/reference.pcre.pattern.modifiers.php">Pattern modifiers</a> &bull; <a href="http://us.php.net/manual/en/reference.pcre.pattern.syntax.php">Pattern syntax</a><br />
-                                Examples: <tt>/^(Special|Admin):/i</tt> &bull; <tt>/^Image:([0-9]+)$/</tt><br />
-                                Developers, remember that this will be matched against the full page identifier string. This means that <tt>/^About_Enano$/</tt> will NOT match the page Special:About_Enano.',
-      btn_create_finish: 'Create page group',
-      
-      err_need_name: 'Please enter a name for the page group.',
-      err_need_tag: 'Please enter a page tag.',
-      err_need_cat: 'Please create a category page before linking a page group to a category.',
-      err_need_page: 'Please specify at least one page to place in this group.',
-      err_need_regex: 'Please specify a regular expression to match page IDs against.',
-      msg_create_success: 'The page group "%group_name%" has been created.',
-      
-      // Delete form
-      th_delete_confirm: 'Confirm deletion',
-      msg_delete_confirm: 'Are you sure you want to delete this page group?',
-      btn_delete_confirm: 'Yes, delete group',
-      msg_delete_success: 'The group "%pg_name%" has been deleted.',
-      
-      // Editor
-      th_editing_group: 'Editing page group:',
-      btn_save_name: 'Save group name',
-      th_remove_selected: 'Remove pages from this group',
-      field_remove: '<b>Remove</b> pages:',
-      btn_do_remove: 'Remove selected',
-      btn_save_update: 'Save and update',
-      btn_cancel_all: 'Cancel all changes',
-      th_onthefly: 'On-the-fly tools',
-      field_add_page: 'Add page:',
-      field_add_page_hint: 'You can add multiple pages by entering part of a page title, and it will be auto-completed. Press Enter to quickly add the page. This only works if you a really up-to-date browser.',
-      
-      // Validation messages and errors
-      err_ajaxadd_need_title: 'Please enter a page title.',
-      err_ajaxadd_already_in: 'The page you are trying to add is already in this group.',
-      ajaxadd_success: 'The page has been added to the specified group.',
-      err_save_need_name: 'Please enter a valid name for this group.',
-      msg_save_name_updated: 'The group name was updated successfully.',
-      err_save_need_tag: 'Please enter a valid tag.',
-      msg_save_tag_updated: 'The affecting tag was updated.',
-      err_save_need_regex: 'Please enter an expression to match against.',
-      msg_save_regex_updated: 'The expression to match against was updated.',
-      err_save_bad_category: 'No category ID specified on POST URI.',
-      msg_save_cat_updated: 'The affecting category was updated.',
-      err_save_no_pages: 'No pages were selected for deletion, and thus none were deleted.',
-      msg_save_pages_deleted: 'The requested page group members have been deleted.',
-    },
-    acpum: {
-      heading_main: 'User administration panel',
-      hint_intro: 'From this panel you can modify or delete user accounts.',
-      field_search_user: 'Search for user:',
-      field_search_user_hint: 'If your browser supports AJAX, this will provide suggestions for you.',
-      btn_search_user_go: 'Go',
-      heading_clear_sessions: 'Clear session key table',
-      hint_clear_sessions: 'It\'s a good idea to clean out your session keys table every once in a while, since this helps to reduce database size. During this process you will be logged off and (hopefully) logged back on automatically. If you do this, all users besides you will be logged off, so be sure to do this at a time when traffic is low.',
-      btn_clear_sessions: 'Clear session keys',
-      
-      heading_activation_one: '1 user is awaiting account activation',
-      heading_activation_plural: '%count% users are awaiting account activation',
-      col_activate_timestamp: 'Date of request',
-      col_activate_requestedby: 'Requested by',
-      col_activate_requestedfor: 'Requested for',
-      col_activate_coppauser: 'COPPA user',
-      col_activate_actions: 'Actions',
-      coppauser_yes: 'Yes',
-      coppauser_no: 'No',
-      btn_activate_now: 'Activate now',
-      btn_send_email: 'Send activation e-mail',
-      btn_activate_deny: 'Deny request',
-      msg_activate_success: 'The user account "%username%" has been activated.',
-      err_activate_fail: 'The user account %username% has NOT been activated, possibly because the account is already active.',
-      msg_activate_email_success: 'The user %username% has been sent an e-mail with an activation link.',
-      err_activate_email_fail: 'The user account %username% has not been activated, probably because of a bad SMTP configuration.',
-      msg_activate_deny_success: 'All activation requests for the user %username% have been deleted.',
-      
-      msg_sessionclear_success: 'The session key table has been cleared. Your database should be a little bit smaller now.',
-      err_sessionclear_demo: 'Sorry Charlie, no can do. You might mess up other people logged into the demo site.',
-      
-      // VALIDATION ERRORS
-      err_bad_username: 'The username you entered could not be found.',
-      err_validation_fail: 'Your request could not be processed due to the following validation errors:',
-      err_nosave_demo: 'Users cannot be modified or deleted in demo mode.',
-      msg_delete_success: 'The user account has been deleted.',
-      // Note the difference between this and err_bad_username. err_bad_username is shown when the username entered
-      // doesn't match any usernames in the database (e.g. no search results); err_illegal_username is shown when
-      // the admin tries to change the username to one that has illegal characters in it.
-      err_illegal_username: 'The username you entered contains invalid characters.',
-      err_no_aes_key: 'Session manager denied public encryption key lookup request',
-      err_illegal_email: 'You have entered an invalid e-mail address.',
-      msg_save_success: 'Your changes have been saved.',
-      
-      // EDITOR SMARTFORM
-      heading_editing_user: 'Editing user:',
-      heading_basic_options: 'Basic options',
-      
-      field_username: 'Username:',
-      field_username_hint: 'Must be at least 2 characters in length',
-      msg_same_user_username: 'You cannot change your own username. To change your username you must log into a different administrative account.',
-      
-      field_password: 'Password:',
-      field_password_hint: 'Password strength requirements are not enforced here.',
-      msg_password_unchanged: 'Password will be left unchanged.',
-      btn_reset_password: 'Reset password...',
-      msg_same_user_password: 'To change your password, please use the user preferences panel.',
-      field_password_title: 'Change password to:',
-      field_newpassword: 'New password:',
-      field_newpassword_confirm: 'Confirm:',
-      
-      field_email: 'E-mail address:',
-      msg_same_user_email: 'To change your e-mail address, please use the user preferences panel.',
-      
-      field_realname: 'Real name:',
-      msg_same_user_realname: 'To change your real name on file, please use the user preferences panel.',
-      
-      field_signature: 'Signature:',
-      
-      field_usertitle: 'User title:',
-      field_usertitle_hint: 'Displayed below the avatar or username, and above the rank.',
-      
-      heading_imcontact: 'Instant messenger contact information',
-      
-      field_aim: 'AIM handle:',
-      field_wlm: '<acronym title="Windows&trade; Live Messenger">WLM</acronym> handle:',
-      field_wlm_hint: 'If you don\'t specify the domain (@whatever.com), "@hotmail.com" will be assumed.',
-      field_yim: 'Yahoo! IM handle:',
-      field_xmpp: 'Jabber&trade;/XMPP handle:',
-      
-      heading_contact_extra: 'Extra contact information',
-      
-      field_homepage: 'Homepage:',
-      field_homepage_hint: 'Please remember the http:// prefix.',
-      field_location: 'Location:',
-      field_job: 'Job:',
-      field_hobbies: 'Hobbies:',
-      field_email_public: 'E-mail address is public',
-      field_email_public_hint: 'If this is checked, the user\'s e-mail address will be displayed on your the page. To protect the address from spambots, it will be encrypted.',
-      
-      avatar_heading: 'Avatar settings',
-      avatar_image_none: 'This user does not currently have an avatar.',
-      avatar_lbl_change: 'Change avatar:',
-      avatar_lbl_keep: 'Keep current setting',
-      avatar_lbl_remove: 'Delete this user\'s avatar',
-      avatar_lbl_set_http: 'Replace avatar using a new image from a URL',
-      avatar_lbl_set_file: 'Replace avatar using a new image from my computer',
-      avatar_lbl_set_gravatar: 'Replace avatar with Gravatar',
-      
-      heading_adminonly: 'Administrator-only options',
-      
-      field_active_title: 'User account is active',
-      field_active_hint: 'If this is unchecked, the existing activation key will be overwritten in the database, thus invalidating any activation e-mails sent to the user.',
-      field_active: 'Account is active and enabled',
-      field_userlevel: 'User\'s site access level',
-      field_userlevel_hint: 'If this is changed, the relevant group memberships will be updated accordingly.',
-      field_userrank: 'User\'s rank:',
-      field_userrank_hint: 'You can create more ranks using User Ranks and Titles. Ranks do not affect permissions (e.g. setting their rank to Administrator here will not give them administrator permissions).',
-      field_reg_ip: 'Registered from IP:',
-      
-      field_deleteaccount_title: 'Delete user account',
-      field_deleteaccount: 'Permanently delete this user account when I click Save',
-      msg_delete_own_account: '<blink style="color: red;">WARNING!</blink> This will delete your own user account!',
-      field_deleteaccount_hint: 'Even if you delete this user account, the username will be shown in page edit history, comments, and other areas of the site. Deleting a user account CANNOT BE UNDONE and should only be done in extreme circumstances. If the user has violated the site policy, deleting the account will not prevent him from using the site or creating a new account, for that you need to add a new ban rule.',
-      
-      btn_save: 'Save changes',
-    },
-    acpug: {
-      heading_main: 'Manage Usergroups',
-      heading_edit_existing: 'Edit an existing group',
-      btn_edit_stage1: 'Edit group',
-      heading_create_new: 'Create a new group',
-      field_group_name: 'Group name:',
-      field_group_rank: 'Assigned rank:',
-      btn_create_stage1: 'Continue',
-      
-      // Edit form
-      heading_edit_name: 'Edit group basics',
-      btn_cant_delete: 'Can\'t delete system group',
-      btn_delete_group: 'Delete this group',
-      btn_save_name: 'Save changes',
-      heading_edit_members: 'Edit group members',
-      msg_no_members: 'This group has no members.',
-      lbl_member_mod: 'Mod',
-      btn_remove_member: 'Remove member',
-      heading_add_member: 'Add a new member',
-      field_username: 'Username:',
-      field_make_mod: 'Is a group moderator',
-      field_make_mod_hint: '(can add and delete other members)',
-      btn_add_user: 'Add user to group',
-      
-      // Create form
-      err_group_name_invalid: 'The group name you chose is invalid.',
-      heading_creating_group: 'Creating group:',
-      field_group_mod: 'Group moderator',
-      field_group_type: 'Group status',
-      btn_create_stage2: 'Create group',
-      err_already_exist: 'The group name you entered already exists.',
-      err_bad_username: 'The username you entered could not be found.',
-      err_bad_insert_id: 'The group ID could not be looked up.',
-      heading_info: 'Information',
-      msg_create_success: 'The group %g_name% has been created successfully.',
-      
-      // More editor bits, validation messages
-      err_nodelete_system_group: 'The group "%g_name%" could not be deleted because it is a system group required for site functionality.',
-      msg_delete_success: 'The group "%g_name%" has been deleted. Return to the <a %a_flags%>group manager</a>.',
-      msg_name_update_success: 'The group name and rank have been updated.',
-      msg_user_added: 'The user "%username%" has been added to this usergroup.',
-      err_username_not_exist: '<b>The user "%username%" could not be added.</b><br />This username does not exist.',
-    },
-    acpcp: {
-      heading_main: 'Background information',
-      intro: 'The United States Childrens\' Online Privacy Protection Act (COPPA) was a law passed in 2001 that requires sites oriented towards children under 13 years old or with a significant amount of under-13 children clearly state what information is being collected in a privacy policy and obtain authorization from a parent or legal guardian before allowing children to use the site. Enano provides an easy way to allow you, as the website administrator, to obtain this authorization.',
-      msg_save_success: 'Your changes have been saved.',
-      th_form: 'COPPA support',
-      field_enable_title: 'Enable COPPA support:',
-      field_enable: 'COPPA enabled',
-      field_enable_hint: 'If this is checked, users will be asked if they are under 13 years of age before registering',
-      field_address: 'Your mailing address:',
-      field_address_hint: 'This is the address to which parents will send authorization forms.',
-    },
-    acpmm: {
-      heading_main: 'Send mass e-mail',
-      err_need_subject: 'Please enter a subject.',
-      err_need_message: 'Please enter a message.',
-      msg_send_success: 'Your message has been sent.',
-      err_send_fail: 'Could not send message for the following reason(s):',
-      err_demo: 'This function is disabled in the demo. You think demo@enanocms.org likes getting "test" mass e-mails?',
-      field_group_to: 'Send message to:',
-      field_group_to_hint: 'By default, this message will be sent to the group selected here. You may instead send the message to a specific list of users by entering them in the second row, with usernames separated by a single comma (no space).',
-      field_username: 'Usernames:',
-      field_subject: 'Subject:',
-      field_message: 'Message:',
-      btn_send: 'Send message',
-      msg_send_takeawhile: 'Please be warned: it may take a LONG time to send this message. <b>Please do not stop the script until the process is finished.</b>',
-    },
-    acpur: {
-      heading_main: 'User ranks and titles',
-      intro_para1: 'This screen lets you control users\' ranks and custom user titles. User ranks let you provide a graphic distinction between different types or roles of users using colors and other style rules. You can also associate a snippet of text with a rank; this will be displayed below the username of users that are in this rank.',
-      intro_para2: 'A user\'s rank is only a visual distinction; no permissions are associated with it. In other words, if someone is in the Administrators group but has the rank of %this.user_rank_member%, they will still have administrative abilities. On the flip side, giving someone the rank of %this.user_rank_admin% will not give them administrator privileges, but they will be labeled as an administrator.',
-      intro_para3: 'Ranks can be assigned based on a lot of different criteria. By default, Enano maps the Administrator and Moderator ranks based on user level. You can also assign a rank based on group memberships (e.g. being in a group automatically assigns a specific rank) and set individual ranks for users.',
-      intro_para4: 'This screen lets you create, edit, and delete ranks. To assign them, edit the respective user or usergroup.',
-      
-      msg_select_rank: 'To edit a rank, select it on the left. Or, click Create New Rank to start a new rank.',
-      msg_rank_delete_confirm_title: 'Delete this rank?',
-      msg_rank_delete_confirm_body: 'This will completely remove this rank and unassociate any users and groups with it.',
-      
-      th_edit_rank: 'Edit rank: %rank_title%',
-      th_create_rank: 'Create new rank',
-      
-      field_rank_title: 'Rank name:',
-      field_style_basic: 'Basic style options:',
-      field_style_basic_bold: 'Bold',
-      field_style_basic_italic: 'Italic',
-      field_style_basic_underline: 'Underline',
-      field_style_color: 'Username color:',
-      field_style_css: 'Additional CSS:',
-      field_preview: 'Preview:',
-      
-      btn_save: 'Save rank',
-      btn_create_submit: 'Create rank',
-      btn_create_init: 'Create new rank',
-      btn_delete: 'Delete rank',
-      
-      err_save_failed_title: 'Saving operation failed',
-      err_delete_failed_title: 'Deletion operation failed',
-      err_missing_rank_title: 'Please enter a title for this rank.',
-      err_cant_delete_system_rank: 'The rank you are trying to delete is an important system rank that cannot be deleted. However, you may customize the title and style of it to make it appear normal.',
-    },
-    acpsl: {
-      heading_main: 'System security log',
-      col_type: 'Type',
-      col_date: 'Date',
-      col_username: 'Username',
-      col_ip: 'IP Address',
-      entry_admin_auth_good: 'Successful elevated authentication<br /><small>Authentication level: %level%</small>',
-      entry_admin_auth_bad: 'Failed elevated authentication<br /><small>Attempted auth level: %level%</small>',
-      entry_activ_good: 'Successful account activation',
-      entry_auth_good: 'Successful regular user logon',
-      entry_activ_bad: 'Failed account activation',
-      entry_auth_bad: 'Failed regular user logon',
-      entry_sql_inject: 'SQL injection attempt<div style="max-width: 90%; clip: rect(0px,auto,auto,0px); overflow: auto; display: block; font-size: smaller;">Offending query: %query%</div>',
-      entry_db_backup: 'Database backup created<br /><small>Tables: %tables%</small>',
-      entry_install_enano: 'Installed Enano version %version%',
-      entry_upgrade_enano: 'Upgraded Enano to version %version%',
-      entry_illegal_page: 'Unauthorized viewing attempt<br /><small>Page: %illegal_link%</small>',
-      entry_upload_enable: 'Enabled file uploads',
-      entry_upload_disable: 'Disabled file uploads',
-      entry_magick_enable: 'Enabled ImageMagick for uploaded images',
-      entry_magick_disable: 'Disabled ImageMagick for uploaded images',
-      entry_filehist_enable: 'Enabled revision tracking for uploaded files',
-      entry_filehist_disable: 'Disabled revision tracking for uploaded files',
-      entry_magick_path: 'Changed path to ImageMagick executable',
-      entry_plugin_disable: 'Disabled plugin: %plugin%',
-      entry_plugin_enable: 'Enabled plugin:  %plugin%',
-      entry_plugin_install: 'Installed plugin:  %plugin%',
-      entry_plugin_uninstall: 'Uninstalled plugin:  %plugin%',
-      entry_plugin_upgrade: 'Upgraded plugin:  %plugin%',
-      entry_seclog_unauth: 'Unauthorized attempt to call security log fetcher',
-      entry_u_from_admin: 'User %username% demoted from Administrators group',
-      entry_u_from_mod: 'User %username% demoted from Moderators group',
-      entry_u_to_admin: 'User %username% added to Administrators group',
-      entry_u_to_mod: 'User %username% added to Moderators group',
-      entry_view_comment_ip: 'IP address viewed on comment by %username%',
-      tip_reverse_dns: 'Click for reverse DNS info',
-      
-      err_invalid_ip: 'No valid IPv4 or IPv6 address was provided. (In the demo, this is to be expected.)',
-      err_ptr_no_resolve: 'Reverse DNS was not available for this IP.'
-    },
-    acpbc: {
-      err_empty: 'Please enter something to ban.',
-      err_invalid_ip_range: 'The IP address range you entered is invalid.',
-      err_demo: 'This function is disabled in the demo. Just because <i>you</i> don\'t like %ban_target% doesn\'t mean <i>we</i> don\'t like %ban_target%.',
-      col_type: 'Type',
-      col_value: 'Value',
-      col_regex: 'Regular Expression',
-      msg_no_rules: 'No ban rules yet.',
-      ban_type_ip: 'IP address',
-      ban_type_username: 'Username',
-      ban_type_email: 'E-mail address',
-      btn_delete: 'Delete',
-      // Some languages like Chinese don't literally have the word "yes", so this would be something
-      // along the lines of "This is a regular expression" / "This is not..." in Chinese. Hence the
-      // separation of this from a generic "yes" string.
-      ban_regex_yes: 'Yes',
-      ban_regex_no: 'No',
-      heading_create_new: 'Create new ban rule',
-      field_type: 'Type:',
-      field_rule: 'Rule:',
-      field_rule_hint: 'You can ban multiple IP addresses, users, or e-mail addresses by separating entries with a single comma (User1,User2). Do not put a space after the comma. For IP addresses, you may specify ranges like 172|192.168.4-30|90-167.1-90, which will turn into 172 and 192 . 168 . 4-30 and 90-167 . 1 - 90, which matches 18,899 IP addresses.',
-      field_reason: 'Reason to show to the banned user:',
-      field_regex: 'This rule is a regular expression',
-      field_regex_hint: '(advanced users only)',
-      btn_create: 'Create new ban rule',
-    },
-    acplo: {
-      heading_main: 'You have now been logged out of the administration panel.',
-      msg_logout_complete: 'You will continue to be logged into the website, but you will need to re-authenticate before you can access the administration panel again.</p><p>Return to the <a href="%mainpage_link%">Main Page</a>.',
-    },
-    sbedit: {
-      header_msg: 'This control panel allows you to organize the sidebars, the collections of links and dynamic blocks that provide navigation for your site. Drag and drop blocks to move them between the left and right sidebars; changes will be saved automatically. Red blocks are disabled. This panel only works if you have Javascript enabled and working in your browser. <a href="%create_link%">Create a new block</a>.',
-      
-      msg_order_update_success: 'The sidebar order information was updated successfully.',
-      err_demo_php_disable: 'Adding PHP code blocks in the Enano administration demo has been disabled for security reasons.',
-      msg_item_added: 'The item was added.',
-      
-      create_intro: 'What type of block should this be?',
-      block_type_wiki: 'Textual content (wikitext)',
-      block_type_tpl: 'List of links',
-      block_type_html: 'Pure HTML',
-      block_type_php: 'PHP code',
-      block_type_plugin: 'Plugin block',
-      field_block_title: 'Block title:',
-      field_block_sidebar: 'Which sidebar:',
-      field_block_sidebar_left: 'Left',
-      field_block_sidebar_right: 'Right',
-      field_wikitext: '<p>
-                         <b>This block type is for textual content.</b> This could be information, a random fact, or some other blob of fully formatted text. Links show up inline,
-                         not as a list.
-                       </p>
-                       <p>
-                         Wikitext:
-                       </p>',
-      field_tplcode: '<p>
-                        <b>This block type is for links.</b> Use wikilinks (both internal and external are supported) to build a list of links. All links will be shown block-style,
-                        or one link per line. You can use logic in these blocks as well:
-                      </p>
-                      <pre>{if user_logged_in&#x7d;
-  [[Special:Preferences|User control panel]]
+	categories: [
+		'meta', 'adm', 'acl', 'adminusers',
+		'acphome', 'acpgc', 'acpup', 'acpft', 'acppl', 'acppm', 'acped', 'acpdb', 'acplm', 'acppg', 'acpum', 'acpug', 'acpcp', 'acpmm', 'acpsl',
+		'acpcm', 'acpbc', 'acplo', 'acptm', 'acpur', 'sbedit',
+	],
+	strings: {
+		meta: {
+			adm: 'Administration panel nav menu',
+			acl: 'Access control list editor',
+			acphome: 'ACP: Home',
+			acpgc: 'ACP: General configuration',
+			acpup: 'ACP: File uploads',
+			acpft: 'ACP: Allowed file types',
+			acppm: 'ACP: Manage pages',
+			acped: 'ACP: Edit page content',
+			acptm: 'ACP: Theme manager',
+			acppl: 'ACP: Manage plugins',
+			acpdb: 'ACP: Database backup',
+			acplm: 'ACP: Language manager',
+			acpcm: 'ACP: Cache settings',
+			acppg: 'ACP: Page groups',
+			acpum: 'ACP: User management',
+			acpur: 'ACP: User rank management',
+			acpug: 'ACP: User group management',
+			acpcp: 'ACP: COPPA support',
+			acpmm: 'ACP: Mass e-mail',
+			acpsl: 'ACP: Security log',
+			acpbc: 'ACP: Ban control',
+			acplo: 'ACP: Logout page',
+			sbedit: 'Sidebar editor',
+		},
+		adm: {
+			page_tagline: 'Administer your Enano website.',
+			
+			cat_general: 'General',
+			cat_content: 'Content',
+			cat_appearance: 'System and maintenance',
+			cat_users: 'Users',
+			cat_security: 'Security',
+			cat_plugins: 'Plugin configuration',
+			
+			page_general_config: 'General configuration',
+			page_file_uploads: 'File uploads',
+			page_file_types: 'Allowed file types',
+			
+			page_manager: 'Manage pages',
+			page_editor: 'Edit page content',
+			page_pg_groups: 'Manage page groups',
+			
+			page_themes: 'Manage themes',
+			page_plugins: 'Manage plugins',
+			page_db_backup: 'Backup database',
+			page_lang_manager: 'Language manager',
+			page_cache_manager: 'Cache settings',
+			
+			page_users: 'Manage users',
+			page_user_groups: 'Edit user groups',
+			page_coppa: 'COPPA support',
+			page_mass_email: 'Mass e-mail',
+			page_user_ranks: 'User ranks and titles',
+			
+			page_security_log: 'Security log',
+			page_ban_control: 'Ban control',
+			
+			btn_home: 'Administration panel home',
+			btn_logout: 'Log out of admin panel',
+			btn_keepalive_off: 'Turn on keep-alive',
+			btn_keepalive_on: 'Turn off keep-alive',
+			btn_keepalive_about: 'About keep-alive',
+			btn_keepalive_loading: 'Loading keep-alive button...',
+			
+			err_not_auth_title: 'Error: Not authenticated',
+			err_not_auth_body: 'It looks like your administration session is invalid or you are not authorized to access this administration page. Please <a href="%login_link%">re-authenticate</a> to continue.',
+		},
+		acl: {
+			err_access_denied: 'You are not authorized to view or edit access control lists.',
+			err_missing_template: 'It seems that (a) the file acledit.tpl is missing from this theme, and (b) the JSON response is working.',
+			err_user_not_found: 'The username you entered was not found.',
+			err_bad_group_id: 'The group ID you submitted is not valid.',
+			err_demo: 'Editing access control lists is disabled in the administration demo.',
+			err_zero_list: 'Supplied rule list has a length of zero',
+			err_pleaseselect_targettype: 'Please select a target type.',
+			err_pleaseselect_username: 'Please enter a username.',
+			err_select_preset: 'Please select a preset to load.',
+			err_preset_name_empty: 'Please enter a name for this preset.',
+			err_preset_is_blank: 'The preset you entered seems completely empty (i.e. all permissions set to "inherit")',
+			
+			radio_usergroup: 'A usergroup',
+			radio_user: 'A specific user',
+			radio_scope_thispage: 'Only this page',
+			radio_scope_wholesite: 'The entire website',
+			radio_scope_pagegroup: 'A group of pages',
+			
+			lbl_scope: 'What should this access rule control?',
+			lbl_welcome_title: 'Manage page access',
+			lbl_welcome_body: 'Please select who should be affected by this access rule.',
+			lbl_trace_title: 'View effective permissions',
+			lbl_trace_body: 'See what permissions are effective and where. <a href="http://docs.enanocms.org/Help:4.2" onclick="window.open(this.href); return false;">Learn about precedence and scope</a>',
+			lbl_editwin_title_create: 'Create access rule',
+			lbl_editwin_title_edit: 'Editing permissions',
+			lbl_editwin_body: 'This panel allows you to edit what the %target_type% "<b>%target%</b>" can do on <b>%scope_type%</b>. Unless you set a permission to "Deny", these permissions may be overridden by other rules.',
+			lbl_deleterule: 'Delete this rule',
+			lbl_save_success_title: 'Permissions updated',
+			lbl_save_success_body: 'The permissions for %target_name% on this page have been updated successfully. If you changed permissions that affect your user account, you may not see changes until you reload the page.',
+			lbl_delete_success: 'Rule deleted. ',
+			lbl_preset_load_title: 'Load a preset',
+			lbl_preset_load: 'Select a preset...',
+			lbl_preset_save_title: 'Enter a name for this preset',
+			lbl_field_inherit: 'Inherit',
+			lbl_field_deny: 'Deny',
+			lbl_field_disallow: 'Disallow',
+			lbl_field_wikimode: 'Wiki mode',
+			lbl_field_allow: 'Allow',
+			lbl_help: '<p>
+ 									<b>Permission types:</b>
+ 								</p>
+ 								<ul>
+ 									<li><b>Allow</b> means that the user is allowed to access the item</li>
+ 									<li><b>Wiki mode</b> means the user can access the item if wiki mode is active (per-page wiki mode is taken into account)</li>
+ 									<li><b>Disallow</b> means the user is denied access unless something allows it.</li>
+ 									<li><b>Deny</b> means that the user is denied access to the item. This setting overrides all other permissions.</li>
+ 									<li><b>Inherit</b> forces the permission to be unset and thus inherited from the defaults. Setting every permission to Inherit is the same as deleting the rule.</li>
+ 								</ul>',
+			lbl_trace_user: 'See permissions for:',
+			lbl_trace_page: 'On page:',
+			
+			scope_type_wholesite: 'this entire site',
+			scope_type_thispage: 'this page',
+			scope_type_pagegroup: 'this group of pages',
+			
+			target_type_user: 'user',
+			target_type_group: 'group',
+			
+			msg_guest_howto: 'To edit permissions for guests, select "a specific user", and enter Anonymous as the username.',
+			msg_deleterule_confirm: 'Do you really want to delete this rule?',
+			msg_closeacl_confirm_title: 'Close the ACL manager?',
+			msg_closeacl_confirm_body: 'This will cancel any changes that you haven\'t saved.',
+			msg_deny_everyone_confirm: 'CAUTION: You are setting a Deny ruling for everyone on this site. This will block the selected actions from being performed at all. Do you really want to do this?\n\nPlease also note that the following core pages cannot be blocked: Special:Login, Special:Logout, and Special:LangExportJSON.',
+			
+			msg_scale_intro_title: 'Existing ACL rules',
+			msg_scale_intro_body: 'This is a list of all the existing ACL rules on your site. You can click an entry to edit it. Selecting the same criteria in the user and group selection page will also allow editing a rule.',
+			
+			msg_scale_allow: 'Allow',
+			msg_scale_mostly_allow: 'Mostly allow',
+			msg_scale_some_allow: 'Some allow',
+			msg_scale_mixed: 'Mixed',
+			msg_scale_some_deny: 'Some deny',
+			msg_scale_mostly_deny: 'Mostly deny',
+			msg_scale_deny: 'Deny',
+			
+			msg_list_user: '(User: %username%)',
+			msg_list_group: '(Group: %group%)',
+			msg_list_on_page: ' on page: %page_name%',
+			msg_list_on_page_group: ' for page group: %page_group%',
+			msg_list_entire_site: ' for the entire site',
+			msg_list_score: 'Score: %score% (%desc%) %info%',
+			msg_no_presets: 'No presets are defined. Define a preset by setting all the ACL settings to what you want, and then hitting Save. <a %close_flags%>Close</a>',
+			msg_debug_main_title: 'View effective permissions',
+			msg_debug_main_body: 'This tool allows you to see what actual permissions are in use. It can be helpful if you are struggling to determine why a certain action is being allowed or denied. There are two views available for this window: you can either view the information sorted by individual actions, or group actions by which rule sets them.',
+			msg_trace_key: 'Color guide',
+			msg_failed_deps: 'Failed dependencies: ',
+			
+			btn_success_dismiss: 'dismiss',
+			btn_success_close: 'close manager',
+			btn_deleterule: 'Delete rule',
+			btn_createrule: 'Create rule',
+			btn_returnto_editor: 'Return to ACL editor',
+			btn_returnto_userscope: 'Return to user/scope selection',
+			btn_show_existing: '&raquo; View existing rules',
+			btn_view_effective: '&raquo; Show diagnostic tools',
+			btn_close: 'Close ACL wizard',
+			btn_edit_presets: 'Presets: <a %load_flags%>Load</a> | <a %save_flags%>Save</a>',
+			btn_load_preset: 'Load preset',
+			btn_save_preset: 'Save preset',
+			btn_edit_rule: 'edit',
+			btn_view_key: 'View color key',
+			btn_sort_perm: 'Sort individually',
+			btn_sort_rule: 'Sort by rule',
+			
+			inherit_enano_default: 'Enano defaults',
+			inherit_global_everyone: 'Rule for everyone on the entire site',
+			inherit_global_group: 'Rule for the group "%group_name%" on the entire site',
+			inherit_global_user: 'Rule for this user on the entire site',
+			inherit_pg_everyone: 'Rule for everyone in the page group "%pg_name"',
+			inherit_pg_group: 'Rule for the group "%group_name%" in the page group "%pg_name%"',
+			inherit_pg_user: 'Rule for this user in the page group "%pg_name%"',
+			inherit_local_everyone: 'Rule for everyone on this page',
+			inherit_local_group: 'Rule for the group "%group_name%" on this page',
+			inherit_local_user: 'Rule for this user on this page',
+			
+			inherit_key_enano_default: '%this.acl_inherit_enano_default% (most broad)',
+			inherit_key_global_everyone: '%this.acl_inherit_global_everyone%',
+			inherit_key_global_group: 'Rule for a user group on the entire site',
+			inherit_key_global_user: '%this.acl_inherit_global_user%',
+			inherit_key_pg_everyone: 'Rule for everyone in a specific page group',
+			inherit_key_pg_group: 'Rule for a usergroup on a specific page group',
+			inherit_key_pg_user: 'Rule for this user in a specific page group',
+			inherit_key_local_everyone: '%this.acl_inherit_local_everyone%',
+			inherit_key_local_group: 'Rule for a specific usergroup on this page',
+			inherit_key_local_user: '%this.acl_inherit_local_user% (most specific)',
+		},
+		acphome: {
+			heading_main: 'Welcome to the Administration Dashboard.',
+			welcome_line1: 'Thanks for choosing Enano as your site\'s CMS! The administration panel gives you control over nearly every aspect of your site. The links to the left allow you to navigate around the panel. Below you will find some statistics on your site and any alerts you might need to attend to.',
+			
+			// Stats!
+			stat_header: 'Site statistics',
+			stat_enano_version: 'Enano CMS %version% (%releasename%)<br /><a href="%aboutlink%">View server information and license</a>',
+			stat_numpages: 'Number of pages:',
+			stat_edits: 'Number of edits made:',
+			stat_edits_data: '%edit_count% (average of %per_day% per day)',
+			stat_comments: 'Number of comments:',
+			stat_comments_data: '%comment_count% (average of %per_day% per day)',
+			stat_users: 'Number of users:',
+			stat_filesize: 'Total size of uploaded files:',
+			stat_cachesize: 'Total size of cache:',
+			stat_avatarsize: 'Space occupied by avatars:',
+			stat_dbsize: 'Database size:',
+			stat_dbsize_unsupported: 'Unsupported',
+			stat_installdate: 'Site started:',
+			stat_installdate_ago: '(%days% %this.etc_unit_days% ago)',
+			stat_lastupdate: 'Last Enano upgrade:',
+			stat_lastupdate_never: 'Never',
+			
+			heading_alerts: 'Active alerts',
+			
+			msg_demo_title: 'Enano is running in demo mode.',
+			msg_demo_body: 'If you borked something up, or if you\'re done testing, you can <a href="%reset_url%">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.',
+			
+			msg_install_files_title: 'Installer files found',
+			msg_install_files_body: 'Please delete the install/ directory from your Enano installation folder &ndash; it contains sensitive tools that might allow your site to be compromised.',
+			
+			heading_updates: 'Check for updates',
+			msg_updates_info: 'The Enano team will on occasion release new versions of Enano. We always recommend that you run the latest available version because many releases contain security patches. Enano checks for updates by looking at an <a href="%updates_url%">XML file</a> and doesn\'t share any information about your site.',
+			btn_check_updates: 'Check for updates',
+			
+			heading_inactive_users: 'Users are awaiting activation',
+			msg_inactive_users_one: '1 user has requested manual account activation. You can activate the account by going to the <a %um_flags%>User Manager</a>.',
+			msg_inactive_users_plural: '%num_users% users have requested manual account activation. You can activate those accounts by going to the <a %um_flags%>User Manager</a>.',
+			
+			msg_users_locked_out: 'Active IP address lockouts',
+			msg_users_locked_out_hint: 'The following IP addresses have been automatically locked out from login attempts. You can delete these active lockouts, if you choose.',
+			th_locked_out_ip: 'IP address',
+			th_locked_out_username: 'Username (most recent attempt)',
+			th_locked_out_status: 'Status',
+			th_locked_out_time: 'Time remaining',
+			lbl_locked_out_warned: 'Warned (failures: %fail_count%)',
+			lbl_locked_out_banned: 'Locked out',
+			btn_lockout_unblock: 'Unblock',
+			btn_lockout_clear: 'Clear',
+			msg_lockout_clear_success: 'The IP address %ip% has been cleared from the active lockout list.',
+			
+			heading_docs: 'Enano documentation',
+			msg_docs_info: 'The <a href="http://docs.enanocms.org/" onclick="window.open(this.href); return false;">Enano administrator\'s handbook</a> is maintained as a wiki. It will help you get started with Enano and learn about how we do things differently.',
+			heading_support: 'Get support',
+			msg_support_info: 'Stuck? Think you found a bug? Tell us about it! Post a message in the <a href="http://forum.enanocms.org/" onclick="window.open(this.href); return false;">Enano support forums</a> to obtain community support for Enano. You may also be interested in our <a href="http://enanocms.org/Support" onclick="window.open(this.href); return false;">other support channels</a>.',
+			
+			heading_top_pages: 'Most requested pages',
+			th_toppages_page: 'Page',
+			th_toppages_hits: 'Hits',
+			heading_seclog: 'Security log',
+			msg_seclog_info: 'This list shows the 5 most recent actions/attempted actions performed by administrators on this site. This also includes attempts to view blocked pages and use the administration panel without appropriate privileges. You can view a complete list using the link below.',
+			btn_seclog_full: 'Full security log',
+		},
+		acpgc: {
+			err_avatar_dir_invalid: 'You have entered an invalid avatar directory.',
+			err_avatar_dir_not_exist: 'The avatar directory you entered does not exist in the filesystem.',
+			msg_save_success: 'Your changes to the site configuration have been saved.',
+			
+			// Section: global site options
+			heading_main: 'Global site options',
+			heading_submain: 'These options control the entire site.',
+			field_site_name: 'Site name:',
+			field_site_desc: 'Site description:',
+			field_main_page: 'Main page:',
+			field_main_page_option_same: 'Use the same main page for everyone',
+			field_main_page_option_members: 'Use a different main page for members:',
+			field_main_page_members: 'Main page for members:',
+			field_copyright: 'Copyright notice shown on pages:',
+			field_copyright_hint: 'Hint: To make a copyright symbol (&copy;), type <tt>&amp;copy;</tt>.',
+			field_contactemail: 'Contact e-mail',
+			field_contactemail_hint: 'All e-mail sent from this site will appear to have come from the address shown here.',
+			
+			// Section: wiki mode
+			heading_wikimode: 'Wiki mode',
+			field_wikimode_intro: 'Enano can also act as a wiki, meaning anyone can edit and create pages. To enable Wiki Mode, check the box to the right.',
+			field_wikimode_info_sanitize: 'In Wiki Mode, certain HTML tags such as &lt;script&gt; and &lt;object&gt; are disabled, and all PHP code is disabled, except if the person editing the page is an administrator.',
+			field_wikimode_info_history: 'Also, Enano keeps complete page history, which makes restoring vandalized pages easy. You can also protect pages so that they cannot be edited.',
+			field_wikimode: 'Enable Wiki Mode',
+			field_editnotice_title: 'Edit page notice',
+			field_editnotice_info: 'When Wiki Mode is enabled, anyone can edit pages. Check the box below and enter a message to display it whenever the page editor is opened. Administrators often use this field to display a legal disclaimer or a notice of what license the user agrees to submit their content under.',
+			field_editnotice: 'Show a message whenever pages are edited',
+			field_edit_require_captcha_title: 'Require visual confirmation for guests editing pages',
+			field_edit_require_captcha_hint: 'If this is enabled, guests will be asked to enter a visual confirmation code before saving changes to a page.',
+			field_edit_require_captcha: 'Require guests to complete a CAPTCHA when editing pages',
+			
+			// Section: statistics and hit counting
+			heading_stats: 'Statistics and hit counting',
+			stats_intro: 'Enano has the ability to show statistics for every page on the site. This allows you to keep very close track of who is visiting your site, and from where.',
+			stats_hint_privacy: 'Unfortunately, some users don\'t like being logged. For this reason, you should state clearly what is logged (usually the username or IP address, current time, page name, and referer URL) in your privacy policy. If your site is primarily geared towards children, and you are a United States citizen, you are required to have a privacy policy stating exactly what is being logged under the terms of the Childrens\' Online Privacy Protection Act.',
+			field_stats_enable: 'Log all page hits',
+			field_stats_hint: 'This excludes special and administration pages.',
+			
+			// Section: comment system
+			heading_comments: 'Comment system',
+			field_enable_comments: 'Enable the comment system',
+			field_approve_comments: 'Require approval before article comments can be shown',
+			field_comment_allow_guests: 'Allow guests to post comments',
+			field_comment_allow_guests_yes: 'Yes',
+			field_comment_allow_guests_captcha: 'Require visual confirmation',
+			field_comment_allow_guests_no: 'No (require login)',
+			field_comment_spam_policy: 'Spam policy:',
+			field_comment_spam_policy_hint: 'This requres a <a href="http://enanocms.org/Category:Spam_filtering">spam filtering plugin</a> to be installed.',
+			field_comment_spam_policy_moderate: 'Moderate comments (default)',
+			field_comment_spam_policy_reject: 'Reject post',
+			field_comment_spam_policy_accept: 'Ignore and accept posts',
+			
+			// Section: disable site
+			heading_disablesite: 'Disable all site access',
+			field_disablesite_hint: 'Disabling the site allows you to work on the site without letting non-administrators see or use it.',
+			field_disablesite: 'Disable this site',
+			field_disablesite_message: 'Message to show to users:',
+			
+			// Section: default theme
+			heading_default_theme: 'Visual defaults',
+			field_default_theme: 'Default theme for guests and new users:',
+			
+			// Section: breadcrumbs
+			field_breadcrumb_mode: 'Enable breadcrumbs:',
+			field_breadcrumb_mode_subpages: 'Only with a slash in the URL (default)',
+			field_breadcrumb_mode_always: 'Always',
+			field_breadcrumb_mode_never: 'Never',
+			
+			// Section: CDN
+			field_cdn_path: 'URL to <acronym title="Content Delivery Network">CDN</acronym> server:',
+			field_cdn_path_hint: 'A CDN, or Content Delivery Network, allows downloading of shared Enano components from a server designed to serve out only images, CSS, and script files. Since a browser can open separate connections for the page and for images and scripts, the page loads faster. Leave this blank to just use Enano\'s local files (default).',
+			field_cdn_path_example: 'Example: <tt>http://cdn.mycompany.com/enano/',
+			
+			// Section: gzip
+			field_gzip: 'Enable gzip compression',
+			field_gzip_hint: 'Compress pages using before sending them to the user. At the cost of a small amount of CPU, this can save a lot of bandwidth. This only enables compression for HTML and some Javascript; to gzip compress CSS and images, please consult your webserver\'s documentation.',
+			field_gzip_lbl: 'Use gzip compression',
+			field_gzip_btn_check: 'Check server for support',
+			field_gzip_check_msg_server_does_it: 'Your server performs gzip compression on its own. There is no need to enable it in Enano, and if you do, you may cause Enano to stop working.',
+			field_gzip_check_msg_server_good: 'Your server is not automatically compressing PHP-generated pages, so Enano\'s compression facilities are needed.',
+			field_gzip_check_msg_php_bad: 'PHP does not have gzip support enabled.',
+			field_gzip_check_msg_php_good: 'Found gzip compression support in PHP.',
+			field_gzip_check_msg_success: 'Success - all server checks passed. You can enable gzip support.',
+			field_gzip_check_msg_failure: 'Server check failed. Unless you think Enano is wrong, don\'t enable gzip below.',
+			
+			// Main section: users and communication
+			heading_users: 'Users and communication',
+			
+			// Section: account activation
+			heading_activate: 'User account activation',
+			activate_intro_line1: 'If you would like to require users to confirm their e-mail addresses by way of account activation, you can enable this behavior here. If this option is set to "None", users will be able to register and use this site without confirming their e-mail addresses. If this option is set to "User", users will automatically be sent e-mails upon registration with a link to activate their accounts. And lastly, if this option is set to "Admin", users\' accounts will not be active until an administrator activates the account.',
+			activate_intro_line2: 'You may also disable registration completely if needed.',
+			activate_intro_sfnet_warning: 'Note: if you are using a SourceForge.net server, do not select User. SourceForge.net does not allow e-mails to be sent from project web sites.',
+			field_activate: 'Account activation:',
+			field_activate_disable: 'Disable registration',
+			field_activate_none: 'None',
+			field_activate_user: 'User',
+			field_activate_admin: 'Admin',
+			
+			// Section: terms of use (TOU)
+			heading_tou: 'Registration agreement/Terms of Use',
+			field_tou: 'Registration agreement',
+			field_tou_hint: 'The text you enter here will be displayed to users upon any attempt to create an account on this site.',
+			
+			// Section: account lockouts
+			heading_lockout: 'Account lockouts',
+			lockout_intro: 'Configure Enano to prevent or restrict logins for a specified period of time if a user enters an incorrect password a specific number of times.',
+			field_lockout_threshold: 'Lockout threshold:',
+			field_lockout_threshold_hint: 'How many times can a user enter wrong credentials before a lockout goes into effect?',
+			field_lockout_duration: 'Lockout duration:',
+			field_lockout_duration_hint: 'This is how long an account lockout should last, in minutes.',
+			field_lockout_policy: 'Lockout policy:',
+			field_lockout_policy_hint: 'What should be done when a lockout goes into effect?',
+			field_lockout_policy_nothing: 'Don\'t do anything',
+			field_lockout_policy_captcha: 'Require visual confirmation',
+			field_lockout_policy_lockout: 'Prevent all login attempts',
+			
+			// Section: password strength
+			heading_passstrength: 'Password strength',
+			field_passstrength_title: 'Enable password strength analysis',
+			field_passstrength_hint: 'This should be enabled in most cases. When this is enabled, a strength meter and a numerical score will be displayed wherever a password can be changed.',
+			field_passstrength: 'Enabled',
+			field_passminimum_title: 'Minimum strength score',
+			field_passminimum_hint: 'This is the lowest score a password will be allowed to have. -10 will allow any password. A score of under -3 is considered weak, under 1 is fair, under 4 is good, under 10 is strong, and 10 and above are very strong. The scale is open-ended. This only has an effect if the meter is enabled above.',
+			
+			// Section: e-mail
+			heading_email: 'E-mail sent from the site',
+			field_email_method: 'E-mail sending method:',
+			field_email_method_hint: 'Try using the built-in e-mail method first. If that doesn\'t work, you will need to enter valid SMTP information here.',
+			field_email_method_builtin: 'PHP\'s built-in mail() function',
+			field_email_method_smtp: 'Use an external SMTP server',
+			field_email_smtp_hostname: 'SMTP hostname:',
+			field_email_smtp_hostname_hint: 'This option only applies to the external SMTP mode.',
+			field_email_smtp_auth: 'SMTP credentials:',
+			field_email_smtp_username: 'Username:',
+			field_email_smtp_password: 'Password:',
+			
+			// Section: Sessions
+			heading_sessions: 'User sessions',
+			hint_sessions_noelev: '<b>Remember:</b> Settings here only affect normal logins - you can\'t change the length of sessions that give you elevated privileges, such as the re-authentication that occurs when you access the administration panel. <a href="http://docs.enanocms.org/Help:Appendix_B" onclick="window.open(this.href); return false;">Read about Enano\'s security model</a>.',
+			field_short_time: 'Length of short sessions in minutes:',
+			field_short_time_hint: 'This is how long a user\'s session will last when they don\'t check the "remember me" checkbox. Short sessions are automatically renewed every time a page is loaded.',
+			field_long_time: 'Length of extended sessions in days:',
+			field_long_time_hint: 'This is how long a user\'s session will last when the "remember me" checkbox is selected during their login. Long sessions can\'t be renewed - they always last a fixed amount of time. Set this to 0 to make extended sessions infinite, e.g. they are only terminated when the user logs out manually (this may present a security risk).',
+			
+			// Section: avatars
+			heading_avatars: 'Avatars',
+			avatars_intro: 'Avatars are small images that users can display on their profiles and in comments.',
+			field_avatar_enable: 'Enable avatar support:',
+			field_avatar_enable_hint: 'Supported formats are JPEG, PNG, and GIF&trade;.',
+			field_avatar_enable_label: 'Enabled',
+			field_avatar_max_filesize: 'Maximum avatar file size:',
+			field_avatar_max_filesize_hint: 'For smaller sites, the highest value for this should be about 50KB, 51200. Larger sites with more visitors will likely want to use something much smaller, such as 10KB.',
+			field_avatar_max_dimensions: 'Maximum avatar dimensions:',
+			field_avatar_max_dimensions_hint: 'The format is width &#215; height. Typically you want to have this square (the same width and height). These are only maximum dimensions; users are not prevented from having smaller images.',
+			field_avatar_allow_anim_title: 'Allow animated avatars:',
+			field_avatar_allow_anim_hint: 'If this is checked, users can upload APNG and Animated GIF&trade; avatars. Sometimes such images can be specifically made to be distracting, like rapidly flashing images. If this is unchecked, these formats will be blocked, and only still PNGs and GIFs will be allowed.',
+			field_avatar_allow_anim: 'Don\'t block animated images',
+			field_avatar_upload_methods: 'Allowed upload methods:',
+			field_avatar_upload_file: 'Allow users to upload image files from their computers',
+			field_avatar_upload_http: 'Allow users to enter a URL to their desired avatar',
+			field_avatar_upload_gravatar: 'Allow users to use their <a href="http://www.gravatar.com/" onclick="window.open(this.href); return false;">Gravatar</a>',
+			field_avatar_gravatar_rating: 'Highest allowed rating for Gravatar images:',
+			field_avatar_gravatar_rating_g: 'G (no objectionable content)',
+			field_avatar_gravatar_rating_pg: 'PG (rude gestures, immodest dress, mild swearing/violence)',
+			field_avatar_gravatar_rating_r: 'R (profanity, violence, nudity, hard drug use)',
+			field_avatar_gravatar_rating_x: 'X (hardcore sexual images, extremely disturbing violence)',
+			field_avatar_directory: 'Avatar storage directory:',
+			field_avatar_directory_hint: 'This should be relative to your Enano root and should contain only alphanumeric characters and forward slashes, even if your server runs Windows.',
+			
+			// Section: misc options
+			heading_usermisc: 'Other user options',
+			field_userpage_acl_title: 'New users can edit their user pages:',
+			field_userpage_acl_hint: 'This setting will cause Enano to grant certain rights to newly registered users, effective only on their user page. These rights include creating their page, editing their page, and posting comments. Since it generates a new ACL rule, you are able to override new permissions. This setting will only take effect on new users - it does not affect the permissions of those already registered.',
+			field_userpage_acl: 'Grant editing rights to new users on their user pages',
+			
+			// Main section: sidebar links
+			heading_sidebar: 'Sidebar links',
+			
+			// Section: promote Enano
+			heading_promoteenano: 'Promote Enano',
+			field_enano_link_title: 'Show link to enanocms.org on the sidebar',
+			field_enano_link_hint: 'You may help show your support for Enano with this link. This is entirely optional and the Enano project does not discriminate against sites that disable this button. (This differs from our policy on the "Powered by Enano" link; see <a href="http://enanocms.org/powered-link" onclick="window.open(this.href); return false;">this page</a> for more information.)',
+			field_enano_link: 'Place a link to enanocms.org on the sidebar',
+			
+			// Section: SF.net logo
+			heading_sfnet_logo: 'SourceForge.net logo',
+			sfnet_intro: 'All projects hosted by SourceForge.net are required to display an official SourceForge.net logo on their pages.  If you want to display a SourceForge.net logo on the sidebar, check the box below, enter your group ID, and select an image type.',
+			field_sfnet_display: 'Display the SourceForge.net logo on the right sidebar',
+			field_sfnet_group_id: 'Group ID:',
+			field_sfnet_logo_style: 'Logo style:',
+			field_sfnet_logo_style_1: '88x31%this.etc_unit_pixels_short%, white',
+			field_sfnet_logo_style_2: '125x37%this.etc_unit_pixels_short%, white',
+			field_sfnet_logo_style_3: '125x37%this.etc_unit_pixels_short%, black',
+			field_sfnet_logo_style_4: '125x37%this.etc_unit_pixels_short%, blue',
+			field_sfnet_logo_style_5: '210x62%this.etc_unit_pixels_short%, white',
+			field_sfnet_logo_style_6: '210x62%this.etc_unit_pixels_short%, black',
+			field_sfnet_logo_style_7: '210x62%this.etc_unit_pixels_short%, blue',
+			
+			// Section: W3C validation buttons
+			heading_w3clogos: 'W3C compliance logos',
+			w3clogos_intro: 'Enano generates (by default) Valid XHTML 1.1 code, plus valid CSS.  If you want to show this off, check the appropriate boxes below.',
+			w3clogos_btn_html32: 'HTML 3.2',
+			w3clogos_btn_html40: 'HTML 4.0',
+			w3clogos_btn_html401: 'HTML 4.01',
+			w3clogos_btn_xhtml10: 'XHTML 1.0',
+			w3clogos_btn_xhtml11: 'XHTML 1.1',
+			w3clogos_btn_css: 'CSS',
+			
+			// Section Defective By Design link
+			heading_dbd: 'Defective By Design Anti-DRM button',
+			dbd_intro: 'The Enano project is strongly against Digital Restrictions Management.',
+			dbd_explain: 'DRM infringes on consumer rights by using technical locks to prevent you from using your Fair Use rights granted by copyright law. This means that consumers are harmed in many ways, for example when they can\'t copy purchased digital media to their own devices. Furthermore, since most DRM schemes are proprietary and designed to prevent interoperability, you can be locked you into a specific brand or product. You can help spread consumer awareness and show your opposition to DRM through this button. It\'s as easy as checking the box below to place a link to <a href="http://www.defectivebydesign.org">DefectiveByDesign.org</a> on your sidebar.',
+			field_stopdrm: 'Help stop DRM by placing a link to DBD on the sidebar!',
+			
+			// Save button
+			btn_save_changes: 'Save changes'
+		},
+		acpup: {
+			heading_main: 'File upload configuration',
+			intro: 'Enano supports the ability to upload files to your website and store the files in the database. This enables you to embed images and such into pages without manually writing the HTML. However, the upload feature can sometimes pose a risk to your site, as viruses and executable files can sometimes be uploaded.',
+			field_enable: 'Enable file uploads',
+			field_max_size: 'Maximum file size:',
+			info_magick: 'You can allow Enano to generate thumbnails of images automatically. This feature requires ImageMagick to work properly. If your server does not have ImageMagick on it, Enano will try to use the GD library (if available) to scale images. This can be slower, but it works on a wider range of servers. If even that does not work, Enano will simply make your users\' browsers scale the images. In most cases this is fine, but if you are uploading large (>100KB) images and embedding them inside of pages, you should try to enable ImageMagick or configure GD because transferring these large images many times can cost you quite a lot of bandwidth.',
+			field_magick_enable: 'Use ImageMagick to scale images',
+			field_magick_path: 'Path to ImageMagick:',
+			err_magick_not_found: '<b>Warning:</b> the file "%magick_path%" was not found, and the ImageMagick file path was not updated.',
+			// Translators: for the path here, please be sure to use a double-backslash in the Windows path. Avoid translating the file paths
+			// anyway since they're generally the same even on non-English Windows systems.
+			field_magick_path_hint: 'On Linux and Unix servers, the most likely options here are /usr/bin/convert and /usr/local/bin/convert. If you server runs Windows, then ImageMagick is most likely to be C:\\Windows\\Convert.exe or C:\\Windows\\System32\\Convert.exe.',
+			info_cache: 'If you use ImageMagick to scale images, your server will be very busy constantly scaling images if your website is busy, and your site may experience slowdowns. You can dramatically speed up this scaling process if you use a directory to cache thumbnail images.',
+			info_cache_chmod: '<b>Please note:</b> the cache/ directory on your server <u>must</u> be writable by the server. While this is not usually a problem on Windows servers, most Linux/Unix servers will require you to CHMOD the cache/ directory to 777. See your FTP client\'s user guide for more information on how to do this.',
+			msg_cache_not_writable: ' <b>At present, it seems that the cache directory is not writable. The checkbox below has been disabled to maintain the stability of Enano.</b>',
+			field_cache: 'Cache thumbnailed images',
+			info_history: 'Lastly, you can choose whether file history will be saved. If this option is turned on, you will be able to roll back any malicious changes made to uploaded files, but this requires a significant amount of filesystem storage. You should probably leave this option enabled unless you have less than 250MB of disk space on your hosting account or server.',
+			field_history: 'Keep a history of uploaded files',
+			btn_save: 'Save changes',
+		},
+		acpft: {
+			// Nope. There isn't anything else. Sorry to disappoint.
+			heading_main: 'Allowed file types',
+			hint: 'Using the form below, you can decide which file types are allowed to be uploaded to this site.',
+			msg_saved: 'Your changes have been saved.',
+			msg_demo_mode: 'Hmm, enabling executables, are we? Tsk tsk. I\'d love to know what\'s in that EXE file you want to upload. OK, maybe you didn\'t enable EXEs. But nevertheless, changing allowed filetypes is disabled in the demo.',
+		},
+		acppl: {
+			heading_main: 'Plugin management',
+			intro: 'This interface allows you to control what plugins are in use on this site. Everything you do on this page will be shown in the security logs. Some plugins don\'t fully support the newer features like installation, upgrading and uninstalls. Installing these plugins will still work, but sometimes authors include setup instructions in the plugin file. You should check the file for further setup instructions once the plugin is installed.',
+			
+			lbl_plugin_name: '<b>%plugin%</b> by %author%',
+			lbl_status_installed: 'Installed',
+			lbl_status_uninstalled: 'Not installed',
+			lbl_status_system: 'System plugin',
+			lbl_status_need_upgrade: 'Disabled (needs upgrade)',
+			lbl_status_disabled: 'Disabled',
+			lbl_filename: 'Filename:',
+			lbl_plugin_site: 'Plugin homepage:',
+			lbl_author_site: 'Author homepage:',
+			lbl_version: 'Version:',
+			lbl_installed_version: 'Installed version:',
+			
+			btn_install: 'Install',
+			btn_disable: 'Disable',
+			btn_enable: 'Enable',
+			btn_upgrade: 'Upgrade',
+			btn_uninstall: 'Uninstall',
+			btn_reimport: 'Re-import strings',
+			
+			msg_confirm_uninstall: 'Uninstalling this plugin may cause the loss of data that was created with it. You should only uninstall a plugin if you are certain you\'ll have no further use for it; in fact, you don\'t even need to uninstall a plugin if you\'re deleting it from the filesystem.',
+			msg_confirm_install: 'Plugins are not supported by the Enano project and could harm your site if malicious. You should only install plugins from sources that you trust.',
+			msg_confirm_reimport: 'Re-importing strings will reload all language data from the plugin file. This should fix missing messages, but any customizations you have made to the plugin\'s language strings will be lost.',
+			
+			msg_confirm_authext_title: 'This plugin is an authentication extension.',
+			msg_confirm_authext_body: 'This plugin hooks into Enano\'s login system. It might be used to allow non-password-based authentication. If there is a security vulnerability in this plugin, it might open your site up to attack. Only continue if you trust the author of this plugin.\n\nBe sure to be vigilant in checking for updates to this plugin.',
+			
+			err_upgrade_not_supported: 'This plugin doesn\'t support automatic upgrades. The version number has been updated so the plugin will be re-enabled, but you should check the plugin file to see if the author provided instructions for finishing the upgrade.',
+			err_upgrade_bad_version: 'This plugin cannot be upgraded because you are running a version of the plugin that is not listed in the plugin\'s version list.',
+			err_upgrade_bad_target_version: 'This plugin cannot be upgraded because it does not support its own version. Please contact the author and ask them to fix this.',
+			err_upgrade_to_older: 'You are trying to upgrade to an older release of this plugin. This is unsupported and must be done manually.',
+			err_upgrade_bad_query: 'There is a problem with one of the SQL queries the plugin is trying to make.',
+			err_dmbs_not_supported: 'This plugin doesn\'t support %dbdriver% databases.',
+			err_import_no_strings: 'This plugin doesn\'t have language support.',
+			err_demo_mode: 'You can\'t manipulate plugins in the Enano demo for security reasons.',
+			
+			msg_old_entries_title: 'Import old plugin installation data',
+			msg_old_entries_body: 'There is still data from the old plugin structure in your database. You can import this to the new structure automatically using the button below.',
+			btn_import_old: 'Import old plugin settings',
+		},
+		acppm: {
+			heading_main: 'Edit page properties',
+			hint: 'This panel allows you to edit various properties of pages that aren\'t visible anywhere else. In addition to renaming pages, you can also change their <a href="http://docs.enanocms.org/Help:2.3" onclick="window.open(this.href); return false;">URL string</a> and options such as whether to index the page for searching or bypass Enano\'s template engine.',
+			err_page_not_found: 'No pages matching that search string could be found.',
+			msg_results_ambiguous_title: 'Ambiguous search results',
+			msg_results_ambiguous_body: 'Multiple pages that matched your search terms were found. Please select the page you wish to modify:',
+			ambig_btn_viewpage: 'View',
+			err_ambig_absolute: 'Your database is corrupt as it contains multiple pages with the same urlname and namespace.',
+			lbl_field_search: 'Search for a page title or URL string:',
+			heading_select_page_from_list: 'Select page from a list',
+			hint_select_page_from_list: 'You can also select the page you want to modify from the list below. The list is broken into sections of 100 pages, so if you have a lot of pages on your site, you can click the pagination control below to view more pages.',
+			
+			// Edit form
+			heading_editing: 'Editing page:',
+			lbl_page_name: 'Page\'s title:',
+			lbl_page_urlname: 'URL string:',
+			lbl_page_urlname_hint: 'No spaces, and don\'t enter the namespace prefix (e.g. User:). Changing this value is usually not a good idea, especially for templates and project pages, because it will invalidate the page\'s current URL.',
+			lbl_namespace: 'Namespace (URL prefix):',
+			ns_article: '[No prefix, default Article namespace]',
+			heading_advanced: 'Advanced options',
+			msg_file_ns_warning: '<b>WARNING:</b> Changing the namespace to something other than "File" will delete the uploaded file and all previous revisions of it.',
+			lbl_enable_comments_title: 'Allow comments to be posted on this page?',
+			lbl_enable_comments_hint: 'This option has no effect if comments are disabled globally in the administration panel. This option is enabled by default.',
+			lbl_enable_comments: 'Enable comments on this page',
+			lbl_special_title: 'Mark page as self-contained?',
+			lbl_special_hint: 'This option enables you to use your own HTML headers and other code. If you enable this, only the raw contents of the page will be displayed instead of Enano\'s full page formatting and styles. It is recommended that only advanced users enable this feature. As with other Enano pages, you may use PHP code in your pages (dependent on permissions), meaning you can use Enano\'s API on the page.',
+			lbl_special: 'Bypass the template engine for this page',
+			lbl_visible_title: 'Make page publicly listed?',
+			lbl_visible_hint: 'If you enable this option, this page will be indexed for searching and will appear in public page lists such as Special:AllPages. This option is enabled by default. Disabling this does not protect the page from unauthorized access. If you want to keep this page from being accessed without authorization, you should create a new ACL rule or password-protect the page.',
+			lbl_visible: 'Allow page to be indexed and listed',
+			lbl_protected_title: 'Protect page from edits?',
+			lbl_protected_off: 'Unprotected',
+			lbl_protected_on: 'Fully protected',
+			lbl_protected_semi: 'Semi-protected',
+			lbl_protected_hint: 'This option only has an effect if Wiki Mode is enabled. Selecting Unprotected means that any user (unless specifically blacklisted) can edit this page. Fully protected means that only administrators can edit the page. Semi-protected restricts editing to administrators and users that have been registered for at least four days.<br /><br /><b>Above all, no users except administrators can edit this page unless an ACL specifically allows it or Wiki Mode is enabled.</b>',
+			lbl_wikimode_title: 'Enable Wiki Mode for this page?',
+			lbl_wikimode_on: 'Enabled',
+			lbl_wikimode_off: 'Disabled',
+			lbl_wikimode_global: 'Inherit global setting',
+			lbl_wikimode_hint: 'By default, all pages use the Wiki Mode setting defined in General Configuration. You can override that using this field. Be aware that there are advantages and disadvantages to Wiki Mode. For example, Wiki Mode encourages collaboration, but also permits vandalism. See the <a href="http://docs.enanocms.org/Help:2.5" onclick="window.open(this.href); return false;">Enano Documentation article on Wiki Mode</a> for more information.',
+			lbl_delete_title: 'Delete this page?',
+			lbl_delete_hint: 'Remember that deleting pages is always reversible unless you clear the page\'s logs after deleting it.',
+			lbl_delete: 'Delete this page when I click Save',
+			
+			err_invalid_page_name: 'Please enter a name for the page.',
+			err_invalid_url_string: 'Please enter a URL string for the page.',
+			err_invalid_namespace: 'The namespace you selected is, for whatever reason, not valid.',
+			err_invalid_protection: 'The protection level selected is invalid.',
+			err_invalid_wiki_mode: 'The Wiki Mode level selected is invalid.',
+			err_header: 'There were one or more problems that prevented the page from being saved:',
+			delete_reason: 'Administrative deletion from admin CP; contact webmaster for details',
+			
+			msg_save_success: 'Your changes to the page have been saved. <a href="%viewpage_url%">View page &raquo;</a>',
+		},
+		acped: {
+			heading_main: 'Edit page content',
+			hint: 'This panel allows you to edit the contents of pages that are stored in the database.',
+			// The rest of this section is identical to the first parts of the acppm category by default (you can copy and paste).
+			err_page_not_found: 'No pages matching that search string could be found.',
+			msg_results_ambiguous_title: 'Ambiguous search results',
+			msg_results_ambiguous_body: 'Multiple pages that matched your search terms were found. Please select the page you wish to edit:',
+			ambig_btn_viewpage: 'View',
+			err_ambig_absolute: 'Your database is corrupt as it contains multiple pages with the same urlname and namespace.',
+			lbl_field_search: 'Search for a page title or URL string:',
+			heading_select_page_from_list: 'Select page from a list',
+			hint_select_page_from_list: 'You can also select the page you want to edit from the list below. The list is broken into sections of 100 pages, so if you have a lot of pages on your site, you can click the pagination control below to view more pages.',
+		},
+		acptm: {
+			heading_edit_themes: 'Installed themes',
+			btn_system_themes_show: '&raquo; Show system themes',
+			btn_system_themes_hide: '&raquo; Hide system themes',
+			btn_theme_edit: 'Edit',
+			btn_theme_system: 'System theme',
+			heading_install_themes: 'Themes available for installation',
+			btn_theme_install: 'Install',
+			
+			// Editor
+			heading_theme_edit: 'Editing theme: %theme_name%',
+			field_theme_name: 'Theme name:',
+			field_default_style: 'Select a default style:',
+			field_default_theme: 'Site-wide default theme:',
+			field_default_msg_current: 'This is the current default',
+			field_default_btn_make_default: 'Make this the default theme when I click Save',
+			field_disable_title: 'Disable theme: ',
+			field_disable: 'Prevent all users and guests from using this theme',
+			heading_theme_groups: 'User and group policy',
+			field_policy: 'Theme access policy:',
+			field_policy_allow_all: 'Allow everyone to use this theme',
+			field_policy_whitelist: 'Only allow the users and groups I select below',
+			field_policy_blacklist: 'Allow everyone except what I select below',
+			field_acl_heading_groups: 'Groups',
+			field_acl_heading_users: 'Users',
+			field_acl_add_user: 'Add a user: ',
+			btn_uninstall_theme: 'Uninstall theme',
+			msg_uninstall_confirm: 'Are you sure you want to uninstall this theme?',
+			
+			err_invalid_username: 'Please enter a valid username.',
+			err_username_not_found: 'The user you entered does not exist.',
+			err_save_validation_failed: 'One or more of the fields in the form is incorrect. Please ensure that you have entered a proper value for all of the fields in the theme editing form, and then click %this.etc_save_changes% again.',
+			err_uninstalling_default: 'You cannot uninstall the default theme.',
+			err_uninstalling_oxygen: 'You cannot uninstall the Oxygen theme because it\'s used for important functions such as database errors.',
+			warn_cant_disable_default: 'Please note that the theme was not disabled because it is currently the default.',
+			warn_access_with_default: 'If you selected to whitelist or blacklist certain users, that choice will not apply to guests because this is the default theme.',
+			msg_save_success: 'Your changes to this theme have been saved.',
+			msg_uninstall_success: 'The selected theme has been uninstalled.',
+		},
+		acpcm: {
+			heading_main: 'Performance and caching settings',
+			intro: 'From this page you can control what information on your site is stored in cache files. Caching speeds up Enano performance by allowing data to be retrieved from the disk instead of querying the database. Sometimes the cache isn\'t updated immediately when the database is. From this page you can control what is cached, and you can clear specific caches to force them to refresh.',
+			msg_refresh_warning: 'Some of the caches on this page will automatically refresh immediately even if you click Clear. This is because any use of the component will invoke the cache. To disable this behavior, you must disable caching site-wide.',
+			table_header: 'Cache settings',
+			lbl_enable_cache: 'Enable the cache (recommended)',
+			hint_enable_cache: 'To use the cache, the folder "cache" in the Enano root directory needs to be writable by the server. You can usually accomplish this by using your FTP client\'s CHMOD feature to set the permissions on this folder to 777. Learn more <a href="http://en.wikipedia.org/wiki/Chmod" onclick="window.open(this.href); return false;">about UNIX permissions</a>.',
+			btn_clear_all: 'Clear all caches',
+			hint_clear_all: 'To force all caches (except image thumbnails) on the site to empty, click this button. Certain caches, such as language data, must be regenerated in order to fully refresh the cache. It is recommended that you use "%this.acpcm_btn_refresh_all%" below to clear all caches and then regenerate them.',
+			btn_refresh_all: 'Refresh all caches',
+			hint_refresh_all: 'This will clear all caches (except image thumbnails) on the site to empty and then regenerate, except certain components that are cached on demand.',
+			
+			th_individual_caches: 'Individual caches',
+			btn_clear: 'Clear',
+			btn_refresh: 'Refresh',
+			
+			cache_page_desc_title: 'Page metadata',
+			cache_page_desc_body: 'Information about pages on the site is stored in this cache. This cache is updated when a page is created, renamed or deleted, and it expires every 20 minutes.',
+			cache_ranks_desc_title: 'User ranks',
+			cache_ranks_desc_body: 'Since user ranks take a long time to calculate, fully computed rank data is cached to speed loading of comments and user pages. This cache is updated when any user information is changed, and its expiry time is 15 minutes.',
+			cache_sidebar_desc_title: 'Sidebar for guest users',
+			cache_sidebar_desc_body: 'Rendering the sidebar is a CPU-intensive process because of the number of templates that must be parsed and the custom logic in sidebars. As a result, the fully rendered sidebar is cached for guests. This cache is updated when the sidebar editor is used and expires every 10 minutes.',
+			cache_plugins_desc_title: 'Plugin metadata',
+			cache_plugins_desc_body: 'Plugin files contain special information in the headers that allow Enano to read information about the plugin. Since it takes time to read and parse this information, metadata about plugins is cached. This cache is updated when any change is detected to the first 10 lines of a PHP file in the plugins/ directory.',
+			cache_template_desc_title: 'Template files',
+			cache_template_desc_body: 'Page templates have a lot of logic that takes time to process. They are compiled and then cached on disk to speed loading. This cache is cleared whenever a template file is changed. This cachs cannot be refreshed, as refreshes take place incrementally.',
+			cache_aes_desc_title: 'Encrypted session keys',
+			cache_aes_desc_body: 'Enano encrypts session keys using the AES encryption cipher. Decrypted session keys are cached on the server in a way that is inaccessible to users browsing the site. This cache is dynamically updated whenever a string is sent to the AES decryption module. Clearing it may cause a temporary increase in the load on your site and should only be done if disk space is a concern. This cache is limited to 5,000 keys; when this limit is reached, the oldest 2,500 keys are deleted.',
+			cache_lang_desc_title: 'Language strings',
+			cache_lang_desc_body: 'Language strings, or the text that makes up the Enano user interface, are cached on the disk because they take up a large amount of space in the database. Caching this information allows Enano to minimize bandwidth used when communicating with the database server.',
+			cache_js_desc_title: 'Compressed Javascript runtimes',
+			cache_js_desc_body: 'The on-page tools that Enano provides require a significant amount of Javascript code, which is compressed and cached for better load times. This cache is updated whenever any of the Javascript files are changed, but it is an incremental cache, meaning that it cannot be refreshed manually (only cleared).',
+			cache_thumbs_desc_title: 'Image thumbnails',
+			cache_thumbs_desc_body: 'Thumbnails (preview-size versions of uploaded images) can take up to 2 seconds to generate, usually increasing load times and potentially causing increased server load. This cache is refreshed on demand. Clearing this cache may cause increased loads on your server.',
+			cache_wikieditnotice_desc_title: 'Wiki mode legal notice',
+			cache_wikieditnotice_desc_body: 'This notice is rendered and cached to reduce database queries. If you use templates in your edit notice, you need to clear this cache to see the changes take effect. This cache expires every 60 minutes.',
+			
+			msg_action_success: 'The action you requested was successful.',
+			err_action_failed: 'There was an error during the requested action.'
+		},
+		acpdb: {
+			err_not_supported_title: 'Not supported',
+			err_not_supported_desc: 'This function is only supported under the MySQL database driver.',
+			err_demo_mode_title: 'Access denied',
+			err_demo_mode_desc: 'Since you\'re using the Enano demo, we can\'t allow database backups. Sorry.',
+			
+			intro: 'This page allows you to back up your Enano database should something go miserably wrong.',
+			lbl_system_tables: 'Export tables that are part of the Enano core',
+			lbl_additional_tables: 'Additional tables to export:',
+			lbl_include_structure: 'Include table structure',
+			lbl_include_data: 'Include table data',
+			btn_create_backup: 'Create backup',
+		},
+		acplm: {
+			// Language installation
+			heading_install: 'Languages available for installation',
+			col_lang_id: 'ID',
+			col_lang_code: 'Shorthand code',
+			col_lang_name: 'Language name (native)',
+			col_lang_name_eng: 'Language name (English)',
+			btn_install_language: 'Install',
+			err_lang_install_demo: 'Modifying, installing, and uninstalling languages is disabled in the demo for security reasons.',
+			msg_lang_install_success: 'The language pack %lang_name% has been installed.',
+			
+			// Editor portal
+			heading_editor_portal: 'Edit installed languages',
+			portal_btn_edit: 'Modify',
+			portal_btn_unin: 'Uninstall',
+			
+			// Properties table
+			heading_modify: 'Edit language info',
+			th_lang_basic: 'Basic language properties',
+			field_lang_name_native: 'Language name (native):',
+			field_lang_name_english: 'Language name (in English):',
+			field_lang_code: 'Shorthand code:',
+			field_lang_code_hint: 'You can\'t change this because it needs to be compliant with <a onclick="window.open(this.href); return false;" href="http://en.wikipedia.org/wiki/ISO_639-3">ISO 639-3</a>.',
+			msg_basic_save_success: 'Changes saved.',
+			
+			// String editor portal
+			heading_edit_strings_portal: 'Edit strings',
+			msg_edit_strings_portal_intro: 'You can edit the actual language strings used in this language. Be sure to preserve any variables (in the format of %variable_name%) even if you\'re translating a language. If you\'re translating all of Enano into a new language, you should edit the JSON files instead of using this console, so that comments in the language files can be preserved.',
+			btn_edit_strings_portal: 'Edit strings &raquo;',
+			
+			// Re-import button and explanation
+			heading_reimport_portal: 'Re-import this language',
+			msg_reimport_portal_intro: 'If you accidentally changed a lot of strings, you can re-import this language from the original language files. This will <b>destroy</b> any modifications you have made to the default set of strings, but any strings you\'ve added will be preserved. This is almost the same effect as re-installing the language. Don\'t stop this process while it\'s running, the re-import can take a long time.',
+			btn_reimport: 'Re-import language',
+			msg_reimport_success: 'The language was re-imported successfully. All Enano preset strings for this language have been restored.',
+			
+			// String editor
+			editor_heading: 'Editing category: %cat_name%',
+			editor_col_string_name: 'String name',
+			editor_col_string_content: 'String',
+			editor_btn_revert: 'Revert',
+			editor_btn_cancel: 'Cancel',
+			msg_string_save_success: 'Your changes have been saved.',
+			
+			// Backup interface
+			heading_backup: 'Backup language',
+			backup_intro: 'You can back up this language to make preserving custom strings easier if you ever migrate your Enano installation or re-install. Backed-up language files can be restored by using FTP or equivalent to copy the backup file to the language\'s folder, renaming it to "backup.json", and re-importing the language.',
+			btn_create_backup: 'Download backup',
+			
+			// Uninstaller
+			uninstall_confirm_title: 'Confirm uninstallation of language',
+			uninstall_confirm_body: 'Do you really want to uninstall this language? If you continue, all users that have selected this language will be reset to use the default. It is recommended that you create a backup of this language before you uninstall it if you have changed any strings.',
+			btn_uninstall_confirm: 'Confirm uninstallation',
+			btn_uninstall_cancel: 'Cancel',
+			err_cant_uninstall_default: 'You cannot uninstall the default language.',
+			msg_uninstall_success: 'The language has been uninstalled.',
+		},
+		acppg: {
+			// Main menu
+			heading_main: 'Manage page groups',
+			hint_intro: 'Enano\'s page grouping system allows you to build sets of pages that can be controlled by a single ACL rule. This makes managing features such as a members-only section of your site a lot easier. If you don\'t use the ACL system, you probably don\'t need to use page groups.',
+			col_group_name: 'Group name',
+			col_type: 'Type',
+			col_target: 'Target',
+			col_actions: 'Actions',
+			gtype_catlink: 'Link to category',
+			gtype_tagged: 'Group of pages with one tag',
+			gtype_static: 'Static group of pages',
+			gtype_regex: 'Regular expression match',
+			gtype_regex_long: 'Perl-compatible regular expression (advanced)',
+			lbl_tag: 'Tag:',
+			lbl_category: 'Category:',
+			lbl_regex: 'Expression:',
+			btn_edit: 'Edit',
+			btn_delete: 'Delete',
+			msg_no_groups: 'No page groups defined.',
+			btn_create_new: 'Create new group',
+			
+			// Creation form
+			err_no_cats: 'There aren\'t any categories on this site.',
+			th_create: 'Create page group',
+			field_group_name: 'Group name:',
+			field_group_name_hint: 'This should be short, descriptive, and human-readable.',
+			field_group_type: 'Group type:',
+			
+			field_member_pages: 'Member pages:',
+			field_member_pages_hint: 'Click the "plus" button to add more fields.',
+			field_target_category: 'Include pages in this category:',
+			field_target_category_hint: 'Pages in subcategories are <u>not</u> included, however subcategory pages themselves are.',
+			field_target_category_hint2: '<b>Reminder:</b> Enano does not automatically place any access controls on the category. If you don\'t want users to be able to freely add and remove pages from the category (assuming Wiki Mode is enabled for the category) then you need to enable protection on the category using the button on the more options menu.',
+			field_target_tag: 'Include pages with this tag:',
+			field_target_regex: 'Regular expression:',
+			field_target_regex_hint: 'Be sure to include the starting and ending delimiters and any flags you might need.<br />
+																These pages might help: <a href="http://us.php.net/manual/en/reference.pcre.pattern.modifiers.php">Pattern modifiers</a> &bull; <a href="http://us.php.net/manual/en/reference.pcre.pattern.syntax.php">Pattern syntax</a><br />
+																Examples: <tt>/^(Special|Admin):/i</tt> &bull; <tt>/^Image:([0-9]+)$/</tt><br />
+																Developers, remember that this will be matched against the full page identifier string. This means that <tt>/^About_Enano$/</tt> will NOT match the page Special:About_Enano.',
+			btn_create_finish: 'Create page group',
+			
+			err_need_name: 'Please enter a name for the page group.',
+			err_need_tag: 'Please enter a page tag.',
+			err_need_cat: 'Please create a category page before linking a page group to a category.',
+			err_need_page: 'Please specify at least one page to place in this group.',
+			err_need_regex: 'Please specify a regular expression to match page IDs against.',
+			msg_create_success: 'The page group "%group_name%" has been created.',
+			
+			// Delete form
+			th_delete_confirm: 'Confirm deletion',
+			msg_delete_confirm: 'Are you sure you want to delete this page group?',
+			btn_delete_confirm: 'Yes, delete group',
+			msg_delete_success: 'The group "%pg_name%" has been deleted.',
+			
+			// Editor
+			th_editing_group: 'Editing page group:',
+			btn_save_name: 'Save group name',
+			th_remove_selected: 'Remove pages from this group',
+			field_remove: '<b>Remove</b> pages:',
+			btn_do_remove: 'Remove selected',
+			btn_save_update: 'Save and update',
+			btn_cancel_all: 'Cancel all changes',
+			th_onthefly: 'On-the-fly tools',
+			field_add_page: 'Add page:',
+			field_add_page_hint: 'You can add multiple pages by entering part of a page title, and it will be auto-completed. Press Enter to quickly add the page. This only works if you a really up-to-date browser.',
+			
+			// Validation messages and errors
+			err_ajaxadd_need_title: 'Please enter a page title.',
+			err_ajaxadd_already_in: 'The page you are trying to add is already in this group.',
+			ajaxadd_success: 'The page has been added to the specified group.',
+			err_save_need_name: 'Please enter a valid name for this group.',
+			msg_save_name_updated: 'The group name was updated successfully.',
+			err_save_need_tag: 'Please enter a valid tag.',
+			msg_save_tag_updated: 'The affecting tag was updated.',
+			err_save_need_regex: 'Please enter an expression to match against.',
+			msg_save_regex_updated: 'The expression to match against was updated.',
+			err_save_bad_category: 'No category ID specified on POST URI.',
+			msg_save_cat_updated: 'The affecting category was updated.',
+			err_save_no_pages: 'No pages were selected for deletion, and thus none were deleted.',
+			msg_save_pages_deleted: 'The requested page group members have been deleted.',
+		},
+		acpum: {
+			heading_main: 'User administration panel',
+			hint_intro: 'From this panel you can modify or delete user accounts.',
+			field_search_user: 'Search for user:',
+			field_search_user_hint: 'If your browser supports AJAX, this will provide suggestions for you.',
+			btn_search_user_go: 'Go',
+			heading_clear_sessions: 'Clear session key table',
+			hint_clear_sessions: 'It\'s a good idea to clean out your session keys table every once in a while, since this helps to reduce database size. During this process you will be logged off and (hopefully) logged back on automatically. If you do this, all users besides you will be logged off, so be sure to do this at a time when traffic is low.',
+			btn_clear_sessions: 'Clear session keys',
+			
+			heading_activation_one: '1 user is awaiting account activation',
+			heading_activation_plural: '%count% users are awaiting account activation',
+			col_activate_timestamp: 'Date of request',
+			col_activate_requestedby: 'Requested by',
+			col_activate_requestedfor: 'Requested for',
+			col_activate_coppauser: 'COPPA user',
+			col_activate_actions: 'Actions',
+			coppauser_yes: 'Yes',
+			coppauser_no: 'No',
+			btn_activate_now: 'Activate now',
+			btn_send_email: 'Send activation e-mail',
+			btn_activate_deny: 'Deny request',
+			msg_activate_success: 'The user account "%username%" has been activated.',
+			err_activate_fail: 'The user account %username% has NOT been activated, possibly because the account is already active.',
+			msg_activate_email_success: 'The user %username% has been sent an e-mail with an activation link.',
+			err_activate_email_fail: 'The user account %username% has not been activated, probably because of a bad SMTP configuration.',
+			msg_activate_deny_success: 'All activation requests for the user %username% have been deleted.',
+			
+			msg_sessionclear_success: 'The session key table has been cleared. Your database should be a little bit smaller now.',
+			err_sessionclear_demo: 'Sorry Charlie, no can do. You might mess up other people logged into the demo site.',
+			
+			// VALIDATION ERRORS
+			err_bad_username: 'The username you entered could not be found.',
+			err_validation_fail: 'Your request could not be processed due to the following validation errors:',
+			err_nosave_demo: 'Users cannot be modified or deleted in demo mode.',
+			msg_delete_success: 'The user account has been deleted.',
+			// Note the difference between this and err_bad_username. err_bad_username is shown when the username entered
+			// doesn't match any usernames in the database (e.g. no search results); err_illegal_username is shown when
+			// the admin tries to change the username to one that has illegal characters in it.
+			err_illegal_username: 'The username you entered contains invalid characters.',
+			err_no_aes_key: 'Session manager denied public encryption key lookup request',
+			err_illegal_email: 'You have entered an invalid e-mail address.',
+			msg_save_success: 'Your changes have been saved.',
+			
+			// EDITOR SMARTFORM
+			heading_editing_user: 'Editing user:',
+			heading_basic_options: 'Basic options',
+			
+			field_username: 'Username:',
+			field_username_hint: 'Must be at least 2 characters in length',
+			msg_same_user_username: 'You cannot change your own username. To change your username you must log into a different administrative account.',
+			
+			field_password: 'Password:',
+			field_password_hint: 'Password strength requirements are not enforced here.',
+			msg_password_unchanged: 'Password will be left unchanged.',
+			btn_reset_password: 'Reset password...',
+			msg_same_user_password: 'To change your password, please use the user preferences panel.',
+			field_password_title: 'Change password to:',
+			field_newpassword: 'New password:',
+			field_newpassword_confirm: 'Confirm:',
+			
+			field_email: 'E-mail address:',
+			msg_same_user_email: 'To change your e-mail address, please use the user preferences panel.',
+			
+			field_realname: 'Real name:',
+			msg_same_user_realname: 'To change your real name on file, please use the user preferences panel.',
+			
+			field_signature: 'Signature:',
+			
+			field_usertitle: 'User title:',
+			field_usertitle_hint: 'Displayed below the avatar or username, and above the rank.',
+			
+			heading_imcontact: 'Instant messenger contact information',
+			
+			field_aim: 'AIM handle:',
+			field_wlm: '<acronym title="Windows&trade; Live Messenger">WLM</acronym> handle:',
+			field_wlm_hint: 'If you don\'t specify the domain (@whatever.com), "@hotmail.com" will be assumed.',
+			field_yim: 'Yahoo! IM handle:',
+			field_xmpp: 'Jabber&trade;/XMPP handle:',
+			
+			heading_contact_extra: 'Extra contact information',
+			
+			field_homepage: 'Homepage:',
+			field_homepage_hint: 'Please remember the http:// prefix.',
+			field_location: 'Location:',
+			field_job: 'Job:',
+			field_hobbies: 'Hobbies:',
+			field_email_public: 'E-mail address is public',
+			field_email_public_hint: 'If this is checked, the user\'s e-mail address will be displayed on your the page. To protect the address from spambots, it will be encrypted.',
+			
+			avatar_heading: 'Avatar settings',
+			avatar_image_none: 'This user does not currently have an avatar.',
+			avatar_lbl_change: 'Change avatar:',
+			avatar_lbl_keep: 'Keep current setting',
+			avatar_lbl_remove: 'Delete this user\'s avatar',
+			avatar_lbl_set_http: 'Replace avatar using a new image from a URL',
+			avatar_lbl_set_file: 'Replace avatar using a new image from my computer',
+			avatar_lbl_set_gravatar: 'Replace avatar with Gravatar',
+			
+			heading_adminonly: 'Administrator-only options',
+			
+			field_active_title: 'User account is active',
+			field_active_hint: 'If this is unchecked, the existing activation key will be overwritten in the database, thus invalidating any activation e-mails sent to the user.',
+			field_active: 'Account is active and enabled',
+			field_userlevel: 'User\'s site access level',
+			field_userlevel_hint: 'If this is changed, the relevant group memberships will be updated accordingly.',
+			field_userrank: 'User\'s rank:',
+			field_userrank_hint: 'You can create more ranks using User Ranks and Titles. Ranks do not affect permissions (e.g. setting their rank to Administrator here will not give them administrator permissions).',
+			field_reg_ip: 'Registered from IP:',
+			
+			field_deleteaccount_title: 'Delete user account',
+			field_deleteaccount: 'Permanently delete this user account when I click Save',
+			msg_delete_own_account: '<blink style="color: red;">WARNING!</blink> This will delete your own user account!',
+			field_deleteaccount_hint: 'Even if you delete this user account, the username will be shown in page edit history, comments, and other areas of the site. Deleting a user account CANNOT BE UNDONE and should only be done in extreme circumstances. If the user has violated the site policy, deleting the account will not prevent him from using the site or creating a new account, for that you need to add a new ban rule.',
+			
+			btn_save: 'Save changes',
+		},
+		acpug: {
+			heading_main: 'Manage Usergroups',
+			heading_edit_existing: 'Edit an existing group',
+			btn_edit_stage1: 'Edit group',
+			heading_create_new: 'Create a new group',
+			field_group_name: 'Group name:',
+			field_group_rank: 'Assigned rank:',
+			btn_create_stage1: 'Continue',
+			
+			// Edit form
+			heading_edit_name: 'Edit group basics',
+			btn_cant_delete: 'Can\'t delete system group',
+			btn_delete_group: 'Delete this group',
+			btn_save_name: 'Save changes',
+			heading_edit_members: 'Edit group members',
+			msg_no_members: 'This group has no members.',
+			lbl_member_mod: 'Mod',
+			btn_remove_member: 'Remove member',
+			heading_add_member: 'Add a new member',
+			field_username: 'Username:',
+			field_make_mod: 'Is a group moderator',
+			field_make_mod_hint: '(can add and delete other members)',
+			btn_add_user: 'Add user to group',
+			
+			// Create form
+			err_group_name_invalid: 'The group name you chose is invalid.',
+			heading_creating_group: 'Creating group:',
+			field_group_mod: 'Group moderator',
+			field_group_type: 'Group status',
+			btn_create_stage2: 'Create group',
+			err_already_exist: 'The group name you entered already exists.',
+			err_bad_username: 'The username you entered could not be found.',
+			err_bad_insert_id: 'The group ID could not be looked up.',
+			heading_info: 'Information',
+			msg_create_success: 'The group %g_name% has been created successfully.',
+			
+			// More editor bits, validation messages
+			err_nodelete_system_group: 'The group "%g_name%" could not be deleted because it is a system group required for site functionality.',
+			msg_delete_success: 'The group "%g_name%" has been deleted. Return to the <a %a_flags%>group manager</a>.',
+			msg_name_update_success: 'The group name and rank have been updated.',
+			msg_user_added: 'The user "%username%" has been added to this usergroup.',
+			err_username_not_exist: '<b>The user "%username%" could not be added.</b><br />This username does not exist.',
+		},
+		acpcp: {
+			heading_main: 'Background information',
+			intro: 'The United States Childrens\' Online Privacy Protection Act (COPPA) was a law passed in 2001 that requires sites oriented towards children under 13 years old or with a significant amount of under-13 children clearly state what information is being collected in a privacy policy and obtain authorization from a parent or legal guardian before allowing children to use the site. Enano provides an easy way to allow you, as the website administrator, to obtain this authorization.',
+			msg_save_success: 'Your changes have been saved.',
+			th_form: 'COPPA support',
+			field_enable_title: 'Enable COPPA support:',
+			field_enable: 'COPPA enabled',
+			field_enable_hint: 'If this is checked, users will be asked if they are under 13 years of age before registering',
+			field_address: 'Your mailing address:',
+			field_address_hint: 'This is the address to which parents will send authorization forms.',
+		},
+		acpmm: {
+			heading_main: 'Send mass e-mail',
+			err_need_subject: 'Please enter a subject.',
+			err_need_message: 'Please enter a message.',
+			msg_send_success: 'Your message has been sent.',
+			err_send_fail: 'Could not send message for the following reason(s):',
+			err_demo: 'This function is disabled in the demo. You think demo@enanocms.org likes getting "test" mass e-mails?',
+			field_group_to: 'Send message to:',
+			field_group_to_hint: 'By default, this message will be sent to the group selected here. You may instead send the message to a specific list of users by entering them in the second row, with usernames separated by a single comma (no space).',
+			field_username: 'Usernames:',
+			field_subject: 'Subject:',
+			field_message: 'Message:',
+			btn_send: 'Send message',
+			msg_send_takeawhile: 'Please be warned: it may take a LONG time to send this message. <b>Please do not stop the script until the process is finished.</b>',
+		},
+		acpur: {
+			heading_main: 'User ranks and titles',
+			intro_para1: 'This screen lets you control users\' ranks and custom user titles. User ranks let you provide a graphic distinction between different types or roles of users using colors and other style rules. You can also associate a snippet of text with a rank; this will be displayed below the username of users that are in this rank.',
+			intro_para2: 'A user\'s rank is only a visual distinction; no permissions are associated with it. In other words, if someone is in the Administrators group but has the rank of %this.user_rank_member%, they will still have administrative abilities. On the flip side, giving someone the rank of %this.user_rank_admin% will not give them administrator privileges, but they will be labeled as an administrator.',
+			intro_para3: 'Ranks can be assigned based on a lot of different criteria. By default, Enano maps the Administrator and Moderator ranks based on user level. You can also assign a rank based on group memberships (e.g. being in a group automatically assigns a specific rank) and set individual ranks for users.',
+			intro_para4: 'This screen lets you create, edit, and delete ranks. To assign them, edit the respective user or usergroup.',
+			
+			msg_select_rank: 'To edit a rank, select it on the left. Or, click Create New Rank to start a new rank.',
+			msg_rank_delete_confirm_title: 'Delete this rank?',
+			msg_rank_delete_confirm_body: 'This will completely remove this rank and unassociate any users and groups with it.',
+			
+			th_edit_rank: 'Edit rank: %rank_title%',
+			th_create_rank: 'Create new rank',
+			
+			field_rank_title: 'Rank name:',
+			field_style_basic: 'Basic style options:',
+			field_style_basic_bold: 'Bold',
+			field_style_basic_italic: 'Italic',
+			field_style_basic_underline: 'Underline',
+			field_style_color: 'Username color:',
+			field_style_css: 'Additional CSS:',
+			field_preview: 'Preview:',
+			
+			btn_save: 'Save rank',
+			btn_create_submit: 'Create rank',
+			btn_create_init: 'Create new rank',
+			btn_delete: 'Delete rank',
+			
+			err_save_failed_title: 'Saving operation failed',
+			err_delete_failed_title: 'Deletion operation failed',
+			err_missing_rank_title: 'Please enter a title for this rank.',
+			err_cant_delete_system_rank: 'The rank you are trying to delete is an important system rank that cannot be deleted. However, you may customize the title and style of it to make it appear normal.',
+		},
+		acpsl: {
+			heading_main: 'System security log',
+			col_type: 'Type',
+			col_date: 'Date',
+			col_username: 'Username',
+			col_ip: 'IP Address',
+			entry_admin_auth_good: 'Successful elevated authentication<br /><small>Authentication level: %level%</small>',
+			entry_admin_auth_bad: 'Failed elevated authentication<br /><small>Attempted auth level: %level%</small>',
+			entry_activ_good: 'Successful account activation',
+			entry_auth_good: 'Successful regular user logon',
+			entry_activ_bad: 'Failed account activation',
+			entry_auth_bad: 'Failed regular user logon',
+			entry_sql_inject: 'SQL injection attempt<div style="max-width: 90%; clip: rect(0px,auto,auto,0px); overflow: auto; display: block; font-size: smaller;">Offending query: %query%</div>',
+			entry_db_backup: 'Database backup created<br /><small>Tables: %tables%</small>',
+			entry_install_enano: 'Installed Enano version %version%',
+			entry_upgrade_enano: 'Upgraded Enano to version %version%',
+			entry_illegal_page: 'Unauthorized viewing attempt<br /><small>Page: %illegal_link%</small>',
+			entry_upload_enable: 'Enabled file uploads',
+			entry_upload_disable: 'Disabled file uploads',
+			entry_magick_enable: 'Enabled ImageMagick for uploaded images',
+			entry_magick_disable: 'Disabled ImageMagick for uploaded images',
+			entry_filehist_enable: 'Enabled revision tracking for uploaded files',
+			entry_filehist_disable: 'Disabled revision tracking for uploaded files',
+			entry_magick_path: 'Changed path to ImageMagick executable',
+			entry_plugin_disable: 'Disabled plugin: %plugin%',
+			entry_plugin_enable: 'Enabled plugin:  %plugin%',
+			entry_plugin_install: 'Installed plugin:  %plugin%',
+			entry_plugin_uninstall: 'Uninstalled plugin:  %plugin%',
+			entry_plugin_upgrade: 'Upgraded plugin:  %plugin%',
+			entry_seclog_unauth: 'Unauthorized attempt to call security log fetcher',
+			entry_u_from_admin: 'User %username% demoted from Administrators group',
+			entry_u_from_mod: 'User %username% demoted from Moderators group',
+			entry_u_to_admin: 'User %username% added to Administrators group',
+			entry_u_to_mod: 'User %username% added to Moderators group',
+			entry_view_comment_ip: 'IP address viewed on comment by %username%',
+			tip_reverse_dns: 'Click for reverse DNS info',
+			
+			err_invalid_ip: 'No valid IPv4 or IPv6 address was provided. (In the demo, this is to be expected.)',
+			err_ptr_no_resolve: 'Reverse DNS was not available for this IP.'
+		},
+		acpbc: {
+			err_empty: 'Please enter something to ban.',
+			err_invalid_ip_range: 'The IP address range you entered is invalid.',
+			err_demo: 'This function is disabled in the demo. Just because <i>you</i> don\'t like %ban_target% doesn\'t mean <i>we</i> don\'t like %ban_target%.',
+			col_type: 'Type',
+			col_value: 'Value',
+			col_regex: 'Regular Expression',
+			msg_no_rules: 'No ban rules yet.',
+			ban_type_ip: 'IP address',
+			ban_type_username: 'Username',
+			ban_type_email: 'E-mail address',
+			btn_delete: 'Delete',
+			// Some languages like Chinese don't literally have the word "yes", so this would be something
+			// along the lines of "This is a regular expression" / "This is not..." in Chinese. Hence the
+			// separation of this from a generic "yes" string.
+			ban_regex_yes: 'Yes',
+			ban_regex_no: 'No',
+			heading_create_new: 'Create new ban rule',
+			field_type: 'Type:',
+			field_rule: 'Rule:',
+			field_rule_hint: 'You can ban multiple IP addresses, users, or e-mail addresses by separating entries with a single comma (User1,User2). Do not put a space after the comma. For IP addresses, you may specify ranges like 172|192.168.4-30|90-167.1-90, which will turn into 172 and 192 . 168 . 4-30 and 90-167 . 1 - 90, which matches 18,899 IP addresses.',
+			field_reason: 'Reason to show to the banned user:',
+			field_regex: 'This rule is a regular expression',
+			field_regex_hint: '(advanced users only)',
+			btn_create: 'Create new ban rule',
+		},
+		acplo: {
+			heading_main: 'You have now been logged out of the administration panel.',
+			msg_logout_complete: 'You will continue to be logged into the website, but you will need to re-authenticate before you can access the administration panel again.</p><p>Return to the <a href="%mainpage_link%">Main Page</a>.',
+		},
+		sbedit: {
+			header_msg: 'This control panel allows you to organize the sidebars, the collections of links and dynamic blocks that provide navigation for your site. Drag and drop blocks to move them between the left and right sidebars; changes will be saved automatically. Red blocks are disabled. This panel only works if you have Javascript enabled and working in your browser. <a href="%create_link%">Create a new block</a>.',
+			
+			msg_order_update_success: 'The sidebar order information was updated successfully.',
+			err_demo_php_disable: 'Adding PHP code blocks in the Enano administration demo has been disabled for security reasons.',
+			msg_item_added: 'The item was added.',
+			
+			create_intro: 'What type of block should this be?',
+			block_type_wiki: 'Textual content (wikitext)',
+			block_type_tpl: 'List of links',
+			block_type_html: 'Pure HTML',
+			block_type_php: 'PHP code',
+			block_type_plugin: 'Plugin block',
+			field_block_title: 'Block title:',
+			field_block_sidebar: 'Which sidebar:',
+			field_block_sidebar_left: 'Left',
+			field_block_sidebar_right: 'Right',
+			field_wikitext: '<p>
+ 												<b>This block type is for textual content.</b> This could be information, a random fact, or some other blob of fully formatted text. Links show up inline,
+ 												not as a list.
+ 											</p>
+ 											<p>
+ 												Wikitext:
+ 											</p>',
+			field_tplcode: '<p>
+												<b>This block type is for links.</b> Use wikilinks (both internal and external are supported) to build a list of links. All links will be shown block-style,
+												or one link per line. You can use logic in these blocks as well:
+											</p>
+											<pre>{if user_logged_in&#x7d;
+	[[Special:Preferences|User control panel]]
 {/if&#x7d;</pre>
-                      <p>
-                        Template code:
-                      </p>',
-      field_html: '<p>
-                     <b>This block type is for textual content.</b> HTML you use here will not be filtered or parsed at all - it will be displayed verbatim. This gives you
-                        slightly more control over your content but you can\'t use wikilinks or other wikitext in here.
-                   </p>
-                   <p>
-                     HTML to place inside the sidebar:
-                   </p>',
-      field_php_disabled: 'Creating PHP blocks in demo mode is disabled for security reasons.',
-      field_php: '<p>
-                    <b>WARNING:</b> If you don\'t know what you\'re doing, or if you are not fluent in PHP, stop now and choose a different block type. You will brick your Enano installation if you are not careful here.
-                    ALWAYS remember to write secure code! The Enano team is not responsible if someone drops all your tables because of an SQL injection vulnerability in your sidebar code. You are probably better off using the links and logic block type.
-                  </p>
-                  <p>
-                    <span style="color: red;">
-                      It is especially important to note that the syntax of your code is not validated here. If there is a syntax error in your code here, it might prevent Enano from working properly. It is recommended that you use an external PHP editor (like <a href="http://www.jedit.org">jEdit</a>) to check your syntax before you hit save.
-                    </span> You have been warned.
-                  </p>
-                  <p>
-                    Also, you should avoid using output buffering functions (ob_[start|end|get_contents|clean]) here, because Enano uses those to track output from this script.
-                  </p>
-                  <p>
-                    The standard &lt;?php and ?&gt; tags work here, but don\'t use an initial "&lt;?php" or it will cause a parse error.
-                  </p>
-                  <p>
-                    PHP code:
-                  </p>',
-      field_plugin: '<p>Plugin:</p>',
-      btn_create_block: 'Create new block',
-      
-      msg_block_moved: 'Item moved.',
-      msg_block_deleted: 'Item deleted.',
-      msg_plugin_not_loaded: 'Plugin isn\'t loaded',
-      msg_order_saved: 'Sidebar order saved.',
-      note_block_unnamed: 'Unnamed',
-      hint_rename: 'Double-click to rename this block',
-      note_block_disabled: '(disabled)',
-      tip_disenable: 'Toggle',
-      tip_edit: 'Edit block',
-      tip_delete: 'Delete',
-      tip_rename: 'Rename',
-      msg_delete_confirm_title: 'Delete block',
-      msg_delete_confirm_body: 'Are you sure you want to delete this sidebar block?',
-      btn_delete_confirm: 'Delete block',
-      btn_revert: 'Revert',
-      btn_create_new_stage1: 'Create new block',
-      btn_main_page: 'Main Page',
-      msg_cant_edit_plugin_title: 'This block cannot be edited.',
-      msg_cant_edit_plugin_body: 'This is a plugin block, and cannot be edited. <%close_link%>Close</a>',
-      btn_edit_save: 'save',
-      btn_edit_cancel: 'cancel',
-      msg_discard_confirm: 'Do you really want to discard your changes?',
-      msg_discard_order_confirm: 'Do you really want to revert your changes?\nNote: this does not revert edits or deletions, those are saved as soon as you confirm the action.',
-    }
-  }
+											<p>
+												Template code:
+											</p>',
+			field_html: '<p>
+ 										<b>This block type is for textual content.</b> HTML you use here will not be filtered or parsed at all - it will be displayed verbatim. This gives you
+												slightly more control over your content but you can\'t use wikilinks or other wikitext in here.
+ 									</p>
+ 									<p>
+ 										HTML to place inside the sidebar:
+ 									</p>',
+			field_php_disabled: 'Creating PHP blocks in demo mode is disabled for security reasons.',
+			field_php: '<p>
+										<b>WARNING:</b> If you don\'t know what you\'re doing, or if you are not fluent in PHP, stop now and choose a different block type. You will brick your Enano installation if you are not careful here.
+										ALWAYS remember to write secure code! The Enano team is not responsible if someone drops all your tables because of an SQL injection vulnerability in your sidebar code. You are probably better off using the links and logic block type.
+									</p>
+									<p>
+										<span style="color: red;">
+											It is especially important to note that the syntax of your code is not validated here. If there is a syntax error in your code here, it might prevent Enano from working properly. It is recommended that you use an external PHP editor (like <a href="http://www.jedit.org">jEdit</a>) to check your syntax before you hit save.
+										</span> You have been warned.
+									</p>
+									<p>
+										Also, you should avoid using output buffering functions (ob_[start|end|get_contents|clean]) here, because Enano uses those to track output from this script.
+									</p>
+									<p>
+										The standard &lt;?php and ?&gt; tags work here, but don\'t use an initial "&lt;?php" or it will cause a parse error.
+									</p>
+									<p>
+										PHP code:
+									</p>',
+			field_plugin: '<p>Plugin:</p>',
+			btn_create_block: 'Create new block',
+			
+			msg_block_moved: 'Item moved.',
+			msg_block_deleted: 'Item deleted.',
+			msg_plugin_not_loaded: 'Plugin isn\'t loaded',
+			msg_order_saved: 'Sidebar order saved.',
+			note_block_unnamed: 'Unnamed',
+			hint_rename: 'Double-click to rename this block',
+			note_block_disabled: '(disabled)',
+			tip_disenable: 'Toggle',
+			tip_edit: 'Edit block',
+			tip_delete: 'Delete',
+			tip_rename: 'Rename',
+			msg_delete_confirm_title: 'Delete block',
+			msg_delete_confirm_body: 'Are you sure you want to delete this sidebar block?',
+			btn_delete_confirm: 'Delete block',
+			btn_revert: 'Revert',
+			btn_create_new_stage1: 'Create new block',
+			btn_main_page: 'Main Page',
+			msg_cant_edit_plugin_title: 'This block cannot be edited.',
+			msg_cant_edit_plugin_body: 'This is a plugin block, and cannot be edited. <%close_link%>Close</a>',
+			btn_edit_save: 'save',
+			btn_edit_cancel: 'cancel',
+			msg_discard_confirm: 'Do you really want to discard your changes?',
+			msg_discard_order_confirm: 'Do you really want to revert your changes?\nNote: this does not revert edits or deletions, those are saved as soon as you confirm the action.',
+		}
+	}
 };
 
 // All done! :-)
