@@ -188,6 +188,13 @@ class Request_HTTP
   var $socket = false;
   
   /**
+   * True if SSL is on, defaults to false
+   * @var bool
+   */
+  
+  var $ssl = false;
+  
+  /**
    * The state of our request. 0 means it hasn't been made yet. 1 means the socket is open, 2 means the socket is open and the request has been written, 3 means the headers have been fetched, and 4 means the request is completed.
    * @var int
    */
@@ -200,12 +207,23 @@ class Request_HTTP
    * @param string URI (/index.php)
    * @param string Request method - GET or POST.
    * @param int Optional. The port to open the request on. Defaults to 80.
+   * @param bool If true, uses SSL (and defaults the port to 443)
    */
   
-  function Request_HTTP($host, $uri, $method = 'GET', $port = 80)
+  function Request_HTTP($host, $uri, $method = 'GET', $port = 'default', $ssl = false)
   {
     if ( !preg_match('/^(?:(([a-z0-9-]+\.)*?)([a-z0-9-]+)|\[[a-f0-9:]+\])$/', $host) )
       throw new Exception(__CLASS__ . ': Invalid hostname');
+    if ( $ssl )
+    {
+      $this->ssl = true;
+      $port = ( $port === 'default' ) ? 443 : $port;
+    }
+    else
+    {
+      $this->ssl = false;
+      $port = ( $port === 'default' ) ? 80 : $port;
+    }
     // Yes - this really does support IPv6 URLs!
     $this->host = $host;
     $this->uri = $uri;
@@ -333,7 +351,8 @@ class Request_HTTP
   function _sock_open(&$connection)
   {
     // Open connection
-    $connection = fsockopen($this->host, $this->port, $errno, $errstr);
+    $ssl_prepend = ( $this->ssl ) ? 'ssl://' : '';
+    $connection = fsockopen($ssl_prepend . $this->host, $this->port, $errno, $errstr);
     if ( !$connection )
       throw new Exception(__METHOD__ . ": Could not make connection"); // to {$this->host}:{$this->port}: error $errno: $errstr");
     
@@ -409,6 +428,7 @@ class Request_HTTP
     }
     
     fclose($connection);
+    $this->state = 0;
   }
   
   /**
