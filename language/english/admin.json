@@ -336,7 +336,7 @@ var enano_lang = {
       
       // Section: default theme
       heading_default_theme: 'Visual defaults',
-      field_defualt_theme: 'Default theme for guests and new users:',
+      field_default_theme: 'Default theme for guests and new users:',
       
       // Section: breadcrumbs
       field_breadcrumb_mode: 'Enable breadcrumbs:',
@@ -345,10 +345,21 @@ var enano_lang = {
       field_breadcrumb_mode_never: 'Never',
       
       // Section: CDN
-      
       field_cdn_path: 'URL to <acronym title="Content Delivery Network">CDN</acronym> server:',
       field_cdn_path_hint: 'A CDN, or Content Delivery Network, allows downloading of shared Enano components from a server designed to serve out only images, CSS, and script files. Since a browser can open separate connections for the page and for images and scripts, the page loads faster. Leave this blank to just use Enano\'s local files (default).',
       field_cdn_path_example: 'Example: <tt>http://cdn.mycompany.com/enano/',
+      
+      // Section: gzip
+      field_gzip: 'Enable gzip compression',
+      field_gzip_hint: 'Compress pages using before sending them to the user. At the cost of a small amount of CPU, this can save a lot of bandwidth. This only enables compression for HTML and some Javascript; to gzip compress CSS and images, please consult your webserver\'s documentation.',
+      field_gzip_lbl: 'Use gzip compression',
+      field_gzip_btn_check: 'Check server for support',
+      field_gzip_check_msg_server_does_it: 'Your server performs gzip compression on its own. There is no need to enable it in Enano, and if you do, you may cause Enano to stop working.',
+      field_gzip_check_msg_server_good: 'Your server is not automatically compressing PHP-generated pages, so Enano\'s compression facilities are needed.',
+      field_gzip_check_msg_php_bad: 'PHP does not have gzip support enabled.',
+      field_gzip_check_msg_php_good: 'Found gzip compression support in PHP.',
+      field_gzip_check_msg_success: 'Success - all server checks passed. You can enable gzip support.',
+      field_gzip_check_msg_failure: 'Server check failed. Unless you think Enano is wrong, don\'t enable gzip below.',
       
       // Main section: users and communication
       heading_users: 'Users and communication',

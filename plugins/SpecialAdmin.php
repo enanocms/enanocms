@@ -82,6 +82,41 @@ function page_Admin_GeneralConfig()
     return;
   }
   
+  // FIXME: is this a bad place for this? I couldn't think of anything much better. Not helped by the fact that I hate misc scripts.
+  if ( isset($_POST['act']) && $_POST['act'] === 'gzip_check' )
+  {
+    global $is_https;
+    header('Content-type: application/json');
+    require(ENANO_ROOT . '/includes/http.php');
+    try
+    {
+      if ( !isset($_SERVER['SERVER_ADDR']) )
+        throw new Exception('No SERVER_ADDR support - can\'t test server environment');
+      
+      $server_addr = $_SERVER['SERVER_ADDR'];
+      // cheap ipv6 test
+      if ( strstr($server_addr, ":") )
+        $server_addr = "[$server_addr]";
+      
+      $req = new Request_HTTP($server_addr, makeUrlNS('System', 'GzipTest', 'disable_builtin_gzip'), 'GET', intval($_SERVER['SERVER_PORT']), $is_https);
+      $req->add_header('Accept-Encoding', 'gzip,deflate');
+      $headers = $req->get_response_headers_array();
+      $send = array(
+          'server_does_it' => ( isset($headers['Content-encoding']) && in_array($headers['Content-encoding'], array('gzip', 'deflate')) ),
+          'php_supports_gzip' => function_exists('gzdeflate')
+        );
+    }
+    catch ( Exception $e )
+    {
+      $send = array(
+        'mode' => 'error',
+        'error' => "HTTP request exception: <pre>$e</pre>"
+        );
+    }
+    echo enano_json_encode($send);
+    return;
+  }
+  
   if(isset($_POST['submit']) && !defined('ENANO_DEMO_MODE') )
   {
     
@@ -236,6 +271,7 @@ function page_Admin_GeneralConfig()
     setConfig('avatar_directory', 'files/avatars');
     
     setConfig('userpage_grant_acl', ( isset($_POST['userpage_grant_acl']) ? '1' : '0' ));
+    setConfig('gzip_output', ( isset($_POST['gzip_output']) ? '1' : '0' ));
     
     // Allow plugins to save their changes
     $code = $plugins->setHook('acp_general_save');
@@ -496,7 +532,7 @@ function page_Admin_GeneralConfig()
       
       <tr>
         <td class="row2">
-          <?php echo $lang->get('acpgc_field_defualt_theme'); ?>
+          <?php echo $lang->get('acpgc_field_default_theme'); ?>
         </td>
         <td class="row2">
           <select name="default_theme">
@@ -550,6 +586,24 @@ function page_Admin_GeneralConfig()
         </td>
         <td class="row2">
           <input type="text" name="cdn_path" value="<?php echo htmlspecialchars(getConfig('cdn_path', '')); ?>" style="width: 98%;" />
+        </td>
+      </tr>
+      
+    <!-- Gzip -->
+    
+      <tr>
+        <td class="row1">
+          <b><?php echo $lang->get('acpgc_field_gzip'); ?></b><br />
+          <small><?php echo $lang->get('acpgc_field_gzip_hint'); ?></small><br />
+          <br />
+          <a href="#" onclick="ajaxGzipCheck(); return false;"><?php echo $lang->get('acpgc_field_gzip_btn_check'); ?></a>
+        </td>
+        <td class="row1">
+          <div id="gzip_check_result"></div>
+          <label>
+            <input type="checkbox" name="gzip_output" <?php if ( getConfig('gzip_output', false) == 1 ) echo 'checked="checked" '; ?>/>
+            <?php echo $lang->get('acpgc_field_gzip_lbl'); ?>
+          </label>
         </td>
       </tr>
       

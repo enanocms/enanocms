@@ -3215,7 +3215,7 @@ function gzip_output()
   // Compress buffered output if required and send to browser
   // Sorry, doesn't work in IE. What else is new?
   //
-  if ( $do_gzip && function_exists('gzdeflate') && !strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') && !headers_sent() && $gzip_supported )
+  if ( $do_gzip && getConfig('gzip_output', false) == 1 && function_exists('gzdeflate') && !strstr($_SERVER['HTTP_USER_AGENT'], 'MSIE') && !headers_sent() && $gzip_supported )
   {
     $gzip_contents = ob_get_contents();
     ob_end_clean();

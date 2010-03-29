@@ -24,8 +24,7 @@ $aggressive_optimize_html = !defined('ENANO_DEBUG') && !isset($_GET['nocompress'
 
 // Set up gzip encoding before any output is sent
 global $do_gzip;
-// FIXME: make this configurable
-$do_gzip = !defined('ENANO_DEBUG');
+$do_gzip = !defined('ENANO_DEBUG') && getConfig('gzip_output', false) == 1 && !isset($_GET['disable_builtin_gzip']);
 
 error_reporting(E_ALL);
 

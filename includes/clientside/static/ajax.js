@@ -1724,6 +1724,7 @@ window.ajaxReverseDNS = function(o, text)
         thediv.style.display = 'none';
         thediv.style.zIndex = getHighestZ() + 2;
         thediv.id = 'mdgDynamic_rDnsInfoDiv_'+Math.floor(Math.random() * 1000000);
+        // FIXME: l10n
         thediv.innerHTML = '<b>Reverse DNS:</b><br />'+ajax.responseText+' <a href="#" onclick="elem = document.getElementById(\''+thediv.id+'\'); elem.innerHTML = \'\'; elem.style.display = \'none\';return false;">Close</a>';
         var body = document.getElementsByTagName('body');
         body = body[0];
@@ -1740,3 +1741,48 @@ window.ajaxReverseDNS = function(o, text)
     });
 }
 
+window.ajaxGzipCheck = function()
+{
+  var resultdiv = document.getElementById('gzip_check_result');
+  if ( !resultdiv )
+    return false;
+  
+  resultdiv.innerHTML = '<img alt="Loading..." src="' + cdnPath + '/images/loading.gif" />';
+  ajaxPost(makeUrlNS('Admin', 'GeneralConfig'), 'act=gzip_check', function(ajax)
+    {
+      if ( ajax.readyState == 4 && ajax.status == 200 )
+      {
+        resultdiv.innerHTML = '';
+        var response = String(ajax.responseText + '');
+        if ( !check_json_response(response) )
+        {
+          handle_invalid_json(response);
+          return false;
+        }
+        response = parseJSON(response);
+        if ( response.error )
+        {
+          resultdiv.innerHTML = '<div class="error-box-mini">' + response.error + '</div>';
+        }
+        else
+        {
+          // probably success.
+          resultdiv.innerHTML += response.server_does_it ?
+            '<div class="error-box-mini">' + $lang.get('acpgc_field_gzip_check_msg_server_does_it') + '</div>' :
+            '<div class="info-box-mini">' + $lang.get('acpgc_field_gzip_check_msg_server_good') + '</div>';
+          resultdiv.innerHTML += response.php_supports_gzip ?
+            '<div class="info-box-mini">' + $lang.get('acpgc_field_gzip_check_msg_php_good') + '</div>' :
+            '<div class="error-box-mini">' + $lang.get('acpgc_field_gzip_check_msg_php_bad') + '</div>';
+            
+          if ( response.php_supports_gzip && !response.server_does_it )
+          {
+            resultdiv.innerHTML += '<div class="success-box-mini">' + $lang.get('acpgc_field_gzip_check_msg_success') + '</div>';
+          }
+          else
+          {
+            resultdiv.innerHTML += '<div class="error-box-mini">' + $lang.get('acpgc_field_gzip_check_msg_failure') + '</div>';
+          }
+        }
+      }
+    });
+}

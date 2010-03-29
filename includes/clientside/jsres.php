@@ -105,7 +105,7 @@ require_once('includes/js-compressor.php');
 // try to gzip the output
 if ( !defined('ENANO_JSRES_SETUP_ONLY') ):
 $do_gzip = false;
-if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) )
+if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) && getConfig('gzip_output', false) == 1 )
 {
   $acceptenc = str_replace(' ', '', strtolower($_SERVER['HTTP_ACCEPT_ENCODING']));
   $acceptenc = explode(',', $acceptenc);
