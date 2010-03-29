@@ -447,7 +447,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
 	{
 		do
 		{
-			$row['page_text'] = htmlspecialchars($row['page_text']);
+			$row['page_text'] = htmlspecialchars(strip_tags($row['page_text']));
 			$row['page_name'] = htmlspecialchars($row['page_name']);
 
 			// Highlight results (this is wonderfully automated)
