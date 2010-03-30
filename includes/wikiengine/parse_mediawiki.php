@@ -188,7 +188,20 @@ class Carpenter_Parse_MediaWiki
 		
 		// Find all opening and closing tags
 		
-		$regex = ";(<(?:/(?:$blocklevel)|(?:$blocklevel)(?: [^>]*?)?)>);s";
+		$regex = ";(
+						<
+							(?:
+								# closing tag
+								/(?:$blocklevel)
+							|
+								# opening or self-closing tag
+								(?:$blocklevel)
+								(?:[ ][^>]*?)?
+								/?
+							)
+						>
+					)
+					;xs";
 								
 		// oh. and we're using this tokens thing because for identical matches, the first match will
 		// get wrapped X number of times instead of all matches getting wrapped once; replacing each
@@ -204,11 +217,11 @@ class Carpenter_Parse_MediaWiki
 			// go through the text, extract tag names, and push them to a stack.
 			foreach ( $text_split as $splitpart )
 			{
-				if ( preg_match(";^<(/)?($blocklevel)( |>);i", $splitpart, $match) )
+				if ( preg_match(";^<(/)?($blocklevel)( ([^>]*?(/)?>)|(/)?>);i", $splitpart, $match) )
 				{
 					$tagname = $match[2];
 					if ( $match[1] == '/' )
-					{
+					{                    
 						// closing tag
 						if ( $tagname != ($top = array_pop($tag_stack)) )
 						{
@@ -224,21 +237,32 @@ class Carpenter_Parse_MediaWiki
 					}
 					else
 					{
-						// push
-						array_push($tag_stack, $tagname);
-						if ( count($tag_stack) == 1 )
-							$splitpart = '<_paragraph_bypass>' . $splitpart;
+						// is it a self-closed tag?
+						// FIXME: This parser is VERY STRICT right now as far as XHTML compliance. <hr> will
+						// pretty much totally break it, because it will be treated as an opening tag.
+						// Yes, self closing tags work.
+						if ( (isset($match[5]) && $match[5] === '/') || (isset($match[6]) && $match[6] === '/') )
+						{
+							// yes
+							if ( count($tag_stack) == 0 )
+								$splitpart = "<_paragraph_bypass>$splitpart</_paragraph_bypass>";
+						}
+						else
+						{
+							// opening tag - push
+							array_push($tag_stack, $tagname);
+							if ( count($tag_stack) == 1 )
+								$splitpart = '<_paragraph_bypass>' . $splitpart;
+						}
 					}
 				}
 				$text .= $splitpart;
 			}
-			//echo '<pre>' . htmlspecialchars(print_r($text, true)) . '</pre>';
+			// echo '<pre>' . htmlspecialchars(print_r($text, true)) . '</pre>';
 		}
 		
 		// All things that should be para-bypassed now are surrounded by _paragraph_bypass tags.
 		
-		// die('<pre>' . htmlspecialchars($text) . '</pre>');
-	
 		RenderMan::tag_unstrip('_paragraph_bypass', $text, $_nw, true);
 		
 		// This is potentially a hack. It allows the parser to stick in <_paragraph_bypass> tags

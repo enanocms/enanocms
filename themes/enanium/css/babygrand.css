@@ -306,6 +306,16 @@ div.content p {
 	margin-left: 0.8em;
 }
 
+div.content pre {
+	margin-left: 1em;
+	margin-top: 0;
+	background-color: #F8F8F8;
+	border: 1px dashed #90B0D0;
+	padding: 10px;
+	overflow: auto;
+	clip: rect(0px, auto, auto, 0px);
+}
+
 /* Wikilinks to pages that don't exist */
 div.content a.wikilink-nonexistent {
 	color: #B05020;

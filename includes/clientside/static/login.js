@@ -973,6 +973,7 @@ window.ajaxLoginSubmitForm = function(real, username, password, captcha, remembe
 
 window.ajaxLoginShowFriendlyError = function(response)
 {
+	eval(setHook('ajax_login_process_error'));
 	var text = ajaxLoginGetErrorText(response);
 	if ( text == false )
 		return true;

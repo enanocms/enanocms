@@ -1039,3 +1039,20 @@ td.sbedit-column {
 .log_addfilter {
 	display: none;
 }
+
+/*
+ * The header over <pre> in the content area
+ */
+
+div.preformat-panel {
+	text-transform: uppercase;
+	font-size: 9px;
+	font-family: tahoma, arial, sans-serif;
+	font-weight: bold;
+	margin-left: 1em;
+	border-width: 1px 1px 0 1px;
+	border-style: dashed;
+	border-color: black;
+	background-color: #ddd;
+	padding: 3px;
+}

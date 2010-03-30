@@ -315,6 +315,11 @@ var enano_lang = {
 			cat_heading_pages: 'Pages',
 			cat_msg_no_pages: 'No pages in this category.',
 			
+			pre_lbl_code: 'Code:',
+			pre_btn_select: 'Select',
+			pre_btn_popup: 'Popup',
+			pre_popup_title: 'Code window',
+			
 			filebox_heading: 'Uploaded file',
 			filebox_msg_not_found: 'There are no files uploaded with this name yet. <a href="%upload_link%">Upload a file...</a>',
 			filebox_lbl_type: 'Type:',

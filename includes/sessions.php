@@ -3822,7 +3822,7 @@ EOF;
  	* @return array LoginAPI response
  	*/
 	
-	function process_login_request($req, $_dbgtmp = false)
+	function process_login_request($req)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		
