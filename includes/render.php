@@ -574,7 +574,7 @@ class RenderMan {
 	
 	public static function reverse_process_headings($text)
 	{
-		if ( !preg_match_all('|^<h([1-6])(?: id="toc[0-9]+")?>(.*?)</h\\1>$|m', $text, $matches) )
+		if ( !preg_match_all('|^<h([1-6])(?: id="head:[\w\.\/:;\(\)@\[\]=_-]+")?>(.*?)</h\\1>$|m', $text, $matches) )
 			return $text;
 		
 		foreach ( $matches[0] as $i => $match )
