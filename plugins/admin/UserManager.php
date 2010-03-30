@@ -1112,7 +1112,9 @@ class Admin_UserManager_SmartForm
 				
 				<!-- BEGINNOT same_user -->
 				<script type="text/javascript">
-				password_score_field(document.forms['useredit_{UUID}'].new_password);
+				addOnloadHook(function() {
+					password_score_field(document.forms['useredit_{UUID}'].new_password);
+				});
 				</script>
 				<!-- END same_user -->
 				
