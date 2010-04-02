@@ -136,7 +136,7 @@ var enano_lang_install = {
 			driver_intro: 'The next step is to choose the database driver that Enano will use. In most cases this is MySQL, but there are certain advantages to PostgreSQL, which is made available only experimentally.',
 			driver_msg_virt_appliance: '<b>You\'re using the Enano virtual appliance.</b><br />Unless you configured the appliance manually, PostgreSQL support is not available. In 99% of cases you\'ll want to click MySQL below.',
 			driver_err_no_mysql: 'You don\'t have the MySQL PHP extension installed.',
-			driver_err_no_pgsql: 'You don\'t have the PostgreSQL PHP extensnion installed.',
+			driver_err_no_pgsql: 'You don\'t have the PostgreSQL PHP extension installed.',
 			driver_mysql: 'MySQL',
 			driver_mysql_intro: 'Click this button to use MySQL as the database backend for your site. Most web hosts support MySQL, and if you have administrative access to your MySQL server, you can create a new database and user during this installation process if you haven\'t done so already.',
 			driver_pgsql: 'PostgreSQL',
