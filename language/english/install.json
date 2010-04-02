@@ -405,7 +405,7 @@ var enano_lang_install = {
  												<p>The last option, Tiny URLs, is the most friendly URL scheme for search engines, because your URLs won\'t have any special characters
 														at all in them. However, this only works if your webhost has configured Apache with support for mod_rewrite. Most of the time if your
 														host supports this you will see a listing for it in their feature matrix. None of the popular Linux distributions (such as Ubuntu,
-														Debian, Red Hat Enterprise Linux&trade;, Fedora, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
+														Debian&reg;, Red Hat&reg; Enterprise Linux&reg;, Fedora&trade;, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
 														home-brew server, you should consult your distribution\'s documentation for enabling mod_rewrite before selecting this option.
 														With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
 														</p>',
