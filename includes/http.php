@@ -370,10 +370,8 @@ class Request_HTTP
 		$newline = "\r\n";
 		
 		if ( $this->debug )
-			echo '<p>Connection opened. Writing main request to socket. Raw socket data follows.</p><pre>';
-		
-		if ( $this->debug )
 		{
+			echo '<p>Connection opened. Writing main request to socket. Raw socket data follows.</p><pre>';
 			echo '<hr /><div style="white-space: nowrap;">';
 			echo '<p><b>' . __CLASS__ . ': Sending request</b></p><p>Request parameters:</p>';
 			echo "<p><b>Headers:</b></p><pre>$headers</pre>";
@@ -386,7 +384,7 @@ class Request_HTTP
 		$portline = ( $this->port == 80 ) ? '' : ":$this->port";
 		
 		$this->_fputs($connection, "{$this->method} {$this->uri}{$get} HTTP/1.1{$newline}");
-		$this->_fputs($connection, "Host: {$this->host}$portline{$newline}");
+		$this->_fputs($connection, "Host: {$this->host}{$portline}{$newline}");
 		$this->_fputs($connection, $headers);
 		$this->_fputs($connection, $cookies);
 		
@@ -528,7 +526,17 @@ class Request_HTTP
 				{
 					echo "Pulling response using fread(), size $size\n";
 				}
-				$this->response .= fread($this->socket, $size);
+				$basesize = strlen($this->response);
+				while ( strlen($this->response) - $basesize < $size )
+				{
+					$remaining_bytes = $size - (strlen($this->response) - $basesize);
+					$this->response .= fread($this->socket, $remaining_bytes);
+					if ( $this->debug )
+					{
+						$remaining_bytes = $size - (strlen($this->response) - $basesize);
+						echo "<br />Received " . (strlen($this->response) - $basesize) . " of $size bytes ($remaining_bytes remaining)...\n";
+					}
+				}
 			}
 			else
 			{

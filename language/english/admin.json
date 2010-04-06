@@ -425,14 +425,14 @@ var enano_lang = {
 			heading_avatars: 'Avatars',
 			avatars_intro: 'Avatars are small images that users can display on their profiles and in comments.',
 			field_avatar_enable: 'Enable avatar support:',
-			field_avatar_enable_hint: 'Supported formats are JPEG, PNG, and GIF&trade;.',
+			field_avatar_enable_hint: 'Supported formats are JPEG, PNG, and GIF&#8480;.',
 			field_avatar_enable_label: 'Enabled',
 			field_avatar_max_filesize: 'Maximum avatar file size:',
 			field_avatar_max_filesize_hint: 'For smaller sites, the highest value for this should be about 50KB, 51200. Larger sites with more visitors will likely want to use something much smaller, such as 10KB.',
 			field_avatar_max_dimensions: 'Maximum avatar dimensions:',
 			field_avatar_max_dimensions_hint: 'The format is width &#215; height. Typically you want to have this square (the same width and height). These are only maximum dimensions; users are not prevented from having smaller images.',
 			field_avatar_allow_anim_title: 'Allow animated avatars:',
-			field_avatar_allow_anim_hint: 'If this is checked, users can upload APNG and Animated GIF&trade; avatars. Sometimes such images can be specifically made to be distracting, like rapidly flashing images. If this is unchecked, these formats will be blocked, and only still PNGs and GIFs will be allowed.',
+			field_avatar_allow_anim_hint: 'If this is checked, users can upload APNG and Animated GIF&#8480; avatars. Sometimes such images can be specifically made to be distracting, like rapidly flashing images. If this is unchecked, these formats will be blocked, and only still PNGs and GIFs will be allowed.',
 			field_avatar_allow_anim: 'Don\'t block animated images',
 			field_avatar_upload_methods: 'Allowed upload methods:',
 			field_avatar_upload_file: 'Allow users to upload image files from their computers',
@@ -935,11 +935,11 @@ var enano_lang = {
 			
 			heading_imcontact: 'Instant messenger contact information',
 			
-			field_aim: 'AIM handle:',
-			field_wlm: '<acronym title="Windows&trade; Live Messenger">WLM</acronym> handle:',
+			field_aim: 'AIM&reg; handle:',
+			field_wlm: '<acronym title="Windows Live&trade; Messenger">WLM</acronym> handle:',
 			field_wlm_hint: 'If you don\'t specify the domain (@whatever.com), "@hotmail.com" will be assumed.',
-			field_yim: 'Yahoo! IM handle:',
-			field_xmpp: 'Jabber&trade;/XMPP handle:',
+			field_yim: 'Yahoo!&reg; IM handle:',
+			field_xmpp: 'Jabber&reg;/XMPP handle:',
 			
 			heading_contact_extra: 'Extra contact information',
 			

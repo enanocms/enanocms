@@ -137,7 +137,7 @@ var enano_lang_install = {
 			driver_intro: 'The next step is to choose the database driver that Enano will use. In most cases this is MySQL, but there are certain advantages to PostgreSQL, which is made available only experimentally.',
 			driver_msg_virt_appliance: '<b>You\'re using the Enano virtual appliance.</b><br />Unless you configured the appliance manually, PostgreSQL support is not available. In 99% of cases you\'ll want to click MySQL below.',
 			driver_err_no_mysql: 'You don\'t have the MySQL PHP extension installed.',
-			driver_err_no_pgsql: 'You don\'t have the PostgreSQL PHP extensnion installed.',
+			driver_err_no_pgsql: 'You don\'t have the PostgreSQL PHP extension installed.',
 			driver_mysql: 'MySQL',
 			driver_mysql_intro: 'Click this button to use MySQL as the database backend for your site. Most web hosts support MySQL, and if you have administrative access to your MySQL server, you can create a new database and user during this installation process if you haven\'t done so already.',
 			driver_pgsql: 'PostgreSQL',
@@ -406,7 +406,7 @@ var enano_lang_install = {
  												<p>The last option, Tiny URLs, is the most friendly URL scheme for search engines, because your URLs won\'t have any special characters
 														at all in them. However, this only works if your webhost has configured Apache with support for mod_rewrite. Most of the time if your
 														host supports this you will see a listing for it in their feature matrix. None of the popular Linux distributions (such as Ubuntu,
-														Debian, Red Hat Enterprise Linux&trade;, Fedora, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
+														Debian&reg;, Red Hat&reg; Enterprise Linux&reg;, Fedora&trade;, openSUSE&trade;, or CentOS) come with mod_rewrite enabled, so if you run a
 														home-brew server, you should consult your distribution\'s documentation for enabling mod_rewrite before selecting this option.
 														With this scheme, URLs at your site will look like <tt>http://yoursite.com/path-to-enano/Main_Page</tt>.</p>
 														</p>',

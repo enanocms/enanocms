@@ -1157,6 +1157,7 @@ function avatar_post($user_id, $quiet = false)
 				$db->_die('Avatar CP switching user avatar off');
 				
 			$has_avi = 1;
+			$avi_type = 'grv';
 			$quiet || print '<div class="info-box">' . $lang->get('usercp_avatar_gravatar_success') . '</div>';
 			$had_a_boo_boo = false;
 			break;
