@@ -25,267 +25,267 @@ class sessionManager {
 	# Variables
 	
 	/**
- 	* Whether we're logged in or not
- 	* @var bool
- 	*/
- 	
+	 * Whether we're logged in or not
+	 * @var bool
+	 */
+	 
 	var $user_logged_in = false;
 	
 	/**
- 	* Our current low-privilege session key
- 	* @var string
- 	*/
+	 * Our current low-privilege session key
+	 * @var string
+	 */
 	
 	var $sid;
 	
 	/**
- 	* Username of currently logged-in user, or IP address if not logged in
- 	* @var string
- 	*/
+	 * Username of currently logged-in user, or IP address if not logged in
+	 * @var string
+	 */
 	
 	var $username;
 	
 	/**
- 	* User ID of currently logged-in user, or 1 if not logged in
- 	* @var int
- 	*/
+	 * User ID of currently logged-in user, or 1 if not logged in
+	 * @var int
+	 */
 	
 	var $user_id = 1;
 	
 	/**
- 	* Real name of currently logged-in user, or blank if not logged in
- 	* @var string
- 	*/
+	 * Real name of currently logged-in user, or blank if not logged in
+	 * @var string
+	 */
 	
 	var $real_name;
 	
 	/**
- 	* E-mail address of currently logged-in user, or blank if not logged in
- 	* @var string
- 	*/
+	 * E-mail address of currently logged-in user, or blank if not logged in
+	 * @var string
+	 */
 	
 	var $email;
 	
 	/**
- 	* List of "extra" user information fields (IM handles, etc.)
- 	* @var array (associative)
- 	*/
+	 * List of "extra" user information fields (IM handles, etc.)
+	 * @var array (associative)
+	 */
 	
 	var $user_extra;
 	
 	/**
- 	* User level of current user
- 	* USER_LEVEL_GUEST: guest
- 	* USER_LEVEL_MEMBER: regular user
- 	* USER_LEVEL_CHPREF: default - pseudo-level that allows changing password and e-mail address (requires re-authentication)
- 	* USER_LEVEL_MOD: moderator
- 	* USER_LEVEL_ADMIN: administrator
- 	* @var int
- 	*/
+	 * User level of current user
+	 * USER_LEVEL_GUEST: guest
+	 * USER_LEVEL_MEMBER: regular user
+	 * USER_LEVEL_CHPREF: default - pseudo-level that allows changing password and e-mail address (requires re-authentication)
+	 * USER_LEVEL_MOD: moderator
+	 * USER_LEVEL_ADMIN: administrator
+	 * @var int
+	 */
 	
 	var $user_level;
 	
 	/**
- 	* High-privilege session key
- 	* @var string or false if not running on high-level authentication
- 	*/
+	 * High-privilege session key
+	 * @var string or false if not running on high-level authentication
+	 */
 	
 	var $sid_super;
 	
 	/**
- 	* The user's theme preference, defaults to $template->default_theme
- 	* @var string
- 	*/
+	 * The user's theme preference, defaults to $template->default_theme
+	 * @var string
+	 */
 	
 	var $theme;
 	
 	/**
- 	* The user's style preference, or style auto-detected based on theme if not logged in
- 	* @var string
- 	*/
+	 * The user's style preference, or style auto-detected based on theme if not logged in
+	 * @var string
+	 */
 	
 	var $style;
 	
 	/**
- 	* Signature of current user - appended to comments, etc.
- 	* @var string
- 	*/
+	 * Signature of current user - appended to comments, etc.
+	 * @var string
+	 */
 	
 	var $signature;
 	
 	/**
- 	* UNIX timestamp of when we were registered, or 0 if not logged in
- 	* @var int
- 	*/
+	 * UNIX timestamp of when we were registered, or 0 if not logged in
+	 * @var int
+	 */
 	
 	var $reg_time;
 	
 	/**
- 	* The number of unread private messages this user has.
- 	* @var int
- 	*/
+	 * The number of unread private messages this user has.
+	 * @var int
+	 */
 	
 	var $unread_pms = 0;
 	
 	/**
- 	* AES key used to encrypt passwords and session key info.
- 	* @var string
- 	* @access private
- 	*/
- 	
+	 * AES key used to encrypt passwords and session key info.
+	 * @var string
+	 * @access private
+	 */
+	 
 	protected $private_key;
 	
 	/**
- 	* Regex that defines a valid username, minus the ^ and $, these are added later
- 	* @var string
- 	*/
- 	
+	 * Regex that defines a valid username, minus the ^ and $, these are added later
+	 * @var string
+	 */
+	 
 	var $valid_username = '([^<>&\?\'"%\n\r\t\a\/]+)';
 	
 	/**
- 	* The current user's user title. Defaults to NULL.
- 	* @var string
- 	*/
+	 * The current user's user title. Defaults to NULL.
+	 * @var string
+	 */
 	
 	var $user_title = null;
- 	
+	 
 	/**
- 	* What we're allowed to do as far as permissions go. This changes based on the value of the "auth" URI param.
- 	* @var string
- 	*/
- 	
+	 * What we're allowed to do as far as permissions go. This changes based on the value of the "auth" URI param.
+	 * @var string
+	 */
+	 
 	var $auth_level = 1;
 	
 	/**
- 	* Preference for date formatting
- 	* @var string
- 	*/
+	 * Preference for date formatting
+	 * @var string
+	 */
 	
 	var $date_format = DATE_4;
 	
 	/**
- 	* Preference for time formatting
- 	* @var string
- 	*/
+	 * Preference for time formatting
+	 * @var string
+	 */
 	
 	var $time_format = TIME_24_NS;
 	
 	/**
- 	* State variable to track if a session timed out
- 	* @var bool
- 	*/
+	 * State variable to track if a session timed out
+	 * @var bool
+	 */
 	
 	var $sw_timed_out = false;
 	
 	/**
- 	* Token appended to some important forms to prevent CSRF.
- 	* @var string
- 	*/
+	 * Token appended to some important forms to prevent CSRF.
+	 * @var string
+	 */
 	
 	var $csrf_token = false;
 	
 	/**
- 	* Password change disabled, for auth plugins
- 	* @var bool
- 	*/
+	 * Password change disabled, for auth plugins
+	 * @var bool
+	 */
 	
 	var $password_change_disabled = false;
 	
 	/**
- 	* Password change page URL + title, for auth plugins
- 	* @var array
- 	*/
+	 * Password change page URL + title, for auth plugins
+	 * @var array
+	 */
 	
 	var $password_change_dest = array('url' => '', 'title' => '');
 	
 	/**
- 	* Switch to track if we're started or not.
- 	* @access private
- 	* @var bool
- 	*/
- 	
+	 * Switch to track if we're started or not.
+	 * @access private
+	 * @var bool
+	 */
+	 
 	var $started = false;
 	
 	/**
- 	* Switch to control compatibility mode (for older Enano websites being upgraded)
- 	* @access private
- 	* @var bool
- 	*/
- 	
+	 * Switch to control compatibility mode (for older Enano websites being upgraded)
+	 * @access private
+	 * @var bool
+	 */
+	 
 	var $compat = false;
 	
 	/**
- 	* Our list of permission types.
- 	* @access private
- 	* @var array
- 	*/
- 	
+	 * Our list of permission types.
+	 * @access private
+	 * @var array
+	 */
+	 
 	var $acl_types = Array();
 	
 	/**
- 	* The list of descriptions for the permission types
- 	* @var array
- 	*/
- 	
+	 * The list of descriptions for the permission types
+	 * @var array
+	 */
+	 
 	var $acl_descs = Array();
 	
 	/**
- 	* A list of dependencies for ACL types.
- 	* @var array
- 	*/
- 	
+	 * A list of dependencies for ACL types.
+	 * @var array
+	 */
+	 
 	var $acl_deps = Array();
 	
 	/**
- 	* Our tell-all list of permissions. Do not even try to change this.
- 	* @access private
- 	* @var array
- 	*/
- 	
+	 * Our tell-all list of permissions. Do not even try to change this.
+	 * @access private
+	 * @var array
+	 */
+	 
 	var $perms = Array();
 	
 	/**
- 	* A cache variable - saved after sitewide permissions are checked but before page-specific permissions.
- 	* @var array
- 	* @access private
- 	*/
+	 * A cache variable - saved after sitewide permissions are checked but before page-specific permissions.
+	 * @var array
+	 * @access private
+	 */
 	
 	var $acl_base_cache = Array();
 	
 	/**
- 	* Stores the scope information for ACL types.
- 	* @var array
- 	* @access private
- 	*/
- 	
+	 * Stores the scope information for ACL types.
+	 * @var array
+	 * @access private
+	 */
+	 
 	var $acl_scope = Array();
 	
 	/**
- 	* Array to track which default permissions are being used
- 	* @var array
- 	* @access private
- 	*/
- 	
+	 * Array to track which default permissions are being used
+	 * @var array
+	 * @access private
+	 */
+	 
 	var $acl_defaults_used = Array();
 	
 	/**
- 	* Array to track group membership.
- 	* @var array
- 	*/
- 	
+	 * Array to track group membership.
+	 * @var array
+	 */
+	 
 	var $groups = Array();
 	
 	/**
- 	* Associative array to track group modship.
- 	* @var array
- 	*/
- 	
+	 * Associative array to track group modship.
+	 * @var array
+	 */
+	 
 	var $group_mod = Array();
 	
 	/**
- 	* A constant array of user-level-to-rank default associations.
- 	* @var array
- 	*/
+	 * A constant array of user-level-to-rank default associations.
+	 * @var array
+	 */
 	
 	var $level_rank_table = array(
 			USER_LEVEL_ADMIN  => RANK_ID_ADMIN,
@@ -296,9 +296,9 @@ class sessionManager {
 		);
 	
 	/**
- 	* A constant array that maps precedence constants to language strings
- 	* @var array
- 	*/
+	 * A constant array that maps precedence constants to language strings
+	 * @var array
+	 */
 	
 	var $acl_inherit_lang_table = array(
 			ACL_INHERIT_ENANO_DEFAULT   => 'acl_inherit_enano_default',
@@ -314,11 +314,11 @@ class sessionManager {
 		);
 	
 	# Basic functions
- 	
+	 
 	/**
- 	* Constructor.
- 	*/
- 	
+	 * Constructor.
+	 */
+	 
 	function __construct()
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -387,9 +387,9 @@ class sessionManager {
 	}
 	
 	/**
- 	* PHP 4 compatible constructor. Deprecated in 1.1.x.
- 	*/
- 	
+	 * PHP 4 compatible constructor. Deprecated in 1.1.x.
+	 */
+	 
 	/*
 	function sessionManager()
 	{
@@ -398,10 +398,10 @@ class sessionManager {
 	*/
 	
 	/**
- 	* Wrapper function to sanitize strings for MySQL and HTML
- 	* @param string $text The text to sanitize
- 	* @return string
- 	*/
+	 * Wrapper function to sanitize strings for MySQL and HTML
+	 * @param string $text The text to sanitize
+	 * @return string
+	 */
 	
 	function prepare_text($text)
 	{
@@ -410,10 +410,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Makes a SQL query and handles error checking
- 	* @param string $query The SQL query to make
- 	* @return resource
- 	*/
+	 * Makes a SQL query and handles error checking
+	 * @param string $query The SQL query to make
+	 * @return resource
+	 */
 	
 	function sql($query)
 	{
@@ -427,10 +427,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Returns true if we're currently on a page that shouldn't be blocked even if we have an inactive or banned account
- 	* @param bool strict - if true, whitelist of pages is even stricter (Login, Logout and CSS only). if false (default), admin access is allowed, assuming other factors allow it
- 	* @return bool
- 	*/
+	 * Returns true if we're currently on a page that shouldn't be blocked even if we have an inactive or banned account
+	 * @param bool strict - if true, whitelist of pages is even stricter (Login, Logout and CSS only). if false (default), admin access is allowed, assuming other factors allow it
+	 * @return bool
+	 */
 	
 	function on_critical_page($strict = false)
 	{
@@ -451,8 +451,8 @@ class sessionManager {
 	# Session restoration and permissions
 	
 	/**
- 	* Initializes the basic state of things, including most user prefs, login data, cookie stuff
- 	*/
+	 * Initializes the basic state of things, including most user prefs, login data, cookie stuff
+	 */
 	
 	function start()
 	{
@@ -605,19 +605,19 @@ class sessionManager {
 	# Logins
 	
 	/**
- 	* Attempts to perform a login using crypto functions
- 	* @param string $username The username
- 	* @param string $aes_data The encrypted password, hex-encoded
- 	* @param string $aes_key The MD5 hash of the encryption key, hex-encoded
- 	* @param string $challenge The 256-bit MD5 challenge string - first 128 bits should be the hash, the last 128 should be the challenge salt
- 	* @param int $level The privilege level we're authenticating for, defaults to 0
- 	* @param string $captcha_hash Optional. If we're locked out and the lockout policy is captcha, this should be the identifier for the code.
- 	* @param string $captcha_code Optional. If we're locked out and the lockout policy is captcha, this should be the code the user entered.
- 	* @param bool $remember Optional. If true, remembers the session for X days. Otherwise, assigns a short session. Defaults to false.
- 	* @param bool $lookup_key Optional. If true (default) this queries the database for the "real" encryption key. Else, uses what is given.
- 	* @return string 'success' on success, or error string on failure
- 	*/
- 	
+	 * Attempts to perform a login using crypto functions
+	 * @param string $username The username
+	 * @param string $aes_data The encrypted password, hex-encoded
+	 * @param string $aes_key The MD5 hash of the encryption key, hex-encoded
+	 * @param string $challenge The 256-bit MD5 challenge string - first 128 bits should be the hash, the last 128 should be the challenge salt
+	 * @param int $level The privilege level we're authenticating for, defaults to 0
+	 * @param string $captcha_hash Optional. If we're locked out and the lockout policy is captcha, this should be the identifier for the code.
+	 * @param string $captcha_code Optional. If we're locked out and the lockout policy is captcha, this should be the code the user entered.
+	 * @param bool $remember Optional. If true, remembers the session for X days. Otherwise, assigns a short session. Defaults to false.
+	 * @param bool $lookup_key Optional. If true (default) this queries the database for the "real" encryption key. Else, uses what is given.
+	 * @return string 'success' on success, or error string on failure
+	 */
+	 
 	function login_with_crypto($username, $aes_data, $aes_key_id, $challenge, $level = USER_LEVEL_MEMBER, $captcha_hash = false, $captcha_code = false, $remember = false, $lookup_key = true)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -669,15 +669,15 @@ class sessionManager {
 	}
 	
 	/**
- 	* Attempts to login without using crypto stuff, mainly for use when the other side doesn't like Javascript
- 	* This method of authentication is inherently insecure, there's really nothing we can do about it except hope and pray that everyone moves to Firefox
- 	* Technically it still uses crypto, but it only decrypts the password already stored, which is (obviously) required for authentication
- 	* @param string $username The username
- 	* @param string $password The password -OR- the MD5 hash of the password if $already_md5ed is true
- 	* @param bool $already_md5ed This should be set to true if $password is an MD5 hash, and should be false if it's plaintext. Defaults to false.
- 	* @param int $level The privilege level we're authenticating for, defaults to 0
- 	* @param bool $remember Optional. If true, remembers the session for X days. Otherwise, assigns a short session. Defaults to false.
- 	*/
+	 * Attempts to login without using crypto stuff, mainly for use when the other side doesn't like Javascript
+	 * This method of authentication is inherently insecure, there's really nothing we can do about it except hope and pray that everyone moves to Firefox
+	 * Technically it still uses crypto, but it only decrypts the password already stored, which is (obviously) required for authentication
+	 * @param string $username The username
+	 * @param string $password The password -OR- the MD5 hash of the password if $already_md5ed is true
+	 * @param bool $already_md5ed This should be set to true if $password is an MD5 hash, and should be false if it's plaintext. Defaults to false.
+	 * @param int $level The privilege level we're authenticating for, defaults to 0
+	 * @param bool $remember Optional. If true, remembers the session for X days. Otherwise, assigns a short session. Defaults to false.
+	 */
 	
 	function login_without_crypto($username, $password, $already_md5ed = false, $level = USER_LEVEL_MEMBER, $remember = false)
 	{
@@ -712,21 +712,21 @@ class sessionManager {
 		$username_db = $db->escape(strtolower($username));
 		$username_db_upper = $db->escape($username);
 		if ( !$db->sql_query('SELECT password,password_salt,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix."users\n"
- 											. "  WHERE ( " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db' OR username = '$username_db_upper' );") )
+	 										. "  WHERE ( " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db' OR username = '$username_db_upper' );") )
 		{
 			$this->sql('SELECT password,\'\' AS password_salt,old_encryption,user_id,user_level,temp_password,temp_password_time FROM '.table_prefix."users\n"
- 							. "  WHERE ( " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db' OR username = '$username_db_upper' );");
+	 						. "  WHERE ( " . ENANO_SQLFUNC_LOWERCASE . "(username) = '$username_db' OR username = '$username_db_upper' );");
 		}
 		if ( $db->numrows() < 1 )
 		{
 			// This wasn't logged in <1.0.2, dunno how it slipped through
 			if ( $level > USER_LEVEL_MEMBER )
 				$this->sql('INSERT INTO ' . table_prefix . "logs(log_type,action,time_id,date_string,author,edit_summary,page_text) VALUES\n"
- 									. '  (\'security\', \'admin_auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', '
+	 								. '  (\'security\', \'admin_auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', '
 											. '\''.$db->escape($_SERVER['REMOTE_ADDR']).'\', ' . intval($level) . ')');
 			else
 				$this->sql('INSERT INTO ' . table_prefix . "logs(log_type,action,time_id,date_string,author,edit_summary) VALUES\n"
- 									. '  (\'security\', \'auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', '
+	 								. '  (\'security\', \'auth_bad\', '.time().', \''.enano_date(ED_DATE | ED_TIME).'\', \''.$db->escape($username).'\', '
 											. '\''.$db->escape($_SERVER['REMOTE_ADDR']).'\')');
 			
 			// Do we also need to increment the lockout countdown?
@@ -877,11 +877,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Attempts to log in using the old table structure and algorithm. This is for upgrades from old 1.0.x releases.
- 	* @param string $username
- 	* @param string $password This should be an MD5 hash
- 	* @return string 'success' if successful, or error message on failure
- 	*/
+	 * Attempts to log in using the old table structure and algorithm. This is for upgrades from old 1.0.x releases.
+	 * @param string $username
+	 * @param string $password This should be an MD5 hash
+	 * @return string 'success' if successful, or error message on failure
+	 */
 	
 	function login_compat($username, $password, $level = 0)
 	{
@@ -908,16 +908,16 @@ class sessionManager {
 	}
 	
 	/**
- 	* Registers a session key in the database. This function *ASSUMES* that the username and password have already been validated!
- 	* Basically the session key is a hex-encoded cookie (encrypted with the site's private key) that says "u=[username];p=[sha1 of password];s=[unique key id]"
- 	* @param int $user_id
- 	* @param string $username
- 	* @param string $password_hmac The HMAC of the user's password, right from the database
- 	* @param int $level The level of access to grant, defaults to USER_LEVEL_MEMBER
- 	* @param bool $remember Whether the session should be long-term (true) or not (false). Defaults to short-term.
- 	* @return bool
- 	*/
- 	
+	 * Registers a session key in the database. This function *ASSUMES* that the username and password have already been validated!
+	 * Basically the session key is a hex-encoded cookie (encrypted with the site's private key) that says "u=[username];p=[sha1 of password];s=[unique key id]"
+	 * @param int $user_id
+	 * @param string $username
+	 * @param string $password_hmac The HMAC of the user's password, right from the database
+	 * @param int $level The level of access to grant, defaults to USER_LEVEL_MEMBER
+	 * @param bool $remember Whether the session should be long-term (true) or not (false). Defaults to short-term.
+	 * @return bool
+	 */
+	 
 	function register_session($user_id, $username, $password_hmac, $level = USER_LEVEL_MEMBER, $remember = false)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -997,10 +997,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Identical to register_session in nature, but uses the old login/table structure. DO NOT use this except in the upgrade script under very controlled circumstances.
- 	* @see sessionManager::register_session()
- 	* @access private
- 	*/
+	 * Identical to register_session in nature, but uses the old login/table structure. DO NOT use this except in the upgrade script under very controlled circumstances.
+	 * @see sessionManager::register_session()
+	 * @access private
+	 */
 	
 	function register_session_compat($user_id, $username, $password, $level = 0)
 	{
@@ -1028,10 +1028,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Tells us if we're locked out from logging in or not.
- 	* @param reference will be filled with information regarding in-progress lockout
- 	* @return bool True if locked out, false otherwise
- 	*/
+	 * Tells us if we're locked out from logging in or not.
+	 * @param reference will be filled with information regarding in-progress lockout
+	 * @return bool True if locked out, false otherwise
+	 */
 	
 	function get_lockout_info()
 	{
@@ -1087,10 +1087,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Creates/restores a guest session
- 	* @todo implement real session management for guests
- 	*/
- 	
+	 * Creates/restores a guest session
+	 * @todo implement real session management for guests
+	 */
+	 
 	function register_guest_session()
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1120,11 +1120,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Validates a session key, and returns the userdata associated with the key or false
- 	* @param string $key The session key to validate
- 	* @return array Keys are 'user_id', 'username', 'email', 'real_name', 'user_level', 'theme', 'style', 'signature', 'reg_time', 'account_active', 'activation_key', and 'auth_level' or bool false if validation failed. The key 'auth_level' is the maximum authorization level that this key provides.
- 	*/
- 	
+	 * Validates a session key, and returns the userdata associated with the key or false
+	 * @param string $key The session key to validate
+	 * @return array Keys are 'user_id', 'username', 'email', 'real_name', 'user_level', 'theme', 'style', 'signature', 'reg_time', 'account_active', 'activation_key', and 'auth_level' or bool false if validation failed. The key 'auth_level' is the maximum authorization level that this key provides.
+	 */
+	 
 	function validate_session($key)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1141,10 +1141,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Validates an old-format AES session key. DO NOT USE THIS. Will return false if called outside of an upgrade.
- 	* @param string Session key
- 	* @return array
- 	*/
+	 * Validates an old-format AES session key. DO NOT USE THIS. Will return false if called outside of an upgrade.
+	 * @param string Session key
+	 * @return array
+	 */
 	
 	protected function validate_aes_session($key)
 	{
@@ -1174,10 +1174,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Shared portion of session validation. Do not try to call this.
- 	* @return array
- 	* @access private
- 	*/
+	 * Shared portion of session validation. Do not try to call this.
+	 * @return array
+	 * @access private
+	 */
 	
 	protected function validate_session_shared($key, $salt, $loose_call = false)
 	{
@@ -1223,12 +1223,12 @@ class sessionManager {
 		{
 			$key_md5 = $loose_call ? $key : md5($key);
 			$query = $this->sql('SELECT u.user_id AS uid,u.username,u.password,\'\' AS password_salt,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,COUNT(p.message_id) AS num_pms, 1440 AS user_timezone, \'0;0;0;0;60\' AS user_dst, ' . SK_SHORT . ' AS key_type, k.salt FROM '.table_prefix.'session_keys AS k
- 														LEFT JOIN '.table_prefix.'users AS u
- 															ON ( u.user_id=k.user_id )
- 														LEFT JOIN '.table_prefix.'privmsgs AS p
- 															ON ( p.message_to=u.username AND p.message_read=0 )
- 														WHERE k.session_key=\''.$key_md5.'\'
- 														GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,k.salt;');
+	 													LEFT JOIN '.table_prefix.'users AS u
+	 														ON ( u.user_id=k.user_id )
+	 													LEFT JOIN '.table_prefix.'privmsgs AS p
+	 														ON ( p.message_to=u.username AND p.message_read=0 )
+	 													WHERE k.session_key=\''.$key_md5.'\'
+	 													GROUP BY u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,u.theme,u.style,u.signature,u.reg_time,u.account_active,u.activation_key,k.source_ip,k.time,k.auth_level,k.salt;');
 		}
 		else if ( !$query )
 		{
@@ -1363,20 +1363,20 @@ class sessionManager {
 	}
 	
 	/**
- 	* Validates a session key, and returns the userdata associated with the key or false. Optimized for compatibility with the old MD5-based auth system.
- 	* @param string $key The session key to validate
- 	* @return array Keys are 'user_id', 'username', 'email', 'real_name', 'user_level', 'theme', 'style', 'signature', 'reg_time', 'account_active', 'activation_key', and 'auth_level' or bool false if validation failed. The key 'auth_level' is the maximum authorization level that this key provides.
- 	*/
- 	
+	 * Validates a session key, and returns the userdata associated with the key or false. Optimized for compatibility with the old MD5-based auth system.
+	 * @param string $key The session key to validate
+	 * @return array Keys are 'user_id', 'username', 'email', 'real_name', 'user_level', 'theme', 'style', 'signature', 'reg_time', 'account_active', 'activation_key', and 'auth_level' or bool false if validation failed. The key 'auth_level' is the maximum authorization level that this key provides.
+	 */
+	 
 	function compat_validate_session($key)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		$key = $db->escape($key);
 		
 		$query = $this->sql('SELECT u.user_id,u.username,u.password,u.email,u.real_name,u.user_level,k.source_ip,k.salt,k.time,k.auth_level,1440 AS user_timezone FROM '.table_prefix.'session_keys AS k
- 													LEFT JOIN '.table_prefix.'users AS u
- 														ON u.user_id=k.user_id
- 													WHERE k.session_key=\''.$key.'\';');
+	 												LEFT JOIN '.table_prefix.'users AS u
+	 													ON u.user_id=k.user_id
+	 												WHERE k.session_key=\''.$key.'\';');
 		if($db->numrows() < 1)
 		{
 			// echo '(debug) $session->validate_session: Key '.$key.' was not found in database<br />';
@@ -1422,13 +1422,13 @@ class sessionManager {
 		
 		return $row;
 	}
- 	
+	 
 	/**
- 	* Demotes us to one less than the specified auth level. AKA destroys elevated authentication and/or logs out the user, depending on $level
- 	* @param int $level How low we should go - USER_LEVEL_MEMBER means demote to USER_LEVEL_GUEST, and anything more powerful than USER_LEVEL_MEMBER means demote to USER_LEVEL_MEMBER
- 	* @return string 'success' if successful, or error on failure
- 	*/
- 	
+	 * Demotes us to one less than the specified auth level. AKA destroys elevated authentication and/or logs out the user, depending on $level
+	 * @param int $level How low we should go - USER_LEVEL_MEMBER means demote to USER_LEVEL_GUEST, and anything more powerful than USER_LEVEL_MEMBER means demote to USER_LEVEL_MEMBER
+	 * @return string 'success' if successful, or error on failure
+	 */
+	 
 	function logout($level = USER_LEVEL_MEMBER)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1472,9 +1472,9 @@ class sessionManager {
 	# Miscellaneous stuff
 	
 	/**
- 	* Alerts the user that their account is inactive, and tells them appropriate steps to remedy the situation. Halts execution.
- 	* @param array Return from validate_session()
- 	*/
+	 * Alerts the user that their account is inactive, and tells them appropriate steps to remedy the situation. Halts execution.
+	 * @param array Return from validate_session()
+	 */
 	
 	function show_inactive_error($userdata)
 	{
@@ -1526,9 +1526,9 @@ class sessionManager {
 		if ( $can_request && !isset($_POST['activation_request']) )
 		{
 			$form = '<p>' . $lang->get('user_login_noact_msg_ask_admins') . '</p>
- 							<form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
- 								<p><input type="submit" name="activation_request" value="' . $lang->get('user_login_noact_btn_request_activation') . '" /> <input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
- 							</form>';
+	 						<form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+	 							<p><input type="submit" name="activation_request" value="' . $lang->get('user_login_noact_btn_request_activation') . '" /> <input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
+	 						</form>';
 		}
 		else
 		{
@@ -1536,16 +1536,16 @@ class sessionManager {
 			{
 				$this->admin_activation_request($userdata['username']);
 				$form = '<p>' . $lang->get('user_login_noact_msg_admins_just_asked') . '</p>
- 								<form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
- 									<p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
- 								</form>';
+	 							<form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+	 								<p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
+	 							</form>';
 			}
 			else
 			{
 				$form = '<p>' . $lang->get('user_login_noact_msg_admins_asked') . '</p>
- 								<form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
- 									<p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
- 								</form>';
+	 							<form action="' . makeUrlNS('System', 'ActivateStub') . '" method="post">
+	 								<p><input type="submit" name="logout" value="' . $lang->get('user_login_noact_btn_log_out') . '" /></p>
+	 							</form>';
 			}
 		}
 		
@@ -1556,10 +1556,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Appends the high-privilege session key to the URL if we are authorized to do high-privilege stuff
- 	* @param string $url The URL to add session data to
- 	* @return string
- 	*/
+	 * Appends the high-privilege session key to the URL if we are authorized to do high-privilege stuff
+	 * @param string $url The URL to add session data to
+	 * @return string
+	 */
 	
 	function append_sid($url)
 	{
@@ -1573,11 +1573,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Prevent the user from changing their password. Authentication plugins may call this to enforce single sign-on.
- 	* @param string URL to page where the user may change their password
- 	* @param string Title of the page where the user may change their password
- 	* @return null
- 	*/
+	 * Prevent the user from changing their password. Authentication plugins may call this to enforce single sign-on.
+	 * @param string URL to page where the user may change their password
+	 * @param string Title of the page where the user may change their password
+	 * @return null
+	 */
 	
 	function disable_password_change($change_url = false, $change_title = false)
 	{
@@ -1606,18 +1606,18 @@ class sessionManager {
 	}
 	
 	/**
- 	* Grabs the user's password MD5 - NOW DEPRECATED AND DISABLED.
- 	* @return bool false
- 	*/
- 	
+	 * Grabs the user's password MD5 - NOW DEPRECATED AND DISABLED.
+	 * @return bool false
+	 */
+	 
 	function grab_password_hash()
 	{
 		return false;
 	}
 	
 	/**
- 	* Destroys the user's password MD5 in memory
- 	*/
+	 * Destroys the user's password MD5 in memory
+	 */
 	
 	function disallow_password_grab()
 	{
@@ -1626,11 +1626,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Generates an AES key and stashes it in the database
- 	* @return string Hex-encoded AES key
- 	*/
- 	
-	function rijndael_genkey()
+	 * Generates an AES key and stashes it in the database
+	 * @return string Hex-encoded AES key
+	 */
+	 
+	static function rijndael_genkey()
 	{
 		$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
 		$key = $aes->gen_readymade_key();
@@ -1644,11 +1644,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Generate a totally random 128-bit value for MD5 challenges
- 	* @return string
- 	*/
- 	
-	function dss_rand()
+	 * Generate a totally random 128-bit value for MD5 challenges
+	 * @return string
+	 */
+	 
+	static function dss_rand()
 	{
 		$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
 		$random = $aes->randkey(128);
@@ -1657,11 +1657,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Fetch a cached login public key using the MD5sum as an identifier. Each key can only be fetched once before it is destroyed.
- 	* @param string $md5 The MD5 sum of the key
- 	* @return string, or bool false on failure
- 	*/
- 	
+	 * Fetch a cached login public key using the MD5sum as an identifier. Each key can only be fetched once before it is destroyed.
+	 * @param string $md5 The MD5 sum of the key
+	 * @return string, or bool false on failure
+	 */
+	 
 	function fetch_public_key($md5)
 	{
 		$keys = getConfig('login_key_cache');
@@ -1697,12 +1697,12 @@ class sessionManager {
 	}
 	
 	/**
- 	* Adds a user to a group.
- 	* @param int User ID
- 	* @param int Group ID
- 	* @param bool Group moderator - defaults to false
- 	* @return bool True on success, false on failure
- 	*/
+	 * Adds a user to a group.
+	 * @param int User ID
+	 * @param int Group ID
+	 * @param bool Group moderator - defaults to false
+	 * @return bool True on success, false on failure
+	 */
 	
 	function add_user_to_group($user_id, $group_id, $is_mod = false)
 	{
@@ -1744,12 +1744,12 @@ class sessionManager {
 	}
 	
 	/**
- 	* Removes a user from a group.
- 	* @param int User ID
- 	* @param int Group ID
- 	* @return bool True on success, false on failure
- 	* @todo put a little more error checking in...
- 	*/
+	 * Removes a user from a group.
+	 * @param int User ID
+	 * @param int Group ID
+	 * @return bool True on success, false on failure
+	 * @todo put a little more error checking in...
+	 */
 	
 	function remove_user_from_group($user_id, $group_id)
 	{
@@ -1760,9 +1760,9 @@ class sessionManager {
 	}
 	
 	/**
- 	* Checks the banlist to ensure that we're an allowed user. Doesn't return anything because it dies if the user is banned.
- 	*/
- 	
+	 * Checks the banlist to ensure that we're an allowed user. Doesn't return anything because it dies if the user is banned.
+	 */
+	 
 	function check_banlist()
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1884,14 +1884,14 @@ class sessionManager {
 	# Registration
 	
 	/**
- 	* Registers a user. This does not perform any type of login.
- 	* @param string New user's username
- 	* @param string This should be unencrypted.
- 	* @param string E-mail address.
- 	* @param string Optional, defaults to ''.
- 	* @param bool Optional. If true, the account is not activated initially and an admin activation request is sent. The caller is responsible for sending the address info and notice.
- 	*/
- 	
+	 * Registers a user. This does not perform any type of login.
+	 * @param string New user's username
+	 * @param string This should be unencrypted.
+	 * @param string E-mail address.
+	 * @param string Optional, defaults to ''.
+	 * @param bool Optional. If true, the account is not activated initially and an admin activation request is sent. The caller is responsible for sending the address info and notice.
+	 */
+	 
 	function create_user($username, $password, $email, $real_name = '', $coppa = false)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -1972,9 +1972,9 @@ class sessionManager {
 
 		// We good, create the user
 		$this->sql('INSERT INTO ' . table_prefix . "users ( username, email, real_name, theme, style, reg_time, account_active, activation_key, user_level, user_coppa,\n"
- 						. "                                        user_registration_ip, user_lang, user_has_avatar, avatar_type ) VALUES\n"
- 						. "  ( '$username', '$email', '$real_name', '$template->default_theme', '$template->default_style', " . time() . ", $active, '$actkey', \n"
- 						. "    " . USER_LEVEL_CHPREF . ", $coppa_col, '$ip', $lang->lang_id, 0, 'png' );");
+	 					. "                                        user_registration_ip, user_lang, user_has_avatar, avatar_type ) VALUES\n"
+	 					. "  ( '$username', '$email', '$real_name', '$template->default_theme', '$template->default_style', " . time() . ", $active, '$actkey', \n"
+	 					. "    " . USER_LEVEL_CHPREF . ", $coppa_col, '$ip', $lang->lang_id, 0, 'png' );");
 		
 		// Get user ID and create users_extra entry
 		$q = $this->sql('SELECT user_id FROM '.table_prefix."users WHERE username='$username';");
@@ -2055,11 +2055,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Attempts to send an e-mail to the specified user with activation instructions.
- 	* @param string $u The usernamd of the user requesting activation
- 	* @return bool true on success, false on failure
- 	*/
- 	
+	 * Attempts to send an e-mail to the specified user with activation instructions.
+	 * @param string $u The usernamd of the user requesting activation
+	 * @return bool true on success, false on failure
+	 */
+	 
 	function send_activation_mail($u, $actkey = false)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -2096,11 +2096,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Attempts to send an e-mail to the specified user's e-mail address on file intended for the parents
- 	* @param string $u The usernamd of the user requesting activation
- 	* @return bool true on success, false on failure
- 	*/
- 	
+	 * Attempts to send an e-mail to the specified user's e-mail address on file intended for the parents
+	 * @param string $u The usernamd of the user requesting activation
+	 * @return bool true on success, false on failure
+	 */
+	 
 	function send_coppa_mail($u, $actkey = false)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -2159,11 +2159,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Sends an e-mail to a user so they can reset their password.
- 	* @param int $user The user ID, or username if it's a string
- 	* @return bool true on success, false on failure
- 	*/
- 	
+	 * Sends an e-mail to a user so they can reset their password.
+	 * @param int $user The user ID, or username if it's a string
+	 * @return bool true on success, false on failure
+	 */
+	 
 	function mail_password_reset($user)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -2215,12 +2215,12 @@ class sessionManager {
 	}
 	
 	/**
- 	* Sets the temporary password for the specified user to whatever is specified.
- 	* @param int $user_id
- 	* @param string $password
- 	* @return bool
- 	*/
- 	
+	 * Sets the temporary password for the specified user to whatever is specified.
+	 * @param int $user_id
+	 * @param string $password
+	 * @return bool
+	 */
+	 
 	function register_temp_password($user_id, $password)
 	{
 		global $db;
@@ -2239,9 +2239,9 @@ class sessionManager {
 	}
 	
 	/**
- 	* Sends a request to the admin panel to have the username $u activated.
- 	* @param string $u The username of the user requesting activation
- 	*/
+	 * Sends a request to the admin panel to have the username $u activated.
+	 * @param string $u The username of the user requesting activation
+	 */
 	
 	function admin_activation_request($u)
 	{
@@ -2250,10 +2250,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Activates a user account. If the action fails, a report is sent to the admin.
- 	* @param string $user The username of the user requesting activation
- 	* @param string $key The activation key
- 	*/
+	 * Activates a user account. If the action fails, a report is sent to the admin.
+	 * @param string $user The username of the user requesting activation
+	 * @param string $key The activation key
+	 */
 	
 	function activate_account($user, $key)
 	{
@@ -2274,11 +2274,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* For a given user level identifier (USER_LEVEL_*), returns a string describing that user level.
- 	* @param int User level
- 	* @param bool If true, returns a shorter string. Optional.
- 	* @return string
- 	*/
+	 * For a given user level identifier (USER_LEVEL_*), returns a string describing that user level.
+	 * @param int User level
+	 * @param bool If true, returns a shorter string. Optional.
+	 * @return string
+	 */
 	
 	function userlevel_to_string($user_level, $short = false)
 	{
@@ -2345,12 +2345,12 @@ class sessionManager {
 	}
 	
 	/**
- 	* Change a user's e-mail address.
- 	* @param int $user_id The user ID of the user to update - this cannot be changed
- 	* @param string $email The new e-mail address
- 	* @return string 'success' if successful, or array of error strings on failure
- 	*/
- 	
+	 * Change a user's e-mail address.
+	 * @param int $user_id The user ID of the user to update - this cannot be changed
+	 * @param string $email The new e-mail address
+	 * @return string 'success' if successful, or array of error strings on failure
+	 */
+	 
 	function change_email($user_id, $email)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -2422,10 +2422,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Sets a user's password.
- 	* @param int|string User ID or username
- 	* @param string New password
- 	*/
+	 * Sets a user's password.
+	 * @param int|string User ID or username
+	 * @param string New password
+	 */
 	
 	function set_password($user, $password)
 	{
@@ -2443,11 +2443,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Encrypts a string using the site's private key.
- 	* @param string
- 	* @param int Return type - one of ENC_BINARY, ENC_HEX, ENC_BASE64
- 	* @return string
- 	*/
+	 * Encrypts a string using the site's private key.
+	 * @param string
+	 * @param int Return type - one of ENC_BINARY, ENC_HEX, ENC_BASE64
+	 * @return string
+	 */
 	
 	function pk_encrypt($string, $return_type = ENC_HEX)
 	{
@@ -2456,11 +2456,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Encrypts a string using the site's private key.
- 	* @param string
- 	* @param int Input type - one of ENC_BINARY, ENC_HEX, ENC_BASE64
- 	* @return string
- 	*/
+	 * Encrypts a string using the site's private key.
+	 * @param string
+	 * @param int Input type - one of ENC_BINARY, ENC_HEX, ENC_BASE64
+	 * @return string
+	 */
 	
 	function pk_decrypt($string, $input_type = ENC_HEX)
 	{
@@ -2473,20 +2473,20 @@ class sessionManager {
 	#
 	
 	/**
- 	* SYNOPSIS OF THE RANK SYSTEM
- 	* Enano's rank logic calculates a user's rank based on a precedence scale. The way things are checked is:
- 	*   1. Check to see if the user has a specific rank assigned. Use that if possible.
- 	*   2. Check the user's primary group to see if it specifies a rank. Use that if possible.
- 	*   3. Check the other groups a user is in. If one that has a custom rank is encountered, use that rank.
- 	*   4. See if the user's user level has a specific rank hard-coded to be associated with it. (Always overrideable as can be seen above)
- 	*   5. Use the "member" rank
- 	*/
+	 * SYNOPSIS OF THE RANK SYSTEM
+	 * Enano's rank logic calculates a user's rank based on a precedence scale. The way things are checked is:
+	 *   1. Check to see if the user has a specific rank assigned. Use that if possible.
+	 *   2. Check the user's primary group to see if it specifies a rank. Use that if possible.
+	 *   3. Check the other groups a user is in. If one that has a custom rank is encountered, use that rank.
+	 *   4. See if the user's user level has a specific rank hard-coded to be associated with it. (Always overrideable as can be seen above)
+	 *   5. Use the "member" rank
+	 */
 	
 	/**
- 	* Generates a textual SQL query for fetching rank data to be sent to calculate_user_rank().
- 	* @param string Text to append, possibly a WHERE clause or so
- 	* @return string
- 	*/
+	 * Generates a textual SQL query for fetching rank data to be sent to calculate_user_rank().
+	 * @param string Text to append, possibly a WHERE clause or so
+	 * @return string
+	 */
 	
 	function generate_rank_sql($append = '')
 	{
@@ -2504,49 +2504,49 @@ class sessionManager {
 		
 		// The actual query
 		$sql = "SELECT u.user_id, u.username, u.user_level, u.user_group, u.user_rank, u.user_title, g.group_rank,\n"
- 				. "       COALESCE(ru.rank_id,    rg.rank_id,    rl.rank_id,    rd.rank_id   ) AS rank_id,\n"
- 				. "       COALESCE(ru.rank_title, rg.rank_title, rl.rank_title, rd.rank_title) AS rank_title,\n"
- 				. "       COALESCE(ru.rank_style, rg.rank_style, rl.rank_style, rd.rank_style) AS rank_style,\n"
- 				. "       rg.rank_id AS group_rank_id,\n"
- 				. "       ( ru.rank_id IS NULL AND rg.rank_id IS NULL ) AS using_default,\n"
- 				. "       ( ru.rank_id IS NULL AND rg.rank_id IS NOT NULL ) AS using_group,\n"
- 				. "       ( ru.rank_id IS NOT NULL ) AS using_user,\n"
- 				. "       u.user_rank_userset,\n"
- 				. "       $gid_col\n"
- 				. "  FROM " . table_prefix . "users AS u\n"
- 				. "  LEFT JOIN " . table_prefix . "groups AS g\n"
- 				. "    ON ( g.group_id = u.user_group )\n"
- 				. "  LEFT JOIN " . table_prefix . "group_members AS m\n"
- 				. "    ON ( u.user_id = m.user_id )\n"
- 				. "  LEFT JOIN " . table_prefix . "ranks AS ru\n"
- 				. "    ON ( u.user_rank = ru.rank_id )\n"
- 				. "  LEFT JOIN " . table_prefix . "ranks AS rg\n"
- 				. "    ON ( g.group_rank = rg.rank_id )\n"
- 				. "  LEFT JOIN " . table_prefix . "ranks AS rl\n"
- 				. "    ON (\n"
- 				. $assoc
- 				. "      )\n"
- 				. "  LEFT JOIN " . table_prefix . "ranks AS rd\n"
- 				. "    ON ( rd.rank_id = 1 )$append\n"
- 				. "  GROUP BY u.user_id, u.username, u.user_level, u.user_group, u.user_rank, u.user_title, u.user_rank_userset, g.group_rank,\n"
- 				. "       ru.rank_id, ru.rank_title, ru.rank_style,rg.rank_id, rg.rank_title, rg.rank_style,\n"
- 				. "       rl.rank_id, rl.rank_title, rl.rank_style,rd.rank_id, rd.rank_title, rd.rank_style;";
+	 			. "       COALESCE(ru.rank_id,    rg.rank_id,    rl.rank_id,    rd.rank_id   ) AS rank_id,\n"
+	 			. "       COALESCE(ru.rank_title, rg.rank_title, rl.rank_title, rd.rank_title) AS rank_title,\n"
+	 			. "       COALESCE(ru.rank_style, rg.rank_style, rl.rank_style, rd.rank_style) AS rank_style,\n"
+	 			. "       rg.rank_id AS group_rank_id,\n"
+	 			. "       ( ru.rank_id IS NULL AND rg.rank_id IS NULL ) AS using_default,\n"
+	 			. "       ( ru.rank_id IS NULL AND rg.rank_id IS NOT NULL ) AS using_group,\n"
+	 			. "       ( ru.rank_id IS NOT NULL ) AS using_user,\n"
+	 			. "       u.user_rank_userset,\n"
+	 			. "       $gid_col\n"
+	 			. "  FROM " . table_prefix . "users AS u\n"
+	 			. "  LEFT JOIN " . table_prefix . "groups AS g\n"
+	 			. "    ON ( g.group_id = u.user_group )\n"
+	 			. "  LEFT JOIN " . table_prefix . "group_members AS m\n"
+	 			. "    ON ( u.user_id = m.user_id )\n"
+	 			. "  LEFT JOIN " . table_prefix . "ranks AS ru\n"
+	 			. "    ON ( u.user_rank = ru.rank_id )\n"
+	 			. "  LEFT JOIN " . table_prefix . "ranks AS rg\n"
+	 			. "    ON ( g.group_rank = rg.rank_id )\n"
+	 			. "  LEFT JOIN " . table_prefix . "ranks AS rl\n"
+	 			. "    ON (\n"
+	 			. $assoc
+	 			. "      )\n"
+	 			. "  LEFT JOIN " . table_prefix . "ranks AS rd\n"
+	 			. "    ON ( rd.rank_id = 1 )$append\n"
+	 			. "  GROUP BY u.user_id, u.username, u.user_level, u.user_group, u.user_rank, u.user_title, u.user_rank_userset, g.group_rank,\n"
+	 			. "       ru.rank_id, ru.rank_title, ru.rank_style,rg.rank_id, rg.rank_title, rg.rank_style,\n"
+	 			. "       rl.rank_id, rl.rank_title, rl.rank_style,rd.rank_id, rd.rank_title, rd.rank_style;";
 		
 		return $sql;
 	}
 	
 	/**
- 	* Returns an associative array with a user's rank information.
- 	* The array will contain the following values:
- 	*   username: string  The user's username
- 	*   user_id:  integer Numerical user ID
- 	*   rank_id:  integer Numerical rank ID
- 	*   rank:     string  The user's current rank
- 	*   title:    string  The user's custom user title if applicable; should be displayed one line below the rank
- 	*   style:    string  CSS for the username
- 	* @param int|string Username *or* user ID
- 	* @return array or false on failure
- 	*/
+	 * Returns an associative array with a user's rank information.
+	 * The array will contain the following values:
+	 *   username: string  The user's username
+	 *   user_id:  integer Numerical user ID
+	 *   rank_id:  integer Numerical rank ID
+	 *   rank:     string  The user's current rank
+	 *   title:    string  The user's custom user title if applicable; should be displayed one line below the rank
+	 *   style:    string  CSS for the username
+	 * @param int|string Username *or* user ID
+	 * @return array or false on failure
+	 */
 	
 	function get_user_rank($id)
 	{
@@ -2615,10 +2615,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Performs the actual rank calculation based on the contents of a row.
- 	* @param array
- 	* @return array
- 	*/
+	 * Performs the actual rank calculation based on the contents of a row.
+	 * @param array
+	 * @return array
+	 */
 	
 	function calculate_user_rank($row)
 	{
@@ -2718,10 +2718,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Get the list of ranks that a user is allowed to use. Returns false if they cannot change it.
- 	* @param string|int User ID or username
- 	* @return array Associative by rank ID
- 	*/
+	 * Get the list of ranks that a user is allowed to use. Returns false if they cannot change it.
+	 * @param string|int User ID or username
+	 * @return array Associative by rank ID
+	 */
 	
 	function get_user_possible_ranks($id)
 	{
@@ -2825,14 +2825,14 @@ class sessionManager {
 	#
 	
 	/**
- 	* Creates a new permission field in memory. If the permissions are set in the database, they are used. Otherwise, $default_perm is used.
- 	* @param string $acl_type An identifier for this field
- 	* @param int $default_perm Whether permission should be granted or not if it's not specified in the ACLs.
- 	* @param string $desc A human readable name for the permission type
- 	* @param array $deps The list of dependencies - this should be an array of ACL types
- 	* @param string $scope Which namespaces this field should apply to. This should be either a pipe-delimited list of namespace IDs or just "All".
- 	*/
- 	
+	 * Creates a new permission field in memory. If the permissions are set in the database, they are used. Otherwise, $default_perm is used.
+	 * @param string $acl_type An identifier for this field
+	 * @param int $default_perm Whether permission should be granted or not if it's not specified in the ACLs.
+	 * @param string $desc A human readable name for the permission type
+	 * @param array $deps The list of dependencies - this should be an array of ACL types
+	 * @param string $scope Which namespaces this field should apply to. This should be either a pipe-delimited list of namespace IDs or just "All".
+	 */
+	 
 	function register_acl_type($acl_type, $default_perm = AUTH_DISALLOW, $desc = false, $deps = Array(), $scope = 'All')
 	{
 		if(isset($this->acl_types[$acl_type]))
@@ -2852,12 +2852,12 @@ class sessionManager {
 	}
 	
 	/**
- 	* Tells us whether permission $type is allowed or not based on the current rules.
- 	* @param string $type The permission identifier ($acl_type passed to sessionManager::register_acl_type())
- 	* @param bool $no_deps If true, disables dependency checking
- 	* @return bool True if allowed, false if denied or if an error occured
- 	*/
- 	
+	 * Tells us whether permission $type is allowed or not based on the current rules.
+	 * @param string $type The permission identifier ($acl_type passed to sessionManager::register_acl_type())
+	 * @param bool $no_deps If true, disables dependency checking
+	 * @return bool True if allowed, false if denied or if an error occured
+	 */
+	 
 	function get_permissions($type, $no_deps = false)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -2902,13 +2902,13 @@ class sessionManager {
 	}
 	
 	/**
- 	* Fetch the permissions that apply to the current user for the page specified. The object you get will have the get_permissions method
- 	* and several other abilities.
- 	* @param string $page_id
- 	* @param string $namespace
- 	* @return object
- 	*/
- 	
+	 * Fetch the permissions that apply to the current user for the page specified. The object you get will have the get_permissions method
+	 * and several other abilities.
+	 * @param string $page_id
+	 * @param string $namespace
+	 * @return object
+	 */
+	 
 	function fetch_page_acl($page_id, $namespace)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -2944,13 +2944,13 @@ class sessionManager {
 	}
 	
 	/**
- 	* Fetch the permissions that apply to an arbitrary user for the page specified. The object you get will have the get_permissions method
- 	* and several other abilities.
- 	* @param int|string $user_id_or_name; user ID *or* username of the user
- 	* @param string $page_id; if null, will be default effective permissions. 
- 	* @param string $namespace; if null, will be default effective permissions.
- 	* @return object
- 	*/
+	 * Fetch the permissions that apply to an arbitrary user for the page specified. The object you get will have the get_permissions method
+	 * and several other abilities.
+	 * @param int|string $user_id_or_name; user ID *or* username of the user
+	 * @param string $page_id; if null, will be default effective permissions. 
+	 * @param string $namespace; if null, will be default effective permissions.
+	 * @return object
+	 */
 	
 	function fetch_page_acl_user($user_id_or_name, $page_id, $namespace)
 	{
@@ -3105,11 +3105,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Checks if the given ACL rule type applies to a namespace.
- 	* @param string ACL rule type
- 	* @param string Namespace
- 	* @return bool
- 	*/
+	 * Checks if the given ACL rule type applies to a namespace.
+	 * @param string ACL rule type
+	 * @param string Namespace
+	 * @return bool
+	 */
 	
 	function check_acl_scope($acl_rule, $namespace)
 	{
@@ -3121,9 +3121,9 @@ class sessionManager {
 	}
 	
 	/**
- 	* Read all of our permissions from the database and process/apply them. This should be called after the page is determined.
- 	* @access private
- 	*/
+	 * Read all of our permissions from the database and process/apply them. This should be called after the page is determined.
+	 * @access private
+	 */
 	
 	function init_permissions()
 	{
@@ -3134,8 +3134,8 @@ class sessionManager {
 		
 		// Fetch sitewide defaults from the permissions table
 		$bs = 'SELECT rules, target_type, target_id FROM '.table_prefix.'acl' . "\n"
- 						. '  WHERE page_id IS NULL AND namespace IS NULL AND' . "\n"
- 						. '  ( ';
+	 					. '  WHERE page_id IS NULL AND namespace IS NULL AND' . "\n"
+	 					. '  ( ';
 		
 		$q = Array();
 		$q[] = '( target_type='.ACL_TYPE_USER.' AND target_id='.$this->user_id.' )';
@@ -3169,12 +3169,12 @@ class sessionManager {
 	}
 	
 	/**
- 	* Extends the scope of a permission type.
- 	* @param string The name of the permission type
- 	* @param string The namespace(s) that should be covered. This can be either one namespace ID or a pipe-delimited list.
- 	* @param object Optional - the current $paths object, in case we're doing this from the acl_rule_init hook
- 	*/
- 	
+	 * Extends the scope of a permission type.
+	 * @param string The name of the permission type
+	 * @param string The namespace(s) that should be covered. This can be either one namespace ID or a pipe-delimited list.
+	 * @param object Optional - the current $paths object, in case we're doing this from the acl_rule_init hook
+	 */
+	 
 	function acl_extend_scope($perm_type, $namespaces, &$p_in)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -3199,11 +3199,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Converts a permissions field into a string for database insertion. Similar in spirit to serialize().
- 	* @param array $perms An associative array with only integers as values
- 	* @return string
- 	*/
- 	
+	 * Converts a permissions field into a string for database insertion. Similar in spirit to serialize().
+	 * @param array $perms An associative array with only integers as values
+	 * @return string
+	 */
+	 
 	function perm_to_string($perms)
 	{
 		$s = '';
@@ -3217,11 +3217,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Converts a permissions string back to an array.
- 	* @param string $perms The result from sessionManager::perm_to_string()
- 	* @return array
- 	*/
- 	
+	 * Converts a permissions string back to an array.
+	 * @param string $perms The result from sessionManager::perm_to_string()
+	 * @return array
+	 */
+	 
 	function string_to_perm($perms)
 	{
 		$ret = Array();
@@ -3234,14 +3234,14 @@ class sessionManager {
 	}
 	
 	/**
- 	* Merges two ACL arrays. Both parameters should be permission list arrays. The second group takes precedence over the first, but AUTH_DENY always prevails.
- 	* @param array $perm1 The first set of permissions
- 	* @param array $perm2 The second set of permissions
- 	* @param bool $is_everyone If true, applies exceptions for "Everyone" group
- 	* @param array|reference $defaults_used Array that will be filled with default usage data
- 	* @return array
- 	*/
- 	
+	 * Merges two ACL arrays. Both parameters should be permission list arrays. The second group takes precedence over the first, but AUTH_DENY always prevails.
+	 * @param array $perm1 The first set of permissions
+	 * @param array $perm2 The second set of permissions
+	 * @param bool $is_everyone If true, applies exceptions for "Everyone" group
+	 * @param array|reference $defaults_used Array that will be filled with default usage data
+	 * @return array
+	 */
+	 
 	function acl_merge($perm1, $perm2, $is_everyone = false, &$defaults_used = array())
 	{
 		$ret = $perm1;
@@ -3290,11 +3290,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Merges two ACL arrays, but instead of calculating inheritance for missing permission types, just returns 'i' for that type. Useful
- 	* for explicitly requiring inheritance in ACL editing interfaces
- 	* @param array $perm1 The first set of permissions
- 	* @param array $perm2 The second, authoritative set of permissions
- 	*/
+	 * Merges two ACL arrays, but instead of calculating inheritance for missing permission types, just returns 'i' for that type. Useful
+	 * for explicitly requiring inheritance in ACL editing interfaces
+	 * @param array $perm1 The first set of permissions
+	 * @param array $perm2 The second, authoritative set of permissions
+	 */
 	
 	function acl_merge_inherit($perm1, $perm2)
 	{
@@ -3315,11 +3315,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Merges the ACL array sent with the current permissions table, deciding precedence based on whether defaults are in effect or not.
- 	* @param array The array to merge into the master ACL list
- 	* @param bool If true, $perm is treated as the "new default"
- 	* @param int 1 if this is a site-wide ACL, 2 if page-specific. Defaults to 2.
- 	*/
+	 * Merges the ACL array sent with the current permissions table, deciding precedence based on whether defaults are in effect or not.
+	 * @param array The array to merge into the master ACL list
+	 * @param bool If true, $perm is treated as the "new default"
+	 * @param int 1 if this is a site-wide ACL, 2 if page-specific. Defaults to 2.
+	 */
 	
 	function acl_merge_with_current($perm, $is_everyone = false, $scope = 2)
 	{
@@ -3327,14 +3327,14 @@ class sessionManager {
 	}
 	
 	/**
- 	* Merges two ACL arrays. Both parameters should be permission list arrays. The second group takes precedence
- 	* over the first, without exceptions. This is used to merge the hardcoded defaults with admin-specified
- 	* defaults, which take precedence.
- 	* @param array $perm1 The first set of permissions
- 	* @param array $perm2 The second set of permissions
- 	* @return array
- 	*/
- 	
+	 * Merges two ACL arrays. Both parameters should be permission list arrays. The second group takes precedence
+	 * over the first, without exceptions. This is used to merge the hardcoded defaults with admin-specified
+	 * defaults, which take precedence.
+	 * @param array $perm1 The first set of permissions
+	 * @param array $perm2 The second set of permissions
+	 * @return array
+	 */
+	 
 	function acl_merge_complete($perm1, $perm2)
 	{
 		$ret = $perm1;
@@ -3346,11 +3346,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Tell us if the dependencies for a given permission are met.
- 	* @param string The ACL permission ID
- 	* @return bool
- 	*/
- 	
+	 * Tell us if the dependencies for a given permission are met.
+	 * @param string The ACL permission ID
+	 * @return bool
+	 */
+	 
 	function acl_check_deps($type, $debug = false)
 	{
 		global $paths;
@@ -3404,11 +3404,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Makes a CAPTCHA code and caches the code in the database
- 	* @param int $len The length of the code, in bytes
- 	* @param string Optional, the hash to reuse
- 	* @return string A unique identifier assigned to the code. This hash should be passed to sessionManager::getCaptcha() to retrieve the code.
- 	*/
+	 * Makes a CAPTCHA code and caches the code in the database
+	 * @param int $len The length of the code, in bytes
+	 * @param string Optional, the hash to reuse
+	 * @return string A unique identifier assigned to the code. This hash should be passed to sessionManager::getCaptcha() to retrieve the code.
+	 */
 	
 	function make_captcha($len = 7, $hash = '')
 	{
@@ -3428,10 +3428,10 @@ class sessionManager {
 	}
 	
 	/**
- 	* Generates a "pronouncable" or "human-friendly" word using various phonics rules
- 	* @param int Optional. The length of the word.
- 	* @return string
- 	*/
+	 * Generates a "pronouncable" or "human-friendly" word using various phonics rules
+	 * @param int Optional. The length of the word.
+	 * @return string
+	 */
 	
 	function generate_captcha_code($len = 7)
 	{
@@ -3486,11 +3486,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* For the given code ID, returns the correct CAPTCHA code, or false on failure
- 	* @param string $hash The unique ID assigned to the code
- 	* @param bool If true, the code is NOT deleted from the database. Use with caution!
- 	* @return string The correct confirmation code
- 	*/
+	 * For the given code ID, returns the correct CAPTCHA code, or false on failure
+	 * @param string $hash The unique ID assigned to the code
+	 * @param bool If true, the code is NOT deleted from the database. Use with caution!
+	 * @return string The correct confirmation code
+	 */
 	
 	function get_captcha($hash, $nodelete = false)
 	{
@@ -3527,8 +3527,8 @@ class sessionManager {
 	}
 	
 	/**
- 	* (AS OF 1.0.2: Deprecated. Captcha codes are now killed on first fetch for security.) Deletes all CAPTCHA codes cached in the DB for this user.
- 	*/
+	 * (AS OF 1.0.2: Deprecated. Captcha codes are now killed on first fetch for security.) Deletes all CAPTCHA codes cached in the DB for this user.
+	 */
 	
 	function kill_captcha()
 	{
@@ -3536,11 +3536,11 @@ class sessionManager {
 	}
 	
 	/**
- 	* Generates a random password.
- 	* @param int $length Optional - length of password
- 	* @return string
- 	*/
- 	
+	 * Generates a random password.
+	 * @param int $length Optional - length of password
+	 * @return string
+	 */
+	 
 	function random_pass($length = 10)
 	{
 		$valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_+@#%&<>';
@@ -3554,20 +3554,20 @@ class sessionManager {
 	}
 	
 	/**
- 	* Generates some Javascript that calls the AES encryption library. Put this after your </form>.
- 	* @param string The name of the form
- 	* @param string The name of the password field
- 	* @param string The name of the field that switches encryption on or off
- 	* @param string The name of the field that contains the encryption key
- 	* @param string The name of the field that will contain the encrypted password
- 	* @param string The name of the field that handles MD5 challenge data
- 	* @param string The name of the field that tells if the server supports DiffieHellman
- 	* @param string The name of the field with the DiffieHellman public key
- 	* @param string The name of the field that the client should populate with its public key
- 	* @return string
- 	*/
- 	
-	function aes_javascript($form_name, $pw_field, $use_crypt = 'use_crypt', $crypt_key = 'crypt_key', $crypt_data = 'crypt_data', $challenge = 'challenge_data', $dh_supported = 'dh_supported', $dh_pubkey = 'dh_public_key', $dh_client_pubkey = 'dh_client_public_key')
+	 * Generates some Javascript that calls the AES encryption library. Put this after your </form>.
+	 * @param string The name of the form
+	 * @param string The name of the password field
+	 * @param string The name of the field that switches encryption on or off
+	 * @param string The name of the field that contains the encryption key
+	 * @param string The name of the field that will contain the encrypted password
+	 * @param string The name of the field that handles MD5 challenge data
+	 * @param string The name of the field that tells if the server supports DiffieHellman
+	 * @param string The name of the field with the DiffieHellman public key
+	 * @param string The name of the field that the client should populate with its public key
+	 * @return string
+	 */
+	 
+	static function aes_javascript($form_name, $pw_field, $use_crypt = 'use_crypt', $crypt_key = 'crypt_key', $crypt_data = 'crypt_data', $challenge = 'challenge_data', $dh_supported = 'dh_supported', $dh_pubkey = 'dh_public_key', $dh_client_pubkey = 'dh_client_public_key')
 	{
 		$code = '
 			<script type="text/javascript">
@@ -3632,11 +3632,11 @@ EOF;
 							frm.'.$use_crypt.'.value = \'yes_dh\';
 							
 							// Perform Diffie Hellman stuff
-							// console.info("DiffieHellman: started keygen process");
+							console.info("DiffieHellman: started keygen process");
 							var dh_priv = dh_gen_private();
 							var dh_pub = dh_gen_public(dh_priv);
 							var secret = dh_gen_shared_secret(dh_priv, frm.' . $dh_pubkey . '.value);
-							// console.info("DiffieHellman: finished keygen process");
+							console.info("DiffieHellman: finished keygen process");
 							
 							// secret_hash is used to verify that the server guesses the correct secret
 							var secret_hash = hex_sha1(secret);
@@ -3660,7 +3660,8 @@ EOF;
 								return false;
 							}
 							cryptstring = byteArrayToHex(cryptstring);
-							// console.info("DiffieHellman: finished AES");
+							console.info("DiffieHellman: finished AES. Result: " + cryptstring);
+							console.debug(frm);
 							frm.'.$crypt_data.'.value = cryptstring;
 							frm.'.$pw_field.'.value = \'\';
 							// console.info("DiffieHellman: ready to submit");
@@ -3698,16 +3699,30 @@ EOF;
 	}
 	
 	/**
- 	* Generates the HTML form elements required for an encrypted logon experience.
- 	* @return string
- 	*/
+	 * Generates the HTML form elements required for an encrypted logon experience.
+	 * @param reference Optional variable to fill with the server's public and private key. If IN_ENANO_INSTALL is defined, storing and retrieving the key
+	 *                  is YOUR responsibility.
+	 * @return string
+	 */
 	
-	function generate_aes_form()
+	static function generate_aes_form(&$dh_store = array())
 	{
+		$is_static = !( isset($this) && get_class($this) === __CLASS__ );
+		if ( $is_static )
+		{
+			$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+			$aes_key = $aes->gen_readymade_key();
+		}
+		else
+		{
+			$aes_key = self::rijndael_genkey();
+		}
+		$dh_store = array('aes' => $aes_key, 'public' => '', 'private' => '');
+		
 		$return = '<input type="hidden" name="use_crypt" value="no" />';
-		$return .= '<input type="hidden" name="crypt_key" value="' . $this->rijndael_genkey() . '" />';
+		$return .= '<input type="hidden" name="crypt_key" value="' . $aes_key . '" />';
 		$return .= '<input type="hidden" name="crypt_data" value="" />';
-		$return .= '<input type="hidden" name="challenge_data" value="' . $this->dss_rand() . '" />';
+		$return .= '<input type="hidden" name="challenge_data" value="' . self::dss_rand() . '" />';
 		
 		require_once(ENANO_ROOT . '/includes/math.php');
 		require_once(ENANO_ROOT . '/includes/diffiehellman.php');
@@ -3720,7 +3735,12 @@ EOF;
 			$dh_key_priv = $_math->str($dh_key_priv);
 			$dh_key_pub = $_math->str($dh_key_pub);
 			// store the keys in the DB
-			$this->sql('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+			// this is doing a static call check to avoid using $this in a static call
+			if ( !defined('IN_ENANO_INSTALL') && isset($this) && get_class($this) === __CLASS__ )
+				$this->sql('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+			// also give the key to the calling function
+			$dh_store['public'] = $dh_key_pub;
+			$dh_store['private'] = $dh_key_priv;
 			
 			$return .=  "<input type=\"hidden\" name=\"dh_supported\" value=\"true\" />
 						<input type=\"hidden\" name=\"dh_public_key\" value=\"$dh_key_pub\" />
@@ -3734,19 +3754,25 @@ EOF;
 	}
 	
 	/**
- 	* If you used all the same form fields as the normal login interface, this will take care of DiffieHellman for you and return the key.
- 	* @param string Password field name (defaults to "password")
- 	* @return string
- 	*/
+	 * If you used all the same form fields as the normal login interface, this will take care of DiffieHellman for you and return the key.
+	 * @param string Password field name (defaults to "password")
+	 * @param array Optional associative array with fields "public", "private", and "aes".
+	 * @return string
+	 */
 	
-	function get_aes_post($fieldname = 'password')
+	static function get_aes_post($fieldname = 'password', $keys = false)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		
 		$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
 		if ( $_POST['use_crypt'] == 'yes' )
 		{
-			$crypt_key = $this->fetch_public_key($_POST['crypt_key']);
+			$is_static = !( isset($this) && get_class($this) === __CLASS__ );
+			if ( $is_static && ( !is_array($keys) || (is_array($keys) && !isset($keys['aes'])) ) )
+			{
+				throw new Exception('ERR_STATIC_REQUIRES_KEY');
+			}
+			$crypt_key = $is_static ? $keys['aes'] : $this->fetch_public_key($_POST['crypt_key']);
 			if ( !$crypt_key )
 			{
 				throw new Exception($lang->get('user_err_key_not_found'));
@@ -3772,22 +3798,31 @@ EOF;
 			{
 				throw new Exception('ERR_DH_KEY_NOT_INTEGER');
 			}
-			$q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$dh_public';");
-			if ( !$q )
-				$db->die_json();
-			
-			if ( $db->numrows() < 1 )
+			if ( is_array($keys) && isset($keys['public']) && isset($keys['private']) )
 			{
-				throw new Exception('ERR_DH_KEY_NOT_FOUND');
+				if ( $keys['public'] !== $dh_public )
+					throw new Exception('ERR_DH_KEY_NOT_FOUND');
+				$dh_private = $keys['private'];
 			}
-			
-			list($dh_private, $dh_key_id) = $db->fetchrow_num();
-			$db->free_result();
-			
-			// We have the private key, now delete the key pair, we no longer need it
-			$q = $db->sql_query('DELETE FROM ' . table_prefix . "diffiehellman WHERE key_id = $dh_key_id;");
-			if ( !$q )
-				$db->die_json();
+			else
+			{
+				$q = $db->sql_query('SELECT private_key, key_id FROM ' . table_prefix . "diffiehellman WHERE public_key = '$dh_public';");
+				if ( !$q )
+					$db->die_json();
+				
+				if ( $db->numrows() < 1 )
+				{
+					throw new Exception('ERR_DH_KEY_NOT_FOUND');
+				}
+				
+				list($dh_private, $dh_key_id) = $db->fetchrow_num();
+				$db->free_result();
+				
+				// We have the private key, now delete the key pair, we no longer need it
+				$q = $db->sql_query('DELETE FROM ' . table_prefix . "diffiehellman WHERE key_id = $dh_key_id;");
+				if ( !$q )
+					$db->die_json();
+			}
 			
 			// Generate the shared secret
 			$dh_secret = dh_gen_shared_secret($dh_private, $_POST['dh_client_public_key']);
@@ -3817,10 +3852,10 @@ EOF;
 	}
 	
 	/**
- 	* Backend code for the JSON login interface. Basically a frontend to the session API that takes all parameters in one huge array.
- 	* @param array LoginAPI request
- 	* @return array LoginAPI response
- 	*/
+	 * Backend code for the JSON login interface. Basically a frontend to the session API that takes all parameters in one huge array.
+	 * @param array LoginAPI request
+	 * @return array LoginAPI response
+	 */
 	
 	function process_login_request($req)
 	{
@@ -3977,13 +4012,13 @@ EOF;
 				
 				// At this point if any extra info was injected into the login data packet, we need to let plugins process it
 				/**
- 				* Called upon processing an incoming login request. If you added anything to the userinfo object during the jshook
- 				* login_build_userinfo, that will be in the $userinfo array here. Expected return values are: true if your plugin has
- 				* not only succeeded but ALSO issued a session key (bypass the whole Enano builtin login process) and an associative array
- 				* with "mode" set to "error" and an error string in "error" to send an error back to the client. Any return value other
- 				* than these will be treated as a pass-through, and the user's password will be validated through Enano's standard process.
- 				* @hook login_process_userdata_json
- 				*/
+	 			* Called upon processing an incoming login request. If you added anything to the userinfo object during the jshook
+	 			* login_build_userinfo, that will be in the $userinfo array here. Expected return values are: true if your plugin has
+	 			* not only succeeded but ALSO issued a session key (bypass the whole Enano builtin login process) and an associative array
+	 			* with "mode" set to "error" and an error string in "error" to send an error back to the client. Any return value other
+	 			* than these will be treated as a pass-through, and the user's password will be validated through Enano's standard process.
+	 			* @hook login_process_userdata_json
+	 			*/
 				
 				$code = $plugins->setHook('login_process_userdata_json', true);
 				
@@ -4096,11 +4131,11 @@ EOF;
 	}
 	
 	/**
- 	* Generate a packet to send to the client for logins.
- 	* @param string mode
- 	* @param array 
- 	* @return array
- 	*/
+	 * Generate a packet to send to the client for logins.
+	 * @param string mode
+	 * @param array 
+	 * @return array
+	 */
 	
 	function get_login_response($mode, $error = false, $base = array())
 	{
@@ -4119,9 +4154,9 @@ EOF;
 	}
 	
 	/**
- 	* Get a packet of crypto flags for login.
- 	* @return array
- 	*/
+	 * Get a packet of crypto flags for login.
+	 * @return array
+	 */
 	
 	function get_login_crypto_packet()
 	{
@@ -4160,76 +4195,76 @@ EOF;
 class Session_ACLPageInfo {
 	
 	/**
- 	* The page ID of this ACL info package
- 	* @var string
- 	*/
- 	
+	 * The page ID of this ACL info package
+	 * @var string
+	 */
+	 
 	var $page_id;
 	
 	/**
- 	* The namespace of the page being checked
- 	* @var string
- 	*/
- 	
+	 * The namespace of the page being checked
+	 * @var string
+	 */
+	 
 	var $namespace;
 	
 	/**
- 	* Our list of permission types.
- 	* @access private
- 	* @var array
- 	*/
- 	
+	 * Our list of permission types.
+	 * @access private
+	 * @var array
+	 */
+	 
 	var $acl_types = Array();
 	
 	/**
- 	* The list of descriptions for the permission types
- 	* @var array
- 	*/
- 	
+	 * The list of descriptions for the permission types
+	 * @var array
+	 */
+	 
 	var $acl_descs = Array();
 	
 	/**
- 	* A list of dependencies for ACL types.
- 	* @var array
- 	*/
- 	
+	 * A list of dependencies for ACL types.
+	 * @var array
+	 */
+	 
 	var $acl_deps = Array();
 	
 	/**
- 	* Our tell-all list of permissions. Do not even try to change this.
- 	* @access private
- 	* @var array
- 	*/
- 	
+	 * Our tell-all list of permissions. Do not even try to change this.
+	 * @access private
+	 * @var array
+	 */
+	 
 	var $perms = Array();
 	
 	/**
- 	* Array to track which default permissions are being used
- 	* @var array
- 	* @access private
- 	*/
- 	
+	 * Array to track which default permissions are being used
+	 * @var array
+	 * @access private
+	 */
+	 
 	var $acl_defaults_used = Array();
 	
 	/**
- 	* Tracks whether Wiki Mode is on for the page we're operating on.
- 	* @var bool
- 	*/
+	 * Tracks whether Wiki Mode is on for the page we're operating on.
+	 * @var bool
+	 */
 	
 	var $wiki_mode = false;
 	
 	/**
- 	* Tracks where permissions were calculated using the ACL_INHERIT_* constants. Layout:
- 	* array(
- 	*   [permission_name] => array(
- 	*       [src] => ACL_INHERIT_*
- 	*       [rule_id] => integer
- 	*     ),
- 	*   ...
- 	* )
- 	*
- 	* @var array
- 	*/
+	 * Tracks where permissions were calculated using the ACL_INHERIT_* constants. Layout:
+	 * array(
+	 *   [permission_name] => array(
+	 *       [src] => ACL_INHERIT_*
+	 *       [rule_id] => integer
+	 *     ),
+	 *   ...
+	 * )
+	 *
+	 * @var array
+	 */
 	
 	var $perm_resolve_table = array();
 	
@@ -4238,31 +4273,31 @@ class Session_ACLPageInfo {
 	#
 	
 	/**
- 	* User ID
- 	* @var int
- 	*/
+	 * User ID
+	 * @var int
+	 */
 	
 	var $user_id = 1;
 	
 	/**
- 	* Group membership associative array (group_id => group_name)
- 	* @var array
- 	*/
+	 * Group membership associative array (group_id => group_name)
+	 * @var array
+	 */
 	
 	var $groups = array();
 	
 	/**
- 	* Constructor.
- 	* @param string $page_id The ID of the page to check
- 	* @param string $namespace The namespace of the page to check.
- 	* @param array $acl_types List of ACL types
- 	* @param array $acl_descs List of human-readable descriptions for permissions (associative)
- 	* @param array $acl_deps List of dependencies for permissions. For example, viewing history/diffs depends on the ability to read the page.
- 	* @param array $base What to start with - this is an attempt to reduce the number of SQL queries.
- 	* @param int|string $user_id_or_name Username or ID to search for, defaults to current user
- 	* @param array $resolve_table Debugging info for tracking where rules came from, defaults to a blank array.
- 	*/
- 	
+	 * Constructor.
+	 * @param string $page_id The ID of the page to check
+	 * @param string $namespace The namespace of the page to check.
+	 * @param array $acl_types List of ACL types
+	 * @param array $acl_descs List of human-readable descriptions for permissions (associative)
+	 * @param array $acl_deps List of dependencies for permissions. For example, viewing history/diffs depends on the ability to read the page.
+	 * @param array $base What to start with - this is an attempt to reduce the number of SQL queries.
+	 * @param int|string $user_id_or_name Username or ID to search for, defaults to current user
+	 * @param array $resolve_table Debugging info for tracking where rules came from, defaults to a blank array.
+	 */
+	 
 	function __construct($page_id, $namespace, $acl_types, $acl_descs, $acl_deps, $base, $user_id = null, $groups = null, $resolve_table = array())
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -4313,9 +4348,9 @@ class Session_ACLPageInfo {
 	}
 	
 	/**
- 	* Performs the actual permission calculation.
- 	* @access private
- 	*/
+	 * Performs the actual permission calculation.
+	 * @access private
+	 */
 	
 	private function __calculate()
 	{
@@ -4438,12 +4473,12 @@ class Session_ACLPageInfo {
 	}
 	
 	/**
- 	* Tells us whether permission $type is allowed or not based on the current rules.
- 	* @param string $type The permission identifier ($acl_type passed to sessionManager::register_acl_type())
- 	* @param bool $no_deps If true, disables dependency checking
- 	* @return bool True if allowed, false if denied or if an error occured
- 	*/
- 	
+	 * Tells us whether permission $type is allowed or not based on the current rules.
+	 * @param string $type The permission identifier ($acl_type passed to sessionManager::register_acl_type())
+	 * @param bool $no_deps If true, disables dependency checking
+	 * @return bool True if allowed, false if denied or if an error occured
+	 */
+	 
 	function get_permissions($type, $no_deps = false)
 	{
 		// echo '<pre>' . print_r($this->perms, true) . '</pre>';
@@ -4516,12 +4551,12 @@ class Session_ACLPageInfo {
 	}
 	
 	/**
- 	* Tell us if the dependencies for a given permission are met.
- 	* @param string The ACL permission ID
- 	* @param bool If true, does not return a boolean value, but instead returns array of dependencies that fail
- 	* @return bool
- 	*/
- 	
+	 * Tell us if the dependencies for a given permission are met.
+	 * @param string The ACL permission ID
+	 * @param bool If true, does not return a boolean value, but instead returns array of dependencies that fail
+	 * @return bool
+	 */
+	 
 	function acl_check_deps($type, $debug = false)
 	{
 		// This will only happen if the permissions table is hacked or improperly accessed
@@ -4572,11 +4607,11 @@ class Session_ACLPageInfo {
 	}
 	
 	/**
- 	* Merges the ACL array sent with the current permissions table, deciding precedence based on whether defaults are in effect or not.
- 	* @param array The array to merge into the master ACL list
- 	* @param bool If true, $perm is treated as the "new default"
- 	* @param int 1 if this is a site-wide ACL, 2 if page-specific. Defaults to 2.
- 	*/
+	 * Merges the ACL array sent with the current permissions table, deciding precedence based on whether defaults are in effect or not.
+	 * @param array The array to merge into the master ACL list
+	 * @param bool If true, $perm is treated as the "new default"
+	 * @param int 1 if this is a site-wide ACL, 2 if page-specific. Defaults to 2.
+	 */
 	
 	function acl_merge_with_current($perm, $is_everyone = false, $scope = 2)
 	{

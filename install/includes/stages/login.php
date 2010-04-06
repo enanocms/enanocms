@@ -20,38 +20,23 @@ if ( !defined('IN_ENANO_INSTALL') )
 require_once( ENANO_ROOT . '/includes/rijndael.php' );
 require_once( ENANO_ROOT . '/includes/constants.php' );
 require_once( ENANO_ROOT . '/includes/dbal.php' );
-
-// Write our temporary password key to the database
-require( ENANO_ROOT . '/config.new.php' );
-if ( !defined('ENANO_INSTALL_HAVE_CONFIG') )
-{
-	die('Config file is corrupt');
-}
-$db = new $dbdriver();
-$result = $db->connect();
-if ( !$result )
-	die('DB privileges were revoked');
-
-// Is the key in the database?
-$q = $db->sql_query('SELECT config_value FROM ' . table_prefix . 'config WHERE config_name = \'install_aes_key\';');
-if ( !$q )
-	$db->_die();
-if ( $db->numrows() > 0 )
-{
-	list($install_aes_key) = $db->fetchrow_num();
-}
-else
-{
-	$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-	$install_aes_key = $aes->gen_readymade_key();
-	
-	if ( ! $db->sql_query('INSERT INTO ' . table_prefix . 'config ( config_name, config_value ) VALUES ( \'install_aes_key\', \'' . $install_aes_key .'\' ); ') )
-		$db->_die();
-}
-$db->free_result($q);
+require_once( ENANO_ROOT . '/includes/sessions.php' );
 
 $ui->add_header('<script type="text/javascript" src="includes/js/formutils.js"></script>');
 $ui->show_header();
+
+// generate the HTML for the form, and store the public and private key in the temporary config
+$aes_form = sessionManager::generate_aes_form($dh_keys);
+$fp = @fopen(ENANO_ROOT . '/config.new.php', 'a+');
+if ( !$fp )
+	die('Couldn\'t open the config for writing');
+fwrite($fp, "
+// DiffieHellman parameters
+\$dh_public = '{$dh_keys['public']}';
+\$dh_private = '{$dh_keys['private']}';
+\$aes_fallback = '{$dh_keys['aes']}';
+");
+fclose($fp);
 
 // FIXME: l10n
 ?>
@@ -115,43 +100,7 @@ $ui->show_header();
 	
 	function submit_encrypt()
 	{
-		var frm = document.forms [ 'install_login' ];
-		var password = frm.password.value;
-		var pass_conf = frm.password_confirm.value;
-		var crypt_key = frm.crypt_key.value;
-		
-		if ( password != pass_conf )
-			return false;
-		
-		if ( !aes_self_test() )
-			// Return true to prevent form from failing
-			return true;
-			
-		if ( frm.crypt_key.KeyBak )
-		{
-			crypt_key = frm.crypt_key.KeyBak;
-		}
-		frm.crypt_key.KeyBak = crypt_key;
-		
-		password = stringToByteArray(password);
-		crypt_key = hexToByteArray(crypt_key);
-		
-		var crypt_data = rijndaelEncrypt(password, crypt_key, 'ECB');
-		
-		if ( !crypt_data )
-		{
-			alert($lang.get('login_err_rijndael_failed'));
-			return false;
-		}
-	
-		crypt_data = byteArrayToHex(crypt_data);
-		
-		frm.password.value = '';
-		frm.password_confirm.value = '';
-		frm.crypt_key.value = '';
-		frm.crypt_data.value = crypt_data;
-		
-		return true;
+		return runEncryption();
 	}
 	
 	addOnloadHook(function()
@@ -168,7 +117,7 @@ $ui->show_header();
 	foreach ( $_POST as $key => &$value )
 	{
 		if ( !preg_match('/^[a-z0-9_]+$/', $key) )
-			die('You idiot hacker...');
+			die('...really?');
 		if ( $key == '_cont' )
 			continue;
 		$value_clean = str_replace(array('\\', '"', '<', '>'), array('\\\\', '\\"', '&lt;', '&gt;'), $value);
@@ -178,9 +127,6 @@ $ui->show_header();
 	$https = ( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' );
 	$scriptpath_full = 'http' . ( $https ? 's' : '' ) . '://' . $_SERVER['HTTP_HOST'] . scriptPath . '/';
 	?>
-	
-	<input type="hidden" name="crypt_key" value="<?php echo $install_aes_key; ?>" />
-	<input type="hidden" name="crypt_data" value="" />
 	
 	<table border="0" cellspacing="0" cellpadding="10" style="width: 100%;">
 	
@@ -227,7 +173,15 @@ $ui->show_header();
 	
 	</table>
 	
+	<?php
+	// hidden form fields/DH keygen
+	echo $aes_form;
+	?>
+	
 	<div style="text-align: center;">
 		<input type="submit" name="_cont" value="<?php echo $lang->get('meta_btn_continue'); ?>" />
 	</div>
 </form>
+
+<?php echo sessionManager::aes_javascript('install_login', 'password'); ?>
+

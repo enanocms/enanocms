@@ -75,6 +75,11 @@ function wikiFormat($text)
 ?>
 		<h3><?php echo $lang->get('license_heading'); ?></h3>
  		<p><?php echo $lang->get('license_blurb_thankyou'); ?></p>
+ 		<noscript>
+ 			<div class="error-box-mini">
+ 				<?php echo $lang->get('welcome_err_enable_js'); ?>
+ 			</div>
+ 		</noscript>
  		<p><?php echo $lang->get('license_blurb_pleaseread'); ?></p>
  		<?php show_license(); ?>
  		<div class="pagenav">

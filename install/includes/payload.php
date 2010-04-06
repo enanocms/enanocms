@@ -31,27 +31,32 @@ function stg_sim_bad()
 function stg_password_decode()
 {
 	global $db;
+	global $dh_public, $dh_private, $aes_fallback;
 	static $pass = false;
 	
 	if ( $pass )
 		return $pass;
 	
-	if ( !isset($_POST['crypt_data']) && !empty($_POST['password']) && $_POST['password'] === $_POST['password_confirm'] )
+	if ( empty($_POST['crypt_data']) && !empty($_POST['password']) && $_POST['password'] === $_POST['password_confirm'] )
 		$pass = $_POST['password'];
 	
-	$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-	// retrieve encryption key
-	$q = $db->sql_query('SELECT config_value FROM ' . table_prefix . 'config WHERE config_name=\'install_aes_key\';');
-	if ( !$q )
-		$db->_die();
-	if ( $db->numrows() < 1 )
-		return false;
-	list($aes_key) = $db->fetchrow_num();
-	$aes_key = hexdecode($aes_key);
+	require_once(ENANO_ROOT . '/includes/rijndael.php');
+	require_once(ENANO_ROOT . '/includes/sessions.php');
 	
-	$pass = $aes->decrypt($_POST['crypt_data'], $aes_key, ENC_HEX);
-	if ( !$pass )
+	try
+	{
+		$keys = array(
+				'public' => $dh_public,
+				'private' => $dh_private,
+				'aes' => $aes_fallback
+			);
+		$pass = sessionManager::get_aes_post('password', $keys);
+	}
+	catch ( Exception $e )
+	{
+		echo "<p>Exception details:</p><pre>$e</pre>";
 		return false;
+	}
 	
 	return $pass; // Will be true if the password isn't crapped
 }

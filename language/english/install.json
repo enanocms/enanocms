@@ -46,6 +46,7 @@ var enano_lang_install = {
 			branch_unstable: 'unstable',
 			aka: 'also affectionately known as "%codename%" <tt>:)</tt>',
 			btn_start: 'Start installation',
+			err_enable_js: '<b>Please enable Javascript when you\'re installing and using Enano.</b> Enano uses Javascript in many places to accelerate tasks, for better security with cryptography, and for an enhanced experience in many tools and dialogs. The administration panel also requires Javascript to be enabled.',
 		},
 		license: {
 			modetitle: 'License',
@@ -322,7 +323,7 @@ var enano_lang_install = {
 			stg_load_title: 'Load installer files',
 			stg_load_body: 'One of the files needed for installation couldn\'t be loaded. Please check your Enano directory.',
 			stg_setpass_title: 'Retrieve administrator password',
-			stg_setpass_body: 'The administrator password couldn\'t be decrypted. This really shouldn\'t happen.',
+			stg_setpass_body: 'The administrator password couldn\'t be decrypted. This indicates a fault in the encryption code that should have been detected earlier. Please report this problem as a bug.',
 			stg_genaes_title: 'Generate private key',
 			stg_genaes_body: 'Couldn\'t generate a private key for the site. This really shouldn\'t happen.',
 			stg_sqlparse_title: 'Prepare database schema',
