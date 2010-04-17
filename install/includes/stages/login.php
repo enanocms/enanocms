@@ -26,7 +26,7 @@ $ui->add_header('<script type="text/javascript" src="includes/js/formutils.js"><
 $ui->show_header();
 
 // generate the HTML for the form, and store the public and private key in the temporary config
-$aes_form = sessionManager::generate_aes_form($dh_keys);
+$aes_form = sessionManager::generate_aes_form_static($dh_keys);
 $fp = @fopen(ENANO_ROOT . '/config.new.php', 'a+');
 if ( !$fp )
 	die('Couldn\'t open the config for writing');

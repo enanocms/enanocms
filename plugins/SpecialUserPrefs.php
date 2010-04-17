@@ -374,7 +374,9 @@ function page_Special_Preferences()
 			<div style="text-align: right;"><input type="submit" name="submit" value="' . $lang->get('etc_save_changes') . '" tabindex="5" /></div>';
 			
 			if ( !$session->password_change_disabled )
+			{
 				echo $session->generate_aes_form();
+			}
 			
 			echo '</form>';
 			

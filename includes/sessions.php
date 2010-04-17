@@ -3705,18 +3705,9 @@ EOF;
 	 * @return string
 	 */
 	
-	static function generate_aes_form(&$dh_store = array())
+	function generate_aes_form(&$dh_store = array())
 	{
-		$is_static = !( isset($this) && get_class($this) === __CLASS__ );
-		if ( $is_static )
-		{
-			$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
-			$aes_key = $aes->gen_readymade_key();
-		}
-		else
-		{
-			$aes_key = self::rijndael_genkey();
-		}
+		$aes_key = self::rijndael_genkey();
 		$dh_store = array('aes' => $aes_key, 'public' => '', 'private' => '');
 		
 		$return = '<input type="hidden" name="use_crypt" value="no" />';
@@ -3735,9 +3726,50 @@ EOF;
 			$dh_key_priv = $_math->str($dh_key_priv);
 			$dh_key_pub = $_math->str($dh_key_pub);
 			// store the keys in the DB
-			// this is doing a static call check to avoid using $this in a static call
-			if ( !defined('IN_ENANO_INSTALL') && isset($this) && get_class($this) === __CLASS__ )
-				$this->sql('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+			$this->sql('INSERT INTO ' . table_prefix . "diffiehellman( public_key, private_key ) VALUES ( '$dh_key_pub', '$dh_key_priv' );");
+			// also give the key to the calling function
+			$dh_store['public'] = $dh_key_pub;
+			$dh_store['private'] = $dh_key_priv;
+			
+			$return .=  "<input type=\"hidden\" name=\"dh_supported\" value=\"true\" />
+						<input type=\"hidden\" name=\"dh_public_key\" value=\"$dh_key_pub\" />
+						<input type=\"hidden\" name=\"dh_client_public_key\" value=\"\" />";
+		}
+		else
+		{
+			$return .=  "<input type=\"hidden\" name=\"dh_supported\" value=\"false\" />";
+		}
+		return $return;
+	}
+	
+	/**
+	 * Static version of generate_aes_form().
+	 * @see sessionManager::generate_aes_form()
+	 * @param reference
+	 * @return string
+	 */
+	
+	static function generate_aes_form_static(&$dh_store = array())
+	{
+		$aes = AESCrypt::singleton(AES_BITS, AES_BLOCKSIZE);
+		$aes_key = $aes->gen_readymade_key();
+		$dh_store = array('aes' => $aes_key, 'public' => '', 'private' => '');
+		
+		$return = '<input type="hidden" name="use_crypt" value="no" />';
+		$return .= '<input type="hidden" name="crypt_key" value="' . $aes_key . '" />';
+		$return .= '<input type="hidden" name="crypt_data" value="" />';
+		$return .= '<input type="hidden" name="challenge_data" value="' . self::dss_rand() . '" />';
+		
+		require_once(ENANO_ROOT . '/includes/math.php');
+		require_once(ENANO_ROOT . '/includes/diffiehellman.php');
+		
+		global $dh_supported, $_math;
+		if ( $dh_supported )
+		{
+			$dh_key_priv = dh_gen_private();
+			$dh_key_pub = dh_gen_public($dh_key_priv);
+			$dh_key_priv = $_math->str($dh_key_priv);
+			$dh_key_pub = $_math->str($dh_key_pub);
 			// also give the key to the calling function
 			$dh_store['public'] = $dh_key_pub;
 			$dh_store['private'] = $dh_key_priv;
