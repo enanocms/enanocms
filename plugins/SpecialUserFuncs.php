@@ -549,6 +549,7 @@ function page_Special_Register()
 	global $db, $session, $paths, $template, $plugins; // Common objects
 	global $lang;
 	
+	// block registration except for guests and admins
 	if ( $session->user_level < USER_LEVEL_ADMIN && $session->user_logged_in )
 	{
 		$paths->main_page();
@@ -561,10 +562,9 @@ function page_Special_Register()
 	
 	$terms = getConfig('register_tou');
 	
-	if(getConfig('account_activation') == 'disable' && ( ( $session->user_level >= USER_LEVEL_ADMIN && !isset($_GET['IWannaPlayToo']) ) || $session->user_level < USER_LEVEL_ADMIN || !$session->user_logged_in ))
+	if ( getConfig('account_activation') == 'disable' && $session->user_level < USER_LEVEL_ADMIN )
 	{
-		$s = ($session->user_level >= USER_LEVEL_ADMIN) ? '<p>' . $lang->get('user_reg_err_disabled_body_adminblurb', array( 'reg_link' => makeUrl($paths->page, 'IWannaPlayToo&coppa=no', true) )) . '</p>' : '';
-		die_friendly($lang->get('user_reg_err_disabled_title'), '<p>' . $lang->get('user_reg_err_disabled_body') . '</p>' . $s);
+		die_friendly($lang->get('user_reg_err_disabled_title'), '<p>' . $lang->get('user_reg_err_disabled_body') . '</p>');
 	}
 	// are we locked out from logging in? if so, also lock out registration
 	if ( getConfig('lockout_policy') === 'lockout' )
@@ -588,8 +588,11 @@ function page_Special_Register()
 	{
 		$_GET['coppa'] = ( isset($_POST['coppa']) ) ? $_POST['coppa'] : 'x';
 		
-		$captcharesult = $session->get_captcha($_POST['captchahash']);
-		$session->kill_captcha();
+		if ( $session->user_level < USER_LEVEL_ADMIN )
+		{
+			$captcharesult = $session->get_captcha($_POST['captchahash']);
+			$session->kill_captcha();
+		}
 		// bypass captcha if logged in (at this point, if logged in, we're admin)
 		if ( !$session->user_logged_in && strtolower($captcharesult) != strtolower($_POST['captchacode']) )
 		{
@@ -682,6 +685,11 @@ function page_Special_Register()
 	}
 	$template->header();
 	echo $lang->get('user_reg_msg_greatercontrol');
+	
+	if ( getConfig('account_activation') == 'disable' && $session->user_level >= USER_LEVEL_ADMIN )
+	{
+		echo '<div class="info-box">' . $lang->get('user_reg_msg_admin_forced') . '</div>';
+	}
 	
 	if ( getConfig('enable_coppa') != '1' || ( isset($_GET['coppa']) && in_array($_GET['coppa'], array('yes', 'no')) ) )
 	{

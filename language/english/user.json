@@ -151,7 +151,7 @@ var enano_lang = {
 			reg_err_captcha: 'The confirmation code you entered was incorrect.',
 			reg_err_disabled_title: 'Registration disabled',
 			reg_err_disabled_body: 'The administrator has disabled the registration of new accounts on this site.',
-			reg_err_disabled_body_adminblurb: 'Oops...it seems that you <em>are</em> the administrator...hehe...you can also <a href="%reg_link%">force account registration to work</a>.',
+			reg_msg_admin_forced: 'Registrations are disabled. You have been granted access to this page due to your administrator privileges.',
 			reg_err_username_invalid: 'Your username must be at least two characters in length and may not contain any of the following characters: &lt; &gt; _ &amp; ? \' " % / \\.',
 			// Not exactly an error
 			reg_err_password_good: 'The password you entered is valid.',
