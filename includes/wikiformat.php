@@ -69,11 +69,11 @@ class Carpenter
 			'bold',
 			'italic',
 			'underline',
+			'image',
 			'externalwithtext',
 			'externalnotext',
 			'mailtowithtext',
 			'mailtonotext',
-			'image',
 			'internallink',
 			'paragraph',
 			'blockquotepost'
