@@ -323,7 +323,7 @@ function page_Special_AllPages()
 			'<div class="tblholder">
  				<table border="0" cellspacing="1" cellpadding="4">
  					<tr>',          // print at start
-			'    ' . $last_cell . '</tr>
+			'		' . $last_cell . '</tr>
  				</table>
  			</div>'             // print at end
  			);
@@ -356,12 +356,12 @@ function page_Special_SpecialPages()
 		}
 		echo '<td style="width: 50%;" class="' . $cclass . '">';
 		echo '<a href="' . makeUrl($cdata['urlname']) . '">';
-		echo htmlspecialchars($cdata['name']);
+		echo htmlspecialchars($lang->get($cdata['name']));
 		echo '</a>';
 		echo '</td>';
 	}
 	// close up the table if necessary
-	if ( $i % 2 > 0 )
+	if ( $i % 2 == 0 )
 	{
 		echo "<td class=\"$cclass\"></td>";
 	}
