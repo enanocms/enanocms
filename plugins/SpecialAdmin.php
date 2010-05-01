@@ -1226,7 +1226,7 @@ function page_Admin_UploadConfig()
 			<?php echo $lang->get('acpup_field_magick_enable'); ?>
 		</label>
 		<br />
-		<?php echo $lang->get('acpup_field_magick_path'); ?> <input type="text" name="imagemagick_path" value="<?php echo htmlspecialchars(getConfig('imagemagick_path'), '/usr/bin/convert'); ?>" onkeyup="ajaxVerifyFilePath(this);" /><br />
+		<?php echo $lang->get('acpup_field_magick_path'); ?> <input type="text" name="imagemagick_path" value="<?php echo htmlspecialchars(getConfig('imagemagick_path', '/usr/bin/convert')); ?>" onkeyup="ajaxVerifyFilePath(this);" /><br />
 		<?php echo $lang->get('acpup_field_magick_path_hint'); ?>
 	</p>
  		
