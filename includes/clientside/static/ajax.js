@@ -1786,3 +1786,35 @@ window.ajaxGzipCheck = function()
 			}
 		});
 }
+
+window.ajaxVerifyFilePath = function(input)
+{
+	input._lastkeyup = new Date();
+	// 500ms between keyup and trigger
+	setTimeout(function()
+		{
+			var now = new Date();
+			if ( input._lastkeyup.getTime() + 499 < now.getTime() )
+			{
+				// do the ajaxverify
+				ajaxVerifyFilePathReal(input);
+			}
+		}, 500);
+}
+
+window.ajaxVerifyFilePathReal = function(input)
+{
+	if ( input.nextSibling && input.nextSibling.tagName == 'IMG' )
+		input.parentNode.removeChild(input.nextSibling);
+	var img = document.createElement('img');
+	img.src = cdnPath + '/images/loading.gif';
+	img.hspace = '7';
+	ajaxPost(makeUrlNS('Admin', 'UploadConfig', 'act=verify_path'), 'path=' + ajaxEscape(input.value), function(ajax)
+		{
+			if ( ajax.readyState == 4 && ajax.status == 200 )
+			{
+				img.src = ( ajax.responseText == 'true' ) ? cdnPath + '/images/mini-success.png' : cdnPath + '/images/mini-error.png';
+			}
+		});
+	insertAfter(input.parentNode, img, input);
+}

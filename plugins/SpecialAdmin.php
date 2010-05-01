@@ -1110,6 +1110,14 @@ function page_Admin_UploadConfig()
 		return;
 	}
 	
+	if ( isset($_GET['act']) && $_GET['act'] == 'verify_path' )
+	{
+		$path = $_POST['path'];
+		$result = @file_exists($path) && @is_file($path) && @is_executable($path);
+		echo $result ? 'true' : 'false';
+		return;
+	}
+	
 	if(isset($_POST['save']))
 	{
 		if(isset($_POST['enable_uploads']) && getConfig('enable_uploads') != '1')
@@ -1218,7 +1226,7 @@ function page_Admin_UploadConfig()
 			<?php echo $lang->get('acpup_field_magick_enable'); ?>
 		</label>
 		<br />
-		<?php echo $lang->get('acpup_field_magick_path'); ?> <input type="text" name="imagemagick_path" value="<?php if(getConfig('imagemagick_path')) echo getConfig('imagemagick_path'); else echo '/usr/bin/convert'; ?>" /><br />
+		<?php echo $lang->get('acpup_field_magick_path'); ?> <input type="text" name="imagemagick_path" value="<?php echo htmlspecialchars(getConfig('imagemagick_path'), '/usr/bin/convert'); ?>" onkeyup="ajaxVerifyFilePath(this);" /><br />
 		<?php echo $lang->get('acpup_field_magick_path_hint'); ?>
 	</p>
  		
