@@ -1170,21 +1170,24 @@ function page_Admin_UploadConfig()
 				$db->_die();
 			setConfig('file_history', '0');
 		}
-		if(file_exists($_POST['imagemagick_path']) && $_POST['imagemagick_path'] != getConfig('imagemagick_path'))
+		$path = $_POST['imagemagick_path'];
+		$result = @file_exists($path) && @is_file($path) && @is_executable($path);
+		if ( $path !== getConfig('imagemagick_path', '/usr/bin/convert') )
 		{
+			if ( !$result )
+			{
+				echo '<div class="error-box-mini">' . $lang->get('acpup_err_magick_not_found', array('magick_path' => $path)) . '</div>';
+			}
+				
 			if ( defined('ENANO_DEMO_MODE') )
 				// Hackish but safe.
-				$_POST['imagemagick_path'] = '/usr/bin/convert';
-			$old = getConfig('imagemagick_path');
-			$oldnew = "{$old}||{$_POST['imagemagick_path']}";
-			$q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,edit_summary,author,author_uid,page_text) VALUES(\'security\',\'magick_path\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\',' . $session->user_id . ',\'' . $db->escape($oldnew) . '\');');
+				$path = '/usr/bin/convert';
+			$old = getConfig('imagemagick_path', '/usr/bin/convert');
+			$oldnew = "{$old}||{$path}";
+			$q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs(log_type,action,time_id,edit_summary,author,author_uid,page_text) VALUES(\'security\',\'magick_path\',' . time() . ',\'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\',\'' . $db->escape($session->username) . '\',' . $session->user_id . ',\'' . $db->escape($oldnew) . '\');');
 			if ( !$q )
 				$db->_die();
-			setConfig('imagemagick_path', $_POST['imagemagick_path']);
-		}
-		else if ( $_POST['imagemagick_path'] != getConfig('imagemagick_path') )
-		{
-			echo '<span style="color: red">' . $lang->get('acpup_err_magick_not_found', array('magick_path' => htmlspecialchars($_POST['imagemagick_path']))) . '</span>';
+			setConfig('imagemagick_path', $path);
 		}
 		$max_upload = floor((float)$_POST['max_file_size'] * (int)$_POST['fs_units']);
 		if ( $max_upload > 1048576 && defined('ENANO_DEMO_MODE') )
@@ -1209,6 +1212,20 @@ function page_Admin_UploadConfig()
 			<b><?php echo $lang->get('acpup_field_enable'); ?></b>
 		</label>
 	</p>
+	<div class="info-box-mini">
+	<?php
+	// Get the maximum sizes for post and uploaded files, and return the smaller of the two.
+	// Ideally, any smart admin would always make upload_max_filesize less than post_max_size, but
+	// in practice I've found this is not the case.
+	$size = humanize_filesize(min(
+					array(
+						php_filesize_to_int(ini_get('upload_max_filesize')),
+						php_filesize_to_int(ini_get('post_max_size')
+					)
+				)));
+	echo $lang->get('acpup_info_max_server_size', array('size' => $size));
+	?>
+	</div>
 	<p>
 		<?php echo $lang->get('acpup_field_max_size'); ?>
 		<input name="max_file_size" onkeyup="if(!this.value.match(/^([0-9\.]+)$/ig)) this.value = this.value.substr(0,this.value.length-1);" value="<?php echo getConfig('max_file_size', '256000'); ?>" />

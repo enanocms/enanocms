@@ -496,17 +496,18 @@ var enano_lang = {
 		},
 		acpup: {
 			heading_main: 'File upload configuration',
-			intro: 'Enano supports the ability to upload files to your website and store the files in the database. This enables you to embed images and such into pages without manually writing the HTML. However, the upload feature can sometimes pose a risk to your site, as viruses and executable files can sometimes be uploaded.',
+			intro: 'Enano supports the ability to upload files to your website and store the files in the database. This enables you to embed images and such into pages without manually writing the HTML.</p><p><b>Enabling file uploads is a significant security risk.</b> <u>Before enabling uploads</u>, make sure that the "files" directory is not accessible via HTTP, and especially that files cannot be listed. Enano does its best to restrict the files directory for you, but it isn\'t foolproof, especially on non-Apache servers. Only if your server is secured properly will it be safe to enable uploads of sensitive file types like .html and .php.',
 			field_enable: 'Enable file uploads',
+			info_max_server_size: 'Your server\'s PHP configuration reports a maximum file size of <b>%size%</b>.',
 			field_max_size: 'Maximum file size:',
 			info_magick: 'You can allow Enano to generate thumbnails of images automatically. This feature requires ImageMagick to work properly. If your server does not have ImageMagick on it, Enano will try to use the GD library (if available) to scale images. This can be slower, but it works on a wider range of servers. If even that does not work, Enano will simply make your users\' browsers scale the images. In most cases this is fine, but if you are uploading large (>100KB) images and embedding them inside of pages, you should try to enable ImageMagick or configure GD because transferring these large images many times can cost you quite a lot of bandwidth.',
 			field_magick_enable: 'Use ImageMagick to scale images',
 			field_magick_path: 'Path to ImageMagick:',
-			err_magick_not_found: '<b>Warning:</b> the file "%magick_path%" was not found, and the ImageMagick file path was not updated.',
+			err_magick_not_found: '<b>Warning:</b> the ImageMagick executable "%magick_path|escape%" you entered was not found, or it can\'t be checked for because PHP has Safe Mode or open_basedir enabled. Enano will not use ImageMagick to scale images.',
 			// Translators: for the path here, please be sure to use a double-backslash in the Windows path. Avoid translating the file paths
 			// anyway since they're generally the same even on non-English Windows systems.
 			field_magick_path_hint: 'On Linux and Unix servers, the most likely options here are /usr/bin/convert and /usr/local/bin/convert. If you server runs Windows, then ImageMagick is most likely to be C:\\Windows\\Convert.exe or C:\\Windows\\System32\\Convert.exe.',
-			info_cache: 'If you use ImageMagick to scale images, your server will be very busy constantly scaling images if your website is busy, and your site may experience slowdowns. You can dramatically speed up this scaling process if you use a directory to cache thumbnail images.',
+			info_cache: 'If you use ImageMagick to scale images, all but the smallest websites should enable caching below (enabled by default). Otherwise your server may become overloaded very quickly!',
 			info_cache_chmod: '<b>Please note:</b> the cache/ directory on your server <u>must</u> be writable by the server. While this is not usually a problem on Windows servers, most Linux/Unix servers will require you to CHMOD the cache/ directory to 777. See your FTP client\'s user guide for more information on how to do this.',
 			msg_cache_not_writable: ' <b>At present, it seems that the cache directory is not writable. The checkbox below has been disabled to maintain the stability of Enano.</b>',
 			field_cache: 'Cache thumbnailed images',

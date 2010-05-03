@@ -2833,6 +2833,25 @@ function humanize_filesize($size)
 }
 
 /**
+ * Convert PHP's suffixes for a file size an integer.
+ * @param string
+ */
+
+function php_filesize_to_int($sz)
+{
+	$num = preg_replace('/[^0-9]/', '', $sz);
+	$unit = preg_replace('/[^A-z]/', '', $sz);
+	$multiplier = 1;
+	switch(strtolower($unit))
+	{
+		case 'g': $multiplier = 1073741824;	break;
+		case 'm': $multiplier = 1048576;	break;
+		case 'k': $multiplier = 1024;		break;
+	}
+	return intval($num) * $multiplier;
+}
+
+/**
  * Injects a string into another string at the specified position.
  * @param string The haystack
  * @param string The needle
