@@ -256,6 +256,8 @@ $db->free_result();
 
 profiler_log('Config fetched');
 
+do_xff_check();
+
 if ( defined('ENANO_EXIT_AFTER_CONFIG') )
 {
 	return true;

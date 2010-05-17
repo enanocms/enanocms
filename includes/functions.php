@@ -2874,14 +2874,32 @@ function inject_substr($haystack, $needle, $pos)
 
 function is_valid_ip($ip)
 {
+	return is_valid_ipv4($ip) || is_valid_ipv6($ip);
+}
+
+/**
+ * Test validity of IPv4 address
+ * @param string
+ * @return bool
+ */
+
+function is_valid_ipv4($ip)
+{
 	// This next one came from phpBB3.
 	$ipv4 = '(?:(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(?:\d{1,2}|1\d\d|2[0-4]\d|25[0-5])';
-	$ipv6 = '(?:[a-f0-9]{0,4}):(?:[a-f0-9]{0,4}):(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{1,4})';
+	return preg_match("/^{$ipv4}$/", $ip) ? true : false;
+}
 
-	if ( preg_match("/^{$ipv4}$/", $ip) || preg_match("/^{$ipv6}$/", $ip) )
-		return true;
-	else
-		return false;
+/**
+ * Test validity of IPv6 address
+ * @param string
+ * @return bool
+ */
+
+function is_valid_ipv6($ip)
+{
+	$ipv6 = '(?:[a-f0-9]{0,4}):(?:[a-f0-9]{0,4}):(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{0,4}:|:)?(?:[a-f0-9]{1,4})';
+	return preg_match("/^{$ipv6}$/", $ip) ? true : false;
 }
 
 /**
@@ -5339,3 +5357,28 @@ function install_get_crypto_backend()
 	return $crypto_backend;
 }
 
+/**
+ * Perform X-Forwarded-For check and apply it as the REMOTE_ADDR if the settings tell us to
+ */
+
+function do_xff_check()
+{
+	if ( isset($_SERVER['HTTP_X_FORWARDED_FOR']) && getConfig('trust_xff', 'none') != 'none' )
+	{
+		switch(getConfig('trust_xff', 'none'))
+		{
+			case 'both':
+				if ( is_valid_ip($_SERVER['HTTP_X_FORWARDED_FOR']) )
+					$_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+				break;
+			case 'ipv4':
+				if ( is_valid_ip($_SERVER['HTTP_X_FORWARDED_FOR']) && is_valid_ipv4($_SERVER['REMOTE_ADDR']) )
+					$_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+				break;
+			case 'ipv6':
+				if ( is_valid_ip($_SERVER['HTTP_X_FORWARDED_FOR']) && is_valid_ipv6($_SERVER['REMOTE_ADDR']) )
+					$_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+				break;
+		}
+	}
+}

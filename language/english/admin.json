@@ -344,6 +344,8 @@ var enano_lang = {
 			field_breadcrumb_mode_always: 'Always',
 			field_breadcrumb_mode_never: 'Never',
 			
+			heading_server_settings: 'Server settings',
+			
 			// Section: CDN
 			field_cdn_path: 'URL to <acronym title="Content Delivery Network">CDN</acronym> server:',
 			field_cdn_path_hint: 'A CDN, or Content Delivery Network, allows downloading of shared Enano components from a server designed to serve out only images, CSS, and script files. Since a browser can open separate connections for the page and for images and scripts, the page loads faster. Leave this blank to just use Enano\'s local files (default).',
@@ -360,6 +362,14 @@ var enano_lang = {
 			field_gzip_check_msg_php_good: 'Found gzip compression support in PHP.',
 			field_gzip_check_msg_success: 'Success - all server checks passed. You can enable gzip support.',
 			field_gzip_check_msg_failure: 'Server check failed. Unless you think Enano is wrong, don\'t enable gzip below.',
+			
+			// Section: Trust XFF
+			field_xff: 'Trust X-Forwarded-For header:',
+			field_xff_hint: 'If your server is behind a proxying cache such as Squid or Varnish, turn this on to trust the IP addresses sent from the proxy. The remote address reported by your webserver, not the value of X-Forwarded-For, is the source address used to decide whether to trust the header or not.',
+			field_xff_checkbox: 'Trust XFF header',
+			field_xff_radio_both: 'Both IPv4 and IPv6 (default)',
+			field_xff_radio_ipv4: 'IPv4 source addresses only',
+			field_xff_radio_ipv6: 'IPv6 source addresses only',
 			
 			// Main section: users and communication
 			heading_users: 'Users and communication',

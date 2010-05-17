@@ -273,6 +273,15 @@ function page_Admin_GeneralConfig()
 		setConfig('userpage_grant_acl', ( isset($_POST['userpage_grant_acl']) ? '1' : '0' ));
 		setConfig('gzip_output', ( isset($_POST['gzip_output']) ? '1' : '0' ));
 		
+		if ( isset($_POST['trust_xff']) )
+		{
+			setConfig('trust_xff', $_POST['trust_xff_type']);
+		}
+		else
+		{
+			setConfig('trust_xff', 'none');
+		}
+		
 		// Allow plugins to save their changes
 		$code = $plugins->setHook('acp_general_save');
 		foreach ( $code as $cmd )
@@ -572,7 +581,9 @@ function page_Admin_GeneralConfig()
 				</td>
 			</tr>
 		
-		<!-- CDN settings -->
+		<!-- CDN URL -->
+		
+			<tr><th class="subhead" colspan="2"><?php echo $lang->get('acpgc_heading_server_settings'); ?></th></tr>
 		
 			<tr>
 				<td class="row2">
@@ -604,6 +615,37 @@ function page_Admin_GeneralConfig()
 						<input type="checkbox" name="gzip_output" <?php if ( getConfig('gzip_output', false) == 1 ) echo 'checked="checked" '; ?>/>
 						<?php echo $lang->get('acpgc_field_gzip_lbl'); ?>
 					</label>
+				</td>
+			</tr>
+			
+		<!-- XFF -->
+		
+			<tr>
+				<td class="row2">
+					<b><?php echo $lang->get('acpgc_field_xff'); ?></b><br />
+					<small><?php echo $lang->get('acpgc_field_xff_hint'); ?></small>
+				</td>
+				<td class="row2">
+					<label>
+						<input type="checkbox" name="trust_xff" onclick="$('#trust_xff_body').toggle('blind');"<?php if ( in_array(getConfig('trust_xff', 'none'), array('ipv4', 'ipv6', 'both'))) echo ' checked="checked"'; ?> />
+						<?php echo $lang->get('acpgc_field_xff_checkbox'); ?>
+					</label>
+					<div id="trust_xff_body" style="margin: 5px 0 0 10px; display: <?php echo ( in_array(getConfig('trust_xff', 'none'), array('ipv4', 'ipv6', 'both')) ) ? "block" : "none"; ?>;">
+						<label>
+							<input type="radio" name="trust_xff_type" value="both"<?php if ( getConfig('trust_xff', 'none') == 'both' || getConfig('trust_xff', 'none') == 'none' ) echo ' checked="checked"'; ?> />
+							<?php echo $lang->get('acpgc_field_xff_radio_both'); ?>
+						</label>
+						<br />
+						<label>
+							<input type="radio" name="trust_xff_type" value="ipv4"<?php if ( getConfig('trust_xff', 'none') == 'ipv4' ) echo ' checked="checked"'; ?> />
+							<?php echo $lang->get('acpgc_field_xff_radio_ipv4'); ?>
+						</label>
+						<br />
+						<label>
+							<input type="radio" name="trust_xff_type" value="ipv6"<?php if ( getConfig('trust_xff', 'none') == 'ipv6' ) echo ' checked="checked"'; ?> />
+							<?php echo $lang->get('acpgc_field_xff_radio_ipv6'); ?>
+						</label>
+					</div>
 				</td>
 			</tr>
 			
