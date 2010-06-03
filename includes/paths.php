@@ -165,6 +165,15 @@ class pathManager
 			}
 			$this->page = $this->nslist[$namespace] . $page_id;
 			$this->page_id = $page_id;
+			
+			$ns = namespace_factory($page_id, $namespace);
+			$this->cpage = $ns->get_cdata();
+			$this->page_exists = $ns->exists();
+			$this->wiki_mode = false;
+			$wiki_mode_eligible = ($session->user_logged_in && getConfig('wiki_mode_require_login', 0) == 1) || getConfig('wiki_mode_require_login', 0) == 0;
+			$global_wiki_mode = getConfig('wiki_mode', 0) == 1;
+			if ( $wiki_mode_eligible && (($this->cpage['wiki_mode'] == 2 && $global_wiki_mode) || $this->cpage['wiki_mode'] == 1))
+				$this->wiki_mode = true;
 			// die("All done setting parameters. What we've got:<br/>namespace: $namespace<br/>fullpage: $this->fullpage<br/>page: $this->page<br/>page_id: $this->page_id");
 		}
 		else
@@ -218,7 +227,7 @@ class pathManager
 			// Determine the wiki mode for this page, now that we have this->cpage established
 			if($this->cpage['wiki_mode'] == 2)
 			{
-				$this->wiki_mode = (int)getConfig('wiki_mode');
+				$this->wiki_mode = (int)getConfig('wiki_mode', 0);
 			}
 			else
 			{

@@ -322,10 +322,10 @@ ORDER BY l1.time_id DESC;');
 		break;
 	case 'catedit':
 		require_once(ENANO_ROOT.'/includes/pageutils.php');
-		if(isset($_POST['__enanoSaveButton']))
+		if(isset($_POST['save']))
 		{
-			unset($_POST['__enanoSaveButton']);
-			$val = PageUtils::catsave($paths->page_id, $paths->namespace, $_POST);
+			unset($_POST['save']);
+			$val = PageUtils::catsave($paths->page_id, $paths->namespace, $_POST['categories']);
 			if($val == 'GOOD')
 			{
 				header('Location: '.makeUrl($paths->page)); echo '<html><head><title>Redirecting...</title></head><body>If you haven\'t been redirected yet, <a href="'.makeUrl($paths->page).'">click here</a>.'; break;

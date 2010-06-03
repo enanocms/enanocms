@@ -750,7 +750,8 @@ class Namespace_Default
 					$cid = sanitize_page_id($row['category_id']);
 					$title = get_page_title_ns($cid, 'Category');
 					$link = makeUrlNS('Category', $cid);
-					$list[] = '<a href="' . $link . '">' . htmlspecialchars($title) . '</a>';
+					$exists = isPage("{$paths->nslist['Category']}$cid") ? '' : ' class="wikilink-nonexistent"';
+					$list[] = '<a href="' . $link . '"' . $exists . '>' . htmlspecialchars($title) . '</a>';
 				}
 				while ( $row = $db->fetchrow($q) );
 				$html .= implode(', ', $list);
@@ -932,6 +933,7 @@ class Namespace_Default
 		
 		// add missing keys
 		$defaults = array(
+			'name' => dirtify_page_id(str_replace('_', ' ', $cdata['urlname'])),
 			'special' => 0,
 			'visible' => 0,
 			'comments_on' => 1,

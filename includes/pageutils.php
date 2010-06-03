@@ -1339,8 +1339,8 @@ class PageUtils {
  	
 	public static function catedit($page_id, $namespace)
 	{
-		$d = PageUtils::catedit_raw($page_id, $namespace);
-		return $d[0] . ' /* BEGIN CONTENT */ document.getElementById("ajaxEditContainer").innerHTML = unescape(\''.rawurlencode($d[1]).'\');';
+		list($js, $html) = PageUtils::catedit_raw($page_id, $namespace);
+		return $js . ' /* BEGIN CONTENT */ document.getElementById("ajaxEditContainer").innerHTML = unescape(\''.rawurlencode($html).'\');';
 	}
 	
 	/**
@@ -1353,78 +1353,113 @@ class PageUtils {
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		global $lang;
 		
-		ob_start();
-		$_ob = '';
-		$e = $db->sql_query('SELECT category_id FROM ' . table_prefix.'categories WHERE page_id=\'' . $paths->page_id . '\' AND namespace=\'' . $paths->namespace . '\'');
-		if(!$e) jsdie('Error selecting category information for current page: '.$db->get_error());
-		$cat_current = Array();
-		while($r = $db->fetchrow())
-		{
-			$cat_current[] = $r;
-		}
-		$db->free_result();
+		// notes
+		// span class is catCheck
+		// return array(jsblob, innerHTML)
+		/*
+		$perms = $session->fetch_page_acl($cat_info[$i]['urlname_nons'], 'Category');
+		$cat_is_protected = ( !$session->get_permissions('edit_cat') || !$perms->get_permissions('edit_cat') ||
+ 				( $cat_info[$i]['really_protected'] && !$perms->get_permissions('even_when_protected') ) )
+		*/
 		
-		$cat_all = array();
-		$q = $db->sql_query('SELECT * FROM ' . table_prefix . 'pages WHERE namespace = \'Category\';');
+		// two buffers: one is HTML and one is Javascript.
+		$js = $html = '';
+		
+		// page permissions
+		$page_perms = $session->fetch_page_acl($page_id, $namespace);
+		
+		// Pull the list of categories this page is in
+		$cats_member_of = array();
+		$q = $db->sql_query('SELECT category_id FROM ' . table_prefix . 'categories WHERE page_id = \'' . $db->escape($page_id) . '\' AND namespace = \'' . $db->escape($namespace) . '\';');
+		if ( !$q )
+			$db->_die();
+		while ( $row = $db->fetchrow() )
+		{
+			$cats_member_of[] = $row['category_id'];
+		}
+		
+		// Get a list of all categories on the site
+		$q = $db->sql_query('SELECT * FROM ' . table_prefix . 'pages WHERE namespace = \'Category\' ORDER BY name ASC;');
 		if ( !$q )
 			$db->_die();
 		
-		while ( $row = $db->fetchrow() )
+		$categories = array();
+		while ( $row = $db->fetchrow($q) )
 		{
-			$cat_all[] = Namespace_Default::bake_cdata($row);
+			// bake page information
+			$row = Namespace_Default::bake_cdata($row);
+			// add our own info
+			$row['checked'] = in_array($row['urlname_nons'], $cats_member_of);
+			$row['exists'] = true;
+			$row['perms'] = $session->fetch_page_acl($row['urlname_nons'], 'Category');
+			$row['disabled'] = (
+					// no permissions to edit categorization in this category, or
+					!$row['perms']->get_permissions('edit_cat') ||
+					// category is protected, and no protect override permissions
+					( $row['really_protected'] && !$row['perms']->get_permissions('even_when_protected') )
+				);
+			// append to array
+			$categories[ $row['urlname_nons'] ] = $row;
 		}
 		
-		// Make $cat_all an associative array, like $paths->pages
-		$sz = sizeof($cat_all);
-		for($i=0;$i<$sz;$i++)
+		// fabricate information on categories that don't exist.
+		foreach ( $cats_member_of as $category )
 		{
-			$cat_all[$cat_all[$i]['urlname_nons']] = $cat_all[$i];
-		}
-		// Now, the "zipper" function - join the list of categories with the list of cats that this page is a part of
-		$cat_info = $cat_all;
-		for($i=0;$i<sizeof($cat_current);$i++)
-		{
-			$un = $cat_current[$i]['category_id'];
-			$cat_info[$un]['member'] = true;
-		}
-		// Now copy the information we just set into the numerically named keys
-		for($i=0;$i<sizeof($cat_info)/2;$i++)
-		{
-			$un = $cat_info[$i]['urlname_nons'];
-			$cat_info[$i] = $cat_info[$un];
-		}
-		
-		echo 'catlist = new Array();'; // Initialize the client-side category list
-		$_ob .= '<h3>' . $lang->get('catedit_title') . '</h3>
- 						<form name="mdgCatForm" action="'.makeUrlNS($namespace, $page_id, 'do=catedit').'" method="post">';
-		if ( sizeof($cat_info) < 1 )
-		{
-			$_ob .= '<p>' . $lang->get('catedit_no_categories') . '</p>';
-		}
-		for ( $i = 0; $i < sizeof($cat_info) / 2; $i++ )
-		{
-			// Protection code added 1/3/07
-			// Updated 3/4/07
-			$is_prot = false;
-			$perms = $session->fetch_page_acl($cat_info[$i]['urlname_nons'], 'Category');
-			if ( !$session->get_permissions('edit_cat') || !$perms->get_permissions('edit_cat') ||
- 				( $cat_info[$i]['really_protected'] && !$perms->get_permissions('even_when_protected') ) )
- 				$is_prot = true;
-			$prot = ( $is_prot ) ? ' disabled="disabled" ' : '';
-			$prottext = ( $is_prot ) ? ' <img alt="(protected)" width="16" height="16" src="'.scriptPath.'/images/lock16.png" />' : '';
-			echo 'catlist[' . $i . '] = \'' . $cat_info[$i]['urlname_nons'] . '\';';
-			$_ob .= '<span class="catCheck"><input ' . $prot . ' name="' . $cat_info[$i]['urlname_nons'] . '" id="mdgCat_' . $cat_info[$i]['urlname_nons'] . '" type="checkbox"';
-			if(isset($cat_info[$i]['member'])) $_ob .= ' checked="checked"';
-			$_ob .= '/>  <label for="mdgCat_' . $cat_info[$i]['urlname_nons'] . '">' . $cat_info[$i]['name'].$prottext.'</label></span><br />';
+			if ( isset($categories[$category]) )
+				// already have it in the array, skip
+				continue;
+			// create page metadata
+			$row = Namespace_Default::bake_cdata(array(
+					'urlname' => $category,
+					'namespace' => 'Category'
+				));
+			// we know it's in this category
+			$row['checked'] = true;
+			// we know it doesn't exist
+			$row['exists'] = false;
+			$row['perms'] = $session->fetch_page_acl($category, 'Category');
+			$row['disabled'] = (
+					// no permissions to edit categorization in this category (honor inheritance and everything)
+					!$row['perms']->get_permissions('edit_cat')
+					// not checking protection because it's defaulted to off
+				);
+			// append
+			$categories[ $category ] = $row;
 		}
 		
-		$disabled = ( sizeof($cat_info) < 1 ) ? 'disabled="disabled"' : '';
-			
-		$_ob .= '<div style="border-top: 1px solid #CCC; padding-top: 5px; margin-top: 10px;"><input name="__enanoSaveButton" ' . $disabled . ' style="font-weight: bold;" type="submit" onclick="ajaxCatSave(); return false;" value="' . $lang->get('etc_save_changes') . '" /> <input name="__enanoCatCancel" type="submit" onclick="ajaxReset(); return false;" value="' . $lang->get('etc_cancel') . '" /></div></form>';
+		// spit out the form
+		$html .= '<h3>' . $lang->get('catedit_title') . '</h3>';
+		$html .= '<form name="mdgCatForm" action="'.makeUrlNS($namespace, $page_id, 'do=catedit').'" method="post" enctype="multipart/form-data">';
+		foreach ( $categories as $category )
+		{
+			$html .= '<span class="catCheck"><label>';
+			if ( !$category['exists'] )
+				$html .= '<del>';
+			$html .= '<input type="checkbox" name="categories[]" value="' . htmlspecialchars($category['urlname_nons']) . '" ';
+			if ( $category['checked'] )
+				$html .= 'checked="checked" ';
+			if ( $category['disabled'] )
+				$html .= 'disabled="disabled" ';
+			$html .= ' />' . htmlspecialchars($category['name']);
+			// lock icon
+			if ( $category['protected'] > 0 )
+				$html .= ' <img alt="' . $lang->get('catedit_msg_protected_tip') . '" width="16" height="16" src="' . cdnPath . '/images/lock16.png" />';
+			if ( !$category['exists'] )
+				$html .= '</del>';
+			$html .= '</label></span><br />';
+		}
+		if ( count($categories) < 1 )
+			$html .= '<p>' . $lang->get('catedit_no_categories') . '</p>';
+		// submit buttons
+		$save_disabled = ( count($categories) < 1 ) ? 'disabled="disabled"' : '';
+		$html .= '<div style="border-top: 1px solid #CCC; padding-top: 5px; margin-top: 10px;">
+					<input name="save" ' . $save_disabled . ' style="font-weight: bold;" type="submit" onclick="ajaxCatSave(); return false;" value="' . $lang->get('etc_save_changes') . '" />
+					<input name="cancel" type="submit" onclick="ajaxReset(); return false;" value="' . $lang->get('etc_cancel') . '" />
+				  </div>';
 		
-		$cont = ob_get_contents();
-		ob_end_clean();
-		return Array($cont, $_ob);
+		$html .= '</form>';
+		
+		return array($js, $html);
 	}
 	
 	/**
@@ -1444,65 +1479,122 @@ class PageUtils {
 		$page_perms = $session->fetch_page_acl($page_id, $namespace);
 		$ns = namespace_factory($page_id, $namespace);
 		$page_data = $ns->get_cdata();
+		if ( !$page_perms->get_permissions('edit_cat') ||
+				( $page_data['really_protected'] && !$page_perms->get_permissions('even_when_protected') ) )
+			return 'Insufficient privileges';
 		
-		$cat_all = array();
-		$q = $db->sql_query('SELECT * FROM ' . table_prefix . 'pages WHERE namespace = \'Category\';');
+		// Pull the list of categories this page is in
+		$cats_member_of = array();
+		$q = $db->sql_query('SELECT category_id FROM ' . table_prefix . 'categories WHERE page_id = \'' . $db->escape($page_id) . '\' AND namespace = \'' . $db->escape($namespace) . '\';');
+		if ( !$q )
+			$db->_die();
+		while ( $row = $db->fetchrow() )
+		{
+			$cats_member_of[] = $row['category_id'];
+		}
+		
+		// Get a list of all categories on the site
+		$q = $db->sql_query('SELECT * FROM ' . table_prefix . 'pages WHERE namespace = \'Category\' ORDER BY name ASC;');
 		if ( !$q )
 			$db->_die();
 		
-		while ( $row = $db->fetchrow() )
+		$categories = array();
+		while ( $row = $db->fetchrow($q) )
 		{
-			$cat_all[] = Namespace_Default::bake_cdata($row);
+			// bake page information
+			$row = Namespace_Default::bake_cdata($row);
+			// add our own info
+			$row['checked'] = in_array($row['urlname_nons'], $cats_member_of);
+			$row['exists'] = true;
+			$row['perms'] = $session->fetch_page_acl($row['urlname_nons'], 'Category');
+			$row['disabled'] = (
+					// no permissions to edit categorization in this category, or
+					!$row['perms']->get_permissions('edit_cat') ||
+					// category is protected, and no protect override permissions
+					( $row['really_protected'] && !$row['perms']->get_permissions('even_when_protected') )
+				);
+			// append to array
+			$categories[ $row['urlname_nons'] ] = $row;
 		}
 		
-		// Make $cat_all an associative array, like $paths->pages
-		$sz = sizeof($cat_all);
-		for($i=0;$i<$sz;$i++)
+		// fabricate information on categories that don't exist.
+		foreach ( $cats_member_of as $category )
 		{
-			$cat_all[$cat_all[$i]['urlname_nons']] = $cat_all[$i];
+			if ( isset($categories[$category]) )
+				// already have it in the array, skip
+				continue;
+			// create page metadata
+			$row = Namespace_Default::bake_cdata(array(
+					'urlname' => $category,
+					'namespace' => 'Category'
+				));
+			// we know it's in this category
+			$row['checked'] = true;
+			// we know it doesn't exist
+			$row['exists'] = false;
+			$row['perms'] = $session->fetch_page_acl($category, 'Category');
+			$row['disabled'] = (
+					// no permissions to edit categorization in this category (honor inheritance and everything)
+					!$row['perms']->get_permissions('edit_cat')
+					// not checking protection because it's defaulted to off, and we know we are using the defaults
+					// because we made it past the check above ;)
+				);
+			// append
+			$categories[ $category ] = $row;
 		}
 		
-		$rowlist = Array();
-		
-		for($i=0;$i<sizeof($cat_all)/2;$i++)
+		$to_insert = $to_delete = array();
+		// go through categories and mark needed changes
+		foreach ( $categories as $cat_id => $category )
 		{
-			$auth = true;
-			$perms = $session->fetch_page_acl($cat_all[$i]['urlname_nons'], 'Category');
-			if ( !$session->get_permissions('edit_cat') || !$perms->get_permissions('edit_cat') ||
- 				( $cat_all[$i]['really_protected'] && !$perms->get_permissions('even_when_protected') ) ||
- 				( !$page_perms->get_permissions('even_when_protected') && $page_data['protected'] == '1' ) )
- 				$auth = false;
-			if(!$auth)
+			// allowed to change it?
+			if ( $category['disabled'] )
+				continue;
+			
+			if ( $category['checked'] && !in_array($cat_id, $which_cats) )
 			{
-				// Find out if the page is currently in the category
-				$q = $db->sql_query('SELECT * FROM ' . table_prefix.'categories WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';');
-				if(!$q)
-					return 'MySQL error: ' . $db->get_error();
-				if($db->numrows() > 0)
-				{
-					$auth = true;
-					$which_cats[$cat_all[$i]['urlname_nons']] = true; // Force the category to stay in its current state
-				}
-				$db->free_result();
+				// delete
+				$to_delete[] = $cat_id;
 			}
-			if(isset($which_cats[$cat_all[$i]['urlname_nons']]) && $which_cats[$cat_all[$i]['urlname_nons']] == true /* for clarity ;-) */ && $auth ) $rowlist[] = '(\'' . $page_id . '\', \'' . $namespace . '\', \'' . $cat_all[$i]['urlname_nons'] . '\')';
+			else if ( !$category['checked'] && in_array($cat_id, $which_cats) )
+			{
+				// insert
+				$to_insert[] = $cat_id;
+			}
+			else
+			{
+				// no change
+			}
 		}
-		if(sizeof($rowlist) > 0)
+		
+		// commit changes
+		if ( !empty($to_insert) )
 		{
-			$val = implode(',', $rowlist);
-			$q = 'INSERT INTO ' . table_prefix.'categories(page_id,namespace,category_id) VALUES' . $val . ';';
-			$e = $db->sql_query('DELETE FROM ' . table_prefix.'categories WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';');
-			if(!$e) $db->_die('The old category data could not be deleted.');
-			$e = $db->sql_query($q);
-			if(!$e) $db->_die('The new category data could not be inserted.');
-			return('GOOD');
+			$rows = array();
+			foreach ( $to_insert as $cat_id )
+			{
+				$rows[] = "('{$db->escape($page_id)}', '{$db->escape($namespace)}', '{$db->escape($cat_id)}')";
+			}
+			$q = $db->sql_query("INSERT INTO " . table_prefix . "categories(page_id, namespace, category_id) VALUES\n  "
+									. implode(",\n  ", $rows) . ";");
+			if ( !$q )
+				$db->_die();
 		}
-		else
+		if ( !empty($to_delete) )
 		{
-			$e = $db->sql_query('DELETE FROM ' . table_prefix.'categories WHERE page_id=\'' . $page_id . '\' AND namespace=\'' . $namespace . '\';');
-			if(!$e) $db->_die('The old category data could not be deleted.');
-			return('GOOD');
+			$entries = array();
+			foreach ( $to_delete as $cat_id )
+			{
+				$entries[] = "category_id = '{$db->escape($cat_id)}'";
+			}
+			$q = $db->sql_query("DELETE FROM " . table_prefix . "categories WHERE page_id = '{$db->escape($page_id)}' AND namespace = '{$db->escape($namespace)}'\n"
+									. "  AND ( " . implode(' OR ', $entries) . " );");
+			if ( !$q )
+				$db->_die();
 		}
+		
+		
+		return 'GOOD';
 	}
 	
 	/**

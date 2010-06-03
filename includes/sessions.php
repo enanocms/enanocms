@@ -4477,31 +4477,12 @@ class Session_ACLPageInfo {
 		$pathskey = $paths->nslist[$this->namespace].sanitize_page_id($this->page_id);
 		$ns = namespace_factory($this->page_id, $this->namespace);
 		$cdata = $ns->get_cdata();
-		$ppwm = $cdata['wiki_mode'];
-		unset($ns, $cdata);
 		
-		if ( $ppwm == 1 && ( $session->user_logged_in || getConfig('wiki_mode_require_login') != '1' ) )
+		$this->wiki_mode = false;
+		$wiki_mode_eligible = ($session->user_logged_in && getConfig('wiki_mode_require_login', 0) == 1) || getConfig('wiki_mode_require_login', 0) == 0;
+		$global_wiki_mode = getConfig('wiki_mode', 0) == 1;
+		if ( $wiki_mode_eligible && (($cdata['wiki_mode'] == 2 && $global_wiki_mode) || $cdata['wiki_mode'] == 1))
 			$this->wiki_mode = true;
-		else if ( $ppwm == 1 && !$session->user_logged_in && getConfig('wiki_mode_require_login') == '1' )
-			$this->wiki_mode = true;
-		else if ( $ppwm == 0 )
-			$this->wiki_mode = false;
-		else if ( $ppwm == 2 )
-		{
-			if ( $this->user_id > 1 )
-			{
-				$this->wiki_mode = ( getConfig('wiki_mode') == '1' );
-			}
-			else
-			{
-				$this->wiki_mode = ( getConfig('wiki_mode') == '1' && getConfig('wiki_mode_require_login') != '1' );
-			}
-		}
-		else
-		{
-			// Ech. Internal logic failure, this should never happen.
-			return false;
-		}
 	}
 	
 	/**

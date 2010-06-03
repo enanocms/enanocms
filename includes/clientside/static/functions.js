@@ -40,9 +40,15 @@ function strToPageID(string)
 {
 	// Convert Special:UploadFile to ['UploadFile', 'Special'], but convert 'Image:Enano.png' to ['Enano.png', 'File']
 	for(var i in namespace_list)
+	{
 		if(namespace_list[i] != '')
+		{
 			if(namespace_list[i] == string.substr(0, namespace_list[i].length))
+			{
 				return [string.substr(namespace_list[i].length), i];
+			}
+		}
+	}
 	return [string, 'Article'];
 }
 

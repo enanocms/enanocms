@@ -953,7 +953,7 @@ class PageProcessor
 		}
 		
 		$sql = 'INSERT INTO ' . table_prefix . "logs ( log_type, action, page_id, namespace, author, author_uid, edit_summary, time_id, page_text, date_string ) VALUES\n"
- 				. "  ( 'page', '$action', '{$this->page_id}', '{$this->namespace}', '$username', $author_uid, '$reason', '$time', '$existing_protection', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );";
+				. "  ( 'page', '$action', '{$this->page_id}', '{$this->namespace}', '$username', {$session->user_id}, '$reason', '$time', '$existing_protection', 'DATE_STRING COLUMN OBSOLETE, USE time_id' );";
 		if ( !$db->sql_query($sql) )
 		{
 			$db->die_json();

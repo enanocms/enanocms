@@ -458,6 +458,7 @@ var enano_lang = {
 		catedit: {
 			title: 'Select which categories this page should be included in.',
 			no_categories: 'There are no categories on this site yet.',
+			msg_protected_tip: '(protected)',
 			catbox_lbl_categories: 'Categories:',
 			catbox_lbl_uncategorized: '(Uncategorized)',
 			catbox_link_edit: 'edit categorization',

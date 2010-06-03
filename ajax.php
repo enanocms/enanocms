@@ -453,7 +453,8 @@ ORDER BY l1.time_id DESC;');
 		break;
 	case "catsave":
 		require_once(ENANO_ROOT.'/includes/pageutils.php');
-		echo PageUtils::catsave($paths->page_id, $paths->namespace, $_POST);
+		$categories = !empty($_POST['categories']) ? $_POST['categories'] : array();
+		echo PageUtils::catsave($paths->page_id, $paths->namespace, $categories);
 		break;
 	case "setwikimode":
 		require_once(ENANO_ROOT.'/includes/pageutils.php');

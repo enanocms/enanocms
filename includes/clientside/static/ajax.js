@@ -626,19 +626,12 @@ window.ajaxCatSave = function()
 	// IE <6 pseudo-compatibility
 	if ( KILL_SWITCH )
 		return true;
-	if(!catlist)
-	{
-		alert('Var catlist has no properties');
-		return;
-	}
-	query='';
-	for(i=0;i<catlist.length;i++)
-	{
-		var s = ( document.forms.mdgCatForm['mdgCat_' + catlist[i]]['checked'] ) ? true : false;
-		if(s) query = query + '&' + catlist[i] + '=true';
-	}
-	setAjaxLoading();
-	query = query.substring(1, query.length);
+	var query = 'hello=';
+	$('.catCheck input:checkbox:checked').each(function(i, e)
+		{
+			query += '&categories[]=' + ajaxEscape($(e).val())
+		});
+	
 	ajaxPost(stdAjaxPrefix+'&_mode=catsave', query, function(ajax) {
 		if ( ajax.readyState == 4 && ajax.status == 200 ) {
 			unsetAjaxLoading();
