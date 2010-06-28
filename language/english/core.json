@@ -48,7 +48,7 @@ var enano_lang = {
 			enano_about_lbl_phpversion: '<a href="http://www.php.net/">PHP</a> version:',
 			enano_about_lbl_mysqlversion: '<a href="http://www.mysql.com/">MySQL</a> version:',
 			enano_about_lbl_pgsqlversion: '<a href="http://www.postgresql.org/">PostgreSQL</a> version:',
-			direction: 'rtl'
+			direction: 'ltr'
 		},
 		page: {
 			sitedisabled_admin_msg_title: 'The site is currently disabled and thus is only accessible to administrators.',
