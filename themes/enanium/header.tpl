@@ -1,11 +1,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="{lang:meta_direction}">
 	<head>
 		<title>{PAGE_NAME} &bull; {SITE_NAME}</title>
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 		{JS_DYNAMIC_VARS}
 		<link rel="stylesheet" type="text/css" href="{CDNPATH}/includes/clientside/css/enano-shared.css?{ENANO_VERSION}" />
 		<link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css?{ENANO_VERSION}" />
+		<link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/{lang:meta_direction}.css?{ENANO_VERSION}" />
 		<!--[if lte IE 6]>
 		<link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/ie6.css" />
 		<![endif]-->
@@ -73,7 +74,7 @@
 			</td>
 			<td valign="top" id="cell-content">
 				<!-- BEGINNOT stupid_mode -->
-				<div class="menu_nojs" style="float: right; margin-right: 10px;">
+				<div class="menu_nojs global_menu">
 					<a href="#" onclick="return false;">{lang:onpage_lbl_changes}</a>
 					<ul class="jbox_right">
 						<li><a href="{url:Special:Log/user={USERNAME}|escape}">{lang:onpage_btn_changes_mine}</a></li>

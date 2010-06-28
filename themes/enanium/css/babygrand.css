@@ -568,6 +568,11 @@ div.menu ul a, div.menu_nojs ul a {
 	margin: 0;
 }
 
+div.menu.global_menu, div.menu_nojs.global_menu {
+	float: right;
+	margin-right: 10px;
+}
+
 /* toolbar */
 
 div.toolbar {

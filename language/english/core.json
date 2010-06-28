@@ -1,4 +1,4 @@
-/*
+i/*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
  * Version 1.1.6 (Caoineag beta 1)
  * Copyright (C) 2006-2007 Dan Fuhry
@@ -47,7 +47,8 @@ var enano_lang = {
 			enano_about_lbl_serverplatform: 'Server platform:',
 			enano_about_lbl_phpversion: '<a href="http://www.php.net/">PHP</a> version:',
 			enano_about_lbl_mysqlversion: '<a href="http://www.mysql.com/">MySQL</a> version:',
-			enano_about_lbl_pgsqlversion: '<a href="http://www.postgresql.org/">PostgreSQL</a> version:'
+			enano_about_lbl_pgsqlversion: '<a href="http://www.postgresql.org/">PostgreSQL</a> version:',
+			direction: 'rtl'
 		},
 		page: {
 			sitedisabled_admin_msg_title: 'The site is currently disabled and thus is only accessible to administrators.',

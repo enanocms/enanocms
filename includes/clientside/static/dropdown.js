@@ -61,6 +61,9 @@ function jBoxSetup(obj)
 	$dynano(obj).addClass('menu');
 	removeTextNodes(obj);
 	
+	var html = document.getElementsByTagName('html')[0];
+	var direction = typeof(html.dir) != 'undefined' ? html.dir : 'ltr';
+	
 	for ( var i = 0; i < obj.childNodes.length; i++ )
 	{
 		/* normally this would be done in about 2 lines of code, but javascript is so picky..... */
@@ -101,10 +104,17 @@ function jBoxSetup(obj)
 									ul.id = 'jBoxmenuobj_' + Math.floor(Math.random() * 10000000);
 								jBoxMenuHeights[ul.id] = parseInt(dim['h']) - 2; // subtract 2px for border width
 								
-								if ( dim['w'] + $dynano(ul).Left() > getWidth() || $dynano(ul).hasClass('jbox_right') )
+								// this is a little bit of a hack
+								var should_be_right = ( direction == 'ltr' && $dynano(ul).hasClass('jbox_right') ) || ( direction == 'rtl' && !$dynano(ul).hasClass('jbox_right') );
+								
+								if ( ( direction == 'ltr' && dim['w'] + $dynano(ul).Left() > getWidth() ) || should_be_right )
 								{
 									$dynano(ul).addClass('jbox_right');
 									ul.jbox_width = $dynano(ul).Width();
+								}
+								else
+								{
+									$dynano(ul).rmClass('jbox_right');
 								}
 								
 								ul.style.display = 'none';
@@ -174,6 +184,7 @@ function jBoxOverHandlerBin(obj)
 		var dimh = parseInt(dim['h']);
 		var offtop = parseInt(off['top']);
 		var top = dimh + offtop;
+		
 		if ( $dynano(ul).hasClass('jbox_right') )
 		{
 			left = $dynano(obj).Left() + $dynano(obj).Width() - ul.jbox_width; // ( link left + link width ) - ul width

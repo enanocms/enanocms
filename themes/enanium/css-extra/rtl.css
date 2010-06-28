@@ -1,0 +1,75 @@
+/**
+ * Enanium - Right-To-Left (RTL) tweaks
+ * Polished black default theme for Enano CMS
+ * Copyright (C) 2009 Dan Fuhry
+ */
+
+div.logo {
+	float: right;
+	margin: 0 -13px 0 7px;
+}
+
+div#header h1 a {
+	padding-left: 20px;
+	padding-right: 0;
+}
+
+div#header h1 a:hover {
+	background-position: left center;
+}
+
+form.searchform {
+	left: 10px;
+	right: auto;
+}
+ul.useropts {
+	left: 10px;
+	right: auto;
+}
+
+ul.useropts li {
+	float: right;
+}
+
+div.menu a, div.menu div.label, div.menu_nojs a, div.menu_nojs div.label {
+	float: right;
+	margin-right: 0;
+	margin-left: 3px;
+}
+
+div.menu.global_menu, div.menu_nojs.global_menu {
+	float: left;
+	margin-right: 0;
+	margin-left: 10px;
+}
+
+div.sidebar.right {
+	float: left;
+	margin: 0 20px 0 0;
+}
+
+div.sidebar a.closebtn {
+	float: left;
+	margin-right: 0;
+	margin-left: 10px;
+}
+
+div.sidebar.left a.closebtn {
+	-moz-border-radius: 0 0 4px 0;
+	border-radius: 0 0 4px 0;
+	margin-left: 0;
+}
+
+div.left-sidebar-hidden a.openbtn {
+	-moz-border-radius: 4px 0 0 4px;
+	border-radius: 4px 0 0 4px;
+	float: right;
+}
+
+div.right-sidebar-hidden a.openbtn {
+	float: left;
+	margin-right: 0;
+	margin-left: -30px;
+	-moz-border-radius: 0 4px 4px 0;
+	border-radius: 0 4px 4px 0;
+}

@@ -32,6 +32,9 @@ var do_popups = ( is_Safari ) ? '' : ',inlinepopups';
 var _skin = ( typeof(tinymce_skin) == 'string' ) ? tinymce_skin : 'default';
 var tinymce_initted = false;
 
+var html = document.getElementsByTagName('html')[0];
+var direction = typeof(html.dir) != 'undefined' ? html.dir : 'ltr';
+
 var enano_tinymce_options = {
 	mode : "none",
 	plugins : 'table,save,safari,pagebreak,style,layer,advhr,insertdatetime,searchreplace,spellchecker,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,wordcount' + do_popups,
@@ -47,7 +50,8 @@ var enano_tinymce_options = {
 	theme_advanced_statusbar_location : 'bottom',
 	noneditable_noneditable_class : 'mce_readonly',
 	content_css : css_url,
-	spellchecker_rpc_url : scriptPath + '/includes/clientside/tinymce/plugins/spellchecker/rpc.php'
+	spellchecker_rpc_url : scriptPath + '/includes/clientside/tinymce/plugins/spellchecker/rpc.php',
+	directionality : direction
 };
 
 var enano_tinymce_gz_options = {
