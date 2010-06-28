@@ -6,7 +6,7 @@
 		{JS_DYNAMIC_VARS}
 		<link rel="stylesheet" type="text/css" href="{CDNPATH}/includes/clientside/css/enano-shared.css?{ENANO_VERSION}" />
 		<link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css/{STYLE_ID}.css?{ENANO_VERSION}" />
-		<link id="mdgCss" rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/{lang:meta_direction}.css?{ENANO_VERSION}" />
+		<link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/{lang:meta_direction}.css?{ENANO_VERSION}" />
 		<!--[if lte IE 6]>
 		<link rel="stylesheet" type="text/css" href="{CDNPATH}/themes/{THEME_ID}/css-extra/ie6.css" />
 		<![endif]-->
