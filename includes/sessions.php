@@ -2841,7 +2841,7 @@ class sessionManager {
 		{
 			if(!$desc)
 			{
-				$desc = capitalize_first_letter(str_replace('_', ' ', $acl_type));
+				$desc = ucfirst(str_replace('_', ' ', $acl_type));
 			}
 			$this->acl_types[$acl_type] = $default_perm;
 			$this->acl_descs[$acl_type] = $desc;

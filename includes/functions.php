@@ -1443,17 +1443,6 @@ function jsdie($text) {
 }
 
 /**
- * Capitalizes the first letter of a string
- * @param $text string the text to be transformed
- * @return string
- */
-
-function capitalize_first_letter($text)
-{
-	return strtoupper(substr($text, 0, 1)) . substr($text, 1);
-}
-
-/**
  * Checks if a value in a bitfield is on or off
  * @param $bitfield int the bit-field value
  * @param $value int the value to switch off

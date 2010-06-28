@@ -1244,13 +1244,13 @@ function page_Special_ChangeStyle()
 										{
 											echo ' selected="selected"';
 										}
-										echo '>' . $t['theme_name'] . '</option>';
+										echo '>' . htmlspecialchars($t['theme_name']) . '</option>';
 									}
 								}
  							?>
 							</select>
 						</p>
-						<p><input type="hidden" name="return_to" value="<?php echo $ret; ?>" />
+						<p><input type="hidden" name="return_to" value="<?php echo htmlspecialchars($ret); ?>" />
  							<input type="submit" name="themeselected" value="<?php echo $lang->get('userfuncs_changetheme_btn_continue'); ?>" /></p>
 					<?php } else { 
 						$theme = $_POST['theme'];
@@ -1276,13 +1276,13 @@ function page_Special_ChangeStyle()
 									} else die($dir.' is not a dir');
 									foreach ( $list as $l )
 									{
-										echo '<option value="'.$l.'">'.capitalize_first_letter($l).'</option>';
+										echo '<option value="'.$l.'">'.ucfirst($l).'</option>';
 									}
 								?>
 							</select>
 						</p>
-						<p><input type="hidden" name="return_to" value="<?php echo $ret; ?>" />
- 							<input type="hidden" name="theme" value="<?php echo $theme; ?>" />
+						<p><input type="hidden" name="return_to" value="<?php echo htmlspecialchars($ret); ?>" />
+ 							<input type="hidden" name="theme" value="<?php echo htmlspecialchars($theme); ?>" />
  							<input type="submit" name="allclear" value="<?php echo $lang->get('userfuncs_changetheme_btn_allclear'); ?>" /></p>
 					<?php } ?>
 				</form>
