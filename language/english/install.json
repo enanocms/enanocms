@@ -422,7 +422,7 @@ var enano_lang_install = {
 			
 			welcome_banshee_heading: 'Welcome to Enano %enano_version%.',
 			welcome_banshee_para1: 'Enano 1.2 features support for multiple languages, better security, faster page loading, more tools, a revamped page editor, and much more. This migration tool will automatically make the changes to your database required for Enano 1.2.',
-			welcome_banshee_para2: 'The migration tool has been tested under many different installation scenarios, but isn\'t fully guaranteed to work. The Enano team can\'t be responsible if the migration fails. If you encounted problems, please be sure to post on the <a href="http://forum.enanocms.org/">Enano forums</a>.',
+			welcome_banshee_para2: 'The migration tool has been tested under many different installation scenarios, but isn\'t fully guaranteed to work. The Enano team can\'t be responsible if the migration fails. If you encounter problems, please be sure to post on the <a href="http://forum.enanocms.org/">Enano forums</a>.',
 			welcome_caoineag_heading: 'Welcome to the Enano upgrade tool.',
 			welcome_caoineag_para1: 'To use this version of Enano, some parts of your database need to be upgraded. This tool will automatically perform the upgrade for you.',
 			welcome_btn_continue: 'Start upgrade',

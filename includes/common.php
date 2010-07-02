@@ -288,7 +288,7 @@ else if ( $current_db_revision > $db_version )
 }
 
 // If we made it here, DB is up to date.
-if ( getConfig('enano_version') !== $version && !preg_match('/^upg-/', getConfig('enano_version')) )
+if ( getConfig('enano_version') !== $version && !preg_match('/^upg-/', getConfig('enano_version')) && !defined('IN_ENANO_UPGRADE') )
 {
 	setConfig('enano_version', $version);
 	setConfig('newly_upgraded', 1);

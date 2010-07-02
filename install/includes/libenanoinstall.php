@@ -174,6 +174,13 @@ function enano_perform_upgrade($target_rev)
 		}
 	}
 	
+	// cap to target rev
+	foreach ( $upg_queue as $i => $ver )
+	{
+		if ( $ver > $target_rev )
+			unset($upg_queue[$i]);
+	}
+	
 	// Perform upgrade
 	foreach ( $upg_queue as $version )
 	{
