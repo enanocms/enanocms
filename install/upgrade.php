@@ -20,6 +20,8 @@ $enano_versions = array();
 $enano_versions['1.0'] = array('1.0', '1.0.1', '1.0.2b1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.0.6', '1.0.6pl1');
 $enano_versions['1.1'] = array('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.1.5', '1.1.6', '1.1.7', '1.1.8');
 
+define('BANSHEE_LATEST_DBREV', 1061);
+
 // If true, this will do a full langimport instead of only adding new strings.
 // Will probably be left on, but some change probably needs to be made to mark
 // strings as customized in the DB.
@@ -71,7 +73,7 @@ $stg_upgrade = $ui->add_stage($lang->get('upgrade_stg_upgrade'), true);
 $stg_finish  = $ui->add_stage($lang->get('upgrade_stg_finish'), true);
 
 // Version check
-if ( enano_version() == installer_enano_version() )
+if ( getConfig('db_version') === $db_version && !preg_match('/^upg-/', getConfig('enano_version')) )
 {
 	$ui->show_header();
 	$link_home = makeUrl(get_main_page(), false, true);
@@ -237,7 +239,7 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
 	if ( $target_branch != $current_branch )
 	{
 		// First upgrade to the latest revision of the current branch
-		enano_perform_upgrade($current_branch);
+		enano_perform_upgrade(BANSHEE_LATEST_DBREV);
 		// Branch migration could be tricky and is often highly specific between
 		// major branches, so just include a custom migration script.
 		require(ENANO_ROOT . "/install/schemas/upgrade/migration/{$current_branch}-{$target_branch}.php");
@@ -248,10 +250,11 @@ if ( isset($_GET['stage']) && @$_GET['stage'] == 'pimpmyenano' )
 			$ui->show_footer();
 			exit;
 		}
+		setConfig('db_version', BANSHEE_LATEST_DBREV + 1);
 	}
 	
 	// Do the actual upgrade
-	enano_perform_upgrade($target_branch);
+	enano_perform_upgrade($db_version);
 	
 	// Mark as upgrade-in-progress
 	setConfig('enano_version', 'upg-' . installer_enano_version());
@@ -313,7 +316,7 @@ else
 {
 	?>
 	<h3><?php echo $lang->get('upgrade_confirm_title'); ?></h3>
-	<p><?php echo $lang->get('upgrade_confirm_body', array('enano_version' => installer_enano_version())); ?></p>
+	<p><?php echo $lang->get('upgrade_confirm_body', array('enano_version' => installer_enano_version(), 'db_version' => $db_version)); ?></p>
 	<ul>
 		<li><?php echo $lang->get('upgrade_confirm_objective_backup_fs', array('dir' => ENANO_ROOT)); ?></li>
 		<li><?php echo $lang->get('upgrade_confirm_objective_backup_db', array('dbname' => $dbname)); ?></li>

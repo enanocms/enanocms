@@ -237,6 +237,9 @@ var enano_lang = {
 			
 			heading_alerts: 'Active alerts',
 			
+			msg_upgrade_success_title: 'Upgrade successful',
+			msg_upgrade_success_body: 'Enano was successfully upgraded to version %config.enano_version%. View <a href="http://enanocms.org/Release_notes/%config.enano_version%">release notes for this version</a>.',
+			
 			msg_demo_title: 'Enano is running in demo mode.',
 			msg_demo_body: 'If you borked something up, or if you\'re done testing, you can <a href="%reset_url%">reset this site</a>. The site is reset automatically once every two hours. When a reset is performed, all custom modifications to the site are lost and replaced with default values.',
 			

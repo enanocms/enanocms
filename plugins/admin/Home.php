@@ -50,6 +50,16 @@ function page_Admin_Home()
 		echo '</div>';
 	}
 	
+	// Upgrade success
+	if ( getConfig('newly_upgraded') )
+	{
+		setConfig('newly_upgraded', false);
+		echo '<div class="acphome-box notice">'
+				. '<h3>' . $lang->get('acphome_msg_upgrade_success_title') . '</h3>'
+				. '<p>' . $lang->get('acphome_msg_upgrade_success_body') . '</p>'
+				. '</div>';
+	}
+	
 	// Check for the installer scripts
 	if( file_exists(ENANO_ROOT.'/install/install.php') && !defined('ENANO_DEMO_MODE') )
 	{

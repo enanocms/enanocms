@@ -116,7 +116,7 @@ function echo_stage_failure($stage_id, $stage_name, $failure_explanation, $resum
 	exit;
 }
 
-function enano_perform_upgrade($target_branch)
+function enano_perform_upgrade($target_rev)
 {
 	global $db, $session, $paths, $template, $plugins; // Common objects
 	// Import version info
@@ -133,64 +133,52 @@ function enano_perform_upgrade($target_branch)
 		return true;
 	}
 	
+	//
 	// Main upgrade stage
-	
-	// Init vars
-	list($major_version, $minor_version) = explode('.', installer_enano_version());
-	$installer_branch = "$major_version.$minor_version";
-	$installer_branch = preg_replace('/^upg-/', '', $installer_branch);
-	$target_branch = preg_replace('/^upg-/', '', $target_branch);
-	
-	$version_flipped = array_flip($enano_versions[$target_branch]);
-	$version_curr = enano_version();
-	// Change this to be the last version in the current branch.
-	// If we're just upgrading within this branch, use the version the installer library
-	// reports to us. Else, use the latest in the old (current target) branch.
-	// $version_target = installer_enano_version();
-	$version_target = ( $target_branch === $installer_branch ) ? installer_enano_version() : $enano_versions[$target_branch][ count($enano_versions[$target_branch]) - 1 ];
+	//
 	
 	// Calculate which scripts to run
-	if ( !isset($version_flipped[$version_curr]) )
+	$versions_avail = array();
+	
+	$dir = ENANO_ROOT . "/install/schemas/upgrade/$dbdriver/";
+	if ( $dh = @opendir($dir) )
 	{
-		echo '<p>ERROR: Unsupported version</p>';
-		$ui->show_footer();
-		exit;
-	}
-	if ( !isset($version_flipped[$version_target]) )
-	{
-		echo '<p>ERROR: Upgrader doesn\'t support its own version</p>';
-		$ui->show_footer();
-		exit;
-	}
-	$upg_queue = array();
-	for ( $i = $version_flipped[$version_curr]; $i < $version_flipped[$version_target]; $i++ )
-	{
-		if ( !isset($enano_versions[$target_branch][$i + 1]) )
+		while ( $di = @readdir($dh) )
 		{
-			echo '<p>ERROR: Unsupported intermediate version</p>';
-			$ui->show_footer();
-			exit;
+			if ( preg_match('/^[0-9]+\.sql$/', $di) )
+				$versions_avail[] = intval($di);
 		}
-		$ver_this = $enano_versions[$target_branch][$i];
-		$ver_next = $enano_versions[$target_branch][$i + 1];
-		$upg_queue[] = array($ver_this, $ver_next);
+	}
+	else
+	{
+		return false;
 	}
 	
-	// Verify that all upgrade scripts are usable
-	foreach ( $upg_queue as $verset )
+	// sort version list numerically
+	asort($versions_avail);
+	$versions_avail = array_values($versions_avail);
+	
+	$last_rev = $versions_avail[ count($versions_avail) - 1 ];
+	
+	$current_rev = getConfig('db_version', 0);
+	
+	if ( $last_rev <= $current_rev )
+		return true;
+	
+	foreach ( $versions_avail as $i => $ver )
 	{
-		$file = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}-$dbdriver.sql";
-		if ( !file_exists($file) )
+		if ( $ver > $current_rev )
 		{
-			echo "<p>ERROR: Couldn't find required schema file: $file</p>";
-			$ui->show_footer();
-			exit;
+			$upg_queue = array_slice($versions_avail, $i);
+			break;
 		}
 	}
+	
 	// Perform upgrade
-	foreach ( $upg_queue as $verset )
+	foreach ( $upg_queue as $version )
 	{
-		$file = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}-$dbdriver.sql";
+		$file = "{$dir}$version.sql";
+		
 		try
 		{
 			$parser = new SQL_Parser($file);
@@ -210,7 +198,7 @@ function enano_perform_upgrade($target_branch)
 		{
 			// It's empty, report success for this version
 			// See below for explanation of why setConfig() is called here
-			setConfig('enano_version', $verset[1]);
+			setConfig('db_version', $version);
 			continue;
 		}
 		
@@ -231,7 +219,7 @@ function enano_perform_upgrade($target_branch)
 		}
 		
 		// Is there an additional script (logic) to be run after the schema?
-		$postscript = ENANO_ROOT . "/install/schemas/upgrade/{$verset[0]}-{$verset[1]}.php";
+		$postscript = ENANO_ROOT . "/install/schemas/upgrade/$version.php";
 		if ( file_exists($postscript) )
 			@include($postscript);
 		
@@ -242,7 +230,7 @@ function enano_perform_upgrade($target_branch)
 		// need some sort of query-numbering system that tracks in-progress
 		// upgrades.
 		
-		setConfig('enano_version', $verset[1]);
+		setConfig('db_version', $version);
 	}
 }
 

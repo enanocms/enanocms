@@ -45,6 +45,12 @@ define('ENANO_COMMON_ROOT_LOADED', 1);
 // You'll want to change this for custom distributions.
 $version = '1.1.8';
 
+// Database schema version
+// This is incremented each time a change to the database structure is made.
+// If it doesn't match the version in the DB, the user will be asked to upgrade.
+// This must match install/includes/common.php!
+$db_version = 1125;
+
 /**
  * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it
  * from very early on in the script to measure the starting time of Enano.
@@ -263,10 +269,29 @@ if ( defined('ENANO_EXIT_AFTER_CONFIG') )
 	return true;
 }
 
-// Now that we have the config, check the Enano version.
-if ( enano_version(false, true) != $version && !defined('IN_ENANO_UPGRADE') )
+// Now that we have the config, check the database version.
+// ...We do have a database version, right? This was only added in 1.1.8, so assign
+// a database revision number if there isn't one in the config already.
+if ( getConfig('db_version') === false )
 {
-	grinding_halt('Version mismatch', '<p>It seems that the Enano release we\'re trying to run ('.$version.') is different from the version specified in your database ('.enano_version().'). Perhaps you need to <a href="'.scriptPath.'/install/index.php">upgrade</a>?</p>');
+	generate_db_version();
+}
+if ( ($current_db_revision = getConfig('db_version', 0)) < $db_version && !defined('IN_ENANO_UPGRADE') )
+{
+	grinding_halt('Database out of date', '<p>Your Enano database is out of date and needs to be upgraded. To do this, use the <a href="'.scriptPath.'/install/index.php">upgrade script</a>.</p>'
+		. "<p>Your database version: $current_db_revision<br />Latest version: $db_version</p>");
+}
+else if ( $current_db_revision > $db_version )
+{
+	grinding_halt('Database newer than Enano', '<p>Your Enano database is a newer revision than what this Enano release calls for. Please upgrade your Enano files.</p>'
+		. "<p>Your database version: $current_db_revision<br />Latest version: $db_version</p>");
+}
+
+// If we made it here, DB is up to date.
+if ( getConfig('enano_version') !== $version && !preg_match('/^upg-/', getConfig('enano_version')) )
+{
+	setConfig('enano_version', $version);
+	setConfig('newly_upgraded', 1);
 }
 
 // Set our CDN path

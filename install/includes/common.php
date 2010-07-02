@@ -21,6 +21,12 @@ $installer_version = array(
 	// 'sub' => '3' will produce Enano 1.1.1a3 / Enano 1.1.1 alpha 3
 );
 
+// Database schema version
+// This is incremented each time a change to the database structure is made.
+// If it doesn't match the version in the DB, the user will be asked to upgrade.
+// This must match includes/common.php!
+$db_version = 1125;
+
 function installer_enano_version($long = false)
 {
 	global $installer_version;

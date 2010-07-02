@@ -154,6 +154,10 @@ function stg_deliver_payload()
 			return false;
 		}
 	}
+	
+	global $db_version;
+	setConfig('db_version', $db_version);
+	
 	return true;
 }
 
@@ -569,13 +573,16 @@ function stg_set_version()
 {
 	global $db, $session, $paths, $template, $plugins; // Common objects
 	// log the upgrade
+	global $db_version;
 	$q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,author_uid,page_text,edit_summary) VALUES'
- 				. '(\'security\', \'upgrade_enano\', ' . time() . ', \'[DEPRECATED]\', \'' . $db->escape($session->username) . '\', ' . $session->user_id . ', \'' . $db->escape(installer_enano_version()) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
+ 				. '(\'security\', \'upgrade_enano\', ' . time() . ', \'[DEPRECATED]\', \'' . $db->escape($session->username) . '\', ' . $session->user_id . ', \'' . $db->escape($db_version) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
 	if ( !$q )
 	{
 		$db->_die();
 		return false;
 	}
+	setConfig('db_version', $db_version);
 	setConfig('enano_version', installer_enano_version());
+	setConfig('newly_upgraded', 1);
 	return true;
 }

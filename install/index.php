@@ -101,7 +101,7 @@ define('HAVE_PHP5', version_compare(PHP_VERSION, '5.0.0', '>='));
 										</a>
 									</li>
 									<?php
-									if ( installer_enano_version() == enano_version(true) )
+									if ( $db_version === getConfig('db_version') )
 									{
 										echo '<li>
 										<a class="upgrade-disabled icon icon-disabled">

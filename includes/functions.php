@@ -1422,6 +1422,41 @@ function enano_codename()
 }
 
 /**
+ * Set the database revision number if we don't have one.
+ */
+
+function generate_db_version()
+{
+	if ( getConfig('db_version') !== false )
+		return;
+	
+	$dbversions = array(
+			'1.0' => 1000,
+			'1.0.1' => 1010,
+			'1.0.2b1' => 1019,
+			'1.0.2' => 1020,
+			'1.0.3' => 1030,
+			'1.0.4' => 1040,
+			'1.0.5' => 1050,
+			'1.0.6' => 1060,
+			'1.0.6pl1' => 1070,
+			'1.1.1' => 1119,
+			'1.1.2' => 1120,
+			'1.1.3' => 1121,
+			'1.1.4' => 1122,
+			'1.1.5' => 1123,
+			'1.1.6' => 1124,
+			'1.1.7' => 1125,
+			'1.1.7pl1' => 1125,
+			'1.1.8' => 1125
+		);
+	if ( isset($dbversions[ enano_version(true, false) ]) )
+	{
+		setConfig('db_version', $dbversions[ enano_version(true, false) ]);
+	}
+}
+
+/**
  * Badly named function to send back eval'able Javascript code with an error message. Deprecated, use JSON instead.
  * @param string Message to send
  */
