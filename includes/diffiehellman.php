@@ -109,23 +109,23 @@ class SHA256
 		// 2009-07-02 Added & 0xFFFFFFFF here to fix problem on PHP w/ native 64-bit integer support (rev. 1030)
 		return (($msw << 16) | ($lsw & 0xFFFF)) & 0xFFFFFFFF;
 	}
-	function rshz($X, $n)
+	function rshz($a, $b)
 	{
 		// equivalent to $X >>> $n in javascript
 		// pulled from http://www.tapouillo.com/firefox_extension/sourcecode.txt, public domain
-		$z = hexdec(80000000); 
-		if ($z & $X) 
-		{ 
-				$X = ($X>>1); 
-				$X &= (~$z); 
-				$X |= 0x40000000; 
-				$X = ($X>>($n-1)); 
-		} 
-		else 
-		{ 
-				$X = ($X>>$n); 
-		} 
-		return $X; 
+		$z = hexdec(80000000);
+		if ($z & $a)
+		{
+			$a = ($a>>1);
+			$a &= (~$z);
+			$a |= 0x40000000;
+			$a = ($a>>($b-1));
+		}
+		else
+		{
+			$a = ($a>>$b);
+		}
+		return $a;
 	}
 	function S ($X, $n) {return ( $this->rshz($X, $n) ) | ($X << (32 - $n));}
 	function R ($X, $n) {return ( $this->rshz($X, $n) );}
@@ -248,6 +248,31 @@ class SHA256
 				$this->str2binb($s),
 				strlen($s) * $this->chrsz)
 			);
+	}
+	
+	/* self-test - make sure PHP isn't screwing us over */
+	function self_test()
+	{
+		return $this->hex_sha256("message digest") == "f7846f55cf23e14eebeab5b4e1550cad5b509e3348fbc4efa3a1413d393cb650";
+	}
+	
+	function __construct()
+	{
+		if ( !$this->self_test() )
+			die("SHA256 self test failed.<br />
+				 Please update PHP to v5.1.2 or later, which includes sha256 support built in. Nothing we can do, your platform likely does not support 32-bit unsigned integers in PHP.");
+	}
+}
+
+if ( !function_exists('sha256') && function_exists('hash') )
+{
+	if ( in_array('sha256', hash_algos()) )
+	{
+		// PHP >= 5.1.2 hash support
+		function sha256($text)
+		{
+			return hash('sha256', $text);
+		}
 	}
 }
 
