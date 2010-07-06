@@ -327,7 +327,7 @@ function ajaxServlet_Admin_ThemeManager(&$themes)
 			if ( !$q )
 				$db->die_json();
 			
-			if ( $theme_data['make_default'] )
+			if ( $theme_data['make_default'] && !defined('ENANO_DEMO_MODE') )
 			{
 				setConfig('theme_default', $theme_data['theme_id']);
 			}
