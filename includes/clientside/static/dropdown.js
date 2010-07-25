@@ -62,7 +62,7 @@ function jBoxSetup(obj)
 	removeTextNodes(obj);
 	
 	var html = document.getElementsByTagName('html')[0];
-	var direction = typeof(html.dir) != 'undefined' ? html.dir : 'ltr';
+	var direction = typeof(html.dir) != 'undefined' && html.dir != '' ? html.dir : 'ltr';
 	
 	for ( var i = 0; i < obj.childNodes.length; i++ )
 	{
