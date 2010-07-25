@@ -179,7 +179,7 @@ var enano_lang = {
 															<p>If you\'re trying to use a plugin\'s administration page, contact the developer of the plugin. If you\'re trying to use a function that is built into Enano (not added by a plugin), then please contact the Enano development team.</p>',
 			
 			msg_general_error: 'General error in page fetcher',
-										
+			
 			autosuggest_heading: 'Page name matches',
 			autosuggest_col_name: 'Page title',
 			autosuggest_col_page_id: 'Page ID'

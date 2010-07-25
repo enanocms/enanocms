@@ -15,7 +15,7 @@
  * @subpackage PathManager
  * @see http://enanocms.org/Help:API_Documentation
  */
- 
+
 class pathManager
 {
 	public $title, $pages, $custom_page, $cpage, $page, $fullpage, $page_exists, $page_id, $namespace, $nslist, $admin_tree, $wiki_mode, $page_protected, $template_cache, $external_api_page;

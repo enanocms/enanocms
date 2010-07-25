@@ -101,6 +101,13 @@ var AJAX_STATE_LOADING_KEY = 2;
 var ajax_login_prevent_dh = ( IE && !IE_8 ) || ( is_iPhone && !is_iPhone_3 );
 
 /**
+ * Time to wait to focus the controls.
+ * @var int
+ */
+
+var AJAX_LOGIN_FOCUS_WAIT = aclDisableTransitionFX ? 0 : 750;
+
+/**
  * Performs the AJAX request to get an encryption key and from there spawns the login form.
  * @param function The function that will be called once authentication completes successfully.
  * @param int The security level to authenticate at - see http://docs.enanocms.org/Help:Appendix_B
@@ -154,6 +161,7 @@ window.ajaxLoginInit = function(call_on_finish, user_level)
 	logindata.showing_status = false;
 	logindata.user_level = user_level;
 	logindata.successfunc = call_on_finish;
+	logindata.start_time = (new Date()).getTime();
 	
 	// Build the "loading" window
 	ajaxLoginSetStatus(AJAX_STATUS_LOADING_KEY);
@@ -756,6 +764,8 @@ window.ajaxLoginBuildForm = function(data)
 	logindata.mb_inner.appendChild(div);
 	
 	// Post operations: field focus
+	var wait_time = AJAX_LOGIN_FOCUS_WAIT - ((new Date()).getTime() - logindata.start_time);
+	wait_time = Math.max(0, wait_time);
 	setTimeout(
 		function()
 		{
@@ -763,7 +773,7 @@ window.ajaxLoginBuildForm = function(data)
 				document.getElementById('ajax_login_field_password').focus();
 			else
 				document.getElementById('ajax_login_field_username').focus();
-		}, 750);        
+		}, wait_time);
 	
 	// Post operations: show captcha window
 	if ( show_captcha )
