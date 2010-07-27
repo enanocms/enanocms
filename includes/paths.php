@@ -726,6 +726,32 @@ class pathManager
 	}
 	
 	/**
+	 * Get the unique words on a page. Returns an array listing all items in small array $arr1 that are not in very large array $arr2.
+	 * @param array
+	 * @param array
+	 * @return array
+	 */
+	
+	function get_unique_words($arr1, $arr2)
+	{
+		$no = array();
+		foreach ( $arr2 as $w )
+		{
+			if ( ($k = array_search($w, $arr1, true)) !== false )
+			{
+				$no[$k] = true;
+			}
+		}
+		$ret = array();
+		foreach ( $arr1 as $k => $w )
+		{
+			if ( !isset($no[$k]) )
+				$ret[] = $w;
+		}
+		return $ret;
+	}
+	
+	/**
  	* Builds a word list for search indexing.
  	* @param string Text to index
  	* @param string Page ID of the page being indexed
@@ -863,17 +889,22 @@ class pathManager
 					$page_uniqid = $db->escape($page_uniqid);
 					
 					// List of words on the page
+					if ( $debug )
+						echo "wordlist...";
 					$wordlist = $this->calculate_word_list($row['page_text'], $row['page_id'], $row['name']);
 					
 					// Index calculation complete -- run inserts
 					$inserts = array();
+					$qt = array();
+					$unique_words = $this->get_unique_words($wordlist, $master_word_list);
 					foreach ( $wordlist as $word )
 					{
+						$qs = microtime_float();
 						if ( in_array($word, $stopwords) || strval(intval($word)) === $word || strlen($word) < 3 )
 							continue;
 						$word_db = $db->escape($word);
 						$word_db_lc = $db->escape(strtolower($word));
-						if ( !in_array($word, $master_word_list) )
+						if ( in_array($word, $unique_words) )
 						{
 							$inserts[] = "( '$word_db', '$word_db_lc', '$page_uniqid' )";
 						}
@@ -888,7 +919,10 @@ class pathManager
 							if ( !$q )
 								$db->_die();
 						}
+						$qt[] = microtime_float() - $qs;
 					}
+					if ( $debug && count($qt) > 0 )
+						echo "QT: " . number_format(array_sum($qt) / count($qt), 4) . " * " . count($qt) . '; wl_len: ' . count($master_word_list) .' ';
 					if ( count($inserts) > 0 )
 					{
 						if ( $verbose && $debug )
@@ -899,14 +933,14 @@ class pathManager
 							$db->_die();
 					}
 					
-					$master_word_list = array_unique(array_merge($master_word_list, $wordlist));
+					$master_word_list = array_merge($master_word_list, $unique_words);
 					if ( $verbose )
 					{
 						if ( isset($_SERVER['REQUEST_URI']) )
 							echo '<br />';
 						echo "\n";
 					}
-					unset($inserts, $wordlist, $page_uniqid, $word_db, $q, $word, $row);
+					unset($inserts, $wordlist, $page_uniqid, $word_db, $q, $word, $row, $unique_words);
 				}
 				while ( $row = $db->fetchrow($texts) );
 			}

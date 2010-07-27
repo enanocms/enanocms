@@ -2545,14 +2545,14 @@ function generate_paginator($current_page, $num_pages, $result_url, $start_mult 
 }
 
 /**
- * Paginates (breaks into multiple pages) a MySQL result resource, which is treated as unbuffered.
- * @param resource The MySQL result resource. This should preferably be an unbuffered query.
+ * Paginates (breaks into multiple pages) a database result resource, which is treated as unbuffered.
+ * @param resource The result resource. This should preferably be an unbuffered query, which allows scalability across very large result sets.
  * @param string A template, with variables being named after the column name
  * @param int The number of total results. This should be determined by a second query.
  * @param string sprintf-style formatting string for URLs for result pages. First parameter will be start offset.
  * @param int Optional. Start offset in individual results. Defaults to 0.
  * @param int Optional. The number of results per page. Defualts to 10.
- * @param int Optional. An associative array of functions to call, with key names being column names, and values being function names. Values can also be an array with key 0 being either an object or a string(class name) and key 1 being a [static] method.
+ * @param array Optional. An associative array of functions to call, with key names being column names, and values being callbacks (string or array(string, string) or array(object, string)). They can also be closures if you're OK with incompatibility with PHP <5.3.0.
  * @param string Optional. The text to be sent before the result list, only if there are any results. Possibly the start of a table.
  * @param string Optional. The text to be sent after the result list, only if there are any results. Possibly the end of a table.
  * @return string

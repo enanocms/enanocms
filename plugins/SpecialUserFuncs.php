@@ -391,7 +391,8 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
 					$get_add = '';
 					foreach ( $get_fwd as $key => $value )
 					{
-						$get_add .= "&{$key}=" . urlencode($value);
+						if ( $key != 'auth' )
+							$get_add .= "&{$key}=" . urlencode($value);
 					}
 					$get_add = ltrim($get_add, '&');
 				}
