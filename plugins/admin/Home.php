@@ -446,7 +446,8 @@ function acphome_show_stats()
 				<?php echo $lang->get('acphome_stat_enano_version', array(
 						'version' => enano_version(true),
 						'releasename' => enano_codename(),
-						'aboutlink' => makeUrlNS('Special', 'About_Enano')
+						'aboutlink' => makeUrlNS('Special', 'About_Enano'),
+						'dbversion' => getConfig('db_version')
 					)); ?>
 			</th>
 		</tr>

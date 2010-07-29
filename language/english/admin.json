@@ -218,7 +218,7 @@ var enano_lang = {
 			
 			// Stats!
 			stat_header: 'Site statistics',
-			stat_enano_version: 'Enano CMS %version% (%releasename%)<br /><a href="%aboutlink%">View server information and license</a>',
+			stat_enano_version: 'Enano CMS %version% (%releasename%) &ndash; Database version %dbversion%<br /><a href="%aboutlink%">View server information and license</a>',
 			stat_numpages: 'Number of pages:',
 			stat_edits: 'Number of edits made:',
 			stat_edits_data: '%edit_count% (average of %per_day% per day)',
