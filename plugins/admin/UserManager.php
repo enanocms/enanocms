@@ -198,6 +198,13 @@ function page_Admin_UserManager()
 					$to_update_users['activation_key'] = sha1($session->dss_rand());
 				}
 				
+				// All builtin checks passed, let plugins do what they want
+				$code = $plugins->setHook('acp_usermanager_form_post');
+				foreach ( $code as $cmd )
+				{
+					eval($cmd);
+				}
+				
 				if ( count($errors) < 1 )
 				{
 					$to_update_users_extra = array();
@@ -1025,6 +1032,12 @@ class Admin_UserManager_SmartForm
 								
 							<!-- / Avatar settings -->
 							
+							<!-- Hooks -->
+							
+								{PLUGINS}
+							
+							<!-- / Hooks -->
+							
 							<!-- Administrator-only options -->
 							
 								<tr>
@@ -1159,6 +1172,16 @@ EOF;
 			return 'Admin_UserManager_SmartForm::render: Invalid parameter ($form->email)';
 		}
 		
+		// Let plugins add HTML
+		ob_start();
+		$code = $plugins->setHook('acp_usermanager_form_html');
+		foreach ( $code as $cmd )
+		{
+			eval($cmd);
+		}
+		$plugin_html = ob_get_contents();
+		ob_end_clean();
+		
 		$form_action = makeUrlNS('Special', 'Administration', 'module=' . $paths->cpage['module'], true);
 		$aes_javascript = $session->aes_javascript("useredit_$this->uuid", 'new_password');
 		
@@ -1196,7 +1219,8 @@ EOF;
 				'FORM_ACTION' => $form_action,
 				'REG_IP_ADDR' => $this->reg_ip_addr,
 				'RANK_LIST' => $rank_list,
-				'GRAVATAR_URL' => make_gravatar_url($this->email, 16)
+				'GRAVATAR_URL' => make_gravatar_url($this->email, 16),
+				'PLUGINS' => $plugin_html
 			));
 		
 		if ( $this->has_avatar )
