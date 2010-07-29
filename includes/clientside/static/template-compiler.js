@@ -8,6 +8,7 @@ window.templateParser = function(text)
 	this.tpl_bool    = new Object();
 	this.assign_vars = __tpAssignVars;
 	this.assign_bool = __tpAssignBool;
+	this.fetch_hook  = __tpFetchHook;
 	this.run         = __tpRun;
 }
 
@@ -59,6 +60,7 @@ window.__tpCompileTemplate = function(code)
 	code = code.replace(/\<!-- IFSET ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( typeof(this.tpl_strings['$1']) == 'string' ) ? '$2' : '' ) + '");
 	code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- BEGINELSE \1 --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '$3' ) + '");
 	code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '' ) + '");
+	code = code.replace(/\<!-- HOOK ([A-z0-9_-]+) --\>/ig, "' + this.fetch_hook('$1') + '");
 	return code;
 }
 
@@ -77,5 +79,18 @@ window.__tpExtractVars = function(code)
 	code = '( { ' + code + ' "________null________" : false } )';
 	vars = eval(code);
 	return vars;
+}
+
+window.__tpFetchHook = function(hookid)
+{
+	var _ob = '';
+	window.Template = this;
+	window.Echo = function(h)
+	{
+		_ob += h;
+	}
+	eval(setHook('thook_' + hookid));
+	window.Echo = window.Template = false;
+	return _ob;
 }
 

@@ -19,6 +19,7 @@
 							<!-- END user_has_avatar -->
 						</td>
 					</tr>
+					<!-- HOOK comment_left -->
 					<tr>
 						<td valign="bottom" class="row1<!-- BEGIN is_friend --> row1_green<!-- END is_friend --><!-- BEGIN is_foe --> row1_red<!-- END is_foe -->">
 							{SEND_PM_LINK} {ADD_BUDDY_LINK}
