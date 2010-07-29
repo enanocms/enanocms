@@ -294,15 +294,34 @@ function page_Special_Usergroups()
 			$r = $db->fetchrow();
 			$members[] = $r;
 			$db->free_result();
+			$is_member = true;
 			
 		}
-		
-		if ( isset($_GET['act']) && $_GET['act'] == 'update' && !$is_member && $row['group_type'] == GROUP_REQUEST && !$is_pending && !$can_do_admin_stuff )
+		else if ( isset($_GET['act']) && $_GET['act'] == 'update' && $is_member && ($row['group_type'] == GROUP_OPEN || $row['group_type'] == GROUP_REQUEST) && !$can_do_admin_stuff )
+		{
+			$q = $db->sql_query('DELETE FROM ' . table_prefix . "group_members WHERE group_id = $gid AND user_id = $session->user_id;");
+			if ( !$q )
+				$db->_die();
+			
+			foreach ( $members as $i => $m )
+			{
+				if ( $m['user_id'] == $session->user_id )
+				{
+					unset($members[$i]);
+					break;
+				}
+			}
+			
+			echo '<div class="info-box">' . $lang->get('groupcp_msg_self_removed') . '</div>';
+			$is_member = false;
+		}
+		else if ( isset($_GET['act']) && $_GET['act'] == 'update' && !$is_member && $row['group_type'] == GROUP_REQUEST && !$is_pending && !$can_do_admin_stuff )
 		{
 			$q = $db->sql_query('INSERT INTO '.table_prefix.'group_members(group_id,user_id,pending) VALUES(' . $gid . ', ' . $session->user_id . ', 1);');
 			if (!$q)
 				$db->_die('SpecialGroups.php, line ' . __LINE__);
 			echo '<div class="info-box">' . $lang->get('groupcp_msg_membership_requested') . '</div>';
+			$is_pending = true;
 		}
 		
 		$state_btns = ( $can_do_admin_stuff ) ?
@@ -322,6 +341,10 @@ function page_Special_Usergroups()
 		if ( !$can_do_admin_stuff && $row['group_type'] == GROUP_OPEN && !$is_member )
 		{
 			$state_btns .= ' <input type="submit" value="' . $lang->get('groupcp_btn_join') . '" />';
+		}
+		else if ( !$can_do_admin_stuff && ($row['group_type'] == GROUP_OPEN || $row['group_type'] == GROUP_REQUEST) && $is_member )
+		{
+			$state_btns .= ' <input type="submit" value="' . $lang->get('groupcp_btn_leave') . '" />';
 		}
 		
 		$g_name_local = 'groupcp_grp_' . strtolower($row['group_name']);

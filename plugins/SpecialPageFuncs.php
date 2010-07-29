@@ -643,8 +643,9 @@ function page_Special_Autofill()
 				if ( isset($_GET['userinput']) && strlen($_GET['userinput']) >= 3 )
 				{
 					$search = '%' . escape_string_like($_GET['userinput']) . '%';
+					$lsearch = strtolower($search);
 					$min_id = ( isset($_GET['allow_anon']) && $_GET['allow_anon'] == '1' ) ? '1' : '2';
-					$q = $db->sql_query('SELECT username FROM ' . table_prefix . "users WHERE " . ENANO_SQLFUNC_LOWERCASE . "(username) LIKE '$search' AND user_id >= $min_id");
+					$q = $db->sql_query('SELECT username FROM ' . table_prefix . "users WHERE (" . ENANO_SQLFUNC_LOWERCASE . "(username) LIKE '$lsearch' OR username LIKE '$search') AND user_id >= $min_id");
 					if ( !$q )
 						$db->die_json();
 					
