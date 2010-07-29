@@ -2527,7 +2527,7 @@ class sessionManager {
 	 			. "  LEFT JOIN " . table_prefix . "groups AS g\n"
 	 			. "    ON ( g.group_id = u.user_group )\n"
 	 			. "  LEFT JOIN " . table_prefix . "group_members AS m\n"
-	 			. "    ON ( u.user_id = m.user_id )\n"
+	 			. "    ON ( u.user_id = m.user_id AND m.pending < 1 )\n"
 	 			. "  LEFT JOIN " . table_prefix . "ranks AS ru\n"
 	 			. "    ON ( u.user_rank = ru.rank_id )\n"
 	 			. "  LEFT JOIN " . table_prefix . "ranks AS rg\n"
