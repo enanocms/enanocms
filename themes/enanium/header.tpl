@@ -90,7 +90,6 @@
 						<li><a href="{url:Special:Memberlist|escape}">{lang:specialpage_member_list}</a></li>
 						<!-- END user_logged_in -->
 						<!-- BEGIN auth_admin -->
-						{SIDEBAR_LINK}
 						{ADMIN_LINK}
 						<!-- END auth_admin -->
 					</ul>

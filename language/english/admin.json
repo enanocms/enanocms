@@ -62,6 +62,7 @@ var enano_lang = {
 			
 			page_themes: 'Manage themes',
 			page_plugins: 'Manage plugins',
+			page_editsidebar: 'Edit sidebar',
 			page_db_backup: 'Backup database',
 			page_lang_manager: 'Language manager',
 			page_cache_manager: 'Cache settings',
@@ -1165,7 +1166,7 @@ var enano_lang = {
 			msg_logout_complete: 'You will continue to be logged into the website, but you will need to re-authenticate before you can access the administration panel again.</p><p>Return to the <a href="%mainpage_link%">Main Page</a>.',
 		},
 		sbedit: {
-			header_msg: 'This control panel allows you to organize the sidebars, the collections of links and dynamic blocks that provide navigation for your site. Drag and drop blocks to move them between the left and right sidebars; changes will be saved automatically. Red blocks are disabled. This panel only works if you have Javascript enabled and working in your browser. <a href="%create_link%">Create a new block</a>.',
+			header_msg: 'This control panel allows you to organize the sidebars, the collections of links and dynamic blocks that provide navigation for your site. Drag and drop blocks to move them between the left and right sidebars; changes will be saved automatically. Red blocks are disabled. This panel only works if you have Javascript enabled and working in your browser. <a href="%create_link%" onclick="ajaxPage(namespace_list.Admin + \'EditSidebar\', \'action=new&amp;id=0\'); return false;">Create a new block</a>.',
 			
 			msg_order_update_success: 'The sidebar order information was updated successfully.',
 			err_demo_php_disable: 'Adding PHP code blocks in the Enano administration demo has been disabled for security reasons.',

@@ -417,6 +417,8 @@ class template
 	
 	function set_page($page_id_or_pp, $namespace = false)
 	{
+		global $paths;
+		
 		if ( is_object($page_id_or_pp) && get_class($page_id_or_pp) === 'PageProcessor' )
 		{
 			$this->page_initted = false;
@@ -442,6 +444,9 @@ class template
 		{
 			return false;
 		}
+		$this->assign_vars(array(
+				'PAGE_URLNAME' => $paths->get_pathskey($this->page_id, $this->namespace)
+			));
 		return true;
 	}
 	
@@ -699,13 +704,8 @@ JSEOF;
 		
 		$admin_link = $parser->run();
 		
-		$parser->assign_vars(Array(
-				'HREF'=>makeUrlNS('Special', 'EditSidebar'),
-				'FLAGS'=>'onclick="if ( !KILL_SWITCH ) { void(ajaxLoginNavTo(\'Special\', \'EditSidebar\', ' . USER_LEVEL_ADMIN . ')); return false; }"',
-				'TEXT'=>$lang->get('sidebar_btn_editsidebar'),
-			));
-		
-		$sidebar_link = $parser->run();
+		// We're leaving this in for now, just blanked out, to avoid compatibility issues.
+		$sidebar_link = '';
 		
 		$this->assign_vars(array(
 				'ADMIN_LINK' => $admin_link,
@@ -2830,6 +2830,7 @@ class templateIndividual extends template
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		$this->tpl_code = $text;
 		$this->tpl_strings = $template->tpl_strings;
+		// echo 'templateIndividual init. Using strings: <pre>' . htmlspecialchars(print_r($this->tpl_strings, true)) . '</pre>';
 		$this->tpl_bool = $template->tpl_bool;
 	}
 	/**

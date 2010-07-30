@@ -18,7 +18,24 @@ var sbedit_load = function()
     });
   };
   
+addOnloadHook(function()
+	{
+		attachHook('admin_page_onload', 'sbedit_conditional_init(t, qs);');
+	});
+
+// if the page was loaded directly this will be used instead
 addOnloadHook(sbedit_load);
+
+function sbedit_conditional_init(t, qs)
+{
+	if ( t != namespace_list.Admin + 'EditSidebar' )
+		return false;
+	
+	if ( qs == '&action=new&id=0' )
+		setType(document.getElementById('sbedit_create_select_type'));
+	else
+		sbedit_load();
+}
 
 function serialize_sidebar()
 {
@@ -84,7 +101,7 @@ function sbedit_open_editor(a)
         var whitey = whiteOutElement(this);
         $(this).append('<textarea style="width: 98%; height: 360px; margin: 0 auto; display: block;" rows="20" cols="80"></textarea>');
         $(this).append('<p style="text-align: center;"><a href="#" onclick="sbedit_edit_save(this); return false;">' + $lang.get('etc_save_changes') + '</a> | <a href="#" onclick="sbedit_edit_cancel(this); return false;">' + $lang.get('etc_cancel') + '</a></p>');
-        $.get(makeUrlNS('Special', 'EditSidebar', 'action=getsource&noheaders&id=' + item_id), {}, function(response, statustext)
+        $.get(makeUrlNS('Admin', 'EditSidebar', 'action=getsource&noheaders&id=' + item_id), {}, function(response, statustext)
           {
             $('textarea', box).val(response);
             $(whitey).remove();
@@ -100,7 +117,7 @@ function sbedit_edit_save(a)
   var box = a.parentNode.parentNode;
   var parent = document.getElementById('block:' + $(box).attr('enano:item_id'));
   var whitey = whiteOutElement(box);
-  $.post(makeUrlNS('Special', 'EditSidebar', 'noheaders&action=save&id=' + $(box).attr('enano:item_id')), { content: $('textarea', box).attr('value') }, function(response, statustext)
+  $.post(makeUrlNS('Admin', 'EditSidebar', 'noheaders&action=save&id=' + $(box).attr('enano:item_id')), { content: $('textarea', box).attr('value') }, function(response, statustext)
     {
       whiteOutReportSuccess(whitey);
       setTimeout(function()
@@ -187,7 +204,7 @@ function sbedit_delete_block_s2(box)
   var id = parseInt($(parent).attr('id').replace(/^block:/, ''));
   var whitey = whiteOutElement(parent);
   
-  $.get(makeUrlNS('Special', 'EditSidebar', 'action=delete&ajax=true&noheaders&id=' + id), function(response, statustext)
+  $.get(makeUrlNS('Admin', 'EditSidebar', 'action=delete&ajax=true&noheaders&id=' + id), function(response, statustext)
     {
       if ( response == 'GOOD' )
       {
@@ -223,7 +240,7 @@ function sbedit_rename_block(a)
           var whitey = whiteOutElement(this.parentNode);
           var me = this;
           var id = parseInt($(parent).attr('id').replace(/^block:/, ''));
-          $.post(makeUrlNS('Special', 'EditSidebar', 'ajax&noheaders&action=rename&id='+id), { newname: $(this).attr('value') }, function(response, statustext)
+          $.post(makeUrlNS('Admin', 'EditSidebar', 'ajax&noheaders&action=rename&id='+id), { newname: $(this).attr('value') }, function(response, statustext)
             {
               if ( response == 'GOOD' )
               {
@@ -256,7 +273,7 @@ function sbedit_disenable_block(a)
 {
   var parent = sbedit_get_parent(a);
   var whitey = whiteOutElement(parent);
-  $.get(makeUrlNS('Special', 'EditSidebar', 'action=disenable&ajax=true&noheaders&id=' + parseInt($(parent).attr('id').replace(/^block:/, ''))), {}, function(response, statustext)
+  $.get(makeUrlNS('Admin', 'EditSidebar', 'action=disenable&ajax=true&noheaders&id=' + parseInt($(parent).attr('id').replace(/^block:/, ''))), {}, function(response, statustext)
     {
       if ( response == 'GOOD' )
       {
@@ -301,7 +318,7 @@ function ajaxUpdateSidebarOrder()
     unsetAjaxLoading();
     return false;
   }
-  $.post(makeUrlNS('Special', 'EditSidebar', 'update_order'), { order: ser }, function(response, statustext)
+  $.post(makeUrlNS('Admin', 'EditSidebar', 'update_order'), { order: ser }, function(response, statustext)
     {
       var msg = document.createElement('div');
       $(msg)
@@ -319,3 +336,17 @@ function ajaxUpdateSidebarOrder()
     }, 'json');
 }
 
+function setType(input)
+{
+	val = input.value;
+	if(!val)
+	{
+		return false;
+	}
+	var divs = getElementsByClassName(document, 'div', 'sbadd_block');
+	for(var i in divs)
+	{
+		if(divs[i].id == 'blocktype_'+val) divs[i].style.display = 'block';
+		else divs[i].style.display = 'none';
+	}
+}

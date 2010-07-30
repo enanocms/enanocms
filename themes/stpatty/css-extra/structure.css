@@ -54,8 +54,7 @@ div.straightaway {
 }
 /* Footer */
 div.footer {
-	min-height: 40px;
-	padding: 10px;
+	padding: 10px 10px 7px 10px;
 	background-repeat: repeat-x;
 }
 

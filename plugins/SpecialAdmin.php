@@ -30,7 +30,6 @@ function SpecialAdmin_paths_init()
 	global $paths;
 	
 	register_special_page('Administration', 'specialpage_administration');
-	register_special_page('EditSidebar', 'specialpage_manage_sidebar');
 }
 
 $plugins->attachHook('base_classes_initted', 'SpecialAdmin_include();');
@@ -2011,6 +2010,7 @@ function page_Special_Administration()
 		$template->preload_js('jquery-ui');
 		$template->preload_js('autofill');
 		$template->preload_js('admin-menu');
+		$template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/sbedit.js"></script>');
 		
 		$output->header();
 		
@@ -2214,505 +2214,485 @@ EOF;
 	}
 }
 
-function page_Special_EditSidebar()
+function page_Admin_EditSidebar()
 {
 	global $db, $session, $paths, $template, $plugins; // Common objects
 	global $lang;
 	global $cache;
 	
-	if($session->auth_level < USER_LEVEL_ADMIN) 
+	if ( $session->auth_level < USER_LEVEL_ADMIN || $session->user_level < USER_LEVEL_ADMIN )
 	{
-		redirect(makeUrlNS('Special', 'Login/'.$paths->page, 'level='.USER_LEVEL_ADMIN), '', '', false);
-		exit;
+		$login_link = makeUrlNS('Special', 'Login/' . $paths->nslist['Special'] . 'Administration', 'level=' . USER_LEVEL_ADMIN, true);
+		echo '<h3>' . $lang->get('adm_err_not_auth_title') . '</h3>';
+		echo '<p>' . $lang->get('adm_err_not_auth_body', array( 'login_link' => $login_link )) . '</p>';
+		return;
 	}
-	else 
+	
+	if ( isset($_GET['update_order']) )
 	{
-		if ( isset($_GET['update_order']) )
+		header('Content-type: text/javascript');
+		$order = @$_POST['order'];
+		try
 		{
-			header('Content-type: text/javascript');
-			$order = @$_POST['order'];
-			try
-			{
-				$order = enano_json_decode($order);
-			}
-			catch ( Zend_Json_Exception $e )
-			{
-				return print enano_json_encode(array(
-						'mode' => 'error',
-						'error' => 'bad order'
-					));
-			}
-			
-			foreach ( $order as $sidebar_id => $blocks )
-			{
-				foreach ( $blocks as $order => $block_id )
-				{
-					$sbid = intval($sidebar_id);
-					$order = intval($order);
-					$block_id = intval($block_id);
-					$q = $db->sql_query('UPDATE ' . table_prefix . "sidebar SET sidebar_id = $sbid, item_order = $order WHERE item_id = $block_id;");
-					if ( !$q )
-						$db->die_json();
-				}
-			}
-			
+			$order = enano_json_decode($order);
+		}
+		catch ( Zend_Json_Exception $e )
+		{
 			return print enano_json_encode(array(
-					'mode' => 'success'
+					'mode' => 'error',
+					'error' => 'bad order'
 				));
 		}
 		
-		$template->preload_js(array('l10n', 'jquery', 'jquery-ui'));
-		$template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/sbedit.js"></script>');
-		
-		$template->header();
-		
-		if(isset($_POST['save']))
+		foreach ( $order as $sidebar_id => $blocks )
 		{
-			// Write the new block order to the database
-			// The only way to do this is with tons of queries (one per block + one select query at the start to count everything) but afaik its safe...
-			// Anyone know a better way to do this?
-			$q = $db->sql_query('SELECT item_order,item_id,sidebar_id FROM '.table_prefix.'sidebar ORDER BY sidebar_id ASC, item_order ASC;');
-			if ( !$q )
+			foreach ( $blocks as $order => $block_id )
 			{
-				$db->_die('The sidebar order data could not be selected.');
+				$sbid = intval($sidebar_id);
+				$order = intval($order);
+				$block_id = intval($block_id);
+				$q = $db->sql_query('UPDATE ' . table_prefix . "sidebar SET sidebar_id = $sbid, item_order = $order WHERE item_id = $block_id;");
+				if ( !$q )
+					$db->die_json();
 			}
-			$orders = Array();
-			while($row = $db->fetchrow())
-			{
-				$orders[] = Array(
-						count($orders),
-						$row['item_id'],
-						$row['sidebar_id'],
-					);
-			}
-			$db->free_result();
-			
-			// We now have an array with each sidebar ID in its respective order. Explode the order string in $_POST['order_(left|right)'] and use it to build a set of queries.
-			$ol = explode(',', $_POST['order_left']);
-			$odr = explode(',', $_POST['order_right']);
-			$om = array_merge($ol, $odr);
-			unset($ol, $odr);
-			$queries = Array();
-			foreach($orders as $k => $v)
-			{
-				$queries[] = 'UPDATE '.table_prefix.'sidebar SET item_order='.intval($om[$k]).' WHERE item_id='.intval($v[1]).';';
-			}
-			foreach($queries as $sql)
-			{
-				$q = $db->sql_query($sql);
-				if(!$q)
-				{
-					$t = $db->get_error();
-					echo $t;
-					$template->footer();
-					exit;
-				}
-			}
-			$cache->purge('anon_sidebar');
-			echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_order_update_success') . '</div>';
 		}
-		elseif(isset($_POST['create']))
+		
+		return print enano_json_encode(array(
+				'mode' => 'success'
+			));
+	}
+	
+	// $template->preload_js(array('l10n', 'jquery', 'jquery-ui'));
+	// $template->add_header('<script type="text/javascript" src="'.cdnPath.'/includes/clientside/sbedit.js"></script>');
+	
+	// $template->header();
+	
+	if(isset($_POST['save']))
+	{
+		// Write the new block order to the database
+		// The only way to do this is with tons of queries (one per block + one select query at the start to count everything) but afaik its safe...
+		// Anyone know a better way to do this?
+		$q = $db->sql_query('SELECT item_order,item_id,sidebar_id FROM '.table_prefix.'sidebar ORDER BY sidebar_id ASC, item_order ASC;');
+		if ( !$q )
 		{
-			switch((int)$_POST['type'])
+			$db->_die('The sidebar order data could not be selected.');
+		}
+		$orders = Array();
+		while($row = $db->fetchrow())
+		{
+			$orders[] = Array(
+					count($orders),
+					$row['item_id'],
+					$row['sidebar_id'],
+				);
+		}
+		$db->free_result();
+		
+		// We now have an array with each sidebar ID in its respective order. Explode the order string in $_POST['order_(left|right)'] and use it to build a set of queries.
+		$ol = explode(',', $_POST['order_left']);
+		$odr = explode(',', $_POST['order_right']);
+		$om = array_merge($ol, $odr);
+		unset($ol, $odr);
+		$queries = Array();
+		foreach($orders as $k => $v)
+		{
+			$queries[] = 'UPDATE '.table_prefix.'sidebar SET item_order='.intval($om[$k]).' WHERE item_id='.intval($v[1]).';';
+		}
+		foreach($queries as $sql)
+		{
+			$q = $db->sql_query($sql);
+			if(!$q)
 			{
-				case BLOCK_WIKIFORMAT:
-					$content = $_POST['wikiformat_content'];
-					break;
-				case BLOCK_TEMPLATEFORMAT:
-					$content = $_POST['templateformat_content'];
-					break;
-				case BLOCK_HTML:
-					$content = $_POST['html_content'];
-					break;
-				case BLOCK_PHP:
-					$content = $_POST['php_content'];
-					break;
-				case BLOCK_PLUGIN:
-					$content = $_POST['plugin_id'];
-					break;
-			}
-			
-			if ( defined('ENANO_DEMO_MODE') )
-			{
-				// Sanitize the HTML
-				$content = sanitize_html($content, true);
-			}
-			
-			if ( defined('ENANO_DEMO_MODE') && intval($_POST['type']) == BLOCK_PHP )
-			{
-				echo '<div class="error-box" style="margin: 10px 0 10px 0;">' . $lang->get('sbedit_err_demo_php_disable') . '</div>';
-				$_POST['php_content'] = '?>&lt;Nulled&gt;';
-				$content = $_POST['php_content'];
-			}
-			
-			// Get the value of item_order
-			
-			$q = $db->sql_query('SELECT * FROM '.table_prefix.'sidebar WHERE sidebar_id='.intval($_POST['sidebar_id']).';');
-			if(!$q) $db->_die('The order number could not be selected');
-			$io = $db->numrows();
-			
-			$db->free_result();
-			
-			$q = 'INSERT INTO '.table_prefix.'sidebar(block_name, block_type, sidebar_id, block_content, item_order) VALUES ( \''.$db->escape($_POST['title']).'\', \''.$db->escape($_POST['type']).'\', \''.$db->escape($_POST['sidebar_id']).'\', \''.$db->escape($content).'\', '.$io.' );';
-			$result = $db->sql_query($q);
-			if(!$result)
-			{
-				echo $db->get_error();
-				$template->footer();
+				$t = $db->get_error();
+				echo $t;
+				
 				exit;
 			}
-		
-			$cache->purge('anon_sidebar');
-			echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_item_added') . '</div>';
-			
+		}
+		$cache->purge('anon_sidebar');
+		echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_order_update_success') . '</div>';
+	}
+	elseif(isset($_POST['create']))
+	{
+		switch((int)$_POST['type'])
+		{
+			case BLOCK_WIKIFORMAT:
+				$content = $_POST['wikiformat_content'];
+				break;
+			case BLOCK_TEMPLATEFORMAT:
+				$content = $_POST['templateformat_content'];
+				break;
+			case BLOCK_HTML:
+				$content = $_POST['html_content'];
+				break;
+			case BLOCK_PHP:
+				$content = $_POST['php_content'];
+				break;
+			case BLOCK_PLUGIN:
+				$content = $_POST['plugin_id'];
+				break;
 		}
 		
-		if(isset($_GET['action']) && isset($_GET['id']))
+		if ( defined('ENANO_DEMO_MODE') )
 		{
-			if(!preg_match('#^([0-9]*)$#', $_GET['id']))
-			{
-				echo '<div class="warning-box">Error with action: $_GET["id"] was not an integer, aborting to prevent SQL injection</div>';
-			}
-			switch($_GET['action'])
-			{
-				case 'new':
-					?>
-					<script type="text/javascript">
-					function setType(input)
-					{
-						val = input.value;
-						if(!val)
-						{
-							return false;
-						}
-						var divs = getElementsByClassName(document, 'div', 'sbadd_block');
-						for(var i in divs)
-						{
-							if(divs[i].id == 'blocktype_'+val) divs[i].style.display = 'block';
-							else divs[i].style.display = 'none';
-						}
-					}
-					</script>
+			// Sanitize the HTML
+			$content = sanitize_html($content, true);
+		}
+		
+		if ( defined('ENANO_DEMO_MODE') && intval($_POST['type']) == BLOCK_PHP )
+		{
+			echo '<div class="error-box" style="margin: 10px 0 10px 0;">' . $lang->get('sbedit_err_demo_php_disable') . '</div>';
+			$_POST['php_content'] = '?>&lt;Nulled&gt;';
+			$content = $_POST['php_content'];
+		}
+		
+		// Get the value of item_order
+		
+		$q = $db->sql_query('SELECT * FROM '.table_prefix.'sidebar WHERE sidebar_id='.intval($_POST['sidebar_id']).';');
+		if(!$q) $db->_die('The order number could not be selected');
+		$io = $db->numrows();
+		
+		$db->free_result();
+		
+		$q = 'INSERT INTO '.table_prefix.'sidebar(block_name, block_type, sidebar_id, block_content, item_order) VALUES ( \''.$db->escape($_POST['title']).'\', \''.$db->escape($_POST['type']).'\', \''.$db->escape($_POST['sidebar_id']).'\', \''.$db->escape($content).'\', '.$io.' );';
+		$result = $db->sql_query($q);
+		if(!$result)
+		{
+			echo $db->get_error();
+			
+			exit;
+		}
+	
+		$cache->purge('anon_sidebar');
+		echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_item_added') . '</div>';
+		
+	}
+	
+	if(isset($_GET['action']) && isset($_GET['id']))
+	{
+		if(!preg_match('#^([0-9]*)$#', $_GET['id']))
+		{
+			echo '<div class="warning-box">Error with action: $_GET["id"] was not an integer, aborting to prevent SQL injection</div>';
+		}
+		switch($_GET['action'])
+		{
+			case 'new':
+				?>
+				
+				<?php acp_start_form(); ?>
+				
+					<p>
+						<?php echo $lang->get('sbedit_create_intro'); ?>
+					</p>
+					<p>
+						<select name="type" onchange="setType(this)" id="sbedit_create_select_type"> <?php /* (NOT WORKING, at least in firefox 2) onload="var thingy = this; setTimeout('setType(thingy)', 500);" */ ?>
+							<option value="<?php echo BLOCK_WIKIFORMAT; ?>"><?php echo $lang->get('sbedit_block_type_wiki'); ?></option>
+							<option value="<?php echo BLOCK_TEMPLATEFORMAT; ?>"><?php echo $lang->get('sbedit_block_type_tpl'); ?></option>
+							<option value="<?php echo BLOCK_HTML; ?>"><?php echo $lang->get('sbedit_block_type_html'); ?></option>
+							<option value="<?php echo BLOCK_PHP; ?>"><?php echo $lang->get('sbedit_block_type_php'); ?></option>
+							<option value="<?php echo BLOCK_PLUGIN; ?>"><?php echo $lang->get('sbedit_block_type_plugin'); ?></option>
+						</select>
+					</p>
 					
-					<form action="<?php echo makeUrl($paths->page); ?>" method="post">
+					<p>
 					
+						<?php echo $lang->get('sbedit_field_block_title'); ?> <input name="title" type="text" size="40" /><br />
+						<?php echo $lang->get('sbedit_field_block_sidebar'); ?>
+							<select name="sidebar_id">
+								<option value="<?php echo SIDEBAR_LEFT; ?>"><?php echo $lang->get('sbedit_field_block_sidebar_left'); ?></option>
+								<option value="<?php echo SIDEBAR_RIGHT; ?>"><?php echo $lang->get('sbedit_field_block_sidebar_right'); ?></option>
+							</select>
+					
+					</p>
+					
+					<div class="sbadd_block" id="blocktype_<?php echo BLOCK_WIKIFORMAT; ?>">
+						<?php echo $lang->get('sbedit_field_wikitext'); ?>
 						<p>
-							<?php echo $lang->get('sbedit_create_intro'); ?>
+							<textarea style="width: 98%;" name="wikiformat_content" rows="15" cols="50"></textarea>
 						</p>
+					</div>
+					
+					<div class="sbadd_block" id="blocktype_<?php echo BLOCK_TEMPLATEFORMAT; ?>">
+						<?php echo $lang->get('sbedit_field_tplcode'); ?>
 						<p>
-							<select name="type" onchange="setType(this)"> <?php /* (NOT WORKING, at least in firefox 2) onload="var thingy = this; setTimeout('setType(thingy)', 500);" */ ?>
-								<option value="<?php echo BLOCK_WIKIFORMAT; ?>"><?php echo $lang->get('sbedit_block_type_wiki'); ?></option>
-								<option value="<?php echo BLOCK_TEMPLATEFORMAT; ?>"><?php echo $lang->get('sbedit_block_type_tpl'); ?></option>
-								<option value="<?php echo BLOCK_HTML; ?>"><?php echo $lang->get('sbedit_block_type_html'); ?></option>
-								<option value="<?php echo BLOCK_PHP; ?>"><?php echo $lang->get('sbedit_block_type_php'); ?></option>
-								<option value="<?php echo BLOCK_PLUGIN; ?>"><?php echo $lang->get('sbedit_block_type_plugin'); ?></option>
+							<textarea style="width: 98%;" name="templateformat_content" rows="15" cols="50"></textarea>
+						</p>
+					</div>
+					
+					<div class="sbadd_block" id="blocktype_<?php echo BLOCK_HTML; ?>">
+						<?php echo $lang->get('sbedit_field_html'); ?>
+						<p>
+							<textarea style="width: 98%;" name="html_content" rows="15" cols="50"></textarea>
+						</p>
+					</div>
+					
+					<div class="sbadd_block" id="blocktype_<?php echo BLOCK_PHP; ?>">
+						<?php if ( defined('ENANO_DEMO_MODE') ) { ?>
+							<p><?php echo $lang->get('sbedit_field_php_disabled'); ?></p>
+						<?php } else { ?>
+						<?php echo $lang->get('sbedit_field_php'); ?>
+						
+						<p>
+							<textarea style="width: 98%;" name="php_content" rows="15" cols="50"></textarea>
+						</p>
+						<?php } ?>
+					</div>
+					
+					<div class="sbadd_block" id="blocktype_<?php echo BLOCK_PLUGIN; ?>">
+						<?php echo $lang->get('sbedit_field_plugin'); ?>
+						<p>
+							<select name="plugin_id">
+							<?php
+								foreach($template->plugin_blocks as $k => $c)
+								{
+									echo '<option value="'.$k.'">'.$lang->get($k).'</option>';
+								}
+							?>
 							</select>
 						</p>
-						
-						<p>
-						
-							<?php echo $lang->get('sbedit_field_block_title'); ?> <input name="title" type="text" size="40" /><br />
-							<?php echo $lang->get('sbedit_field_block_sidebar'); ?>
-								<select name="sidebar_id">
-									<option value="<?php echo SIDEBAR_LEFT; ?>"><?php echo $lang->get('sbedit_field_block_sidebar_left'); ?></option>
-									<option value="<?php echo SIDEBAR_RIGHT; ?>"><?php echo $lang->get('sbedit_field_block_sidebar_right'); ?></option>
-								</select>
-						
-						</p>
-						
-						<div class="sbadd_block" id="blocktype_<?php echo BLOCK_WIKIFORMAT; ?>">
-							<?php echo $lang->get('sbedit_field_wikitext'); ?>
-							<p>
-								<textarea style="width: 98%;" name="wikiformat_content" rows="15" cols="50"></textarea>
-							</p>
-						</div>
-						
-						<div class="sbadd_block" id="blocktype_<?php echo BLOCK_TEMPLATEFORMAT; ?>">
-							<?php echo $lang->get('sbedit_field_tplcode'); ?>
-							<p>
-								<textarea style="width: 98%;" name="templateformat_content" rows="15" cols="50"></textarea>
-							</p>
-						</div>
-						
-						<div class="sbadd_block" id="blocktype_<?php echo BLOCK_HTML; ?>">
-							<?php echo $lang->get('sbedit_field_html'); ?>
-							<p>
-								<textarea style="width: 98%;" name="html_content" rows="15" cols="50"></textarea>
-							</p>
-						</div>
-						
-						<div class="sbadd_block" id="blocktype_<?php echo BLOCK_PHP; ?>">
-							<?php if ( defined('ENANO_DEMO_MODE') ) { ?>
-								<p><?php echo $lang->get('sbedit_field_php_disabled'); ?></p>
-							<?php } else { ?>
-							<?php echo $lang->get('sbedit_field_php'); ?>
-							
-							<p>
-								<textarea style="width: 98%;" name="php_content" rows="15" cols="50"></textarea>
-							</p>
-							<?php } ?>
-						</div>
-						
-						<div class="sbadd_block" id="blocktype_<?php echo BLOCK_PLUGIN; ?>">
-							<?php echo $lang->get('sbedit_field_plugin'); ?>
-							<p>
-								<select name="plugin_id">
-								<?php
-									foreach($template->plugin_blocks as $k => $c)
-									{
-										echo '<option value="'.$k.'">'.$lang->get($k).'</option>';
-									}
-								?>
-								</select>
-							</p>
-						</div>
-						
-						<p>
-						
-							<input type="submit" name="create" value="<?php echo $lang->get('sbedit_btn_create_block'); ?>" style="font-weight: bold;" />&nbsp;
-							<input type="submit" name="cancel" value="<?php echo $lang->get('etc_cancel'); ?>" />
-						
-						</p>
-						
-					</form>
+					</div>
 					
-					<script type="text/javascript">
-						addOnloadHook(function()
+					<p>
+					
+						<input type="submit" name="create" value="<?php echo $lang->get('sbedit_btn_create_block'); ?>" style="font-weight: bold;" />&nbsp;
+						<input type="submit" name="cancel" value="<?php echo $lang->get('etc_cancel'); ?>" />
+					
+					</p>
+					
+				</form>
+				
+				<script type="text/javascript">
+					addOnloadHook(function()
+						{
+							var divs = getElementsByClassName(document, 'div', 'sbadd_block');
+							for(var i in divs)
 							{
-								var divs = getElementsByClassName(document, 'div', 'sbadd_block');
-								for(var i in divs)
-								{
-									if(divs[i].id != 'blocktype_<?php echo BLOCK_WIKIFORMAT; ?>') setTimeout("document.getElementById('"+divs[i].id+"').style.display = 'none';", 500);
-								}
-							});
-					</script>
+								if(divs[i].id != 'blocktype_<?php echo BLOCK_WIKIFORMAT; ?>') setTimeout("document.getElementById('"+divs[i].id+"').style.display = 'none';", 500);
+							}
+						});
+				</script>
+				
+				<?php
+				
+				return;
+				break;
+			case 'move':
+				$cache->purge('anon_sidebar');
+				if( !isset($_GET['side']) || ( isset($_GET['side']) && !preg_match('#^([0-9]+)$#', $_GET['side']) ) )
+				{
+					echo '<div class="warning-box" style="margin: 10px 0;">$_GET[\'side\'] contained an SQL injection attempt</div>';
+					break;
+				}
+				$query = $db->sql_query('UPDATE '.table_prefix.'sidebar SET sidebar_id=' . $db->escape($_GET['side']) . ' WHERE item_id=' . intval($_GET['id']) . ';');
+				if(!$query)
+				{
+					echo $db->get_error();
 					
-					<?php
-					$template->footer();
-					return;
-					break;
-				case 'move':
-					$cache->purge('anon_sidebar');
-					if( !isset($_GET['side']) || ( isset($_GET['side']) && !preg_match('#^([0-9]+)$#', $_GET['side']) ) )
-					{
-						echo '<div class="warning-box" style="margin: 10px 0;">$_GET[\'side\'] contained an SQL injection attempt</div>';
-						break;
-					}
-					$query = $db->sql_query('UPDATE '.table_prefix.'sidebar SET sidebar_id=' . $db->escape($_GET['side']) . ' WHERE item_id=' . intval($_GET['id']) . ';');
-					if(!$query)
-					{
-						echo $db->get_error();
-						$template->footer();
-						exit;
-					}
-					echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_block_moved') . '</div>';
-					break;
-				case 'delete':
-					$query = $db->sql_query('DELETE FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';'); // Already checked for injection attempts ;-)
-					if(!$query)
-					{
-						echo $db->get_error();
-						$template->footer();
-						exit;
-					}
-					$cache->purge('anon_sidebar');
-					if(isset($_GET['ajax']))
-					{
-						die('GOOD');
-					}
-					echo '<div class="error-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_block_deleted') . '</div>';
-					break;
-				case 'disenable';
-					$q = $db->sql_query('SELECT item_enabled FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
-					if(!$q)
-					{
-						echo $db->get_error();
-						$template->footer();
-						exit;
-					}
-					$r = $db->fetchrow();
-					$db->free_result();
-					$e = ( $r['item_enabled'] == 1 ) ? '0' : '1';
-					$q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET item_enabled='.$e.' WHERE item_id=' . intval($_GET['id']) . ';');
-					if(!$q)
-					{
-						echo $db->get_error();
-						$template->footer();
-						exit;
-					}
-					if(isset($_GET['ajax']))
-					{
-						die('GOOD');
-					}
-					break;
-				case 'rename';
-					$newname = $db->escape($_POST['newname']);
-					$q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_name=\''.$newname.'\' WHERE item_id=' . intval($_GET['id']) . ';');
-					if(!$q)
-					{
-						echo $db->get_error();
-						$template->footer();
-						exit;
-					}
-					if(isset($_GET['ajax']))
-					{
-						die('GOOD');
-					}
-					break;
-				case 'getsource':
-					$q = $db->sql_query('SELECT block_content,block_type FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
-					if(!$q)
-					{
-						echo $db->get_error();
-						$template->footer();
-						exit;
-					}
-					$r = $db->fetchrow();
-					$db->free_result();
-					$cache->purge('anon_sidebar');
+					exit;
+				}
+				echo '<div class="info-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_block_moved') . '</div>';
+				break;
+			case 'delete':
+				$query = $db->sql_query('DELETE FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';'); // Already checked for injection attempts ;-)
+				if(!$query)
+				{
+					echo $db->get_error();
 					
-					if($r['block_type'] == BLOCK_PLUGIN) die('HOUSTON_WE_HAVE_A_PLUGIN');
-					die($r['block_content']);
-					break;
-				case 'save':
-					if ( defined('ENANO_DEMO_MODE') )
-					{
-						$q = $db->sql_query('SELECT block_type FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
-						if(!$q)
-						{
-							echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
-							exit;
-						}
-						$row = $db->fetchrow();
-						if ( $row['block_type'] == BLOCK_PHP )
-						{
-							$_POST['content'] = '?>&lt;Nulled&gt;';
-						}
-						else
-						{
-							$_POST['content'] = sanitize_html($_POST['content'], true);
-						}
-					}
-					$q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_content=\''.$db->escape(rawurldecode($_POST['content'])).'\' WHERE item_id=' . intval($_GET['id']) . ';');
+					exit;
+				}
+				$cache->purge('anon_sidebar');
+				if(isset($_GET['ajax']))
+				{
+					die('GOOD');
+				}
+				echo '<div class="error-box" style="margin: 10px 0;">' . $lang->get('sbedit_msg_block_deleted') . '</div>';
+				break;
+			case 'disenable';
+				$q = $db->sql_query('SELECT item_enabled FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
+				if(!$q)
+				{
+					echo $db->get_error();
+					
+					exit;
+				}
+				$r = $db->fetchrow();
+				$db->free_result();
+				$e = ( $r['item_enabled'] == 1 ) ? '0' : '1';
+				$q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET item_enabled='.$e.' WHERE item_id=' . intval($_GET['id']) . ';');
+				if(!$q)
+				{
+					echo $db->get_error();
+					
+					exit;
+				}
+				if(isset($_GET['ajax']))
+				{
+					die('GOOD');
+				}
+				break;
+			case 'rename';
+				$newname = $db->escape($_POST['newname']);
+				$q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_name=\''.$newname.'\' WHERE item_id=' . intval($_GET['id']) . ';');
+				if(!$q)
+				{
+					echo $db->get_error();
+					
+					exit;
+				}
+				if(isset($_GET['ajax']))
+				{
+					die('GOOD');
+				}
+				break;
+			case 'getsource':
+				$q = $db->sql_query('SELECT block_content,block_type FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
+				if(!$q)
+				{
+					echo $db->get_error();
+					
+					exit;
+				}
+				$r = $db->fetchrow();
+				$db->free_result();
+				$cache->purge('anon_sidebar');
+				
+				if($r['block_type'] == BLOCK_PLUGIN) die('HOUSTON_WE_HAVE_A_PLUGIN');
+				die($r['block_content']);
+				break;
+			case 'save':
+				if ( defined('ENANO_DEMO_MODE') )
+				{
+					$q = $db->sql_query('SELECT block_type FROM '.table_prefix.'sidebar WHERE item_id=' . intval($_GET['id']) . ';');
 					if(!$q)
 					{
 						echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
 						exit;
 					}
-					echo 'GOOD';
-					return;
-					
-					break;
-			}
+					$row = $db->fetchrow();
+					if ( $row['block_type'] == BLOCK_PHP )
+					{
+						$_POST['content'] = '?>&lt;Nulled&gt;';
+					}
+					else
+					{
+						$_POST['content'] = sanitize_html($_POST['content'], true);
+					}
+				}
+				$q = $db->sql_query('UPDATE '.table_prefix.'sidebar SET block_content=\''.$db->escape(rawurldecode($_POST['content'])).'\' WHERE item_id=' . intval($_GET['id']) . ';');
+				if(!$q)
+				{
+					echo 'var status=unescape(\''.hexencode($db->get_error()).'\');';
+					exit;
+				}
+				echo 'GOOD';
+				return;
+				
+				break;
 		}
-		
-		?>
-			<p>
-				<?php echo $lang->get('sbedit_header_msg', array( 'create_link' => makeUrlNS('Special', 'EditSidebar', 'action=new&id=0', true) )); ?>
-			</p>
-		<?php
-		
-		$q = $db->sql_query('SELECT item_id, sidebar_id, block_name, block_type, block_content, item_enabled FROM ' . table_prefix . "sidebar ORDER BY sidebar_id ASC, item_order ASC;");
-		if ( !$q )
-			$db->_die();
-		
-		$switched_to_right = false;
-		
-		echo '<table border="0" cellspacing="4" cellpadding="0"><tr><td class="sbedit-column">';
-		while ( $row = $db->fetchrow() )
-		{
-			if ( $row['sidebar_id'] == SIDEBAR_RIGHT && !$switched_to_right )
-			{
-				echo '</td><td class="sbedit-column">';
-				$switched_to_right = true;
-			}
-			$disabled_class = ( $row['item_enabled'] ) ? '' : ' disabled';
-			echo '<div class="sbedit-block' . $disabled_class . '" id="block:' . $row['item_id'] . '">
-							<div class="sbedit-handle">
-								<span>' . htmlspecialchars($template->compile_template_text_post($row['block_name'])) . '</span>
-								<input type="text" id="block_name:' . $row['item_id'] . '" value="' . htmlspecialchars($row['block_name']) . '" />
-							</div>';
-			?>
-			<div class="sbedit-metainfo">
-				<?php
-				$toolbarvars = $template->extract_vars('toolbar.tpl');
-				$parser_start = $template->makeParserText($toolbarvars['toolbar_vert_start']);
-				echo $parser_start->run();
-				
-				$button = $template->makeParserText($toolbarvars['toolbar_vert_button']);
-				$label = $template->makeParserText($toolbarvars['toolbar_vert_label']);
-				
-				$type = '<b>';
-				switch($row['block_type'])
-				{
-					case BLOCK_WIKIFORMAT: $type .= $lang->get('sbedit_block_type_wiki'); break;
-					case BLOCK_TEMPLATEFORMAT: $type .= $lang->get('sbedit_block_type_tpl'); break;
-					case BLOCK_HTML: $type .= $lang->get('sbedit_block_type_html'); break;
-					case BLOCK_PHP: $type .= $lang->get('sbedit_block_type_php'); break;
-					case BLOCK_PLUGIN: $type .= $lang->get('sbedit_block_type_plugin'); break;
-					default: $type .= '$&#@'; break;
-				}
-				$type .= '</b>';
-				if ( $row['block_type'] == BLOCK_PLUGIN )
-				{
-					$type .= ': ' . $lang->get($row['block_content']);
-				}
-				
-				$label->assign_vars(array(
-						'TITLE' => $type
-					));
-				echo $label->run();
-				
-				// edit
-				if ( $row['block_type'] != BLOCK_PLUGIN )
-				{
-					$button->assign_vars(array(
-							'TITLE' => $lang->get('sbedit_tip_edit'),
-							'FLAGS' => 'href="#" onclick="sbedit_open_editor(this); return false;"',
-							'IMAGE' => cdnPath . '/images/edit.png'
-						));
-					echo $button->run();
-				}
-				
-				// delete
-				$button->assign_vars(array(
-						'TITLE' => $lang->get('sbedit_tip_delete'),
-						'FLAGS' => 'href="#" onclick="sbedit_delete_block(this); return false;"',
-						'IMAGE' => cdnPath . '/images/delete.png'
-					));
-				echo $button->run();
-				
-				// rename
-				$button->assign_vars(array(
-						'TITLE' => $lang->get('sbedit_tip_rename'),
-						'FLAGS' => 'href="#" onclick="sbedit_rename_block(this); return false;"',
-						'IMAGE' => cdnPath . '/images/rename.png'
-					));
-				echo $button->run();
-				
-				// disenable
-				$button->assign_vars(array(
-						'TITLE' => $lang->get('sbedit_tip_disenable'),
-						'FLAGS' => 'href="#" onclick="sbedit_disenable_block(this); return false;"',
-						'IMAGE' => cdnPath . '/images/disenable.png'
-					));
-				echo $button->run();
-				
-				$parser_end = $template->makeParserText($toolbarvars['toolbar_vert_end']);
-				echo $parser_end->run();
-				?>
-			</div>
-			<?php
-			echo '</div>';
-		}
-		
-		if ( !$switched_to_right )
-			echo '</td><td class="sbedit-column">';
-		
-		echo '</td></tr></table>';
 	}
 	
-	$template->footer();
+	?>
+		<p>
+			<?php echo $lang->get('sbedit_header_msg', array( 'create_link' => makeUrlNS('Admin', 'EditSidebar', 'action=new&id=0', true) )); ?>
+		</p>
+	<?php
+	
+	$q = $db->sql_query('SELECT item_id, sidebar_id, block_name, block_type, block_content, item_enabled FROM ' . table_prefix . "sidebar ORDER BY sidebar_id ASC, item_order ASC;");
+	if ( !$q )
+		$db->_die();
+	
+	$switched_to_right = false;
+	
+	echo '<table border="0" cellspacing="4" cellpadding="0"><tr><td class="sbedit-column">';
+	while ( $row = $db->fetchrow() )
+	{
+		if ( $row['sidebar_id'] == SIDEBAR_RIGHT && !$switched_to_right )
+		{
+			echo '</td><td class="sbedit-column">';
+			$switched_to_right = true;
+		}
+		$disabled_class = ( $row['item_enabled'] ) ? '' : ' disabled';
+		echo '<div class="sbedit-block' . $disabled_class . '" id="block:' . $row['item_id'] . '">
+						<div class="sbedit-handle">
+							<span>' . htmlspecialchars($template->compile_template_text_post($row['block_name'])) . '</span>
+							<input type="text" id="block_name:' . $row['item_id'] . '" value="' . htmlspecialchars($row['block_name']) . '" />
+						</div>';
+		?>
+		<div class="sbedit-metainfo">
+			<?php
+			$toolbarvars = $template->extract_vars('toolbar.tpl');
+			$parser_start = $template->makeParserText($toolbarvars['toolbar_vert_start']);
+			echo $parser_start->run();
+			
+			$button = $template->makeParserText($toolbarvars['toolbar_vert_button']);
+			$label = $template->makeParserText($toolbarvars['toolbar_vert_label']);
+			
+			$type = '<b>';
+			switch($row['block_type'])
+			{
+				case BLOCK_WIKIFORMAT: $type .= $lang->get('sbedit_block_type_wiki'); break;
+				case BLOCK_TEMPLATEFORMAT: $type .= $lang->get('sbedit_block_type_tpl'); break;
+				case BLOCK_HTML: $type .= $lang->get('sbedit_block_type_html'); break;
+				case BLOCK_PHP: $type .= $lang->get('sbedit_block_type_php'); break;
+				case BLOCK_PLUGIN: $type .= $lang->get('sbedit_block_type_plugin'); break;
+				default: $type .= '$&#@'; break;
+			}
+			$type .= '</b>';
+			if ( $row['block_type'] == BLOCK_PLUGIN )
+			{
+				$type .= ': ' . $lang->get($row['block_content']);
+			}
+			
+			$label->assign_vars(array(
+					'TITLE' => $type
+				));
+			echo $label->run();
+			
+			// edit
+			if ( $row['block_type'] != BLOCK_PLUGIN )
+			{
+				$button->assign_vars(array(
+						'TITLE' => $lang->get('sbedit_tip_edit'),
+						'FLAGS' => 'href="#" onclick="sbedit_open_editor(this); return false;"',
+						'IMAGE' => cdnPath . '/images/edit.png'
+					));
+				echo $button->run();
+			}
+			
+			// delete
+			$button->assign_vars(array(
+					'TITLE' => $lang->get('sbedit_tip_delete'),
+					'FLAGS' => 'href="#" onclick="sbedit_delete_block(this); return false;"',
+					'IMAGE' => cdnPath . '/images/delete.png'
+				));
+			echo $button->run();
+			
+			// rename
+			$button->assign_vars(array(
+					'TITLE' => $lang->get('sbedit_tip_rename'),
+					'FLAGS' => 'href="#" onclick="sbedit_rename_block(this); return false;"',
+					'IMAGE' => cdnPath . '/images/rename.png'
+				));
+			echo $button->run();
+			
+			// disenable
+			$button->assign_vars(array(
+					'TITLE' => $lang->get('sbedit_tip_disenable'),
+					'FLAGS' => 'href="#" onclick="sbedit_disenable_block(this); return false;"',
+					'IMAGE' => cdnPath . '/images/disenable.png'
+				));
+			echo $button->run();
+			
+			$parser_end = $template->makeParserText($toolbarvars['toolbar_vert_end']);
+			echo $parser_end->run();
+			?>
+		</div>
+		<?php
+		echo '</div>';
+	}
+	
+	if ( !$switched_to_right )
+		echo '</td><td class="sbedit-column">';
+	
+	echo '</td></tr></table>';
 }
-
-?>
