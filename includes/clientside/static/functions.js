@@ -546,6 +546,30 @@ function getScrollOffset(el)
 	return position;
 }
 
+function getXScrollOffset(el)
+{
+	var position;
+	var s = el || self;
+	el = el || document;
+	if ( el.scrollTop )
+	{
+		position = el.scrollLeft;
+	}
+	else if (s.pageYOffset)
+	{
+		position = self.pageXOffset;
+	}
+	else if (document.documentElement && document.documentElement.scrollLeft)
+	{
+		position = document.documentElement.scrollLeft;
+	}
+	else if (document.body)
+	{
+		position = document.body.scrollLeft;
+	}
+	return position;
+}
+
 function setScrollOffset(offset)
 {
 	window.scroll(0, offset);

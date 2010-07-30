@@ -391,7 +391,7 @@ function slideStep(obj, height, maxheight)
 
 function isOverObj(obj, bias, event)
 {
-	var fieldUL = new Object();
+	var fieldUL = {};
 	var dim = fetch_dimensions(obj);
 	var off = fetch_offset(obj);
 	fieldUL['top'] = off['top'];
@@ -399,13 +399,14 @@ function isOverObj(obj, bias, event)
 	fieldUL['right'] = off['left'] + dim['w'];
 	fieldUL['bottom'] = off['top'] + dim['h'];
 	
+	var mouseX_local = mouseX + getXScrollOffset();
 	var mouseY_local = mouseY + getScrollOffset();
 	
 	// document.getElementById('debug').innerHTML = '<br />Mouse: x: '+mouseX+', y:' + mouseY + '<br />' + document.getElementById('debug').innerHTML;
 	
 	if(bias)
 	{
-		if ( ( mouseX < fieldUL['left'] + 2 || mouseX > fieldUL['right']  - 5 ) ||
+		if ( ( mouseX_local < fieldUL['left'] + 2 || mouseX_local > fieldUL['right']  - 5 ) ||
  				( mouseY_local < fieldUL['top']  - 2 || mouseY_local > fieldUL['bottom'] - 2 ) )
 		{
  			return false;
@@ -413,7 +414,7 @@ function isOverObj(obj, bias, event)
 	}
 	else
 	{
-		if ( ( mouseX < fieldUL['left'] || mouseX > fieldUL['right']  ) ||
+		if ( ( mouseX_local < fieldUL['left'] || mouseX_local > fieldUL['right']  ) ||
  				( mouseY_local < fieldUL['top']  || mouseY_local > fieldUL['bottom'] ) )
  			return false;
 	}

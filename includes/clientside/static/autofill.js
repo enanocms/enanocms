@@ -38,6 +38,7 @@ autofill_schemas.username = {
 				},
 				tableHeader: '<tr><th>' + $lang.get('user_autofill_heading_suggestions') + '</th></tr>',
 				showWhenNoResults: true,
+				matchCase: true,
 				noResultsHTML: '<tr><td class="row1" style="font-size: smaller;">' + $lang.get('user_autofill_msg_no_suggestions') + '</td></tr>'
 		});
 	}
