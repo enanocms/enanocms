@@ -188,6 +188,34 @@ class Namespace_File extends Namespace_Default
 			$html .= '</p>';
 		}
 		$db->free_result();
+		$html .= '<h3>' . $lang->get('onpage_filebox_lbl_pagesusing') . '</h3>';
+		$q = $db->sql_query('SELECT t.page_id, t.namespace, p.name FROM ' . table_prefix . "page_text AS t\n"
+			              . "  LEFT JOIN enano_pages AS p\n"
+			              . "    ON ( t.page_id = p.urlname AND t.namespace = p.namespace )\n"
+			              . "  WHERE t.page_text REGEXP '\\\\[\\\\[:" .
+							  addslashes(preg_quote($paths->nslist[$this->namespace])) .
+							  addslashes(preg_quote($this->page_id)) .
+							  "(\\\\||\\\\])';");
+		if ( !$q )
+			$db->_die();
+		
+		if ( $db->numrows() < 1 )
+		{
+			$html .= '<p>' . $lang->get('onpage_filebox_msg_no_inlinks') . '</p>';
+		}
+		else
+		{
+			$html .= '<p>' . $lang->get('onpage_filebox_msg_pagesusing') . '</p>';
+			$html .= '<ul>';
+			while ( $row = $db->fetchrow() )
+			{
+				$html .= '<li><a href="' . makeUrlNS($row['namespace'], $row['page_id']) . '">' .
+							htmlspecialchars($row['name']) .
+							'</a></li>';
+			}
+			$html .= '</ul>';
+		}
+		$db->free_result();
 		$html .= '</div><br />';
 		return $html;
 	}

@@ -333,6 +333,9 @@ var enano_lang = {
 			filebox_btn_this_version: 'this ver',
 			filebox_btn_revert: 'restore',
 			filebox_btn_current: 'current',
+			filebox_lbl_pagesusing: 'Pages using this file',
+			filebox_msg_pagesusing: 'The following pages embed this file:',
+			filebox_msg_no_inlinks: 'There are no pages that embed this file.',
 			
 			protect_heading: 'Protect page',
 			protect_msg_select_level: 'Select a protection level:',
