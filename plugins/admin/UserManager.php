@@ -1267,7 +1267,7 @@ function acp_usermanager_lockouts($homewrap = false)
 	}
 	
 	$q = $db->sql_query('SELECT COUNT(id) AS fail_count, ipaddr, username, timestamp FROM ' . table_prefix . "lockout AS l\n"
-								. "  WHERE timestamp > ( " . time() . " - " . intval(getConfig('lockout_duration', 15)) . "*60 ) GROUP BY ipaddr, username, timestamp ORDER BY COUNT(id) DESC, timestamp DESC;");
+								. "  WHERE timestamp > ( " . time() . " - " . intval(getConfig('lockout_duration', 15)) . "*60 ) GROUP BY ipaddr ORDER BY COUNT(id) DESC, timestamp DESC;");
 	if ( !$q )
 		$db->_die();
 	
