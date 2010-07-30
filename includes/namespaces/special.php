@@ -31,7 +31,11 @@ class Namespace_Special extends Namespace_Default
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		global $lang;
 		
-		$this->exists = function_exists("page_{$this->namespace}_{$this->page_id}");
+		if ( strstr($this->page_id, '/') )
+			list($base_page_id) = explode('/', $this->page_id);
+		else
+			$base_page_id = $this->page_id;
+		$this->exists = function_exists("page_{$this->namespace}_{$base_page_id}");
 		
 		if ( isset($paths->pages[ $paths->get_pathskey($this->page_id, $this->namespace) ]) )
 		{
@@ -57,7 +61,7 @@ class Namespace_Special extends Namespace_Default
 				'delvotes' => 0,
 				'delvote_ips' => '',
 				'wiki_mode' => 2,
-				'page_exists' => false,
+				'page_exists' => $this->exists,
 				'page_format' => getConfig('default_page_format', 'wikitext')
 			);
 		$this->cdata = Namespace_Default::bake_cdata($this->cdata);
