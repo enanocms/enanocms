@@ -1,5 +1,5 @@
 Enano CMS
-Version 1.1.7
+Version 1.1.8
 -----------------------------
 
 Thanks for downloading Enano! If you're looking for an installation guide,
@@ -9,7 +9,7 @@ COPYRIGHT
 -----------------------------
 
 Enano CMS
-Copyright (C) 2006-2009 Dan Fuhry. All rights except those explicitly granted
+Copyright (C) 2006-2010 Dan Fuhry. All rights except those explicitly granted
 by the included license agreement reserved.
 
 PHILOSOPHY
@@ -19,7 +19,7 @@ We strongly believe in the idea of Free Software. Enano is released under the
 GNU General Public License; see the file GPL included with this release for
 details.
 
-LICENSING
+LICENSE
 -----------------------------
 
 This program is Free Software; you can redistribute it and/or modify it under
@@ -40,14 +40,15 @@ this program; if not, write to:
 
 -----------------------------
 
-Most of the PHP code in Enano was written by Dan Fuhry. Some parts were borrowed
-from other projects that are also released under Free licenses; see the various
-files under the licenses/ directory included with this release for details.
+Most of the PHP code in Enano was written by Dan Fuhry. Some parts were
+borrowed from other projects that are also released under Free Software
+licenses; see the various files under the licenses/ directory included
+with this release for details.
 
 CHANGES IN THIS RELEASE
 -----------------------------
 
-Please see <http://enanocms.org/Release_notes/1.1.7> for a list of changes in
+Please see <http://enanocms.org/Release_notes/1.1.8> for a list of changes in
 this release.
 
 UPGRADING FROM PREVIOUS RELEASES
@@ -55,14 +56,19 @@ UPGRADING FROM PREVIOUS RELEASES
 
 This archive includes a script that can migrate an Enano 1.0.x installation to
 Enano 1.2. Before running the migration script, you should always be sure to
-upgrade to the latest version of Enano 1.0.x (1.0.7 "FIXME" at the time of
-this writing). Migration is NOT REVERSIBLE. This is beta-quality code. DO NOT
-UNDER ANY CIRCUMSTANCES UPGRADE A PRODUCTION SITE.
+upgrade to the latest version of Enano 1.0.x (1.0.6pl2 at the time of this
+writing). Migration is NOT REVERSIBLE. This is beta-quality code. DO NOT UNDER
+ANY CIRCUMSTANCES UPGRADE A PRODUCTION SITE.
 
 Upgrades from any 1.1.x version are fully supported and generally more stable
 than upgrades from 1.0 because of all the API changes. If you experience
 trouble upgrading from a 1.0 version to 1.2, try upgrading first to version
-1.1.6 or so.
+1.1.7 or so.
+
+Enano 1.1.8 changes to the use of database revisions instead of the Enano core
+version number to track changes. Upgrades from 1.1.7 don't require running the
+upgrade script, although you should re-import your English language to make
+effective the user interface changes.
 
 TRANSLATING ENANO
 -----------------------------
