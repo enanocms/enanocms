@@ -173,6 +173,7 @@ ORDER BY l1.time_id DESC;');
 		
 		$revision_id = ( (isset($_GET['oldid'])) ? intval($_GET['oldid']) : 0 );
 		$page = new PageProcessor( $paths->page_id, $paths->namespace, $revision_id );
+		$template->set_page($page);
 		
 		$pagepass = ( isset($_REQUEST['pagepass']) ) ? $_REQUEST['pagepass'] : '';
 		$page->password = $pagepass;
