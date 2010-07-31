@@ -39,6 +39,7 @@ window.__tpRun = function()
 		catch(e)
 		{
 			alert(e);
+			load_component('acl');
 			aclDebug(tpl_code);
 		}
 		return compiled;
@@ -60,6 +61,7 @@ window.__tpCompileTemplate = function(code)
 	code = code.replace(/\<!-- IFSET ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( typeof(this.tpl_strings['$1']) == 'string' ) ? '$2' : '' ) + '");
 	code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- BEGINELSE \1 --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '$3' ) + '");
 	code = code.replace(/\<!-- BEGIN ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == true ) ? '$2' : '' ) + '");
+	code = code.replace(/\<!-- BEGINNOT ([A-z0-9_-]+) --\>([\s\S]*?)\<!-- END \1 --\>/ig, "' + ( ( this.tpl_bool['$1'] == false ) ? '$2' : '' ) + '");
 	code = code.replace(/\<!-- HOOK ([A-z0-9_-]+) --\>/ig, "' + this.fetch_hook('$1') + '");
 	return code;
 }

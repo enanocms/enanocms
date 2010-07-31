@@ -275,7 +275,7 @@ function page_Special_PrivateMessages()
 			{
 				if ( ( $argv[1]=='to' || $argv[1]=='To' ) && $argv[2] )
 				{
-					$to = htmlspecialchars($argv[2]);
+					$to = htmlspecialchars(str_replace('_', ' ', dirtify_page_id($argv[2])));
 				}
 				else
 				{
@@ -753,7 +753,7 @@ function page_Special_PrivateMessages()
 					echo '<br /><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th colspan="3">' . $lang->get('privmsgs_th_buddy_list', array('username' => htmlspecialchars($session->username))) . '</th></tr>';
 					if($db->numrows() < 1) echo '<tr><td class="row3">' . $lang->get('privmsgs_msg_no_buddies') . '</td></tr>';
 					$cls = 'row2';
-					while ( $row = $db->fetchrow() )
+					while ( $row = $db->fetchrow($q) )
 					{
 						if($cls=='row2') $cls = 'row1';
 						else $cls = 'row2';
@@ -825,7 +825,7 @@ function page_Special_PrivateMessages()
 					echo '<br /><div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4"><tr><th colspan="3">' . $lang->get('privmsgs_th_foe_list', array('username' => htmlspecialchars($session->username))) . '</th></tr>';
 					if($db->numrows() < 1) echo '<tr><td class="row3">' . $lang->get('privmsgs_msg_no_foes') . '</td></tr>';
 					$cls = 'row2';
-					while ( $row = $db->fetchrow() )
+					while ( $row = $db->fetchrow($q) )
 					{
 						if($cls=='row2') $cls = 'row1';
 						else $cls = 'row2';

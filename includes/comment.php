@@ -166,6 +166,8 @@ class Comments
 						$row['comment_data'] = RenderMan::render($row['comment_data']);
 						
 						// Hide it if it's a post from a foe
+						// 1.1.8: moved to within the comment templates
+						/*
 						if ( $row['is_buddy'] == 1 && $row['is_friend'] == 0 )
 						{
 							$seed = md5(sha1(mt_rand() . microtime()));
@@ -177,6 +179,7 @@ class Comments
 							';
 							$row['comment_data'] = $wrapper;
 						}
+						*/
 						
 						// Format date
 						$row['time'] = enano_date(ED_DATE | ED_TIME, $row['time']);

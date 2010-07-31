@@ -1,5 +1,13 @@
 <div class="tblholder">
-	<table border="0" width="100%" cellspacing="1" cellpadding="4">
+
+	<!-- BEGIN is_foe -->
+		<div style="padding: 7px;" class="comment_foe_hidden" id="comment_foe_notice_{ID}">
+			<strong>{NAME}</strong> &ndash; {lang:comment_msg_foe_comment_hidden}
+			<a href="#" onclick="$('#comment_foe_notice_{ID}').hide(); $('#comment_table_{ID}').show('blind'); return false;">{lang:comment_btn_display_foe_comment}</a>
+		</div>
+	<!-- END is_foe -->
+
+	<table border="0" width="100%" cellspacing="1" cellpadding="4" id="comment_table_{ID}"<!-- BEGIN is_foe --> style="display: none;"<!-- END is_foe -->>
 		<tr>
 			<th colspan="2" style="text-align: left;">{DATETIME}</th>
 		</tr>

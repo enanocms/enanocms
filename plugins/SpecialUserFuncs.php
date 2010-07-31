@@ -1616,13 +1616,13 @@ function page_Special_Memberlist()
 	if ( isset($_GET['finduser']) )
 	{
 		$finduser = str_replace(array(  '%',   '_'),
-														array('\\%', '\\_'),
-														$_GET['finduser']);
+								array('\\%', '\\_'),
+								$_GET['finduser']);
 		$finduser = str_replace(array('*', '?'),
-														array('%', '_'),
-														$finduser);
+								array('%', '_'),
+								$finduser);
 		$finduser = $db->escape($finduser);
-		$username_where = ENANO_SQLFUNC_LOWERCASE . '(u.username) LIKE \'%' . strtolower($finduser) . '%\'';
+		$username_where = ENANO_SQLFUNC_LOWERCASE . '(u.username) LIKE \'%' . strtolower($finduser) . '%\' OR u.username LIKE \'' . $finduser . '\'';
 		$finduser_url = 'finduser=' . rawurlencode($_GET['finduser']) . '&';
 	}
 	else
