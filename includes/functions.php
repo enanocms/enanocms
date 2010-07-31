@@ -3296,10 +3296,12 @@ function gzip_output()
 		if ( $return )
 		{
 			header('Content-encoding: gzip');
+			header('Content-length: ' . strlen($return));
 			echo $return;
 		}
 		else
 		{
+			header('Content-length: ' . strlen($gzip_contents));
 			echo $gzip_contents;
 		}
 	}
