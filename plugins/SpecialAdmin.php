@@ -2620,6 +2620,9 @@ function page_Admin_EditSidebar()
 		?>
 		<div class="sbedit-metainfo">
 			<?php
+			if ( !$template->theme )
+				$template->load_theme('admin', 'default');
+			
 			$toolbarvars = $template->extract_vars('toolbar.tpl');
 			$parser_start = $template->makeParserText($toolbarvars['toolbar_vert_start']);
 			echo $parser_start->run();
