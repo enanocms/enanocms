@@ -1626,7 +1626,10 @@ window.ajaxPluginAction = function(action, plugin_filename, btnobj, send_confirm
 				response = parseJSON(response);
 				if ( blackbox )
 				{
-					blackbox.parentNode.removeChild(blackbox);
+					if ( blackbox.parentNode )
+					{
+						blackbox.parentNode.removeChild(blackbox);
+					}
 				}
 				if ( response.success )
 				{
@@ -1668,7 +1671,10 @@ window.ajaxPluginAction = function(action, plugin_filename, btnobj, send_confirm
 							{
 								if ( blackbox )
 								{
-									blackbox.parentNode.removeChild(blackbox);
+									if ( blackbox.parentNode )
+									{
+										blackbox.parentNode.removeChild(blackbox);
+									}
 								}
 								var txtholder = document.createElement('div');
 								txtholder.style.textAlign = 'center';
