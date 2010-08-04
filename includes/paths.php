@@ -97,7 +97,7 @@ class pathManager
 		$this->addAdminNode('adm_cat_content',    'adm_page_pg_groups',      'PageGroups',             array(4, 3));
 		$this->addAdminNode('adm_cat_appearance', 'adm_page_themes',         'ThemeManager',           array(4, 4));
 		$this->addAdminNode('adm_cat_appearance', 'adm_page_plugins',        'PluginManager',          array(2, 4));
-		$this->addAdminNode('adm_cat_appearance', 'adm_page_editsidebar',    'EditSidebar'            );
+		$this->addAdminNode('adm_cat_appearance', 'adm_page_editsidebar',    'EditSidebar',            array(1, 6));
 		$this->addAdminNode('adm_cat_appearance', 'adm_page_db_backup',      'DBBackup',               array(1, 2));
 		$this->addAdminNode('adm_cat_appearance', 'adm_page_lang_manager',   'LangManager',            array(1, 3));
 		$this->addAdminNode('adm_cat_appearance', 'adm_page_cache_manager',  'CacheManager',           array(3, 1));

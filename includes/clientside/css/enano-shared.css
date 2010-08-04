@@ -793,7 +793,7 @@ div.rankadmin-right {
 .adminiconsprite {
 	width: 16px;
 	height: 16px;
-	background-image: url(../../../images/icons/applets/sprite.png);
+	background-image: url(../../../images/icons/applets/sprite.png?1.1.8);
 	background-position: center center;
 	background-repeat: no-repeat;
 }
