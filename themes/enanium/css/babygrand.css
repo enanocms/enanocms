@@ -436,6 +436,16 @@ div#messageBox input[type ^="text"]:focus, div#messageBox input[type ^="password
 	border-color: #888;
 }
 
+textarea#ajaxEditArea, textarea.writespace {
+	font-family: Lucida Grande, DejaVu Sans, arial, helvetica, sans-serif;
+	font-size: 9pt;
+	line-height: 130%;
+	color: #202020;
+	background-color: #fff;
+	padding: 4px;
+	border: 1px solid #a0a0a0;
+}
+
 /* Footer */
 div#footer {
 	margin: 7px 0 0 0;
