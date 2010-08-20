@@ -134,7 +134,7 @@ class Namespace_Default
 		if ( isset($cdata_cache[$pathskey]) )
 		{
 			$this->cdata = $cdata_cache[$pathskey];
-			$this->exists = $cdata_cache[$pathskey]['page_exists'];
+			$this->exists =$cdata_cache[$pathskey]['page_exists'];
 			$this->title = $cdata_cache[$pathskey]['name'];
 			return null;
 		}
@@ -556,7 +556,7 @@ class Namespace_Default
 			$standard_404 .= '<h3>' . $lang->get('page_msg_404_title') . '</h3>
  						<p>' . $lang->get('page_msg_404_body');
 		}
-		if ( $session->get_permissions('create_page') )
+		if ( $session->check_acl_scope('create_page', $this->namespace) && $session->get_permissions('create_page') )
 		{
 			$standard_404 .= ' ' . $lang->get('page_msg_404_create', array(
 					'create_flags' => 'href="'.makeUrlNS($this->namespace, $this->page_id, 'do=edit', true).'" onclick="ajaxEditor(); return false;"',
@@ -570,7 +570,7 @@ class Namespace_Default
 				));
 		}
 		$standard_404 .= '</p>';
-		if ( $session->get_permissions('history_rollback') )
+		if ( $session->check_acl_scope('history_rollback', $this->namespace) && $session->get_permissions('history_rollback') )
 		{
 			$e = $db->sql_query('SELECT * FROM ' . table_prefix . 'logs WHERE action=\'delete\' AND page_id=\'' . $this->page_id . '\' AND namespace=\'' . $this->namespace . '\' ORDER BY time_id DESC;');
 			if ( !$e )
@@ -761,7 +761,7 @@ class Namespace_Default
 				$html .= $lang->get('catedit_catbox_lbl_uncategorized');
 			}
 			
-			$can_edit = ( $session->get_permissions('edit_cat') && ( !$paths->page_protected || $session->get_permissions('even_when_protected') ) );
+			$can_edit = ( $session->check_acl_scope('edit_cat', $this->namespace) && $session->get_permissions('edit_cat') && ( !$paths->page_protected || $session->get_permissions('even_when_protected') ) );
 			if ( $can_edit )
 			{
 				$edit_link = '<a href="' . makeUrl($paths->page, 'do=catedit', true) . '" onclick="ajaxCatEdit(); return false;">' . $lang->get('catedit_catbox_link_edit') . '</a>';

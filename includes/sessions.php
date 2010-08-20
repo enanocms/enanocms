@@ -3383,7 +3383,7 @@ class sessionManager {
 				{
 					// Action $type depends on action $deps[$i] which cannot be satisfied because $deps[$i] is out of scope.
 					// echo '<pre>' . enano_debug_print_backtrace(true) . '</pre>';
-					trigger_error("acl_check_deps: $type depends on {$deps[$i]} which is not within scope of $paths->namespace; this indicates a bug in ACL rule specification", E_USER_WARNING);
+					trigger_error("acl_check_deps: $type depends on {$deps[$i]} which is not within scope of $paths->namespace; this indicates a bug in ACL rule specification. Backtrace:<pre>" . htmlspecialchars(enano_debug_print_backtrace(true)) . "</pre>", E_USER_WARNING);
 					return false;
 				}
 				$deps = array_merge($deps, $this->acl_deps[$deps[$i]]);
