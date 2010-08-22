@@ -12,7 +12,7 @@
 
 var enano_lang = {
 	categories: [
-		'meta', 'search', 'specialpage', 'pagetools', 'log'
+		'meta', 'search', 'specialpage', 'pagetools', 'log', 'upload'
 	],
 	strings: {
 		meta: {
@@ -20,6 +20,7 @@ var enano_lang = {
 			specialpage: 'Special pages',
 			pagetools: 'Userspace page-management tools',
 			log: 'Log and history display',
+			upload: 'AJAX upload control'
 		},
 		specialpage: {
 			administration: 'Administration',
@@ -41,6 +42,7 @@ var enano_lang = {
 			register: 'Register',
 			preferences: 'Edit Profile',
 			autofill: 'Javascript suggestion servlet',
+			ajaxupload: 'AJAX file upload status',
 			contributions: 'User contributions',
 			change_theme: 'Change my preferred theme',
 			activate_account: 'Activate user account',
@@ -194,6 +196,13 @@ var enano_lang = {
 			err_addfilter_field_empty: 'The filter was not added because you didn\'t enter a valid value in the field.',
 			
 			err_access_denied: 'You don\'t have permission to view page logs.',
+		},
+		upload: {
+			msg_processing: 'Processing upload...',
+			msg_cancelled: 'You cancelled the upload process.',
+			msg_uploading: 'Uploading... %percent%% complete, elapsed time %elapsed%, speed %speed%KB/s, remaining time %remain%',
+			btn_cancel: 'Cancel upload',
+			msg_starting: 'Starting upload...',
 		}
 	}
 };

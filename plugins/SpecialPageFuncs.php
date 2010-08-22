@@ -34,6 +34,7 @@ function SpecialPageFuncs_paths_init()
 	register_special_page('GNU_General_Public_License', 'specialpage_gnu_gpl');
 	register_special_page('TagCloud', 'specialpage_tag_cloud');
 	register_special_page('Autofill', 'specialpage_autofill', false);
+	register_special_page('AjaxUpload', 'specialpage_ajaxupload', false);
 }
 
 // function names are IMPORTANT!!! The name pattern is: page_<namespace ID>_<page URLname, without namespace>
@@ -701,6 +702,30 @@ function page_Special_Autofill()
 	}
 	
 	echo enano_json_encode($dataset);
+}
+
+function page_Special_AjaxUpload()
+{
+	if ( isset($_GET['uploadstatus']) )
+	{
+		session_start();
+		header('Content-type: text/javascript');
+		$key = "upload_progress_{$_GET['uploadstatus']}";
+		$info = isset($_SESSION[$key]) ? $_SESSION[$key] : array();
+		if ( isset($_SESSION[$key]) && $_SESSION[$key]['done'] )
+			unset($_SESSION[$key]);
+		
+		if ( is_array($info) )
+		{
+			$info['current_time'] = time();
+			if ( !empty($_GET['cancel']) )
+				$_SESSION[$key]['cancel_upload'] = $info['cancel_upload'] = true;
+		}
+		$info['form'] = $_GET['form'];
+		
+		echo enano_json_encode($info);
+		exit;
+	}
 }
 
 ?>

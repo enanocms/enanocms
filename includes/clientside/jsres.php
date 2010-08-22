@@ -95,6 +95,7 @@ $full_compress_safe = array(
 	'userpage.js',
 	'template-compiler.js',
 	'toolbar.js',
+	'upload.js'
 );
 
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code
