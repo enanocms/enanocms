@@ -133,7 +133,7 @@ class Comments
 					$ret['mode'] = 'refetch';
 				}
 				$limit_clause = "LIMIT $per_page OFFSET " . ($page * $per_page);
-				$q = $db->sql_query('SELECT c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,( c.ip_address IS NOT NULL ) AS have_ip,u.user_level,u.user_id,u.email,u.signature,u.user_has_avatar,u.avatar_type, b.buddy_id IS NOT NULL AS is_buddy, ( b.is_friend IS NOT NULL AND b.is_friend=1 ) AS is_friend FROM '.table_prefix.'comments AS c
+				$q = $db->sql_query('SELECT c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,( c.ip_address IS NOT NULL ) AS have_ip,u.username,u.user_level,u.user_id,u.email,u.signature,u.user_has_avatar,u.avatar_type, b.buddy_id IS NOT NULL AS is_buddy, ( b.is_friend IS NOT NULL AND b.is_friend=1 ) AS is_friend FROM '.table_prefix.'comments AS c
  															LEFT JOIN '.table_prefix.'users AS u
  																ON (u.user_id=c.user_id)
  															LEFT JOIN '.table_prefix.'buddies AS b
@@ -143,7 +143,7 @@ class Comments
  															WHERE page_id=\'' . $this->page_id . '\'
  																AND namespace=\'' . $this->namespace . '\'
  																' . $approve_clause . '
- 															GROUP BY c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,c.ip_address,u.user_level,u.user_id,u.email,u.signature,u.user_has_avatar,u.avatar_type,b.buddy_id,b.is_friend
+ 															GROUP BY c.comment_id,c.name,c.subject,c.comment_data,c.time,c.approved,c.ip_address,u.username,u.user_level,u.user_id,u.email,u.signature,u.user_has_avatar,u.avatar_type,b.buddy_id,b.is_friend
  															ORDER BY c.time ASC
  															' . $limit_clause . ';');
 				$ret['comments'] = Array();
@@ -192,6 +192,10 @@ class Comments
 						
 						// Avatar URL
 						$row['avatar_path'] = make_avatar_url($row['user_id'], $row['avatar_type'], $row['email']);
+						
+						// Name
+						//if ( $row['user_id'] > 1 )
+						//	$row['name'] = $row['username'];
 						
 						// Add the comment to the list
 						$ret['comments'][] = $row;
