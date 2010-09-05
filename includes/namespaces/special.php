@@ -62,8 +62,16 @@ class Namespace_Special extends Namespace_Default
 				'delvote_ips' => '',
 				'wiki_mode' => 2,
 				'page_exists' => $this->exists,
-				'page_format' => getConfig('default_page_format', 'wikitext')
+				'page_format' => getConfig('default_page_format', 'wikitext'),
+				'require_admin' => $this->namespace === 'Admin'
 			);
+		
+		$code = $plugins->setHook('ns_special_cdata');
+		foreach ( $code as $cmd )
+		{
+			eval($cmd);
+		}
+		
 		$this->cdata = Namespace_Default::bake_cdata($this->cdata);
 		
 		$this->title =& $this->cdata['name'];

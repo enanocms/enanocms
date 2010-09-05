@@ -2377,6 +2377,10 @@ function page_Admin_EditSidebar()
 		switch($_GET['action'])
 		{
 			case 'new':
+				
+				// template needs to be initialized for this
+				$template->init_vars();
+				
 				?>
 				
 				<?php acp_start_form(); ?>

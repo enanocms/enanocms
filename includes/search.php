@@ -549,7 +549,8 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
 
 	// Divisor for calculating relevance scores
 	$divisor = ( count($query['any']) + count($query_phrase['any']) + count($query['req']) + count($query['not']) ) * 1.5;
-	$divisor = max($divisor, max($scores));
+	$divisor = max($divisor,
+				count($scores) > 0 ? max($scores) : 0);
 	
 	foreach ( $scores as $page_id => $score )
 	{

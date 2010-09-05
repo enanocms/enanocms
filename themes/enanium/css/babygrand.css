@@ -174,6 +174,7 @@ form.searchform {
 /* Sidebars */
 div.sidebar.left {
 	width: 150px;
+	color: #c0c0c0;
 }
 
 div.sidebar.right {
@@ -209,6 +210,10 @@ div.sidebar.right h4 {
 	color: #5a87b3;
 }
 
+div.sidebar.left div.slideblock.pluggedin {
+	padding: 5px;
+}
+
 div.sidebar ul.linkblock {
 	margin: 0;
 	padding: 0;
@@ -224,6 +229,19 @@ div.sidebar ul.linkblock li a {
 div.sidebar ul.linkblock li a:hover {
 	color: #c5c5c5;
 	background-color: #292929;
+}
+
+div.sidebar.right ul.linkblock {
+	margin-top: 4px;
+}
+
+div.sidebar.right ul.linkblock li a {
+	color: #356a9e;
+}
+
+div.sidebar.right ul.linkblock li a:hover {
+	color: #326394;
+	background-color: #c6dff5;
 }
 
 div.sidebar a.closebtn {
@@ -416,6 +434,16 @@ div#messageBox input[type ^="text"], div#messageBox input[type ^="password"] {
 div#messageBox input[type ^="text"]:focus, div#messageBox input[type ^="password"]:focus {
 	background-color: #fff;
 	border-color: #888;
+}
+
+textarea#ajaxEditArea, textarea.writespace {
+	font-family: Lucida Grande, DejaVu Sans, arial, helvetica, sans-serif;
+	font-size: 9pt;
+	line-height: 130%;
+	color: #202020;
+	background-color: #fff;
+	padding: 4px;
+	border: 1px solid #a0a0a0;
 }
 
 /* Footer */

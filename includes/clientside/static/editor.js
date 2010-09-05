@@ -401,6 +401,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 		button.assign_vars({
 				TITLE: $lang.get('editor_btn_savedraft'),
 				IMAGE: editor_img_path + '/savedraft.gif',
+				// SPRITE: gen_sprite_html(editor_img_path + '/sprite.png', 16, 16, 0, 80),
 				SPRITE: false,
 				FLAGS: 'href="#" onclick="ajaxPerformAutosave(); return false;" id="ajax_edit_savedraft_btn"'
 			});

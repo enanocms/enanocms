@@ -687,7 +687,7 @@ var enano_lang = {
 		},
 		acpcm: {
 			heading_main: 'Performance and caching settings',
-			intro: 'From this page you can control what information on your site is stored in cache files. Caching speeds up Enano performance by allowing data to be retrieved from the disk instead of querying the database. Sometimes the cache isn\'t updated immediately when the database is. From this page you can control what is cached, and you can clear specific caches to force them to refresh.',
+			intro: 'Some information on your site is stored in cache files. Caching speeds up Enano performance by allowing data to be retrieved from the disk instead of querying the database. Sometimes the cache isn\'t updated immediately when the database is. From this page you can control what is cached, and you can clear specific caches to force them to refresh.',
 			msg_refresh_warning: 'Some of the caches on this page will automatically refresh immediately even if you click Clear. This is because any use of the component will invoke the cache. To disable this behavior, you must disable caching site-wide.',
 			table_header: 'Cache settings',
 			lbl_enable_cache: 'Enable the cache (recommended)',

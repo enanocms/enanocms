@@ -457,7 +457,7 @@ window.ajaxLoginProcessResponse = function(response, hookfunc)
 			var conf = confirm($lang.get('user_login_ajax_msg_used_temp_pass'));
 			if ( conf )
 			{
-				var url = makeUrlNS('Special', 'PasswordReset/stage2/' + response.user_id + '/' + response.temp_password);
+				var url = response.redirect_url;
 				window.location = url;
 				break;
 			}

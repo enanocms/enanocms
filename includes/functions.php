@@ -309,7 +309,7 @@ function get_title($sanitize = true, $chop_special = false)
 
 function have_blank_urlname_page()
 {
-	return getConfig('main_page', 'Main_Page') == '' || getConfig('main_page', getConfig('main_page', 'Main_Page')) == '';
+	return getConfig('main_page', 'Main_Page') == '' || ( getConfig('main_page_alt_enable', 0) == 1 && getConfig('main_page_alt', getConfig('main_page', 'Main_Page')) == '' );
 }
 
 /**
@@ -1950,7 +1950,7 @@ function mysql_encode_column($input, $type)
 {
 	global $db, $session, $paths, $template, $plugins; // Common objects
 	// Decide whether to quote the string or not
-	if(substr($type, 0, 7) == 'varchar' || $type == 'datetime' || $type == 'text' || $type == 'tinytext' || $type == 'smalltext' || $type == 'longtext' || substr($type, 0, 4) == 'char')
+	if(substr($type, 0, 7) == 'varchar' || $type == 'datetime' || $type == 'text' || $type == 'tinytext' || $type == 'smalltext' || $type == 'longtext' || substr($type, 0, 4) == 'char' || substr($type, 0, 4) == 'enum')
 	{
 		$str = "'" . $db->escape($input) . "'";
 	}
@@ -4222,7 +4222,7 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
 			throw new Exception('Invalid extension of input file.');
 	}
 		
-	$magick_path = getConfig('imagemagick_path');
+	$magick_path = getConfig('imagemagick_path', '/usr/bin/convert');
 	$can_use_magick = (
 			getConfig('enable_imagemagick') == '1' &&
 			file_exists($magick_path)              &&
@@ -5408,3 +5408,39 @@ function do_xff_check()
 		}
 	}
 }
+
+/**
+ * Echo out the HTML and Javascript used to make a form with files in it upload via ajax.
+ * @param string The DOM ID of the form (<form id="...">)
+ * @return null
+ */
+
+function ajax_upload_js($formid)
+{
+	$upkey = md5(mt_rand() . microtime());
+	$php_has_progress_support = @ini_get('session.upload_progress.enabled') == '1' ? 'true' : 'false';
+	
+	$field_name = ini_get("session.upload_progress.name");
+	
+	?>
+	<input type="hidden" name="upload_progress_name" value="<?php echo !empty($field_name) ? $field_name : ''; ?>" />
+	<?php if ( !empty($field_name) ): ?>
+	<input type="hidden" name="<?php echo $field_name; ?>" value="<?php echo $upkey; ?>" />
+	<?php endif; ?>
+	<input type="hidden" name="progress_support" value="<?php echo $php_has_progress_support; ?>" />
+	
+	<script type="text/javascript">
+	//<![CDATA[
+	
+	addOnloadHook(function()
+		{
+			load_component('upload');
+			var ajaxupload = new AjaxUpload('<?php echo $formid; ?>');
+			eval(setHook('<?php echo $formid; ?>_ajaxupload_init'));
+		});
+	//]]>
+	</script>
+	
+	<?php
+}
+

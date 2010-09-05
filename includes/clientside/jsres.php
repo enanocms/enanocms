@@ -95,6 +95,7 @@ $full_compress_safe = array(
 	'userpage.js',
 	'template-compiler.js',
 	'toolbar.js',
+	'upload.js'
 );
 
 // Files that should NOT be compressed due to already being compressed, licensing, or invalid produced code
@@ -104,17 +105,7 @@ require_once('includes/js-compressor.php');
 
 // try to gzip the output
 if ( !defined('ENANO_JSRES_SETUP_ONLY') ):
-$do_gzip = false;
-if ( isset($_SERVER['HTTP_ACCEPT_ENCODING']) && getConfig('gzip_output', false) == 1 )
-{
-	$acceptenc = str_replace(' ', '', strtolower($_SERVER['HTTP_ACCEPT_ENCODING']));
-	$acceptenc = explode(',', $acceptenc);
-	if ( in_array('gzip', $acceptenc) )
-	{
-		$do_gzip = true;
-		ob_start();
-	}
-}
+$do_gzip = true;
 
 // Output format will always be JS
 header('Content-type: text/javascript');
@@ -271,6 +262,9 @@ $local_end = microtime_float();
 $local_gentime = $local_end - $local_start;
 $local_gentime = round($local_gentime, 5);
 header("X-Performance: generated in $local_gentime seconds");
+
+if ( $do_gzip )
+	ob_start();
 
 echo $everything;
 

@@ -1458,7 +1458,7 @@ function page_Special_PasswordReset()
 					return false;
 				}
 			}
-			if ( getConfig('pw_strength_enable') == '1' )
+			if ( getConfig('pw_strength_enable') == 1 )
 			{
 				$min_score = intval(getConfig('pw_strength_minimum'));
 				$inp_score = password_score($data);
@@ -1513,6 +1513,7 @@ function page_Special_PasswordReset()
 			</div>
 			<?php echo $session->generate_aes_form(); ?>
 		</form>
+		<?php if ( getConfig('pw_strength_enable') == 1 ): ?>
 		<script type="text/javascript">
 		addOnloadHook(function()
 			{
@@ -1521,6 +1522,8 @@ function page_Special_PasswordReset()
 			});
 		</script>
 		<?php
+		endif;
+		
 		echo $session->aes_javascript('resetform', 'pass', 'use_crypt', 'crypt_key', 'crypt_data', 'challenge_data', 'dh_supported', 'dh_public_key', 'dh_client_public_key');
 		$template->footer();
 		return true;

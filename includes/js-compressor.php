@@ -3,7 +3,7 @@
 /*
  * Enano - an open-source CMS capable of wiki functions, Drupal-like sidebar blocks, and everything in between
  * Copyright (C) 2006-2009 Dan Fuhry
- * Javascript compression library - used to compact the client-side Javascript code (all 72KB of it!) to save some bandwidth
+ * Javascript compression library - used to compact the client-side Javascript code to save some bandwidth
  *
  * This program is Free Software; you can redistribute and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.

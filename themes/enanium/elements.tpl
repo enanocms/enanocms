@@ -37,7 +37,7 @@
 							<a>{TITLE}</a>
 							<!-- BEGIN in_sidebar_admin -->{ADMIN_END}<!-- END in_sidebar_admin -->
 						</h4>
-						<div class="slideblock">
+						<div class="slideblock pluggedin">
 							{CONTENT}
 						</div>
 					</div>
