@@ -195,7 +195,7 @@ var enano_lang = {
 			inherit_global_everyone: 'Rule for everyone on the entire site',
 			inherit_global_group: 'Rule for the group "%group_name%" on the entire site',
 			inherit_global_user: 'Rule for this user on the entire site',
-			inherit_pg_everyone: 'Rule for everyone in the page group "%pg_name"',
+			inherit_pg_everyone: 'Rule for everyone in the page group "%pg_name%"',
 			inherit_pg_group: 'Rule for the group "%group_name%" in the page group "%pg_name%"',
 			inherit_pg_user: 'Rule for this user in the page group "%pg_name%"',
 			inherit_local_everyone: 'Rule for everyone on this page',
