@@ -598,7 +598,7 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
 	if ( !is_object($template) )
 	{
 		$template = new template_nodb();
-		$template->load_theme('oxygen', 'bleu', false);
+		$template->load_theme('enanium', 'babygrand', false);
 		$template->assign_vars(array(
 				'SITE_NAME' => 'Enano',
 				'SITE_DESC' => 'This site is experiencing a critical error and cannot load.',
@@ -1029,8 +1029,8 @@ function grinding_halt($t, $p)
 		echo "$p\n";
 		exit(1);
 	}
-	$theme = ( defined('ENANO_CONFIG_FETCHED') ) ? getConfig('theme_default') : 'oxygen';
-	$style = ( defined('ENANO_CONFIG_FETCHED') ) ? '__foo__' : 'bleu';
+	$theme = ( defined('ENANO_CONFIG_FETCHED') ) ? getConfig('theme_default') : 'enanium';
+	$style = ( defined('ENANO_CONFIG_FETCHED') ) ? '__foo__' : 'babygrand';
 	
 	$tpl = new template_nodb();
 	$tpl->load_theme($theme, $style);
@@ -1369,7 +1369,7 @@ function enano_version($long = false, $no_nightly = false)
 {
 	if ( !defined('ENANO_CONFIG_FETCHED') )
 	{
-		return function_exists('installer_enano_version') ? installer_enano_version() : $GLOBALS['enano_version'];
+		return function_exists('installer_enano_version') ? installer_enano_version() : $GLOBALS['version'];
 	}
 	$r = getConfig('enano_version');
 	$rc = ( $long ) ? ' release candidate ' : 'RC';
