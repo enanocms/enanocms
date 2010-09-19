@@ -501,7 +501,8 @@ class template
 				'auth_admin' => $session->user_level >= USER_LEVEL_ADMIN ? true : false,
 				'user_logged_in' => $session->user_logged_in,
 				'opera' => $is_opera,
-				'msie' => $is_msie
+				'msie' => $is_msie,
+				'registration_disabled' => getConfig('account_activation', 'none') === 'disable'
 			));
 		
 		if ( $session->sid_super )
