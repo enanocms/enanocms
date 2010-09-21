@@ -284,7 +284,7 @@ function page_Special_Login()
 			</script>
 			<?php else: ?>
 			<script type="text/javascript">
-				document.forms.loginform.pass.focus();
+				document.forms.loginform.password.focus();
 			</script>
 			<?php endif; ?>
 			<?php
