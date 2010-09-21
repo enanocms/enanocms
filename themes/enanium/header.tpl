@@ -55,7 +55,9 @@
 			<li class="logout"><a href="{url:Special:Logout/{CSRF_TOKEN}/{PAGE_URLNAME}}" onclick="mb_logout(); return false;">{lang:sidebar_btn_logout}</a></li>
 			<!-- BEGINELSE user_logged_in -->
 			<li class="em"><a href="{url:Special:Login}" onclick="ajaxStartLogin(); return false;">{lang:sidebar_btn_login}</a></li>
+			<!-- BEGINNOT registration_disabled -->
 			<li><a href="{url:Special:Register}">{lang:sidebar_btn_register}</a></li>
+			<!-- END registration_disabled -->
 			<!-- END user_logged_in -->
 		</ul>
 		<!-- END stupid_mode -->
