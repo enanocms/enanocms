@@ -57,7 +57,7 @@ var IE = checkIt('msie');
 var IE_8 = checkIt('msie 8.');
 var is_Opera = checkIt('opera');
 var is_iPhone = checkIt('iphone') || checkIt('ipod');
-var is_iPhone_3 = checkIt('iphone os 3_');
+var is_iPhone_3 = checkIt('iphone') && Number(navigator.userAgent.replace(/^.*iPhone OS ([0-9]+)_([0-9]+) .*$/, '$1.$2')) >= 3.0;
 var is_Webkit = checkIt('applewebkit');
 var is_Gecko = checkIt('gecko');
 var is_firefox2 = checkIt('firefox/2.');
