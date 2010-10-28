@@ -6,6 +6,8 @@ var AutosaveTimeoutObj = null;
 var editor_img_path = cdnPath + '/images/editor';
 var editor_save_lock = false;
 var editor_wikitext_transform_enable = true;
+var editor_orig_text = '';
+var editor_last_draft = '';
 
 window.ajaxEditor = function(revid)
 {
@@ -194,6 +196,10 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 	// Textarea containing the content
 	var ta_wrapper = document.createElement('div');
 	ta_wrapper.style.margin = '10px 0';
+	
+	// A hook allowing plugins to create a toolbar on top of the textarea
+	eval(setHook('editor_gui_toolbar'));
+	
 	// ta_wrapper.style.clear = 'both';
 	var textarea = document.createElement('textarea');
 	ta_wrapper.appendChild(textarea);
@@ -480,6 +486,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 	$dynano('ajaxEditArea').object.focus();
 	$dynano('ajaxEditArea').object._edTimestamp = timestamp;
 	$dynano('ajaxEditArea').setContent(content);
+	editor_orig_text = content;
 	
 	// If the editor preference is tinymce, switch the editor to TinyMCE now
 	if ( response.page_format == 'xhtml' && allow_wysiwyg )
@@ -1071,10 +1078,12 @@ window.ajaxPerformAutosave = function()
 	
 	var ta_content = $dynano('ajaxEditArea').getContent();
 	
-	if ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' )
+	if ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' || ta_content == editor_orig_text || ta_content == editor_last_draft )
 	{
 		return false;
 	}
+	
+	editor_last_draft = ta_content;
 	
 	ajaxEditorSave(true);
 }
@@ -1110,6 +1119,7 @@ window.ajaxEditorUseDraft = function()
 				
 				$dynano('ajaxEditArea').setContent(response.src);
 				$dynano('ajaxEditArea').object.used_draft = true;
+				editor_orig_text = editor_last_draft = response.src;
 				
 				var es = document.getElementById('enano_editor_field_summary');
 				if ( es.value == '' )

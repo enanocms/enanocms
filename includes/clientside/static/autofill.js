@@ -152,7 +152,7 @@ window.autofill_init = function()
 	
 		// Create results
 		var results = document.createElement("div");
-		$(results).addClass('tblholder').css('z-index', getHighestZ() + 1).css('margin-top', 0);
+		$(results).addClass('tblholder').css('z-index', getHighestZ() + 50).css('margin-top', 0);
 		$(results).css('clip', 'rect(0px,auto,auto,0px)').css('overflow', 'auto').css('max-height', '300px');
 	
 		// Create jQuery object for results
