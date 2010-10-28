@@ -56,16 +56,24 @@ function doTableStuff( $t ) {
 	$ltr = array () ; # tr attributes
 	$has_opened_tr = array(); # Did this table open a <tr> element?
 	$indent_level = 0; # indent level of the table
-	foreach ( $t AS $k => $x )
+	$row_count = 0;
+	foreach ( $t AS $k => $line )
 	{
-		$x = trim ( $x ) ;
-		$fc = substr ( $x , 0 , 1 ) ;
-		if ( preg_match( '/^(:*)\{\|(.*)$/', $x, $matches ) ) {
+		$line = trim ( $line ) ;
+		$first_char = substr ( $line , 0 , 1 ) ;
+		if ( preg_match( '/^(:*)\{\|(.*)$/', $line, $matches ) ) {
 			$indent_level = strlen( $matches[1] );
 
 			$attributes = unstripForHTML( $matches[2] );
+			$styled_table = false;
+			if ( trim($attributes) == "styled" )
+			{
+				$attributes='cellspacing="1" cellpadding="4"';
+				$styled_table = true;
+			}
 
 			$t[$k] = str_repeat( '<dl><dd>', $indent_level ) .
+				( $styled_table ? '<div class="tblholder">' : '' ) .
 				'<table' . fixTagAttributes( $attributes, 'table' ) . '>' ;
 			array_push ( $td , false ) ;
 			array_push ( $ltd , '' ) ;
@@ -74,8 +82,8 @@ function doTableStuff( $t ) {
 			array_push ( $has_opened_tr, false );
 		}
 		else if ( count ( $td ) == 0 ) { } # Don't do any of the following
-		else if ( '|}' == substr ( $x , 0 , 2 ) ) {
-			$z = "</table>" . substr ( $x , 2);
+		else if ( '|}' == substr ( $line , 0 , 2 ) ) {
+			$z = "</table>" . ( $styled_table ? '</div>' : '' ) . substr ( $line , 2);
 			$l = array_pop ( $ltd ) ;
 			if ( !array_pop ( $has_opened_tr ) ) $z = "<tr><td></td></tr>" . $z ;
 			if ( array_pop ( $tr ) ) $z = '</tr>' . $z ;
@@ -83,9 +91,10 @@ function doTableStuff( $t ) {
 			array_pop ( $ltr ) ;
 			$t[$k] = $z . str_repeat( '</dd></dl>', $indent_level );
 		}
-		else if ( '|-' == substr ( $x , 0 , 2 ) ) { # Allows for |---------------
-			$x = substr ( $x , 1 ) ;
-			while ( $x != '' && substr ( $x , 0 , 1 ) == '-' ) $x = substr ( $x , 1 ) ;
+		else if ( '|-' == substr ( $line , 0 , 2 ) ) { # Allows for |---------------
+			$row_count++;
+			$line = substr ( $line , 1 ) ;
+			while ( $line != '' && substr ( $line , 0 , 1 ) == '-' ) $line = substr ( $line , 1 ) ;
 			$z = '' ;
 			$l = array_pop ( $ltd ) ;
 			array_pop ( $has_opened_tr );
@@ -97,17 +106,17 @@ function doTableStuff( $t ) {
 			array_push ( $tr , false ) ;
 			array_push ( $td , false ) ;
 			array_push ( $ltd , '' ) ;
-			$attributes = unstripForHTML( $x );
+			$attributes = unstripForHTML( $line );
 			array_push ( $ltr , fixTagAttributes( $attributes, 'tr' ) ) ;
 		}
-		else if ( '|' == $fc || '!' == $fc || '|+' == substr ( $x , 0 , 2 ) ) { # Caption
-			# $x is a table row
-			if ( '|+' == substr ( $x , 0 , 2 ) ) {
-				$fc = '+' ;
-				$x = substr ( $x , 1 ) ;
+		else if ( '|' == $first_char || '!' == $first_char || '|+' == substr ( $line , 0 , 2 ) ) { # Caption
+			# $line is a table row
+			if ( '|+' == substr ( $line , 0 , 2 ) ) {
+				$first_char = '+' ;
+				$line = substr ( $line , 1 ) ;
 			}
-			$after = substr ( $x , 1 ) ;
-			if ( $fc == '!' ) $after = str_replace ( '!!' , '||' , $after ) ;
+			$after = substr ( $line , 1 ) ;
+			if ( $first_char == '!' ) $after = str_replace ( '!!' , '||' , $after ) ;
 
 			// Split up multiple cells on the same line.
 			// FIXME: This can result in improper nesting of tags processed
@@ -121,7 +130,7 @@ function doTableStuff( $t ) {
 			foreach ( $after AS $theline )
 			{
 				$z = '' ;
-				if ( $fc != '+' )
+				if ( $first_char != '+' )
 				{
 					$tra = array_pop ( $ltr ) ;
 					if ( !array_pop ( $tr ) ) $z = '<tr'.$tra.">\n" ;
@@ -133,9 +142,9 @@ function doTableStuff( $t ) {
 
 				$l = array_pop ( $ltd ) ;
 				if ( array_pop ( $td ) ) $z = '</'.$l.'>' . $z ;
-				if ( $fc == '|' ) $l = 'td' ;
-				else if ( $fc == '!' ) $l = 'th' ;
-				else if ( $fc == '+' ) $l = 'caption' ;
+				if ( $first_char == '|' ) $l = 'td' ;
+				else if ( $first_char == '!' ) $l = 'th' ;
+				else if ( $first_char == '+' ) $l = 'caption' ;
 				else $l = '' ;
 				array_push ( $ltd , $l ) ;
 
@@ -146,10 +155,21 @@ function doTableStuff( $t ) {
 				if ( strpos( $y[0], '[[' ) !== false ) {
 					$y = array ($theline);
 				}
+				$attr_append = '';
+				if ( $styled_table && $l == 'td' )
+				{
+					$rowclass = 1 + ($row_count % 2);
+					$attr_append .= ' class="row' . $rowclass . '"';
+				}
 				if ( count ( $y ) == 1 )
-					$y = "{$z}<{$l}>{$y[0]}" ;
-				else {
+				{
+					$y = "{$z}<{$l}{$attr_append}>{$y[0]}" ;
+				}
+				else
+				{
 					$attributes = unstripForHTML( $y[0] );
+					if ( !strstr($attributes, "class=") )
+						$attributes .= $attr_append;
 					$y = "{$z}<{$l}".fixTagAttributes($attributes, $l).">{$y[1]}" ;
 				}
 				$t[$k] .= $y ;

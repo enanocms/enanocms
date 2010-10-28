@@ -1163,6 +1163,7 @@ class RenderMan {
 			$filename   =& $matches[1][$i];
 			
 			// apply recursion (hack? @todo could this be done with (?R) in PCRE?)
+			// this allows other elements such as internal/external links to be embedded in image captions
 			$tag_pos = strpos($text, $full_tag);
 			$tag_end_pos = $tag_pos + strlen($full_tag);
 			while ( get_char_count($full_tag, ']') < get_char_count($full_tag, '[') && $tag_end_pos < strlen($text) )
@@ -1180,9 +1181,9 @@ class RenderMan {
 			$width = null;
 			$height = null;
 			$scale_type = null;
-			$raw_display = false;
 			$clear = null;
 			$caption = null;
+			$display_type = 'inline';
 			
 			// trim tag and parse particles
 			$tag_trim = rtrim(ltrim($full_tag, '['), ']');
@@ -1201,12 +1202,13 @@ class RenderMan {
 					case 'left':
 					case 'right':
 						$clear = $param;
+						$display_type = 'framed';
 						break;
 					case 'thumb':
 						$scale_type = 'thumb';
 						break;
 					case 'raw':
-						$raw_display = true;
+						$display_type = 'raw';
 						break;
 					default:
 						// height specification
@@ -1218,7 +1220,7 @@ class RenderMan {
 						}
 						// not the height, so see if a plugin took this over
 						// this hook requires plugins to return true if they modified anything
-						$code = $plugins->setHook('img_tag_parse_params');
+						$code = $plugins->setHook('img_tag_parse_params', true);
 						foreach ( $code as $cmd )
 						{
 							if ( eval($cmd) )
@@ -1263,7 +1265,7 @@ class RenderMan {
 			//   $img_tag .= 'width="' . $r_width . '" height="' . $r_height . '" ';
 			// }
 			
-			$img_tag .= 'style="border-width: 0px; /* background-color: white; */" ';
+			$img_tag .= 'style="border-width: 0px;" ';
 			
 			$code = $plugins->setHook('img_tag_parse_img');
 			foreach ( $code as $cmd )
@@ -1276,7 +1278,7 @@ class RenderMan {
 			$s_full_tag = self::escape_parser_hint_attrib($full_tag);
 			$complete_tag = '<!--#imagelink src="' . $s_full_tag . '" -->';
 			
-			if ( !empty($scale_type) && !$raw_display )
+			if ( $display_type == 'framed' )
 			{
 				$complete_tag .= '<div class="thumbnail" ';
 				$clear_text = '';
@@ -1302,7 +1304,7 @@ class RenderMan {
 				
 				$complete_tag .= '</div>';
 			}
-			else if ( $raw_display )
+			else if ( $display_type == 'raw' )
 			{
 				$complete_tag .= "$img_tag";
 				$taglist[$i] = $complete_tag;
