@@ -110,7 +110,7 @@ var enano_lang_install = {
 			req_help_uploads: 'PHP file upload support is a prerequisite for uploading files via Enano\'s web interface.',
 			req_help_writable: 'Certain files need to be writable for installation and certain features to work properly. Use your FTP client\'s "CHMOD" feature to set numeric permissions on the items listed above: 666 for files, and 777 for directories. It\'s safest to CHMOD config.php to 444 once installation is complete.',
 			req_help_gd2: 'Without GD, Enano has to use a visual confirmation engine that generates weaker images that are easier to break.',
-			req_help_imagemagick: 'Without ImageMagick, Enano will use GD (if it is available) to scale images down. This is slightly slower.',
+			req_help_imagemagick: 'Without ImageMagick, Enano will use GD (if it is available) to scale images down. This is slightly slower. Note that the installer only checked your server\'s PATH environment variable (reported as: %path%); it is possible that ImageMagick is installed in another location. Check your web host\'s documentation to find out if ImageMagick is installed.',
 			req_help_crypto_none: 'Your server has no support for arbitrary-precision math, which is required for encrypted logon. Your username and password will not be transmitted securely until one of the following PHP extensions is installed: GMP, Big_Int, or BCMath.',
 			req_help_crypto_bcmath: 'Your server supports arbitrary-precision math, but only through PHP\'s BCMath extension which is extremely slow. Expect the process of logging in to take 6-10 seconds.',
 			

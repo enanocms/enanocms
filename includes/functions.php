@@ -5274,6 +5274,21 @@ function purge_all_caches()
 }
 
 /**
+ * Return the OS's PATH variable.
+ * @return string
+ */
+
+function get_system_path()
+{
+	$path = ( isset($_ENV['PATH']) ) ? $_ENV['PATH'] : ( isset($_SERVER['PATH']) ? $_SERVER['PATH'] : false );
+	if ( !$path )
+		// couldn't get OS's PATH
+		return false;
+		
+	return $path;
+}
+
+/**
  * Implementation of the "which" command in native PHP.
  * @param string command
  * @return string path to executable, or false on failure
@@ -5281,15 +5296,15 @@ function purge_all_caches()
 
 function which($executable)
 {
-	$path = ( isset($_ENV['PATH']) ) ? $_ENV['PATH'] : ( isset($_SERVER['PATH']) ? $_SERVER['PATH'] : false );
-	if ( !$path )
-		// couldn't get OS's PATH
+	$path = get_system_path();
+	if ( empty($paths) )
 		return false;
-		
+	
 	$win32 = ( PHP_OS == 'WINNT' || PHP_OS == 'WIN32' );
 	$extensions = $win32 ? array('.exe', '.com', '.bat') : array('');
 	$separator = $win32 ? ';' : ':';
 	$paths = explode($separator, $path);
+	
 	foreach ( $paths as $dir )
 	{
 		foreach ( $extensions as $ext )

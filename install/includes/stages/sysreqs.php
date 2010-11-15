@@ -127,7 +127,7 @@ if ( !$req_gd )
 // FS test: ImageMagick
 $req_imagick = which('convert');
 if ( !$req_imagick )
-	$warnings[] = $lang->get('sysreqs_req_help_imagemagick');
+	$warnings[] = $lang->get('sysreqs_req_help_imagemagick', array('path' => get_system_path()));
 
 $crypto_backend = install_get_crypto_backend();
 
