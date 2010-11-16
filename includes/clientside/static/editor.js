@@ -879,12 +879,19 @@ window.ajaxEditorCancel = function()
 					},
 					onclick: function()
 					{
+						console.info('setAjaxLoading');
 						setAjaxLoading();
-						ajaxEditorDestroyModalWindow();
+						console.info('editor_open = false');
 						editor_open = false;
+						console.info('enableUnload');
 						enableUnload();
+						console.info('destroyMCE');
 						$dynano('ajaxEditArea').destroyMCE(false);
+						console.info('destroyModal()');
+						ajaxEditorDestroyModalWindow();
+						console.info('ajaxReset');
 						ajaxReset();
+						console.info('miniPromptDestroy');
 						miniPromptDestroy(this);
 						return false;
 					}

@@ -119,13 +119,19 @@ function DN_switchToMCE(performWikiTransform)
 		enano_tinymce_options.elements = this.object.id;
 		initTinyMCE();
 		this.object.dnIsMCE = 'yes';
-		return true;
 	}
 	else
 	{
 		console.info('$dynano().switchToMCE(): tinyMCE already loaded, calling mceAddControl');
 		tinymce.EditorManager.execCommand("mceAddControl", true, this.object.id);
 		this.object.dnIsMCE = 'yes';
+	}
+	// Any elements to hide?
+	var objs = getElementsByClassName(this.object.parentNode, '*', 'hide-with-mce');
+	console.debug(objs);
+	for ( var i = 0; i < objs.length; i++ )
+	{
+		objs[i].style.display = 'none';
 	}
 	return this;
 }
@@ -151,6 +157,12 @@ function DN_destroyMCE(performWikiTransform)
 		}
 	}
 	this.object.dnIsMCE = 'no';
+	// Any elements to re-show?
+	var objs = getElementsByClassName(this.object.parentNode, '*', 'hide-with-mce');
+	for ( var i = 0; i < objs.length; i++ )
+	{
+		objs[i].style.display = 'block';
+	}
 	return this;
 }
 

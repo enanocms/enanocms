@@ -1155,7 +1155,7 @@ function dirtify_page_id(page_id)
 function getElementsByClassName(oElm, strTagName, strClassName)
 {
 		// first it gets all of the specified tags
-		var arrElements = (strTagName == "*" && document.all) ? document.all : oElm.getElementsByTagName(strTagName);
+		var arrElements = oElm.getElementsByTagName(strTagName);
 		
 		// then it sets up an array that'll hold the results
 		var arrReturnElements = new Array();

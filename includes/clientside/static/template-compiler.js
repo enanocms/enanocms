@@ -4,8 +4,8 @@
 window.templateParser = function(text)
 {
 	this.tpl_code    = text;
-	this.tpl_strings = new Object();
-	this.tpl_bool    = new Object();
+	this.tpl_strings = {};
+	this.tpl_bool    = {};
 	this.assign_vars = __tpAssignVars;
 	this.assign_bool = __tpAssignBool;
 	this.fetch_hook  = __tpFetchHook;
