@@ -263,7 +263,7 @@ function get_main_page($force_logged_in = false)
 function get_title($sanitize = true, $chop_special = false)
 {
 	$title = '';
-	if ( isset($_GET['title']) )
+	if ( isset($_GET['title']) && is_string($_GET['title']) )
 	{
 		$title = $_GET['title'];
 	}
