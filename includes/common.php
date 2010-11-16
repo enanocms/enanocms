@@ -289,6 +289,8 @@ if ( getConfig('enano_version') !== $version && !preg_match('/^upg-/', getConfig
 {
 	setConfig('enano_version', $version);
 	setConfig('newly_upgraded', 1);
+	$q = $db->sql_query('INSERT INTO '.table_prefix.'logs(log_type,action,time_id,date_string,author,author_uid,page_text,edit_summary) VALUES'
+			. '(\'security\', \'upgrade_enano\', ' . time() . ', \'[DEPRECATED]\', \'\', 0, \'' . $db->escape($version) . '\', \'' . $db->escape($_SERVER['REMOTE_ADDR']) . '\');');
 }
 
 // Set our CDN path
