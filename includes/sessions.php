@@ -1790,10 +1790,10 @@ class sessionManager {
 				$sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE \n"
 							. "    ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR \n"
 							. "    ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' REGEXP ban_value ) OR \n"
-							. "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '{$this->username}' ) OR \n"
-							. "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '{$this->username}' REGEXP ban_value ) OR \n"
-							. "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '{$this->email}' ) OR \n"
-							. "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '{$this->email}' REGEXP ban_value ) \n"
+							. "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '" . $db->escape($this->username) . "' ) OR \n"
+							. "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '" . $db->escape($this->username) . "' REGEXP ban_value ) OR \n"
+							. "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '" . $db->escape($this->email) . "' ) OR \n"
+							. "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '" . $db->escape($this->email) . "' REGEXP ban_value ) \n"
 							. "  ORDER BY ban_type ASC;";
 			}
 			else if ( ENANO_DBLAYER == 'PGSQL' )
@@ -1801,10 +1801,10 @@ class sessionManager {
 				$sql = "SELECT $col_reason, ban_value, ban_type, is_regex FROM " . table_prefix . "banlist WHERE \n"
 							. "    ( ban_type = " . BAN_IP    . " AND is_regex = 0 ) OR \n"
 							. "    ( ban_type = " . BAN_IP    . " AND is_regex = 1 AND '{$_SERVER['REMOTE_ADDR']}' ~ ban_value ) OR \n"
-							. "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '{$this->username}' ) OR \n"
-							. "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '{$this->username}' ~ ban_value ) OR \n"
-							. "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '{$this->email}' ) OR \n"
-							. "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '{$this->email}' ~ ban_value ) \n"
+							. "    ( ban_type = " . BAN_USER  . " AND is_regex = 0 AND ban_value = '" . $db->escape($this->username) . "' ) OR \n"
+							. "    ( ban_type = " . BAN_USER  . " AND is_regex = 1 AND '" . $db->escape($this->username) . "' ~ ban_value ) OR \n"
+							. "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 0 AND ban_value = '" . $db->escape($this->email) . "' ) OR \n"
+							. "    ( ban_type = " . BAN_EMAIL . " AND is_regex = 1 AND '" . $db->escape($this->email) . "' ~ ban_value ) \n"
 							. "  ORDER BY ban_type ASC;";
 			}
 			$q = $this->sql($sql);
