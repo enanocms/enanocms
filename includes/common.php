@@ -346,7 +346,7 @@ if ( getConfig('default_language') === false && !defined('IN_ENANO_MIGRATION') )
 &lt;?php
 define("ENANO_ALLOW_LOAD_NOLANG", 1);
 require("includes/common.php");
-install_language("eng", "English", "English", ENANO_ROOT . "/language/english/enano.json");</pre>');
+install_language("eng", "English", "English", ENANO_ROOT . "/language/english/core.json");</pre>');
 	}
 	$row = $db->fetchrow();
 	setConfig('default_language', $row['lang_id']);
