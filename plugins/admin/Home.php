@@ -54,9 +54,12 @@ function page_Admin_Home()
 	if ( getConfig('newly_upgraded') )
 	{
 		setConfig('newly_upgraded', false);
+		// FIXME this check only works for going up to 1.1.8
 		echo '<div class="acphome-box notice">'
 				. '<h3>' . $lang->get('acphome_msg_upgrade_success_title') . '</h3>'
-				. '<p>' . $lang->get('acphome_msg_upgrade_success_body') . '</p>'
+				. '<p>' . ( $lang->get('acphome_msg_upgrade_success_body') === 'acphome_msg_upgrade_success_body' ? '
+						Enano has been upgraded successfully, but you should <b>re-import the language</b> to fix missing and un-localized strings.
+					' : $lang->get('acphome_msg_upgrade_success_body') ) . '</p>'
 				. '</div>';
 	}
 	
