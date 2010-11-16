@@ -1373,7 +1373,14 @@ function page_Special_Captcha()
 		$db->_die();
 	
 	require ( ENANO_ROOT.'/includes/captcha.php' );
-	$captcha = captcha_object($hash, 'freecap');
+	try
+	{
+		$captcha = captcha_object($hash, 'freecap');
+	}
+	catch ( Exception $e )
+	{
+		die("CAPTCHA engine returned a hard exception");
+	}
 	// $captcha->debug = true;
 	$captcha->make_image();
 	
