@@ -197,14 +197,15 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 	var ta_wrapper = document.createElement('div');
 	ta_wrapper.style.margin = '10px 0';
 	
+	// ta_wrapper.style.clear = 'both';
+	var textarea = document.createElement('textarea');
+	textarea.id = 'ajaxEditArea';
+	
 	// A hook allowing plugins to create a toolbar on top of the textarea
 	eval(setHook('editor_gui_toolbar'));
 	
-	// ta_wrapper.style.clear = 'both';
-	var textarea = document.createElement('textarea');
 	ta_wrapper.appendChild(textarea);
 	
-	textarea.id = 'ajaxEditArea';
 	textarea.rows = '20';
 	textarea.cols = '60';
 	textarea.style.width = '98.7%';
@@ -450,7 +451,10 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 	form.appendChild(ta_wrapper);
 	if ( !readonly )
 		form.appendChild(tblholder);
-	form.innerHTML += '<div style="margin: 10px 0 0 0;">' + toolbar + '</div>';
+	var tbdiv = document.createElement('div');
+	tbdiv.innerHTML = toolbar;
+	tbdiv.style.margin = '10px 0 0 0';
+	form.appendChild(tbdiv);
 	edcon.appendChild(form);
 	
 	if ( response.edit_notice && !readonly )
@@ -879,19 +883,12 @@ window.ajaxEditorCancel = function()
 					},
 					onclick: function()
 					{
-						console.info('setAjaxLoading');
 						setAjaxLoading();
-						console.info('editor_open = false');
 						editor_open = false;
-						console.info('enableUnload');
 						enableUnload();
-						console.info('destroyMCE');
 						$dynano('ajaxEditArea').destroyMCE(false);
-						console.info('destroyModal()');
 						ajaxEditorDestroyModalWindow();
-						console.info('ajaxReset');
 						ajaxReset();
-						console.info('miniPromptDestroy');
 						miniPromptDestroy(this);
 						return false;
 					}
