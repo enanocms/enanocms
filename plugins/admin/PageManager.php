@@ -248,6 +248,7 @@ function page_Admin_PageManager()
 											'UPDATE ' . table_prefix . "comments SET page_id = '$page_id_new', namespace = '$namespace_new' WHERE page_id = '$page_id_db' AND namespace = '$namespace_db';",
 											'UPDATE ' . table_prefix . "page_text SET page_id = '$page_id_new', namespace = '$namespace_new' WHERE page_id = '$page_id_db' AND namespace = '$namespace_db';",
 											'UPDATE ' . table_prefix . "categories SET page_id = '$page_id_new', namespace = '$namespace_new' WHERE page_id = '$page_id_db' AND namespace = '$namespace_db';"
+											'UPDATE ' . table_prefix . "files SET page_id = '$page_id_new', filename = '$page_id_new' WHERE page_id = '$page_id_db';"
 										);
 									foreach ( $sql as $q )
 									{
@@ -256,7 +257,7 @@ function page_Admin_PageManager()
 									}
 									
 									// If we're going File -> other, remove files
-									if ( $namespace_db === 'File' )
+									if ( $namespace_db === 'File' && $namespace_new !== 'File' )
 									{
 										PageUtils::delete_page_files($page_id);
 									}
