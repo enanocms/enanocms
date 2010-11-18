@@ -511,7 +511,8 @@ $mime_types = Array (
 	'odf' => 'application/vnd.oasis.opendocument.formula',
 	'otf' => 'application/vnd.oasis.opendocument.formula-template',
 	'odm' => 'application/vnd.oasis.opendocument.text-master',
-	'oth' => 'application/vnd.oasis.opendocument.text-web'
+	'oth' => 'application/vnd.oasis.opendocument.text-web',
+	'flac' => 'audio/x-flac'
 );
 
 $mimetype_extlist = Array(
@@ -586,6 +587,7 @@ $mimetype_extlist = Array(
 	'audio/x-pn-realaudio-plugin'=>'rpm',
 	'audio/x-realaudio'=>'ra',
 	'audio/x-wav'=>'wav',
+	'audio/x-flac' => 'flac',
 	'chemical/x-pdb'=>'pdb',
 	'chemical/x-xyz'=>'xyz',
 	'image/bmp'=>'bmp',
