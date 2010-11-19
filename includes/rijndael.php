@@ -1729,10 +1729,7 @@ function aes_decrypt_cache_store($encrypted, $decrypted, $key)
 		);
 	}
 	// call var_export and collect contents
-	ob_start();
-	var_export($aes_decrypt_cache);
-	$dec_cache_string = ob_get_contents();
-	ob_end_clean();
+	$dec_cache_string = var_export($aes_decrypt_cache, true);
 	$f = @fopen($cache_file, 'w');
 	if ( !$f )
 		return false;
@@ -1773,10 +1770,7 @@ function aes_decrypt_cache_destroy($hash)
 		unset($aes_decrypt_cache[$hash]);
 	
 	// call var_export and collect contents
-	ob_start();
-	var_export($aes_decrypt_cache);
-	$dec_cache_string = ob_get_contents();
-	ob_end_clean();
+	$dec_cache_string = var_export($aes_decrypt_cache, true);
 	$f = @fopen($cache_file, 'w');
 	if ( !$f )
 		return false;

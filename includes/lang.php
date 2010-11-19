@@ -600,11 +600,15 @@ $lang_cache = ');
 	
 	static function var_export_string($val)
 	{
+		/*
 		ob_start();
 		var_export($val);
 		$contents = ob_get_contents();
 		ob_end_clean();
 		return $contents;
+		*/
+		// Which PHP version was the second parameter added in?? o_O
+		return var_export($val, true);
 	}
 	
 	/**
