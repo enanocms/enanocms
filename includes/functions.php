@@ -3239,6 +3239,30 @@ function enano_handle_error($errno, $errstr, $errfile, $errline)
 		return true;
 	}
 	
+	// nice little security enhancement
+	$errfile = str_replace(ENANO_ROOT, '[root]', $errfile);
+	
+	// DBAL errors have a different type of debug
+	if ( preg_match('/^\[root\]\/(repo\/)?includes\/dbal\.php$/', $errfile) && defined('ENANO_DEBUG') )
+	{
+		echo "<h1>DBAL $error_type</h1>";
+		echo "<p>A(n) $error_type was just thrown by the database abstraction layer. $errstr</p>";
+		echo "<p>Ensure that you are calling \$db->free_result() on all SELECT queries, <u>especially</u> unbuffered ones.</p>";
+		echo "<p>Undefine ENANO_DEBUG in config.php to ignore this warning. Be warned that a standard PHP $error_type will still be shown.</p>";
+		echo '<pre>';
+		echo preg_replace('/^[^#].+$\n/m', '', enano_debug_print_backtrace(true));
+		echo '</pre>';
+		echo "<h1>Query list</h1>";
+		global $db;
+		echo "<pre>" . htmlspecialchars(print_r($db->query_backtrace, true)) . "</pre>";
+		exit;
+	}
+	
+	if ( strstr($errstr, "without first fetching all rows from a previous unbuffered query") )
+	{
+		$errstr .= "; define ENANO_DEBUG for a SQL query backtrace and help fixing this.";
+	}
+	
 	if ( $do_gzip )
 	{
 		$php_errors[] = array(
