@@ -26,11 +26,23 @@ class Carpenter_Render_Xhtml
 	
 	public function heading($text, $pieces)
 	{
+		static $heading_names = array();
 		foreach ( $pieces as $i => $piece )
 		{
 			$tocid = sanitize_page_id(trim($piece['text']));
 			// (bad) workaround for links in headings
 			$tocid = str_replace(array('[', ']'), '', $tocid);
+			// conflict avoidance
+			if ( isset($heading_names[$tocid]) )
+			{
+				$id = 2;
+				while ( isset($heading_names["{$tocid}{$id}"]) )
+					$id++;
+				
+				$tocid .= $id;
+			}
+			$heading_names[$tocid] = true;
+			
 			$tag = '<h' . $piece['level'] . ' id="head:' . $tocid . '">';
 			$tag .= trim($piece['text']);
 			$tag .= '</h' . $piece['level'] . '>';
