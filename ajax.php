@@ -165,6 +165,12 @@ ORDER BY l1.time_id DESC;');
 		$return['toolbar_templates'] = $template->extract_vars('toolbar.tpl');
 		$return['edit_notice'] = $template->get_wiki_edit_notice();
 		
+		$code = $plugins->setHook('ajax_getsource_send_data');
+		foreach ( $code as $cmd )
+		{
+			eval($cmd);
+		}
+		
 		echo enano_json_encode($return);
 		break;
 	case "getpage":
@@ -318,7 +324,7 @@ ORDER BY l1.time_id DESC;');
 			
 			// Verification complete. Start the PageProcessor and let it do the dirty work for us.
 			$page = new PageProcessor($paths->page_id, $paths->namespace);
-			if ( $page->update_page($request['src'], $request['summary'], ( $request['minor_edit'] == 1 ), $request['format']) )
+			if ( $page->update_page($request['src'], $request['summary'], ( $request['minor_edit'] == 1 ), $request['format'], $request) )
 			{
 				$return = array(
 						'mode' => 'success',

@@ -587,6 +587,8 @@ window.ajaxEditorSave = function(is_draft, text_override)
 		used_draft: used_draft
 	};
 	
+	eval(setHook('editor_save_presend'));
+	
 	// Do we need to add captcha info?
 	if ( document.getElementById('enano_editor_field_captcha') && !is_draft )
 	{

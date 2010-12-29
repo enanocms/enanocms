@@ -367,21 +367,25 @@ class PageProcessor
  	* @param string A summary of edits made to the page.
  	* @param bool If true, the edit is marked as a minor revision
  	* @param string Page format - wikitext or xhtml. REQUIRED, and new in 1.1.6.
+ 	* @param array Optional - the entire incoming request. Plugins can add their own data to it.
  	* @return bool True on success, false on failure. When returning false, it will push errors to the PageProcessor error stack; read with $page->pop_error()
  	*/
 	
-	function update_page($text, $edit_summary = false, $minor_edit = false, $page_format)
+	function update_page($text, $edit_summary = false, $minor_edit = false, $page_format, $raw_request = array())
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		global $lang;
 		
 		// Create the page if it doesn't exist
+		$page_just_created = false;
 		if ( !$this->page_exists )
 		{
 			if ( !$this->create_page() )
 			{
 				return false;
 			}
+			// This is just to tell plugins if a page was just created, or is being edited.
+			$page_just_created = true;
 		}
 			
 		//
@@ -457,6 +461,18 @@ class PageProcessor
 		$edit_summary = ( strval($edit_summary) === $edit_summary ) ? $db->escape($edit_summary) : '';
 		$minor_edit = ( $minor_edit ) ? '1' : '0';
 		$date_string = enano_date(ED_DATE | ED_TIME);
+		
+		// Allow stuff to be run when the page is saved
+		$code = $plugins->setHook('update_page');
+		foreach ( $code as $cmd )
+		{
+			eval($cmd);
+		}
+		// If a plugin raised an error, honor it.
+		if ( $this->_errors )
+		{
+			return false;
+		}
 		
 		// Insert log entry
 		$sql = 'INSERT INTO ' . table_prefix . "logs ( time_id, date_string, log_type, action, page_id, namespace, author, author_uid, page_text, edit_summary, minor_edit, page_format )\n"

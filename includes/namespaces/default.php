@@ -730,7 +730,10 @@ class Namespace_Default
 			$html .= '</tr></table></div>' . "\n\n";
 		}
 		
-		if ( $this->namespace != 'Special' && $this->namespace != 'Admin' )
+		// FIXME check_acl_scope here may not be a great idea... if there's no way to ever edit categorization OR tags for
+		// a given namespace because the permsissions don't allow for it, don't display the box at all.
+		if ( $this->namespace != 'Special' && $this->namespace != 'Admin'  &&
+				($session->check_acl_scope('edit_cat', $this->namespace) || $session->check_acl_scope('tag_create', $this->namespace)) )
 		{
 			$html .= '<div class="mdg-comment" style="margin: 10px 0 0 0;" id="category_box_wrapper">';
 			$html .= '<div style="float: right;">';
