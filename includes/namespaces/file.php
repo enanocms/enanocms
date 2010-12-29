@@ -189,10 +189,11 @@ class Namespace_File extends Namespace_Default
 		}
 		$db->free_result();
 		$html .= '<h3>' . $lang->get('onpage_filebox_lbl_pagesusing') . '</h3>';
+		$regexp = ENANO_DBLAYER == 'PGSQL' ? '~ E' : 'REGEXP ';
 		$q = $db->sql_query('SELECT t.page_id, t.namespace, p.name FROM ' . table_prefix . "page_text AS t\n"
 			              . "  LEFT JOIN " . table_prefix . "pages AS p\n"
 			              . "    ON ( t.page_id = p.urlname AND t.namespace = p.namespace )\n"
-			              . "  WHERE t.page_text REGEXP '\\\\[\\\\[:" .
+			              . "  WHERE t.page_text {$regexp}'\\\\[\\\\[:" .
 							  addslashes(preg_quote($paths->nslist[$this->namespace])) .
 							  addslashes(preg_quote($this->page_id)) .
 							  "(\\\\||\\\\])';");
