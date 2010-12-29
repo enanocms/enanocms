@@ -1492,7 +1492,7 @@ class AESCrypt
 	
 	public function encrypt($plaintext, $key, $return_format = ENC_HEX)
 	{
-		return $this->encrypt_cbc($plaintext, $key, '00000000000000000000000000000000', ENC_HEX);
+		return $this->encrypt_cbc($plaintext, $key, '00000000000000000000000000000000', $return_format);
 	}
 	
 	/**
@@ -1506,7 +1506,7 @@ class AESCrypt
 	
 	public function decrypt($cryptext, $key, $input_format = ENC_HEX, $no_cache = false)
 	{
-		return $this->decrypt_cbc($cryptext, $key, '00000000000000000000000000000000', ENC_HEX, $no_cache);
+		return $this->decrypt_cbc($cryptext, $key, '00000000000000000000000000000000', $input_format, $no_cache);
 	}
 	
 	/**
