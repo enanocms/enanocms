@@ -139,6 +139,13 @@ class Request_HTTP
 	var $parms_post = array();
 	
 	/**
+	* A string that can wholly replace the parameters in POST. If false, parameters are used as usual.
+	* @var mixed
+	*/
+	
+	var $post_string = false;
+	
+	/**
  	* The list of cookies that will be sent.
  	* @var array (associative)
  	*/
@@ -341,6 +348,16 @@ class Request_HTTP
 		{
 			throw new Exception(__METHOD__ . ': Invalid argument(s)');
 		}
+	}
+	
+	/**
+	* Replace POST with a custom string, or false to use parameters through add_post().
+	* @param string
+	*/
+	
+	function set_post($str)
+	{
+		$this->post_string = $str;
 	}
 	
 	/**
@@ -920,7 +937,11 @@ class Request_HTTP
 					$get .= "$name";
 			}
 		}
-		if ( count($this->parms_post) > 0 )
+		if ( is_string($this->post_string) )
+		{
+			$post = $this->post_string;
+		}
+		else if ( count($this->parms_post) > 0 )
 		{
 			$post = '';
 			$i = 0;
