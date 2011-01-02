@@ -518,6 +518,8 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 		domOpacity(edcon, 0, 100, 500);
 	}
 	
+	eval(setHook('editor_post_init'));
+	
 	// Autosave every 5 minutes           (m  *  s  *  ms)
 	setInterval('ajaxPerformAutosave();', ( 5 * 60 * 1000 ));
 }
