@@ -1356,7 +1356,7 @@ function page_Special_Captcha()
 	$session->make_captcha(7, $hash);
 	$code = $session->generate_captcha_code();
 	// Avoid letting our captchas end up on failblog.org
-	// BTW, the last one was a real-life encounter: http://files.ha.xx0r.info/murder.png
+	// BTW, the last one was a real-life encounter: http://img822.imageshack.us/img822/3851/murderg.png
 	foreach ( array('shit', 'cock', 'fuck', 'nazi', 'cunt', 'clit', 'pussy', 'penis', 'piss', 'tits', 'murder') as $word )
 	{
 		if ( stristr($code, $word) )
