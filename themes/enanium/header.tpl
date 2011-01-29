@@ -37,8 +37,11 @@
 				}
 			?>
 		</div>
+		<!-- Of course, plugins can do anything they want here -->
 		<!-- HOOK enanium_main_header -->
+		
 		<!-- BEGINNOT stupid_mode -->
+		<!-- This section is bypassed entirely if "stupid mode" (failsafe/no-database template rendering) has been switched on, i.e. by grinding_halt() -->
 		<form class="searchform" action="{SCRIPTPATH}/index.php" method="get">
 			<div>
 				<input type="hidden" name="title" value="{NS_SPECIAL}Search" />
@@ -49,9 +52,15 @@
 			<!-- HOOK enanium_search_form -->
 		</form>
 		<ul class="useropts">
+			<!-- A first look at typical template logic!
+			     This is the simple case of showing one set of buttons (user page, user CP, log out) for
+			     logged-in users, and for everyone else we show "log in" and "register" buttons. -->
+			
 			<!-- BEGIN user_logged_in -->
+			<!-- The "em" class changes the color of the button slightly -->
 			<li class="em"><a href="{url:User:{USERNAME}}">{USERNAME}</a></li>
 			<li><a href="{url:Special:Preferences}">{lang:sidebar_btn_preferences_short}</a></li>
+			<!-- The "logout" class causes the button to turn red when you hover over it -->
 			<li class="logout"><a href="{url:Special:Logout/{CSRF_TOKEN}/{PAGE_URLNAME}}" onclick="mb_logout(); return false;">{lang:sidebar_btn_logout}</a></li>
 			<!-- BEGINELSE user_logged_in -->
 			<li class="em"><a href="{url:Special:Login}" onclick="ajaxStartLogin(); return false;">{lang:sidebar_btn_login}</a></li>
@@ -67,6 +76,8 @@
 			<td valign="top" id="cell-sbleft">
 				<div class="left sidebar" id="enanium_sidebar_left">
 					<a class="closebtn" onclick="enanium_toggle_sidebar_left(); return false;">&laquo;</a>
+					<!-- You have (almost) complete control over the structure of the SIDEBAR_LEFT variable.
+					     See elements.tpl -->
 					{SIDEBAR_LEFT}
 				</div>
 				<div class="left-sidebar-hidden" id="enanium_sidebar_left_hidden">
@@ -92,6 +103,10 @@
 						<li><a href="{url:Special:Memberlist|escape}">{lang:specialpage_member_list}</a></li>
 						<!-- END user_logged_in -->
 						<!-- BEGIN auth_admin -->
+						<!-- Be warned, ADMIN_LINK is built from sidebar_button in elements. This works in Enanium because it
+						     uses <li> everywhere and handles styling exclusively with CSS (as all good themes should).
+						     You'll want to make sure that if you include a "site tools" menu, your sidebar code relies
+						     on <li> for links. -->
 						{ADMIN_LINK}
 						<!-- END auth_admin -->
 					</ul>
@@ -100,12 +115,14 @@
 				<!-- END stupid_mode -->
 				<div class="menu_nojs" id="pagebar_main">
 					<div class="label">
+						<!-- Stupid localization hack -->
 						<!-- BEGIN stupid_mode -->
 						Page tools
 						<!-- BEGINELSE stupid_mode -->
 						{lang:onpage_lbl_pagetools}
 						<!-- END stupid_mode -->
 					</div>
+					<!-- The jBox "page tools" bar, generated from elements.tpl -->
 					{TOOLBAR}
 					<ul>
 						{TOOLBAR_EXTRAS}
@@ -116,8 +133,14 @@
 					<table border="0" cellspacing="0" cellpadding="0" style="width: 100%;">
 					<tr>
 					<td valign="top" style="width: 100%;">
+					
+					<!-- The spinny icon shown when ajax operations are taking place -->
 					<div style="float: right;">
 						<img alt=" " src="{CDNPATH}/images/spacer.gif" id="ajaxloadicon" />
 					</div>
+					
+					<!-- The double-clickable page title -->
 					<h1 <!-- BEGIN auth_rename -->title="{lang:onpage_btn_rename_inline}" <!-- END auth_rename -->id="h2PageName">{PAGE_NAME}</h1>
+					
+					<!-- Everything below here is inner page content -->
 					<div id="ajaxEditContainer">
