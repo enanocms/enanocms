@@ -26,11 +26,15 @@ class emailer
 
 	var $tpl_msg;
 
-	function __construct($use_smtp)
+	function __construct($use_smtp = false)
 	{
 		$this->reset();
 		$this->use_smtp = $use_smtp;
 		$this->reply_to = $this->from = '';
+		$this->addresses = array(
+				'cc' => array(),
+				'bcc' => array()
+			);
 	}
 
 	// Resets all the data (address, template file, etc etc to default
@@ -127,7 +131,7 @@ class emailer
 
 		if (preg_match('#^(Charset:(.*?))$#m', $this->msg, $match))
 		{
-			$this->encoding = (trim($match[2]) != '') ? trim($match[2]) : trim('iso-8859-1');
+			$this->encoding = (trim($match[2]) != '') ? trim($match[2]) : trim('utf-8');
 			$drop_header .= '[\r\n]*?' . preg_quote($match[1], '#');
 		}
 		else
