@@ -3373,7 +3373,7 @@ function aggressive_optimize_html($html)
 	for ( $i = 0; $i < count($jscript[0]); $i++ )
 	{
 		$js =& $jscript[2][$i];
-		if ( empty($js) )
+		if ( trim($js) == '' )
 			continue;
 		
 		$js = $jsc->getClean($js);
