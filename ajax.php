@@ -583,7 +583,7 @@ ORDER BY l1.time_id DESC;');
 		
 		break;
 	case "get_styles":
-		if ( !preg_match('/^[a-z0-9_-]+$/', $_GET['theme_id']) )
+		if ( !preg_match('/^[A-z0-9_-]+$/', $_GET['theme_id']) )
 			die(enano_json_encode(array()));
 		
 		$theme_id = $_GET['theme_id'];
