@@ -5321,7 +5321,7 @@ function get_system_path()
 function which($executable)
 {
 	$path = get_system_path();
-	if ( empty($paths) )
+	if ( empty($path) )
 		return false;
 	
 	$win32 = ( PHP_OS == 'WINNT' || PHP_OS == 'WIN32' );
