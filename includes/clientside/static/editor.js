@@ -60,6 +60,7 @@ window.ajaxEditor = function(revid)
 
 window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_hash, revid, undo_info, response)
 {
+	try {
 	// Set flags
 	// We don't want the fancy confirmation framework to trigger if the user is only viewing the page source
 	if ( !readonly )
@@ -490,7 +491,7 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 	
 	$dynano('ajaxEditArea').object.focus();
 	$dynano('ajaxEditArea').object._edTimestamp = timestamp;
-	$dynano('ajaxEditArea').setContent(content);
+	ajaxEditorSetContent(content);
 	editor_orig_text = content;
 	
 	// If the editor preference is tinymce, switch the editor to TinyMCE now
@@ -531,9 +532,21 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 		};
 		var a = document.getElementById('enano_edit_btn_mce').getElementsByTagName('a')[0];
 		a.onclick = function() {
-			ajaxSetEditorMCE();
+			try
+			{
+				ajaxSetEditorMCE();
+			}
+			catch(e)
+			{
+				console.debug(e);
+			}
 			return false;
 		};
+	}
+	else
+	{
+		$('#enano_edit_btn_pt').hide();
+		$('#enano_edit_btn_mce').hide();
 	}
 	
 	// if we're using the modal window, fade it in
@@ -546,6 +559,12 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 	
 	// Autosave every 5 minutes           (m  *  s  *  ms)
 	setInterval('ajaxPerformAutosave();', ( 5 * 60 * 1000 ));
+	
+	}
+	catch(e)
+	{
+		console.debug(e);
+	}
 }
 
 window.ajaxEditorDestroyModalWindow = function()
@@ -874,7 +893,7 @@ window.ajaxEditorRevertToLatestReal = function()
 				setTimeout(function()
 					{
 						editor_convert_if_needed(response.page_format);
-						$dynano('ajaxEditArea').setContent(response.src);
+						ajaxEditorSetContent(response.src);
 					}, aclDisableTransitionFX ? 10 : 750);
 			}
 		}, true);
@@ -920,7 +939,10 @@ window.ajaxEditorCancel = function()
 						setAjaxLoading();
 						editor_open = false;
 						enableUnload();
-						$dynano('ajaxEditArea').destroyMCE(false);
+						if ( typeof(editor_formats[window.page_format]) == 'object' && typeof(editor_formats[window.page_format].ui_destroy) == 'function' )
+						{
+							editor_formats[window.page_format].ui_destroy();
+						}
 						ajaxEditorDestroyModalWindow();
 						ajaxReset();
 						miniPromptDestroy(this);
@@ -1056,7 +1078,7 @@ window.ajaxSetEditorPlain = function(confirmed)
 	span_mce.style.display = 'inline';
 	
 	// Swap editor
-	if ( typeof(editor_formats[window.page_format].ui_destroy) == 'function' )
+	if ( typeof(editor_formats[window.page_format]) == 'object' && typeof(editor_formats[window.page_format].ui_destroy) == 'function' )
 	{
 		if ( typeof(editor_formats[window.page_format].convert_from) == 'function' )
 		{
@@ -1097,7 +1119,7 @@ window.ajaxSetEditorLoading = function()
 		blackout.style.height = $dynano('ajaxEditArea').Height() + 'px';
 		blackout.style.backgroundColor = '#FFFFFF';
 		domObjChangeOpac(60, blackout);
-		blackout.style.backgroundImage = 'url(' + scriptPath + '/includes/clientside/tinymce/themes/advanced/skins/default/img/progress.gif)';
+		blackout.style.backgroundImage = 'url(' + cdnPath + '/images/loading-big.gif)';
 		blackout.style.backgroundPosition = 'center center';
 		blackout.style.backgroundRepeat = 'no-repeat';
 		blackout.id = 'enano_editor_blackout';
@@ -1278,6 +1300,9 @@ window.editor_convert_if_needed = function(targetformat, noticetitle, noticebody
 window.ajaxEditorSetFormat = function(plugin, success_func)
 	{
 		// perform conversion
+		if ( typeof(editor_formats[plugin]) != 'object' )
+			return false;
+		
 		if ( typeof(editor_formats[plugin].convert_to) == 'function' )
 		{
 			var result = editor_formats[plugin].convert_to($('#ajaxEditArea').val());
@@ -1322,3 +1347,21 @@ window.ajaxEditorGetContent = function()
 		}
 	};
 
+window.ajaxEditorSetContent = function(text)
+	{
+		if ( window.page_format == 'wikitext' )
+		{
+			$('#ajaxEditArea').val(text);
+		}
+		else
+		{
+			if ( typeof(editor_formats[window.page_format].set_text) == 'function' )
+			{
+				editor_formats[window.page_format].set_text(text);
+			}
+			else
+			{
+				$('#ajaxEditArea').val(text);
+			}
+		}
+	};

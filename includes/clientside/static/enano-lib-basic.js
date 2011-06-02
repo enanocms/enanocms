@@ -87,13 +87,6 @@ if ( IE )
 	}
 }
 
-var tinymce_initted = false;
-
-if ( typeof(DISABLE_MCE) == undefined )
-{
-	var DISABLE_MCE = false;
-}
-
 var cmt_open;
 var editor_open = false;
 var list;
@@ -475,7 +468,6 @@ var thefiles = [
 	'dropdown.js',
 	'json.js',
 	'sliders.js',
-	'tinymce-init.js',
 	'preformat.js',
 	'loader.js'
 ];

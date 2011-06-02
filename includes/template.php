@@ -2155,6 +2155,8 @@ EOF;
 		$randomid = md5(microtime() . mt_rand());
 		$html = '';
 		$html .= '<textarea name="' . $name . '" rows="'.$rows.'" cols="'.$cols.'" style="width: 100%;" id="toggleMCEroot_'.$randomid.'">' . $content . '</textarea>';
+		
+		/*
 		$html .= '<div style="float: right; display: table;" id="mceSwitchAgent_' . $randomid . '">' . $lang->get('etc_tinymce_btn_text') . '&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" onclick="if ( !KILL_SWITCH ) { toggleMCE_'.$randomid.'(); return false; }">' . $lang->get('etc_tinymce_btn_graphical') . '</a></div>';
 		$html .= '<script type="text/javascript">
 								// <![CDATA[
@@ -2177,6 +2179,8 @@ EOF;
 								}
 								// ]]>
 							</script>';
+		*/
+		
 		return $html;
 	}
 	
