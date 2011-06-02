@@ -8,6 +8,7 @@ var editor_save_lock = false;
 var editor_wikitext_transform_enable = true;
 var editor_orig_text = '';
 var editor_last_draft = '';
+var page_format = 'wikitext';
 
 window.ajaxEditor = function(revid)
 {
@@ -146,15 +147,15 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 		span_mce.appendChild(a);
 		toggler.appendChild(span_mce);
 		
-		if ( response.page_format == 'xhtml' )
+		if ( response.page_format == 'wikitext' )
 		{
-			// Current selection is TinyMCE - make span_wiki have the link and span_mce be plaintext
-			span_mce.style.display = 'none';
+			// Current selection is a custom editor plugin - make span_wiki have the link and span_mce be plaintext
+			span_wiki.style.display = 'none';
 		}
 		else
 		{
 			// Current selection is wikitext - set span_wiki to plaintext and span_mce to link
-			span_wiki.style.display = 'none';
+			span_mce.style.display = 'none';
 		}
 	}
 	
@@ -493,9 +494,32 @@ window.ajaxBuildEditor = function(readonly, timestamp, allow_wysiwyg, captcha_ha
 	editor_orig_text = content;
 	
 	// If the editor preference is tinymce, switch the editor to TinyMCE now
-	if ( response.page_format == 'xhtml' && allow_wysiwyg )
+	if ( response.page_format != 'wikitext' && allow_wysiwyg )
 	{
-		$dynano('ajaxEditArea').switchToMCE(false);
+		if ( typeof(editor_formats[response.page_format]) == 'object' )
+		{
+			// instruct the editor plugin to go ahead and build its UI
+			editor_formats[response.page_format].ui_construct();
+			window.page_format = response.page_format;
+		}
+		else
+		{
+			// Page was formatted with a plugin that no longer exists
+			miniPromptMessage({
+				title: $lang.get('editor_msg_convert_missing_plugin_title'),
+				message: $lang.get('editor_msg_convert_missing_plugin_body', { plugin: response.page_format }),
+				buttons: [
+					{
+						text: $lang.get('etc_ok'),
+						onclick: function()
+						{
+							miniPromptDestroy(this);
+							return false;
+						}
+					}
+				]
+			});
+		}
 	}
 	
 	if ( allow_wysiwyg )
@@ -549,7 +573,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
 	else
 		editor_save_lock = true;
 	
-	var ta_content = ( text_override ) ? text_override : $dynano('ajaxEditArea').getContent();
+	var ta_content = ( text_override ) ? text_override : ajaxEditorGetContent();
 	
 	if ( !is_draft && ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' ) )
 	{
@@ -585,7 +609,7 @@ window.ajaxEditorSave = function(is_draft, text_override)
 		minor_edit: is_minor,
 		time: timestamp,
 		draft: ( is_draft == true ),
-		format: ( $dynano('ajaxEditArea').isMCE() ) ? 'xhtml' : 'wikitext',
+		format: window.page_format,
 		used_draft: used_draft
 	};
 	
@@ -696,7 +720,13 @@ window.ajaxEditorSave = function(is_draft, text_override)
 						editor_open = false;
 						editor_save_lock = false;
 						enableUnload();
-						$dynano('ajaxEditArea').destroyMCE(false);
+						if ( window.page_format != 'wikitext' )
+						{
+							if ( typeof(editor_formats[window.page_format].ui_destroy) == 'function' )
+							{
+								editor_formats[window.page_format].ui_destroy();
+							}
+						}
 						changeOpac(0, 'ajaxEditContainer');
 						ajaxGet(stdAjaxPrefix + '&_mode=getpage&noheaders', function(ajax)
 							{
@@ -759,7 +789,7 @@ window.ajaxEditorDeleteDraftReal = function()
 window.ajaxEditorGenPreview = function()
 {
 	ajaxSetEditorLoading();
-	var ta_content = $dynano('ajaxEditArea').getContent();
+	var ta_content = ajaxEditorGetContent();
 	ta_content = ajaxEscape(ta_content);
 	if ( $dynano('enano_editor_preview').object.innerHTML != '' )
 	{
@@ -853,7 +883,7 @@ window.ajaxEditorRevertToLatestReal = function()
 window.ajaxEditorShowDiffs = function()
 {
 	ajaxSetEditorLoading();
-	var ta_content = $dynano('ajaxEditArea').getContent();
+	var ta_content = ajaxEditorGetContent();
 	ta_content = ajaxEscape(ta_content);
 	if ( $dynano('enano_editor_preview').object.innerHTML != '' )
 	{
@@ -909,31 +939,23 @@ window.ajaxEditorCancel = function()
 		});
 }
 
-window.ajaxSetEditorMCE = function(confirmed)
+window.ajaxSetEditorMCE = function()
 {
 	if ( editor_loading )
 		return false;
 	
-	if ( !confirmed )
+	var len = 0;
+	for ( var i in editor_formats )
+	{
+		len++;
+	}
+	
+	if ( len == 0 )
 	{
 		miniPromptMessage({
-				title: $lang.get('editor_msg_convert_confirm_title'),
-				message: $lang.get('editor_msg_convert_confirm_body'),
+				title: $lang.get('editor_msg_convert_no_plugins_title'),
+				message: $lang.get('editor_msg_convert_no_plugins_body'),
 				buttons: [
-					{
-						color: 'blue',
-						text: $lang.get('editor_btn_graphical'),
-						style: {
-							fontWeight: 'bold'
-						},
-						sprite: [ editor_img_path + '/sprite.png', 16, 16, 0, 112 ],
-						onclick: function()
-						{
-							ajaxSetEditorMCE(true);
-							miniPromptDestroy(this);
-							return false;
-						}
-					},
 					{
 						text: $lang.get('etc_cancel'),
 						onclick: function()
@@ -947,14 +969,46 @@ window.ajaxSetEditorMCE = function(confirmed)
 		return false;
 	}
 	
-	// Clear out existing buttons
-	var span_wiki = $dynano('enano_edit_btn_pt').object;
-	var span_mce  = $dynano('enano_edit_btn_mce').object;
-	span_wiki.style.display = 'inline';
-	span_mce.style.display = 'none';
+	var mp = miniPrompt(function(div)
+		{
+			$(div).css('text-align', 'center');
+			$(div).append('<h3>' + $lang.get('editor_msg_convert_confirm_title') + '</h3>');
+			$(div).append('<p>' + $lang.get('editor_msg_convert_confirm_body') + '</p>');
+			var select = '<select class="format">';
+			for ( var i in editor_formats )
+			{
+				var obj = editor_formats[i];
+				select += '<option value="' + i + '">' + $lang.get(obj.name) + '</option>';
+			}
+			select += '</select>';
+			
+			$(div).append('<p class="format_drop">' + $lang.get('editor_msg_convert_lbl_plugin') + select + '</p>');
+			$(div).append('<p><a href="#" class="abutton abutton_green go_action" style="font-weight: bold;">' + gen_sprite_html(editor_img_path + '/sprite.png', 16, 16, 0, 112) + $lang.get('editor_btn_graphical_convert') + '</a>'
+					+ '<a href="#" class="abutton cancel_action">' + $lang.get('etc_cancel') + '</a></p>');
+			
+			$('a.go_action', div).click(function()
+				{
+					// go ahead with converting to this format
+					
+					var parent = miniPromptGetParent(this);
+					var whitey = whiteOutMiniPrompt(parent);
+					var plugin = $('select.format', parent).val();
+					ajaxEditorSetFormat(plugin, function()
+						{
+							if ( typeof(whitey) == 'object' )
+								whiteOutReportSuccess(whitey);
+						});
+					return false;
+				});
+			
+			$('a.cancel_action', div).click(function()
+				{
+					miniPromptDestroy(this);
+					return false;
+				});
+		});
 	
-	// Swap editor
-	$dynano('ajaxEditArea').switchToMCE(true);
+	return false;
 }
 
 window.ajaxSetEditorPlain = function(confirmed)
@@ -1002,7 +1056,20 @@ window.ajaxSetEditorPlain = function(confirmed)
 	span_mce.style.display = 'inline';
 	
 	// Swap editor
-	$dynano('ajaxEditArea').destroyMCE(true);
+	if ( typeof(editor_formats[window.page_format].ui_destroy) == 'function' )
+	{
+		if ( typeof(editor_formats[window.page_format].convert_from) == 'function' )
+		{
+			var text = ajaxEditorGetContent();
+			var newtext = editor_formats[window.page_format].convert_from(text);
+			if ( typeof(newtext) != 'string' )
+				newtext = text;
+		}
+		editor_formats[window.page_format].ui_destroy();
+		$('#ajaxEditArea').val(newtext);
+	}
+	
+	window.page_format = 'wikitext';
 }
 
 var editor_loading = false;
@@ -1084,7 +1151,7 @@ window.ajaxPerformAutosave = function()
 	var now = unix_time();
 	aed.as_last_save = now;
 	
-	var ta_content = $dynano('ajaxEditArea').getContent();
+	var ta_content = ajaxEditorGetContent();
 	
 	if ( ta_content == '' || ta_content == '<p></p>' || ta_content == '<p>&nbsp;</p>' || ta_content == editor_orig_text || ta_content == editor_last_draft )
 	{
@@ -1125,7 +1192,22 @@ window.ajaxEditorUseDraft = function()
 				
 				editor_convert_if_needed(response.page_format);
 				
-				$dynano('ajaxEditArea').setContent(response.src);
+				if ( response.page_format != 'wikitext' && typeof(editor_formats[response.page_format]) == 'object' )
+				{
+					if ( typeof(editor_formats[response.page_format].set_text) == 'function' )
+					{
+						editor_formats[response.page_format].set_text(response.src);
+					}
+					else
+					{
+						$('#ajaxEditArea').val(response.src);
+					}
+				}
+				else
+				{
+					$('#ajaxEditArea').val(response.src);
+				}
+				
 				$dynano('ajaxEditArea').object.used_draft = true;
 				editor_orig_text = editor_last_draft = response.src;
 				
@@ -1144,12 +1226,12 @@ window.ajaxEditorUseDraft = function()
 window.editor_convert_if_needed = function(targetformat, noticetitle, noticebody)
 {
 	// Do we need to change the format?
-	var need_to_mce = ( targetformat == 'xhtml' && !$dynano('ajaxEditArea').isMCE() );
-	var need_to_wkt = ( targetformat == 'wikitext' && $dynano('ajaxEditArea').isMCE() );
+	var need_to_mce = ( targetformat != 'wikitext' && page_format == 'wikitext' );
+	var need_to_wkt = ( targetformat == 'wikitext' && page_format != 'wikitext' );
 	if ( need_to_mce )
 	{
-		$dynano('ajaxEditArea').setContent('');
-		$dynano('ajaxEditArea').switchToMCE(false);
+		editor_formats[targetformat].ui_construct();
+		window.page_format = targetformat;
 		
 		// Clear out existing buttons
 		var span_wiki = $dynano('enano_edit_btn_pt').object;
@@ -1159,8 +1241,8 @@ window.editor_convert_if_needed = function(targetformat, noticetitle, noticebody
 	}
 	else if ( need_to_wkt )
 	{
-		$dynano('ajaxEditArea').setContent('');
-		$dynano('ajaxEditArea').destroyMCE(false);
+		editor_formats[window.page_format].ui_construct();
+		window.page_format = 'wikitext';
 		
 		// Clear out existing buttons
 		var span_wiki = $dynano('enano_edit_btn_pt').object;
@@ -1192,3 +1274,51 @@ window.editor_convert_if_needed = function(targetformat, noticetitle, noticebody
 			});
 	}
 }
+
+window.ajaxEditorSetFormat = function(plugin, success_func)
+	{
+		// perform conversion
+		if ( typeof(editor_formats[plugin].convert_to) == 'function' )
+		{
+			var result = editor_formats[plugin].convert_to($('#ajaxEditArea').val());
+		}
+		else
+		{
+			var result = $('#ajaxEditArea').val();
+		}
+		if ( typeof(result) != 'string' )
+		{
+			result = $('#ajaxEditArea').val();
+		}
+		$('#ajaxEditArea').val(result);
+		if ( typeof(editor_formats[plugin].ui_construct) == 'function' )
+		{
+			editor_formats[plugin].ui_construct();
+		}
+		success_func();
+		window.page_format = plugin;
+		
+		// change the buttons over
+		$('#enano_edit_btn_pt').css('display', 'inline');
+		$('#enano_edit_btn_mce').css('display', 'none');
+	};
+	
+window.ajaxEditorGetContent = function()
+	{
+		if ( window.page_format == 'wikitext' )
+		{
+			return $('#ajaxEditArea').val();
+		}
+		else
+		{
+			if ( typeof(editor_formats[window.page_format].get_text) == 'function' )
+			{
+				return editor_formats[window.page_format].get_text();
+			}
+			else
+			{
+				return $('#ajaxEditArea').val();
+			}
+		}
+	};
+

@@ -366,12 +366,12 @@ class PageProcessor
  	* @param string The new text for the page
  	* @param string A summary of edits made to the page.
  	* @param bool If true, the edit is marked as a minor revision
- 	* @param string Page format - wikitext or xhtml. REQUIRED, and new in 1.1.6.
+ 	* @param string Page format. New in 1.1.6; defaults to "wikitext"
  	* @param array Optional - the entire incoming request. Plugins can add their own data to it.
  	* @return bool True on success, false on failure. When returning false, it will push errors to the PageProcessor error stack; read with $page->pop_error()
  	*/
 	
-	function update_page($text, $edit_summary = false, $minor_edit = false, $page_format, $raw_request = array())
+	function update_page($text, $edit_summary = false, $minor_edit = false, $page_format = 'wikitext', $raw_request = array())
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		global $lang;
@@ -444,9 +444,10 @@ class PageProcessor
 		}
 		
 		// Page format check
-		if ( !in_array($page_format, array('xhtml', 'wikitext')) )
+		$page_format = $db->escape($page_format);
+		if ( !preg_match('/^[a-z0-9_]+$/', $page_format) )
 		{
-			$this->raise_error("format \"$page_format\" not one of [xhtml, wikitext]");
+			$this->raise_error('Page format must match /^[a-z0-9_]+$/');
 			return false;
 		}
 		

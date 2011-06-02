@@ -46,7 +46,7 @@ $version = '1.1.8';
 // This is incremented each time a change to the database structure is made.
 // If it doesn't match the version in the DB, the user will be asked to upgrade.
 // This must match install/includes/common.php!
-$db_version = 1125;
+$db_version = 1126;
 
 /**
  * Returns a floating-point number with the current UNIX timestamp in microseconds. Defined very early because we gotta call it

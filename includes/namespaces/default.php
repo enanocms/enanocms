@@ -426,16 +426,21 @@ class Namespace_Default
 		
 		if ( $incl_inner_headers )
 		{
-			if ( $page_format === 'wikitext' )
+			if ( $page_format === 'wikitext' || !function_exists("render_text_{$page_format}") )
 			{
 				$text = '?>' . RenderMan::render($text);
 			}
 			else
 			{
+				$result = call_user_func("render_text_{$page_format}", $text);
+				if ( is_string($result) )
+				{
+					$text = $result;
+					unset($result);
+				}
 				// Page format is XHTML. This means we want to disable functionality that MCE takes care of, while still retaining
 				// the ability to wikilink, the ability to use images, etc. Basically, RENDER_INLINEONLY disables all behavior in
 				// the rendering engine/Text_Wiki that conflicts with MCE.
-				$text = '?>' . RenderMan::render($text, RENDER_INLINE);
 			}
 		}
 		else

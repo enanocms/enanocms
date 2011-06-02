@@ -77,18 +77,10 @@ switch($_GET['_mode']) {
 			);
 		
 		$return['page_format'] = $page->ns->cdata['page_format'];
-		if ( $return['page_format'] == 'xhtml' )
+		$code = $plugins->setHook('get_page_source');
+		foreach ( $code as $cmd )
 		{
-			// gently process headings to make tinymce format them correctly
-			if ( preg_match_all('/^ *?(={1,6}) *(.+?) *\\1 *$/m', $return['src'], $matches) )
-			{
-				foreach ( $matches[0] as $i => $match )
-				{
-					$hi = strlen($matches[1][$i]);
-					$heading = "<h{$hi}>{$matches[2][$i]}</h{$hi}>";
-					$return['src'] = str_replace_once($match, $heading, $return['src']);
-				}
-			}
+			eval($cmd);
 		}
 		
 		if ( $have_draft )
@@ -244,32 +236,32 @@ ORDER BY l1.time_id DESC;');
 				else
 				{
 					$src = RenderMan::preprocess_text($request['src'], false, false);
-					$draft_format = $request['format'];
-					if ( !in_array($draft_format, array('xhtml', 'wikitext')) )
+					$draft_format = $db->escape($request['format']);
+					
+					// Save the draft
+					if ( !preg_match('/^[a-z0-9_]+$/', $draft_format) )
 					{
 						$return = array(
-							'mode' => 'error',
-							'error' => 'invalid_format'
-						);
+								'mode' => 'error',
+								'error' => 'Page format must match /^[a-z0-9_]+$/'
+							);
 					}
 					else
 					{
-						// Save the draft
 						$q = $db->sql_query('INSERT INTO ' . table_prefix . 'logs ( log_type, action, page_id, namespace, author, author_uid, edit_summary, page_text, is_draft, time_id, page_format )
-												VALUES (
-													\'page\',
-													\'edit\',
-													\'' . $db->escape($paths->page_id) . '\',
-													\'' . $db->escape($paths->namespace) . '\',
-													\'' . $db->escape($session->username) . '\',
-													' . $session->user_id . ',
-													\'' . $db->escape($request['summary']) . '\',
-													\'' . $db->escape($src) . '\',
-													1,
-													' . time() . ',
-													\'' . $draft_format . '\'
-												);');
-						
+											VALUES (
+												\'page\',
+												\'edit\',
+												\'' . $db->escape($paths->page_id) . '\',
+												\'' . $db->escape($paths->namespace) . '\',
+												\'' . $db->escape($session->username) . '\',
+												' . $session->user_id . ',
+												\'' . $db->escape($request['summary']) . '\',
+												\'' . $db->escape($src) . '\',
+												1,
+												' . time() . ',
+												\'' . $draft_format . '\'
+											);');
 						// Done!
 						$return = array(
 								'mode' => 'success',
@@ -302,7 +294,7 @@ ORDER BY l1.time_id DESC;');
 			}
 			
 			// Verify captcha, if needed
-			if ( false && !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
+			if ( !$session->user_logged_in && getConfig('guest_edit_require_captcha') == '1' )
 			{
 				if ( !isset($request['captcha_id']) || !isset($request['captcha_code']) )
 				{

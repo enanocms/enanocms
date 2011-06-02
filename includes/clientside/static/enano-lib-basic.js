@@ -43,7 +43,6 @@ if ( typeof(ENANO_JSRES_COMPRESSED) == undefined )
 
 var detect = navigator.userAgent.toLowerCase();
 var IE;
-var is_Safari;
 
 // Detect whether the user is running the Evil One or not...
 
@@ -61,8 +60,11 @@ var is_iPhone_3 = checkIt('iphone') && Number(navigator.userAgent.replace(/^.*iP
 var is_Webkit = checkIt('applewebkit');
 var is_Gecko = checkIt('gecko');
 var is_firefox2 = checkIt('firefox/2.');
+var is_Safari = checkIt('safari') ? true : false;
 
 var KILL_SWITCH = false;
+
+var editor_formats = {};
 
 if ( IE )
 {
@@ -91,8 +93,6 @@ if ( typeof(DISABLE_MCE) == undefined )
 {
 	var DISABLE_MCE = false;
 }
-
-is_Safari = checkIt('safari') ? true : false;
 
 var cmt_open;
 var editor_open = false;

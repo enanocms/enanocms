@@ -241,7 +241,7 @@ class RenderMan {
 		{
 			// inline only
 			$carpenter->disable_all_rules();
-			foreach ( array('bold', 'italic', 'underline', 'externalwithtext', 'externalnotext', 'image', 'internallink') as $rule )
+			foreach ( array('heading', 'bold', 'italic', 'underline', 'externalwithtext', 'externalnotext', 'image', 'internallink') as $rule )
 			{
 				$carpenter->enable_rule($rule);
 			}
