@@ -645,6 +645,33 @@ class mysql {
 					</div>';
 		$template->footer();
 	}
+	
+	/**
+	 * Begin transaction
+	 */
+	
+	function transaction_begin()
+	{
+		$this->sql_query('BEGIN;');
+	}
+	
+	/**
+	 * Commit transaction
+	 */
+	
+	function transaction_commit()
+	{
+		$this->sql_query('COMMIT;');
+	}
+	
+	/**
+	 * Rollback transaction
+	 */
+	
+	function transaction_rollback()
+	{
+		$this->sql_query('ROLLBACK;');
+	}
 }
 
 class postgresql
@@ -1253,6 +1280,33 @@ class postgresql
 		echo '  </table>
 					</div>';
 		$template->footer();
+	}
+	
+	/**
+	 * Begin transaction
+	 */
+	
+	function transaction_begin()
+	{
+		$this->sql_query('BEGIN;');
+	}
+	
+	/**
+	 * Commit transaction
+	 */
+	
+	function transaction_commit()
+	{
+		$this->sql_query('COMMIT;');
+	}
+	
+	/**
+	 * Rollback transaction
+	 */
+	
+	function transaction_rollback()
+	{
+		$this->sql_query('ROLLBACK;');
 	}
 }
 
