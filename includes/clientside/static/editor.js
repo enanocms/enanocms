@@ -16,7 +16,7 @@ window.ajaxEditor = function(revid)
 		return true;
 	if ( editor_open )
 		return true;
-	load_component(['l10n', 'template-compiler', 'messagebox', 'fadefilter', 'flyin', 'toolbar']);
+	load_component(['l10n', 'template-compiler', 'messagebox', 'fadefilter', 'flyin', 'toolbar', 'jquery', 'jquery-ui']);
 	selectButtonMinor('edit');
 	selectButtonMajor('article');
 	setAjaxLoading();
