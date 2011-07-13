@@ -408,7 +408,7 @@ function page_Special_Login_preloader() // adding _preloader to the end of the f
 				$name = get_page_title($_POST['return_to']);
 				$subst = array(
 						'username' => $session->username,
-						'redir_target' => $name
+						'redir_target' => htmlspecialchars($name)
 					);
 				redirect( makeUrl($_POST['return_to'], $get_add), $lang->get('user_login_success_title'), $lang->get('user_login_success_body', $subst) );
 			}
