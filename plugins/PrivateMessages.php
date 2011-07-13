@@ -153,6 +153,7 @@ function page_Special_PrivateMessages()
 			if ( $argv[1]=='Send' && isset($_POST['_send']) )
 			{
 				// Check each POST DATA parameter...
+				csrf_request_confirm();
 				$errors = array();
 				if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == ''))
 				{
@@ -195,6 +196,7 @@ function page_Special_PrivateMessages()
 			}
 			else if ( $argv[1] == 'Send' && isset($_POST['_savedraft'] ) )
 			{
+				csrf_request_confirm();
 				$errors = array();
 				if ( !isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == '') )
 				{
@@ -303,6 +305,7 @@ function page_Special_PrivateMessages()
 				}
 				?>
 				<br />
+				<input type="hidden" name="cstok" value="<?php echo $session->csrf_token; ?>" />
 				<div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
 					<tr>
 						<th colspan="2"><?php echo $lang->get('privmsgs_lbl_compose_th'); ?></th>
@@ -416,6 +419,7 @@ function page_Special_PrivateMessages()
 			}
 			else if ( isset($_POST['_savedraft']) )
 			{
+				csrf_request_confirm();
 				// Check each POST DATA parameter...
 				$errors = array();
 				if(!isset($_POST['to']) || ( isset($_POST['to']) && $_POST['to'] == ''))
@@ -467,6 +471,7 @@ function page_Special_PrivateMessages()
 					echo '<div class="info-box">' . $lang->get('privmsgs_msg_draft_saved') . '</div>';
 				}
 				?>
+				<input type="hidden" name="cstok" value="<?php echo $session->csrf_token; ?>" />
 				<br />
 				<div class="tblholder"><table border="0" width="100%" cellspacing="1" cellpadding="4">
 					<tr><th colspan="2"><?php echo $lang->get('privmsgs_lbl_edit_th'); ?></th></tr>
@@ -648,7 +653,9 @@ function page_Special_PrivateMessages()
 										<input type="submit" name="deleteall" value="' . $lang->get('privmsgs_btn_delete_all') . '" />
 									</th>
 								</tr>';
-					echo '</table></div></form>
+					echo '</table></div>
+					<input type="hidden" name="cstok" value="' . $session->csrf_token . '" />
+					</form>
 					<br />
 					<a href="'.makeUrlNS('Special', 'PrivateMessages/Compose/').'">' . $lang->get('privmsgs_btn_compose') . '</a>
 					</td></tr></table>';
@@ -657,6 +664,7 @@ function page_Special_PrivateMessages()
 			$template->footer();
 			break;
 		case 'PostHandler':
+			csrf_request_confirm();
 			$fname = $db->escape(strtolower($_POST['folder']));
 			if($fname=='drafts' || $fname=='outbox')
 			{
