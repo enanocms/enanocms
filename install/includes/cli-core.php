@@ -652,6 +652,8 @@ foreach ( $schema as $sql )
 	}
 }
 
+setConfig("db_version", $db_version);
+
 if ( !$silent )
 	echo parse_shellcolor_string($lang->get('cli_msg_ok')) . "\n";
 
