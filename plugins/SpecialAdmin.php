@@ -270,6 +270,7 @@ function page_Admin_GeneralConfig()
 		setConfig('avatar_directory', 'files/avatars');
 		
 		setConfig('userpage_grant_acl', ( isset($_POST['userpage_grant_acl']) ? '1' : '0' ));
+		setConfig('autofill_username_for_guests', ( isset($_POST['autofill_username_for_guests']) ? '1' : '0' ));
 		setConfig('gzip_output', ( isset($_POST['gzip_output']) ? '1' : '0' ));
 		
 		if ( isset($_POST['trust_xff']) )
@@ -973,6 +974,21 @@ function page_Admin_GeneralConfig()
 					<label>
 						<input type="checkbox" name="userpage_grant_acl" <?php if ( getConfig('userpage_grant_acl', '1') == '1' ) echo 'checked="checked" '; ?>/>
 						<?php echo $lang->get('acpgc_field_userpage_acl'); ?>
+					</label>
+				</td>
+			</tr>
+			
+			<tr>
+				<td class="row1">
+					<b><?php echo $lang->get('acpgc_field_guest_autofill_title'); ?></b><br />
+					<small>
+						<?php echo $lang->get('acpgc_field_guest_autofill_hint'); ?>
+					</small>
+				</td>
+				<td class="row1">
+					<label>
+						<input type="checkbox" name="autofill_username_for_guests" <?php if ( getConfig('autofill_username_for_guests', 0) == '1' ) echo 'checked="checked" '; ?>/>
+						<?php echo $lang->get('acpgc_field_guest_autofill'); ?>
 					</label>
 				</td>
 			</tr>

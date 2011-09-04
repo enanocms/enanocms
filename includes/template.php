@@ -2118,6 +2118,15 @@ EOF;
  	
 	function username_field($name, $value = false)
 	{
+		global $db, $session, $paths, $template, $plugins; // Common objects
+		
+		$value = $value ? htmlspecialchars($value) : false;
+		
+		$val = $value ? "value=\"" . $value . "\"" : "";
+		
+		if ( $session->user_id == 1 && getConfig('autofill_username_for_guests', 0) != 1 )
+			return "<input name=\"$name\" type=\"text\" size=\"30\" $val />";
+		
 		$randomid = md5( time() . microtime() . mt_rand() );
 		$text = '<input name="'.$name.'" class="autofill username" onkeyup="new AutofillUsername(this);" type="text" size="30" id="userfield_'.$randomid.'" autocomplete="off"';
 		if($value) $text .= ' value="'.$value.'"';

@@ -180,6 +180,7 @@ function seclog_format_inner($r, $f = false)
 		case "u_to_admin"      : $return .= $lang->get('acpsl_entry_u_to_admin'       , array('username' => $r['page_text'])); break;
 		case "u_to_mod"        : $return .= $lang->get('acpsl_entry_u_to_mod'         , array('username' => $r['page_text'])); break;
 		case "view_comment_ip" : $return .= $lang->get('acpsl_entry_view_comment_ip'  , array('username' => htmlspecialchars($r['page_text']))); break;
+		case "pass_reset"      : $return .= $lang->get('acpsl_entry_pass_reset'); break;
 	}
 	$author_bit = '<span style="';
 	$rank_info = $session->get_user_rank($r['author_uid']);

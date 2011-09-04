@@ -2195,6 +2195,24 @@ class sessionManager {
 		$row = $db->fetchrow();
 		$temp_pass = $this->random_pass();
 		
+		// check the seclog
+		$ts = time() - 15;
+		// Prevent resets on the same UID or from the same IP
+		// FIXME: Qatar
+		// 		(http://www.reddit.com/r/todayilearned/comments/k27x6/til_that_the_entire_nation_of_qatar_has_a_single/)
+		$q = $this->sql('SELECT log_id, time_id FROM ' . table_prefix . "logs WHERE log_type = 'security' AND action = 'pass_reset' AND ( edit_summary = '{$_SERVER['REMOTE_ADDR']}' OR author_uid = {$row['user_id']} ) AND time_id > $ts;");
+		if ( $db->numrows($q) > 0 )
+		{
+			// rate limit exceeded... one password reset request every 15 seconds is not appropriate
+			$db->free_result();
+			return false;
+		}
+		$db->free_result();
+		
+		$now = time();
+		$uname = $db->escape($row['username']);
+		$this->sql('INSERT INTO ' . table_prefix . 'logs ( time_id, log_type, action, author, author_uid, edit_summary ) VALUES'
+						. "($now, 'security', 'pass_reset', '$uname', {$row['user_id']}, '{$_SERVER['REMOTE_ADDR']}');");
 		$this->register_temp_password($row['user_id'], $temp_pass);
 		
 		$site_name = getConfig('site_name');

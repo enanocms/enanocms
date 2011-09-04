@@ -643,6 +643,9 @@ function page_Special_Autofill()
 			case 'username':
 				if ( isset($_GET['userinput']) && strlen($_GET['userinput']) >= 3 )
 				{
+					if ( $session->user_id == 1 && getConfig('autofill_username_for_guests', 0) != 1 )
+						break;
+					
 					$search = '%' . escape_string_like($_GET['userinput']) . '%';
 					$lsearch = strtolower($search);
 					$min_id = ( isset($_GET['allow_anon']) && $_GET['allow_anon'] == '1' ) ? '1' : '2';

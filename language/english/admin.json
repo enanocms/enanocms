@@ -465,6 +465,9 @@ var enano_lang = {
 			field_userpage_acl_title: 'New users can edit their user pages:',
 			field_userpage_acl_hint: 'This setting will cause Enano to grant certain rights to newly registered users, effective only on their user page. These rights include creating their page, editing their page, and posting comments. Since it generates a new ACL rule, you are able to override new permissions. This setting will only take effect on new users - it does not affect the permissions of those already registered.',
 			field_userpage_acl: 'Grant editing rights to new users on their user pages',
+			field_guest_autofill_title: 'Enable username auto-completion for guests:',
+			field_guest_autofill_hint: 'Fields where a username is expected will auto-complete for everyone, including guest users, if this option is enabled. This is a convenience option but potentially also a security risk. If this option is unchecked, username completion will only be enabled for logged-in users.',
+			field_guest_autofill: 'Auto-complete usernames for all users, including guests',
 			
 			// Main section: sidebar links
 			heading_sidebar: 'Sidebar links',
@@ -1130,6 +1133,7 @@ var enano_lang = {
 			entry_u_to_admin: 'User %username% added to Administrators group',
 			entry_u_to_mod: 'User %username% added to Moderators group',
 			entry_view_comment_ip: 'IP address viewed on comment by %username%',
+			entry_pass_reset: 'Password reset requested',
 			tip_reverse_dns: 'Click for reverse DNS info',
 			
 			err_invalid_ip: 'No valid IPv4 or IPv6 address was provided. (In the demo, this is to be expected.)',
