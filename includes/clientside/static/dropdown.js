@@ -123,6 +123,13 @@ function jBoxSetup(obj)
 								// Setup events
 								obj.childNodes[i].onmouseover = function()  { jBoxOverHandler(this); };
 								obj.childNodes[i].onmouseout = function(e)  { jBoxOutHandler(this, e); };
+								console.debug(obj.childNodes[i].href);
+								if ( obj.childNodes[i].href == window.location.href + '#' )
+									obj.childNodes[i].onclick = function()
+										{
+											jBoxOverHandlerBin(this);
+											return false;
+										};
 								obj.childNodes[i].nextSibling.onmouseout = function(e)  { jBoxOutHandler(this, e); };
 								if ( is_iPhone )
 								{
