@@ -37,7 +37,7 @@ There are 20 applets that make up Enano's administration panel. This might seem 
 
 == Getting started ==
 
-OK, you should have, in a separate browser window or tab, the ACP home page now. On the left you should see a tree menu with several different categories of applets. Click each one to open it, so that you can see everything. Also take the time now to click "Turn on keep-alive", since you'll be switching back and forth between your admin panel and this tutorial a lot.
+OK, you should have, in a separate browser window or tab, the ACP home page now. On the left you can see a tree menu with several different categories of applets. Click each one to open it, so that you can see everything. Also take the time now to click "Turn on keep-alive", since you'll be switching back and forth between your admin panel and this tutorial a lot.
 
 The right side is where the current ACP page is loaded. In this case, it should be the Administration Dashboard, also available through the "Administration panel home" link at the top of the menu. You should see a table with statistics about your website and, if you scroll down a bit, an alert or two. Finally, you can see your fresh new security log showing the date, time, and source IP address of your Enano installation as well as a pair of light-blue boxes with links to Enano documentation and support.
 

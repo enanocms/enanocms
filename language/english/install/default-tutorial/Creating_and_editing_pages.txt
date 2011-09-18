@@ -52,7 +52,7 @@ Create a small heading:
 
 == Visual editing ==
 
-If you prefer to design your documents in a more graphical way, click the <a href="#" onclick="return false;" class="abutton abutton_blue image"><img width="16" height="16" src="images/spacer.gif" style="background-image: url(images/editor/sprite.png); background-repeat: no-repeat; background-position: -112px 0px;" /> Convert to HTML</a> button in the editor. Enano includes [http://tinymce.moxiecode.com/ TinyMCE], a widely-used graphical editor for the web.
+If you prefer to design your documents in a more graphical way, you can use editor plugins such as [http://enanocms.org/plugins/tinymce TinyMCE] to edit your pages in a WYSIWYG (What-You-See-Is-What-You-Get) style. [[Basic administration#head:Install_a_plug-in|Install the plugin]] and then click the <a href="#" onclick="return false;" class="abutton abutton_blue image"><img width="16" height="16" src="images/spacer.gif" style="background-image: url(images/editor/sprite.png); background-repeat: no-repeat; background-position: -112px 0px;" /> Use another format</a> button in the editor.
 
 == Advanced wikitext ==
 
@@ -62,7 +62,7 @@ See [http://docs.enanocms.org/Help:Appendix_A Appendix A] in the Enano documenta
 
 Good news: You don't have to learn anything new to use Enano 1.2's formatting syntax or editor. We've improved the interface of the editor a lot though. Enano 1.2 also has new features like auto-saving and the ability to detect when someone else saves the page while you're working on it. Another new feature is a guard against automatically closing out the editor, so it's much harder to lose a page you're working on.
 
-The biggest change to page editing in Enano 1.2 is the way the renderer behaves when you use TinyMCE to edit the page. We made this process a lot smarter so the wikitext engine doesn't try to apply formatting that should already be done by TinyMCE. This means, however, that you can't use certain bits of wikitext syntax - such as bold, italics, headings and tables - that are already covered through TinyMCE features.
+The biggest change to page editing in Enano 1.2 is the way the renderer behaves when you use TinyMCE or another editor plugin to edit the page. We made this process a lot smarter so the wikitext engine doesn't try to apply formatting that should already be done by the plugin. This means, however, that you can't use certain bits of wikitext syntax - such as bold, italics, headings and tables - that are already covered through features of editor plugins.
 
 == All done! ==
 
