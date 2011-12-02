@@ -1535,20 +1535,24 @@ function enano_str_split($text, $inc = 1)
 	return $ret;
 }
 
-/**
- * Converts a hexadecimal number to a binary string.
- * @param text string hexadecimal number
- * @return string
- */
-function hex2bin($text)
+if ( !function_exists('hex2bin') )
 {
-	$arr = enano_str_split($text, 2);
-	$ret = '';
-	for ($i=0; $i<sizeof($arr); $i++)
+	/**
+	 * Converts a hexadecimal number to a binary string.
+	 * Enclose in an if(function_exists()) due to a builtin named hex2bin being added in PHP 5.4.x.
+	 * @param text string hexadecimal number
+	 * @return string
+	 */
+	function hex2bin($text)
 	{
-		$ret .= chr(hexdec($arr[$i]));
+		$arr = enano_str_split($text, 2);
+		$ret = '';
+		for ($i=0; $i<sizeof($arr); $i++)
+		{
+			$ret .= chr(hexdec($arr[$i]));
+		}
+		return $ret;
 	}
-	return $ret;
 }
 
 /**
