@@ -301,19 +301,20 @@ function page_Special_DownloadFile()
 	{
 		header('Content-disposition: attachment, filename="' . $filename . '";');
 	}
-	if ( !@$GLOBALS['do_gzip'] )
+	//if ( !@$GLOBALS['do_gzip'] )
 		header('Content-length: ' . $len);
 	
 	header('Last-Modified: '.enano_date('r', $row['time_id']));
 	
 	// using this method limits RAM consumption
+	@ob_end_flush();
 	while ( !feof($handle) )
 	{
 		echo fread($handle, 512000);
 	}
 	fclose($handle);
 	
-	gzip_output();
+	$db->close();
 	
 	exit;
 	
