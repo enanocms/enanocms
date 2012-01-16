@@ -4870,7 +4870,7 @@ function enano_json_decode($data)
 	if ( function_exists('json_decode') )
 	{
 		// using PHP5 with JSON support
-		return json_decode($data);
+		return json_decode($data, true);
 	}
 	*/
 	
