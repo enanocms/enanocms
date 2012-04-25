@@ -1447,7 +1447,7 @@ JSEOF;
 			
 			$f = microtime_float();
 			$f = $f - $_starttime;
-			$f = round($f, 2);
+			$f = sprintf("%.02f", $f);
 			
 			$t_loc = $lang->get('page_msg_stats_gentime_short', array('time' => $f));
 			$t_loc_long = $lang->get('page_msg_stats_gentime_long', array('time' => $f));
