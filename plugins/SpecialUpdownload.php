@@ -250,7 +250,7 @@ function page_Special_DownloadFile()
 			$extension = ".{$_GET['fmt']}";
 		
 		$cache_filename = ENANO_ROOT . "/cache/{$filename}-{$row['time_id']}-{$width}x{$height}$extension";
-		if ( file_exists($cache_filename) )
+		if ( file_exists($cache_filename) && !isset($_GET['cache_override']) )
 		{
 			$fname = $cache_filename;
 		}
@@ -281,7 +281,7 @@ function page_Special_DownloadFile()
 			}
 			if ( $allow_scale )
 			{
-				$result = scale_image($orig_fname, $fname, $width, $height);
+				$result = scale_image($orig_fname, $fname, $width, $height, isset($_GET['cache_override']));
 				if ( !$result )
 					$fname = $orig_fname;
 			}
