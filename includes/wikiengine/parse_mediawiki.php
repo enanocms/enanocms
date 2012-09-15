@@ -54,10 +54,14 @@ class Carpenter_Parse_MediaWiki
 		while ( preg_match($template_regex, $text, $match) )
 		{
 			$i++;
+			// we can go up to 5 levels of templates deep
 			if ( $i == 5 )
 				break;
 			$text = RenderMan::include_templates($text);
 		}
+		
+		//header('Content-type: text/plain');
+		//die($text);
 		
 		return array();
 	}

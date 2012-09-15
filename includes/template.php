@@ -60,6 +60,13 @@ class template
 	
 	var $fading_button = '';
 	
+	/**
+	* Context stack. You can save and restore the var set.
+	* @var array
+	*/
+
+	var $context_stack = array('bool' => array(), 'str' => array(), 'history' => array());
+	
 	function __construct()
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
@@ -116,6 +123,24 @@ class template
 		// use that. Otherwise, use the first stylesheet that comes to mind.
 		$df_data =& $this->named_theme_list[ $this->default_theme ];
 		$this->default_style = ( in_array($df_data['default_style'], $df_data['css']) ) ? $df_data['default_style'] : $df_data['css'][0];
+	}
+	
+	/**
+	* Save the current context and start a blank one.
+	*/
+	
+	function context_push()
+	{
+		array_push($this->context_stack['str'], $this->tpl_strings);
+		array_push($this->context_stack['bool'], $this->tpl_bool);
+		array_push($this->context_stack['history'], $this->vars_assign_history);
+	}
+	
+	function context_pop()
+	{
+		$this->tpl_strings = array_pop($this->context_stack['str']);
+		$this->tpl_bool = array_pop($this->context_stack['bool']);
+		$this->vars_assign_history = array_pop($this->context_stack['history']);
 	}
 	
 	/**

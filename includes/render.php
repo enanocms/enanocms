@@ -45,7 +45,14 @@ class RenderMan {
 		$text = $page->fetch_text();
 		
 		if ( !$render )
+		{
+			$code = $plugins->setHook('render_getpage_norender');
+			foreach ( $code as $cmd )
+			{
+				eval($cmd);
+			}
 			return $text;
+		}
 		
 		$text = self::render($text, $wiki, $smilies, $filter_links);
 		return $text;
@@ -54,10 +61,14 @@ class RenderMan {
 	public static function getTemplate($id, $parms)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
+		
+		// Verify target exists -- if not, double-bracket it to convert it to a redlink
 		if ( !isPage($paths->get_pathskey($id, 'Template')) ) 
 		{
 			return '[['.$paths->nslist['Template'].$id.']]';
 		}
+		
+		// fetch from DB or template cache
 		if(isset($paths->template_cache[$id]))
 		{
 			$text = $paths->template_cache[$id];
@@ -69,6 +80,8 @@ class RenderMan {
 			$paths->template_cache[$id] = $text;
 		}
 		
+		// noinclude is not shown within the included template, only on the template's page when you load it
+		// nodisplay is not shown on the template's page, only in the included template
 		$text = preg_replace('/<noinclude>(.*?)<\/noinclude>/is', '', $text);
 		$text = preg_replace('/<nodisplay>(.*?)<\/nodisplay>/is', '\\1', $text);
 		
@@ -91,7 +104,7 @@ class RenderMan {
 		return $text;
 	}
 	
-	public static function fetch_template_text($id)
+	public static function fetch_template_text($id, $params)
 	{
 		global $db, $session, $paths, $template, $plugins; // Common objects
 		$fetch_ns = 'Template';
@@ -131,6 +144,11 @@ class RenderMan {
 				return '[['.$paths->nslist['Template'].$id.']]';
 			}
 		}
+		
+		$template->context_push();
+		
+		$template->assign_vars($params);
+		
 		if(isset($paths->template_cache[$id]))
 		{
 			$text = $paths->template_cache[$id];
@@ -140,6 +158,8 @@ class RenderMan {
 			$text = RenderMan::getPage($id, $fetch_ns, 0, false, false, false, false);
 			$paths->template_cache[$id] = $text;
 		}
+		
+		$template->context_pop();
 		
 		if ( is_string($text) )
 		{
@@ -894,7 +914,7 @@ class RenderMan {
 				{
 					$parms = Array();
 				}
-				if ( $tpl_code = RenderMan::fetch_template_text($matches[1][$i]) )
+				if ( $tpl_code = RenderMan::fetch_template_text($matches[1][$i], $parms) )
 				{
 					// Intelligent paragraphs.
 					// If:
