@@ -753,9 +753,9 @@ window.ajaxLoginBuildForm = function(data)
 		if ( !show_captcha )
 			links.innerHTML += $lang.get('user_login_ajax_link_fullform', { link_full_form: makeUrlNS('Special', 'Login/' + title) }) + ' &bull; ';
 		// Always shown
-		links.innerHTML += $lang.get('user_login_ajax_link_forgotpass', { forgotpass_link: makeUrlNS('Special', 'PasswordReset') }) + ' &bull; ';
+		links.innerHTML += $lang.get('user_login_ajax_link_forgotpass', { forgotpass_link: makeUrlNS('Special', 'PasswordReset') });
 		if ( !show_captcha )
-			links.innerHTML += $lang.get('user_login_ajax_createaccount_blurb', { reg_link: makeUrlNS('Special', 'Register') });
+			links.innerHTML += ' &bull; ' + $lang.get('user_login_ajax_createaccount_blurb', { reg_link: makeUrlNS('Special', 'Register') });
 		div.appendChild(links);
 	}
 	
