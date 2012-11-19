@@ -355,7 +355,7 @@ install_language("eng", "English", "English", ENANO_ROOT . "/language/english/co
 profiler_log('Ran checks');
 
 // Init cache
-$cache = new CacheManager();
+$cache = CacheManager::factory();
 
 // Load plugin manager
 $plugins = new pluginLoader();

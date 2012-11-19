@@ -21,6 +21,59 @@
 
 class CacheManager
 {
+	public static function factory($backend = 'auto')
+	{
+		if ( function_exists('xcache_set') )
+			return new CacheManager_XCache();
+		else
+			return new CacheManager_File();
+	}
+}
+
+class CacheManager_XCache
+{
+	private $prefix;
+	
+	/**
+	 * Constructor. Merely generates the prefix that will be prepended to cache objects.
+	 */
+	
+	public function __construct()
+	{
+		global $crypto_key;
+		$this->prefix = 'enano' . substr(md5($crypto_key), 0, 8) . '_';
+	}
+	
+	/**
+	 * @see CacheManager_File::fetch()
+	 */
+	
+	public function fetch($cache_id)
+	{
+		return xcache_isset($this->prefix . $cache_id) ? xcache_get($this->prefix . $cache_id) : false;
+	}
+	
+	/**
+	 * @see CacheManager_File::store()
+	 */
+	
+	public function store($cache_id, $data, $ttl = 20)
+	{
+		return xcache_set($this->prefix . $cache_id, $data, $ttl * 60);
+	}
+	
+	/**
+	 * @see CacheManager_File::purge()
+	 */
+	
+	public function purge($cache_id)
+	{
+		return xcache_unset($this->prefix . $cache_id);
+	}
+}
+
+class CacheManager_File
+{
 	/**
  	* Fetch a cached piece of data.
  	* @param string Cache ID. The timestamp is checked automatically.
