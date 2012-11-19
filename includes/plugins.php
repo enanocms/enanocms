@@ -27,7 +27,23 @@ class pluginLoader {
  	* @access private
  	*/
 	
-	var $hook_list;
+	var $hook_list = array();
+	
+	/**
+	* List of hooks which are lambda (anonymous) functions
+	* @var array
+	* @access private
+	*/
+	
+	var $hook_list_lambda = array();
+	
+	/**
+	* Temporary array which holds closures currently being called
+	* @var array
+	* @access private Technically public access, but seriously just don't touch it
+	*/
+	
+	var $__current_hook = array();
 	
 	/**
  	* The list of plugins that should be loaded. Used only by common.php.
@@ -104,6 +120,12 @@ class pluginLoader {
 	
 	function setHook($name, $dont_split = false)
 	{
+		if ( !empty($this->hook_list_lambda[$name]) )
+		{
+			$this->__current_hook =& $this->hook_list_lambda[$name];
+			// This is kind of terrible right now, I'm not sure how to handle inheritance and such.
+			$this->attachHook($name, 'foreach ( $plugins->__current_hook as $func ) { call_user_func($func); }; unset($plugins->__current_hook);');
+		}
 		if ( !empty($this->hook_list[$name]) && is_array($this->hook_list[$name]) )
 		{
 			if ( $dont_split )
@@ -136,11 +158,22 @@ class pluginLoader {
 	
 	function attachHook($name, $code)
 	{
-		if ( !isset($this->hook_list[$name]) )
+		if ( is_callable($code) )
 		{
-			$this->hook_list[$name] = Array();
+			if ( !isset($this->hook_list_lambda[$name]) )
+			{
+				$this->hook_list_lambda[$name] = Array();
+			}
+			$this->hook_list_lambda[$name][] = $code;
 		}
-		$this->hook_list[$name][] = $code;
+		else
+		{
+			if ( !isset($this->hook_list[$name]) )
+			{
+				$this->hook_list[$name] = Array();
+			}
+			$this->hook_list[$name][] = $code;
+		}
 	}
 	
 	/**
