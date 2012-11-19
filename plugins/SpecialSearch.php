@@ -137,7 +137,18 @@ LONGSTRING;
 			$result['page_text'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="search-term">', '</span>'), $result['page_text']);
 			if ( !empty($result['page_text']) )
 				$result['page_text'] .= '<br />';
-			$result['page_name'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="title-search-term">', '</span>'), $result['page_name']);
+			
+			// localize the title... if it comes back from the language code, replace the title, losing highlighting.
+			// otherwise, keep the highlighted title from the search backend
+			if ( ($l10n_title = $lang->get(strip_tags($result['page_name']))) !== strip_tags($result['page_name']) )
+			{
+				$result['page_name'] = $l10n_title;
+			}
+			else
+			{
+				$result['page_name'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="title-search-term">', '</span>'), $result['page_name']);
+			}
+			
 			$result['url_highlight'] = str_replace(array('<highlight>', '</highlight>'), array('<span class="url-search-term">', '</span>'), $result['url_highlight']);
 			if ( $result['page_length'] >= 1048576 )
 			{

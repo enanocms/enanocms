@@ -276,7 +276,7 @@ function perform_search($query, &$warnings, $case_sensitive = false, &$word_list
 						if ( strstr($word_cs, $qword) )
 							$lev_array[ $qword ] = levenshtein($qword, $word_cs);
 					}
-					if ( min($lev_array) > 3 )
+					if ( count($lev_array) && min($lev_array) > 3 )
 					{
 						$inc /= array_sum($lev_array) / count($lev_array);
 					}
