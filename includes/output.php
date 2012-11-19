@@ -273,6 +273,41 @@ class Output_Naked extends Output_HTML
 }
 
 /**
+ * Output engine that sends data using Comet. This allows incremental pushing of data.
+ * Note that this tends to not work with every server.
+ */
+
+class Output_Comet extends Output_Naked
+{
+	/**
+	 * Be warned: this header function will flush ALL output buffers!
+	 */
+	
+	public function header()
+	{
+		while ( ob_get_level() )
+			ob_end_flush();
+	}
+	
+	/**
+	 * Write data and immediately send it to the client.
+	 * @param string Data to write
+	 */
+	
+	public function write($data)
+	{
+		echo $data;
+		flush();
+		if ( $data === 'STOP' || !stristr(@$_SERVER['HTTP_USER_AGENT'], 'gecko') || stristr(@$_SERVER['HTTP_USER_AGENT'], 'like gecko') )
+		{
+			global $db;
+			$db->close();
+			exit;
+		}
+	}
+}
+
+/**
  * Safe template outputter
  */
 
