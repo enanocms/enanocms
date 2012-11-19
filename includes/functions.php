@@ -589,7 +589,7 @@ function redirect($url, $title = 'etc_redirect_title', $message = 'etc_redirect_
 	{
 		header('Location: ' . $url);
 		header('Content-length: 0');
-		header('HTTP/1.1 307 Temporary Redirect');
+		header('HTTP/1.1 302 Found');
 		
 		// with 3xx codes HTTP clients expect a response of 0 bytes, so just die here
 		exit();
