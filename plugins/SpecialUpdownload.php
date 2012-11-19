@@ -250,7 +250,7 @@ function page_Special_DownloadFile()
 			$extension = ".{$_GET['fmt']}";
 		
 		$cache_filename = ENANO_ROOT . "/cache/{$filename}-{$row['time_id']}-{$width}x{$height}$extension";
-		if ( file_exists($cache_filename) )
+		if ( file_exists($cache_filename) && !isset($_GET['cache_override']) )
 		{
 			$fname = $cache_filename;
 		}
@@ -281,7 +281,7 @@ function page_Special_DownloadFile()
 			}
 			if ( $allow_scale )
 			{
-				$result = scale_image($orig_fname, $fname, $width, $height);
+				$result = scale_image($orig_fname, $fname, $width, $height, isset($_GET['cache_override']));
 				if ( !$result )
 					$fname = $orig_fname;
 			}
@@ -301,19 +301,20 @@ function page_Special_DownloadFile()
 	{
 		header('Content-disposition: attachment, filename="' . $filename . '";');
 	}
-	if ( !@$GLOBALS['do_gzip'] )
+	//if ( !@$GLOBALS['do_gzip'] )
 		header('Content-length: ' . $len);
 	
 	header('Last-Modified: '.enano_date('r', $row['time_id']));
 	
 	// using this method limits RAM consumption
+	@ob_end_flush();
 	while ( !feof($handle) )
 	{
 		echo fread($handle, 512000);
 	}
 	fclose($handle);
 	
-	gzip_output();
+	$db->close();
 	
 	exit;
 	

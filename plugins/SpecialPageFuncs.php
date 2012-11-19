@@ -716,7 +716,15 @@ function page_Special_AjaxUpload()
 		$key = "upload_progress_{$_GET['uploadstatus']}";
 		$info = isset($_SESSION[$key]) ? $_SESSION[$key] : array();
 		if ( isset($_SESSION[$key]) && $_SESSION[$key]['done'] )
+		{
 			unset($_SESSION[$key]);
+		}
+		
+		if ( !isset($_SESSION[$key]) )
+		{
+			// workaround to cause stuck uploads on the client side to shut up
+			$info['done'] = true;
+		}
 		
 		if ( is_array($info) )
 		{

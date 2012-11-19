@@ -4268,6 +4268,7 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
 		{
 			die('SECURITY: ImageMagick path is screwy');
 		}
+		$magick_path = escapeshellcmd($magick_path);
 		$cmdline = "$magick_path $in_file_sh -resize \"{$width}x{$height}>\" $out_file_sh";
 		system($cmdline, $return);
 		if ( !file_exists($out_file) )
@@ -4291,7 +4292,7 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
 		else if ( $ratio < 1 )
 		{
 			// orig. height is greater than width
-			$new_width = round( $height / $ratio );
+			$new_width = round( $height * $ratio );
 			$new_height = $height;
 		}
 		else if ( $ratio == 1 )
@@ -4312,6 +4313,13 @@ function scale_image($in_file, $out_file, $width = 225, $height = 225, $unlink =
 		$oldimage = @$func($in_file);
 		if ( !$oldimage )
 			throw new Exception('GD: Request to load input image file failed.');
+		
+		if ( $file_ext == 'png' || $file_ext == 'gif' )
+		{
+			imagecolortransparent($newimage, imagecolorallocatealpha($newimage, 0, 0, 0, 127));
+			imagealphablending($newimage, false);
+			imagesavealpha($newimage, true);
+		}
 		
 		// Perform scaling
 		imagecopyresampled($newimage, $oldimage, 0, 0, 0, 0, $new_width, $new_height, $width_orig, $height_orig);
@@ -4870,7 +4878,7 @@ function enano_json_decode($data)
 	if ( function_exists('json_decode') )
 	{
 		// using PHP5 with JSON support
-		return json_decode($data);
+		return json_decode($data, true);
 	}
 	*/
 	
