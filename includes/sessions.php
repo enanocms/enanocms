@@ -3500,7 +3500,7 @@ class sessionManager {
 				else if ( $prev_l == 'p' && mt_rand(0, 5) == 1 )
 					$word .= 'h';
 				// this rule allows "ck" which can result in the occasional "dick", "fuck", etc. that tends
-				// to end up on 4chan, but I decided to keep it, because it increases word complexity.
+				// to end up on /r/funny, but I decided to keep it, because it increases word complexity.
 				else if ( $prev_l == 'c' && mt_rand(0, 3) == 1 )
 					$word .= 'k';
 				else if ( $prev_l == 'q' && mt_rand(0, 5) != 1 )

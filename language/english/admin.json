@@ -447,7 +447,7 @@ var enano_lang = {
 			field_avatar_max_dimensions_hint: 'The format is width &#215; height. Typically you want to have this square (the same width and height). These are only maximum dimensions; users are not prevented from having smaller images.',
 			field_avatar_allow_anim_title: 'Allow animated avatars:',
 			field_avatar_allow_anim_hint: 'If this is checked, users can upload APNG and Animated GIF&#8480; avatars. Sometimes such images can be specifically made to be distracting, like rapidly flashing images. If this is unchecked, these formats will be blocked, and only still PNGs and GIFs will be allowed.',
-			field_avatar_allow_anim: 'Don\'t block animated images',
+			field_avatar_allow_anim: 'Allow animated images',
 			field_avatar_upload_methods: 'Allowed upload methods:',
 			field_avatar_upload_file: 'Allow users to upload image files from their computers',
 			field_avatar_upload_http: 'Allow users to enter a URL to their desired avatar',
