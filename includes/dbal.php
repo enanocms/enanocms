@@ -208,7 +208,19 @@ class mysql {
 		
 		$host_line = ( preg_match('/^:/', $dbhost) ) ? $dbhost : "{$dbhost}:{$dbport}";
 		
-		$this->_conn = @mysql_connect($host_line, $dbuser, $dbpasswd);
+		// Try a peristent connection twice
+		// http://us2.php.net/manual/en/function.mysql-pconnect.php#99380
+		$this->_conn = @mysql_pconnect($host_line, $dbuser, $dbpasswd);
+		if ( !@mysql_query("SELECT 1;", $this->_conn) )
+		{
+			$this->_conn = @mysql_pconnect($host_line, $dbuser, $dbpasswd);
+			if ( !@mysql_query("SELECT 1;", $this->_conn) )
+			{
+				// if that doesn't work, use a normal connection
+				$this->_conn = @mysql_connect($host_line, $dbuser, $dbpasswd);
+				trigger_error(E_USER_WARNING, "Forced to use nonpersistent mysql connection");
+			}
+		}
 		unset($dbuser);
 		unset($dbpasswd); // Security
 		
@@ -536,6 +548,9 @@ class mysql {
 	
 	function close()
 	{
+		// anything we locked should certainly be unlocked now;
+		@mysql_query("COMMIT;", $this->_conn);
+		@mysql_query("UNLOCK TABLES;", $this->_conn);
 		@mysql_close($this->_conn);
 		unset($this->_conn);
 	}
