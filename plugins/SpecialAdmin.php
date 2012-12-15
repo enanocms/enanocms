@@ -1631,6 +1631,9 @@ function page_Admin_MassEmail()
 	{
 		$use_smtp = getConfig('smtp_enabled') == '1';
 		
+		// init errors array
+		$errors = array();
+		
 		//
 		// Let's do some checking to make sure that mass mail functions
 		// are working in win32 versions of php. (copied from phpBB)
@@ -1718,7 +1721,7 @@ function page_Admin_MassEmail()
 			}
 		}
 		
-		if ( sizeof($errors) < 1 )
+		if ( empty($errors) )
 		{
 		
 			$mail->from(getConfig('contact_email'));
