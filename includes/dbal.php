@@ -32,6 +32,17 @@ function db_error_handler($errno, $errstr, $errfile = false, $errline = false, $
 	echo "<b>$errtype:</b> $errstr<br />Error source:<pre>$debug</pre>";
 }
 
+/**
+ * Checks to see if a given pdo driver is available.
+ * @param string driver name
+ * @return bool
+ */
+
+function have_pdo($driver)
+{
+	return class_exists('PDO') && extension_loaded("pdo_$driver") && class_exists("{$driver}_pdo");
+}
+
 global $db_sql_parse_time;
 $db_sql_parse_time = 0;
 
@@ -40,7 +51,7 @@ class mysql {
 	var $row = array();
 	var $rowset = array();
 	var $errhandler;
-	var $dbms_name = 'MySQL';
+	var $dbms_name = 'MySQL (legacy)';
 	
 	/**
  	* Get a flat textual list of queries that have been made.
@@ -706,7 +717,7 @@ class mysql_pdo {
 	var $row = array();
 	var $rowset = array();
 	var $errhandler;
-	var $dbms_name = 'MySQL';
+	var $dbms_name = 'MySQL/PDO';
 	
 	/**
  	* Get a flat textual list of queries that have been made.

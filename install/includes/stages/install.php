@@ -29,7 +29,9 @@ if ( !in_array($dbdriver, $supported_drivers) )
 	return true;
 }
 
-$db = new $dbdriver();
+$dbdriver_cls = have_pdo($dbdriver) ? "{$dbdriver}_pdo" : $dbdriver;
+
+$db = new $dbdriver_cls();
 $result = $db->connect();
 if ( !$result )
 {

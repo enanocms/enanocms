@@ -27,7 +27,7 @@ $mysql_disable_reason = '';
 $pgsql_disable_reason = '';
 $mysql_disable = '';
 $pgsql_disable = '';
-if ( !function_exists('mysql_connect') )
+if ( !function_exists('mysql_connect') && !have_pdo("mysql") )
 {
 	$mysql_disable = ' disabled="disabled"';
 	$mysql_disable_reason = $lang->get('database_driver_err_no_mysql');

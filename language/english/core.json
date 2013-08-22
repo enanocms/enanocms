@@ -46,6 +46,7 @@ var enano_lang = {
 			enano_about_lbl_webserver: 'Web server:',
 			enano_about_lbl_serverplatform: 'Server platform:',
 			enano_about_lbl_phpversion: '<a href="http://www.php.net/">PHP</a> version:',
+			enano_about_lbl_dbdriver: 'Database driver:',
 			enano_about_lbl_mysqlversion: '<a href="http://www.mysql.com/">MySQL</a> version:',
 			enano_about_lbl_pgsqlversion: '<a href="http://www.postgresql.org/">PostgreSQL</a> version:',
 			direction: 'ltr'

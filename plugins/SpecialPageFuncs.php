@@ -486,20 +486,21 @@ function page_Special_About_Enano()
 			<tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_enanoversion'); ?></td><td class="row1"><?php echo enano_version(true) . ' (' . enano_codename() . ')'; ?></td></tr>
 			<tr><td style="width: 100px;" class="row2"><?php echo $lang->get('meta_enano_about_lbl_webserver'); ?></td><td class="row2"><?php if(isset($_SERVER['SERVER_SOFTWARE'])) echo $_SERVER['SERVER_SOFTWARE']; else echo 'Unable to determine web server software.'; ?></td></tr>
 			<tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_serverplatform'); ?></td><td class="row1"><?php echo $platform; ?></td></tr>
-			<tr><td style="width: 100px;" class="row2"><?php echo $lang->get('meta_enano_about_lbl_phpversion'); ?></td><td class="row2"><?php echo PHP_VERSION; ?></td></tr>
+			<tr><td style="width: 100px;" class="row2"><?php echo $lang->get('meta_enano_about_lbl_dbdriver'); ?></td><td class="row2"><?php echo $db->dbms_name; ?></td></tr>
+			<tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_phpversion'); ?></td><td class="row1"><?php echo PHP_VERSION; ?></td></tr>
 			<?php
 			switch(ENANO_DBLAYER)
 			{
 				case 'MYSQL':
 					?>
-					<tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_mysqlversion'); ?></td><td class="row1"><?php echo $db->get_server_version(); ?></td></tr>
+					<tr><td style="width: 100px;" class="row2"><?php echo $lang->get('meta_enano_about_lbl_mysqlversion'); ?></td><td class="row2"><?php echo $db->get_server_version(); ?></td></tr>
 					<?php
 					break;
 				case 'PGSQL':
 					$pg_serverdata = pg_version($db->_conn);
 					$pg_version = $pg_serverdata['server'];
 					?>
-					<tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_pgsqlversion'); ?></td><td class="row1"><?php echo $pg_version; ?></td></tr>
+					<tr><td style="width: 100px;" class="row2"><?php echo $lang->get('meta_enano_about_lbl_pgsqlversion'); ?></td><td class="row2"><?php echo $pg_version; ?></td></tr>
 					<?php
 					break;
 			}

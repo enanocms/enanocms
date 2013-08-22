@@ -217,7 +217,9 @@ unset($dbuser, $dbpasswd);
 if ( !isset($dbdriver) )
 	$dbdriver = 'mysql';
 
-$db = new $dbdriver();
+$dbdriver_cls = have_pdo($dbdriver) ? "{$dbdriver}_pdo" : $dbdriver;
+
+$db = new $dbdriver_cls();
 $db->connect();
 
 profiler_log('Database connected');
