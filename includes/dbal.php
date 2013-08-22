@@ -423,23 +423,6 @@ class mysql {
 	}
 	
 	/**
- 	* Set the internal result pointer to X
- 	* @param int $pos The number of the row
- 	* @param resource $result The MySQL result resource - if not given, the latest cached query is assumed
- 	* @return true on success, false on failure
- 	*/
- 	
-	function sql_data_seek($pos, $result = false)
-	{
-		if ( !$result )
-			$result = $this->latest_result;
-		if ( !$result )
-			return false;
-		
-		return mysql_data_seek($result, $pos) ? true : false;
-	}
-	
-	/**
  	* Reports a bad query to the admin
  	* @param string $query the naughty query
  	* @access private
@@ -556,16 +539,6 @@ class mysql {
 		
 		@mysql_free_result($result);
 		return null;
-	}
-	
-	/**
- 	* Returns the number of rows affected.
- 	* @return int
- 	*/
-	
-	function sql_affectedrows()
-	{
-		return mysql_affected_rows($this->_conn);
 	}
 	
 	/**
@@ -1084,23 +1057,6 @@ class mysql_pdo {
 	}
 	
 	/**
- 	* Set the internal result pointer to X
- 	* @param int $pos The number of the row
- 	* @param resource $result The MySQL result resource - if not given, the latest cached query is assumed
- 	* @return true on success, false on failure
- 	*/
- 	
-	function sql_data_seek($pos, $result = false)
-	{
-		if ( !$result )
-			$result = $this->latest_result;
-		if ( !$result )
-			return false;
-		
-		return mysql_data_seek($result, $pos) ? true : false;
-	}
-	
-	/**
  	* Reports a bad query to the admin
  	* @param string $query the naughty query
  	* @access private
@@ -1225,16 +1181,6 @@ class mysql_pdo {
 	}
 	
 	/**
- 	* Returns the number of rows affected.
- 	* @return int
- 	*/
-	
-	function sql_affectedrows()
-	{
-		return mysql_affected_rows($this->_conn);
-	}
-	
-	/**
 	* Get MySQL server version
 	* @return string
 	*/
@@ -1255,9 +1201,8 @@ class mysql_pdo {
 	function close()
 	{
 		// anything we locked should certainly be unlocked now;
-		@mysql_query("COMMIT;", $this->_conn);
-		@mysql_query("UNLOCK TABLES;", $this->_conn);
-		@mysql_close($this->_conn);
+		$this->sql_query("COMMIT;", $this->_conn);
+		$this->sql_query("UNLOCK TABLES;", $this->_conn);
 		unset($this->_conn);
 	}
 	
@@ -1691,23 +1636,6 @@ class postgresql
 	}
 	
 	/**
- 	* Set the internal result pointer to X
- 	* @param int $pos The number of the row
- 	* @param resource $result The PostgreSQL result resource - if not given, the latest cached query is assumed
- 	* @return true on success, false on failure
- 	*/
- 	
-	function sql_data_seek($pos, $result = false)
-	{
-		if ( !$result )
-			$result = $this->latest_result;
-		if ( !$result )
-			return false;
-		
-		return pg_result_seek($result, $pos) ? true : false;
-	}
-	
-	/**
  	* Reports a bad query to the admin
  	* @param string $query the naughty query
  	* @access private
@@ -1920,16 +1848,6 @@ class postgresql
 		}
 	}
 	
-	/**
- 	* Returns the number of rows affected.
- 	* @return int
- 	*/
-	
-	function sql_affectedrows()
-	{
-		return pg_affected_rows($this->latest_result);
-	}
-
 	/**
  	* Generates and outputs a report of all the SQL queries made during execution. Should only be called after everything's over with.
  	*/

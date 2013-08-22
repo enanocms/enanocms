@@ -548,8 +548,12 @@ function page_Admin_LangManager()
 	$btn_edit = $lang->get('acplm_portal_btn_edit');
 	$btn_unin = $lang->get('acplm_portal_btn_unin');
 	
+	$rows = array();
+	
 	while ( $row = $db->fetchrow($q) )
 	{
+		$rows[] = $row;
+		
 		$cls = ( $cls == 'row1' ) ? 'row2' : 'row1';
 		
 		echo '<tr>';
@@ -569,11 +573,7 @@ function page_Admin_LangManager()
 	
 	echo '</table></div>';
 	
-	// Reset the result pointer to zero so we can fetch that list of languages again
-	if ( !$db->sql_data_seek(0, $q) )
-	{
-		$db->_die('LangManager doing seek back to zero for installation blacklist');
-	}
+	$db->free_result();
 	
 	// $lang_list is fetched by the posthandler sometimes
 	if ( !isset($lang_list) )
@@ -583,7 +583,7 @@ function page_Admin_LangManager()
 		$lang_list = list_available_languages();
 	}
 	
-	while ( $row = $db->fetchrow($q) )
+	foreach ( $rows as $row )
 	{
 		$lang_code =& $row['lang_code'];
 		if ( isset($lang_list[$lang_code]) )

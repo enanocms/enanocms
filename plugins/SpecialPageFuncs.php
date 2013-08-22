@@ -376,8 +376,7 @@ function page_Special_About_Enano()
 	global $lang;
 	
 	$platform = 'Unknown';
-	$uname = @file_get_contents('/proc/sys/kernel/ostype');
-	if($uname == "Linux\n")
+	if(strtolower(PHP_OS) === 'linux')
 		$platform = 'Linux';
 	else if(@file_exists('/hurd/pfinet')) // I have a little experience with GNU/Hurd :-) http://hurdvm.enanocms.org/
 		$platform = 'GNU/Hurd';
@@ -493,7 +492,7 @@ function page_Special_About_Enano()
 			{
 				case 'MYSQL':
 					?>
-					<tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_mysqlversion'); ?></td><td class="row1"><?php echo mysql_get_server_info($db->_conn); ?></td></tr>
+					<tr><td style="width: 100px;" class="row1"><?php echo $lang->get('meta_enano_about_lbl_mysqlversion'); ?></td><td class="row1"><?php echo $db->get_server_version(); ?></td></tr>
 					<?php
 					break;
 				case 'PGSQL':
