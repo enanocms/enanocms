@@ -16,6 +16,11 @@
 if ( !defined('IN_ENANO_INSTALL') )
 	die();
 
+function pdo_escape($pdo, $str)
+{
+	return substr($pdo->quote($str), 1, -1);
+}
+
 if ( isset($_POST['_cont']) )
 {
 	$allow_go = true;
@@ -84,39 +89,20 @@ if ( isset($_POST['ajax_test']) )
 	
 	$dbhost = ( preg_match('/^:/', $info['db_host']) ) ? $info['db_host'] : "{$info['db_host']}:{$info['db_port']}";
 	
-	// Try to connect as the normal user
-	$test = @mysql_connect($dbhost, $info['db_user'], $info['db_pass']);
-	if ( !$test )
+	if ( have_pdo('mysql') )
 	{
-		$return['creating_user'] = true;
-		$return['last_error'] = mysql_error();
-		if ( strstr( $return['last_error'], 'Lost connection' ) || strstr( $return['last_error'], 'Unknown MySQL server host' ) )
+		// Try to connect as the normal user
+		try
 		{
-			$return['host_good'] = false;
-		}
-		// Doing that failed. If we have root credentials, test those
-		if ( !empty($info['db_root_user']) && !empty($info['db_root_pass']) )
-		{
-			// Log in with root rights and if that works, tell 'em we'll reset the password or create
-			// the account if it doesn't exist already. This is done with GRANT ALL PRIVILEGES ON enano_db.*
-			// etc etc, a little hackish but known to work with MySQL >= 4.1.
-			$test_root = @mysql_connect($dbhost, $info['db_root_user'], $info['db_root_pass']);
-			if ( $test_root )
+			$test = new PDO("mysql:host=$dbhost;charset=UTF8", $info['db_user'], $info['db_pass']);
+			
+			// We're connected; do we have permission to use the database?
+			$have_database = false;
+			$q = $test->query('USE `' . pdo_escape($test, $info['db_name']) . '`;');
+			if ( $q )
 			{
-				// We logged in with root rights, assume that we have appropriate permissions.
-				// If not, well, the installation will fail. Tough on the user, but creating
-				// test databases/users is too risky.
-				
-				// Does the database exist?
-				$q = @mysql_query('USE `' . mysql_real_escape_string($info['db_name']) . '`;', $test_root);
-				if ( !$q )
-				{
-					// Nope, we'll have to create it
-					$return['creating_db'] = true;
-					$return['last_error'] = mysql_error();
-				}
-				
-				$version = mysql_get_server_info($test_root);
+				// Permissions are good and we're all connected. Perform version check...
+				$version = $test->getAttribute(PDO::ATTR_SERVER_VERSION);
 				$return['version'] = array(
 					'version' => $version,
 					'good' => version_compare($version, '4.0.17', '>=')
@@ -126,43 +112,123 @@ if ( isset($_POST['ajax_test']) )
 			}
 			else
 			{
-				// Well that helped. Root credentials are bad.
+				$return['last_error'] = mysql_error();
 				$return['creating_db'] = true;
-				$return['root_fail'] = true;
+				
+				// We don't have permission to use the database or it doesn't exist.
+				// See if we have a root login to work with, if not then fail
+				if ( !empty($info['db_root_user']) && !empty($info['db_root_pass']) )
+				{
+					// Log in with root rights and if that works, tell 'em we'll create the database.
+					try
+					{
+						$test_root = new PDO("mysql:host=$dbhost;charset=UTF8", $info['db_root_user'], $info['db_root_pass']);
+						
+						// We logged in with root rights, assume that we have appropriate permissions.
+						// If not, well, the installation will fail. Tough on the user, but creating
+						// test databases/users is too risky.
+						
+						// See if the database already exists
+						$dbname = pdo_escape($test_root, $info['db_name']);
+						$q = $test_root->query("SHOW DATABASES LIKE '$dbname';");
+						if ( $q )
+						{
+							if ( $q->rows() > 0 )
+							{
+								$return['creating_db'] = false;
+								$return['creating_db_grant'] = true;
+							}
+						}
+						
+						$version = $test->getAttribute(PDO::ATTR_SERVER_VERSION);
+						$return['version'] = array(
+							'version' => $version,
+							'good' => version_compare($version, '4.0.17', '>=')
+						);
+						
+						$return['can_install'] = ( $return['version']['good'] ) ? true : false;
+					}
+					catch ( PDOException $e )
+					{
+						// Well that helped. Root credentials are bad.
+						$return['creating_db'] = true;
+						$return['root_fail'] = true;
+					}
+				}
+				// No root credentials, fail out
 			}
 		}
-		else
+		catch ( PDOException $e )
 		{
-			// No root credentials, fail out
-			$return['root_fail'] = true;
+			$return['creating_user'] = true;
+			$return['last_error'] = mysql_error();
+			if ( strstr( $return['last_error'], 'Lost connection' ) || strstr( $return['last_error'], 'Unknown MySQL server host' ) )
+			{
+				$return['host_good'] = false;
+			}
+			// Doing that failed. If we have root credentials, test those
+			if ( !empty($info['db_root_user']) && !empty($info['db_root_pass']) )
+			{
+				// Log in with root rights and if that works, tell 'em we'll reset the password or create
+				// the account if it doesn't exist already. This is done with GRANT ALL PRIVILEGES ON enano_db.*
+				// etc etc, a little hackish but known to work with MySQL >= 4.1.
+				try
+				{
+					$test_root = new PDO("mysql:host=$dbhost;charset=UTF8", $info['db_root_user'], $info['db_root_pass']);
+					
+					// We logged in with root rights, assume that we have appropriate permissions.
+					// If not, well, the installation will fail. Tough on the user, but creating
+					// test databases/users is too risky.
+					
+					// Does the database exist?
+					$q = $test_root->query('USE `' . mysql_real_escape_string($info['db_name']) . '`;');
+					if ( !$q )
+					{
+						// Nope, we'll have to create it
+						$return['creating_db'] = true;
+						$return['last_error'] = mysql_error();
+					}
+					
+					$version = $test_root->getAttribute(PDO::ATTR_SERVER_VERSION);
+					$return['version'] = array(
+						'version' => $version,
+						'good' => version_compare($version, '4.0.17', '>=')
+					);
+					
+					$return['can_install'] = ( $return['version']['good'] ) ? true : false;
+				}
+				catch ( PDOException $e )
+				{
+					// Well that helped. Root credentials are bad.
+					$return['creating_db'] = true;
+					$return['root_fail'] = true;
+				}
+			}
+			else
+			{
+				// No root credentials, fail out
+				$return['root_fail'] = true;
+			}
 		}
 	}
 	else
 	{
-		// We're connected; do we have permission to use the database?
-		$have_database = false;
-		$q = @mysql_query('USE `' . mysql_real_escape_string($info['db_name']) . '`;', $test);
-		if ( $q )
+		// Try to connect as the normal user
+		$test = @mysql_connect($dbhost, $info['db_user'], $info['db_pass']);
+		if ( !$test )
 		{
-			// Permissions are good and we're all connected. Perform version check...
-			$version = mysql_get_server_info($test);
-			$return['version'] = array(
-				'version' => $version,
-				'good' => version_compare($version, '4.0.17', '>=')
-			);
-			
-			$return['can_install'] = ( $return['version']['good'] ) ? true : false;
-		}
-		else
-		{
+			$return['creating_user'] = true;
 			$return['last_error'] = mysql_error();
-			$return['creating_db'] = true;
-			
-			// We don't have permission to use the database or it doesn't exist.
-			// See if we have a root login to work with, if not then fail
+			if ( strstr( $return['last_error'], 'Lost connection' ) || strstr( $return['last_error'], 'Unknown MySQL server host' ) )
+			{
+				$return['host_good'] = false;
+			}
+			// Doing that failed. If we have root credentials, test those
 			if ( !empty($info['db_root_user']) && !empty($info['db_root_pass']) )
 			{
-				// Log in with root rights and if that works, tell 'em we'll create the database.
+				// Log in with root rights and if that works, tell 'em we'll reset the password or create
+				// the account if it doesn't exist already. This is done with GRANT ALL PRIVILEGES ON enano_db.*
+				// etc etc, a little hackish but known to work with MySQL >= 4.1.
 				$test_root = @mysql_connect($dbhost, $info['db_root_user'], $info['db_root_pass']);
 				if ( $test_root )
 				{
@@ -170,20 +236,16 @@ if ( isset($_POST['ajax_test']) )
 					// If not, well, the installation will fail. Tough on the user, but creating
 					// test databases/users is too risky.
 					
-					// See if the database already exists
-					$dbname = mysql_real_escape_string($info['db_name']);
-					$q = @mysql_query("SHOW DATABASES LIKE '$dbname';", $test_root);
-					if ( $q )
+					// Does the database exist?
+					$q = @mysql_query('USE `' . mysql_real_escape_string($info['db_name']) . '`;', $test_root);
+					if ( !$q )
 					{
-						if ( mysql_num_rows($q) > 0 )
-						{
-							$return['creating_db'] = false;
-							$return['creating_db_grant'] = true;
-						}
-						@mysql_free_result($q);
+						// Nope, we'll have to create it
+						$return['creating_db'] = true;
+						$return['last_error'] = mysql_error();
 					}
 					
-					$version = mysql_get_server_info($test);
+					$version = mysql_get_server_info($test_root);
 					$return['version'] = array(
 						'version' => $version,
 						'good' => version_compare($version, '4.0.17', '>=')
@@ -198,7 +260,75 @@ if ( isset($_POST['ajax_test']) )
 					$return['root_fail'] = true;
 				}
 			}
-			// No root credentials, fail out
+			else
+			{
+				// No root credentials, fail out
+				$return['root_fail'] = true;
+			}
+		}
+		else
+		{
+			// We're connected; do we have permission to use the database?
+			$have_database = false;
+			$q = @mysql_query('USE `' . mysql_real_escape_string($info['db_name']) . '`;', $test);
+			if ( $q )
+			{
+				// Permissions are good and we're all connected. Perform version check...
+				$version = mysql_get_server_info($test);
+				$return['version'] = array(
+					'version' => $version,
+					'good' => version_compare($version, '4.0.17', '>=')
+				);
+				
+				$return['can_install'] = ( $return['version']['good'] ) ? true : false;
+			}
+			else
+			{
+				$return['last_error'] = mysql_error();
+				$return['creating_db'] = true;
+				
+				// We don't have permission to use the database or it doesn't exist.
+				// See if we have a root login to work with, if not then fail
+				if ( !empty($info['db_root_user']) && !empty($info['db_root_pass']) )
+				{
+					// Log in with root rights and if that works, tell 'em we'll create the database.
+					$test_root = @mysql_connect($dbhost, $info['db_root_user'], $info['db_root_pass']);
+					if ( $test_root )
+					{
+						// We logged in with root rights, assume that we have appropriate permissions.
+						// If not, well, the installation will fail. Tough on the user, but creating
+						// test databases/users is too risky.
+						
+						// See if the database already exists
+						$dbname = mysql_real_escape_string($info['db_name']);
+						$q = @mysql_query("SHOW DATABASES LIKE '$dbname';", $test_root);
+						if ( $q )
+						{
+							if ( mysql_num_rows($q) > 0 )
+							{
+								$return['creating_db'] = false;
+								$return['creating_db_grant'] = true;
+							}
+							@mysql_free_result($q);
+						}
+						
+						$version = mysql_get_server_info($test);
+						$return['version'] = array(
+							'version' => $version,
+							'good' => version_compare($version, '4.0.17', '>=')
+						);
+						
+						$return['can_install'] = ( $return['version']['good'] ) ? true : false;
+					}
+					else
+					{
+						// Well that helped. Root credentials are bad.
+						$return['creating_db'] = true;
+						$return['root_fail'] = true;
+					}
+				}
+				// No root credentials, fail out
+			}
 		}
 	}
 	

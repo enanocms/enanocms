@@ -111,6 +111,7 @@ require_once(ENANO_ROOT . '/includes/json.php');
 require_once(ENANO_ROOT . '/includes/constants.php');
 require_once(ENANO_ROOT . '/includes/rijndael.php');
 require_once(ENANO_ROOT . '/includes/hmac.php');
+require_once(ENANO_ROOT . '/includes/dbal.php');
 
 // If we have at least PHP 5, load json2
 if ( version_compare(PHP_VERSION, '5.0.0', '>=') )

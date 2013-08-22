@@ -18,7 +18,6 @@ if ( !defined('IN_ENANO_INSTALL') )
 
 require ( ENANO_ROOT . '/install/includes/libenanoinstall.php' );
 require ( ENANO_ROOT . '/includes/sql_parse.php' );
-require ( ENANO_ROOT . '/includes/dbal.php' );
 require ( ENANO_ROOT . '/config.new.php' );
 
 if ( !in_array($dbdriver, $supported_drivers) )

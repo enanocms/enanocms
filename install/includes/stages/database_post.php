@@ -17,9 +17,9 @@ if ( !defined('IN_ENANO_INSTALL') )
 	die();
 
 // Start up the DBAL
-require( ENANO_ROOT . '/includes/dbal.php' );
 require( ENANO_ROOT . '/includes/sql_parse.php' );
-$dbal = new $driver();
+$driver_cls = have_pdo($driver) ? "{$driver}_pdo" : $driver;
+$dbal = new $driver_cls();
 $db_host =& $_POST['db_host'];
 $db_port =& $_POST['db_port'];
 $db_user =& $_POST['db_user'];

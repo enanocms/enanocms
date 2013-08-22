@@ -81,12 +81,12 @@ if ( !$req_safemode )
 }
 
 // Test: MySQL
-$req_mysql = function_exists('mysql_connect');
+$req_mysql = function_exists('mysql_connect') || have_pdo('mysql');
 if ( $req_mysql )
 	$have_dbms = true;
 
 // Test: PostgreSQL
-$req_pgsql = function_exists('pg_connect');
+$req_pgsql = function_exists('pg_connect') || have_pdo('postgresql');
 if ( $req_pgsql )
 	$have_dbms = true;
 

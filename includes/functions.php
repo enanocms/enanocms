@@ -1004,6 +1004,8 @@ function grinding_halt($t, $p)
 {
 	global $db, $session, $paths, $template, $plugins; // Common objects
 	
+	require_once(ENANO_ROOT . '/includes/template.php');
+	
 	if ( !defined('scriptPath') )
 		require( ENANO_ROOT . '/config.php' );
 
