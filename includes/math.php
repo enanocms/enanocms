@@ -29,7 +29,7 @@ class EnanoMath_GMP
 	
 	function init($int, $base = 10)
 	{
-		return ( is_resource($int) ) ? $int : gmp_init($int, $base);
+		return ( is_resource($int) || (is_object($int) && $int instanceof \GMP) ) ? $int : gmp_init($int, $base);
 	}
 	
 	/**
