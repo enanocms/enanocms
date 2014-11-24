@@ -229,7 +229,7 @@ function get_server_url()
 	else
 		$server_name = 'localhost';
 	
-	return 'http' . ( $GLOBALS['is_https'] ) . '://' . $server_name;
+	return 'http' . ( $GLOBALS['is_https'] ? 's' : '' ) . '://' . $server_name;
 }
 
 /**
